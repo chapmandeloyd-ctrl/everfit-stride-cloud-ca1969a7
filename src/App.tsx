@@ -182,6 +182,7 @@ const App = () => (
           <Route path="/client/labs/diamond" element={<ProtectedRoute allowedRoles={["client"]}><ClientDiamondLab /></ProtectedRoute>} />
           <Route path="/client/labs/diamond/session" element={<ProtectedRoute allowedRoles={["client"]}><ClientBattingSession /></ProtectedRoute>} />
           <Route path="/client/labs/hoops" element={<ProtectedRoute allowedRoles={["client"]}><ClientHoopsLab /></ProtectedRoute>} />
+          <Route path="/client/labs/hoops/session" element={<ProtectedRoute allowedRoles={["client"]}><ClientShootingSession /></ProtectedRoute>} />
           
           {/* Trainer: Vibes Admin */}
           <Route path="/vibes-admin" element={<ProtectedRoute allowedRoles={["trainer"]}><VibesAdmin /></ProtectedRoute>} />
