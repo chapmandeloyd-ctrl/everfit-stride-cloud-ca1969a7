@@ -82,7 +82,7 @@ export default function ClientLogMeal() {
   }, []);
 
   // Debounced search
-  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [searchTimeout, setSearchTimeout] = useState<ReturnType<typeof setTimeout> | null>(null);
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
     if (searchTimeout) clearTimeout(searchTimeout);
