@@ -72,6 +72,10 @@ import ClientChooseProtocol from "./pages/client/ClientChooseProtocol";
 import ClientQuickPlans from "./pages/client/ClientQuickPlans";
 import ClientProtocolDetail from "./pages/client/ClientProtocolDetail";
 import ClientVibes from "./pages/client/ClientVibes";
+import ClientLabs from "./pages/client/ClientLabs";
+import ClientDiamondLab from "./pages/client/ClientDiamondLab";
+import ClientHoopsLab from "./pages/client/ClientHoopsLab";
+import ClientBattingSession from "./pages/client/ClientBattingSession";
 import ClientWorkoutHistory from "./pages/ClientWorkoutHistory";
 import VibesAdmin from "./pages/VibesAdmin";
 import ClientCommandCenter from "./pages/ClientCommandCenter";
@@ -173,6 +177,10 @@ const App = () => (
           <Route path="/client/quick-plans" element={<ProtectedRoute allowedRoles={["client"]}><FastingRouteGuard><ClientQuickPlans /></FastingRouteGuard></ProtectedRoute>} />
           <Route path="/client/protocol/:id" element={<ProtectedRoute allowedRoles={["client"]}><FastingRouteGuard><ClientProtocolDetail /></FastingRouteGuard></ProtectedRoute>} />
           <Route path="/client/vibes" element={<ProtectedRoute allowedRoles={["client"]}><ClientVibes /></ProtectedRoute>} />
+          <Route path="/client/labs" element={<ProtectedRoute allowedRoles={["client"]}><ClientLabs /></ProtectedRoute>} />
+          <Route path="/client/labs/diamond" element={<ProtectedRoute allowedRoles={["client"]}><ClientDiamondLab /></ProtectedRoute>} />
+          <Route path="/client/labs/diamond/session" element={<ProtectedRoute allowedRoles={["client"]}><ClientBattingSession /></ProtectedRoute>} />
+          <Route path="/client/labs/hoops" element={<ProtectedRoute allowedRoles={["client"]}><ClientHoopsLab /></ProtectedRoute>} />
           
           {/* Trainer: Vibes Admin */}
           <Route path="/vibes-admin" element={<ProtectedRoute allowedRoles={["trainer"]}><VibesAdmin /></ProtectedRoute>} />
