@@ -67,7 +67,7 @@ export function TrainerSidebar() {
       <SidebarContent>
         <div className="p-4 border-b border-sidebar-border" style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 16px)' }}>
           <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="EverFit Stride" className="h-10 w-10 rounded-lg object-contain" />
+            <img src="/logo.png" alt="KSOM360" className="h-16 w-16 rounded-xl object-cover" />
             {open && (
               <div>
                 <h2 className="font-bold text-sidebar-foreground">KSOM360</h2>
