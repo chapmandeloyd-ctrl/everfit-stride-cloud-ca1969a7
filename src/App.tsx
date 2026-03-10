@@ -76,6 +76,7 @@ import ClientLabs from "./pages/client/ClientLabs";
 import ClientDiamondLab from "./pages/client/ClientDiamondLab";
 import ClientHoopsLab from "./pages/client/ClientHoopsLab";
 import ClientBattingSession from "./pages/client/ClientBattingSession";
+import ClientShootingSession from "./pages/client/ClientShootingSession";
 import ClientWorkoutHistory from "./pages/ClientWorkoutHistory";
 import VibesAdmin from "./pages/VibesAdmin";
 import ClientCommandCenter from "./pages/ClientCommandCenter";
