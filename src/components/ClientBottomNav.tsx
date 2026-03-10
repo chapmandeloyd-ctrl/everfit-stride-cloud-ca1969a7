@@ -1,7 +1,8 @@
-import { Home, LayoutGrid, BarChart3, User, MonitorPlay } from "lucide-react";
+import { Home, LayoutGrid, BarChart3, User, MonitorPlay, FlaskConical } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useClientFeatureSettings } from "@/hooks/useClientFeatureSettings";
+import { useEngineMode } from "@/hooks/useEngineMode";
 
 interface NavItem {
   label: string;
@@ -22,14 +23,27 @@ const onDemandItem: NavItem = {
   icon: MonitorPlay,
 };
 
+const labsItem: NavItem = {
+  label: "Labs",
+  to: "/client/labs",
+  icon: FlaskConical,
+};
+
 export function ClientBottomNav() {
   const { settings } = useClientFeatureSettings();
+  const { engineMode } = useEngineMode();
   const onDemandEnabled = (settings as any)?.on_demand_enabled !== false;
+  const isAthleticEngine = engineMode === "athletic";
 
-  // Show all 5 tabs when on-demand is enabled, otherwise just the base 4
-  const navItems = onDemandEnabled
-    ? [baseItems[0], baseItems[1], onDemandItem, baseItems[2], baseItems[3]]
-    : baseItems;
+  // Athletic engine users get a Labs tab; others get On-Demand if enabled
+  let navItems: NavItem[];
+  if (isAthleticEngine) {
+    navItems = [baseItems[0], baseItems[1], labsItem, baseItems[2], baseItems[3]];
+  } else if (onDemandEnabled) {
+    navItems = [baseItems[0], baseItems[1], onDemandItem, baseItems[2], baseItems[3]];
+  } else {
+    navItems = baseItems;
+  }
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border" style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 4px)' }}>

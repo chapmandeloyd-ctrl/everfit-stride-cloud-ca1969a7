@@ -177,6 +177,10 @@ const App = () => (
           <Route path="/client/quick-plans" element={<ProtectedRoute allowedRoles={["client"]}><FastingRouteGuard><ClientQuickPlans /></FastingRouteGuard></ProtectedRoute>} />
           <Route path="/client/protocol/:id" element={<ProtectedRoute allowedRoles={["client"]}><FastingRouteGuard><ClientProtocolDetail /></FastingRouteGuard></ProtectedRoute>} />
           <Route path="/client/vibes" element={<ProtectedRoute allowedRoles={["client"]}><ClientVibes /></ProtectedRoute>} />
+          <Route path="/client/labs" element={<ProtectedRoute allowedRoles={["client"]}><ClientLabs /></ProtectedRoute>} />
+          <Route path="/client/labs/diamond" element={<ProtectedRoute allowedRoles={["client"]}><ClientDiamondLab /></ProtectedRoute>} />
+          <Route path="/client/labs/diamond/session" element={<ProtectedRoute allowedRoles={["client"]}><ClientBattingSession /></ProtectedRoute>} />
+          <Route path="/client/labs/hoops" element={<ProtectedRoute allowedRoles={["client"]}><ClientHoopsLab /></ProtectedRoute>} />
           
           {/* Trainer: Vibes Admin */}
           <Route path="/vibes-admin" element={<ProtectedRoute allowedRoles={["trainer"]}><VibesAdmin /></ProtectedRoute>} />
