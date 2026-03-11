@@ -67,7 +67,7 @@ const Login = () => {
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">KSOM360</CardTitle>
           <p className="text-sm text-muted-foreground mt-1">
-            {mode === "signup" ? "Create your account" : "Sign in to your account"}
+            {mode === "signup" ? "Create your account" : mode === "reset" ? "Reset your password" : "Sign in to your account"}
           </p>
         </CardHeader>
         <CardContent>
