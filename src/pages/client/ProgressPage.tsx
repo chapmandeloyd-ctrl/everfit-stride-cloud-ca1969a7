@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 import type { Profile } from "@/hooks/useAuth";
 import { TrendingUp, TrendingDown, Minus, Target, Award } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -11,12 +12,30 @@ interface ClientContext {
   onSignOut: () => void;
 }
 
+type ClientProgressTile = Database["public"]["Tables"]["client_progress_tiles"]["Row"];
+type FitnessGoal = Database["public"]["Tables"]["fitness_goals"]["Row"];
+type BadgeDefinition = Database["public"]["Tables"]["badge_definitions"]["Row"];
+type ClientBadgeRow = Database["public"]["Tables"]["client_badges"]["Row"];
+
+interface ClientBadge extends ClientBadgeRow {
+  badge: Pick<BadgeDefinition, "name" | "icon" | "description"> | null;
+}
+
+interface ProgressTileWithDefinition extends ClientProgressTile {
+  metric_definition: { name: string; unit: string } | null;
+}
+
+interface MetricEntry {
+  value: number | null;
+  recorded_at: string;
+}
+
 export default function ProgressPage() {
   const { profile } = useOutletContext<ClientContext>();
-  const [tiles, setTiles] = useState<any[]>([]);
-  const [goal, setGoal] = useState<any>(null);
-  const [badges, setBadges] = useState<any[]>([]);
-  const [metricEntries, setMetricEntries] = useState<Record<string, any>>({});
+  const [tiles, setTiles] = useState<ProgressTileWithDefinition[]>([]);
+  const [goal, setGoal] = useState<FitnessGoal | null>(null);
+  const [badges, setBadges] = useState<ClientBadge[]>([]);
+  const [metricEntries, setMetricEntries] = useState<Record<string, MetricEntry>>({});
 
   useEffect(() => {
     if (!profile?.id) return;
@@ -31,7 +50,7 @@ export default function ProgressPage() {
       .then(({ data }) => {
         setTiles(data || []);
         // For each tile, fetch latest metric entry
-        data?.forEach((tile: any) => {
+        data?.forEach((tile) => {
           if (tile.metric_definition_id) {
             supabase
               .from("client_metrics")

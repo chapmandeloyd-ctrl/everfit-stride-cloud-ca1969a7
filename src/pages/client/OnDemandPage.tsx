@@ -10,10 +10,25 @@ interface ClientContext {
   onSignOut: () => void;
 }
 
+interface WorkoutCollection {
+  id: string;
+  name: string;
+  description: string | null;
+  cover_image_url: string | null;
+}
+
+interface StudioProgram {
+  id: string;
+  name: string;
+  description: string | null;
+  cover_image_url: string | null;
+  duration_weeks: number | null;
+}
+
 export default function OnDemandPage() {
   const { profile } = useOutletContext<ClientContext>();
-  const [collections, setCollections] = useState<any[]>([]);
-  const [programs, setPrograms] = useState<any[]>([]);
+  const [collections, setCollections] = useState<WorkoutCollection[]>([]);
+  const [programs, setPrograms] = useState<StudioProgram[]>([]);
 
   useEffect(() => {
     if (!profile?.id) return;
@@ -24,7 +39,11 @@ export default function OnDemandPage() {
       .select("collection:workout_collections(id, name, description, cover_image_url)")
       .eq("client_id", profile.id)
       .then(({ data }) => {
-        setCollections(data?.map((d: any) => d.collection).filter(Boolean) || []);
+        setCollections(
+          (data ?? [])
+            .map((d) => (d as { collection: WorkoutCollection | null }).collection)
+            .filter((c): c is WorkoutCollection => c !== null)
+        );
       });
 
     // Fetch studio programs
@@ -33,7 +52,11 @@ export default function OnDemandPage() {
       .select("program:studio_programs(id, name, description, cover_image_url, duration_weeks)")
       .eq("client_id", profile.id)
       .then(({ data }) => {
-        setPrograms(data?.map((d: any) => d.program).filter(Boolean) || []);
+        setPrograms(
+          (data ?? [])
+            .map((d) => (d as { program: StudioProgram | null }).program)
+            .filter((p): p is StudioProgram => p !== null)
+        );
       });
   }, [profile?.id]);
 

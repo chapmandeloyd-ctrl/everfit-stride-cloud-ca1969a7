@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 import type { Profile } from "@/hooks/useAuth";
 import { CalendarStrip } from "@/components/client/CalendarStrip";
 import { Dumbbell, CheckCircle2, Clock, ChefHat, Target } from "lucide-react";
@@ -13,12 +14,21 @@ interface ClientContext {
   onSignOut: () => void;
 }
 
+type ClientTask = Database["public"]["Tables"]["client_tasks"]["Row"];
+type ClientHabit = Database["public"]["Tables"]["client_habits"]["Row"];
+type ClientMacroTarget = Database["public"]["Tables"]["client_macro_targets"]["Row"];
+type ClientWorkoutRow = Database["public"]["Tables"]["client_workouts"]["Row"];
+
+interface ClientWorkout extends ClientWorkoutRow {
+  workout_plan: { name: string; description: string | null } | null;
+}
+
 export default function PlansPage() {
   const { profile } = useOutletContext<ClientContext>();
-  const [workouts, setWorkouts] = useState<any[]>([]);
-  const [tasks, setTasks] = useState<any[]>([]);
-  const [habits, setHabits] = useState<any[]>([]);
-  const [macros, setMacros] = useState<any>(null);
+  const [workouts, setWorkouts] = useState<ClientWorkout[]>([]);
+  const [tasks, setTasks] = useState<ClientTask[]>([]);
+  const [habits, setHabits] = useState<ClientHabit[]>([]);
+  const [macros, setMacros] = useState<ClientMacroTarget | null>(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
 
   useEffect(() => {

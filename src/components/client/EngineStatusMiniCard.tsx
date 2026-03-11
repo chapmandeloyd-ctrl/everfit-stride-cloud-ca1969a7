@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 import { Activity, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+type EngineScore = Database["public"]["Tables"]["engine_scores"]["Row"];
 
 interface EngineStatusMiniCardProps {
   clientId: string;
@@ -9,7 +12,7 @@ interface EngineStatusMiniCardProps {
 }
 
 export function EngineStatusMiniCard({ clientId, engineMode }: EngineStatusMiniCardProps) {
-  const [score, setScore] = useState<any>(null);
+  const [score, setScore] = useState<EngineScore | null>(null);
 
   useEffect(() => {
     if (!clientId) return;
