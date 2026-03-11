@@ -1,1 +1,0 @@
-ALTER TABLE workout_collections ADD COLUMN collection_type text;

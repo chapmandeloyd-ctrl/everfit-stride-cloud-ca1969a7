@@ -1,1 +1,0 @@
-ALTER TABLE public.cardio_activity_types ADD COLUMN icon_url text;

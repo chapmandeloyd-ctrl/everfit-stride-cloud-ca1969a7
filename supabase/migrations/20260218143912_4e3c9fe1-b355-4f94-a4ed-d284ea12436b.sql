@@ -1,1 +1,0 @@
-ALTER TABLE public.client_feature_settings ADD COLUMN fasting_card_image_url TEXT DEFAULT NULL;

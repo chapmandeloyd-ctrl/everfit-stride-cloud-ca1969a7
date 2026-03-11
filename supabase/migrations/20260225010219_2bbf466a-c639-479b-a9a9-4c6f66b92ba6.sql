@@ -1,1 +1,0 @@
-ALTER TABLE public.client_feature_settings ADD COLUMN restore_enabled boolean NOT NULL DEFAULT false;

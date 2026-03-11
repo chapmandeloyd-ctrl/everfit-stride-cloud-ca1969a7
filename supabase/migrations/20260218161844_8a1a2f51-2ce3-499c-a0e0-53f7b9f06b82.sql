@@ -1,1 +1,0 @@
-ALTER TABLE public.client_feature_settings ADD COLUMN fast_lock_pin TEXT DEFAULT NULL;

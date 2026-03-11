@@ -1,1 +1,0 @@
-UPDATE workout_plans SET equipment = ARRAY['bodyweight', 'bench'] WHERE id = '41eef184-fed4-49fc-b38f-df8f6f046754';

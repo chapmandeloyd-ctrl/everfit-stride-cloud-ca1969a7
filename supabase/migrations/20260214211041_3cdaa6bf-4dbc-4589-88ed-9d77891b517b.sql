@@ -1,1 +1,0 @@
-ALTER TABLE public.client_macro_targets ADD COLUMN diet_style text DEFAULT null;
