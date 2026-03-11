@@ -71,6 +71,11 @@ const Login = () => {
                   Magic link
                 </button>
               </div>
+              <div className="text-center">
+                <button type="button" className="text-xs text-muted-foreground hover:underline" onClick={() => setMode("reset")}>
+                  Forgot password?
+                </button>
+              </div>
             </form>
           ) : mode === "signup" ? (
             <form onSubmit={handleSignUp} className="space-y-4">
