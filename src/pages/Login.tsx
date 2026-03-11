@@ -102,7 +102,12 @@ const Login = () => {
           ) : mode === "signup" ? (
             <form onSubmit={handleSignUp} className="space-y-4">
               <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-              <Input type="password" placeholder="Password (min 6 chars)" value={password} onChange={(e) => setPassword(e.target.value)} required />
+              <div className="relative">
+                <Input type={showPassword ? "text" : "password"} placeholder="Password (min 6 chars)" value={password} onChange={(e) => setPassword(e.target.value)} required className="pr-10" />
+                <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" onClick={() => setShowPassword(!showPassword)}>
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? "Creating..." : "Sign Up"}
               </Button>
