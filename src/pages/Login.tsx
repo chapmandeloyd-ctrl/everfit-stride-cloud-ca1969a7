@@ -103,6 +103,16 @@ const Login = () => {
                 Already have an account? Sign in
               </button>
             </form>
+          ) : mode === "reset" ? (
+            <form onSubmit={handleResetPassword} className="space-y-4">
+              <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Sending..." : "Send Reset Link"}
+              </Button>
+              <button type="button" className="w-full text-sm text-muted-foreground hover:underline" onClick={() => setMode("login")}>
+                Back to sign in
+              </button>
+            </form>
           ) : (
             <form onSubmit={handleMagicLink} className="space-y-4">
               <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
