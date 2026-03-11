@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { AppLayout } from "@/components/AppLayout";
 import { ClientLayout } from "@/components/ClientLayout";
 import Login from "./pages/Login";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import TrainerDashboard from "./pages/trainer/TrainerDashboard";
 import ClientDashboard from "./pages/client/ClientDashboard";
