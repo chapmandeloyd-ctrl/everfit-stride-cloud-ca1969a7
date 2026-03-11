@@ -9,7 +9,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [mode, setMode] = useState<"login" | "signup" | "magic">("login");
+  const [mode, setMode] = useState<"login" | "signup" | "magic" | "reset">("login");
 
   const handlePasswordLogin = async (e: React.FormEvent) => {
     e.preventDefault();
