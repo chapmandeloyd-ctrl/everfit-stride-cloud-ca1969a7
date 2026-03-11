@@ -9,7 +9,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [mode, setMode] = useState<"login" | "signup" | "magic">("login");
+  const [mode, setMode] = useState<"login" | "signup" | "magic" | "reset">("login");
 
   const handlePasswordLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,13 +46,28 @@ const Login = () => {
     setLoading(false);
   };
 
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success("Check your email for a password reset link!");
+      setMode("login");
+    }
+    setLoading(false);
+  };
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">KSOM360</CardTitle>
           <p className="text-sm text-muted-foreground mt-1">
-            {mode === "signup" ? "Create your account" : "Sign in to your account"}
+            {mode === "signup" ? "Create your account" : mode === "reset" ? "Reset your password" : "Sign in to your account"}
           </p>
         </CardHeader>
         <CardContent>
@@ -71,6 +86,11 @@ const Login = () => {
                   Magic link
                 </button>
               </div>
+              <div className="text-center">
+                <button type="button" className="text-xs text-muted-foreground hover:underline" onClick={() => setMode("reset")}>
+                  Forgot password?
+                </button>
+              </div>
             </form>
           ) : mode === "signup" ? (
             <form onSubmit={handleSignUp} className="space-y-4">
@@ -81,6 +101,16 @@ const Login = () => {
               </Button>
               <button type="button" className="w-full text-sm text-muted-foreground hover:underline" onClick={() => setMode("login")}>
                 Already have an account? Sign in
+              </button>
+            </form>
+          ) : mode === "reset" ? (
+            <form onSubmit={handleResetPassword} className="space-y-4">
+              <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Sending..." : "Send Reset Link"}
+              </Button>
+              <button type="button" className="w-full text-sm text-muted-foreground hover:underline" onClick={() => setMode("login")}>
+                Back to sign in
               </button>
             </form>
           ) : (
