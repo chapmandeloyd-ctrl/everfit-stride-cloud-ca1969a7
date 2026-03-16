@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth, type Profile } from "@/hooks/useAuth";
+import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { ClientHeader } from "@/components/client/ClientHeader";
 import { CalendarStrip } from "@/components/client/CalendarStrip";
 import { RestDayCard } from "@/components/client/RestDayCard";
@@ -14,34 +15,91 @@ type ClientFeatureSettings = Database["public"]["Tables"]["client_feature_settin
 type ClientRestDayCard = Database["public"]["Tables"]["client_rest_day_cards"]["Row"];
 
 export default function ClientDashboard() {
-  const { profile } = useAuth();
+  const { profile: authProfile, loading } = useAuth();
+  const effectiveClientId = useEffectiveClientId();
+  const [clientProfile, setClientProfile] = useState<Profile | null>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
   const [settings, setSettings] = useState<ClientFeatureSettings | null>(null);
   const [restDayCard, setRestDayCard] = useState<ClientRestDayCard | null>(null);
 
   useEffect(() => {
-    if (!profile?.id) return;
+    let isActive = true;
 
-    const fetchSettings = async () => {
+    const fetchEffectiveProfile = async () => {
+      if (!effectiveClientId) {
+        if (isActive) {
+          setClientProfile(null);
+          setProfileLoading(false);
+        }
+        return;
+      }
+
+      setProfileLoading(true);
+
+      if (authProfile?.id === effectiveClientId) {
+        if (isActive) {
+          setClientProfile(authProfile);
+          setProfileLoading(false);
+        }
+        return;
+      }
+
       const { data } = await supabase
-        .from("client_feature_settings")
+        .from("profiles")
         .select("*")
-        .eq("client_id", profile.id)
+        .eq("id", effectiveClientId)
         .maybeSingle();
-      setSettings(data);
+
+      if (isActive) {
+        setClientProfile(data ?? null);
+        setProfileLoading(false);
+      }
     };
 
-    const fetchRestDayCard = async () => {
-      const { data } = await supabase
-        .from("client_rest_day_cards")
-        .select("*")
-        .eq("client_id", profile.id)
-        .maybeSingle();
-      setRestDayCard(data);
+    fetchEffectiveProfile();
+
+    return () => {
+      isActive = false;
+    };
+  }, [effectiveClientId, authProfile]);
+
+  useEffect(() => {
+    let isActive = true;
+
+    const fetchDashboardData = async () => {
+      if (!effectiveClientId) {
+        if (isActive) {
+          setSettings(null);
+          setRestDayCard(null);
+        }
+        return;
+      }
+
+      const [{ data: settingsData }, { data: restDayCardData }] = await Promise.all([
+        supabase
+          .from("client_feature_settings")
+          .select("*")
+          .eq("client_id", effectiveClientId)
+          .maybeSingle(),
+        supabase
+          .from("client_rest_day_cards")
+          .select("*")
+          .eq("client_id", effectiveClientId)
+          .maybeSingle(),
+      ]);
+
+      if (isActive) {
+        setSettings(settingsData ?? null);
+        setRestDayCard(restDayCardData ?? null);
+      }
     };
 
-    fetchSettings();
-    fetchRestDayCard();
-  }, [profile?.id]);
+    fetchDashboardData();
+
+    return () => {
+      isActive = false;
+    };
+  }, [effectiveClientId]);
 
   const engineMode = settings?.engine_mode === "athletic"
     ? "Performance Readiness"
@@ -50,11 +108,36 @@ export default function ClientDashboard() {
       : "Performance Readiness";
 
   const showFasting = settings?.fasting_enabled !== false && settings?.engine_mode !== "athletic";
+  const isLoading = loading || profileLoading;
+
+  if (isLoading) {
+    return (
+      <div className="px-4 pt-4 pb-6 max-w-lg mx-auto space-y-5">
+        <div className="h-28 rounded-3xl border border-border bg-card animate-pulse" />
+        <div className="h-16 rounded-3xl border border-border bg-card animate-pulse" />
+        <div className="h-20 rounded-3xl border border-border bg-card animate-pulse" />
+        <div className="h-36 rounded-3xl border border-border bg-card animate-pulse" />
+      </div>
+    );
+  }
+
+  if (!effectiveClientId || !clientProfile) {
+    return (
+      <div className="px-4 pt-8 pb-6 max-w-lg mx-auto">
+        <div className="rounded-3xl border border-border bg-card p-5 text-center">
+          <p className="text-sm font-medium text-foreground">Client preview unavailable</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            We couldn't load the selected client profile yet.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="px-4 pt-4 pb-6 max-w-lg mx-auto space-y-5">
       <ClientHeader
-        profile={profile}
+        profile={clientProfile}
         engineMode={engineMode}
         level={settings?.current_level || 1}
         greeting={settings?.dashboard_hero_message || undefined}
@@ -62,16 +145,10 @@ export default function ClientDashboard() {
         emoji={settings?.greeting_emoji || "👋"}
       />
 
-      {/* Action Row */}
       <ActionRow />
-
-      {/* Calendar strip */}
       <CalendarStrip />
+      <EngineStatusMiniCard clientId={effectiveClientId} engineMode={engineMode} />
 
-      {/* Engine Status */}
-      <EngineStatusMiniCard clientId={profile.id} engineMode={engineMode} />
-
-      {/* Today section */}
       <div className="space-y-4">
         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           Today
@@ -91,8 +168,7 @@ export default function ClientDashboard() {
         )}
       </div>
 
-      {/* FAB */}
-      <button className="fixed bottom-24 right-5 z-40 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 flex items-center justify-center hover:scale-105 transition-transform active:scale-95">
+      <button className="fixed bottom-24 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 transition-transform hover:scale-105 active:scale-95">
         <Plus className="h-6 w-6" />
       </button>
     </div>
