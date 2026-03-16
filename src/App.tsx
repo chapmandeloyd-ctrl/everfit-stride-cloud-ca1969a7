@@ -76,7 +76,9 @@ function AppRoutes() {
         <Route path="/on-demand" element={<OnDemandPage />} />
         <Route path="/progress" element={<ProgressPage />} />
         <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/workouts" element={<Placeholder />} />
+        <Route path="/labs" element={<LabsPage />} />
+        <Route path="/labs/diamond" element={<Placeholder />} />
+        <Route path="/labs/hoops" element={<Placeholder />} />
         <Route path="/nutrition" element={<Placeholder />} />
         <Route path="/recovery" element={<Placeholder />} />
         <Route path="/breathing" element={<Placeholder />} />
