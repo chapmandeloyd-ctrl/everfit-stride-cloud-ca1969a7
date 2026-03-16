@@ -4,14 +4,21 @@ export function useHealthData(clientId?: string) {
 export function useHealthConnections(clientId?: string) {
   return { connections: [], data: null, isLoading: false, refetch: () => {}, error: null };
 }
-export function useRealtimeHealthData(...args: any[]) {
+export function useRealtimeHealthData(..._args: any[]) {
   return { data: null, isLoading: false };
 }
 export function useHealthStats(clientId?: string) {
   return { stats: null, data: null, isLoading: false, error: null };
 }
 export function useSyncHealth() {
-  return { sync: async () => {}, mutate: () => {}, mutateAsync: async () => {}, isSyncing: false, isPending: false };
+  return {
+    sync: async () => ({ count: 0 }),
+    mutate: () => {},
+    mutateAsync: async () => ({ count: 0 }),
+    isSyncing: false,
+    isPending: false,
+    count: 0,
+  };
 }
 export function isNativePlatform() { return false; }
 export function getPlatform() { return "web"; }
