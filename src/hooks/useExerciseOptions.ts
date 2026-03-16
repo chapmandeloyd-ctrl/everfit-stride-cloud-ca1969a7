@@ -19,5 +19,9 @@ export function useExerciseOptions() {
     enabled: !!user?.id,
   });
 
-  return { exercises, isLoading };
+  const muscleGroups = [...new Set(exercises.map((e: any) => e.muscle_group).filter(Boolean))];
+  const equipmentTypes = [...new Set(exercises.map((e: any) => e.equipment).filter(Boolean))];
+  const categories = [...new Set(exercises.map((e: any) => e.category).filter(Boolean))];
+
+  return { exercises, isLoading, muscleGroups, equipmentTypes, categories };
 }
