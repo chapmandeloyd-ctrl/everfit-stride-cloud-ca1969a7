@@ -14,6 +14,7 @@ import PlansPage from "./pages/client/PlansPage";
 import OnDemandPage from "./pages/client/OnDemandPage";
 import ProgressPage from "./pages/client/ProgressPage";
 import ProfilePage from "./pages/client/ProfilePage";
+import LabsPage from "./pages/client/LabsPage";
 import Placeholder from "./pages/Placeholder";
 
 const queryClient = new QueryClient();
@@ -75,7 +76,9 @@ function AppRoutes() {
         <Route path="/on-demand" element={<OnDemandPage />} />
         <Route path="/progress" element={<ProgressPage />} />
         <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/workouts" element={<Placeholder />} />
+        <Route path="/labs" element={<LabsPage />} />
+        <Route path="/labs/diamond" element={<Placeholder />} />
+        <Route path="/labs/hoops" element={<Placeholder />} />
         <Route path="/nutrition" element={<Placeholder />} />
         <Route path="/recovery" element={<Placeholder />} />
         <Route path="/breathing" element={<Placeholder />} />
