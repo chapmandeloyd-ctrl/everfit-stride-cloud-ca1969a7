@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
-import { useOutletContext } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
-import type { Profile } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { ClientHeader } from "@/components/client/ClientHeader";
 import { CalendarStrip } from "@/components/client/CalendarStrip";
 import { RestDayCard } from "@/components/client/RestDayCard";
@@ -14,13 +13,8 @@ import { Plus } from "lucide-react";
 type ClientFeatureSettings = Database["public"]["Tables"]["client_feature_settings"]["Row"];
 type ClientRestDayCard = Database["public"]["Tables"]["client_rest_day_cards"]["Row"];
 
-interface ClientContext {
-  profile: Profile;
-  onSignOut: () => void;
-}
-
 export default function ClientDashboard() {
-  const { profile } = useOutletContext<ClientContext>();
+  const { profile } = useAuth();
   const [settings, setSettings] = useState<ClientFeatureSettings | null>(null);
   const [restDayCard, setRestDayCard] = useState<ClientRestDayCard | null>(null);
 
