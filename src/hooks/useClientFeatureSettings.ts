@@ -1,3 +1,3 @@
 export function useClientFeatureSettings(clientId?: string) {
-  return { features: null, isLoading: false, refetch: () => {} };
+  return { features: null, settings: null, isLoading: false, refetch: () => {} };
 }

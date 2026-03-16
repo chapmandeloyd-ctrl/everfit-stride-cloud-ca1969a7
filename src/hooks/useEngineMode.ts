@@ -5,6 +5,7 @@ import { useEffectiveClientId } from "./useEffectiveClientId";
 interface EngineModeConfig {
   engineMode: string;
   fastingDisabled: boolean;
+  features: any;
 }
 
 export function useEngineMode() {
@@ -16,7 +17,7 @@ export function useEngineMode() {
       if (!clientId) return null;
       const { data } = await supabase
         .from("client_feature_settings")
-        .select("engine_mode, fasting_enabled")
+        .select("*")
         .eq("client_id", clientId)
         .maybeSingle();
       return data;
@@ -24,10 +25,12 @@ export function useEngineMode() {
     enabled: !!clientId,
   });
 
+  const engineMode = data?.engine_mode || "performance";
   const config: EngineModeConfig = {
-    engineMode: data?.engine_mode || "performance",
+    engineMode,
     fastingDisabled: data?.engine_mode === "athletic" || data?.fasting_enabled === false,
+    features: data,
   };
 
-  return { config, isLoading };
+  return { config, engineMode, isLoading };
 }
