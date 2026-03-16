@@ -4,4 +4,3 @@ export const ENGINE_ONBOARDING_CONTENT: Record<string, any> = {
   athletic: { steps: [], title: "Athletic" },
 };
 export const ENGINE_ONBOARDING = ENGINE_ONBOARDING_CONTENT;
-export default function EngineIntroStep(props: any) { return <div>Engine Intro</div>; }
