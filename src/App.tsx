@@ -14,6 +14,7 @@ import PlansPage from "./pages/client/PlansPage";
 import OnDemandPage from "./pages/client/OnDemandPage";
 import ProgressPage from "./pages/client/ProgressPage";
 import ProfilePage from "./pages/client/ProfilePage";
+import LabsPage from "./pages/client/LabsPage";
 import Placeholder from "./pages/Placeholder";
 
 const queryClient = new QueryClient();
