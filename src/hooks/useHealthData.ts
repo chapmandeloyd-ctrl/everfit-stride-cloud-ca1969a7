@@ -1,8 +1,8 @@
-export function useHealthData(clientId?: string) {
+export function useHealthData(..._args: any[]) {
   return { data: null, isLoading: false, heartRateData: [], activityData: [], sleepData: [], refetch: () => {}, error: null };
 }
 export function useHealthConnections(clientId?: string) {
-  return { connections: [], data: null, isLoading: false, refetch: () => {}, error: null };
+  return { connections: [] as any[], data: [] as any[], isLoading: false, refetch: () => {}, error: null };
 }
 export function useRealtimeHealthData(..._args: any[]) {
   return { data: null, isLoading: false };
