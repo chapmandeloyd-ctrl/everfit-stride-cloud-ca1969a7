@@ -18,6 +18,7 @@ import Analytics from "./pages/Analytics";
 import Goals from "./pages/Goals";
 import TaskLibrary from "./pages/TaskLibrary";
 import Auth from "./pages/Auth";
+import Login from "./pages/Login";
 import ClientDashboard from "./pages/client/ClientDashboard";
 import ClientOnboarding from "./pages/client/ClientOnboarding";
 import ClientWorkouts from "./pages/client/ClientWorkouts";
