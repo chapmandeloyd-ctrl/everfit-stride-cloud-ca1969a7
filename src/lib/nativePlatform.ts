@@ -1,8 +1,9 @@
-/**
- * Detect if running inside a native app wrapper (Capacitor / Cordova).
- */
-export function isNativePlatform(): boolean {
+export function isNativeApp(): boolean {
   return typeof (window as any).Capacitor !== "undefined";
+}
+
+export function isNativePlatform(): boolean {
+  return isNativeApp();
 }
 
 export function isIOS(): boolean {
