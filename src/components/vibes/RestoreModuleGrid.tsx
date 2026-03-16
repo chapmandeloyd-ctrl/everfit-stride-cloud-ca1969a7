@@ -1,0 +1,4 @@
+export type RestoreModule = string;
+
+export function RestoreModuleGrid(props: any) { return <div>Modules</div>; }
+export function RestoreModuleCard(props: any) { return <div>Module</div>; }

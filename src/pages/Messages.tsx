@@ -52,7 +52,7 @@ export default function Messages() {
   const imageInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const messageRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
   // Determine if user is trainer

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import type { Session } from "@supabase/supabase-js";
+import type { Session, User } from "@supabase/supabase-js";
 import type { Tables } from "@/integrations/supabase/types";
 
 export type Profile = Tables<"profiles">;
@@ -45,5 +45,16 @@ export function useAuth() {
 
   const signOut = () => supabase.auth.signOut();
 
-  return { session, profile, loading, signOut, isTrainer: profile?.role === "trainer" };
+  const user = session?.user ?? null;
+  const userRole: "trainer" | "client" | null = profile?.role as any ?? null;
+
+  return {
+    session,
+    user,
+    profile,
+    userRole,
+    loading,
+    signOut,
+    isTrainer: profile?.role === "trainer",
+  };
 }
