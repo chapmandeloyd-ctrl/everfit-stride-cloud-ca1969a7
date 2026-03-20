@@ -214,9 +214,15 @@ export default function ClientDashboard() {
 
         {showFasting && (
           <FastingCard
-            protocolName="Eat-Stop-Eat"
-            isCoachAssigned={true}
-            status="ready"
+            protocolName={settings?.fasting_card_subtitle || "Eat-Stop-Eat"}
+            isCoachAssigned={!!settings?.protocol_assigned_by}
+            status={fastStatus}
+            onStartFast={handleStartFast}
+            onEndFast={handleEndFast}
+            activeFastStartAt={settings?.active_fast_start_at}
+            activeFastTargetHours={settings?.active_fast_target_hours}
+            backgroundImageUrl={settings?.fasting_card_image_url}
+            lockPin={settings?.fast_lock_pin}
           />
         )}
       </div>
