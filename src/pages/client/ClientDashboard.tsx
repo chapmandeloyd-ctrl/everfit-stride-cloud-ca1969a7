@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { useAuth, type Profile } from "@/hooks/useAuth";
@@ -10,6 +10,7 @@ import { FastingCard } from "@/components/client/FastingCard";
 import { EngineStatusMiniCard } from "@/components/client/EngineStatusMiniCard";
 import { ActionRow } from "@/components/client/ActionRow";
 import { Plus } from "lucide-react";
+import { toast } from "sonner";
 
 type ClientFeatureSettings = Database["public"]["Tables"]["client_feature_settings"]["Row"];
 type ClientRestDayCard = Database["public"]["Tables"]["client_rest_day_cards"]["Row"];
