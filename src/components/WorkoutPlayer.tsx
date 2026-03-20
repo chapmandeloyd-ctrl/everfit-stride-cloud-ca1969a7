@@ -614,7 +614,7 @@ export function WorkoutPlayer({ sections, onComplete, onEndEarly, onDiscard, onE
             <div className="relative">
               {exercise?.exercise_video ? (
                 <div className="aspect-video bg-muted">
-                  <video src={exercise.exercise_video} autoPlay loop muted playsInline className="w-full h-full object-cover" />
+                  <video key={exercise.exercise_video} src={exercise.exercise_video} autoPlay loop muted playsInline className="w-full h-full object-cover" />
                 </div>
               ) : exercise?.exercise_image ? (
                 <div className="aspect-video bg-muted">
