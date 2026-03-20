@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import { Lock, Plus, BookOpen, ChevronDown } from "lucide-react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { motion } from "framer-motion";
+import { Lock, BookOpen, ChevronDown, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getCurrentStage, FASTING_STAGES } from "@/lib/fastingStages";
@@ -8,11 +9,32 @@ import { format } from "date-fns";
 interface ActiveFastingTimerProps {
   protocolName: string;
   isCoachAssigned?: boolean;
-  startedAt: string;               // ISO timestamp
+  startedAt: string;
   targetHours: number;
   backgroundImageUrl?: string | null;
   lockPin?: string | null;
   onEndFast: () => void;
+  dayNumber?: number;
+  totalDays?: number;
+}
+
+const SIZE = 320;
+const STROKE = 38;
+const RADIUS = (SIZE - STROKE) / 2;
+const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+
+function formatTime(ms: number): string {
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
+  return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
+
+function formatDateTime(ts: number): string {
+  const d = new Date(ts);
+  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  return `${days[d.getDay()]}, ${d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`;
 }
 
 export function ActiveFastingTimer({
@@ -23,166 +45,207 @@ export function ActiveFastingTimer({
   backgroundImageUrl,
   lockPin,
   onEndFast,
+  dayNumber = 1,
+  totalDays,
 }: ActiveFastingTimerProps) {
-  const [elapsed, setElapsed] = useState(0); // seconds
+  const [now, setNow] = useState(Date.now());
   const [showStages, setShowStages] = useState(false);
-  const [holdProgress, setHoldProgress] = useState(0);
-  const holdTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [pinInput, setPinInput] = useState("");
   const [showPinDialog, setShowPinDialog] = useState(false);
 
-  // Live timer
-  useEffect(() => {
-    const start = new Date(startedAt).getTime();
-    const tick = () => setElapsed(Math.floor((Date.now() - start) / 1000));
-    tick();
-    const interval = setInterval(tick, 1000);
-    return () => clearInterval(interval);
-  }, [startedAt]);
-
-  const elapsedHours = elapsed / 3600;
-  const totalTargetSeconds = targetHours * 3600;
-  const progress = Math.min(elapsed / totalTargetSeconds, 1);
+  const startTime = new Date(startedAt).getTime();
+  const totalMs = targetHours * 3_600_000;
+  const elapsedMs = now - startTime;
+  const remainingMs = Math.max(0, totalMs - elapsedMs);
+  const progress = Math.min(elapsedMs / totalMs, 1);
+  const elapsedHours = (elapsedMs / 3_600_000);
   const stage = getCurrentStage(elapsedHours);
+  const percentElapsed = Math.round(progress * 100);
+  const goalTime = startTime + totalMs;
 
-  // Format elapsed time
-  const hours = Math.floor(elapsed / 3600);
-  const minutes = Math.floor((elapsed % 3600) / 60);
-  const seconds = elapsed % 60;
-  const timeStr = `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  // Live tick
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, []);
 
-  const startDate = new Date(startedAt);
-  const goalDate = new Date(startDate.getTime() + targetHours * 3600 * 1000);
+  // Multi-colored arc segments
+  const arcSegments = useMemo(() => {
+    const relevant = FASTING_STAGES.filter((s) => s.minHours < targetHours);
+    const segments: { startFraction: number; endFraction: number; color: string }[] = [];
+    for (let i = 0; i < relevant.length; i++) {
+      const stageStart = relevant[i].minHours / targetHours;
+      const stageEnd = i + 1 < relevant.length
+        ? Math.min(relevant[i + 1].minHours / targetHours, 1)
+        : 1;
+      if (progress <= stageStart) break;
+      const clippedEnd = Math.min(stageEnd, progress);
+      segments.push({ startFraction: stageStart, endFraction: clippedEnd, color: relevant[i].dotColor });
+    }
+    return segments;
+  }, [targetHours, progress]);
+
+  // Stage markers on ring
+  const stageMarkers = useMemo(() => {
+    return FASTING_STAGES
+      .filter((s) => s.minHours <= targetHours && s.minHours < targetHours)
+      .map((s) => ({
+        ...s,
+        fraction: s.minHours / targetHours,
+        reached: elapsedHours >= s.minHours,
+      }));
+  }, [targetHours, elapsedHours]);
 
   // Hold to end
+  const [holding, setHolding] = useState(false);
+  const [holdProgress, setHoldProgress] = useState(0);
+  const holdRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const holdStartRef = useRef(0);
+
   const startHold = useCallback(() => {
     if (lockPin) {
       setShowPinDialog(true);
       return;
     }
-    setHoldProgress(0);
-    holdTimerRef.current = setInterval(() => {
-      setHoldProgress((prev) => {
-        if (prev >= 100) {
-          if (holdTimerRef.current) clearInterval(holdTimerRef.current);
-          onEndFast();
-          return 100;
-        }
-        return prev + 5;
-      });
-    }, 100);
+    setHolding(true);
+    holdStartRef.current = Date.now();
+    holdRef.current = setInterval(() => {
+      const elapsed = Date.now() - holdStartRef.current;
+      const p = Math.min(elapsed / 2000, 1);
+      setHoldProgress(p);
+      if (p >= 1) {
+        if (holdRef.current) clearInterval(holdRef.current);
+        setHolding(false);
+        setHoldProgress(0);
+        onEndFast();
+      }
+    }, 50);
   }, [lockPin, onEndFast]);
 
-  const cancelHold = useCallback(() => {
-    if (holdTimerRef.current) clearInterval(holdTimerRef.current);
+  const endHold = useCallback(() => {
+    if (holdRef.current) clearInterval(holdRef.current);
+    setHolding(false);
     setHoldProgress(0);
   }, []);
-
-  // SVG ring
-  const ringSize = 280;
-  const strokeWidth = 4;
-  const radius = (ringSize - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference * (1 - progress);
-
-  // Dot positions on the ring (start at top = -90deg)
-  const startAngle = -90;
-  const progressAngle = startAngle + progress * 360;
-  const dotOnCircle = (angleDeg: number) => {
-    const rad = (angleDeg * Math.PI) / 180;
-    const cx = ringSize / 2 + radius * Math.cos(rad);
-    const cy = ringSize / 2 + radius * Math.sin(rad);
-    return { cx, cy };
-  };
-
-  const startDot = dotOnCircle(startAngle);
-  const progressDot = dotOnCircle(progressAngle);
 
   return (
     <div className="relative w-full min-h-[85vh] flex flex-col overflow-hidden rounded-none">
       {/* Background */}
-      {backgroundImageUrl ? (
-        <img
-          src={backgroundImageUrl}
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-      ) : (
-        <div className="absolute inset-0 bg-black" />
-      )}
+      <div className="absolute inset-0">
+        {backgroundImageUrl ? (
+          <img
+            src={backgroundImageUrl}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        ) : (
+          <div className="absolute inset-0 bg-black" />
+        )}
+      </div>
       <div className="absolute inset-0 bg-black/40" />
 
       {/* Content */}
       <div className="relative z-10 flex flex-col flex-1 px-5 pt-5 pb-6">
         {/* Header */}
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <p className="text-xs font-semibold uppercase tracking-wider text-red-400">
-              Fasting Protocol
-            </p>
-            {isCoachAssigned && (
-              <Badge className="bg-red-500/20 text-red-400 border-0 text-[10px] font-semibold px-2 py-0.5">
-                Coach Assigned
-              </Badge>
-            )}
+        <div className="flex items-start justify-between">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <p className="text-xs font-semibold uppercase tracking-wider text-red-400">
+                Fasting Protocol
+              </p>
+              {lockPin && (
+                <Badge className="bg-white/10 text-white/70 border-0 text-[10px] font-semibold px-2 py-0.5 gap-1">
+                  <Lock className="h-3 w-3" />
+                  Locked
+                </Badge>
+              )}
+            </div>
+            <h3 className="text-xl font-bold text-white">{protocolName}</h3>
           </div>
-          <h3 className="text-xl font-bold text-white">{protocolName}</h3>
+          <p className="text-sm font-semibold text-white/60">
+            Day {dayNumber}{totalDays ? ` / ${totalDays}` : ""}
+          </p>
         </div>
 
-        {/* Timer Ring */}
+        {/* Ring */}
         <div className="flex-1 flex items-center justify-center">
-          <div className="relative" style={{ width: ringSize, height: ringSize }}>
-            <svg width={ringSize} height={ringSize} className="transform -rotate-90">
+          <div className="relative" style={{ width: SIZE, height: SIZE }}>
+            <svg width={SIZE} height={SIZE} className="transform -rotate-90">
               {/* Background ring */}
               <circle
-                cx={ringSize / 2}
-                cy={ringSize / 2}
-                r={radius}
+                cx={SIZE / 2}
+                cy={SIZE / 2}
+                r={RADIUS}
                 fill="none"
-                stroke="rgba(255,255,255,0.15)"
-                strokeWidth={strokeWidth}
+                stroke="rgba(255,255,255,0.08)"
+                strokeWidth={STROKE}
               />
-              {/* Progress arc */}
+              {/* Outer thin ring */}
               <circle
-                cx={ringSize / 2}
-                cy={ringSize / 2}
-                r={radius}
+                cx={SIZE / 2}
+                cy={SIZE / 2}
+                r={RADIUS + 22}
                 fill="none"
-                stroke={stage.dotColor}
-                strokeWidth={strokeWidth + 2}
-                strokeDasharray={circumference}
-                strokeDashoffset={strokeDashoffset}
-                strokeLinecap="round"
-                className="transition-all duration-1000"
+                stroke="rgba(255,255,255,0.06)"
+                strokeWidth={1}
               />
+              {/* Multi-colored arc segments */}
+              {arcSegments.map((seg, i) => {
+                const segLength = (seg.endFraction - seg.startFraction) * CIRCUMFERENCE;
+                const segOffset = seg.startFraction * CIRCUMFERENCE;
+                return (
+                  <circle
+                    key={i}
+                    cx={SIZE / 2}
+                    cy={SIZE / 2}
+                    r={RADIUS}
+                    fill="none"
+                    stroke={seg.color}
+                    strokeWidth={STROKE}
+                    strokeDasharray={`${segLength} ${CIRCUMFERENCE - segLength}`}
+                    strokeDashoffset={-segOffset}
+                    strokeLinecap="butt"
+                    className="transition-all duration-500"
+                  />
+                );
+              })}
             </svg>
 
-            {/* Start dot */}
-            <div
-              className="absolute w-5 h-5 rounded-full border-2 border-white/80 shadow-lg"
-              style={{
-                left: startDot.cx - 10,
-                top: startDot.cy - 10,
-                backgroundColor: stage.dotColor,
-                transform: "rotate(0deg)",
-              }}
-            />
-
-            {/* Progress dot */}
-            <div
-              className="absolute w-5 h-5 rounded-full border-2 shadow-lg transition-all duration-1000"
-              style={{
-                left: progressDot.cx - 10,
-                top: progressDot.cy - 10,
-                backgroundColor: stage.dotColor,
-                borderColor: stage.dotColor,
-                boxShadow: `0 0 12px ${stage.dotColor}60`,
-              }}
-            />
+            {/* Stage marker dots on the ring */}
+            {stageMarkers.map((marker) => {
+              const angle = marker.fraction * 360 - 90;
+              const rad = (angle * Math.PI) / 180;
+              const x = SIZE / 2 + RADIUS * Math.cos(rad);
+              const y = SIZE / 2 + RADIUS * Math.sin(rad);
+              return (
+                <motion.div
+                  key={marker.id}
+                  className="absolute"
+                  style={{
+                    left: x - 6,
+                    top: y - 6,
+                    width: 12,
+                    height: 12,
+                  }}
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.3, type: "spring" }}
+                >
+                  <div
+                    className={`w-3 h-3 rounded-full border-2 ${
+                      marker.reached ? "border-white shadow-lg" : "border-white/30"
+                    }`}
+                    style={{
+                      backgroundColor: marker.reached ? marker.dotColor : "transparent",
+                      boxShadow: marker.reached ? `0 0 8px ${marker.dotColor}60` : "none",
+                    }}
+                  />
+                </motion.div>
+              );
+            })}
 
             {/* Center content */}
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              {/* Stage dot */}
               <div
                 className="w-4 h-4 rounded-full mb-2"
                 style={{ backgroundColor: stage.dotColor }}
@@ -193,51 +256,32 @@ export function ActiveFastingTimer({
               >
                 {stage.label}
               </p>
-              {/* Big timer */}
               <p className="text-[3.2rem] font-bold text-white tabular-nums leading-none mt-1 tracking-tight">
-                {timeStr}
+                {formatTime(remainingMs)}
               </p>
               <p className="text-xs font-semibold uppercase tracking-wider text-white/60 mt-1">
-                Elapsed ({Math.round(progress * 100)}%)
+                Elapsed ({percentElapsed}%)
               </p>
             </div>
-
-            {/* Decorative dots around ring */}
-            {FASTING_STAGES.map((s) => {
-              const stageAngle = startAngle + (s.minHours / targetHours) * 360;
-              if (s.minHours > targetHours) return null;
-              const pos = dotOnCircle(stageAngle);
-              return (
-                <div
-                  key={s.id}
-                  className="absolute w-2.5 h-2.5 rounded-full opacity-40"
-                  style={{
-                    left: pos.cx - 5,
-                    top: pos.cy - 5,
-                    backgroundColor: s.dotColor,
-                  }}
-                />
-              );
-            })}
           </div>
         </div>
 
-        {/* Started / Goal */}
+        {/* Started / Goal info cards */}
         <div className="grid grid-cols-2 gap-3 mt-2">
           <div className="rounded-xl border border-white/20 px-4 py-3 text-center">
             <p className="text-[10px] uppercase tracking-wider text-white/50 font-semibold">
               Started
             </p>
             <p className="text-sm font-bold text-white mt-0.5">
-              {format(startDate, "EEE, h:mm a")}
+              {formatDateTime(startTime)}
             </p>
           </div>
           <div className="rounded-xl border border-white/20 px-4 py-3 text-center">
             <p className="text-[10px] uppercase tracking-wider text-white/50 font-semibold">
-              {targetHours}H Goal
+              {targetHours}h Goal
             </p>
             <p className="text-sm font-bold text-white mt-0.5">
-              {format(goalDate, "EEE, h:mm a")}
+              {formatDateTime(goalTime)}
             </p>
           </div>
         </div>
@@ -251,10 +295,10 @@ export function ActiveFastingTimer({
             variant="outline"
             className="w-full h-12 rounded-xl border-red-500/40 bg-red-500/10 text-red-400 font-semibold text-base gap-2 hover:bg-red-500/20 active:scale-[0.98] transition-transform"
             onMouseDown={startHold}
-            onMouseUp={cancelHold}
-            onMouseLeave={cancelHold}
+            onMouseUp={endHold}
+            onMouseLeave={endHold}
             onTouchStart={startHold}
-            onTouchEnd={cancelHold}
+            onTouchEnd={endHold}
           >
             <Lock className="h-4 w-4" />
             Hold to End Fast Early
@@ -262,7 +306,7 @@ export function ActiveFastingTimer({
           {holdProgress > 0 && (
             <div
               className="absolute bottom-0 left-0 h-1 bg-red-500 rounded-full transition-all"
-              style={{ width: `${holdProgress}%` }}
+              style={{ width: `${holdProgress * 100}%` }}
             />
           )}
         </div>
@@ -278,7 +322,11 @@ export function ActiveFastingTimer({
         </button>
 
         {showStages && (
-          <div className="mt-3 space-y-2 animate-in slide-in-from-top-2">
+          <motion.div
+            className="mt-3 space-y-2"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
             {FASTING_STAGES.map((s) => (
               <div
                 key={s.id}
@@ -298,7 +346,7 @@ export function ActiveFastingTimer({
                 </div>
               </div>
             ))}
-          </div>
+          </motion.div>
         )}
       </div>
 
