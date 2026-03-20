@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { useAuth, type Profile } from "@/hooks/useAuth";
@@ -10,6 +10,7 @@ import { FastingCard } from "@/components/client/FastingCard";
 import { EngineStatusMiniCard } from "@/components/client/EngineStatusMiniCard";
 import { ActionRow } from "@/components/client/ActionRow";
 import { Plus } from "lucide-react";
+import { toast } from "sonner";
 
 type ClientFeatureSettings = Database["public"]["Tables"]["client_feature_settings"]["Row"];
 type ClientRestDayCard = Database["public"]["Tables"]["client_rest_day_cards"]["Row"];
@@ -108,7 +109,59 @@ export default function ClientDashboard() {
       : "Performance Readiness";
 
   const showFasting = settings?.fasting_enabled !== false && settings?.engine_mode !== "athletic";
+  const fastStatus = settings?.active_fast_start_at ? "active" : "ready";
   const isLoading = loading || profileLoading;
+
+  const handleEndFast = useCallback(async () => {
+    if (!effectiveClientId) return;
+    const { error } = await supabase
+      .from("client_feature_settings")
+      .update({
+        active_fast_start_at: null,
+        active_fast_target_hours: null,
+        last_fast_ended_at: new Date().toISOString(),
+        eating_window_ends_at: new Date(
+          Date.now() + (settings?.eating_window_hours || 8) * 3600 * 1000
+        ).toISOString(),
+      })
+      .eq("client_id", effectiveClientId);
+    if (error) {
+      toast.error("Failed to end fast");
+    } else {
+      toast.success("Fast ended!");
+      // Refresh settings
+      const { data } = await supabase
+        .from("client_feature_settings")
+        .select("*")
+        .eq("client_id", effectiveClientId)
+        .maybeSingle();
+      if (data) setSettings(data);
+    }
+  }, [effectiveClientId, settings?.eating_window_hours]);
+
+  const handleStartFast = useCallback(async () => {
+    if (!effectiveClientId) return;
+    const { error } = await supabase
+      .from("client_feature_settings")
+      .update({
+        active_fast_start_at: new Date().toISOString(),
+        active_fast_target_hours: 24,
+        last_fast_ended_at: null,
+        eating_window_ends_at: null,
+      })
+      .eq("client_id", effectiveClientId);
+    if (error) {
+      toast.error("Failed to start fast");
+    } else {
+      toast.success("Fast started!");
+      const { data } = await supabase
+        .from("client_feature_settings")
+        .select("*")
+        .eq("client_id", effectiveClientId)
+        .maybeSingle();
+      if (data) setSettings(data);
+    }
+  }, [effectiveClientId]);
 
   if (isLoading) {
     return (
@@ -161,9 +214,15 @@ export default function ClientDashboard() {
 
         {showFasting && (
           <FastingCard
-            protocolName="Eat-Stop-Eat"
-            isCoachAssigned={true}
-            status="ready"
+            protocolName={settings?.fasting_card_subtitle || "Eat-Stop-Eat"}
+            isCoachAssigned={!!settings?.protocol_assigned_by}
+            status={fastStatus}
+            onStartFast={handleStartFast}
+            onEndFast={handleEndFast}
+            activeFastStartAt={settings?.active_fast_start_at}
+            activeFastTargetHours={settings?.active_fast_target_hours}
+            backgroundImageUrl={settings?.fasting_card_image_url}
+            lockPin={settings?.fast_lock_pin}
           />
         )}
       </div>
