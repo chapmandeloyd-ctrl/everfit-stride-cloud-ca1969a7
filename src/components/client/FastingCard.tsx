@@ -1,12 +1,19 @@
 import { Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ActiveFastingTimer } from "./ActiveFastingTimer";
 
 interface FastingCardProps {
   protocolName?: string;
   isCoachAssigned?: boolean;
   status?: "ready" | "active" | "completed";
   onStartFast?: () => void;
+  onEndFast?: () => void;
+  // Active fast data
+  activeFastStartAt?: string | null;
+  activeFastTargetHours?: number | null;
+  backgroundImageUrl?: string | null;
+  lockPin?: string | null;
 }
 
 export function FastingCard({
@@ -14,7 +21,27 @@ export function FastingCard({
   isCoachAssigned = true,
   status = "ready",
   onStartFast,
+  onEndFast,
+  activeFastStartAt,
+  activeFastTargetHours,
+  backgroundImageUrl,
+  lockPin,
 }: FastingCardProps) {
+  // Show full-screen timer when fast is active
+  if (status === "active" && activeFastStartAt && activeFastTargetHours) {
+    return (
+      <ActiveFastingTimer
+        protocolName={protocolName}
+        isCoachAssigned={isCoachAssigned}
+        startedAt={activeFastStartAt}
+        targetHours={activeFastTargetHours}
+        backgroundImageUrl={backgroundImageUrl}
+        lockPin={lockPin}
+        onEndFast={onEndFast || (() => {})}
+      />
+    );
+  }
+
   return (
     <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
       {/* Header */}
@@ -36,9 +63,7 @@ export function FastingCard({
       <p className="text-sm text-muted-foreground text-center py-2">
         {status === "ready"
           ? "Ready to start your next fast"
-          : status === "active"
-            ? "Fast in progress..."
-            : "Fast completed!"}
+          : "Fast completed!"}
       </p>
 
       {/* Action */}
