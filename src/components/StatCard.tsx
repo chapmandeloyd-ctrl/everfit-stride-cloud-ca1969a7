@@ -1,39 +1,34 @@
-import { LucideIcon } from "lucide-react";
 import { Card, CardContent } from "./ui/card";
+import { LucideIcon } from "lucide-react";
 
 interface StatCardProps {
   title: string;
   value: string | number;
+  icon?: LucideIcon;
+  description?: string;
   change?: string;
-  changeType?: "positive" | "negative" | "neutral";
-  icon: LucideIcon;
+  changeType?: string;
+  trend?: "up" | "down" | "neutral";
 }
 
-export function StatCard({ title, value, change, changeType = "neutral", icon: Icon }: StatCardProps) {
-  const changeColor = {
-    positive: "text-success",
-    negative: "text-destructive",
-    neutral: "text-muted-foreground",
-  }[changeType];
-
+export function StatCard({ title, value, icon: Icon, description, change, changeType }: StatCardProps) {
   return (
     <Card>
       <CardContent className="p-6">
-        <div className="flex items-start justify-between">
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-muted-foreground">{title}</p>
-            <div className="flex items-baseline gap-2">
-              <h3 className="text-3xl font-bold text-foreground">{value}</h3>
-              {change && (
-                <span className={`text-sm font-medium ${changeColor}`}>
-                  {change}
-                </span>
-              )}
-            </div>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm text-muted-foreground">{title}</p>
+            <p className="text-2xl font-bold mt-1">{value}</p>
+            {change && (
+              <p className={`text-xs mt-1 ${changeType === "positive" ? "text-green-500" : changeType === "negative" ? "text-red-500" : "text-muted-foreground"}`}>
+                {change}
+              </p>
+            )}
+            {description && (
+              <p className="text-xs text-muted-foreground mt-1">{description}</p>
+            )}
           </div>
-          <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
-            <Icon className="h-6 w-6 text-primary" />
-          </div>
+          {Icon && <Icon className="h-8 w-8 text-muted-foreground/50" />}
         </div>
       </CardContent>
     </Card>

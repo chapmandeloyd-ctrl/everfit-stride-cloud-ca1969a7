@@ -18,6 +18,7 @@ import Analytics from "./pages/Analytics";
 import Goals from "./pages/Goals";
 import TaskLibrary from "./pages/TaskLibrary";
 import Auth from "./pages/Auth";
+import Login from "./pages/Login";
 import ClientDashboard from "./pages/client/ClientDashboard";
 import ClientOnboarding from "./pages/client/ClientOnboarding";
 import ClientWorkouts from "./pages/client/ClientWorkouts";
@@ -94,6 +95,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/auth" element={<Auth />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/guardian/:token" element={<GuardianSummary />} />
           

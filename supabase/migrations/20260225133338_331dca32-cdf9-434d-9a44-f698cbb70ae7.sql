@@ -1,1 +1,0 @@
-INSERT INTO storage.buckets (id, name, public) VALUES ('resource-files', 'resource-files', true) ON CONFLICT (id) DO NOTHING;

@@ -1,1 +1,0 @@
-ALTER TABLE public.workout_plans ADD COLUMN IF NOT EXISTS equipment text[] DEFAULT NULL;

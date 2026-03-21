@@ -1,20 +1,16 @@
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "./useAuth";
 
 /**
- * Returns the effective client ID for client-side pages.
- * When a trainer is impersonating a client (stored in localStorage),
- * this returns the impersonated client's ID instead of the logged-in user's ID.
+ * Returns the effective client ID — either the impersonated client (for trainers)
+ * or the current user's own ID.
  */
-export function useEffectiveClientId() {
+export function useEffectiveClientId(): string | null {
   const { user, userRole } = useAuth();
-
-  const impersonatedId = localStorage.getItem("impersonatedClientId");
-
-  // Allow impersonation when trainer role is confirmed OR still loading (null)
-  // to avoid race conditions where role has not resolved yet.
-  if (impersonatedId && (userRole === "trainer" || userRole === null)) {
-    return impersonatedId;
+  
+  if (userRole === "trainer") {
+    const impersonated = localStorage.getItem("impersonatedClientId");
+    if (impersonated) return impersonated;
   }
-
-  return user?.id;
+  
+  return user?.id ?? null;
 }
