@@ -3,7 +3,7 @@ import {
   Timer, Flame, Wind, Snowflake, Dumbbell, type LucideIcon
 } from "lucide-react";
 
-export type TargetType = "time" | "distance" | "calories" | "open";
+export type TargetType = "time" | "distance" | "calories" | "open" | "none";
 
 export const ICON_OPTIONS: { name: string; label: string; icon: LucideIcon }[] = [
   { name: "activity", label: "Activity", icon: Activity },
