@@ -595,6 +595,63 @@ export function WorkoutPlayer({ sections, onComplete, onEndEarly, onDiscard, onE
     setSwapDialogOpen(false);
   };
 
+  // Preview a voice with a short sample
+  const previewVoice = async (voiceId: string) => {
+    setPreviewingVoice(true);
+    setWorkoutVoice(voiceId);
+    await elevenLabsSpeakNow("Let's crush this workout!");
+    setPreviewingVoice(false);
+  };
+
+  const startWithVoice = () => {
+    setWorkoutVoice(chosenVoice);
+    unlockAudioForMobile();
+    setPhase("getready");
+  };
+
+  // ─── VOICE SELECT SCREEN ───
+  if (phase === "voiceselect") {
+    return (
+      <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-foreground px-6">
+        <Button variant="ghost" size="icon" className="absolute top-6 left-4 text-background/60 hover:text-background" onClick={onExit}>
+          <X className="h-6 w-6" />
+        </Button>
+        <h2 className="text-2xl font-bold text-background mb-2">Choose Your Coach</h2>
+        <p className="text-background/60 text-sm mb-6">Pick a voice to guide your workout</p>
+        <div className="flex flex-col gap-3 w-full max-w-sm">
+          {WORKOUT_VOICES.map((v) => (
+            <button
+              key={v.id}
+              onClick={() => { setChosenVoice(v.id); previewVoice(v.id); }}
+              className={cn(
+                "flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-left",
+                chosenVoice === v.id
+                  ? "border-primary bg-primary/20 text-background"
+                  : "border-background/20 text-background/80 hover:border-background/40"
+              )}
+            >
+              <span className="text-2xl">{v.icon}</span>
+              <div className="flex-1">
+                <div className="font-semibold">{v.name}</div>
+                <div className="text-xs opacity-60">{v.desc}</div>
+              </div>
+              {chosenVoice === v.id && previewingVoice && (
+                <span className="text-xs text-primary animate-pulse">Playing...</span>
+              )}
+            </button>
+          ))}
+        </div>
+        <Button
+          size="lg"
+          className="w-full max-w-sm mt-6"
+          onClick={startWithVoice}
+        >
+          Start Workout
+        </Button>
+      </div>
+    );
+  }
+
   // ─── GET READY SCREEN ───
   if (phase === "getready") {
     return (
