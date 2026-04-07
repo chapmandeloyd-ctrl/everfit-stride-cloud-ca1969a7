@@ -225,7 +225,7 @@ async function elevenLabsSpeakNow(text: string): Promise<void> {
         apikey: supabaseKey,
         Authorization: `Bearer ${supabaseKey}`,
       },
-      body: JSON.stringify({ text }),
+      body: JSON.stringify({ text, voiceId: selectedVoiceId }),
       signal: controller.signal,
     });
   } catch {
