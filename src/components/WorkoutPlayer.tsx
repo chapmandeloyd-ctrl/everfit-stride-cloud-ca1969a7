@@ -195,6 +195,21 @@ function browserSpeakNow(text: string): Promise<void> {
 
 // ElevenLabs TTS — for exercise names and motivational cues (high quality)
 // Uses the persistent Audio element so mobile browsers allow playback.
+// Current selected voice ID — set before workout starts
+let selectedVoiceId: string = "cgSgspJ2msm6clMCkdW9"; // default Jessica
+
+export const WORKOUT_VOICES = [
+  { id: "cgSgspJ2msm6clMCkdW9", name: "Jessica", desc: "Warm & Energetic", icon: "🔥" },
+  { id: "EXAVITQu4vr4xnSDxMaL", name: "Sarah", desc: "Calm & Encouraging", icon: "🧘" },
+  { id: "onwK4e9ZLuTAKqWW03F9", name: "Daniel", desc: "Strong & Commanding", icon: "💪" },
+  { id: "TX3LPaxmHKxFdv7VOQHJ", name: "Liam", desc: "Friendly & Motivating", icon: "⚡" },
+  { id: "pFZP5JQG7iQjIQuC4Bku", name: "Lily", desc: "Gentle & Supportive", icon: "🌸" },
+] as const;
+
+export function setWorkoutVoice(voiceId: string) {
+  selectedVoiceId = voiceId;
+}
+
 async function elevenLabsSpeakNow(text: string): Promise<void> {
   cancelSpeech();
   const controller = new AbortController();
@@ -210,7 +225,7 @@ async function elevenLabsSpeakNow(text: string): Promise<void> {
         apikey: supabaseKey,
         Authorization: `Bearer ${supabaseKey}`,
       },
-      body: JSON.stringify({ text }),
+      body: JSON.stringify({ text, voiceId: selectedVoiceId }),
       signal: controller.signal,
     });
   } catch {
@@ -256,8 +271,10 @@ export function WorkoutPlayer({ sections, onComplete, onEndEarly, onDiscard, onE
     return () => { document.removeEventListener("touchstart", unlock); document.removeEventListener("click", unlock); };
   }, []);
 
-  const [phase, setPhase] = useState<"getready" | "countdown" | "playing">("getready");
+  const [phase, setPhase] = useState<"voiceselect" | "getready" | "countdown" | "playing">("voiceselect");
   const [countdownNum, setCountdownNum] = useState(3);
+  const [chosenVoice, setChosenVoice] = useState<string>(WORKOUT_VOICES[0].id);
+  const [previewingVoice, setPreviewingVoice] = useState(false);
 
   const stepsRef = useRef<WorkoutStep[]>(buildSteps(sections));
   const steps = stepsRef.current;
@@ -577,6 +594,63 @@ export function WorkoutPlayer({ sections, onComplete, onEndEarly, onDiscard, onE
     toast({ title: "Exercise Swapped", description: `Switched to ${newExercise.name}` });
     setSwapDialogOpen(false);
   };
+
+  // Preview a voice with a short sample
+  const previewVoice = async (voiceId: string) => {
+    setPreviewingVoice(true);
+    setWorkoutVoice(voiceId);
+    await elevenLabsSpeakNow("Let's crush this workout!");
+    setPreviewingVoice(false);
+  };
+
+  const startWithVoice = () => {
+    setWorkoutVoice(chosenVoice);
+    unlockAudioForMobile();
+    setPhase("getready");
+  };
+
+  // ─── VOICE SELECT SCREEN ───
+  if (phase === "voiceselect") {
+    return (
+      <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-foreground px-6">
+        <Button variant="ghost" size="icon" className="absolute top-6 left-4 text-background/60 hover:text-background" onClick={onExit}>
+          <X className="h-6 w-6" />
+        </Button>
+        <h2 className="text-2xl font-bold text-background mb-2">Choose Your Coach</h2>
+        <p className="text-background/60 text-sm mb-6">Pick a voice to guide your workout</p>
+        <div className="flex flex-col gap-3 w-full max-w-sm">
+          {WORKOUT_VOICES.map((v) => (
+            <button
+              key={v.id}
+              onClick={() => { setChosenVoice(v.id); previewVoice(v.id); }}
+              className={cn(
+                "flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-left",
+                chosenVoice === v.id
+                  ? "border-primary bg-primary/20 text-background"
+                  : "border-background/20 text-background/80 hover:border-background/40"
+              )}
+            >
+              <span className="text-2xl">{v.icon}</span>
+              <div className="flex-1">
+                <div className="font-semibold">{v.name}</div>
+                <div className="text-xs opacity-60">{v.desc}</div>
+              </div>
+              {chosenVoice === v.id && previewingVoice && (
+                <span className="text-xs text-primary animate-pulse">Playing...</span>
+              )}
+            </button>
+          ))}
+        </div>
+        <Button
+          size="lg"
+          className="w-full max-w-sm mt-6"
+          onClick={startWithVoice}
+        >
+          Start Workout
+        </Button>
+      </div>
+    );
+  }
 
   // ─── GET READY SCREEN ───
   if (phase === "getready") {
