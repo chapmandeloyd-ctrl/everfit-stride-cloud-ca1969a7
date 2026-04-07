@@ -18,7 +18,6 @@ import Analytics from "./pages/Analytics";
 import Goals from "./pages/Goals";
 import TaskLibrary from "./pages/TaskLibrary";
 import Auth from "./pages/Auth";
-import Login from "./pages/Login";
 import ClientDashboard from "./pages/client/ClientDashboard";
 import ClientOnboarding from "./pages/client/ClientOnboarding";
 import ClientWorkouts from "./pages/client/ClientWorkouts";
@@ -73,6 +72,11 @@ import ClientChooseProtocol from "./pages/client/ClientChooseProtocol";
 import ClientQuickPlans from "./pages/client/ClientQuickPlans";
 import ClientProtocolDetail from "./pages/client/ClientProtocolDetail";
 import ClientVibes from "./pages/client/ClientVibes";
+import ClientLabs from "./pages/client/ClientLabs";
+import ClientDiamondLab from "./pages/client/ClientDiamondLab";
+import ClientHoopsLab from "./pages/client/ClientHoopsLab";
+import ClientBattingSession from "./pages/client/ClientBattingSession";
+import ClientShootingSession from "./pages/client/ClientShootingSession";
 import ClientWorkoutHistory from "./pages/ClientWorkoutHistory";
 import VibesAdmin from "./pages/VibesAdmin";
 import ClientCommandCenter from "./pages/ClientCommandCenter";
@@ -95,7 +99,6 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/auth" element={<Auth />} />
-          <Route path="/login" element={<Login />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/guardian/:token" element={<GuardianSummary />} />
           
@@ -175,6 +178,11 @@ const App = () => (
           <Route path="/client/quick-plans" element={<ProtectedRoute allowedRoles={["client"]}><FastingRouteGuard><ClientQuickPlans /></FastingRouteGuard></ProtectedRoute>} />
           <Route path="/client/protocol/:id" element={<ProtectedRoute allowedRoles={["client"]}><FastingRouteGuard><ClientProtocolDetail /></FastingRouteGuard></ProtectedRoute>} />
           <Route path="/client/vibes" element={<ProtectedRoute allowedRoles={["client"]}><ClientVibes /></ProtectedRoute>} />
+          <Route path="/client/labs" element={<ProtectedRoute allowedRoles={["client"]}><ClientLabs /></ProtectedRoute>} />
+          <Route path="/client/labs/diamond" element={<ProtectedRoute allowedRoles={["client"]}><ClientDiamondLab /></ProtectedRoute>} />
+          <Route path="/client/labs/diamond/session" element={<ProtectedRoute allowedRoles={["client"]}><ClientBattingSession /></ProtectedRoute>} />
+          <Route path="/client/labs/hoops" element={<ProtectedRoute allowedRoles={["client"]}><ClientHoopsLab /></ProtectedRoute>} />
+          <Route path="/client/labs/hoops/session" element={<ProtectedRoute allowedRoles={["client"]}><ClientShootingSession /></ProtectedRoute>} />
           
           {/* Trainer: Vibes Admin */}
           <Route path="/vibes-admin" element={<ProtectedRoute allowedRoles={["trainer"]}><VibesAdmin /></ProtectedRoute>} />
