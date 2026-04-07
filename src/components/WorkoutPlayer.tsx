@@ -195,6 +195,21 @@ function browserSpeakNow(text: string): Promise<void> {
 
 // ElevenLabs TTS — for exercise names and motivational cues (high quality)
 // Uses the persistent Audio element so mobile browsers allow playback.
+// Current selected voice ID — set before workout starts
+let selectedVoiceId: string = "cgSgspJ2msm6clMCkdW9"; // default Jessica
+
+export const WORKOUT_VOICES = [
+  { id: "cgSgspJ2msm6clMCkdW9", name: "Jessica", desc: "Warm & Energetic", icon: "🔥" },
+  { id: "EXAVITQu4vr4xnSDxMaL", name: "Sarah", desc: "Calm & Encouraging", icon: "🧘" },
+  { id: "onwK4e9ZLuTAKqWW03F9", name: "Daniel", desc: "Strong & Commanding", icon: "💪" },
+  { id: "TX3LPaxmHKxFdv7VOQHJ", name: "Liam", desc: "Friendly & Motivating", icon: "⚡" },
+  { id: "pFZP5JQG7iQjIQuC4Bku", name: "Lily", desc: "Gentle & Supportive", icon: "🌸" },
+] as const;
+
+export function setWorkoutVoice(voiceId: string) {
+  selectedVoiceId = voiceId;
+}
+
 async function elevenLabsSpeakNow(text: string): Promise<void> {
   cancelSpeech();
   const controller = new AbortController();

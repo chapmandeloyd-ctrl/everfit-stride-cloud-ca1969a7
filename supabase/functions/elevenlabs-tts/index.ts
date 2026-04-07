@@ -11,7 +11,7 @@ serve(async (req) => {
   }
 
   try {
-    const { text } = await req.json();
+    const { text, voiceId: requestedVoiceId } = await req.json();
     const ELEVENLABS_API_KEY = Deno.env.get("ELEVENLABS_API_KEY");
 
     if (!ELEVENLABS_API_KEY) {
@@ -28,8 +28,8 @@ serve(async (req) => {
       });
     }
 
-    // Jessica voice - warm, energetic female coaching voice
-    const voiceId = "cgSgspJ2msm6clMCkdW9";
+    // Default to Jessica if no voiceId provided
+    const voiceId = requestedVoiceId || "cgSgspJ2msm6clMCkdW9";
 
     const response = await fetch(
       `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=mp3_44100_128`,
