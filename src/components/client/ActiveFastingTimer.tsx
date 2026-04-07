@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getCurrentStage, FASTING_STAGES } from "@/lib/fastingStages";
 import { format } from "date-fns";
+import fastingTimerBg from "@/assets/fasting-timer-bg.png";
 
 interface ActiveFastingTimerProps {
   protocolName: string;
@@ -132,15 +133,13 @@ export function ActiveFastingTimer({
     <div className="relative w-full min-h-[85vh] flex flex-col overflow-hidden rounded-none">
       {/* Background */}
       <div className="absolute inset-0 bg-black">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <img
-            src="/logo.png"
-            alt=""
-            className="w-[80%] h-[80%] object-contain opacity-30"
-          />
-        </div>
+        <img
+          src={fastingTimerBg}
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover"
+        />
       </div>
-      <div className="absolute inset-0 bg-black/40" />
+      <div className="absolute inset-0 bg-black/45" />
 
       {/* Content */}
       <div className="relative z-10 flex flex-col flex-1 px-5 pt-5 pb-6">
