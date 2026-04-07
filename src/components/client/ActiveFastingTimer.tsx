@@ -131,7 +131,7 @@ export function ActiveFastingTimer({
   return (
     <div className="relative w-full min-h-[85vh] flex flex-col overflow-hidden rounded-none">
       {/* Background */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 bg-black">
         {backgroundImageUrl ? (
           <img
             src={backgroundImageUrl}
@@ -139,7 +139,13 @@ export function ActiveFastingTimer({
             className="absolute inset-0 w-full h-full object-cover"
           />
         ) : (
-          <div className="absolute inset-0 bg-black" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <img
+              src="/logo.png"
+              alt=""
+              className="w-[85%] h-[85%] object-contain opacity-40"
+            />
+          </div>
         )}
       </div>
       <div className="absolute inset-0 bg-black/40" />
