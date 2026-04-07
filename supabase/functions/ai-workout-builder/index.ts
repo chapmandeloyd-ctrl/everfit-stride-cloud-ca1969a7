@@ -12,58 +12,127 @@ serve(async (req) => {
   }
 
   try {
-    const { exercises, client_context, preferences } = await req.json();
+    const { mode, prompt, exercise_names, category, difficulty } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const systemPrompt = `You are an AI workout builder for a professional fitness coaching platform.
-
-SAFETY:
-- Never give medical advice. You are creating workout drafts for a coach to review.
-- Always respect the client's level and engine mode.
-- All output is a DRAFT for coach approval.
-
-CLIENT CONTEXT:
-- Engine: ${client_context?.engine_mode || "performance"}
-- Level: ${client_context?.current_level || 1} (Band: ${client_context?.level_band || "1-3"})
-- Status: ${client_context?.status || "moderate"}
-
-AVAILABLE EXERCISES (use ONLY these exercise IDs):
-${(exercises || []).map((e: any) => `- ID: ${e.id} | Name: ${e.name} | Muscle: ${e.muscle_group || "General"} | Equipment: ${e.equipment || "None"}`).join("\n")}
-
-PREFERENCES:
-- Focus: ${preferences?.focus || "full body"}
-- Duration: ${preferences?.duration || "45"} minutes
-- Difficulty: ${preferences?.difficulty || "intermediate"}
-- Equipment available: ${preferences?.equipment || "all"}
-- Goal: ${preferences?.goal || "general fitness"}
-
-Generate a structured workout using ONLY the exercise IDs provided above. Return a JSON object with this exact structure:
-{
-  "name": "Workout Name",
-  "instructions": "Brief workout description",
-  "difficulty": "beginner|intermediate|advanced",
-  "exercises": [
-    {
-      "exercise_id": "uuid-from-list-above",
-      "sets": 3,
-      "target_type": "text",
-      "target_value": "8-12 reps",
-      "rest_seconds": 60,
-      "order_index": 0
+    if (!prompt || !exercise_names || exercise_names.length === 0) {
+      return new Response(
+        JSON.stringify({ error: "prompt and exercise_names are required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
-  ]
-}
 
-Rules:
-- Use 4-8 exercises total
-- Only use exercise IDs from the provided list
-- Match difficulty to client level (1-3 = beginner, 4-6 = intermediate, 7 = advanced)
-- For metabolic engine: include compound movements, moderate rest
-- For performance engine: progressive overload focus, adequate rest
-- For athletic engine: sport-specific movements, dynamic exercises
-- Return ONLY valid JSON, no markdown or extra text`;
+    const exerciseList = exercise_names.join(", ");
+
+    let systemPrompt: string;
+    let tools: any[] | undefined;
+    let toolChoice: any | undefined;
+
+    if (mode === "suggest_exercise") {
+      systemPrompt = `You are an expert fitness coach building workouts. The trainer wants exercise suggestions.
+
+Available exercises in their library: ${exerciseList}
+
+RULES:
+- ONLY suggest exercises from the list above
+- Match the name EXACTLY as written
+- Consider the workout context when suggesting
+- Suggest 3-5 exercises`;
+
+      tools = [{
+        type: "function",
+        function: {
+          name: "suggest_exercises",
+          description: "Suggest exercises from the trainer's library",
+          parameters: {
+            type: "object",
+            properties: {
+              suggestions: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    exercise_name: { type: "string", description: "Exact name from the exercise library" },
+                    sets: { type: "number" },
+                    reps_or_time: { type: "string", description: "e.g. '12' or '30 sec'" },
+                    rest_seconds: { type: "number" },
+                    reason: { type: "string", description: "Brief reason for this suggestion" },
+                  },
+                  required: ["exercise_name", "sets", "reps_or_time", "rest_seconds", "reason"],
+                  additionalProperties: false,
+                },
+              },
+            },
+            required: ["suggestions"],
+            additionalProperties: false,
+          },
+        },
+      }];
+      toolChoice = { type: "function", function: { name: "suggest_exercises" } };
+    } else {
+      systemPrompt = `You are an expert fitness coach building a complete workout plan.
+
+Available exercises in the trainer's library: ${exerciseList}
+
+RULES:
+- ONLY use exercises from the list above — match names EXACTLY
+- Create a logical, well-structured workout
+- Include warm-up exercises if appropriate
+- Set appropriate sets, reps/time, and rest periods
+- Category hint: ${category || "general"}
+- Difficulty hint: ${difficulty || "intermediate"}
+- Group related exercises into supersets or circuits when it makes sense`;
+
+      tools = [{
+        type: "function",
+        function: {
+          name: "build_workout",
+          description: "Build a complete structured workout plan",
+          parameters: {
+            type: "object",
+            properties: {
+              workout_name: { type: "string" },
+              description: { type: "string", description: "Brief workout instructions/summary" },
+              category: { type: "string" },
+              difficulty: { type: "string", enum: ["beginner", "intermediate", "advanced"] },
+              sections: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    section_name: { type: "string", description: "e.g. Warm-Up, Main, Superset A, Circuit, Cool Down" },
+                    section_type: { type: "string", enum: ["straight_set", "superset", "circuit"] },
+                    rounds: { type: "number", description: "Number of rounds for supersets/circuits, 1 for straight sets" },
+                    exercises: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          exercise_name: { type: "string", description: "Exact name from the exercise library" },
+                          sets: { type: "number" },
+                          reps_or_time: { type: "string", description: "e.g. '12' or '30 sec'" },
+                          rest_seconds: { type: "number" },
+                          notes: { type: "string", description: "Optional form cues or notes" },
+                        },
+                        required: ["exercise_name", "sets", "reps_or_time", "rest_seconds"],
+                        additionalProperties: false,
+                      },
+                    },
+                  },
+                  required: ["section_name", "section_type", "rounds", "exercises"],
+                  additionalProperties: false,
+                },
+              },
+            },
+            required: ["workout_name", "description", "category", "difficulty", "sections"],
+            additionalProperties: false,
+          },
+        },
+      }];
+      toolChoice = { type: "function", function: { name: "build_workout" } };
+    }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -75,19 +144,21 @@ Rules:
         model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: `Generate a ${preferences?.focus || "full body"} workout for this client. Return only JSON.` },
+          { role: "user", content: prompt },
         ],
+        tools,
+        tool_choice: toolChoice,
       }),
     });
 
     if (!response.ok) {
       if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again shortly." }), {
+        return new Response(JSON.stringify({ error: "Rate limit exceeded. Try again shortly." }), {
           status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "AI credits depleted. Please add credits." }), {
+        return new Response(JSON.stringify({ error: "AI credits depleted." }), {
           status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
@@ -99,21 +170,17 @@ Rules:
     }
 
     const data = await response.json();
-    let text = data.choices?.[0]?.message?.content || "";
+    const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
 
-    // Strip markdown code fences if present
-    text = text.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
-
-    let workout;
-    try {
-      workout = JSON.parse(text);
-    } catch {
-      return new Response(JSON.stringify({ error: "Failed to parse AI response", raw: text }), {
+    if (!toolCall?.function?.arguments) {
+      return new Response(JSON.stringify({ error: "No structured response from AI" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    return new Response(JSON.stringify({ workout }), {
+    const result = JSON.parse(toolCall.function.arguments);
+
+    return new Response(JSON.stringify({ result, mode: mode || "full_workout" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
