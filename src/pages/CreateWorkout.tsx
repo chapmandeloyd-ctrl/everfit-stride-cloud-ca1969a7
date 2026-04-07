@@ -748,6 +748,15 @@ export default function CreateWorkout() {
         </div>
         <div className="flex items-center gap-2">
           <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setAiBuilderOpen(true)}
+            className="gap-1.5"
+          >
+            <Sparkles className="h-4 w-4" />
+            AI Builder
+          </Button>
+          <Button
             size="sm"
             onClick={handleSave}
             disabled={createWorkoutMutation.isPending}
