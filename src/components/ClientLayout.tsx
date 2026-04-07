@@ -9,7 +9,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
-const logoSrc = "/favicon.ico";
+import logoSrc from "@/assets/logo.png";
 import {
   DropdownMenu,
   DropdownMenuContent,
