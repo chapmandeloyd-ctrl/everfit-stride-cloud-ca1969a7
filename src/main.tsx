@@ -12,7 +12,11 @@ const isLovablePreviewHost =
 if (isNativeApp() || isLovablePreviewHost) {
   (isNativeApp() ? disableServiceWorkersInNative() : clearServiceWorkersAndCaches("[Preview]")).catch(() => {});
 } else if (import.meta.env.PROD && "serviceWorker" in navigator) {
-  navigator.serviceWorker.register("/sw.js").catch(() => {});
+  clearServiceWorkersAndCaches("[Web]")
+    .catch(() => {})
+    .finally(() => {
+      navigator.serviceWorker.register(`/sw.js?v=${Date.now()}`).catch(() => {});
+    });
 }
 
 createRoot(document.getElementById("root")!).render(
