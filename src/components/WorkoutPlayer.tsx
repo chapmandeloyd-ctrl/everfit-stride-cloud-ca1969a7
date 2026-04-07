@@ -273,7 +273,7 @@ export function WorkoutPlayer({ sections, onComplete, onEndEarly, onDiscard, onE
 
   const [phase, setPhase] = useState<"voiceselect" | "getready" | "countdown" | "playing">("voiceselect");
   const [countdownNum, setCountdownNum] = useState(3);
-  const [chosenVoice, setChosenVoice] = useState(WORKOUT_VOICES[0].id);
+  const [chosenVoice, setChosenVoice] = useState<string>(WORKOUT_VOICES[0].id);
   const [previewingVoice, setPreviewingVoice] = useState(false);
 
   const stepsRef = useRef<WorkoutStep[]>(buildSteps(sections));
