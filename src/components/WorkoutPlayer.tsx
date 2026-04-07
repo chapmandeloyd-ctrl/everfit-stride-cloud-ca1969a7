@@ -271,8 +271,10 @@ export function WorkoutPlayer({ sections, onComplete, onEndEarly, onDiscard, onE
     return () => { document.removeEventListener("touchstart", unlock); document.removeEventListener("click", unlock); };
   }, []);
 
-  const [phase, setPhase] = useState<"getready" | "countdown" | "playing">("getready");
+  const [phase, setPhase] = useState<"voiceselect" | "getready" | "countdown" | "playing">("voiceselect");
   const [countdownNum, setCountdownNum] = useState(3);
+  const [chosenVoice, setChosenVoice] = useState(WORKOUT_VOICES[0].id);
+  const [previewingVoice, setPreviewingVoice] = useState(false);
 
   const stepsRef = useRef<WorkoutStep[]>(buildSteps(sections));
   const steps = stepsRef.current;
