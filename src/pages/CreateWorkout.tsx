@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, X, GripVertical, Copy, Trash2, Timer, FileText, Clock } from "lucide-react";
+import { Search, Plus, X, GripVertical, Copy, Trash2, Timer, FileText, Clock, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CreateFromTemplateDialog } from "@/components/CreateFromTemplateDialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -320,6 +320,7 @@ export default function CreateWorkout() {
   const [visibleCount, setVisibleCount] = useState(60);
   const [videoFilter, setVideoFilter] = useState<"all" | "named" | "unnamed">("all");
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
+  const [aiBuilderOpen, setAiBuilderOpen] = useState(false);
 
   const sensors = useSensors(useSensor(PointerSensor));
 
