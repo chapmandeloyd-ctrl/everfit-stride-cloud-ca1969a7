@@ -25,12 +25,34 @@ export default function ClientCardioPlayer() {
   const [isLocked, setIsLocked] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const startWallRef = useRef<number>(Date.now());
+  const accumulatedRef = useRef<number>(0);
 
+  // Wall-clock timer: survives background/lock screen
   useEffect(() => {
     if (!isPaused) {
-      intervalRef.current = setInterval(() => setSeconds((s) => s + 1), 1000);
+      startWallRef.current = Date.now();
+      intervalRef.current = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - startWallRef.current) / 1000);
+        setSeconds(accumulatedRef.current + elapsed);
+      }, 500);
+    } else {
+      accumulatedRef.current = seconds;
+      if (intervalRef.current) clearInterval(intervalRef.current);
     }
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+  }, [isPaused]);
+
+  // Recalculate on tab visibility change (returning from background)
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible" && !isPaused) {
+        const elapsed = Math.floor((Date.now() - startWallRef.current) / 1000);
+        setSeconds(accumulatedRef.current + elapsed);
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
   }, [isPaused]);
 
   const formatTime = (totalSeconds: number) => {
