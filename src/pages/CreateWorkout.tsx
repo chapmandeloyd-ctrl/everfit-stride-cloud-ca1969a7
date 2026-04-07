@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useRef } from "react";
+import { AIWorkoutBuilderDialog } from "@/components/AIWorkoutBuilderDialog";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -7,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, X, GripVertical, Copy, Trash2, Timer, FileText, Clock } from "lucide-react";
+import { Search, Plus, X, GripVertical, Copy, Trash2, Timer, FileText, Clock, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CreateFromTemplateDialog } from "@/components/CreateFromTemplateDialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -319,6 +320,7 @@ export default function CreateWorkout() {
   const [visibleCount, setVisibleCount] = useState(60);
   const [videoFilter, setVideoFilter] = useState<"all" | "named" | "unnamed">("all");
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
+  const [aiBuilderOpen, setAiBuilderOpen] = useState(false);
 
   const sensors = useSensors(useSensor(PointerSensor));
 
@@ -746,6 +748,15 @@ export default function CreateWorkout() {
         </div>
         <div className="flex items-center gap-2">
           <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setAiBuilderOpen(true)}
+            className="gap-1.5"
+          >
+            <Sparkles className="h-4 w-4" />
+            AI Builder
+          </Button>
+          <Button
             size="sm"
             onClick={handleSave}
             disabled={createWorkoutMutation.isPending}
@@ -989,6 +1000,23 @@ export default function CreateWorkout() {
       <CreateFromTemplateDialog
         open={templateDialogOpen}
         onOpenChange={setTemplateDialogOpen}
+      />
+
+      <AIWorkoutBuilderDialog
+        open={aiBuilderOpen}
+        onOpenChange={setAiBuilderOpen}
+        exercises={exercises || []}
+        onApplyWorkout={(name, description, cat, diff, items, newGroups) => {
+          setWorkoutName(name);
+          setInstructions(description);
+          setCategory(cat);
+          setDifficulty(diff as any);
+          setExerciseItems(items);
+          setGroups(newGroups);
+        }}
+        onAddExercises={(items) => {
+          setExerciseItems((prev) => [...prev, ...items]);
+        }}
       />
     </div>
   );
