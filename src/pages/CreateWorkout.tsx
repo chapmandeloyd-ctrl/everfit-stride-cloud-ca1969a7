@@ -1001,6 +1001,23 @@ export default function CreateWorkout() {
         open={templateDialogOpen}
         onOpenChange={setTemplateDialogOpen}
       />
+
+      <AIWorkoutBuilderDialog
+        open={aiBuilderOpen}
+        onOpenChange={setAiBuilderOpen}
+        exercises={exercises || []}
+        onApplyWorkout={(name, description, cat, diff, items, newGroups) => {
+          setWorkoutName(name);
+          setInstructions(description);
+          setCategory(cat);
+          setDifficulty(diff as any);
+          setExerciseItems(items);
+          setGroups(newGroups);
+        }}
+        onAddExercises={(items) => {
+          setExerciseItems((prev) => [...prev, ...items]);
+        }}
+      />
     </div>
   );
 }
