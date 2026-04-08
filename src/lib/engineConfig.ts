@@ -255,15 +255,9 @@ export function getEngineConfig(mode: EngineMode): EngineConfig {
 export const ENGINE_MODE_OPTIONS: { value: EngineMode; label: string; description: string; ageRange: string }[] = [
   {
     value: "metabolic",
-    label: "Metabolic Stability",
+    label: "KSOM-360",
     description: "Fasting-first. Build consistent metabolic rhythm.",
-    ageRange: "45+",
-  },
-  {
-    value: "performance",
-    label: "Performance Readiness",
-    description: "Training-first with fasting integrated as a tool.",
-    ageRange: "40+",
+    ageRange: "18+",
   },
   {
     value: "athletic",
