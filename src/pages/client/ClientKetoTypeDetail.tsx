@@ -144,6 +144,13 @@ export default function ClientKetoTypeDetail() {
           allTypes={allTypes || []}
           isActive={isActive}
         />
+
+        {/* Synergy Section */}
+        <PlanSynergySection
+          protocolType={featureSettings?.selected_protocol_id ? "program" : featureSettings?.selected_quick_plan_id ? "quick_plan" : null}
+          protocolId={featureSettings?.selected_protocol_id || featureSettings?.selected_quick_plan_id || null}
+          ketoTypeId={id || null}
+        />
       </div>
 
       {/* Fixed bottom CTA */}
