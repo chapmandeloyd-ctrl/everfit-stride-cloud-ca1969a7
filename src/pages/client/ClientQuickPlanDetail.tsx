@@ -1,15 +1,26 @@
 import { ClientLayout } from "@/components/ClientLayout";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Clock, CalendarDays, BarChart3, Zap, Target, Users, Utensils, Star } from "lucide-react";
+import {
+  ArrowLeft,
+  Clock,
+  CalendarDays,
+  BarChart3,
+  Zap,
+  Target,
+  Users,
+  Flame,
+  Shield,
+  CheckCircle2,
+  ChevronRight,
+} from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
-import { Separator } from "@/components/ui/separator";
 import { FastingSafetyNotice } from "@/components/FastingSafetyNotice";
 import { FastingStructureComparison } from "@/components/FastingStructureComparison";
+import { getTierForLevel, getIntensityLabel } from "@/lib/quickPlanTierConfig";
 
 interface PlanDescription {
   subtitle?: string;
@@ -42,16 +53,6 @@ interface QuickPlan {
   intensity_tier: string;
   is_extended_fast: boolean;
   is_youth_safe: boolean;
-}
-
-function getDifficultyColor(group: string) {
-  switch (group) {
-    case "beginner": return { text: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/30" };
-    case "intermediate": return { text: "text-amber-600 dark:text-amber-400", bg: "bg-amber-500/10", border: "border-amber-500/30" };
-    case "advanced": return { text: "text-red-600 dark:text-red-400", bg: "bg-red-500/10", border: "border-red-500/30" };
-    case "long_fasts": return { text: "text-purple-600 dark:text-purple-400", bg: "bg-purple-500/10", border: "border-purple-500/30" };
-    default: return { text: "text-muted-foreground", bg: "bg-muted", border: "border-muted" };
-  }
 }
 
 function getDifficultyLabel(group: string) {
@@ -125,176 +126,200 @@ export default function ClientQuickPlanDetail() {
     );
   }
 
-  const diffColors = getDifficultyColor(plan.difficulty_group);
   const desc = plan.description;
+  const tier = getTierForLevel(plan.min_level_required);
+  const TierIcon = tier.icon;
 
   return (
     <ClientLayout>
-      <div className="pb-28 w-full">
-        {/* Back & Moon icon */}
-        <div className="px-3 pt-4 pb-1 flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/client/quick-plans")}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-        </div>
+      <div className="pb-32 w-full">
+        {/* ── Hero Header ── */}
+        <div className="relative overflow-hidden">
+          {/* Aurora background */}
+          <div className={`absolute inset-0 bg-gradient-to-br ${tier.cardGradient} opacity-60`} />
+          <div className={`absolute -right-10 -top-10 h-40 w-40 rounded-full bg-gradient-to-br ${tier.cardGradient} blur-3xl opacity-40`} />
+          <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-background to-transparent" />
 
-        {/* Header section */}
-        <div className="px-5 space-y-1">
-          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Plans</p>
-          <h1 className="text-3xl font-black tracking-tight">{plan.name}</h1>
-          <button
-            onClick={() => navigate("/client/quick-plans")}
-            className="flex items-center gap-1.5 text-sm text-muted-foreground mt-1"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" />
-            Protocols
-          </button>
-        </div>
+          <div className="relative px-5 pt-4 pb-8">
+            <button
+              onClick={() => navigate("/client/programs")}
+              className="flex items-center gap-1.5 text-sm text-muted-foreground mb-6 hover:text-foreground transition-colors"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Programs
+            </button>
 
-        {/* Plan Card */}
-        <div className="px-5 mt-5">
-          <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
             <div className="flex items-start justify-between">
-              <Badge variant="outline" className={`text-xs uppercase tracking-wider font-bold ${diffColors.text} ${diffColors.bg} ${diffColors.border}`}>
-                <BarChart3 className="h-3 w-3 mr-1" />
-                {getDifficultyLabel(plan.difficulty_group)}
-              </Badge>
-              <Star className="h-5 w-5 text-amber-400/40" />
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${tier.badgeBg} ring-1 ring-white/40`}>
+                    <TierIcon className={`h-5 w-5 ${tier.accentColor}`} />
+                  </div>
+                  <div>
+                    <span className={`text-[10px] font-bold uppercase tracking-[0.2em] ${tier.accentColor}`}>
+                      Level {plan.min_level_required} • {tier.label}
+                    </span>
+                  </div>
+                </div>
+                <h1 className="text-4xl font-black tracking-[-0.03em] leading-none text-foreground">
+                  {plan.name}
+                </h1>
+                {desc?.subtitle && (
+                  <p className="text-base text-muted-foreground leading-relaxed max-w-[30ch]">
+                    {desc.subtitle}
+                  </p>
+                )}
+              </div>
+
+              <span className={`text-xs font-bold px-3 py-1.5 rounded-full ${tier.badgeBg} ${tier.accentColor} ring-1 ${tier.borderClass}`}>
+                {getIntensityLabel(plan.intensity_tier)}
+              </span>
             </div>
-
-            <h2 className="text-2xl font-black">{plan.name}</h2>
-
-            {desc?.subtitle && (
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {desc.subtitle}
-              </p>
-            )}
           </div>
         </div>
 
-        {/* Stats Row */}
-        <div className="grid grid-cols-3 gap-3 px-5 mt-5">
-          <div className="rounded-xl border border-border bg-card p-3 text-center space-y-1">
-            <Clock className="h-5 w-5 mx-auto text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">Fasting Window</p>
-            <p className="text-lg font-black">{plan.fast_hours}–{plan.eat_hours > 0 ? `${plan.eat_hours}h` : "0h"}</p>
-          </div>
-          <div className="rounded-xl border border-border bg-card p-3 text-center space-y-1">
-            <CalendarDays className="h-5 w-5 mx-auto text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">Program Length</p>
-            <p className="text-lg font-black">{desc?.length || "Ongoing"}</p>
-          </div>
-          <div className="rounded-xl border border-border bg-card p-3 text-center space-y-1">
-            <BarChart3 className="h-5 w-5 mx-auto text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">Difficulty</p>
-            <p className="text-lg font-black">{getDifficultyLabel(plan.difficulty_group)}</p>
-          </div>
+        {/* ── Stats Row ── */}
+        <div className="grid grid-cols-3 gap-2.5 px-5 -mt-2">
+          {[
+            {
+              icon: Clock,
+              label: "Fasting Window",
+              value: `${plan.fast_hours}:${plan.eat_hours}`,
+            },
+            {
+              icon: CalendarDays,
+              label: "Duration",
+              value: desc?.length || "Flexible",
+            },
+            {
+              icon: BarChart3,
+              label: "Difficulty",
+              value: getDifficultyLabel(plan.difficulty_group),
+            },
+          ].map((stat) => (
+            <div
+              key={stat.label}
+              className={`relative overflow-hidden rounded-2xl border ${tier.borderClass} bg-card/80 backdrop-blur-sm p-4 text-center`}
+            >
+              <div className={`absolute -right-3 -top-3 h-10 w-10 rounded-full bg-gradient-to-br ${tier.cardGradient} blur-xl opacity-30`} />
+              <stat.icon className={`h-5 w-5 mx-auto ${tier.accentColor} mb-2`} />
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground leading-tight mb-1">{stat.label}</p>
+              <p className="text-base font-black text-foreground leading-tight">{stat.value}</p>
+            </div>
+          ))}
         </div>
 
-        <div className="px-5 mt-6 space-y-6">
-          {/* Protocol Overview */}
+        <div className="px-5 mt-6 space-y-4">
+          {/* ── Protocol Overview ── */}
           {desc?.how_it_works && (
-            <div className="rounded-2xl border border-border bg-card p-5 space-y-3">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+            <section className={`rounded-2xl border ${tier.borderClass} bg-card/80 backdrop-blur-sm p-5 space-y-3`}>
+              <h3 className={`text-xs font-bold uppercase tracking-widest ${tier.accentColor} flex items-center gap-1.5`}>
+                <Target className="h-3.5 w-3.5" />
                 Protocol Overview
               </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
                 {desc.how_it_works}
               </p>
-            </div>
+            </section>
           )}
 
-          {/* Benefits */}
+          {/* ── Focus ── */}
+          {desc?.focus && (
+            <section className={`rounded-2xl border ${tier.borderClass} bg-gradient-to-r ${tier.cardGradient} p-5 space-y-2`}>
+              <h3 className={`text-[10px] font-bold uppercase tracking-widest ${tier.accentColor}`}>
+                Primary Focus
+              </h3>
+              <p className="text-sm font-semibold text-foreground leading-relaxed">{desc.focus}</p>
+            </section>
+          )}
+
+          {/* ── Benefits ── */}
           {desc?.benefits && desc.benefits.length > 0 && (
-            <div className="rounded-2xl border border-border bg-card p-5 space-y-3">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+            <section className={`rounded-2xl border ${tier.borderClass} bg-card/80 backdrop-blur-sm p-5 space-y-3`}>
+              <h3 className={`text-xs font-bold uppercase tracking-widest ${tier.accentColor} flex items-center gap-1.5`}>
+                <Flame className="h-3.5 w-3.5" />
                 Benefits
               </h3>
-              <ul className="space-y-2">
+              <ul className="space-y-2.5">
                 {desc.benefits.map((b, i) => (
                   <li key={i} className="flex items-start gap-2.5 text-sm text-muted-foreground">
-                    <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" />
+                    <CheckCircle2 className={`h-4 w-4 shrink-0 mt-0.5 ${tier.accentColor}`} />
                     {b}
                   </li>
                 ))}
               </ul>
-            </div>
+            </section>
           )}
 
-          {/* Daily Structure */}
+          {/* ── Daily Structure ── */}
           {desc?.daily_structure && (
-            <div className="rounded-2xl border border-border bg-card p-5 space-y-3">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+            <section className={`rounded-2xl border ${tier.borderClass} bg-card/80 backdrop-blur-sm p-5 space-y-3`}>
+              <h3 className={`text-xs font-bold uppercase tracking-widest ${tier.accentColor} flex items-center gap-1.5`}>
+                <Clock className="h-3.5 w-3.5" />
                 Daily Structure
               </h3>
-              <div className="space-y-2 text-sm">
+              <div className="space-y-2">
                 {desc.daily_structure.stop_eating && (
-                  <div className="flex justify-between rounded-lg bg-muted/40 px-4 py-3">
-                    <span className="text-muted-foreground">Stop Eating</span>
-                    <span className="font-bold">{desc.daily_structure.stop_eating}</span>
+                  <div className={`flex justify-between items-center rounded-xl bg-muted/30 border ${tier.borderClass} px-4 py-3`}>
+                    <span className="text-sm text-muted-foreground">Stop Eating</span>
+                    <span className="text-sm font-bold text-foreground">{desc.daily_structure.stop_eating}</span>
                   </div>
                 )}
                 {desc.daily_structure.break_fast && (
-                  <div className="flex justify-between rounded-lg bg-muted/40 px-4 py-3">
-                    <span className="text-muted-foreground">Break Fast</span>
-                    <span className="font-bold">{desc.daily_structure.break_fast}</span>
+                  <div className={`flex justify-between items-center rounded-xl bg-muted/30 border ${tier.borderClass} px-4 py-3`}>
+                    <span className="text-sm text-muted-foreground">Break Fast</span>
+                    <span className="text-sm font-bold text-foreground">{desc.daily_structure.break_fast}</span>
                   </div>
                 )}
                 {desc.daily_structure.meals && desc.daily_structure.meals.length > 0 && (
-                  <div className="flex justify-between rounded-lg bg-muted/40 px-4 py-3">
-                    <span className="text-muted-foreground">Meals</span>
-                    <span className="font-bold">{desc.daily_structure.meals.join(", ")}</span>
+                  <div className={`flex justify-between items-center rounded-xl bg-muted/30 border ${tier.borderClass} px-4 py-3`}>
+                    <span className="text-sm text-muted-foreground">Meals</span>
+                    <span className="text-sm font-bold text-foreground">{desc.daily_structure.meals.join(" • ")}</span>
                   </div>
                 )}
               </div>
               {desc.daily_structure.note && (
-                <p className="text-xs text-muted-foreground italic mt-2">{desc.daily_structure.note}</p>
+                <p className="text-xs text-muted-foreground/80 italic pt-1">
+                  {desc.daily_structure.note}
+                </p>
               )}
-            </div>
+            </section>
           )}
 
-          {/* Focus */}
-          {desc?.focus && (
-            <div className="rounded-2xl border border-border bg-card p-5 space-y-3">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
-                <Target className="h-4 w-4" /> Focus
-              </h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">{desc.focus}</p>
-            </div>
-          )}
-
-          {/* Who This Is For */}
+          {/* ── Who This Is For ── */}
           {desc?.who_for && desc.who_for.length > 0 && (
-            <div className="rounded-2xl border border-border bg-card p-5 space-y-3">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
-                <Users className="h-4 w-4" /> Who This Is For
+            <section className={`rounded-2xl border ${tier.borderClass} bg-card/80 backdrop-blur-sm p-5 space-y-3`}>
+              <h3 className={`text-xs font-bold uppercase tracking-widest ${tier.accentColor} flex items-center gap-1.5`}>
+                <Users className="h-3.5 w-3.5" />
+                Who This Is For
               </h3>
-              <ul className="space-y-2">
+              <ul className="space-y-2.5">
                 {desc.who_for.map((w, i) => (
                   <li key={i} className="flex items-start gap-2.5 text-sm text-muted-foreground">
-                    <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
+                    <ChevronRight className={`h-4 w-4 shrink-0 mt-0.5 ${tier.accentColor}`} />
                     {w}
                   </li>
                 ))}
               </ul>
-            </div>
+            </section>
           )}
 
-          {/* Coach Guidance */}
+          {/* ── Coach Guidance ── */}
           {desc?.coach_guidance && desc.coach_guidance.length > 0 && (
-            <div className="rounded-2xl border border-border bg-card p-5 space-y-3">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
-                <Zap className="h-4 w-4" /> Coach Guidance
+            <section className={`rounded-2xl border ${tier.borderClass} bg-card/80 backdrop-blur-sm p-5 space-y-3`}>
+              <h3 className={`text-xs font-bold uppercase tracking-widest ${tier.accentColor} flex items-center gap-1.5`}>
+                <Zap className="h-3.5 w-3.5" />
+                Coach Guidance
               </h3>
-              <ul className="space-y-2">
+              <ul className="space-y-2.5">
                 {desc.coach_guidance.map((tip, i) => (
                   <li key={i} className="flex items-start gap-2.5 text-sm text-muted-foreground">
-                    <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
+                    <Shield className={`h-4 w-4 shrink-0 mt-0.5 ${tier.accentColor}`} />
                     {tip}
                   </li>
                 ))}
               </ul>
-            </div>
+            </section>
           )}
 
           <FastingStructureComparison />
@@ -302,10 +327,10 @@ export default function ClientQuickPlanDetail() {
         </div>
       </div>
 
-      {/* Fixed bottom CTA */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-t p-4 safe-area-bottom space-y-2">
+      {/* ── Fixed Bottom CTA ── */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-md border-t border-border/50 p-4 safe-area-bottom space-y-2">
         <Button
-          className="w-full h-12 text-base font-semibold"
+          className="w-full h-12 text-base font-bold rounded-xl"
           onClick={() => selectPlanMutation.mutate({ startNow: true })}
           disabled={selectPlanMutation.isPending}
         >
@@ -313,7 +338,7 @@ export default function ClientQuickPlanDetail() {
         </Button>
         <Button
           variant="outline"
-          className="w-full h-10 text-sm"
+          className="w-full h-10 text-sm rounded-xl"
           onClick={() => selectPlanMutation.mutate({ startNow: false })}
           disabled={selectPlanMutation.isPending}
         >
