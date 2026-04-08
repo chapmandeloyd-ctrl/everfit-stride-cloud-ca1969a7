@@ -674,7 +674,8 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
   const startWithVoice = () => {
     setWorkoutVoice(chosenVoice);
     unlockAudioForMobile();
-    setPhase("getready");
+    preCacheCountdownClips(); // pre-cache 3, 2, 1, Go! in background
+    setPhase("intro");
   };
 
   // ─── VOICE SELECT SCREEN ───
@@ -720,26 +721,19 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
     );
   }
 
-  // ─── GET READY SCREEN ───
-  if (phase === "getready") {
+  // ─── INTRO / LINEUP REVEAL ───
+  if (phase === "intro") {
+    const totalCalcMinutes = Math.ceil(totalEstimatedSeconds / 60);
+    const totalExCount = steps.filter(s => s.type === "exercise").length;
     return (
-      <div className="fixed inset-0 z-[200] flex items-center justify-center bg-foreground">
-        <Button variant="ghost" size="icon" className="absolute top-6 left-4 text-background/60 hover:text-background" onClick={onExit}>
-          <X className="h-6 w-6" />
-        </Button>
-        <h1 className="text-7xl font-light text-background tracking-widest text-center leading-tight">
-          GET<br />READY
-        </h1>
-      </div>
-    );
-  }
-
-  // ─── COUNTDOWN SCREEN ───
-  if (phase === "countdown") {
-    return (
-      <div className="fixed inset-0 z-[200] flex items-center justify-center bg-foreground">
-        <span className="text-9xl font-black text-background tabular-nums">{countdownNum > 0 ? countdownNum : "GO!"}</span>
-      </div>
+      <WorkoutIntro
+        workoutName={workoutName || "Workout"}
+        sections={sections}
+        totalMinutes={totalCalcMinutes}
+        totalExercises={totalExCount}
+        speakFn={elevenLabsSpeakNow}
+        onIntroComplete={() => setPhase("playing")}
+      />
     );
   }
 
