@@ -8,7 +8,6 @@ import { ProgramsSelector } from "@/components/ProgramsSelector";
 import { QuickPlansSelector } from "@/components/QuickPlansSelector";
 import { FastingSafetyNotice } from "@/components/FastingSafetyNotice";
 import { FastingStructureComparison } from "@/components/FastingStructureComparison";
-import { RecommendationCard } from "@/components/RecommendationCard";
 import { LifestylePlanSelector } from "@/components/LifestylePlanSelector";
 import { TransformationPathCard } from "@/components/TransformationPathCard";
 import { useEngineMode } from "@/hooks/useEngineMode";
@@ -89,7 +88,6 @@ export default function ClientChooseProtocol() {
         {showFasting && (
           <>
 
-            <RecommendationCard />
             <LifestylePlanSelector selected={focusFilter} onSelect={setFocusFilter} />
             <TransformationPathCard />
             <ProgramsSelector navigate={navigate} />

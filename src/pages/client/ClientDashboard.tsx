@@ -34,10 +34,6 @@ import { FastingCoachTipCard } from "@/components/FastingCoachTipCard";
 import { ProtocolCompletionDialog } from "@/components/ProtocolCompletionDialog";
 import { MyProgressSection } from "@/components/MyProgressSection";
 import { DailyCheckinCard } from "@/components/DailyCheckinCard";
-import { RecommendationCard } from "@/components/RecommendationCard";
-import { DashboardFocusSelector } from "@/components/DashboardFocusSelector";
-import { DashboardInsightCard } from "@/components/DashboardInsightCard";
-import { LevelProgressionCard } from "@/components/LevelProgressionCard";
 import { InAppNotifications } from "@/components/InAppNotifications";
 import { useDashboardLayoutClient } from "@/hooks/useDashboardLayoutClient";
 import { SportHeroBanner } from "@/components/SportHeroBanner";
@@ -1418,10 +1414,7 @@ export default function ClientDashboard() {
             case "engine_cards":
               return (
                 <div key="engine_cards" className="space-y-5">
-                  {engineConfig.features.showFastingUI && <DashboardFocusSelector currentFocus={null} />}
                   <DailyCheckinCard />
-                  <RecommendationCard />
-                  <DashboardInsightCard />
                 </div>
               );
 
