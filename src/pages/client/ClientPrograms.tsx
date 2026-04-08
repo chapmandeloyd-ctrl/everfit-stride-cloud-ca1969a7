@@ -1,6 +1,6 @@
 import { ClientLayout } from "@/components/ClientLayout";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, ChevronRight, Lock } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -10,6 +10,11 @@ import {
   getDifficultyLabel,
   getDurationLabel,
 } from "@/lib/fastingCategoryConfig";
+import {
+  LEVEL_TIERS,
+  getTierForLevel,
+  getIntensityLabel,
+} from "@/lib/quickPlanTierConfig";
 
 interface FastingProtocol {
   id: string;
