@@ -26,6 +26,18 @@ interface FastingProtocol {
   difficulty_level: string;
 }
 
+interface QuickPlan {
+  id: string;
+  name: string;
+  fast_hours: number;
+  eat_hours: number;
+  description: any;
+  min_level_required: number;
+  intensity_tier: string | null;
+  plan_type: string | null;
+  is_extended_fast: boolean;
+}
+
 export default function ClientPrograms() {
   const navigate = useNavigate();
 
