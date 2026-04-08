@@ -51,6 +51,7 @@ interface SetLog {
 }
 
 interface WorkoutPlayerProps {
+  workoutName?: string;
   sections: Section[];
   onComplete: (data: { setLogs: Record<string, SetLog>; elapsedSeconds: number; startedAt: string }) => void;
   onEndEarly: (data: { setLogs: Record<string, SetLog>; elapsedSeconds: number; startedAt: string }) => void;
