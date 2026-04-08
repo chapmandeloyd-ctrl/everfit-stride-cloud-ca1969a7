@@ -14,6 +14,7 @@ import {
 import { PROTOCOL_DETAIL_COPY } from "@/lib/protocolDetailContent";
 import { FastingSafetyNotice } from "@/components/FastingSafetyNotice";
 import { FastingStructureComparison } from "@/components/FastingStructureComparison";
+import { PlanSynergySection } from "@/components/PlanSynergySection";
 
 function generateWeeklyProgression(durationDays: number, fastTargetHours: number) {
   const weeks = Math.ceil(durationDays / 7);
