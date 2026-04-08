@@ -86,6 +86,20 @@ export default function ClientQuickPlanDetail() {
     enabled: !!id,
   });
 
+  const { data: activeKetoAssignment } = useQuery({
+    queryKey: ["active-keto-assignment", clientId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("client_keto_assignments")
+        .select("keto_type_id")
+        .eq("client_id", clientId!)
+        .eq("is_active", true)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!clientId,
+  });
+
   const selectPlanMutation = useMutation({
     mutationFn: async ({ startNow }: { startNow: boolean }) => {
       if (!plan) throw new Error("No plan");
