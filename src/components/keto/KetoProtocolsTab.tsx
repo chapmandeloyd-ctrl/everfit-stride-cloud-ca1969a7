@@ -37,12 +37,8 @@ interface QuickPlan {
   description: any;
 }
 
-const DIFFICULTY_GROUPS = [
-  { key: "beginner", label: "Beginner Plans" },
-  { key: "intermediate", label: "Intermediate Plans" },
-  { key: "advanced", label: "Advanced Plans" },
-  { key: "long_fasts", label: "Long Fasts" },
-];
+
+
 
 function generateWeeklyProgression(durationDays: number, fastTargetHours: number) {
   const weeks = Math.ceil(durationDays / 7);
