@@ -25,7 +25,7 @@ import { SportEventCompletionDialog } from "@/components/SportEventCompletionDia
 import { DayStripCalendar } from "@/components/DayStripCalendar";
 import { QuickCardioFlow } from "@/components/cardio/QuickCardioFlow";
 import { SpeedDialFAB } from "@/components/SpeedDialFAB";
-import { BreakYourFastCard } from "@/components/BreakYourFastCard";
+
 import { ProgramsSelector } from "@/components/ProgramsSelector";
 import { FastingTimer } from "@/components/FastingTimer";
 import { FastingStagesGuide } from "@/components/FastingStagesGuide";
@@ -1382,12 +1382,6 @@ export default function ClientDashboard() {
               return settings.fasting_enabled && !engineConfig.fastingDisabled ? (
                 <div key="fasting">
                   <FastingProtocolCard clientId={clientId} navigate={navigate} />
-                  {/* Break Your Fast Card */}
-                  {mealGateStatus === "allowed" && fastingState?.eating_window_ends_at && new Date(fastingState.eating_window_ends_at) > new Date() && (
-                    <div className="mt-5">
-                      <BreakYourFastCard hasFlexibleMealPlan={settings.meal_plan_type === "flexible"} />
-                    </div>
-                  )}
                 </div>
               ) : null;
 
