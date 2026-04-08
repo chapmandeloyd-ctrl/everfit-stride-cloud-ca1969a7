@@ -122,7 +122,7 @@ export default function ClientQuickPlans() {
 
   function handlePlanClick(plan: QuickPlan) {
     if (!isReady) {
-      setSelectedPlan(plan);
+      navigate(`/client/quick-plan/${plan.id}`);
       return;
     }
 
@@ -145,7 +145,7 @@ export default function ClientQuickPlans() {
       return;
     }
 
-    setSelectedPlan(plan);
+    navigate(`/client/quick-plan/${plan.id}`);
   }
 
   function getPlanGatingResult(plan: QuickPlan) {
