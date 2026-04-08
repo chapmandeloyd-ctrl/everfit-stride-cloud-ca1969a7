@@ -108,27 +108,27 @@ export default function ClientPrograms() {
 
                         <div className="mx-6 border-t border-border/70" />
 
-                        <div className="grid grid-cols-3 gap-3 px-6 py-4">
-                          <div>
-                            <span className={`block text-[2rem] font-black leading-none ${group.config.color}`}>
+                        <div className="flex items-end gap-5 px-6 py-4">
+                          <div className="shrink-0">
+                            <span className={`block text-lg font-black leading-none ${group.config.color}`}>
                               {protocol.fast_target_hours}h
                             </span>
-                            <span className="mt-2 block text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Fast</span>
+                            <span className="mt-1 block text-[10px] uppercase tracking-wider text-muted-foreground">Fast</span>
                           </div>
 
-                          <div>
-                            <span className="block text-[2rem] font-black leading-none text-foreground">
+                          <div className="shrink-0">
+                            <span className="block text-lg font-black leading-none text-foreground">
                               {getDurationLabel(protocol.duration_days)}
                             </span>
-                            <span className="mt-2 block text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Duration</span>
+                            <span className="mt-1 block text-[10px] uppercase tracking-wider text-muted-foreground">Duration</span>
                           </div>
 
-                          <div className="flex items-end justify-between gap-2 rounded-2xl bg-background/70 px-3 py-2 shadow-sm ring-1 ring-border/60">
-                            <div>
-                              <span className="block text-xl font-black leading-none text-foreground">
+                          <div className="ml-auto flex items-center gap-2">
+                            <div className="text-right">
+                              <span className="block text-lg font-black leading-none text-foreground">
                                 {getDifficultyLabel(protocol.difficulty_level)}
                               </span>
-                              <span className="mt-2 block text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Level</span>
+                              <span className="mt-1 block text-[10px] uppercase tracking-wider text-muted-foreground">Level</span>
                             </div>
                             <ChevronRight className={`h-5 w-5 shrink-0 transition-transform group-hover:translate-x-1 ${group.config.color}`} />
                           </div>
