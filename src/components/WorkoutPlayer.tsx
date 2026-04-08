@@ -265,7 +265,7 @@ async function elevenLabsSpeakNow(text: string): Promise<void> {
       signal: controller.signal,
     });
   } catch {
-    if (!controller.signal.aborted) await browserSpeakNow(text);
+    if (!controller.signal.aborted) console.warn("ElevenLabs TTS failed, no fallback");
     return;
   }
   if (!response.ok || controller.signal.aborted) return;
@@ -283,16 +283,15 @@ async function elevenLabsSpeakNow(text: string): Promise<void> {
     audio.onended = () => { URL.revokeObjectURL(url); if (activeAudio === audio) activeAudio = null; resolve(); };
     audio.onerror = () => { URL.revokeObjectURL(url); resolve(); };
     audio.play().catch(() => {
-      // Final fallback to browser TTS if play still fails
       URL.revokeObjectURL(url);
-      browserSpeakNow(text).then(resolve).catch(resolve);
+      resolve();
     });
   });
 }
 export { unlockAudioForMobile };
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function WorkoutPlayer({ sections, onComplete, onEndEarly, onDiscard, onExit }: WorkoutPlayerProps) {
+export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, onDiscard, onExit }: WorkoutPlayerProps) {
   const { toast } = useToast();
   const startedAtRef = useRef(new Date().toISOString());
   const [setLogs, setSetLogs] = useState<Record<string, SetLog>>({});
@@ -307,8 +306,8 @@ export function WorkoutPlayer({ sections, onComplete, onEndEarly, onDiscard, onE
     return () => { document.removeEventListener("touchstart", unlock); document.removeEventListener("click", unlock); };
   }, []);
 
-  const [phase, setPhase] = useState<"voiceselect" | "getready" | "countdown" | "playing">("voiceselect");
-  const [countdownNum, setCountdownNum] = useState(3);
+  const [phase, setPhase] = useState<"voiceselect" | "intro" | "playing">("voiceselect");
+  const [countdownNum, setCountdownNum] = useState(3); // kept for reference but unused now
   const [chosenVoice, setChosenVoice] = useState<string>(WORKOUT_VOICES[0].id);
   const [previewingVoice, setPreviewingVoice] = useState(false);
 
