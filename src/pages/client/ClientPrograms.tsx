@@ -56,10 +56,29 @@ export default function ClientPrograms() {
     },
   });
 
+  const { data: quickPlans } = useQuery({
+    queryKey: ["quick-fasting-plans-client"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("quick_fasting_plans")
+        .select("*")
+        .order("min_level_required")
+        .order("fast_hours");
+      if (error) throw error;
+      return data as unknown as QuickPlan[];
+    },
+  });
+
   const grouped = CATEGORY_ORDER.map((cat) => ({
     category: cat,
     config: CATEGORY_CONFIG[cat],
     items: protocols?.filter((p) => p.category === cat) || [],
+  })).filter((g) => g.items.length > 0);
+
+  // Group quick plans by level tier
+  const quickPlansByTier = LEVEL_TIERS.map((tier) => ({
+    tier,
+    items: (quickPlans || []).filter((p) => tier.levels.includes(p.min_level_required)),
   })).filter((g) => g.items.length > 0);
 
   return (
