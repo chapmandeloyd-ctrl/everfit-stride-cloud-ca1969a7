@@ -5,7 +5,7 @@ import { getEngineConfig, type EngineMode, type EngineConfig } from "@/lib/engin
 import { switchEngineMode } from "@/lib/engineSwitchGuard";
 import { useAuth } from "@/hooks/useAuth";
 
-const DEFAULT_ENGINE: EngineMode = "performance";
+const DEFAULT_ENGINE: EngineMode = "metabolic";
 
 export function useEngineMode() {
   const clientId = useEffectiveClientId();

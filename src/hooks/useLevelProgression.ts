@@ -127,7 +127,7 @@ export function useLevelProgression() {
         .eq("client_id", clientId)
         .maybeSingle();
 
-      const engine = (authorityRow?.engine_mode || "performance") as import("@/lib/engineConfig").EngineMode;
+      const engine = (authorityRow?.engine_mode || "metabolic") as import("@/lib/engineConfig").EngineMode;
       const tier = (authorityRow?.subscription_tier || "starter") as import("@/lib/featureAccessGuard").SubscriptionTier;
 
       const { checkAuthorityGate } = await import("@/lib/featureAccessGuard");

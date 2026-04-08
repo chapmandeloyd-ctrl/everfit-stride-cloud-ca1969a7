@@ -42,7 +42,7 @@ export function CopilotAssistPanel({ clientId, trainerId }: CopilotAssistPanelPr
         .limit(1)
         .maybeSingle();
 
-      const engineMode = (settings?.engine_mode as string) || "performance";
+      const engineMode = (settings?.engine_mode as string) || "metabolic";
       const parentLinkActive = !!(settings?.is_minor && engineMode === "athletic" && settings?.parent_link_enabled);
 
       return {
@@ -59,7 +59,7 @@ export function CopilotAssistPanel({ clientId, trainerId }: CopilotAssistPanelPr
     },
   });
 
-  const engineMode = contextData?.engineMode || "performance";
+  const engineMode = contextData?.engineMode || "metabolic";
 
   const copilot = useCopilot({
     clientId,
@@ -86,7 +86,7 @@ export function CopilotAssistPanel({ clientId, trainerId }: CopilotAssistPanelPr
     await copilot.generate(useCase, context);
   };
 
-  const engineLabel = engineMode === "metabolic" ? "Metabolic" : engineMode === "athletic" ? "Athletic" : "Performance";
+  const engineLabel = engineMode === "athletic" ? "Athletic" : "KSOM-360";
 
   return (
     <Card>

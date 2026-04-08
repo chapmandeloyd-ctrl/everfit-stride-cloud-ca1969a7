@@ -80,10 +80,10 @@ const TIER_FEATURES: Record<SubscriptionTier, Set<GatedFeature>> = {
 // ─── Engine availability ────────────────────────────────
 
 const TIER_ENGINES: Record<SubscriptionTier, EngineMode[]> = {
-  starter: ["performance"],
-  pro: ["performance", "metabolic"],
-  elite: ["performance", "metabolic", "athletic"],
-  enterprise: ["performance", "metabolic", "athletic"],
+  starter: ["metabolic"],
+  pro: ["metabolic"],
+  elite: ["metabolic", "athletic"],
+  enterprise: ["metabolic", "athletic"],
 };
 
 // ─── Level caps ─────────────────────────────────────────
@@ -129,7 +129,7 @@ export function hasFeatureAccess(tier: SubscriptionTier, feature: GatedFeature):
 }
 
 export function getAvailableEngines(tier: SubscriptionTier): EngineMode[] {
-  return TIER_ENGINES[tier] || ["performance"];
+  return TIER_ENGINES[tier] || ["metabolic"];
 }
 
 export function getMaxLevel(tier: SubscriptionTier): number {
@@ -152,8 +152,7 @@ export function getRequiredTierForFeature(feature: GatedFeature): SubscriptionTi
 }
 
 export function getRequiredTierForEngine(engine: EngineMode): SubscriptionTier {
-  if (engine === "performance") return "starter";
-  if (engine === "metabolic") return "pro";
+  if (engine === "metabolic" || engine === "performance") return "starter";
   return "elite"; // athletic
 }
 
@@ -184,13 +183,13 @@ export function getUpgradeCopy(engine: EngineMode): { headline: string; subtext:
   switch (engine) {
     case "metabolic":
       return {
-        headline: "Unlock your full metabolic potential.",
+        headline: "Unlock your full KSOM-360 potential.",
         subtext: "Upgrade to access advanced fasting structures, deeper scoring, and coach-level analytics.",
       };
     case "performance":
       return {
-        headline: "Elevate your training with complete tools.",
-        subtext: "Upgrade to unlock multi-engine support, advanced insights, and full progression.",
+        headline: "Unlock your full KSOM-360 potential.",
+        subtext: "Upgrade to access advanced fasting structures, deeper scoring, and coach-level analytics.",
       };
     case "athletic":
       return {
@@ -216,8 +215,7 @@ export interface TierComparisonRow {
 }
 
 export const TIER_COMPARISON: TierComparisonRow[] = [
-  { feature: "Performance Engine", starter: true, pro: true, elite: true, enterprise: true },
-  { feature: "Metabolic Engine", starter: false, pro: true, elite: true, enterprise: true },
+  { feature: "KSOM-360 Engine", starter: true, pro: true, elite: true, enterprise: true },
   { feature: "Athletic Engine", starter: false, pro: false, elite: true, enterprise: true },
   { feature: "Level Progression", starter: "1–4", pro: "1–6", elite: "1–7", enterprise: "1–7" },
   { feature: "Engine Scoring", starter: "Basic", pro: "Advanced", elite: "Advanced", enterprise: "Advanced" },
@@ -250,6 +248,6 @@ export function checkAuthorityGate(
 ): boolean {
   if (engine === "athletic") return false;
   if (tier === "starter") return false;
-  if (tier === "pro" && engine !== "performance") return false;
+  if (tier === "pro") return toggleValue;
   return toggleValue;
 }

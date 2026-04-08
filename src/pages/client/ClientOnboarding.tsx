@@ -87,8 +87,8 @@ export default function ClientOnboarding() {
         .eq("id", clientId);
       if (error) throw error;
 
-      // If performance engine and fasting toggle answered, update feature settings
-      if (activeEngineMode === "performance" && answers.include_fasting !== undefined) {
+      // Handle fasting toggle if answered during onboarding
+      if (answers.include_fasting !== undefined && activeEngineMode !== "athletic") {
         await supabase
           .from("client_feature_settings")
           .update({ fasting_enabled: !!answers.include_fasting })

@@ -15,7 +15,7 @@ interface ClientHeaderProps {
 
 export function ClientHeader({
   profile,
-  engineMode = "Performance Readiness",
+  engineMode = "KSOM-360",
   level = 1,
   greeting,
   subtitle = "Let's do this",

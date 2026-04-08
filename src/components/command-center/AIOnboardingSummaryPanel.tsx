@@ -43,7 +43,7 @@ export function AIOnboardingSummaryPanel({ clientId, trainerId }: AIOnboardingSu
         name: profile?.full_name || "Client",
         onboarding_completed: profile?.onboarding_completed,
         onboarding_answers: profile?.onboarding_answers,
-        engine_mode: settings?.engine_mode || "performance",
+        engine_mode: settings?.engine_mode || "metabolic",
         current_level: settings?.current_level || 1,
         tier: settings?.subscription_tier || "starter",
         sport_profile: sportProfile,

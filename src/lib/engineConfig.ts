@@ -79,11 +79,11 @@ export interface EngineConfig {
 export const ENGINE_CONFIGS: Record<EngineMode, EngineConfig> = {
   metabolic: {
     id: "metabolic",
-    label: "Metabolic Stability Engine",
-    shortLabel: "Metabolic",
+    label: "KSOM-360 Engine",
+    shortLabel: "KSOM-360",
     tagline: "Build consistent metabolic rhythm",
-    ageRange: "45+",
-    scoreLabel: "Metabolic Stability Index",
+    ageRange: "18+",
+    scoreLabel: "KSOM-360 Readiness Index",
     emphasis: "fasting",
 
     dashboardOrder: [
@@ -134,14 +134,15 @@ export const ENGINE_CONFIGS: Record<EngineMode, EngineConfig> = {
     plansEmphasis: "Fasting protocols shown first. Training supplements metabolic stability.",
   },
 
+  // Performance is deprecated — maps to KSOM-360 for backward compat
   performance: {
     id: "performance",
-    label: "Performance Readiness Engine",
-    shortLabel: "Performance",
-    tagline: "Optimize training and recovery cycles",
-    ageRange: "40+",
-    scoreLabel: "Performance Readiness Score",
-    emphasis: "training",
+    label: "KSOM-360 Engine",
+    shortLabel: "KSOM-360",
+    tagline: "Build consistent metabolic rhythm",
+    ageRange: "18+",
+    scoreLabel: "KSOM-360 Readiness Index",
+    emphasis: "fasting",
 
     dashboardOrder: [
       "header",
@@ -255,15 +256,9 @@ export function getEngineConfig(mode: EngineMode): EngineConfig {
 export const ENGINE_MODE_OPTIONS: { value: EngineMode; label: string; description: string; ageRange: string }[] = [
   {
     value: "metabolic",
-    label: "Metabolic Stability",
+    label: "KSOM-360",
     description: "Fasting-first. Build consistent metabolic rhythm.",
-    ageRange: "45+",
-  },
-  {
-    value: "performance",
-    label: "Performance Readiness",
-    description: "Training-first with fasting integrated as a tool.",
-    ageRange: "40+",
+    ageRange: "18+",
   },
   {
     value: "athletic",

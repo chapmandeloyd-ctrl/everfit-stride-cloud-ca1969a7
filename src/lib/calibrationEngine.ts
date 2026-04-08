@@ -48,13 +48,13 @@ const MIN_SAMPLES = 20;
 
 const ENGINE_OUTCOME_MAP: Record<EngineMode, string> = {
   metabolic: "bodyweightDelta",
-  performance: "performanceDelta",
+  performance: "bodyweightDelta",
   athletic: "recoveryDelta",
 };
 
 const ENGINE_FACTORS: Record<EngineMode, ScoreFactor[]> = {
   metabolic: ["fasting", "sleep", "nutrition", "weekly_completion"],
-  performance: ["workout", "sleep", "recovery", "fasting", "weekly_completion"],
+  performance: ["fasting", "sleep", "nutrition", "weekly_completion"],
   athletic: ["sleep", "training_load", "recovery", "nutrition"],
 };
 
@@ -208,7 +208,7 @@ export function getCopilotPriorityMultipliers(
  */
 export const ENGINE_OUTCOME_LABELS: Record<EngineMode, string> = {
   metabolic: "Fat Loss Prediction",
-  performance: "Performance Gains",
+  performance: "Fat Loss Prediction",
   athletic: "Injury Risk Reduction",
 };
 

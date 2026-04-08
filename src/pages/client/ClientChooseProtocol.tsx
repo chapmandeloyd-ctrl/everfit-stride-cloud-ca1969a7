@@ -63,8 +63,8 @@ export default function ClientChooseProtocol() {
           </Card>
         )}
 
-        {/* Training section — Performance & Athletic */}
-        {(engineMode === "performance" || engineMode === "athletic") && (
+        {/* Training section — all engines */}
+        {(engineMode === "metabolic" || engineMode === "performance" || engineMode === "athletic") && (
           <Card
             className="overflow-hidden border-accent/20 shadow-md cursor-pointer hover:bg-muted/30 transition-colors"
             onClick={() => navigate("/client/workouts")}
@@ -85,17 +85,9 @@ export default function ClientChooseProtocol() {
           </Card>
         )}
 
-        {/* Fasting section — Metabolic & Performance only */}
+        {/* Fasting section — KSOM-360 only */}
         {showFasting && (
           <>
-            {engineMode === "performance" && (
-              <div className="flex items-center gap-2 pt-2">
-                <Flame className="h-4 w-4 text-muted-foreground" />
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Fasting Tools (Optional)
-                </p>
-              </div>
-            )}
 
             <RecommendationCard />
             <LifestylePlanSelector selected={focusFilter} onSelect={setFocusFilter} />

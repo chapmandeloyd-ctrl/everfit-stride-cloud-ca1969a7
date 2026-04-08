@@ -14,8 +14,8 @@ import type { EngineMode } from "@/lib/engineConfig";
 import { useCreateDemoClient } from "@/hooks/useCreateDemoClient";
 
 const ENGINE_LABELS: Record<EngineMode, { label: string; color: string }> = {
-  metabolic: { label: "Metabolic", color: "text-blue-400" },
-  performance: { label: "Performance", color: "text-orange-400" },
+  metabolic: { label: "KSOM-360", color: "text-blue-400" },
+  performance: { label: "KSOM-360", color: "text-blue-400" },
   athletic: { label: "Athletic", color: "text-green-400" },
 };
 

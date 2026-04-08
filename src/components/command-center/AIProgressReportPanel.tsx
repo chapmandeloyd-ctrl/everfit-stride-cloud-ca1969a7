@@ -43,7 +43,7 @@ export function AIProgressReportPanel({ clientId, trainerId }: AIProgressReportP
         .limit(1)
         .maybeSingle();
 
-      const engine = (settings?.engine_mode as string) || "performance";
+      const engine = (settings?.engine_mode as string) || "metabolic";
       return buildCopilotContext({
         engineMode: engine as EngineMode,
         currentLevel: settings?.current_level || 1,
@@ -58,7 +58,7 @@ export function AIProgressReportPanel({ clientId, trainerId }: AIProgressReportP
     },
   });
 
-  const engineMode = contextData?.engine_mode || "performance";
+  const engineMode = contextData?.engine_mode || "metabolic";
 
   const copilot = useCopilot({
     clientId,

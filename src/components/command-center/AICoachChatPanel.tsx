@@ -47,7 +47,7 @@ export function AICoachChatPanel({ clientId, trainerId }: AICoachChatPanelProps)
         .limit(1)
         .maybeSingle();
 
-      const engine = (settings?.engine_mode as string) || "performance";
+      const engine = (settings?.engine_mode as string) || "metabolic";
       return {
         engine_mode: engine,
         current_level: settings?.current_level || 1,

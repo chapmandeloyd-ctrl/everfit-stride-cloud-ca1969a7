@@ -28,7 +28,7 @@ export function InsightCoachControls({ clientId, trainerId, settings, toggleMuta
   const [customMessage, setCustomMessage] = useState("");
   const [customAction, setCustomAction] = useState("");
 
-  const engineMode = (settings?.engine_mode || "performance") as string;
+  const engineMode = (settings?.engine_mode || "metabolic") as string;
 
   const copilot = useCopilot({
     clientId,
@@ -60,7 +60,7 @@ export function InsightCoachControls({ clientId, trainerId, settings, toggleMuta
         .limit(1)
         .maybeSingle();
 
-      const engine = (clientSettings?.engine_mode as string) || "performance";
+      const engine = (clientSettings?.engine_mode as string) || "metabolic";
       return buildCopilotContext({
         engineMode: engine as EngineMode,
         currentLevel: clientSettings?.current_level || 1,
