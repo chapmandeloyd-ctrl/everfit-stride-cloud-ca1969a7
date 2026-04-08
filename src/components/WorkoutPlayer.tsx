@@ -538,13 +538,46 @@ export function WorkoutPlayer({ sections, onComplete, onEndEarly, onDiscard, onE
     }
   }, [phase]);
 
+  // Wall-clock elapsed timer — survives backgrounding & page kills
   useEffect(() => {
     if (phase !== "playing") return;
+    wallStartRef.current = Date.now();
+    persistWorkoutTimer(wallStartRef.current, elapsedAccRef.current, false);
     elapsedRef.current = setInterval(() => {
-      if (!isPausedRef.current) setElapsedSeconds((p) => p + 1);
-    }, 1000);
+      if (!isPausedRef.current) {
+        const elapsed = Math.floor((Date.now() - wallStartRef.current) / 1000);
+        setElapsedSeconds(elapsedAccRef.current + elapsed);
+      }
+    }, 500);
     return () => { if (elapsedRef.current) clearInterval(elapsedRef.current); };
   }, [phase]);
+
+  // Recover on visibility change
+  useEffect(() => {
+    const handleVis = () => {
+      if (document.visibilityState === "visible" && phase === "playing" && !isPausedRef.current) {
+        const elapsed = Math.floor((Date.now() - wallStartRef.current) / 1000);
+        setElapsedSeconds(elapsedAccRef.current + elapsed);
+      }
+    };
+    document.addEventListener("visibilitychange", handleVis);
+    return () => document.removeEventListener("visibilitychange", handleVis);
+  }, [phase]);
+
+  // Persist before page unload
+  useEffect(() => {
+    const handleUnload = () => {
+      if (!isPausedRef.current && phase === "playing") {
+        const elapsed = Math.floor((Date.now() - wallStartRef.current) / 1000);
+        elapsedAccRef.current += elapsed;
+        wallStartRef.current = Date.now();
+      }
+      persistWorkoutTimer(wallStartRef.current, elapsedAccRef.current, isPausedRef.current);
+    };
+    window.addEventListener("beforeunload", handleUnload);
+    window.addEventListener("pagehide", handleUnload);
+    return () => { window.removeEventListener("beforeunload", handleUnload); window.removeEventListener("pagehide", handleUnload); };
+  }, [phase, persistWorkoutTimer]);
 
   useEffect(() => {
     if (phase !== "playing" || !currentStep) return;
