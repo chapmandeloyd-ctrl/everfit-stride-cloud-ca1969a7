@@ -6,7 +6,7 @@ export function useCreateDemoClient() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (engineMode: string | undefined = 'performance') => {
+    mutationFn: async (engineMode: string | undefined = 'metabolic') => {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session) {

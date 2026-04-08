@@ -32,7 +32,7 @@ export function UpgradeDialog({
   onOpenChange,
   currentTier,
   requiredTier,
-  engineMode = "performance",
+  engineMode = "metabolic",
 }: UpgradeDialogProps) {
   const copy = getUpgradeCopy(engineMode);
   const highlightTier = requiredTier || (currentTier === "starter" ? "pro" : "elite");

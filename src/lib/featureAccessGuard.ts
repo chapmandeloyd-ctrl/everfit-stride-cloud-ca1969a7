@@ -248,6 +248,6 @@ export function checkAuthorityGate(
 ): boolean {
   if (engine === "athletic") return false;
   if (tier === "starter") return false;
-  if (tier === "pro" && engine !== "performance") return false;
+  if (tier === "pro") return toggleValue;
   return toggleValue;
 }
