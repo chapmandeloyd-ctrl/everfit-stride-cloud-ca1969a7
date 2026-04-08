@@ -68,7 +68,7 @@ export default function ClientQuickPlans() {
   const clientId = useEffectiveClientId();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [selectedPlan, setSelectedPlan] = useState<QuickPlan | null>(null);
+  const [lockedMessage, setLockedMessage] = useState<string | null>(null);
   const [lockedMessage, setLockedMessage] = useState<string | null>(null);
   const { evaluatePlan, isReady } = usePlanGating();
 
