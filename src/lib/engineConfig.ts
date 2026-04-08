@@ -134,14 +134,15 @@ export const ENGINE_CONFIGS: Record<EngineMode, EngineConfig> = {
     plansEmphasis: "Fasting protocols shown first. Training supplements metabolic stability.",
   },
 
+  // Performance is deprecated — maps to KSOM-360 for backward compat
   performance: {
     id: "performance",
-    label: "Performance Readiness Engine",
-    shortLabel: "Performance",
-    tagline: "Optimize training and recovery cycles",
-    ageRange: "40+",
-    scoreLabel: "Performance Readiness Score",
-    emphasis: "training",
+    label: "KSOM-360 Engine",
+    shortLabel: "KSOM-360",
+    tagline: "Build consistent metabolic rhythm",
+    ageRange: "18+",
+    scoreLabel: "KSOM-360 Readiness Index",
+    emphasis: "fasting",
 
     dashboardOrder: [
       "header",

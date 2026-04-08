@@ -80,10 +80,10 @@ const TIER_FEATURES: Record<SubscriptionTier, Set<GatedFeature>> = {
 // ─── Engine availability ────────────────────────────────
 
 const TIER_ENGINES: Record<SubscriptionTier, EngineMode[]> = {
-  starter: ["performance"],
-  pro: ["performance", "metabolic"],
-  elite: ["performance", "metabolic", "athletic"],
-  enterprise: ["performance", "metabolic", "athletic"],
+  starter: ["metabolic"],
+  pro: ["metabolic"],
+  elite: ["metabolic", "athletic"],
+  enterprise: ["metabolic", "athletic"],
 };
 
 // ─── Level caps ─────────────────────────────────────────
