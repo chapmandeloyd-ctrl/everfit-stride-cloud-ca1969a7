@@ -33,7 +33,7 @@ import { CreatePinDialog, VerifyPinDialog, HoldToEndButton } from "@/components/
 import { FastingCoachTipCard } from "@/components/FastingCoachTipCard";
 import { ProtocolCompletionDialog } from "@/components/ProtocolCompletionDialog";
 import { MyProgressSection } from "@/components/MyProgressSection";
-import { DailyCheckinCard } from "@/components/DailyCheckinCard";
+
 import { InAppNotifications } from "@/components/InAppNotifications";
 import { useDashboardLayoutClient } from "@/hooks/useDashboardLayoutClient";
 import { SportHeroBanner } from "@/components/SportHeroBanner";
@@ -1412,11 +1412,7 @@ export default function ClientDashboard() {
               ) : null;
 
             case "engine_cards":
-              return (
-                <div key="engine_cards" className="space-y-5">
-                  <DailyCheckinCard />
-                </div>
-              );
+              return null;
 
             case "coach_tip":
               return settings.fasting_enabled && !engineConfig.fastingDisabled && (fastingState?.selected_protocol_id || fastingState?.maintenance_mode) ? (
