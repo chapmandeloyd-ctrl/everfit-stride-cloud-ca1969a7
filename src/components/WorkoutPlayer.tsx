@@ -182,17 +182,51 @@ function cancelSpeech() {
   }
 }
 
-// Instant browser TTS — for numbers and short cues (no network latency)
-function browserSpeakNow(text: string): Promise<void> {
+// Pre-cached audio clips for countdown (filled at intro time)
+const preCachedClips: Record<string, string> = {};
+
+async function preCacheCountdownClips() {
+  const clips = ["3", "2", "1", "Go!"];
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  await Promise.all(
+    clips.map(async (text) => {
+      try {
+        const response = await fetch(`${supabaseUrl}/functions/v1/elevenlabs-tts`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: supabaseKey,
+            Authorization: `Bearer ${supabaseKey}`,
+          },
+          body: JSON.stringify({ text, voiceId: selectedVoiceId }),
+        });
+        if (response.ok) {
+          const blob = await response.blob();
+          preCachedClips[text] = URL.createObjectURL(blob);
+        }
+      } catch {}
+    })
+  );
+}
+
+// Play a pre-cached clip instantly, or fall back to ElevenLabs live
+async function playClip(text: string): Promise<void> {
   cancelSpeech();
-  if (!("speechSynthesis" in window)) return Promise.resolve();
-  const utter = new SpeechSynthesisUtterance(text);
-  utter.rate = 0.95;
-  return new Promise((resolve) => {
-    utter.onend = () => resolve();
-    utter.onerror = () => resolve();
-    window.speechSynthesis.speak(utter);
-  });
+  const cachedUrl = preCachedClips[text];
+  if (cachedUrl) {
+    const audio = persistentAudio || new Audio();
+    audio.volume = 1;
+    audio.src = cachedUrl;
+    activeAudio = audio;
+    return new Promise((resolve) => {
+      audio.onended = () => { if (activeAudio === audio) activeAudio = null; resolve(); };
+      audio.onerror = () => resolve();
+      audio.play().catch(() => resolve());
+    });
+  }
+  // Fallback to live ElevenLabs
+  return elevenLabsSpeakNow(text);
 }
 
 // ElevenLabs TTS — for exercise names and motivational cues (high quality)
