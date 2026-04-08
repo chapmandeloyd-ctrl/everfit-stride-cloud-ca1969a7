@@ -158,9 +158,9 @@ export function evaluatePlanGating(
     };
   }
 
-  // ── Performance engine: fasting plans marked as "Optional Tool" when fasting disabled
+  // ── Fasting plans marked as "Optional Tool" when fasting disabled
   const isOptionalTool =
-    ctx.engineMode === "performance" &&
+    (ctx.engineMode === "performance" || ctx.engineMode === "metabolic") &&
     !ctx.fastingEnabled &&
     plan.plan_type === "fasting";
 
