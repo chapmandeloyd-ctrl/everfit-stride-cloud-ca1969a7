@@ -1,4 +1,3 @@
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { CalendarDays, ChevronRight, Clock, Hourglass, UtensilsCrossed, Zap, TrendingUp, Lightbulb, BarChart3, Users, Droplets, Utensils } from "lucide-react";
@@ -12,6 +11,11 @@ import {
   getDurationLabel,
 } from "@/lib/fastingCategoryConfig";
 import { PROTOCOL_DETAIL_COPY } from "@/lib/protocolDetailContent";
+import {
+  LEVEL_TIERS,
+  getTierForLevel,
+  getIntensityLabel,
+} from "@/lib/quickPlanTierConfig";
 
 interface FastingProtocol {
   id: string;
