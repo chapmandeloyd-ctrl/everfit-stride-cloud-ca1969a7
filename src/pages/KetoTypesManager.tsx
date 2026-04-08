@@ -12,9 +12,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Pencil, Trash2, Zap, FolderPlus } from "lucide-react";
 import { KetoTypeCard } from "@/components/keto/KetoTypeCard";
 import { KetoTypeDetailView } from "@/components/keto/KetoTypeDetailView";
+import { KetoProtocolsTab } from "@/components/keto/KetoProtocolsTab";
 import { toast } from "sonner";
 
 interface KetoCategory {
@@ -250,117 +252,130 @@ export default function KetoTypesManager() {
     <DashboardLayout>
       <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Zap className="h-6 w-6 text-primary" /> Keto Types
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Manage keto diet categories and types for your clients
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={openNewCat}>
-              <FolderPlus className="h-4 w-4 mr-1" /> Category
-            </Button>
-            <Button size="sm" onClick={() => openNewType()} disabled={!categories?.length}>
-              <Plus className="h-4 w-4 mr-1" /> Keto Type
-            </Button>
-          </div>
+        <div>
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <Zap className="h-6 w-6 text-primary" /> Keto
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Manage keto types and protocols for your clients
+          </p>
         </div>
 
-        {/* Category + type list */}
-        {categories?.map((cat) => {
-          const typesInCat = ketoTypes?.filter((t) => t.category_id === cat.id) || [];
+        <Tabs defaultValue="types" className="w-full">
+          <TabsList className="w-full">
+            <TabsTrigger value="types" className="flex-1">Keto Types</TabsTrigger>
+            <TabsTrigger value="protocols" className="flex-1">Keto Protocols</TabsTrigger>
+          </TabsList>
 
-          return (
-            <div key={cat.id} className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div
-                    className="h-7 w-7 rounded-full flex items-center justify-center"
-                    style={{ backgroundColor: `${cat.color}20` }}
-                  >
-                    <Zap className="h-3.5 w-3.5" style={{ color: cat.color }} />
-                  </div>
-                  <span className="font-semibold" style={{ color: cat.color }}>{cat.name}</span>
-                  <Badge variant="secondary" className="text-xs">{typesInCat.length}</Badge>
-                </div>
-                <div className="flex gap-1">
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openNewType(cat.id)}>
-                    <Plus className="h-3.5 w-3.5" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditCat(cat)}>
-                    <Pencil className="h-3.5 w-3.5" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7 text-destructive"
-                    onClick={() => { if (confirm("Delete this category and all its types?")) deleteCat.mutate(cat.id); }}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              </div>
-
-              {typesInCat.map((kt) => (
-                <div key={kt.id} className="group relative">
-                  <KetoTypeCard
-                    abbreviation={kt.abbreviation}
-                    name={kt.name}
-                    subtitle={kt.subtitle}
-                    fat_pct={kt.fat_pct}
-                    protein_pct={kt.protein_pct}
-                    carbs_pct={kt.carbs_pct}
-                    difficulty={kt.difficulty}
-                    color={kt.color}
-                    onClick={() => setViewingType(kt)}
-                  />
-                  {/* Hover actions overlay */}
-                  <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                    <Button
-                      variant="secondary"
-                      size="icon"
-                      className="h-7 w-7 bg-background/90 shadow-sm"
-                      onClick={(e) => { e.stopPropagation(); openEditType(kt); }}
-                    >
-                      <Pencil className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      size="icon"
-                      className="h-7 w-7 bg-background/90 shadow-sm text-destructive"
-                      onClick={(e) => { e.stopPropagation(); if (confirm(`Delete ${kt.abbreviation}?`)) deleteType.mutate(kt.id); }}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-
-              {typesInCat.length === 0 && (
-                <p className="text-sm text-muted-foreground pl-9">
-                  No types yet.{" "}
-                  <button className="text-primary underline" onClick={() => openNewType(cat.id)}>
-                    Add one
-                  </button>
-                </p>
-              )}
+          <TabsContent value="types" className="mt-6 space-y-6">
+            {/* Keto Types actions */}
+            <div className="flex items-center justify-end gap-2">
+              <Button variant="outline" size="sm" onClick={openNewCat}>
+                <FolderPlus className="h-4 w-4 mr-1" /> Category
+              </Button>
+              <Button size="sm" onClick={() => openNewType()} disabled={!categories?.length}>
+                <Plus className="h-4 w-4 mr-1" /> Keto Type
+              </Button>
             </div>
-          );
-        })}
 
-        {(!categories || categories.length === 0) && (
-          <div className="text-center py-16 text-muted-foreground">
-            <Zap className="h-12 w-12 mx-auto mb-3 opacity-30" />
-            <p className="font-medium">No keto categories yet</p>
-            <p className="text-sm mt-1">Create a category to start adding keto types.</p>
-            <Button className="mt-4" onClick={openNewCat}>
-              <FolderPlus className="h-4 w-4 mr-1" /> Create Category
-            </Button>
-          </div>
-        )}
+            {/* Category + type list */}
+            {categories?.map((cat) => {
+              const typesInCat = ketoTypes?.filter((t) => t.category_id === cat.id) || [];
+
+              return (
+                <div key={cat.id} className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="h-7 w-7 rounded-full flex items-center justify-center"
+                        style={{ backgroundColor: `${cat.color}20` }}
+                      >
+                        <Zap className="h-3.5 w-3.5" style={{ color: cat.color }} />
+                      </div>
+                      <span className="font-semibold" style={{ color: cat.color }}>{cat.name}</span>
+                      <Badge variant="secondary" className="text-xs">{typesInCat.length}</Badge>
+                    </div>
+                    <div className="flex gap-1">
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openNewType(cat.id)}>
+                        <Plus className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditCat(cat)}>
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-destructive"
+                        onClick={() => { if (confirm("Delete this category and all its types?")) deleteCat.mutate(cat.id); }}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {typesInCat.map((kt) => (
+                    <div key={kt.id} className="group relative">
+                      <KetoTypeCard
+                        abbreviation={kt.abbreviation}
+                        name={kt.name}
+                        subtitle={kt.subtitle}
+                        fat_pct={kt.fat_pct}
+                        protein_pct={kt.protein_pct}
+                        carbs_pct={kt.carbs_pct}
+                        difficulty={kt.difficulty}
+                        color={kt.color}
+                        onClick={() => setViewingType(kt)}
+                      />
+                      {/* Hover actions overlay */}
+                      <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                        <Button
+                          variant="secondary"
+                          size="icon"
+                          className="h-7 w-7 bg-background/90 shadow-sm"
+                          onClick={(e) => { e.stopPropagation(); openEditType(kt); }}
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          size="icon"
+                          className="h-7 w-7 bg-background/90 shadow-sm text-destructive"
+                          onClick={(e) => { e.stopPropagation(); if (confirm(`Delete ${kt.abbreviation}?`)) deleteType.mutate(kt.id); }}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+
+                  {typesInCat.length === 0 && (
+                    <p className="text-sm text-muted-foreground pl-9">
+                      No types yet.{" "}
+                      <button className="text-primary underline" onClick={() => openNewType(cat.id)}>
+                        Add one
+                      </button>
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+
+            {(!categories || categories.length === 0) && (
+              <div className="text-center py-16 text-muted-foreground">
+                <Zap className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                <p className="font-medium">No keto categories yet</p>
+                <p className="text-sm mt-1">Create a category to start adding keto types.</p>
+                <Button className="mt-4" onClick={openNewCat}>
+                  <FolderPlus className="h-4 w-4 mr-1" /> Create Category
+                </Button>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="protocols" className="mt-6">
+            <KetoProtocolsTab />
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Category Dialog */}
