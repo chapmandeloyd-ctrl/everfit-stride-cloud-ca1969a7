@@ -1266,6 +1266,58 @@ export type Database = {
         }
         Relationships: []
       }
+      client_keto_assignments: {
+        Row: {
+          assigned_at: string
+          assigned_by: string
+          client_id: string
+          id: string
+          is_active: boolean
+          keto_type_id: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by: string
+          client_id: string
+          id?: string
+          is_active?: boolean
+          keto_type_id: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string
+          client_id?: string
+          id?: string
+          is_active?: boolean
+          keto_type_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_keto_assignments_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_keto_assignments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_keto_assignments_keto_type_id_fkey"
+            columns: ["keto_type_id"]
+            isOneToOne: false
+            referencedRelation: "keto_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_macro_targets: {
         Row: {
           client_id: string
@@ -3913,6 +3965,134 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      keto_categories: {
+        Row: {
+          color: string
+          created_at: string
+          icon_name: string
+          id: string
+          name: string
+          order_index: number
+          trainer_id: string
+          updated_at: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          icon_name?: string
+          id?: string
+          name: string
+          order_index?: number
+          trainer_id: string
+          updated_at?: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          icon_name?: string
+          id?: string
+          name?: string
+          order_index?: number
+          trainer_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "keto_categories_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      keto_types: {
+        Row: {
+          abbreviation: string
+          built_for: string[] | null
+          carb_limit_grams: number | null
+          carbs_pct: number
+          category_id: string
+          coach_notes: string[] | null
+          color: string
+          created_at: string
+          description: string | null
+          difficulty: string
+          engine_compatibility: string
+          fat_pct: number
+          how_it_works: string | null
+          id: string
+          is_active: boolean
+          name: string
+          order_index: number
+          protein_pct: number
+          subtitle: string | null
+          trainer_id: string
+          updated_at: string
+        }
+        Insert: {
+          abbreviation: string
+          built_for?: string[] | null
+          carb_limit_grams?: number | null
+          carbs_pct?: number
+          category_id: string
+          coach_notes?: string[] | null
+          color?: string
+          created_at?: string
+          description?: string | null
+          difficulty?: string
+          engine_compatibility?: string
+          fat_pct?: number
+          how_it_works?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          order_index?: number
+          protein_pct?: number
+          subtitle?: string | null
+          trainer_id: string
+          updated_at?: string
+        }
+        Update: {
+          abbreviation?: string
+          built_for?: string[] | null
+          carb_limit_grams?: number | null
+          carbs_pct?: number
+          category_id?: string
+          coach_notes?: string[] | null
+          color?: string
+          created_at?: string
+          description?: string | null
+          difficulty?: string
+          engine_compatibility?: string
+          fat_pct?: number
+          how_it_works?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          order_index?: number
+          protein_pct?: number
+          subtitle?: string | null
+          trainer_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "keto_types_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "keto_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "keto_types_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       lab_card_images: {
         Row: {
