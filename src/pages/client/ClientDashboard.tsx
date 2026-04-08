@@ -37,6 +37,7 @@ import { MyProgressSection } from "@/components/MyProgressSection";
 import { InAppNotifications } from "@/components/InAppNotifications";
 import { useDashboardLayoutClient } from "@/hooks/useDashboardLayoutClient";
 import { SportHeroBanner } from "@/components/SportHeroBanner";
+import { AssignedPlanCard } from "@/components/dashboard/AssignedPlanCard";
 // Fasting Protocol Card sub-component
 function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; navigate: (path: string) => void }) {
   const queryClient = useQueryClient();
