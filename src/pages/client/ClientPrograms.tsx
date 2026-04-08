@@ -74,12 +74,16 @@ export default function ClientPrograms() {
                 {group.items.map((protocol) => {
                   const CatIcon = group.config.icon;
                   return (
-                    <Card
+                    <div
                       key={protocol.id}
-                      className="cursor-pointer overflow-hidden transition-all hover:shadow-md active:scale-[0.99]"
+                      className="relative cursor-pointer overflow-hidden rounded-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
                       onClick={() => navigate(`/client/protocol/${protocol.id}`)}
                     >
-                      <CardContent className="p-0">
+                      {/* Glow border */}
+                      <div className={`absolute -inset-[1px] rounded-xl bg-gradient-to-br ${group.config.glowGradient || 'from-emerald-400/40 via-transparent to-emerald-600/40'} blur-[2px]`} />
+                      
+                      {/* Glass card */}
+                      <div className="relative rounded-xl border border-white/10 bg-card/80 backdrop-blur-xl">
                         <div className="px-5 pt-4 pb-2">
                           <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-2">
@@ -91,15 +95,15 @@ export default function ClientPrograms() {
                               </span>
                             </div>
                           </div>
-                          <h3 className="text-2xl font-black tracking-tight leading-none mb-1">{protocol.name}</h3>
+                          <h3 className="text-2xl font-black tracking-tight leading-none mb-1 drop-shadow-[0_0_8px_rgba(255,255,255,0.15)]">{protocol.name}</h3>
                           {protocol.description && (
                             <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{protocol.description}</p>
                           )}
                         </div>
-                        <div className="mx-5 border-t" />
+                        <div className="mx-5 border-t border-white/10" />
                         <div className="px-5 py-3 flex items-center gap-5">
                           <div>
-                            <span className="text-lg font-bold text-primary">{protocol.fast_target_hours}h</span>
+                            <span className="text-lg font-bold text-primary drop-shadow-[0_0_6px_rgba(34,197,94,0.4)]">{protocol.fast_target_hours}h</span>
                             <span className="text-[10px] text-muted-foreground uppercase tracking-wide block">Fast</span>
                           </div>
                           <div>
@@ -114,8 +118,8 @@ export default function ClientPrograms() {
                             <ChevronRight className="h-5 w-5 text-muted-foreground" />
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
+                      </div>
+                    </div>
                   );
                 })}
               </div>
