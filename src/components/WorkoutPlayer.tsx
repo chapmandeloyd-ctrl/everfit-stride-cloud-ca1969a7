@@ -177,9 +177,6 @@ function cancelSpeech() {
     speechAbortController.abort();
     speechAbortController = null;
   }
-  if ("speechSynthesis" in window) {
-    window.speechSynthesis.cancel();
-  }
 }
 
 // Pre-cached audio clips for countdown (filled at intro time)
