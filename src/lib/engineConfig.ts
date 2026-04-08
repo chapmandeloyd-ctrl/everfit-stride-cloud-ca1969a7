@@ -79,11 +79,11 @@ export interface EngineConfig {
 export const ENGINE_CONFIGS: Record<EngineMode, EngineConfig> = {
   metabolic: {
     id: "metabolic",
-    label: "Metabolic Stability Engine",
-    shortLabel: "Metabolic",
+    label: "KSOM-360 Engine",
+    shortLabel: "KSOM-360",
     tagline: "Build consistent metabolic rhythm",
-    ageRange: "45+",
-    scoreLabel: "Metabolic Stability Index",
+    ageRange: "18+",
+    scoreLabel: "KSOM-360 Readiness Index",
     emphasis: "fasting",
 
     dashboardOrder: [
