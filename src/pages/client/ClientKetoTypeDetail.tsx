@@ -7,6 +7,7 @@ import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { toast } from "sonner";
 import { ClientLayout } from "@/components/ClientLayout";
 import { KetoTypeDetailView } from "@/components/keto/KetoTypeDetailView";
+import { PlanSynergySection } from "@/components/PlanSynergySection";
 
 interface KetoType {
   id: string;

@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import { FastingSafetyNotice } from "@/components/FastingSafetyNotice";
 import { FastingStructureComparison } from "@/components/FastingStructureComparison";
 import { getTierForLevel, getIntensityLabel } from "@/lib/quickPlanTierConfig";
+import { PlanSynergySection } from "@/components/PlanSynergySection";
 
 interface PlanDescription {
   subtitle?: string;
