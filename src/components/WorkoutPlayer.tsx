@@ -399,23 +399,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stepIdx, phase]);
 
-  // "Get ready!" — browser speech (instant). Each speak fn cancels prior speech itself.
-  useEffect(() => {
-    if (phase === "getready") {
-      browserSpeakNow("Get ready").catch(() => {});
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase]);
-
-  // 3-2-1 countdown — browser speech only (instant, no network latency)
-  useEffect(() => {
-    if (phase !== "countdown") return;
-    if (countdownNum > 0) {
-      browserSpeakNow(String(countdownNum)).catch(() => {});
-    }
-    // "Go!" is implied by the exercise announcement that fires when phase → playing
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [countdownNum, phase]);
+  // (getready/countdown speech removed — intro handles this now)
 
   // Last-3-seconds tick countdown & motivational milestones
   useEffect(() => {
@@ -431,8 +415,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
       // Last 3-second countdown (browser TTS for zero latency)
       if (stepTimer > 0 && stepTimer <= 3 && lastCountdownRef.current !== stepTimer) {
         lastCountdownRef.current = stepTimer;
-        browserSpeakNow(String(stepTimer)).catch(() => {});
-        return;
+        playClip(String(stepTimer)).catch(() => {});
       }
 
       // Halfway through THIS exercise's timer — Jessica encouragement
@@ -467,7 +450,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
       // Last 3-second countdown during rest too
       if (stepTimer > 0 && stepTimer <= 3 && lastCountdownRef.current !== stepTimer) {
         lastCountdownRef.current = stepTimer;
-        browserSpeakNow(String(stepTimer)).catch(() => {});
+        playClip(String(stepTimer)).catch(() => {});
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
