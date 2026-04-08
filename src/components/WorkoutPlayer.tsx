@@ -183,7 +183,7 @@ function cancelSpeech() {
 const preCachedClips: Record<string, string> = {};
 
 async function preCacheCountdownClips() {
-  const clips = ["3", "2", "1", "Go!"];
+  const clips = ["Three", "Two", "One", "Go!"];
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
   await Promise.all(
@@ -384,7 +384,8 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
         let msg = ex.exercise_name || "";
         if (isGrouped) {
           msg += `, round ${step.round}`;
-        } else if (ex.sets && ex.sets > 1) {
+        }
+        if (ex.sets && ex.sets >= 1) {
           msg += `, set ${step.round} of ${ex.sets}`;
         }
         if (ex.reps) msg += `, ${ex.reps} reps`;
@@ -412,7 +413,8 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
       // Last 3-second countdown (browser TTS for zero latency)
       if (stepTimer > 0 && stepTimer <= 3 && lastCountdownRef.current !== stepTimer) {
         lastCountdownRef.current = stepTimer;
-        playClip(String(stepTimer)).catch(() => {});
+        const countdownWord = stepTimer === 3 ? "Three" : stepTimer === 2 ? "Two" : "One";
+        playClip(countdownWord).catch(() => {});
       }
 
       // Halfway through THIS exercise's timer — Jessica encouragement
@@ -447,7 +449,8 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
       // Last 3-second countdown during rest too
       if (stepTimer > 0 && stepTimer <= 3 && lastCountdownRef.current !== stepTimer) {
         lastCountdownRef.current = stepTimer;
-        playClip(String(stepTimer)).catch(() => {});
+        const countdownWord = stepTimer === 3 ? "Three" : stepTimer === 2 ? "Two" : "One";
+        playClip(countdownWord).catch(() => {});
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
