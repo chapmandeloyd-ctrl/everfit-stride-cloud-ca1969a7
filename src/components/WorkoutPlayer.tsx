@@ -595,23 +595,36 @@ export function WorkoutPlayer({ sections, onComplete, onEndEarly, onDiscard, onE
   const handleComplete = () => {
     if (elapsedRef.current) clearInterval(elapsedRef.current);
     if (stepTimerRef.current) clearInterval(stepTimerRef.current);
+    try { sessionStorage.removeItem(WORKOUT_TIMER_KEY); } catch {}
     onComplete({ setLogs, elapsedSeconds, startedAt: startedAtRef.current });
   };
 
   const handleEndEarly = () => {
     if (elapsedRef.current) clearInterval(elapsedRef.current);
     if (stepTimerRef.current) clearInterval(stepTimerRef.current);
+    try { sessionStorage.removeItem(WORKOUT_TIMER_KEY); } catch {}
     onEndEarly({ setLogs, elapsedSeconds, startedAt: startedAtRef.current });
   };
 
   const handleDiscard = () => {
     if (elapsedRef.current) clearInterval(elapsedRef.current);
     if (stepTimerRef.current) clearInterval(stepTimerRef.current);
+    try { sessionStorage.removeItem(WORKOUT_TIMER_KEY); } catch {}
     onDiscard();
   };
 
   const togglePause = () => {
     const nowPaused = !isPausedRef.current;
+    if (nowPaused) {
+      // Pausing: freeze accumulated
+      const elapsed = Math.floor((Date.now() - wallStartRef.current) / 1000);
+      elapsedAccRef.current += elapsed;
+      persistWorkoutTimer(wallStartRef.current, elapsedAccRef.current, true);
+    } else {
+      // Resuming: reset wall start
+      wallStartRef.current = Date.now();
+      persistWorkoutTimer(wallStartRef.current, elapsedAccRef.current, false);
+    }
     isPausedRef.current = nowPaused;
     setIsPaused(nowPaused);
     if (nowPaused) cancelSpeech();
