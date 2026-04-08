@@ -33,7 +33,7 @@ import { CreatePinDialog, VerifyPinDialog, HoldToEndButton } from "@/components/
 import { FastingCoachTipCard } from "@/components/FastingCoachTipCard";
 import { ProtocolCompletionDialog } from "@/components/ProtocolCompletionDialog";
 import { MyProgressSection } from "@/components/MyProgressSection";
-import { DailyCheckinCard } from "@/components/DailyCheckinCard";
+
 import { InAppNotifications } from "@/components/InAppNotifications";
 import { useDashboardLayoutClient } from "@/hooks/useDashboardLayoutClient";
 import { SportHeroBanner } from "@/components/SportHeroBanner";
