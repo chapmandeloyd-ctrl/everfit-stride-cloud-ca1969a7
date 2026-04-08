@@ -2,7 +2,7 @@ import { ClientLayout } from "@/components/ClientLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Clock, Hourglass, UtensilsCrossed, Lock, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Clock, Hourglass, UtensilsCrossed, Lock, ShieldCheck, ChevronRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
@@ -146,63 +146,84 @@ export default function ClientQuickPlans() {
         ) : (
           grouped.map((group) => (
             <div key={group.key} className="space-y-3">
-              <h2 className="text-sm font-semibold text-muted-foreground">{group.label}</h2>
-              <div className="grid grid-cols-2 gap-3">
-                {group.items.map((plan) => {
-                  const gating = getPlanGatingResult(plan);
-                  const isLocked = gating && !gating.isAccessible;
-                  const isCoachApproved = gating?.isCoachApproved;
-                  const isOptional = gating?.isOptionalTool;
+              <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{group.label}</h2>
+              {group.items.map((plan) => {
+                const gating = getPlanGatingResult(plan);
+                const isLocked = gating && !gating.isAccessible;
+                const isCoachApproved = gating?.isCoachApproved;
+                const isOptional = gating?.isOptionalTool;
+                const desc = plan.description as PlanDescription | null;
 
-                  return (
-                    <Card
-                      key={plan.id}
-                      className={`cursor-pointer transition-colors border-muted ${
-                        isLocked
-                          ? "opacity-50 cursor-not-allowed"
-                          : "hover:bg-muted/30 active:scale-[0.98]"
-                      }`}
-                      onClick={() => handlePlanClick(plan)}
-                    >
-                      <CardContent className="p-4 space-y-1.5">
-                        <div className="flex items-start justify-between gap-1">
-                          <h3 className="font-semibold text-base">{plan.name}</h3>
-                          {isLocked && <Lock className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-0.5" />}
-                          {isCoachApproved && <ShieldCheck className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />}
-                        </div>
-                        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                          <Hourglass className="h-3.5 w-3.5 text-primary" />
-                          <span>{plan.fast_hours}h</span>
-                          {plan.eat_hours > 0 && (
-                            <>
-                              <span className="mx-0.5">•</span>
-                              <UtensilsCrossed className="h-3.5 w-3.5" />
-                              <span>{plan.eat_hours}h</span>
-                            </>
+                return (
+                  <Card
+                    key={plan.id}
+                    className={`cursor-pointer overflow-hidden transition-all ${
+                      isLocked
+                        ? "opacity-50 cursor-not-allowed"
+                        : "hover:shadow-md active:scale-[0.99]"
+                    }`}
+                    onClick={() => handlePlanClick(plan)}
+                  >
+                    <CardContent className="p-0">
+                      <div className="px-5 pt-4 pb-2">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
+                              <Clock className="h-5 w-5 text-primary" />
+                            </div>
+                            <span className="text-[11px] font-bold uppercase tracking-wider text-primary">
+                              Quick Plan
+                            </span>
+                          </div>
+                          {isLocked && <Lock className="h-4 w-4 text-muted-foreground" />}
+                          {isCoachApproved && (
+                            <Badge variant="outline" className="text-[10px] border-primary/30 text-primary">
+                              <ShieldCheck className="h-3 w-3 mr-1" /> Coach Approved
+                            </Badge>
                           )}
                         </div>
-                        {isLocked && gating?.lockMessage && (
-                          <p className="text-[10px] text-muted-foreground/70">{gating.lockMessage}</p>
+                        <h3 className="text-2xl font-black tracking-tight leading-none mb-1">{plan.name}</h3>
+                        {desc?.subtitle && (
+                          <p className="text-sm text-muted-foreground mt-1">{desc.subtitle}</p>
                         )}
-                        {isCoachApproved && (
-                          <Badge variant="outline" className="text-[10px] border-primary/30 text-primary">
-                            Coach Approved
-                          </Badge>
+                        {isLocked && gating?.lockMessage && (
+                          <p className="text-[10px] text-muted-foreground/70 mt-1">{gating.lockMessage}</p>
                         )}
                         {isOptional && (
-                          <Badge variant="outline" className="text-[10px]">Optional Tool</Badge>
+                          <Badge variant="outline" className="text-[10px] mt-1">Optional Tool</Badge>
                         )}
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
+                      </div>
+                      <div className="mx-5 border-t" />
+                      <div className="px-5 py-3 flex items-center gap-5">
+                        <div>
+                          <div className="flex items-center gap-1">
+                            <Hourglass className="h-3.5 w-3.5 text-primary" />
+                            <span className="text-lg font-bold text-primary">{plan.fast_hours}h</span>
+                          </div>
+                          <span className="text-[10px] text-muted-foreground uppercase tracking-wide block">Fast</span>
+                        </div>
+                        {plan.eat_hours > 0 && (
+                          <div>
+                            <div className="flex items-center gap-1">
+                              <UtensilsCrossed className="h-3.5 w-3.5 text-muted-foreground" />
+                              <span className="text-lg font-bold">{plan.eat_hours}h</span>
+                            </div>
+                            <span className="text-[10px] text-muted-foreground uppercase tracking-wide block">Eat</span>
+                          </div>
+                        )}
+                        <div className="ml-auto flex items-center gap-2">
+                          <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           ))
         )}
       </div>
 
-      {/* Locked Plan Dialog */}
       <PlanLockedDialog
         open={!!lockedMessage}
         onOpenChange={(open) => !open && setLockedMessage(null)}

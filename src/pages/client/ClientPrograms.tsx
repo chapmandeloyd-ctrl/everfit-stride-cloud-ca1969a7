@@ -1,13 +1,14 @@
 import { ClientLayout } from "@/components/ClientLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ChevronRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import {
   CATEGORY_CONFIG,
   CATEGORY_ORDER,
+  getDifficultyLabel,
   getDurationLabel,
 } from "@/lib/fastingCategoryConfig";
 
@@ -75,26 +76,44 @@ export default function ClientPrograms() {
                   return (
                     <Card
                       key={protocol.id}
-                      className={`cursor-pointer border-l-4 ${group.config.borderColor} transition-colors hover:bg-muted/30`}
+                      className="cursor-pointer overflow-hidden transition-all hover:shadow-md active:scale-[0.99]"
                       onClick={() => navigate(`/client/protocol/${protocol.id}`)}
                     >
-                      <CardContent className="p-4 space-y-2">
-                        <div className="flex items-center gap-3">
-                          <div className={`h-10 w-10 rounded-full ${group.config.bgColor} flex items-center justify-center shrink-0`}>
-                            <CatIcon className={`h-5 w-5 ${group.config.color}`} />
+                      <CardContent className="p-0">
+                        <div className="px-5 pt-4 pb-2">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              <div className={`h-10 w-10 rounded-full ${group.config.bgColor} flex items-center justify-center`}>
+                                <CatIcon className={`h-5 w-5 ${group.config.color}`} />
+                              </div>
+                              <span className={`text-[11px] font-bold uppercase tracking-wider ${group.config.color}`}>
+                                {group.config.label}
+                              </span>
+                            </div>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-base">{protocol.name}</h3>
-                            <p className="text-sm text-muted-foreground">
-                              {getDurationLabel(protocol.duration_days)}
-                            </p>
+                          <h3 className="text-2xl font-black tracking-tight leading-none mb-1">{protocol.name}</h3>
+                          {protocol.description && (
+                            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{protocol.description}</p>
+                          )}
+                        </div>
+                        <div className="mx-5 border-t" />
+                        <div className="px-5 py-3 flex items-center gap-5">
+                          <div>
+                            <span className="text-lg font-bold text-primary">{protocol.fast_target_hours}h</span>
+                            <span className="text-[10px] text-muted-foreground uppercase tracking-wide block">Fast</span>
+                          </div>
+                          <div>
+                            <span className="text-lg font-bold">{getDurationLabel(protocol.duration_days)}</span>
+                            <span className="text-[10px] text-muted-foreground uppercase tracking-wide block">Duration</span>
+                          </div>
+                          <div className="ml-auto flex items-center gap-2">
+                            <div>
+                              <span className="text-lg font-bold">{getDifficultyLabel(protocol.difficulty_level)}</span>
+                              <span className="text-[10px] text-muted-foreground uppercase tracking-wide block">Level</span>
+                            </div>
+                            <ChevronRight className="h-5 w-5 text-muted-foreground" />
                           </div>
                         </div>
-                        {protocol.description && (
-                          <p className="text-sm text-muted-foreground leading-relaxed pl-[52px]">
-                            {protocol.description}
-                          </p>
-                        )}
                       </CardContent>
                     </Card>
                   );
