@@ -337,6 +337,13 @@ export default function ClientQuickPlanDetail() {
             </section>
           )}
 
+          {/* Synergy Section */}
+          <PlanSynergySection
+            protocolType="quick_plan"
+            protocolId={id || null}
+            ketoTypeId={activeKetoAssignment?.keto_type_id || null}
+          />
+
           <FastingStructureComparison />
           <FastingSafetyNotice />
         </div>
