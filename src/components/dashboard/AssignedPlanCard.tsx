@@ -57,7 +57,7 @@ export function AssignedPlanCard({ clientId }: AssignedPlanCardProps) {
       if (isQuickPlan) {
         const { data, error } = await supabase
           .from("quick_fasting_plans")
-          .select("id, name, fasting_hours")
+          .select("id, name")
           .eq("id", quickPlanId!)
           .single();
         if (error) throw error;
