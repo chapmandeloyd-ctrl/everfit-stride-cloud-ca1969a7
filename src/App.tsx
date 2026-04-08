@@ -88,6 +88,7 @@ import { FastingRouteGuard } from "./components/FastingRouteGuard";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import GuardianSummary from "./pages/GuardianSummary";
 import StudioProgramDetail from "./pages/StudioProgramDetail";
+import KetoTypesManager from "./pages/KetoTypesManager";
 import ClientKetoTypes from "./pages/client/ClientKetoTypes";
 import ClientKetoTypeDetail from "./pages/client/ClientKetoTypeDetail";
 
