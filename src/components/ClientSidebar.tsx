@@ -31,6 +31,7 @@ const mainItems: MenuItem[] = [
   { title: "Meal Plan", url: "/client/meal-plan", icon: Utensils, featureKey: "food_journal_enabled" },
   { title: "Nutrition", url: "/client/nutrition", icon: Utensils, featureKey: "food_journal_enabled" },
   { title: "Nutrition Dashboard", url: "/client/nutrition-dashboard", icon: Activity, featureKey: "macros_enabled" },
+  { title: "Keto Types", url: "/client/keto-types", icon: Utensils, featureKey: "macros_enabled" },
   { title: "Messages", url: "/client/messages", icon: MessageSquare, featureKey: "messages_enabled" },
   { title: "Appointments", url: "/client/appointments", icon: CalendarClock },
   { title: "Restore", url: "/client/vibes", icon: Sparkles, featureKey: "restore_enabled" },
