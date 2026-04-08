@@ -1,11 +1,19 @@
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Loader2, RefreshCw, Zap } from "lucide-react";
+import { Sparkles, Loader2, RefreshCw, Zap, ChevronDown } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { usePlanSynergy } from "@/hooks/usePlanSynergy";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface SynergyPreviewPanelProps {
   clientId: string;
@@ -34,11 +42,49 @@ export function SynergyPreviewPanel({ clientId, trainerId }: SynergyPreviewPanel
     queryFn: async () => {
       const { data } = await supabase
         .from("client_keto_assignments")
-        .select("keto_type_id, keto_types(abbreviation, name, color)")
+        .select("id, keto_type_id, keto_types(abbreviation, name, color)")
         .eq("client_id", clientId)
         .eq("is_active", true)
         .maybeSingle();
       return data;
+    },
+  });
+
+  // Fetch all protocols for dropdown
+  const { data: allProtocols } = useQuery({
+    queryKey: ["synergy-all-protocols"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("fasting_protocols")
+        .select("id, name, category, fast_target_hours")
+        .order("category")
+        .order("duration_days");
+      return data || [];
+    },
+  });
+
+  // Fetch all quick plans for dropdown
+  const { data: allQuickPlans } = useQuery({
+    queryKey: ["synergy-all-quick-plans"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("quick_fasting_plans")
+        .select("id, name, fast_hours")
+        .order("order_index");
+      return data || [];
+    },
+  });
+
+  // Fetch all keto types for dropdown
+  const { data: allKetoTypes } = useQuery({
+    queryKey: ["synergy-all-keto-types"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("keto_types")
+        .select("id, abbreviation, name, color")
+        .eq("is_active", true)
+        .order("order_index");
+      return data || [];
     },
   });
 
@@ -78,18 +124,64 @@ export function SynergyPreviewPanel({ clientId, trainerId }: SynergyPreviewPanel
     ketoTypeId,
   );
 
+  // Assign protocol mutation
+  const assignProtocolMutation = useMutation({
+    mutationFn: async ({ id, type }: { id: string; type: "program" | "quick_plan" }) => {
+      const updates: Record<string, unknown> = type === "program"
+        ? { selected_protocol_id: id, selected_quick_plan_id: null, protocol_assigned_by: trainerId }
+        : { selected_quick_plan_id: id, selected_protocol_id: null, protocol_assigned_by: trainerId };
+      const { error } = await supabase
+        .from("client_feature_settings")
+        .update(updates)
+        .eq("client_id", clientId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["synergy-panel-settings"] });
+      queryClient.invalidateQueries({ queryKey: ["plan-synergy"] });
+      queryClient.invalidateQueries({ queryKey: ["my-feature-settings"] });
+      toast.success("Protocol assigned!");
+    },
+    onError: () => toast.error("Failed to assign protocol"),
+  });
+
+  // Assign keto type mutation
+  const assignKetoMutation = useMutation({
+    mutationFn: async (ketoId: string) => {
+      // Deactivate current
+      if (ketoAssignment?.id) {
+        await supabase
+          .from("client_keto_assignments")
+          .update({ is_active: false })
+          .eq("id", ketoAssignment.id);
+      }
+      // Assign new
+      await supabase.from("client_keto_assignments").insert({
+        client_id: clientId,
+        keto_type_id: ketoId,
+        assigned_by: trainerId,
+        is_active: true,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["synergy-panel-keto"] });
+      queryClient.invalidateQueries({ queryKey: ["plan-synergy"] });
+      queryClient.invalidateQueries({ queryKey: ["client-keto-assignment"] });
+      toast.success("Keto type assigned!");
+    },
+    onError: () => toast.error("Failed to assign keto type"),
+  });
+
   // Regenerate mutation
   const regenerateMutation = useMutation({
     mutationFn: async () => {
       if (!activeProtocolId || !ketoTypeId || !protocolType) throw new Error("Missing assignments");
-      // Delete cached version first
       await supabase
         .from("plan_synergy_content")
         .delete()
         .eq("protocol_type", protocolType)
         .eq("protocol_id", activeProtocolId)
         .eq("keto_type_id", ketoTypeId);
-      // Regenerate
       const { data, error } = await supabase.functions.invoke("generate-plan-synergy", {
         body: { protocol_type: protocolType, protocol_id: activeProtocolId, keto_type_id: ketoTypeId },
       });
@@ -104,6 +196,14 @@ export function SynergyPreviewPanel({ clientId, trainerId }: SynergyPreviewPanel
   });
 
   const hasBoth = !!activeProtocolId && !!ketoTypeId;
+
+  // Combined list for protocol selector: programs + quick plans
+  const protocolOptions = [
+    ...(allProtocols?.map(p => ({ id: p.id, label: `${p.name} (${p.fast_target_hours}h)`, type: "program" as const })) || []),
+    ...(allQuickPlans?.map(p => ({ id: p.id, label: `${p.name} (${p.fast_hours}h)`, type: "quick_plan" as const })) || []),
+  ];
+
+  const currentProtocolValue = activeProtocolId ? `${protocolType}:${activeProtocolId}` : "";
 
   return (
     <Card>
@@ -132,26 +232,74 @@ export function SynergyPreviewPanel({ clientId, trainerId }: SynergyPreviewPanel
           )}
         </div>
 
-        {/* Assignment status */}
+        {/* Assignment selectors */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-lg border p-3 space-y-1">
+          <div className="space-y-1.5">
             <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Protocol</p>
-            {protocolInfo ? (
-              <p className="text-sm font-bold truncate">{protocolInfo.name}</p>
-            ) : (
-              <p className="text-sm text-muted-foreground italic">Not assigned</p>
-            )}
+            <Select
+              value={currentProtocolValue}
+              onValueChange={(val) => {
+                const [type, id] = val.split(":");
+                assignProtocolMutation.mutate({ id, type: type as "program" | "quick_plan" });
+              }}
+            >
+              <SelectTrigger className="h-10">
+                <SelectValue placeholder="Select protocol...">
+                  {protocolInfo?.name || "Select protocol..."}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {allProtocols && allProtocols.length > 0 && (
+                  <>
+                    <div className="px-2 py-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Programs</div>
+                    {allProtocols.map(p => (
+                      <SelectItem key={`program:${p.id}`} value={`program:${p.id}`}>
+                        {p.name} <span className="text-muted-foreground">({p.fast_target_hours}h)</span>
+                      </SelectItem>
+                    ))}
+                  </>
+                )}
+                {allQuickPlans && allQuickPlans.length > 0 && (
+                  <>
+                    <div className="px-2 py-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mt-1">Quick Plans</div>
+                    {allQuickPlans.map(p => (
+                      <SelectItem key={`quick_plan:${p.id}`} value={`quick_plan:${p.id}`}>
+                        {p.name} <span className="text-muted-foreground">({p.fast_hours}h)</span>
+                      </SelectItem>
+                    ))}
+                  </>
+                )}
+              </SelectContent>
+            </Select>
           </div>
-          <div className="rounded-lg border p-3 space-y-1">
+
+          <div className="space-y-1.5">
             <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Keto Type</p>
-            {ketoType ? (
-              <div className="flex items-center gap-1.5">
-                <span className="text-sm font-black" style={{ color: ketoType.color }}>{ketoType.abbreviation}</span>
-                <span className="text-xs text-muted-foreground truncate">{ketoType.name}</span>
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground italic">Not assigned</p>
-            )}
+            <Select
+              value={ketoTypeId || ""}
+              onValueChange={(val) => assignKetoMutation.mutate(val)}
+            >
+              <SelectTrigger className="h-10">
+                <SelectValue placeholder="Select keto type...">
+                  {ketoType ? (
+                    <span className="flex items-center gap-1.5">
+                      <span className="font-black" style={{ color: ketoType.color }}>{ketoType.abbreviation}</span>
+                      <span className="text-xs">{ketoType.name}</span>
+                    </span>
+                  ) : "Select keto type..."}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {allKetoTypes?.map(kt => (
+                  <SelectItem key={kt.id} value={kt.id}>
+                    <span className="flex items-center gap-2">
+                      <span className="font-black text-sm" style={{ color: kt.color }}>{kt.abbreviation}</span>
+                      <span>{kt.name}</span>
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
