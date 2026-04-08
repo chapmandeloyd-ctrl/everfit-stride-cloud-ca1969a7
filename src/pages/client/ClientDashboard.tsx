@@ -575,11 +575,19 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
           )}
           {!isCoachAssigned && (
             <div className="flex items-center justify-center gap-2">
-              <Button variant="ghost" size="sm" className="text-xs" onClick={() => navigate("/client/programs")}>
-                Change protocol
+              <Button variant="ghost" size="sm" className="text-xs" onClick={() => {
+                if (featureSettings?.selected_quick_plan_id) {
+                  navigate(`/client/quick-plan/${featureSettings.selected_quick_plan_id}`);
+                } else if (featureSettings?.selected_protocol_id) {
+                  navigate(`/client/protocol/${featureSettings.selected_protocol_id}`);
+                } else {
+                  navigate("/client/programs");
+                }
+              }}>
+                View protocol
               </Button>
-              <Button variant="ghost" size="sm" className="text-xs text-destructive" onClick={() => cancelProtocolMutation.mutate()}>
-                Cancel protocol
+              <Button variant="ghost" size="sm" className="text-xs" onClick={() => navigate("/client/keto-types")}>
+                View keto type
               </Button>
             </div>
           )}
