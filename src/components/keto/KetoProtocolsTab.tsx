@@ -93,9 +93,10 @@ export function KetoProtocolsTab() {
     items: protocols?.filter((p) => p.category === cat) || [],
   })).filter((g) => g.items.length > 0);
 
-  const groupedPlans = DIFFICULTY_GROUPS.map((group) => ({
-    ...group,
-    items: quickPlans?.filter((p) => p.difficulty_group === group.key) || [],
+  // Group quick plans by level tier
+  const quickPlansByTier = LEVEL_TIERS.map((tier) => ({
+    tier,
+    items: (quickPlans || []).filter((p: any) => tier.levels.includes(p.min_level_required ?? 1)),
   })).filter((g) => g.items.length > 0);
 
   const isLoading = protocolsLoading || plansLoading;
@@ -111,10 +112,10 @@ export function KetoProtocolsTab() {
   return (
     <>
       <div className="space-y-8">
-        {/* Programs Section */}
+        {/* ── Programs (Glassmorphism Style 1) ── */}
         <div className="space-y-3">
           <div className="flex items-center gap-2">
-            <CalendarDays className="h-6 w-6 text-blue-400" />
+            <CalendarDays className="h-6 w-6 text-primary" />
             <h2 className="text-xl font-bold">Programs</h2>
             <Badge variant="secondary" className="text-xs">{protocols?.length || 0}</Badge>
           </div>
@@ -132,49 +133,68 @@ export function KetoProtocolsTab() {
                 {group.items.map((protocol) => {
                   const CatIcon = group.config.icon;
                   return (
-                    <Card
+                    <div
                       key={protocol.id}
-                      className={`cursor-pointer overflow-hidden transition-all hover:shadow-md active:scale-[0.99]`}
-                      style={{ borderLeftWidth: 4, borderLeftColor: group.config.borderColor.replace("border-l-", "").includes("blue") ? "#3b82f6" : group.config.borderColor.replace("border-l-", "").includes("emerald") ? "#10b981" : group.config.borderColor.replace("border-l-", "").includes("purple") ? "#a855f7" : group.config.borderColor.replace("border-l-", "").includes("yellow") ? "#eab308" : group.config.borderColor.replace("border-l-", "").includes("teal") ? "#14b8a6" : "#3b82f6" }}
+                      className="group relative cursor-pointer overflow-hidden rounded-[28px] transition-all duration-300 hover:-translate-y-1 active:scale-[0.985]"
                       onClick={() => setViewingProtocol(protocol)}
                     >
-                      <CardContent className="p-0">
-                        <div className="px-5 pt-4 pb-2">
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-2">
-                              <div className={`h-10 w-10 rounded-full ${group.config.bgColor} flex items-center justify-center`}>
-                                <CatIcon className={`h-5 w-5 ${group.config.color}`} />
-                              </div>
-                              <span className={`text-[11px] font-bold uppercase tracking-wider ${group.config.color}`}>
-                                {group.config.label}
-                              </span>
+                      <div className={`absolute inset-0 rounded-[28px] ${group.config.cardShadowClass}`} />
+                      <div className={`absolute -inset-[1px] rounded-[28px] bg-gradient-to-br ${group.config.glowGradient} opacity-90`} />
+                      <div className={`absolute inset-[1px] rounded-[27px] ${group.config.cardSurfaceClass}`} />
+                      <div className={`absolute -right-6 top-4 h-24 w-24 rounded-full ${group.config.bgColor} blur-3xl opacity-90`} />
+                      <div className="absolute inset-x-6 top-0 h-px bg-white/90" />
+
+                      <div className={`relative rounded-[27px] border ${group.config.cardBorderClass} backdrop-blur-xl overflow-hidden`}>
+                        <div className="px-6 pt-6 pb-3">
+                          <div className="mb-4 flex items-center gap-3">
+                            <div className={`flex h-14 w-14 items-center justify-center rounded-2xl ${group.config.bgColor} ring-1 ring-white/70 shadow-lg`}>
+                              <CatIcon className={`h-7 w-7 ${group.config.color}`} />
                             </div>
+                            <span className={`text-sm font-black uppercase tracking-[0.18em] ${group.config.color}`}>
+                              {group.config.label}
+                            </span>
                           </div>
-                          <h3 className="text-2xl font-black tracking-tight leading-none mb-1">{protocol.name}</h3>
+
+                          <h3 className="text-[2.15rem] font-black tracking-[-0.04em] leading-[0.95] text-foreground drop-shadow-sm">
+                            {protocol.name}
+                          </h3>
+
                           {protocol.description && (
-                            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{protocol.description}</p>
+                            <p className="mt-3 max-w-[28ch] text-base leading-relaxed text-muted-foreground line-clamp-2">
+                              {protocol.description}
+                            </p>
                           )}
                         </div>
-                        <div className="mx-5 border-t" />
-                        <div className="px-5 py-3 flex items-center gap-5">
-                          <div>
-                            <span className="text-lg font-bold text-primary">{protocol.fast_target_hours}h</span>
-                            <span className="text-[10px] text-muted-foreground uppercase tracking-wide block">Fast</span>
+
+                        <div className="mx-6 border-t border-border/70" />
+
+                        <div className="flex items-end gap-5 px-6 py-4">
+                          <div className="shrink-0">
+                            <span className={`block text-lg font-black leading-none ${group.config.color}`}>
+                              {protocol.fast_target_hours}h
+                            </span>
+                            <span className="mt-1 block text-[10px] uppercase tracking-wider text-muted-foreground">Fast</span>
                           </div>
-                          <div>
-                            <span className="text-lg font-bold">{getDurationLabel(protocol.duration_days)}</span>
-                            <span className="text-[10px] text-muted-foreground uppercase tracking-wide block">Duration</span>
+
+                          <div className="shrink-0">
+                            <span className="block text-lg font-black leading-none text-foreground">
+                              {getDurationLabel(protocol.duration_days)}
+                            </span>
+                            <span className="mt-1 block text-[10px] uppercase tracking-wider text-muted-foreground">Duration</span>
                           </div>
+
                           <div className="ml-auto flex items-center gap-2">
-                            <div>
-                              <span className="text-lg font-bold">{getDifficultyLabel(protocol.difficulty_level)}</span>
-                              <span className="text-[10px] text-muted-foreground uppercase tracking-wide block">Level</span>
+                            <div className="text-right">
+                              <span className="block text-lg font-black leading-none text-foreground">
+                                {getDifficultyLabel(protocol.difficulty_level)}
+                              </span>
+                              <span className="mt-1 block text-[10px] uppercase tracking-wider text-muted-foreground">Level</span>
                             </div>
-                            <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                            <ChevronRight className={`h-5 w-5 shrink-0 transition-transform group-hover:translate-x-1 ${group.config.color}`} />
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
+                      </div>
+                    </div>
                   );
                 })}
               </div>
@@ -182,69 +202,105 @@ export function KetoProtocolsTab() {
           })}
         </div>
 
-        {/* Quick Plans Section */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Clock className="h-6 w-6 text-blue-400" />
-            <h2 className="text-xl font-bold">Quick Plans</h2>
-            <Badge variant="secondary" className="text-xs">{quickPlans?.length || 0}</Badge>
-          </div>
-
-          {groupedPlans.map((group) => (
-            <div key={group.key} className="space-y-3">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mt-4">
-                {group.label}
-              </h3>
-              {group.items.map((plan) => (
-                <Card
-                  key={plan.id}
-                  className="cursor-pointer overflow-hidden transition-all hover:shadow-md active:scale-[0.99]"
-                  style={{ borderLeftWidth: 4, borderLeftColor: "#3b82f6" }}
-                  onClick={() => setViewingQuickPlan(plan)}
-                >
-                  <CardContent className="p-0">
-                    <div className="px-5 pt-4 pb-2">
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="h-10 w-10 rounded-full bg-blue-500/20 flex items-center justify-center">
-                          <Clock className="h-5 w-5 text-blue-400" />
-                        </div>
-                        <span className="text-[11px] font-bold uppercase tracking-wider text-blue-400">
-                          Quick Plan
-                        </span>
-                      </div>
-                      <h3 className="text-2xl font-black tracking-tight leading-none mb-1">{plan.name}</h3>
-                      {plan.description?.subtitle && (
-                        <p className="text-sm text-muted-foreground mt-1">{plan.description.subtitle}</p>
-                      )}
-                    </div>
-                    <div className="mx-5 border-t" />
-                    <div className="px-5 py-3 flex items-center gap-5">
-                      <div>
-                        <div className="flex items-center gap-1">
-                          <Hourglass className="h-3.5 w-3.5 text-primary" />
-                          <span className="text-lg font-bold text-primary">{plan.fast_hours}h</span>
-                        </div>
-                        <span className="text-[10px] text-muted-foreground uppercase tracking-wide block">Fast</span>
-                      </div>
-                      {plan.eat_hours > 0 && (
-                        <div>
-                          <div className="flex items-center gap-1">
-                            <UtensilsCrossed className="h-3.5 w-3.5 text-muted-foreground" />
-                            <span className="text-lg font-bold">{plan.eat_hours}h</span>
-                          </div>
-                          <span className="text-[10px] text-muted-foreground uppercase tracking-wide block">Eat</span>
-                        </div>
-                      )}
-                      <div className="ml-auto flex items-center gap-2">
-                        <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+        {/* ── Quick Plans (Aurora Gradient Style) ── */}
+        {quickPlansByTier.length > 0 && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Clock className="h-6 w-6 text-primary" />
+              <h2 className="text-xl font-bold">Quick Plans</h2>
+              <Badge variant="secondary" className="text-xs">{quickPlans?.length || 0}</Badge>
             </div>
-          ))}
-        </div>
+
+            {quickPlansByTier.map(({ tier, items }) => {
+              const TierIcon = tier.icon;
+              return (
+                <div key={tier.label} className="space-y-3">
+                  <div className="flex items-center gap-2 mt-2">
+                    <TierIcon className={`h-4 w-4 ${tier.accentColor}`} />
+                    <h3 className={`text-xs font-bold uppercase tracking-wider ${tier.accentColor}`}>
+                      {tier.label} — {tier.subtitle}
+                    </h3>
+                    <span className={`ml-auto text-[10px] font-semibold uppercase tracking-widest ${tier.accentColor} ${tier.badgeBg} px-2 py-0.5 rounded-full`}>
+                      {tier.levels.length === 1 ? `Lvl ${tier.levels[0]}` : `Lvl ${tier.levels[0]}–${tier.levels[tier.levels.length - 1]}`}
+                    </span>
+                  </div>
+
+                  {items.map((plan: any) => {
+                    const planTier = getTierForLevel(plan.min_level_required ?? 1);
+                    const PlanIcon = planTier.icon;
+                    const subtitle = typeof plan.description === "object" && plan.description?.subtitle
+                      ? plan.description.subtitle
+                      : null;
+
+                    return (
+                      <div
+                        key={plan.id}
+                        className="group relative cursor-pointer overflow-hidden rounded-[28px] transition-all duration-300 hover:-translate-y-1 active:scale-[0.985]"
+                        onClick={() => setViewingQuickPlan(plan)}
+                      >
+                        <div className={`absolute inset-0 rounded-[28px] ${planTier.glowShadow}`} />
+                        <div className={`absolute -inset-[1px] rounded-[28px] bg-gradient-to-br ${planTier.cardGradient} opacity-80`} />
+                        <div className="absolute inset-[1px] rounded-[27px] bg-gradient-to-br from-background/95 via-background/90 to-background/85 backdrop-blur-xl" />
+                        <div className={`absolute -right-8 -top-4 h-28 w-28 rounded-full bg-gradient-to-br ${planTier.cardGradient} blur-3xl opacity-60`} />
+                        <div className="absolute inset-x-8 top-0 h-px bg-white/60" />
+
+                        <div className={`relative rounded-[27px] border ${planTier.borderClass} backdrop-blur-xl overflow-hidden`}>
+                          <div className="px-6 pt-6 pb-3">
+                            <div className="mb-4 flex items-center gap-3">
+                              <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${planTier.badgeBg} ring-1 ring-white/40 shadow-lg`}>
+                                <PlanIcon className={`h-6 w-6 ${planTier.accentColor}`} />
+                              </div>
+                              <div>
+                                <span className={`text-[10px] font-bold uppercase tracking-[0.18em] ${planTier.accentColor}`}>
+                                  Level {plan.min_level_required ?? 1}
+                                </span>
+                              </div>
+                              <div className="ml-auto">
+                                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${planTier.badgeBg} ${planTier.accentColor}`}>
+                                  {getIntensityLabel(plan.intensity_tier)}
+                                </span>
+                              </div>
+                            </div>
+
+                            <h3 className="text-[2rem] font-black tracking-[-0.04em] leading-[0.95] text-foreground drop-shadow-sm">
+                              {plan.name}
+                            </h3>
+
+                            {subtitle && (
+                              <p className="mt-2 max-w-[28ch] text-sm leading-relaxed text-muted-foreground line-clamp-2">
+                                {subtitle}
+                              </p>
+                            )}
+                          </div>
+
+                          <div className="mx-6 border-t border-border/60" />
+
+                          <div className="flex items-end gap-5 px-6 py-4">
+                            <div className="shrink-0">
+                              <span className={`block text-lg font-black leading-none ${planTier.accentColor}`}>
+                                {plan.fast_hours}h
+                              </span>
+                              <span className="mt-1 block text-[10px] uppercase tracking-wider text-muted-foreground">Fast</span>
+                            </div>
+                            <div className="shrink-0">
+                              <span className="block text-lg font-black leading-none text-foreground">
+                                {plan.eat_hours}h
+                              </span>
+                              <span className="mt-1 block text-[10px] uppercase tracking-wider text-muted-foreground">Eat</span>
+                            </div>
+                            <div className="ml-auto flex items-center gap-1">
+                              <ChevronRight className={`h-5 w-5 shrink-0 transition-transform group-hover:translate-x-1 ${planTier.accentColor}`} />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Protocol Detail Sheet */}
