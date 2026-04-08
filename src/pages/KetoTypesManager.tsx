@@ -10,8 +10,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2, ChevronRight, Zap, FolderPlus } from "lucide-react";
+import { Plus, Pencil, Trash2, Zap, FolderPlus } from "lucide-react";
+import { KetoTypeCard } from "@/components/keto/KetoTypeCard";
+import { KetoTypeDetailView } from "@/components/keto/KetoTypeDetailView";
 import { toast } from "sonner";
 
 interface KetoCategory {
