@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { CalendarDays, ChevronRight, Clock, Hourglass, UtensilsCrossed, Zap, TrendingUp, Lightbulb, BarChart3, Users, Droplets, Utensils } from "lucide-react";
+import { CalendarDays, ChevronRight, Clock, TrendingUp, Lightbulb, BarChart3, Users, Droplets, Utensils } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
