@@ -10,8 +10,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2, ChevronRight, Zap, FolderPlus } from "lucide-react";
+import { Plus, Pencil, Trash2, Zap, FolderPlus } from "lucide-react";
+import { KetoTypeCard } from "@/components/keto/KetoTypeCard";
+import { KetoTypeDetailView } from "@/components/keto/KetoTypeDetailView";
 import { toast } from "sonner";
 
 interface KetoCategory {
@@ -81,6 +84,7 @@ export default function KetoTypesManager() {
   const [typeForm, setTypeForm] = useState({ ...emptyType });
   const [builtForInput, setBuiltForInput] = useState("");
   const [coachNoteInput, setCoachNoteInput] = useState("");
+  const [viewingType, setViewingType] = useState<KetoType | null>(null);
 
   const { data: categories } = useQuery({
     queryKey: ["trainer-keto-categories", user?.id],
@@ -301,46 +305,38 @@ export default function KetoTypesManager() {
               </div>
 
               {typesInCat.map((kt) => (
-                <Card
-                  key={kt.id}
-                  className="group border-l-4 transition-colors hover:bg-muted/30"
-                  style={{ borderLeftColor: kt.color }}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div
-                        className="h-12 w-12 rounded-xl flex items-center justify-center shrink-0"
-                        style={{ backgroundColor: `${kt.color}15` }}
-                      >
-                        <span className="text-lg font-black" style={{ color: kt.color }}>
-                          {kt.abbreviation.slice(0, 3)}
-                        </span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-semibold text-base truncate">{kt.name}</h3>
-                          {!kt.is_active && <Badge variant="outline" className="text-[10px]">Inactive</Badge>}
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          {kt.fat_pct}%F · {kt.protein_pct}%P · {kt.carbs_pct}%C · {kt.difficulty}
-                        </p>
-                      </div>
-                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditType(kt)}>
-                          <Pencil className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 text-destructive"
-                          onClick={() => { if (confirm(`Delete ${kt.abbreviation}?`)) deleteType.mutate(kt.id); }}
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <div key={kt.id} className="group relative">
+                  <KetoTypeCard
+                    abbreviation={kt.abbreviation}
+                    name={kt.name}
+                    subtitle={kt.subtitle}
+                    fat_pct={kt.fat_pct}
+                    protein_pct={kt.protein_pct}
+                    carbs_pct={kt.carbs_pct}
+                    difficulty={kt.difficulty}
+                    color={kt.color}
+                    onClick={() => setViewingType(kt)}
+                  />
+                  {/* Hover actions overlay */}
+                  <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                    <Button
+                      variant="secondary"
+                      size="icon"
+                      className="h-7 w-7 bg-background/90 shadow-sm"
+                      onClick={(e) => { e.stopPropagation(); openEditType(kt); }}
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="icon"
+                      className="h-7 w-7 bg-background/90 shadow-sm text-destructive"
+                      onClick={(e) => { e.stopPropagation(); if (confirm(`Delete ${kt.abbreviation}?`)) deleteType.mutate(kt.id); }}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </div>
               ))}
 
               {typesInCat.length === 0 && (
@@ -634,6 +630,47 @@ export default function KetoTypesManager() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Detail Sheet */}
+      <Sheet open={!!viewingType} onOpenChange={(open) => !open && setViewingType(null)}>
+        <SheetContent className="w-full sm:max-w-lg overflow-y-auto p-0">
+          <SheetHeader className="px-5 pt-5 pb-2">
+            <SheetTitle className="sr-only">{viewingType?.name}</SheetTitle>
+          </SheetHeader>
+          {viewingType && (
+            <div className="px-4 pb-8">
+              <KetoTypeDetailView
+                ketoType={viewingType}
+                allTypes={ketoTypes?.filter(t => t.is_active) || []}
+              />
+              <div className="flex gap-2 mt-6">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => {
+                    openEditType(viewingType);
+                    setViewingType(null);
+                  }}
+                >
+                  <Pencil className="h-4 w-4 mr-1" /> Edit
+                </Button>
+                <Button
+                  variant="destructive"
+                  className="flex-1"
+                  onClick={() => {
+                    if (confirm(`Delete ${viewingType.abbreviation}?`)) {
+                      deleteType.mutate(viewingType.id);
+                      setViewingType(null);
+                    }
+                  }}
+                >
+                  <Trash2 className="h-4 w-4 mr-1" /> Delete
+                </Button>
+              </div>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
     </DashboardLayout>
   );
 }

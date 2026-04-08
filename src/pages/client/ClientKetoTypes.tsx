@@ -1,12 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ChevronRight, Zap, Flame, Shield, Activity } from "lucide-react";
+import { ArrowLeft, Zap } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { ClientLayout } from "@/components/ClientLayout";
+import { KetoTypeCard } from "@/components/keto/KetoTypeCard";
 
 interface KetoCategory {
   id: string;
@@ -30,28 +30,6 @@ interface KetoType {
   color: string;
   category_id: string;
   order_index: number;
-}
-
-const CATEGORY_STYLES: Record<string, { icon: any; tailwindColor: string; tailwindBg: string; borderColor: string }> = {
-  default: { icon: Zap, tailwindColor: "text-blue-500", tailwindBg: "bg-blue-500/10", borderColor: "border-l-blue-500" },
-};
-
-function getCategoryStyle(color: string) {
-  // Map hex colors to tailwind classes
-  const colorMap: Record<string, { tailwindColor: string; tailwindBg: string; borderColor: string }> = {
-    "#ef4444": { tailwindColor: "text-red-500", tailwindBg: "bg-red-500/10", borderColor: "border-l-red-500" },
-    "#3b82f6": { tailwindColor: "text-blue-500", tailwindBg: "bg-blue-500/10", borderColor: "border-l-blue-500" },
-    "#6366f1": { tailwindColor: "text-indigo-500", tailwindBg: "bg-indigo-500/10", borderColor: "border-l-indigo-500" },
-    "#8b5cf6": { tailwindColor: "text-violet-500", tailwindBg: "bg-violet-500/10", borderColor: "border-l-violet-500" },
-    "#ec4899": { tailwindColor: "text-pink-500", tailwindBg: "bg-pink-500/10", borderColor: "border-l-pink-500" },
-    "#f97316": { tailwindColor: "text-orange-500", tailwindBg: "bg-orange-500/10", borderColor: "border-l-orange-500" },
-    "#eab308": { tailwindColor: "text-yellow-500", tailwindBg: "bg-yellow-500/10", borderColor: "border-l-yellow-500" },
-    "#22c55e": { tailwindColor: "text-green-500", tailwindBg: "bg-green-500/10", borderColor: "border-l-green-500" },
-    "#14b8a6": { tailwindColor: "text-teal-500", tailwindBg: "bg-teal-500/10", borderColor: "border-l-teal-500" },
-    "#06b6d4": { tailwindColor: "text-cyan-500", tailwindBg: "bg-cyan-500/10", borderColor: "border-l-cyan-500" },
-    "#64748b": { tailwindColor: "text-slate-500", tailwindBg: "bg-slate-500/10", borderColor: "border-l-slate-500" },
-  };
-  return colorMap[color] || { tailwindColor: "text-blue-500", tailwindBg: "bg-blue-500/10", borderColor: "border-l-blue-500" };
 }
 
 export default function ClientKetoTypes() {
@@ -100,29 +78,54 @@ export default function ClientKetoTypes() {
   });
 
   const activeKetoTypeId = activeAssignment?.keto_type_id;
-
-  const getDifficultyLabel = (d: string) => {
-    if (d === "beginner") return "Beginner";
-    if (d === "intermediate") return "Intermediate";
-    if (d === "advanced") return "Advanced";
-    return d;
-  };
+  const activeKetoType = activeAssignment?.keto_types as KetoType | null;
 
   const grouped = categories?.map((cat) => ({
     category: cat,
-    style: getCategoryStyle(cat.color),
     items: ketoTypes?.filter((t) => t.category_id === cat.id) || [],
   })).filter((g) => g.items.length > 0) || [];
 
   return (
     <ClientLayout>
       <div className="px-3 pt-4 pb-8 space-y-6 w-full">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
+        {/* Header */}
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <Zap className="h-4 w-4 text-primary" />
+            <span className="text-xs font-bold uppercase tracking-wider text-primary">KSOM Keto System</span>
+          </div>
           <h1 className="text-2xl font-bold">Keto Types</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Choose your nutrition framework. Each type controls what you eat — your fasting protocol controls when.
+          </p>
         </div>
+
+        {/* Current Keto Type Banner */}
+        {activeKetoType && (
+          <Card
+            className="overflow-hidden cursor-pointer"
+            style={{ backgroundColor: `${activeKetoType.color}08`, borderColor: `${activeKetoType.color}25` }}
+            onClick={() => navigate(`/client/keto-types/${activeKetoType.id}`)}
+          >
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-1">
+                <Zap className="h-3.5 w-3.5" style={{ color: activeKetoType.color }} />
+                <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: activeKetoType.color }}>
+                  Your Current Keto Type
+                </span>
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-black" style={{ color: activeKetoType.color }}>
+                  {activeKetoType.abbreviation}
+                </span>
+                <span className="text-base text-muted-foreground">{activeKetoType.name}</span>
+              </div>
+              {activeKetoType.subtitle && (
+                <p className="text-sm text-muted-foreground mt-0.5">{activeKetoType.subtitle}</p>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {isLoading ? (
           <div className="flex justify-center py-12">
@@ -133,74 +136,36 @@ export default function ClientKetoTypes() {
             <div key={group.category.id} className="space-y-3">
               {/* Category header */}
               <div className="flex items-center gap-2">
-                <Zap className={`h-5 w-5 ${group.style.tailwindColor}`} />
-                <h2 className={`text-xs font-bold uppercase tracking-wider ${group.style.tailwindColor}`}>
+                <div
+                  className="h-6 w-6 rounded-full flex items-center justify-center"
+                  style={{ backgroundColor: `${group.category.color}15` }}
+                >
+                  <Zap className="h-3 w-3" style={{ color: group.category.color }} />
+                </div>
+                <h2
+                  className="text-sm font-bold"
+                  style={{ color: group.category.color }}
+                >
                   {group.category.name}
                 </h2>
               </div>
 
               {/* Keto type cards */}
-              {group.items.map((kt) => {
-                const isActive = kt.id === activeKetoTypeId;
-
-                return (
-                  <Card
-                    key={kt.id}
-                    className={`cursor-pointer border-l-4 ${group.style.borderColor} transition-colors hover:bg-muted/30 relative overflow-hidden`}
-                    onClick={() => navigate(`/client/keto-types/${kt.id}`)}
-                  >
-                    <CardContent className="p-4 space-y-2">
-                      {/* Top row with icon + title */}
-                      <div className="flex items-center gap-3">
-                        <div className={`h-12 w-12 rounded-xl ${group.style.tailwindBg} flex items-center justify-center shrink-0`}>
-                          <span className="text-lg font-black" style={{ color: kt.color }}>
-                            {kt.abbreviation.slice(0, 3)}
-                          </span>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-semibold text-base truncate">{kt.name}</h3>
-                            {isActive && (
-                              <Badge className="text-[10px] px-2 py-0 h-5 bg-green-500/15 text-green-600 border-green-500/30 hover:bg-green-500/15">
-                                ACTIVE
-                              </Badge>
-                            )}
-                          </div>
-                          <p className="text-sm text-muted-foreground">
-                            {kt.subtitle || `${kt.fat_pct}%F · ${kt.protein_pct}%P · ${kt.carbs_pct}%C`}
-                          </p>
-                        </div>
-                        <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />
-                      </div>
-
-                      {/* Details row */}
-                      <div className="flex items-center gap-3 pl-[60px]">
-                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                          <span>
-                            <span className="font-semibold text-foreground">{kt.fat_pct}%</span> Fat
-                          </span>
-                          <span>
-                            <span className="font-semibold text-foreground">{kt.protein_pct}%</span> Protein
-                          </span>
-                          <span>
-                            <span className="font-semibold text-foreground">{kt.carbs_pct}%</span> Carbs
-                          </span>
-                          <span className="capitalize">
-                            {getDifficultyLabel(kt.difficulty)}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Description preview */}
-                      {kt.description && (
-                        <p className="text-sm text-muted-foreground leading-relaxed pl-[60px] line-clamp-2">
-                          {kt.description}
-                        </p>
-                      )}
-                    </CardContent>
-                  </Card>
-                );
-              })}
+              {group.items.map((kt) => (
+                <KetoTypeCard
+                  key={kt.id}
+                  abbreviation={kt.abbreviation}
+                  name={kt.name}
+                  subtitle={kt.subtitle}
+                  fat_pct={kt.fat_pct}
+                  protein_pct={kt.protein_pct}
+                  carbs_pct={kt.carbs_pct}
+                  difficulty={kt.difficulty}
+                  color={kt.color}
+                  isActive={kt.id === activeKetoTypeId}
+                  onClick={() => navigate(`/client/keto-types/${kt.id}`)}
+                />
+              ))}
             </div>
           ))
         ) : (
