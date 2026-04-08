@@ -1412,11 +1412,7 @@ export default function ClientDashboard() {
               ) : null;
 
             case "engine_cards":
-              return (
-                <div key="engine_cards" className="space-y-5">
-                  <DailyCheckinCard />
-                </div>
-              );
+              return null;
 
             case "coach_tip":
               return settings.fasting_enabled && !engineConfig.fastingDisabled && (fastingState?.selected_protocol_id || fastingState?.maintenance_mode) ? (
