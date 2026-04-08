@@ -35,6 +35,7 @@ const libraryItems = [
   { title: "Meal Plans", url: "/meal-plans", icon: Calendar },
   { title: "Macro Calculator", url: "/macro-calculator", icon: Calculator },
   { title: "Macro Tracking", url: "/macro-tracking", icon: Activity },
+  { title: "Keto Types", url: "/keto-types", icon: Zap },
 ];
 
 const onDemandItems = [
