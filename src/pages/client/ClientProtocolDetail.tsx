@@ -63,6 +63,21 @@ export default function ClientProtocolDetail() {
     enabled: !!id,
   });
 
+  // Fetch active keto assignment for synergy display
+  const { data: activeKetoAssignment } = useQuery({
+    queryKey: ["active-keto-assignment", clientId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("client_keto_assignments")
+        .select("keto_type_id")
+        .eq("client_id", clientId!)
+        .eq("is_active", true)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!clientId,
+  });
+
   const selectProtocolMutation = useMutation({
     mutationFn: async ({ protocolId, startNow }: { protocolId: string; startNow: boolean }) => {
       const today = format(new Date(), "yyyy-MM-dd");
