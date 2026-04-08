@@ -1,9 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ChevronRight, Zap } from "lucide-react";
+import { ArrowLeft, ChevronRight, Zap, Flame, Shield, Activity } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
+import { ClientLayout } from "@/components/ClientLayout";
 
 interface KetoCategory {
   id: string;
@@ -18,20 +21,44 @@ interface KetoType {
   abbreviation: string;
   name: string;
   subtitle: string | null;
+  description: string | null;
   fat_pct: number;
   protein_pct: number;
   carbs_pct: number;
+  carb_limit_grams: number | null;
   difficulty: string;
   color: string;
   category_id: string;
   order_index: number;
 }
 
+const CATEGORY_STYLES: Record<string, { icon: any; tailwindColor: string; tailwindBg: string; borderColor: string }> = {
+  default: { icon: Zap, tailwindColor: "text-blue-500", tailwindBg: "bg-blue-500/10", borderColor: "border-l-blue-500" },
+};
+
+function getCategoryStyle(color: string) {
+  // Map hex colors to tailwind classes
+  const colorMap: Record<string, { tailwindColor: string; tailwindBg: string; borderColor: string }> = {
+    "#ef4444": { tailwindColor: "text-red-500", tailwindBg: "bg-red-500/10", borderColor: "border-l-red-500" },
+    "#3b82f6": { tailwindColor: "text-blue-500", tailwindBg: "bg-blue-500/10", borderColor: "border-l-blue-500" },
+    "#6366f1": { tailwindColor: "text-indigo-500", tailwindBg: "bg-indigo-500/10", borderColor: "border-l-indigo-500" },
+    "#8b5cf6": { tailwindColor: "text-violet-500", tailwindBg: "bg-violet-500/10", borderColor: "border-l-violet-500" },
+    "#ec4899": { tailwindColor: "text-pink-500", tailwindBg: "bg-pink-500/10", borderColor: "border-l-pink-500" },
+    "#f97316": { tailwindColor: "text-orange-500", tailwindBg: "bg-orange-500/10", borderColor: "border-l-orange-500" },
+    "#eab308": { tailwindColor: "text-yellow-500", tailwindBg: "bg-yellow-500/10", borderColor: "border-l-yellow-500" },
+    "#22c55e": { tailwindColor: "text-green-500", tailwindBg: "bg-green-500/10", borderColor: "border-l-green-500" },
+    "#14b8a6": { tailwindColor: "text-teal-500", tailwindBg: "bg-teal-500/10", borderColor: "border-l-teal-500" },
+    "#06b6d4": { tailwindColor: "text-cyan-500", tailwindBg: "bg-cyan-500/10", borderColor: "border-l-cyan-500" },
+    "#64748b": { tailwindColor: "text-slate-500", tailwindBg: "bg-slate-500/10", borderColor: "border-l-slate-500" },
+  };
+  return colorMap[color] || { tailwindColor: "text-blue-500", tailwindBg: "bg-blue-500/10", borderColor: "border-l-blue-500" };
+}
+
 export default function ClientKetoTypes() {
   const navigate = useNavigate();
   const clientId = useEffectiveClientId();
 
-  const { data: categories } = useQuery({
+  const { data: categories, isLoading } = useQuery({
     queryKey: ["keto-categories"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -81,136 +108,102 @@ export default function ClientKetoTypes() {
     return d;
   };
 
+  const grouped = categories?.map((cat) => ({
+    category: cat,
+    style: getCategoryStyle(cat.color),
+    items: ketoTypes?.filter((t) => t.category_id === cat.id) || [],
+  })).filter((g) => g.items.length > 0) || [];
+
   return (
-    <div className="min-h-screen bg-background pb-24">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b px-4 py-3 flex items-center gap-3">
-        <button onClick={() => navigate(-1)} className="p-1">
-          <ArrowLeft className="h-5 w-5" />
-        </button>
-        <h1 className="text-lg font-bold">Keto Types</h1>
-      </div>
+    <ClientLayout>
+      <div className="px-3 pt-4 pb-8 space-y-6 w-full">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="text-2xl font-bold">Keto Types</h1>
+        </div>
 
-      <div className="px-4 pt-4 space-y-6">
-        {categories?.map((cat) => {
-          const typesInCat = ketoTypes?.filter((t) => t.category_id === cat.id) || [];
-          if (typesInCat.length === 0) return null;
-
-          return (
-            <div key={cat.id} className="space-y-3">
+        {isLoading ? (
+          <div className="flex justify-center py-12">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          </div>
+        ) : grouped.length > 0 ? (
+          grouped.map((group) => (
+            <div key={group.category.id} className="space-y-3">
               {/* Category header */}
               <div className="flex items-center gap-2">
-                <div
-                  className="h-8 w-8 rounded-full flex items-center justify-center"
-                  style={{ backgroundColor: `${cat.color}20` }}
-                >
-                  <Zap className="h-4 w-4" style={{ color: cat.color }} />
-                </div>
-                <span className="text-base font-semibold" style={{ color: cat.color }}>
-                  {cat.name}
-                </span>
+                <Zap className={`h-5 w-5 ${group.style.tailwindColor}`} />
+                <h2 className={`text-xs font-bold uppercase tracking-wider ${group.style.tailwindColor}`}>
+                  {group.category.name}
+                </h2>
               </div>
 
               {/* Keto type cards */}
-              {typesInCat.map((kt) => {
+              {group.items.map((kt) => {
                 const isActive = kt.id === activeKetoTypeId;
 
                 return (
                   <Card
                     key={kt.id}
-                    className="cursor-pointer transition-all border overflow-hidden"
-                    style={{
-                      borderColor: isActive ? `${kt.color}60` : undefined,
-                      backgroundColor: isActive ? `${kt.color}08` : undefined,
-                    }}
+                    className={`cursor-pointer border-l-4 ${group.style.borderColor} transition-colors hover:bg-muted/30 relative overflow-hidden`}
                     onClick={() => navigate(`/client/keto-types/${kt.id}`)}
                   >
-                    <CardContent className="p-5">
-                      {/* Top row: label + active badge */}
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-1.5">
-                          <div
-                            className="h-6 w-6 rounded-full flex items-center justify-center"
-                            style={{ backgroundColor: `${kt.color}20` }}
-                          >
-                            <Zap className="h-3 w-3" style={{ color: kt.color }} />
-                          </div>
-                          <span
-                            className="text-xs font-bold uppercase tracking-wider"
-                            style={{ color: kt.color }}
-                          >
-                            Keto Type
+                    <CardContent className="p-4 space-y-2">
+                      {/* Top row with icon + title */}
+                      <div className="flex items-center gap-3">
+                        <div className={`h-12 w-12 rounded-xl ${group.style.tailwindBg} flex items-center justify-center shrink-0`}>
+                          <span className="text-lg font-black" style={{ color: kt.color }}>
+                            {kt.abbreviation.slice(0, 3)}
                           </span>
                         </div>
-                        {isActive && (
-                          <span
-                            className="text-xs font-bold px-3 py-1 rounded-full"
-                            style={{
-                              color: kt.color,
-                              backgroundColor: `${kt.color}15`,
-                              border: `1px solid ${kt.color}30`,
-                            }}
-                          >
-                            ACTIVE
-                          </span>
-                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-semibold text-base truncate">{kt.name}</h3>
+                            {isActive && (
+                              <Badge className="text-[10px] px-2 py-0 h-5 bg-green-500/15 text-green-600 border-green-500/30 hover:bg-green-500/15">
+                                ACTIVE
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            {kt.subtitle || `${kt.fat_pct}%F · ${kt.protein_pct}%P · ${kt.carbs_pct}%C`}
+                          </p>
+                        </div>
+                        <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />
                       </div>
 
-                      {/* Big abbreviation */}
-                      <h2
-                        className="text-5xl font-black tracking-tight mb-2"
-                        style={{ color: kt.color }}
-                      >
-                        {kt.abbreviation}
-                      </h2>
+                      {/* Details row */}
+                      <div className="flex items-center gap-3 pl-[60px]">
+                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                          <span>
+                            <span className="font-semibold text-foreground">{kt.fat_pct}%</span> Fat
+                          </span>
+                          <span>
+                            <span className="font-semibold text-foreground">{kt.protein_pct}%</span> Protein
+                          </span>
+                          <span>
+                            <span className="font-semibold text-foreground">{kt.carbs_pct}%</span> Carbs
+                          </span>
+                          <span className="capitalize">
+                            {getDifficultyLabel(kt.difficulty)}
+                          </span>
+                        </div>
+                      </div>
 
-                      {/* Name + subtitle */}
-                      <h3 className="text-base font-semibold">{kt.name}</h3>
-                      {kt.subtitle && (
-                        <p className="text-sm text-muted-foreground mt-0.5">{kt.subtitle}</p>
+                      {/* Description preview */}
+                      {kt.description && (
+                        <p className="text-sm text-muted-foreground leading-relaxed pl-[60px] line-clamp-2">
+                          {kt.description}
+                        </p>
                       )}
-
-                      {/* Divider */}
-                      <div className="border-t my-3" />
-
-                      {/* Stats row */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <div>
-                            <span
-                              className="text-base font-bold"
-                              style={{ color: kt.color }}
-                            >
-                              {kt.fat_pct}%
-                            </span>
-                            <p className="text-xs text-muted-foreground uppercase tracking-wide">Fat</p>
-                          </div>
-                          <div>
-                            <span className="text-base font-bold">{kt.protein_pct}%</span>
-                            <p className="text-xs text-muted-foreground uppercase tracking-wide">Protein</p>
-                          </div>
-                          <div>
-                            <span className="text-base font-bold">{kt.carbs_pct}%</span>
-                            <p className="text-xs text-muted-foreground uppercase tracking-wide">Carbs</p>
-                          </div>
-                          <div>
-                            <span className="text-base font-bold">
-                              {getDifficultyLabel(kt.difficulty)}
-                            </span>
-                            <p className="text-xs text-muted-foreground uppercase tracking-wide">Level</p>
-                          </div>
-                        </div>
-                        <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                      </div>
                     </CardContent>
                   </Card>
                 );
               })}
             </div>
-          );
-        })}
-
-        {(!categories || categories.length === 0) && (
+          ))
+        ) : (
           <div className="text-center py-16 text-muted-foreground">
             <Zap className="h-12 w-12 mx-auto mb-3 opacity-30" />
             <p className="font-medium">No keto types available yet</p>
@@ -218,6 +211,6 @@ export default function ClientKetoTypes() {
           </div>
         )}
       </div>
-    </div>
+    </ClientLayout>
   );
 }
