@@ -1421,7 +1421,6 @@ export default function ClientDashboard() {
                   {engineConfig.features.showFastingUI && <DashboardFocusSelector currentFocus={null} />}
                   <DailyCheckinCard />
                   <RecommendationCard />
-                  <LevelProgressionCard />
                   <DashboardInsightCard />
                 </div>
               );
