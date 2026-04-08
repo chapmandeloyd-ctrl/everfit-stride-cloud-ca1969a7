@@ -309,6 +309,7 @@ export default function WorkoutDetail() {
   if (isPlaying) {
     return (
       <WorkoutPlayer
+        workoutName={workout.name}
         sections={transformedSections}
         onComplete={handleComplete}
         onEndEarly={handleEndEarly}
