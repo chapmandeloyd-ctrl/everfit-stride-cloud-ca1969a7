@@ -12,9 +12,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Pencil, Trash2, Zap, FolderPlus } from "lucide-react";
 import { KetoTypeCard } from "@/components/keto/KetoTypeCard";
 import { KetoTypeDetailView } from "@/components/keto/KetoTypeDetailView";
+import { KetoProtocolsTab } from "@/components/keto/KetoProtocolsTab";
 import { toast } from "sonner";
 
 interface KetoCategory {
