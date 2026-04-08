@@ -1407,8 +1407,11 @@ export default function ClientDashboard() {
               ) : null;
 
             case "engine_cards":
+              return null;
+
+            case "assigned_plan":
               return (
-                <AssignedPlanCard key="engine_cards" clientId={clientId!} />
+                <AssignedPlanCard key="assigned_plan" clientId={clientId!} />
               );
 
             case "coach_tip":
