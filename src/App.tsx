@@ -91,6 +91,7 @@ import StudioProgramDetail from "./pages/StudioProgramDetail";
 import KetoTypesManager from "./pages/KetoTypesManager";
 import ClientKetoTypes from "./pages/client/ClientKetoTypes";
 import ClientKetoTypeDetail from "./pages/client/ClientKetoTypeDetail";
+import CardStylesPreview from "./pages/client/CardStylesPreview";
 
 const queryClient = new QueryClient();
 
