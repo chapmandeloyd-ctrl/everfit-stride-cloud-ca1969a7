@@ -301,30 +301,43 @@ export default function KetoTypesManager() {
               </div>
 
               {typesInCat.map((kt) => (
-                <Card key={kt.id} className="group">
-                  <CardContent className="p-4 flex items-center gap-4">
-                    <span className="text-3xl font-black" style={{ color: kt.color }}>
-                      {kt.abbreviation}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold truncate">{kt.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {kt.fat_pct}%F · {kt.protein_pct}%P · {kt.carbs_pct}%C · {kt.difficulty}
-                      </p>
-                    </div>
-                    {!kt.is_active && <Badge variant="outline" className="text-xs">Inactive</Badge>}
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditType(kt)}>
-                        <Pencil className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 text-destructive"
-                        onClick={() => { if (confirm(`Delete ${kt.abbreviation}?`)) deleteType.mutate(kt.id); }}
+                <Card
+                  key={kt.id}
+                  className="group border-l-4 transition-colors hover:bg-muted/30"
+                  style={{ borderLeftColor: kt.color }}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="h-12 w-12 rounded-xl flex items-center justify-center shrink-0"
+                        style={{ backgroundColor: `${kt.color}15` }}
                       >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
+                        <span className="text-lg font-black" style={{ color: kt.color }}>
+                          {kt.abbreviation.slice(0, 3)}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold text-base truncate">{kt.name}</h3>
+                          {!kt.is_active && <Badge variant="outline" className="text-[10px]">Inactive</Badge>}
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          {kt.fat_pct}%F · {kt.protein_pct}%P · {kt.carbs_pct}%C · {kt.difficulty}
+                        </p>
+                      </div>
+                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditType(kt)}>
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-destructive"
+                          onClick={() => { if (confirm(`Delete ${kt.abbreviation}?`)) deleteType.mutate(kt.id); }}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
