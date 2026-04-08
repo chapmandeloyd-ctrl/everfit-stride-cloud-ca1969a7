@@ -56,9 +56,9 @@ const ENGINE_DEFAULTS: Record<EngineMode, Record<string, boolean>> = {
   },
   performance: {
     ai_suggestions_enabled: true,
-    auto_level_advance_enabled: true,
+    auto_level_advance_enabled: false,
     auto_plan_adjust_enabled: false,
-    auto_nudge_optimization_enabled: true,
+    auto_nudge_optimization_enabled: false,
   },
   athletic: {
     ai_suggestions_enabled: false,
@@ -85,7 +85,7 @@ function getAuthorityMode(settings: AuthoritySettings | null): {
 function canOverride(tier: SubscriptionTier, engine: EngineMode): boolean {
   if (engine === "athletic") return false;
   if (tier === "starter") return false;
-  if (tier === "pro" && engine !== "performance") return false;
+  if (tier === "pro") return true;
   return true; // elite / enterprise
 }
 
