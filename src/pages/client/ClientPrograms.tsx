@@ -297,7 +297,7 @@ export default function ClientPrograms() {
               );
             })}
           </div>
-        )}
+      </div>
     </ClientLayout>
   );
 }
