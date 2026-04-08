@@ -37,6 +37,7 @@ import { MyProgressSection } from "@/components/MyProgressSection";
 import { InAppNotifications } from "@/components/InAppNotifications";
 import { useDashboardLayoutClient } from "@/hooks/useDashboardLayoutClient";
 import { SportHeroBanner } from "@/components/SportHeroBanner";
+import { AssignedPlanCard } from "@/components/dashboard/AssignedPlanCard";
 // Fasting Protocol Card sub-component
 function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; navigate: (path: string) => void }) {
   const queryClient = useQueryClient();
@@ -1406,7 +1407,9 @@ export default function ClientDashboard() {
               ) : null;
 
             case "engine_cards":
-              return null;
+              return (
+                <AssignedPlanCard key="engine_cards" clientId={clientId!} />
+              );
 
             case "coach_tip":
               return settings.fasting_enabled && !engineConfig.fastingDisabled && (fastingState?.selected_protocol_id || fastingState?.maintenance_mode) ? (
