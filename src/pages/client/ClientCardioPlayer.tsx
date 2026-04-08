@@ -20,24 +20,52 @@ export default function ClientCardioPlayer() {
   const targetValue = searchParams.get("targetValue") || "";
   const sessionId = searchParams.get("sessionId") || "";
 
-  const [seconds, setSeconds] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
+  // ── Persistent wall-clock timer (survives page unloads & background kills) ──
+  const STORAGE_KEY = `cardio_timer_${sessionId || "tmp"}`;
+
+  const loadPersistedState = useCallback(() => {
+    try {
+      const raw = sessionStorage.getItem(STORAGE_KEY);
+      if (raw) return JSON.parse(raw) as { wallStart: number; accumulated: number; paused: boolean };
+    } catch {}
+    return null;
+  }, [STORAGE_KEY]);
+
+  const persistState = useCallback((wallStart: number, accumulated: number, paused: boolean) => {
+    try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ wallStart, accumulated, paused })); } catch {}
+  }, [STORAGE_KEY]);
+
+  const saved = loadPersistedState();
+  const [isPaused, setIsPaused] = useState(saved?.paused ?? false);
+  const [seconds, setSeconds] = useState(() => {
+    if (!saved) return 0;
+    if (saved.paused) return saved.accumulated;
+    return saved.accumulated + Math.floor((Date.now() - saved.wallStart) / 1000);
+  });
+
   const [isLocked, setIsLocked] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const startWallRef = useRef<number>(Date.now());
-  const accumulatedRef = useRef<number>(0);
+  const startWallRef = useRef<number>(saved?.wallStart ?? Date.now());
+  const accumulatedRef = useRef<number>(saved?.accumulated ?? 0);
+
+  // Persist on every state change
+  useEffect(() => {
+    persistState(startWallRef.current, accumulatedRef.current, isPaused);
+  }, [isPaused, seconds, persistState]);
 
   // Wall-clock timer: survives background/lock screen
   useEffect(() => {
     if (!isPaused) {
       startWallRef.current = Date.now();
+      persistState(startWallRef.current, accumulatedRef.current, false);
       intervalRef.current = setInterval(() => {
         const elapsed = Math.floor((Date.now() - startWallRef.current) / 1000);
         setSeconds(accumulatedRef.current + elapsed);
       }, 500);
     } else {
       accumulatedRef.current = seconds;
+      persistState(startWallRef.current, accumulatedRef.current, true);
       if (intervalRef.current) clearInterval(intervalRef.current);
     }
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
@@ -54,6 +82,24 @@ export default function ClientCardioPlayer() {
     document.addEventListener("visibilitychange", handleVisibility);
     return () => document.removeEventListener("visibilitychange", handleVisibility);
   }, [isPaused]);
+
+  // Persist before page unload (belt & suspenders)
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (!isPaused) {
+        const elapsed = Math.floor((Date.now() - startWallRef.current) / 1000);
+        accumulatedRef.current += elapsed;
+        startWallRef.current = Date.now();
+      }
+      persistState(startWallRef.current, accumulatedRef.current, isPaused);
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("pagehide", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("pagehide", handleBeforeUnload);
+    };
+  }, [isPaused, persistState]);
 
   const formatTime = (totalSeconds: number) => {
     const hrs = Math.floor(totalSeconds / 3600);
@@ -74,6 +120,8 @@ export default function ClientCardioPlayer() {
     if (isSaving) return;
     setIsSaving(true);
     if (intervalRef.current) clearInterval(intervalRef.current);
+    // Clean up persisted timer state
+    try { sessionStorage.removeItem(STORAGE_KEY); } catch {}
     try {
       if (sessionId) {
         await supabase

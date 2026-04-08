@@ -286,10 +286,32 @@ export function WorkoutPlayer({ sections, onComplete, onEndEarly, onDiscard, onE
   const stepTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const stepTimerDurationRef = useRef(0);
 
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  // ── Persistent wall-clock elapsed timer (survives page kills) ──
+  const WORKOUT_TIMER_KEY = "workout_timer_state";
+  const wallStartRef = useRef<number>(Date.now());
+
+  const loadWorkoutTimer = useCallback(() => {
+    try {
+      const raw = sessionStorage.getItem(WORKOUT_TIMER_KEY);
+      if (raw) return JSON.parse(raw) as { wallStart: number; accumulated: number; paused: boolean };
+    } catch {}
+    return null;
+  }, []);
+
+  const persistWorkoutTimer = useCallback((wallStart: number, accumulated: number, paused: boolean) => {
+    try { sessionStorage.setItem(WORKOUT_TIMER_KEY, JSON.stringify({ wallStart, accumulated, paused })); } catch {}
+  }, []);
+
+  const savedTimer = loadWorkoutTimer();
+  const [elapsedSeconds, setElapsedSeconds] = useState(() => {
+    if (!savedTimer) return 0;
+    if (savedTimer.paused) return savedTimer.accumulated;
+    return savedTimer.accumulated + Math.floor((Date.now() - savedTimer.wallStart) / 1000);
+  });
   const elapsedRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const isPausedRef = useRef(false);
-  const [isPaused, setIsPaused] = useState(false);
+  const elapsedAccRef = useRef<number>(savedTimer?.accumulated ?? 0);
+  const isPausedRef = useRef(savedTimer?.paused ?? false);
+  const [isPaused, setIsPaused] = useState(savedTimer?.paused ?? false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const [showDiscardDialog, setShowDiscardDialog] = useState(false);
@@ -516,13 +538,46 @@ export function WorkoutPlayer({ sections, onComplete, onEndEarly, onDiscard, onE
     }
   }, [phase]);
 
+  // Wall-clock elapsed timer — survives backgrounding & page kills
   useEffect(() => {
     if (phase !== "playing") return;
+    wallStartRef.current = Date.now();
+    persistWorkoutTimer(wallStartRef.current, elapsedAccRef.current, false);
     elapsedRef.current = setInterval(() => {
-      if (!isPausedRef.current) setElapsedSeconds((p) => p + 1);
-    }, 1000);
+      if (!isPausedRef.current) {
+        const elapsed = Math.floor((Date.now() - wallStartRef.current) / 1000);
+        setElapsedSeconds(elapsedAccRef.current + elapsed);
+      }
+    }, 500);
     return () => { if (elapsedRef.current) clearInterval(elapsedRef.current); };
   }, [phase]);
+
+  // Recover on visibility change
+  useEffect(() => {
+    const handleVis = () => {
+      if (document.visibilityState === "visible" && phase === "playing" && !isPausedRef.current) {
+        const elapsed = Math.floor((Date.now() - wallStartRef.current) / 1000);
+        setElapsedSeconds(elapsedAccRef.current + elapsed);
+      }
+    };
+    document.addEventListener("visibilitychange", handleVis);
+    return () => document.removeEventListener("visibilitychange", handleVis);
+  }, [phase]);
+
+  // Persist before page unload
+  useEffect(() => {
+    const handleUnload = () => {
+      if (!isPausedRef.current && phase === "playing") {
+        const elapsed = Math.floor((Date.now() - wallStartRef.current) / 1000);
+        elapsedAccRef.current += elapsed;
+        wallStartRef.current = Date.now();
+      }
+      persistWorkoutTimer(wallStartRef.current, elapsedAccRef.current, isPausedRef.current);
+    };
+    window.addEventListener("beforeunload", handleUnload);
+    window.addEventListener("pagehide", handleUnload);
+    return () => { window.removeEventListener("beforeunload", handleUnload); window.removeEventListener("pagehide", handleUnload); };
+  }, [phase, persistWorkoutTimer]);
 
   useEffect(() => {
     if (phase !== "playing" || !currentStep) return;
@@ -540,23 +595,36 @@ export function WorkoutPlayer({ sections, onComplete, onEndEarly, onDiscard, onE
   const handleComplete = () => {
     if (elapsedRef.current) clearInterval(elapsedRef.current);
     if (stepTimerRef.current) clearInterval(stepTimerRef.current);
+    try { sessionStorage.removeItem(WORKOUT_TIMER_KEY); } catch {}
     onComplete({ setLogs, elapsedSeconds, startedAt: startedAtRef.current });
   };
 
   const handleEndEarly = () => {
     if (elapsedRef.current) clearInterval(elapsedRef.current);
     if (stepTimerRef.current) clearInterval(stepTimerRef.current);
+    try { sessionStorage.removeItem(WORKOUT_TIMER_KEY); } catch {}
     onEndEarly({ setLogs, elapsedSeconds, startedAt: startedAtRef.current });
   };
 
   const handleDiscard = () => {
     if (elapsedRef.current) clearInterval(elapsedRef.current);
     if (stepTimerRef.current) clearInterval(stepTimerRef.current);
+    try { sessionStorage.removeItem(WORKOUT_TIMER_KEY); } catch {}
     onDiscard();
   };
 
   const togglePause = () => {
     const nowPaused = !isPausedRef.current;
+    if (nowPaused) {
+      // Pausing: freeze accumulated
+      const elapsed = Math.floor((Date.now() - wallStartRef.current) / 1000);
+      elapsedAccRef.current += elapsed;
+      persistWorkoutTimer(wallStartRef.current, elapsedAccRef.current, true);
+    } else {
+      // Resuming: reset wall start
+      wallStartRef.current = Date.now();
+      persistWorkoutTimer(wallStartRef.current, elapsedAccRef.current, false);
+    }
     isPausedRef.current = nowPaused;
     setIsPaused(nowPaused);
     if (nowPaused) cancelSpeech();
