@@ -15,6 +15,7 @@ import { AIOnboardingSummaryPanel } from "./AIOnboardingSummaryPanel";
 import { AICoachChatPanel } from "./AICoachChatPanel";
 import { AIPhotoAnalysisPanel } from "./AIPhotoAnalysisPanel";
 import { RecurringCheckinScheduler } from "./RecurringCheckinScheduler";
+import { SynergyPreviewPanel } from "./SynergyPreviewPanel";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -92,6 +93,9 @@ export function CoachCommandCenterTab({ clientId, trainerId }: CoachCommandCente
 
       {/* E2) Authority Controls */}
       <AuthorityControls clientId={clientId} trainerId={trainerId} />
+
+      {/* Protocol + Keto Synergy Preview */}
+      <SynergyPreviewPanel clientId={clientId} trainerId={trainerId} />
 
       {/* F) Parent / Guardian Link (Athletic minors only) */}
       {showParentLink && (
