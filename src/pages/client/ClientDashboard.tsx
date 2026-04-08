@@ -1406,7 +1406,9 @@ export default function ClientDashboard() {
               ) : null;
 
             case "engine_cards":
-              return null;
+              return (
+                <AssignedPlanCard key="engine_cards" clientId={clientId!} />
+              );
 
             case "coach_tip":
               return settings.fasting_enabled && !engineConfig.fastingDisabled && (fastingState?.selected_protocol_id || fastingState?.maintenance_mode) ? (
