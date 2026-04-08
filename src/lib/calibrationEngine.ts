@@ -208,7 +208,7 @@ export function getCopilotPriorityMultipliers(
  */
 export const ENGINE_OUTCOME_LABELS: Record<EngineMode, string> = {
   metabolic: "Fat Loss Prediction",
-  performance: "Performance Gains",
+  performance: "Fat Loss Prediction",
   athletic: "Injury Risk Reduction",
 };
 
