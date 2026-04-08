@@ -65,7 +65,6 @@ export function ProgramsSelector({ navigate }: { navigate: (path: string) => voi
     return evaluatePlan(meta);
   }
 
-  // Filter out invisible protocols
   const visibleProtocols = sorted.filter((p) => {
     const g = getGating(p);
     return g === null || g.isVisible;
@@ -85,11 +84,11 @@ export function ProgramsSelector({ navigate }: { navigate: (path: string) => voi
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <CalendarDays className="h-6 w-6 text-blue-400" />
+            <CalendarDays className="h-6 w-6 text-primary" />
             <h2 className="text-xl font-bold">Programs</h2>
           </div>
           <button
-            className="text-sm font-semibold text-blue-400 flex items-center gap-1"
+            className="text-sm font-semibold text-primary flex items-center gap-1"
             onClick={() => navigate("/client/programs")}
           >
             View All <ChevronRight className="h-4 w-4" />
@@ -106,37 +105,51 @@ export function ProgramsSelector({ navigate }: { navigate: (path: string) => voi
           return (
             <Card
               key={protocol.id}
-              className={`cursor-pointer border-l-4 ${config?.borderColor || "border-l-blue-500"} transition-colors ${
-                isLocked ? "opacity-50 cursor-not-allowed" : "hover:bg-muted/30"
+              className={`cursor-pointer overflow-hidden transition-all ${
+                isLocked ? "opacity-50 cursor-not-allowed" : "hover:shadow-md active:scale-[0.99]"
               }`}
               onClick={() => handleClick(protocol)}
             >
-              <CardContent className="px-4 py-3.5">
-                <div className="flex items-center gap-3">
-                  <div className={`h-10 w-10 rounded-full ${config?.bgColor || "bg-blue-500/20"} flex items-center justify-center shrink-0`}>
-                    <Icon className={`h-5 w-5 ${config?.color || "text-blue-400"}`} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <h3 className="font-semibold text-base">{protocol.name}</h3>
-                      {isLocked && <Lock className="h-3.5 w-3.5 text-muted-foreground" />}
-                      {isCoachApproved && <ShieldCheck className="h-3.5 w-3.5 text-primary" />}
+              <CardContent className="p-0">
+                <div className="px-5 pt-4 pb-2">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <div className={`h-10 w-10 rounded-full ${config?.bgColor || "bg-primary/20"} flex items-center justify-center`}>
+                        <Icon className={`h-5 w-5 ${config?.color || "text-primary"}`} />
+                      </div>
+                      <span className={`text-[11px] font-bold uppercase tracking-wider ${config?.color || "text-primary"}`}>
+                        {config?.label || protocol.category}
+                      </span>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      {getDurationLabel(protocol.duration_days)}
-                    </p>
-                    {isLocked && gating?.lockMessage && (
-                      <p className="text-[10px] text-muted-foreground/70 mt-0.5">{gating.lockMessage}</p>
-                    )}
+                    {isLocked && <Lock className="h-4 w-4 text-muted-foreground" />}
                     {isCoachApproved && (
-                      <Badge variant="outline" className="text-[10px] border-primary/30 text-primary mt-0.5">
-                        Coach Approved
+                      <Badge variant="outline" className="text-[10px] border-primary/30 text-primary">
+                        <ShieldCheck className="h-3 w-3 mr-1" /> Coach Approved
                       </Badge>
                     )}
                   </div>
-                  <Badge variant="outline" className="text-xs shrink-0 capitalize">
-                    {getDifficultyLabel(protocol.difficulty_level)}
-                  </Badge>
+                  <h3 className="text-2xl font-black tracking-tight leading-none mb-1">{protocol.name}</h3>
+                  {isLocked && gating?.lockMessage && (
+                    <p className="text-[10px] text-muted-foreground/70 mt-1">{gating.lockMessage}</p>
+                  )}
+                </div>
+                <div className="mx-5 border-t" />
+                <div className="px-5 py-3 flex items-center gap-5">
+                  <div>
+                    <span className="text-lg font-bold text-primary">{protocol.fast_target_hours}h</span>
+                    <span className="text-[10px] text-muted-foreground uppercase tracking-wide block">Fast</span>
+                  </div>
+                  <div>
+                    <span className="text-lg font-bold">{getDurationLabel(protocol.duration_days)}</span>
+                    <span className="text-[10px] text-muted-foreground uppercase tracking-wide block">Duration</span>
+                  </div>
+                  <div className="ml-auto flex items-center gap-2">
+                    <div>
+                      <span className="text-lg font-bold">{getDifficultyLabel(protocol.difficulty_level)}</span>
+                      <span className="text-[10px] text-muted-foreground uppercase tracking-wide block">Level</span>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                  </div>
                 </div>
               </CardContent>
             </Card>
