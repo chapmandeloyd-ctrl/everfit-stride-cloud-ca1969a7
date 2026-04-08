@@ -1,4 +1,3 @@
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -32,7 +31,6 @@ function getExtendedLevelName(level: number): string {
 
 function getExtendedLevelRange(level: number, engine: string): string {
   if (level <= 7) return getLevelRange(level, engine as any);
-  // Extended ranges for metabolic
   const extendedRanges: Record<number, string> = {
     8: "18–20h fasting window",
     9: "20–22h fasting window",
@@ -61,24 +59,11 @@ function getExtendedLevelDescription(level: number): string {
   return descriptions[level] || "Advanced execution.";
 }
 
-// Get the fasting hours display for a level
 function getLevelHoursDisplay(level: number): string {
   const hoursMap: Record<number, string> = {
-    1: "12-14h",
-    2: "14-16h",
-    3: "15-16h",
-    4: "16h",
-    5: "16-17h",
-    6: "17-18h",
-    7: "16-18h",
-    8: "18-20h",
-    9: "20-22h",
-    10: "22-24h",
-    11: "24h",
-    12: "36h",
-    13: "48h",
-    14: "72h",
-    15: "120h",
+    1: "12-14h", 2: "14-16h", 3: "15-16h", 4: "16h", 5: "16-17h",
+    6: "17-18h", 7: "16-18h", 8: "18-20h", 9: "20-22h", 10: "22-24h",
+    11: "24h", 12: "36h", 13: "48h", 14: "72h", 15: "120h",
   };
   return hoursMap[level] || `${level}h`;
 }
@@ -123,7 +108,7 @@ export function LevelProgressionCard() {
         </div>
       )}
 
-      {/* ── WHERE YOU ARE ── */}
+      {/* ── WHERE YOU ARE — Glassmorphism ── */}
       <div className="space-y-2">
         <div className="flex items-center gap-2">
           <div className="h-2 w-2 rounded-full bg-amber-500" />
@@ -133,11 +118,12 @@ export function LevelProgressionCard() {
           <div className="flex-1 h-px bg-amber-500/20" />
         </div>
 
-        <Card className="border-0 overflow-hidden bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-950/40 dark:to-yellow-950/30 shadow-sm">
-          <CardContent className="p-5 space-y-3">
+        <div className="relative group">
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-amber-500 to-yellow-400 rounded-2xl blur-md opacity-30 group-hover:opacity-50 transition-opacity dark:opacity-40 dark:group-hover:opacity-60" />
+          <div className="relative rounded-2xl border border-amber-400/20 dark:border-amber-400/20 bg-card/80 dark:bg-card/60 backdrop-blur-xl p-5 space-y-3 overflow-hidden">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-2">
-                <div className="h-9 w-9 rounded-xl bg-amber-500/15 flex items-center justify-center">
+                <div className="h-9 w-9 rounded-xl bg-amber-500/15 backdrop-blur flex items-center justify-center ring-1 ring-amber-400/30">
                   <Zap className="h-4.5 w-4.5 text-amber-600 dark:text-amber-400" />
                 </div>
                 <span className="text-xs font-bold tracking-widest uppercase text-amber-600 dark:text-amber-400">
@@ -146,11 +132,9 @@ export function LevelProgressionCard() {
               </div>
             </div>
 
-            <div>
-              <h2 className="text-5xl font-black tracking-tight text-foreground leading-none">
-                Lv.{currentLevel}
-              </h2>
-            </div>
+            <h2 className="text-5xl font-black tracking-tight text-foreground leading-none drop-shadow-[0_0_15px_rgba(245,158,11,0.2)] dark:drop-shadow-[0_0_15px_rgba(245,158,11,0.3)]">
+              Lv.{currentLevel}
+            </h2>
 
             <div>
               <p className="text-sm font-bold uppercase tracking-wide text-foreground/90">
@@ -171,11 +155,11 @@ export function LevelProgressionCard() {
               </span>
               <ChevronRight className="h-5 w-5 text-amber-600 dark:text-amber-400 group-hover:translate-x-0.5 transition-transform" />
             </button>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
-      {/* ── YOUR NEXT LEVEL ── */}
+      {/* ── YOUR NEXT LEVEL — Glassmorphism ── */}
       {!isMaxLevel && (
         <div className="space-y-2">
           <div className="flex items-center gap-2">
@@ -186,33 +170,30 @@ export function LevelProgressionCard() {
             <div className="flex-1 h-px bg-emerald-500/20" />
           </div>
 
-          <Card className="border-2 border-emerald-400/30 overflow-hidden bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-950/40 dark:to-green-950/30 shadow-sm">
-            <CardContent className="p-5 space-y-3">
+          <div className="relative group">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500 to-green-400 rounded-2xl blur-md opacity-30 group-hover:opacity-50 transition-opacity dark:opacity-40 dark:group-hover:opacity-60" />
+            <div className="relative rounded-2xl border border-emerald-400/20 dark:border-emerald-400/20 bg-card/80 dark:bg-card/60 backdrop-blur-xl p-5 space-y-3 overflow-hidden">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="h-9 w-9 rounded-xl bg-emerald-500/15 flex items-center justify-center">
+                  <div className="h-9 w-9 rounded-xl bg-emerald-500/15 backdrop-blur flex items-center justify-center ring-1 ring-emerald-400/30">
                     <Zap className="h-4.5 w-4.5 text-emerald-600 dark:text-emerald-400" />
                   </div>
                   <span className="text-xs font-bold tracking-widest uppercase text-emerald-600 dark:text-emerald-400">
                     Next Level
                   </span>
                 </div>
-                <Badge variant="outline" className="text-[10px] border-emerald-400/40 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10">
+                <Badge className="text-[10px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-400/30 backdrop-blur">
                   LV. {nextLevel}
                 </Badge>
               </div>
 
-              <div>
-                <h2 className="text-5xl font-black tracking-tight text-foreground leading-none">
-                  {getLevelHoursDisplay(nextLevel)}
-                </h2>
-              </div>
+              <h2 className="text-5xl font-black tracking-tight text-foreground leading-none drop-shadow-[0_0_15px_rgba(16,185,129,0.2)] dark:drop-shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+                {getLevelHoursDisplay(nextLevel)}
+              </h2>
 
-              <div>
-                <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
-                  {getExtendedLevelName(nextLevel)}
-                </p>
-              </div>
+              <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                {getExtendedLevelName(nextLevel)}
+              </p>
 
               {/* Progress Bar */}
               <div className="space-y-1.5">
@@ -224,10 +205,12 @@ export function LevelProgressionCard() {
                     {progression.completionPct}%
                   </span>
                 </div>
-                <Progress
-                  value={progression.completionPct}
-                  className="h-2.5 bg-muted/60 [&>div]:bg-gradient-to-r [&>div]:from-emerald-500 [&>div]:to-green-400"
-                />
+                <div className="h-2.5 rounded-full bg-muted/30 backdrop-blur overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-green-400 shadow-[0_0_10px_rgba(16,185,129,0.5)] transition-all duration-500"
+                    style={{ width: `${progression.completionPct}%` }}
+                  />
+                </div>
               </div>
 
               {/* Motivational text */}
@@ -265,12 +248,12 @@ export function LevelProgressionCard() {
                   </CollapsibleContent>
                 </Collapsible>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       )}
 
-      {/* ── THE DESTINATION ── */}
+      {/* ── THE DESTINATION — Glassmorphism ── */}
       <div className="space-y-2">
         <div className="flex items-center gap-2">
           <div className="h-2 w-2 rounded-full bg-purple-500" />
@@ -280,27 +263,26 @@ export function LevelProgressionCard() {
           <div className="flex-1 h-px bg-purple-500/20" />
         </div>
 
-        <Card className={`border-2 border-purple-400/30 overflow-hidden bg-gradient-to-br from-purple-50 to-fuchsia-50 dark:from-purple-950/40 dark:to-fuchsia-950/30 shadow-sm ${isMaxLevel ? "ring-2 ring-purple-400/40" : ""}`}>
-          <CardContent className="p-5 space-y-3">
+        <div className="relative group">
+          <div className={`absolute -inset-0.5 bg-gradient-to-r from-purple-500 to-fuchsia-500 rounded-2xl blur-md transition-opacity ${isMaxLevel ? "opacity-50 dark:opacity-70" : "opacity-30 group-hover:opacity-50 dark:opacity-40 dark:group-hover:opacity-60"}`} />
+          <div className={`relative rounded-2xl border border-purple-400/20 dark:border-purple-400/20 bg-card/80 dark:bg-card/60 backdrop-blur-xl p-5 space-y-3 overflow-hidden ${isMaxLevel ? "ring-2 ring-purple-400/40" : ""}`}>
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-2">
-                <div className="h-9 w-9 rounded-xl bg-purple-500/15 flex items-center justify-center">
+                <div className="h-9 w-9 rounded-xl bg-purple-500/15 backdrop-blur flex items-center justify-center ring-1 ring-purple-400/30">
                   <Star className="h-4.5 w-4.5 text-purple-600 dark:text-purple-400" />
                 </div>
                 <span className="text-xs font-bold tracking-widest uppercase text-purple-600 dark:text-purple-400">
                   The Destination
                 </span>
               </div>
-              <Badge variant="outline" className="text-[10px] border-purple-400/40 text-purple-600 dark:text-purple-400 bg-purple-500/10">
+              <Badge className="text-[10px] bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-400/30 backdrop-blur">
                 Level {MAX_LEVEL}
               </Badge>
             </div>
 
-            <div>
-              <h2 className="text-5xl font-black tracking-tight text-purple-600 dark:text-purple-400 leading-none">
-                {getLevelHoursDisplay(MAX_LEVEL)}
-              </h2>
-            </div>
+            <h2 className="text-5xl font-black tracking-tight text-purple-600 dark:text-purple-400 leading-none drop-shadow-[0_0_20px_rgba(168,85,247,0.3)] dark:drop-shadow-[0_0_20px_rgba(168,85,247,0.4)]">
+              {getLevelHoursDisplay(MAX_LEVEL)}
+            </h2>
 
             <div>
               <p className="text-sm font-bold uppercase tracking-wide text-foreground/90">
@@ -324,8 +306,8 @@ export function LevelProgressionCard() {
                 </span>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );
