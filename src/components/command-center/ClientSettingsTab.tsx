@@ -271,7 +271,7 @@ export function ClientSettingsTab({ clientId, trainerId }: ClientSettingsTabProp
         </CardHeader>
         <CardContent className="space-y-3">
           {ENGINE_MODE_OPTIONS.map((option) => {
-            const currentMode = (settings as any)?.engine_mode || "performance";
+            const currentMode = (settings as any)?.engine_mode || "metabolic";
             const isSelected = currentMode === option.value;
             return (
               <button
@@ -1080,7 +1080,7 @@ function DashboardLayoutSection({ clientId, trainerId, settings }: { clientId: s
   const { cards, isLoading, save, isSaving } = useDashboardLayout(trainerId, clientId);
 
   // Compute which cards are N/A based on engine mode + feature settings
-  const engineMode = (settings?.engine_mode || "performance") as EngineMode;
+  const engineMode = (settings?.engine_mode || "metabolic") as EngineMode;
   const engineConfig = getEngineConfig(engineMode);
 
   const disabledCards: Record<string, string> = {};

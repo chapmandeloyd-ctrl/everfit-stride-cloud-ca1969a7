@@ -43,7 +43,7 @@ export function AIWorkoutBuilderPanel({ clientId, trainerId }: AIWorkoutBuilderP
         .eq("client_id", clientId)
         .maybeSingle();
 
-      const engine = (settings?.engine_mode as string) || "performance";
+      const engine = (settings?.engine_mode as string) || "metabolic";
       return {
         engine_mode: engine,
         current_level: settings?.current_level || 1,

@@ -31,7 +31,7 @@ export function AIPhotoAnalysisPanel({ clientId, trainerId }: AIPhotoAnalysisPan
         .eq("client_id", clientId)
         .maybeSingle();
       return {
-        engine_mode: settings?.engine_mode || "performance",
+        engine_mode: settings?.engine_mode || "metabolic",
         current_level: settings?.current_level || 1,
         status: "moderate",
       };

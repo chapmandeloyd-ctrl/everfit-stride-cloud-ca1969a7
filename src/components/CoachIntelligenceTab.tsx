@@ -138,7 +138,7 @@ export function CoachIntelligenceTab({ trainerId }: CoachIntelligenceTabProps) {
           clientId: c.client_id,
           name: c.client?.full_name || c.client?.email || "Client",
           avatarUrl: c.client?.avatar_url,
-          engineMode: (setting?.engine_mode as string) || "performance",
+          engineMode: (setting?.engine_mode as string) || "metabolic",
           currentLevel: currentLevel,
           avgScore,
           scoreStatus: latestEvent?.status || summary?.score_status || "moderate",

@@ -75,7 +75,7 @@ interface NudgeContext {
 }
 
 export function selectNudge(type: NudgeType, ctx: NudgeContext): { title: string; body: string } | null {
-  const engine = ctx.engineMode || "performance";
+  const engine = ctx.engineMode || "metabolic";
   const templates = NUDGE_TEMPLATES[engine]?.[type];
   if (!templates || templates.length === 0) return null;
   return templates[Math.floor(Math.random() * templates.length)];

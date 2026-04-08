@@ -133,7 +133,7 @@ export function AuthorityControls({ clientId, trainerId }: AuthorityControlsProp
     },
   });
 
-  const engine = (settings?.engine_mode || "performance") as EngineMode;
+  const engine = (settings?.engine_mode || "metabolic") as EngineMode;
   const tier = (settings?.subscription_tier || "starter") as SubscriptionTier;
   const overridesAllowed = canOverride(tier, engine);
   const mode = getAuthorityMode(settings);
