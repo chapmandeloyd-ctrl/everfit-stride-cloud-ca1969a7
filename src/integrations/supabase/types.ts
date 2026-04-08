@@ -5007,6 +5007,50 @@ export type Database = {
           },
         ]
       }
+      plan_synergy_content: {
+        Row: {
+          created_at: string
+          id: string
+          keto_type_id: string
+          keto_type_name: string
+          protocol_id: string
+          protocol_name: string
+          protocol_type: string
+          synergy_text: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          keto_type_id: string
+          keto_type_name: string
+          protocol_id: string
+          protocol_name: string
+          protocol_type?: string
+          synergy_text: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          keto_type_id?: string
+          keto_type_name?: string
+          protocol_id?: string
+          protocol_name?: string
+          protocol_type?: string
+          synergy_text?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_synergy_content_keto_type_id_fkey"
+            columns: ["keto_type_id"]
+            isOneToOne: false
+            referencedRelation: "keto_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
