@@ -15,6 +15,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { ExerciseSwapDialog } from "@/components/ExerciseSwapDialog";
 import { cn } from "@/lib/utils";
+import { WorkoutIntro } from "@/components/WorkoutIntro";
 
 interface Exercise {
   id: string;
@@ -50,6 +51,7 @@ interface SetLog {
 }
 
 interface WorkoutPlayerProps {
+  workoutName?: string;
   sections: Section[];
   onComplete: (data: { setLogs: Record<string, SetLog>; elapsedSeconds: number; startedAt: string }) => void;
   onEndEarly: (data: { setLogs: Record<string, SetLog>; elapsedSeconds: number; startedAt: string }) => void;
@@ -175,22 +177,53 @@ function cancelSpeech() {
     speechAbortController.abort();
     speechAbortController = null;
   }
-  if ("speechSynthesis" in window) {
-    window.speechSynthesis.cancel();
-  }
 }
 
-// Instant browser TTS — for numbers and short cues (no network latency)
-function browserSpeakNow(text: string): Promise<void> {
+// Pre-cached audio clips for countdown (filled at intro time)
+const preCachedClips: Record<string, string> = {};
+
+async function preCacheCountdownClips() {
+  const clips = ["3", "2", "1", "Go!"];
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  await Promise.all(
+    clips.map(async (text) => {
+      try {
+        const response = await fetch(`${supabaseUrl}/functions/v1/elevenlabs-tts`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: supabaseKey,
+            Authorization: `Bearer ${supabaseKey}`,
+          },
+          body: JSON.stringify({ text, voiceId: selectedVoiceId }),
+        });
+        if (response.ok) {
+          const blob = await response.blob();
+          preCachedClips[text] = URL.createObjectURL(blob);
+        }
+      } catch {}
+    })
+  );
+}
+
+// Play a pre-cached clip instantly, or fall back to ElevenLabs live
+async function playClip(text: string): Promise<void> {
   cancelSpeech();
-  if (!("speechSynthesis" in window)) return Promise.resolve();
-  const utter = new SpeechSynthesisUtterance(text);
-  utter.rate = 0.95;
-  return new Promise((resolve) => {
-    utter.onend = () => resolve();
-    utter.onerror = () => resolve();
-    window.speechSynthesis.speak(utter);
-  });
+  const cachedUrl = preCachedClips[text];
+  if (cachedUrl) {
+    const audio = persistentAudio || new Audio();
+    audio.volume = 1;
+    audio.src = cachedUrl;
+    activeAudio = audio;
+    return new Promise((resolve) => {
+      audio.onended = () => { if (activeAudio === audio) activeAudio = null; resolve(); };
+      audio.onerror = () => resolve();
+      audio.play().catch(() => resolve());
+    });
+  }
+  // Fallback to live ElevenLabs
+  return elevenLabsSpeakNow(text);
 }
 
 // ElevenLabs TTS — for exercise names and motivational cues (high quality)
@@ -229,7 +262,7 @@ async function elevenLabsSpeakNow(text: string): Promise<void> {
       signal: controller.signal,
     });
   } catch {
-    if (!controller.signal.aborted) await browserSpeakNow(text);
+    if (!controller.signal.aborted) console.warn("ElevenLabs TTS failed, no fallback");
     return;
   }
   if (!response.ok || controller.signal.aborted) return;
@@ -247,16 +280,15 @@ async function elevenLabsSpeakNow(text: string): Promise<void> {
     audio.onended = () => { URL.revokeObjectURL(url); if (activeAudio === audio) activeAudio = null; resolve(); };
     audio.onerror = () => { URL.revokeObjectURL(url); resolve(); };
     audio.play().catch(() => {
-      // Final fallback to browser TTS if play still fails
       URL.revokeObjectURL(url);
-      browserSpeakNow(text).then(resolve).catch(resolve);
+      resolve();
     });
   });
 }
 export { unlockAudioForMobile };
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function WorkoutPlayer({ sections, onComplete, onEndEarly, onDiscard, onExit }: WorkoutPlayerProps) {
+export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, onDiscard, onExit }: WorkoutPlayerProps) {
   const { toast } = useToast();
   const startedAtRef = useRef(new Date().toISOString());
   const [setLogs, setSetLogs] = useState<Record<string, SetLog>>({});
@@ -271,8 +303,8 @@ export function WorkoutPlayer({ sections, onComplete, onEndEarly, onDiscard, onE
     return () => { document.removeEventListener("touchstart", unlock); document.removeEventListener("click", unlock); };
   }, []);
 
-  const [phase, setPhase] = useState<"voiceselect" | "getready" | "countdown" | "playing">("voiceselect");
-  const [countdownNum, setCountdownNum] = useState(3);
+  const [phase, setPhase] = useState<"voiceselect" | "intro" | "playing">("voiceselect");
+  const [countdownNum, setCountdownNum] = useState(3); // kept for reference but unused now
   const [chosenVoice, setChosenVoice] = useState<string>(WORKOUT_VOICES[0].id);
   const [previewingVoice, setPreviewingVoice] = useState(false);
 
@@ -364,23 +396,7 @@ export function WorkoutPlayer({ sections, onComplete, onEndEarly, onDiscard, onE
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stepIdx, phase]);
 
-  // "Get ready!" — browser speech (instant). Each speak fn cancels prior speech itself.
-  useEffect(() => {
-    if (phase === "getready") {
-      browserSpeakNow("Get ready").catch(() => {});
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase]);
-
-  // 3-2-1 countdown — browser speech only (instant, no network latency)
-  useEffect(() => {
-    if (phase !== "countdown") return;
-    if (countdownNum > 0) {
-      browserSpeakNow(String(countdownNum)).catch(() => {});
-    }
-    // "Go!" is implied by the exercise announcement that fires when phase → playing
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [countdownNum, phase]);
+  // (getready/countdown speech removed — intro handles this now)
 
   // Last-3-seconds tick countdown & motivational milestones
   useEffect(() => {
@@ -396,8 +412,7 @@ export function WorkoutPlayer({ sections, onComplete, onEndEarly, onDiscard, onE
       // Last 3-second countdown (browser TTS for zero latency)
       if (stepTimer > 0 && stepTimer <= 3 && lastCountdownRef.current !== stepTimer) {
         lastCountdownRef.current = stepTimer;
-        browserSpeakNow(String(stepTimer)).catch(() => {});
-        return;
+        playClip(String(stepTimer)).catch(() => {});
       }
 
       // Halfway through THIS exercise's timer — Jessica encouragement
@@ -432,7 +447,7 @@ export function WorkoutPlayer({ sections, onComplete, onEndEarly, onDiscard, onE
       // Last 3-second countdown during rest too
       if (stepTimer > 0 && stepTimer <= 3 && lastCountdownRef.current !== stepTimer) {
         lastCountdownRef.current = stepTimer;
-        browserSpeakNow(String(stepTimer)).catch(() => {});
+        playClip(String(stepTimer)).catch(() => {});
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -518,25 +533,7 @@ export function WorkoutPlayer({ sections, onComplete, onEndEarly, onDiscard, onE
     }, 1000);
   }, [advanceStep]);
 
-  useEffect(() => {
-    if (phase === "getready") {
-      const t = setTimeout(() => setPhase("countdown"), 1800);
-      return () => clearTimeout(t);
-    }
-    if (phase === "countdown") {
-      setCountdownNum(3);
-      let n = 3;
-      const interval = setInterval(() => {
-        n--;
-        setCountdownNum(n);
-        if (n <= 0) {
-          clearInterval(interval);
-          setTimeout(() => setPhase("playing"), 500);
-        }
-      }, 1000);
-      return () => clearInterval(interval);
-    }
-  }, [phase]);
+  // (old getready/countdown phase logic removed — WorkoutIntro handles this now)
 
   // Wall-clock elapsed timer — survives backgrounding & page kills
   useEffect(() => {
@@ -674,7 +671,8 @@ export function WorkoutPlayer({ sections, onComplete, onEndEarly, onDiscard, onE
   const startWithVoice = () => {
     setWorkoutVoice(chosenVoice);
     unlockAudioForMobile();
-    setPhase("getready");
+    preCacheCountdownClips(); // pre-cache 3, 2, 1, Go! in background
+    setPhase("intro");
   };
 
   // ─── VOICE SELECT SCREEN ───
@@ -720,26 +718,19 @@ export function WorkoutPlayer({ sections, onComplete, onEndEarly, onDiscard, onE
     );
   }
 
-  // ─── GET READY SCREEN ───
-  if (phase === "getready") {
+  // ─── INTRO / LINEUP REVEAL ───
+  if (phase === "intro") {
+    const totalCalcMinutes = Math.ceil(totalEstimatedSeconds / 60);
+    const totalExCount = steps.filter(s => s.type === "exercise").length;
     return (
-      <div className="fixed inset-0 z-[200] flex items-center justify-center bg-foreground">
-        <Button variant="ghost" size="icon" className="absolute top-6 left-4 text-background/60 hover:text-background" onClick={onExit}>
-          <X className="h-6 w-6" />
-        </Button>
-        <h1 className="text-7xl font-light text-background tracking-widest text-center leading-tight">
-          GET<br />READY
-        </h1>
-      </div>
-    );
-  }
-
-  // ─── COUNTDOWN SCREEN ───
-  if (phase === "countdown") {
-    return (
-      <div className="fixed inset-0 z-[200] flex items-center justify-center bg-foreground">
-        <span className="text-9xl font-black text-background tabular-nums">{countdownNum > 0 ? countdownNum : "GO!"}</span>
-      </div>
+      <WorkoutIntro
+        workoutName={workoutName || "Workout"}
+        sections={sections}
+        totalMinutes={totalCalcMinutes}
+        totalExercises={totalExCount}
+        speakFn={elevenLabsSpeakNow}
+        onIntroComplete={() => setPhase("playing")}
+      />
     );
   }
 
