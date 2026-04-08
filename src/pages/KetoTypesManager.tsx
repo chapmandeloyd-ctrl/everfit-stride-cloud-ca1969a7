@@ -630,6 +630,47 @@ export default function KetoTypesManager() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Detail Sheet */}
+      <Sheet open={!!viewingType} onOpenChange={(open) => !open && setViewingType(null)}>
+        <SheetContent className="w-full sm:max-w-lg overflow-y-auto p-0">
+          <SheetHeader className="px-5 pt-5 pb-2">
+            <SheetTitle className="sr-only">{viewingType?.name}</SheetTitle>
+          </SheetHeader>
+          {viewingType && (
+            <div className="px-4 pb-8">
+              <KetoTypeDetailView
+                ketoType={viewingType}
+                allTypes={ketoTypes?.filter(t => t.is_active) || []}
+              />
+              <div className="flex gap-2 mt-6">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => {
+                    openEditType(viewingType);
+                    setViewingType(null);
+                  }}
+                >
+                  <Pencil className="h-4 w-4 mr-1" /> Edit
+                </Button>
+                <Button
+                  variant="destructive"
+                  className="flex-1"
+                  onClick={() => {
+                    if (confirm(`Delete ${viewingType.abbreviation}?`)) {
+                      deleteType.mutate(viewingType.id);
+                      setViewingType(null);
+                    }
+                  }}
+                >
+                  <Trash2 className="h-4 w-4 mr-1" /> Delete
+                </Button>
+              </div>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
     </DashboardLayout>
   );
 }
