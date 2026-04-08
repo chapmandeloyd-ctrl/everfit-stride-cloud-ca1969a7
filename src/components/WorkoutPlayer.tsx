@@ -286,10 +286,32 @@ export function WorkoutPlayer({ sections, onComplete, onEndEarly, onDiscard, onE
   const stepTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const stepTimerDurationRef = useRef(0);
 
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  // ── Persistent wall-clock elapsed timer (survives page kills) ──
+  const WORKOUT_TIMER_KEY = "workout_timer_state";
+  const wallStartRef = useRef<number>(Date.now());
+
+  const loadWorkoutTimer = useCallback(() => {
+    try {
+      const raw = sessionStorage.getItem(WORKOUT_TIMER_KEY);
+      if (raw) return JSON.parse(raw) as { wallStart: number; accumulated: number; paused: boolean };
+    } catch {}
+    return null;
+  }, []);
+
+  const persistWorkoutTimer = useCallback((wallStart: number, accumulated: number, paused: boolean) => {
+    try { sessionStorage.setItem(WORKOUT_TIMER_KEY, JSON.stringify({ wallStart, accumulated, paused })); } catch {}
+  }, []);
+
+  const savedTimer = loadWorkoutTimer();
+  const [elapsedSeconds, setElapsedSeconds] = useState(() => {
+    if (!savedTimer) return 0;
+    if (savedTimer.paused) return savedTimer.accumulated;
+    return savedTimer.accumulated + Math.floor((Date.now() - savedTimer.wallStart) / 1000);
+  });
   const elapsedRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const isPausedRef = useRef(false);
-  const [isPaused, setIsPaused] = useState(false);
+  const elapsedAccRef = useRef<number>(savedTimer?.accumulated ?? 0);
+  const isPausedRef = useRef(savedTimer?.paused ?? false);
+  const [isPaused, setIsPaused] = useState(savedTimer?.paused ?? false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const [showDiscardDialog, setShowDiscardDialog] = useState(false);

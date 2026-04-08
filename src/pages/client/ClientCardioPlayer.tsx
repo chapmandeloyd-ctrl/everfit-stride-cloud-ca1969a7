@@ -120,6 +120,8 @@ export default function ClientCardioPlayer() {
     if (isSaving) return;
     setIsSaving(true);
     if (intervalRef.current) clearInterval(intervalRef.current);
+    // Clean up persisted timer state
+    try { sessionStorage.removeItem(STORAGE_KEY); } catch {}
     try {
       if (sessionId) {
         await supabase
