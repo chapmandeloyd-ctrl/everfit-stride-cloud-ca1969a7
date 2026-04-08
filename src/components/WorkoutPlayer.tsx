@@ -536,25 +536,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
     }, 1000);
   }, [advanceStep]);
 
-  useEffect(() => {
-    if (phase === "getready") {
-      const t = setTimeout(() => setPhase("countdown"), 1800);
-      return () => clearTimeout(t);
-    }
-    if (phase === "countdown") {
-      setCountdownNum(3);
-      let n = 3;
-      const interval = setInterval(() => {
-        n--;
-        setCountdownNum(n);
-        if (n <= 0) {
-          clearInterval(interval);
-          setTimeout(() => setPhase("playing"), 500);
-        }
-      }, 1000);
-      return () => clearInterval(interval);
-    }
-  }, [phase]);
+  // (old getready/countdown phase logic removed — WorkoutIntro handles this now)
 
   // Wall-clock elapsed timer — survives backgrounding & page kills
   useEffect(() => {
