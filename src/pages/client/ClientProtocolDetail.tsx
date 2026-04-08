@@ -363,6 +363,12 @@ export default function ClientProtocolDetail() {
               </>
             )}
           </Section>
+          {/* Synergy Section */}
+          <PlanSynergySection
+            protocolType="program"
+            protocolId={id || null}
+            ketoTypeId={activeKetoAssignment?.keto_type_id || null}
+          />
         </div>
       </div>
 
