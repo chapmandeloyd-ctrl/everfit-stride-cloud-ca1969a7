@@ -84,6 +84,7 @@ export default function KetoTypesManager() {
   const [typeForm, setTypeForm] = useState({ ...emptyType });
   const [builtForInput, setBuiltForInput] = useState("");
   const [coachNoteInput, setCoachNoteInput] = useState("");
+  const [viewingType, setViewingType] = useState<KetoType | null>(null);
 
   const { data: categories } = useQuery({
     queryKey: ["trainer-keto-categories", user?.id],
