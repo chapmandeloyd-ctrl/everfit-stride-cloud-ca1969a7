@@ -14,6 +14,7 @@ import {
 import { PROTOCOL_DETAIL_COPY } from "@/lib/protocolDetailContent";
 import { FastingSafetyNotice } from "@/components/FastingSafetyNotice";
 import { FastingStructureComparison } from "@/components/FastingStructureComparison";
+import { PlanSynergySection } from "@/components/PlanSynergySection";
 
 function generateWeeklyProgression(durationDays: number, fastTargetHours: number) {
   const weeks = Math.ceil(durationDays / 7);
@@ -60,6 +61,21 @@ export default function ClientProtocolDetail() {
       };
     },
     enabled: !!id,
+  });
+
+  // Fetch active keto assignment for synergy display
+  const { data: activeKetoAssignment } = useQuery({
+    queryKey: ["active-keto-assignment", clientId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("client_keto_assignments")
+        .select("keto_type_id")
+        .eq("client_id", clientId!)
+        .eq("is_active", true)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!clientId,
   });
 
   const selectProtocolMutation = useMutation({
@@ -347,6 +363,12 @@ export default function ClientProtocolDetail() {
               </>
             )}
           </Section>
+          {/* Synergy Section */}
+          <PlanSynergySection
+            protocolType="program"
+            protocolId={id || null}
+            ketoTypeId={activeKetoAssignment?.keto_type_id || null}
+          />
         </div>
       </div>
 

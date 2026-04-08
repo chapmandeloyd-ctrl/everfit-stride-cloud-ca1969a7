@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import { FastingSafetyNotice } from "@/components/FastingSafetyNotice";
 import { FastingStructureComparison } from "@/components/FastingStructureComparison";
 import { getTierForLevel, getIntensityLabel } from "@/lib/quickPlanTierConfig";
+import { PlanSynergySection } from "@/components/PlanSynergySection";
 
 interface PlanDescription {
   subtitle?: string;
@@ -83,6 +84,20 @@ export default function ClientQuickPlanDetail() {
       return data as QuickPlan;
     },
     enabled: !!id,
+  });
+
+  const { data: activeKetoAssignment } = useQuery({
+    queryKey: ["active-keto-assignment", clientId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("client_keto_assignments")
+        .select("keto_type_id")
+        .eq("client_id", clientId!)
+        .eq("is_active", true)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!clientId,
   });
 
   const selectPlanMutation = useMutation({
@@ -321,6 +336,13 @@ export default function ClientQuickPlanDetail() {
               </ul>
             </section>
           )}
+
+          {/* Synergy Section */}
+          <PlanSynergySection
+            protocolType="quick_plan"
+            protocolId={id || null}
+            ketoTypeId={activeKetoAssignment?.keto_type_id || null}
+          />
 
           <FastingStructureComparison />
           <FastingSafetyNotice />

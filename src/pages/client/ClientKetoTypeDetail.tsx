@@ -7,6 +7,7 @@ import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { toast } from "sonner";
 import { ClientLayout } from "@/components/ClientLayout";
 import { KetoTypeDetailView } from "@/components/keto/KetoTypeDetailView";
+import { PlanSynergySection } from "@/components/PlanSynergySection";
 
 interface KetoType {
   id: string;
@@ -77,6 +78,20 @@ export default function ClientKetoTypeDetail() {
     enabled: !!clientId,
   });
 
+  // Fetch active protocol/quick plan for synergy display
+  const { data: featureSettings } = useQuery({
+    queryKey: ["client-plan-for-synergy", clientId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("client_feature_settings")
+        .select("selected_protocol_id, selected_quick_plan_id")
+        .eq("client_id", clientId!)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!clientId,
+  });
+
   const isActive = activeAssignment?.keto_type_id === id;
 
   const setActive = useMutation({
@@ -128,6 +143,13 @@ export default function ClientKetoTypeDetail() {
           ketoType={ketoType}
           allTypes={allTypes || []}
           isActive={isActive}
+        />
+
+        {/* Synergy Section */}
+        <PlanSynergySection
+          protocolType={featureSettings?.selected_protocol_id ? "program" : featureSettings?.selected_quick_plan_id ? "quick_plan" : null}
+          protocolId={featureSettings?.selected_protocol_id || featureSettings?.selected_quick_plan_id || null}
+          ketoTypeId={id || null}
         />
       </div>
 
