@@ -235,7 +235,7 @@ function evaluatePlanSuggestion(
     };
   }
 
-  if (engineMode === "performance" && scoreStatus === "moderate" && trend === "down") {
+  if ((engineMode === "performance" || engineMode === "metabolic") && scoreStatus === "moderate" && trend === "down") {
     return {
       type: "shift",
       text: "Consider adjusting training volume or toggling fasting to improve readiness.",
