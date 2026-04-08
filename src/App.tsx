@@ -175,7 +175,7 @@ const App = () => (
           <Route path="/client/recipes/:id" element={<ProtectedRoute allowedRoles={["client"]}><ClientRecipeDetail /></ProtectedRoute>} />
           <Route path="/client/keto-types" element={<ProtectedRoute allowedRoles={["client"]}><ClientKetoTypes /></ProtectedRoute>} />
           <Route path="/client/keto-types/:id" element={<ProtectedRoute allowedRoles={["client"]}><ClientKetoTypeDetail /></ProtectedRoute>} />
-          <Route path="/client/card-styles" element={<ProtectedRoute allowedRoles={["client"]}><CardStylesPreview /></ProtectedRoute>} />
+          <Route path="/client/card-styles" element={<ProtectedRoute allowedRoles={["client", "trainer"]}><CardStylesPreview /></ProtectedRoute>} />
           <Route path="/client/workouts/:id" element={<ProtectedRoute allowedRoles={["client"]}><WorkoutDetail /></ProtectedRoute>} />
           <Route path="/client/messages" element={<ProtectedRoute allowedRoles={["client"]}><Messages /></ProtectedRoute>} />
           <Route path="/client/booking" element={<ProtectedRoute allowedRoles={["client"]}><ClientBooking /></ProtectedRoute>} />
