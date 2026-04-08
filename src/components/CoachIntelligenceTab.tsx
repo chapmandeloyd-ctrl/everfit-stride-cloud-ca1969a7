@@ -559,8 +559,7 @@ export function CoachIntelligenceTab({ trainerId }: CoachIntelligenceTabProps) {
         </Card>
       </div>
 
-      {/* Impact Trends — Adaptive Calibration Analytics */}
-      <ImpactTrendsSection trainerId={trainerId} />
+      {/* Impact Trends removed — scoring system disabled */}
 
       {/* All Clients Overview */}
       <Card>
