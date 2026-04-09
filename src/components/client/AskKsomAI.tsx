@@ -50,12 +50,34 @@ export function AskKsomAI({ clientId }: AskKsomAIProps) {
       // Get assigned protocol with full details
       const { data: protocolSettings } = await supabase
         .from("client_feature_settings")
-        .select("selected_protocol_id, fasting_protocols(name, description, fast_target_hours, duration_days, category, difficulty_level, intensity_tier)")
+        .select("selected_protocol_id, trainer_id, fasting_protocols(name, description, fast_target_hours, duration_days, category, difficulty_level, intensity_tier)")
         .eq("client_id", clientId)
         .maybeSingle();
 
       const keto = (ketoAssign as any)?.keto_types;
       const proto = (protocolSettings as any)?.fasting_protocols;
+      const trainerId = (protocolSettings as any)?.trainer_id;
+
+      // Fetch recipes from the trainer's library that fit the keto type macros
+      let ketoFriendlyRecipes: any[] = [];
+      if (trainerId && keto) {
+        const { data: recipes } = await supabase
+          .from("recipes")
+          .select("id, name, calories, protein, carbs, fats, tags")
+          .eq("trainer_id", trainerId)
+          .order("name")
+          .limit(100);
+
+        if (recipes) {
+          // Filter recipes that align with the keto type's macro profile
+          const carbLimit = keto.carb_limit_grams || 30;
+          ketoFriendlyRecipes = recipes.filter((r: any) => {
+            // If recipe has carbs data, check it fits the keto carb limit per serving
+            if (r.carbs != null && r.carbs > carbLimit) return false;
+            return true;
+          }).slice(0, 40); // Send top 40 matching recipes
+        }
+      }
 
       return {
         engine_mode: settings?.engine_mode || "metabolic",
@@ -84,6 +106,8 @@ export function AskKsomAI({ clientId }: AskKsomAIProps) {
         protocol_category: proto?.category || "",
         protocol_difficulty: proto?.difficulty_level || "",
         protocol_intensity: proto?.intensity_tier || "",
+        // Keto-friendly recipes from trainer's library
+        keto_friendly_recipes: ketoFriendlyRecipes,
       };
     },
     enabled: !!clientId,
