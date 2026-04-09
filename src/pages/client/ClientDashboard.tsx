@@ -92,6 +92,21 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
     enabled: !!featureSettings?.selected_protocol_id,
   });
 
+  // Fetch active keto type for display
+  const { data: activeKetoType } = useQuery({
+    queryKey: ["fasting-card-keto-type", clientId],
+    queryFn: async () => {
+      const { data: assignment } = await supabase
+        .from("client_keto_assignments")
+        .select("keto_type_id, keto_types (name, abbreviation, color)")
+        .eq("client_id", clientId!)
+        .eq("is_active", true)
+        .maybeSingle();
+      return (assignment as any)?.keto_types || null;
+    },
+    enabled: !!clientId,
+  });
+
   // Meal slideshow photos for the eating window card
   const { data: mealPhotos = [] } = useQuery({
     queryKey: ["eating-window-meal-photos", clientId],
