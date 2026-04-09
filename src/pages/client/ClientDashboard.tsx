@@ -38,7 +38,7 @@ import { InAppNotifications } from "@/components/InAppNotifications";
 import { useDashboardLayoutClient } from "@/hooks/useDashboardLayoutClient";
 import { SportHeroBanner } from "@/components/SportHeroBanner";
 import { AssignedPlanCard } from "@/components/dashboard/AssignedPlanCard";
-// Fasting Protocol Card sub-component
+// Fasting Program Card sub-component
 function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; navigate: (path: string) => void }) {
   const queryClient = useQueryClient();
   const [now, setNow] = useState(new Date());
@@ -363,7 +363,7 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
         <CardContent className="px-5 pt-8 pb-6 space-y-4">
           <div className="flex items-start justify-between">
             <div className="space-y-1">
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Fasting Protocol</p>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Fasting Program</p>
               <h3 className="text-lg font-black mt-0.5">{planName}</h3>
               {activeKetoType && (
                 <div className="flex items-center gap-2 mt-1">
@@ -410,7 +410,7 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
           <div className="flex items-start justify-between">
             <div className="space-y-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <p className="text-xs font-bold text-white/70 uppercase tracking-wider">{isMaintenanceMode ? "Maintenance Schedule" : "Fasting Protocol"}</p>
+                <p className="text-xs font-bold text-white/70 uppercase tracking-wider">{isMaintenanceMode ? "Maintenance Schedule" : "Fasting Program"}</p>
                 {isCoachAssigned && !isMaintenanceMode && (
                   <Badge className="text-[10px] px-2 py-0.5 bg-primary/20 text-primary border border-primary/30 hover:bg-primary/20 font-semibold">
                     Coach Assigned
@@ -530,7 +530,7 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
               <div className="space-y-1">
                 <div className="flex items-center gap-2 flex-wrap">
                   <p className={`text-xs font-bold uppercase tracking-wider drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] ${hasBackground ? "text-white" : "text-muted-foreground"}`}>
-                    {isMaintenanceMode ? "Maintenance Schedule" : "Fasting Protocol"}
+                    {isMaintenanceMode ? "Maintenance Schedule" : "Fasting Program"}
                   </p>
                   {isCoachAssigned && !isMaintenanceMode && (
                     <Badge className={`text-[10px] px-2 py-0.5 font-semibold ${hasBackground ? "bg-white/20 text-white border-white/30" : "bg-primary/20 text-primary border-primary/30"}`}>
@@ -614,7 +614,7 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
           <div className="flex items-start justify-between">
             <div className="space-y-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{isMaintenanceMode ? "Maintenance Schedule" : "Fasting Protocol"}</p>
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{isMaintenanceMode ? "Maintenance Schedule" : "Fasting Program"}</p>
                 {isCoachAssigned && !isMaintenanceMode && (
                   <Badge className="text-[10px] px-2 py-0.5 bg-primary/20 text-primary border border-primary/30 font-semibold">
                     Coach Assigned
