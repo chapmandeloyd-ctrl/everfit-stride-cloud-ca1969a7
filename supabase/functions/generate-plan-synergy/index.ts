@@ -93,27 +93,43 @@ KETO TYPE:
 - How It Works: ${ketoType.how_it_works || "N/A"}
 - Built For: ${(ketoType.built_for || []).join(", ")}
 
-Generate a JSON object with these exact keys:
+Generate a JSON object with these exact keys. This must be LONG-FORM, detailed, professional content. Treat the fasting protocol and keto type as ONE unified metabolic system — not separate things.
 
 {
-  "keto_synergy": "2-3 sentences. Direct. How ${fastHours}h fasting + ${ketoAbbrev} macro split work together metabolically. No fluff.",
-  "benefits": ["Fat loss benefit", "Muscle retention benefit", "Energy benefit", "Recovery benefit"],
-  "execution": ["Protein target instruction", "Meal timing instruction", "Fasting behavior instruction", "One more tactical tip"],
-  "timeline": [
-    {"period": "Week 1–2", "detail": "What happens metabolically"},
-    {"period": "Week 3–4", "detail": "What shifts"},
-    {"period": "Week 5+", "detail": "Expected adaptation"}
+  "keto_synergy": "4–6 sentences. Explain how ${fastHours}h fasting + ${ketoAbbrev} macro split work together as ONE metabolic system. Cover glycogen depletion, ketone production, fat oxidation, and how the keto type locks in the metabolic state post-fast. Make the reader understand this is a complete system, not two separate strategies.",
+
+  "how_it_works": "5–8 sentences. Deep physiology. Cover: glycogen depletion timeline during ${fastHours}h fast, when ketone production activates, the role of ${ketoType.protein_pct}% protein in muscle preservation, how ${ketoType.fat_pct}% fat fuels sustained ketosis, why ${ketoType.carbs_pct}% carbs keeps insulin suppressed, and how this creates a continuous fat-burning loop between fasting and eating windows.",
+
+  "the_science": "4–6 sentences. Credibility layer. Reference muscle protein synthesis (MPS), diet-induced thermogenesis (TEF), hormonal responses (growth hormone, insulin, glucagon), and how this specific pairing optimizes body recomposition. Include specific protein targets like 1.6–2.2g per kg of lean body mass if relevant to ${ketoAbbrev}. Make it sound research-backed but accessible.",
+
+  "adaptation_timeline": [
+    {"phase": 1, "title": "Baseline Build", "period": "Weeks 1–2", "detail": "2–3 sentences. What happens metabolically in the first two weeks. Keto adaptation, initial water loss, energy fluctuations, establishing protein targets."},
+    {"phase": 2, "title": "MPS Response", "period": "Weeks 3–4", "detail": "2–3 sentences. Recovery improvements, muscle soreness reduction, strength maintenance, metabolic efficiency increasing."},
+    {"phase": 3, "title": "Body Recomposition", "period": "Weeks 5–8", "detail": "2–3 sentences. Visible fat loss while muscle preserved, the hallmark of successful ${ketoAbbrev} execution. Energy stabilization."},
+    {"phase": 4, "title": "Optimized State", "period": "Week 9+", "detail": "2–3 sentences. Full adaptation. Describe the end state — what the client looks and feels like when this system is fully working."}
   ],
-  "coach_warning": "One bold, direct warning. Example: Too much fat will slow results on this plan."
+
+  "built_for": ["Who this combo is ideal for — 4 bullet points, each 8–15 words. Be specific to ${ketoAbbrev} + ${fastHours}h fasting."],
+
+  "coach_notes": [
+    "5 numbered coaching tips. Each 10–20 words. Tactical, direct, actionable advice specific to executing ${ketoAbbrev} with ${fastHours}h fasting."
+  ],
+
+  "eat_this": ["6 specific foods/food groups that work best with ${ketoAbbrev}. Include preparation notes where relevant."],
+
+  "avoid_this": ["5 specific foods/habits to avoid on ${ketoAbbrev}. Explain WHY briefly."],
+
+  "coach_warning": "One bold, direct warning. 15–25 words. Specific to this combo."
 }
 
 RULES:
-- No paragraphs. Short, punchy lines.
-- No AI tone. Sound like a coach giving orders.
-- Benefits and execution: max 8 words per bullet.
-- Timeline details: max 12 words each.
-- Coach warning: max 15 words.
-- Must be scannable in 5 seconds.`;
+- This is a PERFORMANCE SYSTEM, not an article.
+- Sound like a coach giving directions, not a textbook.
+- Each section must stand alone as a complete block.
+- No filler words. Every sentence must add value.
+- The adaptation_timeline details should be 2–3 full sentences each, not bullet fragments.
+- eat_this and avoid_this entries should be specific and actionable.
+- coach_notes should be numbered tactical instructions.`;
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -124,7 +140,7 @@ RULES:
       body: JSON.stringify({
         model: "google/gemini-3-flash-preview",
         messages: [
-          { role: "system", content: "You output valid JSON only. No markdown. No explanation. No code fences." },
+          { role: "system", content: "You output valid JSON only. No markdown. No explanation. No code fences. Generate detailed, long-form coaching content." },
           { role: "user", content: prompt },
         ],
       }),
@@ -161,7 +177,6 @@ RULES:
       throw new Error("AI returned invalid JSON");
     }
 
-    // Store the structured JSON as the synergy_text field (stringified)
     const synergyText = JSON.stringify(structured);
 
     const { data: inserted, error: insertError } = await supabase
