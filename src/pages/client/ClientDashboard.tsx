@@ -1305,7 +1305,9 @@ export default function ClientDashboard() {
                   />
                   {/* Completed cardio sessions right under calendar */}
                   {todayCardioSessions && todayCardioSessions.filter((s: any) => s.status === "completed").length > 0 && (
-                    <Card>
+                    <>
+                      <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2 mt-2">Quick Workouts</h2>
+                      <Card>
                       <CardContent className="p-0 divide-y divide-border">
                         {todayCardioSessions.filter((s: any) => s.status === "completed").map((session: any) => (
                           <SwipeToDeleteCardioRow
@@ -1321,6 +1323,7 @@ export default function ClientDashboard() {
                         ))}
                       </CardContent>
                     </Card>
+                    </>
                   )}
                 </div>
               ) : null;
