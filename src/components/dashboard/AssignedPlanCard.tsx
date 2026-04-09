@@ -159,19 +159,26 @@ export function AssignedPlanCard({ clientId }: AssignedPlanCardProps) {
             <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
             <span className="text-xs text-muted-foreground">Generating metabolic synergy...</span>
           </div>
-        ) : synergy?.synergy_text ? (
-          <div className="rounded-xl bg-muted/40 p-4 space-y-2">
-            <div className="flex items-center gap-1.5">
-              <Sparkles className="h-3 w-3 text-primary" />
-              <p className="text-[10px] font-bold uppercase tracking-wider text-primary">
-                Protocol + Keto Synergy
+        ) : synergy?.synergy_text ? (() => {
+          let displayText = synergy.synergy_text;
+          try {
+            const parsed = JSON.parse(synergy.synergy_text);
+            if (parsed.keto_synergy) displayText = parsed.keto_synergy;
+          } catch { /* use raw */ }
+          return (
+            <div className="rounded-xl bg-muted/40 p-4 space-y-2">
+              <div className="flex items-center gap-1.5">
+                <Sparkles className="h-3 w-3 text-primary" />
+                <p className="text-[10px] font-bold uppercase tracking-wider text-primary">
+                  Protocol + Keto Synergy
+                </p>
+              </div>
+              <p className="text-[13px] leading-relaxed text-foreground/90 line-clamp-4">
+                {displayText}
               </p>
             </div>
-            <p className="text-[13px] leading-relaxed text-foreground/90">
-              {synergy.synergy_text}
-            </p>
-          </div>
-        ) : null}
+          );
+        })() : null}
       </CardContent>
     </Card>
   );
