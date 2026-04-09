@@ -44,8 +44,12 @@ export default function ClientCardioPlayer() {
     return saved.accumulated + Math.floor((Date.now() - saved.wallStart) / 1000);
   });
 
-  const [isLocked, setIsLocked] = useState(false);
+  const [isLocked, setIsLocked] = useState(true); // locked by default
   const [isSaving, setIsSaving] = useState(false);
+  const [unlockProgress, setUnlockProgress] = useState(0);
+  const unlockIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const UNLOCK_HOLD_MS = 3000;
+  const UNLOCK_TICK = 30;
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startWallRef = useRef<number>(saved?.wallStart ?? Date.now());
   const accumulatedRef = useRef<number>(saved?.accumulated ?? 0);
@@ -188,16 +192,64 @@ export default function ClientCardioPlayer() {
       {isLocked && (
         <button
           type="button"
-          className="fixed inset-0 z-[110] flex items-center justify-center bg-foreground/80 px-6"
-          onClick={() => setIsLocked(false)}
-          aria-label="Unlock cardio controls"
+          className="fixed inset-0 z-[110] flex items-center justify-center bg-foreground/80 px-6 select-none"
+          onMouseDown={() => {
+            setUnlockProgress(0);
+            let elapsed = 0;
+            unlockIntervalRef.current = setInterval(() => {
+              elapsed += UNLOCK_TICK;
+              const pct = Math.min(elapsed / UNLOCK_HOLD_MS, 1);
+              setUnlockProgress(pct);
+              if (pct >= 1) {
+                clearInterval(unlockIntervalRef.current!);
+                unlockIntervalRef.current = null;
+                setUnlockProgress(0);
+                setIsLocked(false);
+              }
+            }, UNLOCK_TICK);
+          }}
+          onMouseUp={() => { if (unlockIntervalRef.current) { clearInterval(unlockIntervalRef.current); unlockIntervalRef.current = null; } setUnlockProgress(0); }}
+          onMouseLeave={() => { if (unlockIntervalRef.current) { clearInterval(unlockIntervalRef.current); unlockIntervalRef.current = null; } setUnlockProgress(0); }}
+          onTouchStart={() => {
+            setUnlockProgress(0);
+            let elapsed = 0;
+            unlockIntervalRef.current = setInterval(() => {
+              elapsed += UNLOCK_TICK;
+              const pct = Math.min(elapsed / UNLOCK_HOLD_MS, 1);
+              setUnlockProgress(pct);
+              if (pct >= 1) {
+                clearInterval(unlockIntervalRef.current!);
+                unlockIntervalRef.current = null;
+                setUnlockProgress(0);
+                setIsLocked(false);
+              }
+            }, UNLOCK_TICK);
+          }}
+          onTouchEnd={() => { if (unlockIntervalRef.current) { clearInterval(unlockIntervalRef.current); unlockIntervalRef.current = null; } setUnlockProgress(0); }}
+          aria-label="Hold to unlock cardio controls"
         >
           <div className="pointer-events-none text-center text-background">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-background/20 bg-background/10">
-              <Lock className="h-7 w-7" />
+            {/* Circular progress ring */}
+            <div className="relative mx-auto mb-4 h-20 w-20">
+              <svg className="h-full w-full -rotate-90" viewBox="0 0 80 80">
+                <circle cx="40" cy="40" r="34" fill="none" stroke="currentColor" strokeWidth="4" className="opacity-20" />
+                <circle
+                  cx="40" cy="40" r="34"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                  strokeDasharray={`${2 * Math.PI * 34}`}
+                  strokeDashoffset={`${2 * Math.PI * 34 * (1 - unlockProgress)}`}
+                  className="transition-none"
+                />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Lock className="h-7 w-7" />
+              </div>
             </div>
-            <p className="text-lg font-semibold">Workout locked</p>
-            <p className="mt-1 text-sm opacity-80">Tap anywhere to unlock and end your walk</p>
+            <p className="text-lg font-semibold">Workout Locked</p>
+            <p className="mt-1 text-sm opacity-80">Hold for 3 seconds to unlock</p>
           </div>
         </button>
       )}
@@ -214,7 +266,7 @@ export default function ClientCardioPlayer() {
           </div>
         </div>
         <div className="pb-8 pt-2">
-          {isLocked && <p className="pb-3 text-center text-xs font-medium text-muted-foreground">Screen locked — tap anywhere to unlock</p>}
+          {isLocked && <p className="pb-3 text-center text-xs font-medium text-muted-foreground">Screen locked — hold anywhere for 3s to unlock</p>}
           <div className="flex items-center justify-around px-6">
             <Button variant="outline" size="icon" className="h-14 w-14 rounded-full" onClick={handleStop} disabled={isLocked || isSaving}>
               <Square className="h-5 w-5" />
