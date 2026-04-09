@@ -44,8 +44,12 @@ export default function ClientCardioPlayer() {
     return saved.accumulated + Math.floor((Date.now() - saved.wallStart) / 1000);
   });
 
-  const [isLocked, setIsLocked] = useState(false);
+  const [isLocked, setIsLocked] = useState(true); // locked by default
   const [isSaving, setIsSaving] = useState(false);
+  const [unlockProgress, setUnlockProgress] = useState(0);
+  const unlockIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const UNLOCK_HOLD_MS = 3000;
+  const UNLOCK_TICK = 30;
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startWallRef = useRef<number>(saved?.wallStart ?? Date.now());
   const accumulatedRef = useRef<number>(saved?.accumulated ?? 0);
