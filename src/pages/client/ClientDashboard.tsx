@@ -1295,13 +1295,33 @@ export default function ClientDashboard() {
           switch (card.key) {
             case "calendar":
               return settings.calendar_days_ahead > 0 && clientId ? (
-                <DayStripCalendar
-                  key="calendar"
-                  clientId={clientId}
-                  daysAhead={settings.calendar_days_ahead}
-                  trainingEnabled={settings.training_enabled}
-                  tasksEnabled={settings.tasks_enabled}
-                />
+                <div key="calendar" className="space-y-2">
+                  <DayStripCalendar
+                    clientId={clientId}
+                    daysAhead={settings.calendar_days_ahead}
+                    trainingEnabled={settings.training_enabled}
+                    tasksEnabled={settings.tasks_enabled}
+                  />
+                  {/* Completed cardio sessions right under calendar */}
+                  {todayCardioSessions && todayCardioSessions.filter((s: any) => s.status === "completed").length > 0 && (
+                    <Card>
+                      <CardContent className="p-0 divide-y divide-border">
+                        {todayCardioSessions.filter((s: any) => s.status === "completed").map((session: any) => (
+                          <SwipeToDeleteCardioRow
+                            key={session.id}
+                            session={session}
+                            onDelete={async () => {
+                              await supabase.from("cardio_sessions" as any).delete().eq("id", session.id);
+                              queryClient.invalidateQueries({ queryKey: ["cardio-sessions-today"] });
+                              toast({ title: "Activity deleted" });
+                            }}
+                            onClick={() => setSelectedCardioSession(session)}
+                          />
+                        ))}
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
               ) : null;
 
             case "workouts":
