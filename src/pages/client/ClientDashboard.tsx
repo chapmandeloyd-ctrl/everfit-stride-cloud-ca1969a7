@@ -794,7 +794,7 @@ export default function ClientDashboard() {
     enabled: !!clientId,
   });
 
-  // Fetch today's workouts
+  // Fetch today's assigned workouts
   const { data: clientWorkouts } = useQuery({
     queryKey: ["client-workouts-today", clientId],
     queryFn: async () => {
@@ -803,6 +803,28 @@ export default function ClientDashboard() {
         .select(`*, workout_plan:workout_plans(*)`)
         .eq("client_id", clientId)
         .order("scheduled_date", { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!clientId && settings.training_enabled,
+  });
+
+  const { data: todayTrackedAssignedSessions } = useQuery({
+    queryKey: ["today-tracked-assigned-sessions", clientId],
+    queryFn: async () => {
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date();
+      endOfDay.setHours(23, 59, 59, 999);
+
+      const { data, error } = await supabase
+        .from("workout_sessions")
+        .select("id, client_workout_id, workout_plan_id, completed_at, is_partial, workout_plan:workout_plans(*)")
+        .eq("client_id", clientId)
+        .not("client_workout_id", "is", null)
+        .gte("completed_at", startOfDay.toISOString())
+        .lte("completed_at", endOfDay.toISOString())
+        .order("completed_at", { ascending: false });
       if (error) throw error;
       return data;
     },
@@ -1306,7 +1328,11 @@ export default function ClientDashboard() {
                   {/* Completed workouts under calendar */}
                   {(() => {
                     const completedCardio = todayCardioSessions?.filter((s: any) => s.status === "completed") || [];
-                    const completedAssigned = clientWorkouts?.filter((w: any) => w.completed_at && w.scheduled_date && isToday(parseISO(w.scheduled_date))) || [];
+                    const completedAssignedFromRow = clientWorkouts?.filter((w: any) => w.completed_at && w.scheduled_date && isToday(parseISO(w.scheduled_date))) || [];
+                    const completedAssignedFromSessions = (todayTrackedAssignedSessions || []).filter((session: any) =>
+                      !completedAssignedFromRow.some((workout: any) => workout.id === session.client_workout_id)
+                    );
+                    const completedAssigned = [...completedAssignedFromRow, ...completedAssignedFromSessions];
                     const hasAny = completedCardio.length > 0 || completedAssigned.length > 0;
                     if (!hasAny) return null;
                     return (
@@ -1314,7 +1340,6 @@ export default function ClientDashboard() {
                         <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2 mt-2">Quick Workouts</h2>
                         <Card>
                           <CardContent className="p-0 divide-y divide-border">
-                            {/* Completed assigned workouts - red circle white check */}
                             {completedAssigned.map((workout: any) => (
                               <div
                                 key={workout.id}
@@ -1326,7 +1351,7 @@ export default function ClientDashboard() {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <p className="text-sm font-semibold">{workout.workout_plan?.name || "Workout"}</p>
-                                  <p className="text-xs text-muted-foreground">Completed</p>
+                                  <p className="text-xs text-muted-foreground">{workout.is_partial ? "Tracked" : "Completed"}</p>
                                 </div>
                                 <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
                               </div>
