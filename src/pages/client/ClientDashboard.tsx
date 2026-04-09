@@ -38,6 +38,7 @@ import { InAppNotifications } from "@/components/InAppNotifications";
 import { useDashboardLayoutClient } from "@/hooks/useDashboardLayoutClient";
 import { SportHeroBanner } from "@/components/SportHeroBanner";
 import { AssignedPlanCard } from "@/components/dashboard/AssignedPlanCard";
+import { AskKsomAI } from "@/components/client/AskKsomAI";
 // Fasting Program Card sub-component
 function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; navigate: (path: string) => void }) {
   const queryClient = useQueryClient();
@@ -1882,6 +1883,9 @@ export default function ClientDashboard() {
           },
         ]}
       />
+
+      {/* Ask KSOM-360 AI */}
+      {clientId && <AskKsomAI clientId={clientId} />}
 
       {/* Floating Message Button */}
       <div className="fixed bottom-20 right-4 z-30">
