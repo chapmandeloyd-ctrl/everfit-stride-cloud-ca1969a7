@@ -40,13 +40,13 @@ export default function WorkoutDetail() {
 
   // Fetch client_workout record for this workout plan
   const { data: clientWorkout } = useQuery({
-    queryKey: ["client-workout-for-plan", id, user?.id],
+    queryKey: ["client-workout-for-plan", id, effectiveClientId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("client_workouts")
         .select("*")
         .eq("workout_plan_id", id)
-        .eq("client_id", user?.id)
+        .eq("client_id", effectiveClientId)
         .is("completed_at", null)
         .order("assigned_at", { ascending: false })
         .limit(1)
@@ -54,7 +54,7 @@ export default function WorkoutDetail() {
       if (error) throw error;
       return data;
     },
-    enabled: !!id && !!user?.id && isClient,
+    enabled: !!id && !!effectiveClientId && isClient,
   });
 
   const { data: workout, isLoading } = useQuery({
