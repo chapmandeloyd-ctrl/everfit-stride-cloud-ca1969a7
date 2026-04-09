@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Play, Clock, Dumbbell } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { WorkoutPlayer, unlockAudioForMobile } from "@/components/WorkoutPlayer";
 import { WorkoutSummary } from "@/components/WorkoutSummary";
 import { awardBadges } from "@/hooks/useBadgeAwarder";
