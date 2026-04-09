@@ -25,6 +25,7 @@ import { SportEventCompletionDialog } from "@/components/SportEventCompletionDia
 import { DayStripCalendar } from "@/components/DayStripCalendar";
 import { QuickCardioFlow } from "@/components/cardio/QuickCardioFlow";
 import { CardioDetailSheet } from "@/components/cardio/CardioDetailSheet";
+import { SwipeToDeleteCardioRow } from "@/components/cardio/SwipeToDeleteCardioRow";
 import { SpeedDialFAB } from "@/components/SpeedDialFAB";
 
 import { ProgramsSelector } from "@/components/ProgramsSelector";
@@ -1295,13 +1296,33 @@ export default function ClientDashboard() {
           switch (card.key) {
             case "calendar":
               return settings.calendar_days_ahead > 0 && clientId ? (
-                <DayStripCalendar
-                  key="calendar"
-                  clientId={clientId}
-                  daysAhead={settings.calendar_days_ahead}
-                  trainingEnabled={settings.training_enabled}
-                  tasksEnabled={settings.tasks_enabled}
-                />
+                <div key="calendar" className="space-y-2">
+                  <DayStripCalendar
+                    clientId={clientId}
+                    daysAhead={settings.calendar_days_ahead}
+                    trainingEnabled={settings.training_enabled}
+                    tasksEnabled={settings.tasks_enabled}
+                  />
+                  {/* Completed cardio sessions right under calendar */}
+                  {todayCardioSessions && todayCardioSessions.filter((s: any) => s.status === "completed").length > 0 && (
+                    <Card>
+                      <CardContent className="p-0 divide-y divide-border">
+                        {todayCardioSessions.filter((s: any) => s.status === "completed").map((session: any) => (
+                          <SwipeToDeleteCardioRow
+                            key={session.id}
+                            session={session}
+                            onDelete={async () => {
+                              await supabase.from("cardio_sessions" as any).delete().eq("id", session.id);
+                              queryClient.invalidateQueries({ queryKey: ["cardio-sessions-today"] });
+                              toast({ title: "Activity deleted" });
+                            }}
+                            onClick={() => setSelectedCardioSession(session)}
+                          />
+                        ))}
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
               ) : null;
 
             case "workouts":
@@ -1793,28 +1814,7 @@ export default function ClientDashboard() {
               return <LatestGameStatsCard key="game_stats" clientId={clientId} navigate={navigate} />;
 
             case "cardio":
-              return todayCardioSessions && todayCardioSessions.filter((s: any) => s.status === "completed").length > 0 ? (
-                <div key="cardio">
-                  <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Activity</h2>
-                  <Card>
-                    <CardContent className="p-0 divide-y divide-border">
-                      {todayCardioSessions.filter((s: any) => s.status === "completed").map((session: any) => (
-                        <div key={session.id} className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => setSelectedCardioSession(session)}>
-                          <CheckCircle2 className="h-5 w-5 text-foreground shrink-0" />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold capitalize">{session.activity_type.replace(/_/g, " ")}</p>
-                            <p className="text-xs text-muted-foreground">
-                              Completed.{" "}
-                              {session.duration_seconds > 0 && `⏱ ${formatCardioTime(session.duration_seconds)}`}
-                            </p>
-                          </div>
-                          <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-                        </div>
-                      ))}
-                    </CardContent>
-                  </Card>
-                </div>
-              ) : null;
+              return null;
 
             default:
               return null;
