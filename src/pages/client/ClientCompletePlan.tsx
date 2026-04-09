@@ -204,6 +204,7 @@ export default function ClientCompletePlan() {
     },
   });
 
+  if (!activeProtocolId || !ketoTypeId) {
     return (
       <ClientLayout>
         <div className="px-4 pt-6 text-center">
