@@ -168,21 +168,41 @@ export default function ClientCardioPlayer() {
   return (
     <div className="fixed inset-0 z-[100] flex flex-col bg-background">
       <div className="text-center pt-8 pb-2">
-        <p className="text-sm text-muted-foreground font-medium">Today</p>
+        <p className="text-sm font-medium text-muted-foreground">Today</p>
       </div>
-      <div className="flex-1 flex flex-col items-center justify-center gap-6 px-6">
-        <div className="w-24 h-24 rounded-2xl bg-emerald-500/20 flex items-center justify-center">
+
+      <div className="flex flex-1 flex-col items-center justify-center gap-6 px-6">
+        <div className="flex h-24 w-24 items-center justify-center rounded-2xl bg-emerald-500/20">
           <ActivityIcon className="h-12 w-12 text-emerald-500" />
         </div>
         <h2 className="text-2xl font-bold">{activityLabel}</h2>
-        <p className="text-6xl font-bold tracking-tight font-mono tabular-nums">{formatTime(seconds)}</p>
+        <p className="font-mono text-6xl font-bold tracking-tight tabular-nums">{formatTime(seconds)}</p>
         {targetType !== "none" && targetValue && (
           <p className={`text-sm font-semibold ${targetReached ? "text-emerald-500" : "text-muted-foreground"}`}>
-            Target: {targetValue} {targetType === "distance" ? "miles" : "min"}{targetReached && " ✓"}
+            Target: {targetValue} {targetType === "distance" ? "miles" : "min"}
+            {targetReached && " ✓"}
           </p>
         )}
       </div>
-      <div className="bg-card border-t border-border">
+
+      {isLocked && (
+        <button
+          type="button"
+          className="fixed inset-0 z-[110] flex items-center justify-center bg-foreground/80 px-6"
+          onClick={() => setIsLocked(false)}
+          aria-label="Unlock cardio controls"
+        >
+          <div className="pointer-events-none text-center text-background">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-background/20 bg-background/10">
+              <Lock className="h-7 w-7" />
+            </div>
+            <p className="text-lg font-semibold">Workout locked</p>
+            <p className="mt-1 text-sm opacity-80">Tap anywhere to unlock and end your walk</p>
+          </div>
+        </button>
+      )}
+
+      <div className="border-t border-border bg-card">
         <div className="flex items-center justify-between px-6 py-3">
           <div className="text-center">
             <p className="text-xs text-muted-foreground">Active</p>
@@ -193,16 +213,26 @@ export default function ClientCardioPlayer() {
             <span className="text-sm font-bold">--</span>
           </div>
         </div>
-        <div className="flex items-center justify-around pb-8 pt-2">
-          <Button variant="outline" size="icon" className="h-14 w-14 rounded-full" onClick={handleStop} disabled={isLocked || isSaving}>
-            <Square className="h-5 w-5" />
-          </Button>
-          <Button variant="outline" size="icon" className={`h-14 w-14 rounded-full ${isLocked ? "bg-primary text-primary-foreground" : ""}`} onClick={() => setIsLocked(!isLocked)}>
-            <Lock className="h-5 w-5" />
-          </Button>
-          <Button variant="outline" size="icon" className="h-14 w-14 rounded-full" onClick={() => setIsPaused(!isPaused)} disabled={isLocked}>
-            {isPaused ? <Play className="h-5 w-5" /> : <Pause className="h-5 w-5" />}
-          </Button>
+        <div className="pb-8 pt-2">
+          {isLocked && <p className="pb-3 text-center text-xs font-medium text-muted-foreground">Screen locked — tap anywhere to unlock</p>}
+          <div className="flex items-center justify-around px-6">
+            <Button variant="outline" size="icon" className="h-14 w-14 rounded-full" onClick={handleStop} disabled={isLocked || isSaving}>
+              <Square className="h-5 w-5" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className={`h-14 w-14 rounded-full ${isLocked ? "bg-primary text-primary-foreground" : ""}`}
+              onClick={() => setIsLocked(!isLocked)}
+              aria-label={isLocked ? "Unlock cardio controls" : "Lock cardio controls"}
+              title={isLocked ? "Unlock cardio controls" : "Lock cardio controls"}
+            >
+              <Lock className="h-5 w-5" />
+            </Button>
+            <Button variant="outline" size="icon" className="h-14 w-14 rounded-full" onClick={() => setIsPaused(!isPaused)} disabled={isLocked}>
+              {isPaused ? <Play className="h-5 w-5" /> : <Pause className="h-5 w-5" />}
+            </Button>
+          </div>
         </div>
       </div>
     </div>
