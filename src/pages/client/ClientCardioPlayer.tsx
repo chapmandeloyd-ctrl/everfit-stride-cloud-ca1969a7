@@ -154,6 +154,17 @@ export default function ClientCardioPlayer() {
   const currentMins = seconds / 60;
   const targetReached = targetMins ? currentMins >= targetMins : false;
 
+  if (showCelebration) {
+    return (
+      <CardioCelebration
+        activityLabel={activityLabel}
+        iconName={defaultMatch?.icon_name || "activity"}
+        duration={formatDurationLabel(seconds)}
+        onComplete={handleCelebrationComplete}
+      />
+    );
+  }
+
   return (
     <div className="fixed inset-0 z-[100] flex flex-col bg-background">
       <div className="text-center pt-8 pb-2">
