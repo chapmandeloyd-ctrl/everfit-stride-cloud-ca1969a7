@@ -193,12 +193,12 @@ export function AskKsomAI({ clientId }: AskKsomAIProps) {
       <div className="fixed bottom-20 left-4 z-30">
         <button
           onClick={() => setOpen(true)}
-          className="group relative w-12 h-12 rounded-full shadow-lg flex items-center justify-center bg-gradient-to-br from-violet-500 to-purple-600 text-white transition-all hover:scale-110 hover:shadow-xl"
+          className="group relative w-12 h-12 rounded-full shadow-lg flex items-center justify-center bg-black text-white transition-all hover:scale-110 hover:shadow-xl"
           aria-label="Ask KSOM-360 AI"
         >
           <Sparkles className="h-5 w-5" />
           {/* Pulse ring */}
-          <span className="absolute inset-0 rounded-full bg-violet-400/40 animate-ping" style={{ animationDuration: "3s" }} />
+          <span className="absolute inset-0 rounded-full animate-ping" style={{ animationDuration: "3s", backgroundColor: "rgba(240, 36, 36, 0.3)" }} />
         </button>
       </div>
 
@@ -209,9 +209,9 @@ export function AskKsomAI({ clientId }: AskKsomAIProps) {
           className="rounded-t-2xl h-[85vh] flex flex-col p-0 gap-0"
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-gradient-to-r from-violet-500/10 to-purple-500/10">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-border" style={{ background: "linear-gradient(to right, rgba(240,36,36,0.08), rgba(0,0,0,0.05))" }}>
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
+              <div className="w-9 h-9 rounded-full bg-black flex items-center justify-center">
                 <Sparkles className="h-4 w-4 text-white" />
               </div>
               <div>
@@ -220,7 +220,7 @@ export function AskKsomAI({ clientId }: AskKsomAIProps) {
                   Your personal coaching assistant
                 </p>
               </div>
-              <Badge variant="secondary" className="text-[9px] uppercase tracking-wider bg-violet-500/10 text-violet-600 border-0 px-1.5 py-0.5">
+              <Badge variant="secondary" className="text-[9px] uppercase tracking-wider border-0 px-1.5 py-0.5" style={{ backgroundColor: "rgba(240,36,36,0.1)", color: "#F02424" }}>
                 Beta
               </Badge>
             </div>
@@ -233,8 +233,8 @@ export function AskKsomAI({ clientId }: AskKsomAIProps) {
           <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
             {messages.length === 0 && (
               <div className="flex flex-col items-center justify-center h-full gap-4">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-violet-500/20 to-purple-500/20 flex items-center justify-center">
-                  <Sparkles className="h-7 w-7 text-violet-500" />
+                <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ backgroundColor: "rgba(240,36,36,0.1)" }}>
+                  <Sparkles className="h-7 w-7" style={{ color: "#F02424" }} />
                 </div>
                 <div className="text-center">
                   <p className="text-sm font-semibold">Hey {clientContext?.first_name || "there"}! 👋</p>
@@ -250,7 +250,7 @@ export function AskKsomAI({ clientId }: AskKsomAIProps) {
                       onClick={() => {
                         setInput(prompt);
                       }}
-                      className="text-[11px] px-3 py-1.5 rounded-full border border-violet-200 dark:border-violet-800 bg-violet-50 dark:bg-violet-950/30 text-violet-700 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-900/40 transition-colors"
+                      className="text-[11px] px-3 py-1.5 rounded-full border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
                     >
                       {prompt}
                     </button>
@@ -268,7 +268,7 @@ export function AskKsomAI({ clientId }: AskKsomAIProps) {
                 )}
               >
                 {msg.role === "assistant" && (
-                  <div className="h-7 w-7 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shrink-0 mt-0.5">
+                  <div className="h-7 w-7 rounded-full bg-black flex items-center justify-center shrink-0 mt-0.5">
                     <Bot className="h-3.5 w-3.5 text-white" />
                   </div>
                 )}
@@ -276,7 +276,7 @@ export function AskKsomAI({ clientId }: AskKsomAIProps) {
                   className={cn(
                     "max-w-[80%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed",
                     msg.role === "user"
-                      ? "bg-gradient-to-br from-violet-500 to-purple-600 text-white rounded-br-md"
+                      ? "bg-black text-white rounded-br-md"
                       : "bg-muted/60 border border-border text-foreground rounded-bl-md"
                   )}
                 >
@@ -288,7 +288,7 @@ export function AskKsomAI({ clientId }: AskKsomAIProps) {
                     msg.content
                   )}
                   {msg.role === "assistant" && i === messages.length - 1 && isStreaming && (
-                    <span className="inline-block w-1.5 h-4 bg-violet-500/60 ml-0.5 animate-pulse rounded-full" />
+                    <span className="inline-block w-1.5 h-4 ml-0.5 animate-pulse rounded-full" style={{ backgroundColor: "rgba(240,36,36,0.6)" }} />
                   )}
                 </div>
               </div>
@@ -322,7 +322,7 @@ export function AskKsomAI({ clientId }: AskKsomAIProps) {
                 size="icon"
                 onClick={handleSend}
                 disabled={isStreaming || !input.trim()}
-                className="rounded-full bg-gradient-to-br from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 shrink-0"
+                className="rounded-full bg-black hover:bg-neutral-800 shrink-0"
               >
                 {isStreaming ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
