@@ -514,22 +514,34 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
           {hasBackground && <div className="absolute inset-0 bg-black/40" />}
 
           <CardContent className={`px-5 pt-8 pb-6 space-y-4 relative ${hasBackground ? "text-white" : ""}`}>
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="flex items-center gap-2">
+            <div className="flex items-start justify-between">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
                   <p className={`text-xs font-bold uppercase tracking-wider drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] ${hasBackground ? "text-white" : "text-muted-foreground"}`}>
                     {isMaintenanceMode ? "Maintenance Schedule" : "Fasting Protocol"}
                   </p>
                   {isCoachAssigned && !isMaintenanceMode && (
-                    <Badge className={`text-[10px] px-1.5 py-0 ${hasBackground ? "bg-white/20 text-white border-white/30" : "bg-primary/10 text-primary border-primary/20"} hover:bg-primary/10`}>
+                    <Badge className={`text-[10px] px-2 py-0.5 font-semibold ${hasBackground ? "bg-white/20 text-white border-white/30" : "bg-primary/20 text-primary border-primary/30"}`}>
                       Coach Assigned
                     </Badge>
                   )}
                 </div>
-                <h3 className={`text-base font-black mt-0.5 drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)] ${hasBackground ? "text-white" : ""}`}>{isMaintenanceMode ? (maintenanceLabel || "Maintenance") : planName}</h3>
+                <h3 className={`text-lg font-black mt-0.5 drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)] ${hasBackground ? "text-white" : ""}`}>{isMaintenanceMode ? (maintenanceLabel || "Maintenance") : planName}</h3>
+                {activeKetoType && !isMaintenanceMode && (
+                  <div className="flex items-center gap-2 mt-1">
+                    <div
+                      className="h-5 w-auto px-2 rounded-full flex items-center gap-1.5 text-[10px] font-bold"
+                      style={{ backgroundColor: `${activeKetoType.color || '#ef4444'}20`, color: activeKetoType.color || '#ef4444' }}
+                    >
+                      {activeKetoType.abbreviation}
+                      <span className={hasBackground ? "text-white/50" : "text-muted-foreground"}>·</span>
+                      <span className={`font-medium ${hasBackground ? "text-white/70" : "text-muted-foreground"}`}>{activeKetoType.name}</span>
+                    </div>
+                  </div>
+                )}
               </div>
               {hasDuration && !isMaintenanceMode && (
-                <Badge variant={hasBackground ? "outline" : "secondary"} className={`text-xs ${hasBackground ? "border-white/40 text-white bg-white/10" : ""}`}>
+                <Badge variant={hasBackground ? "outline" : "secondary"} className={`text-xs font-bold px-3 py-1 rounded-full shrink-0 ${hasBackground ? "border-white/40 text-white bg-white/15" : ""}`}>
                   Day {dayNumber} / {activeProtocol!.duration_days}
                 </Badge>
               )}
