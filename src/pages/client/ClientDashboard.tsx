@@ -1303,28 +1303,52 @@ export default function ClientDashboard() {
                     trainingEnabled={settings.training_enabled}
                     tasksEnabled={settings.tasks_enabled}
                   />
-                  {/* Completed cardio sessions right under calendar */}
-                  {todayCardioSessions && todayCardioSessions.filter((s: any) => s.status === "completed").length > 0 && (
-                    <>
-                      <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2 mt-2">Quick Workouts</h2>
-                      <Card>
-                      <CardContent className="p-0 divide-y divide-border">
-                        {todayCardioSessions.filter((s: any) => s.status === "completed").map((session: any) => (
-                          <SwipeToDeleteCardioRow
-                            key={session.id}
-                            session={session}
-                            onDelete={async () => {
-                              await supabase.from("cardio_sessions" as any).delete().eq("id", session.id);
-                              queryClient.invalidateQueries({ queryKey: ["cardio-sessions-today"] });
-                              toast({ title: "Activity deleted" });
-                            }}
-                            onClick={() => setSelectedCardioSession(session)}
-                          />
-                        ))}
-                      </CardContent>
-                    </Card>
-                    </>
-                  )}
+                  {/* Completed workouts under calendar */}
+                  {(() => {
+                    const completedCardio = todayCardioSessions?.filter((s: any) => s.status === "completed") || [];
+                    const completedAssigned = clientWorkouts?.filter((w: any) => w.completed_at && w.scheduled_date && isToday(parseISO(w.scheduled_date))) || [];
+                    const hasAny = completedCardio.length > 0 || completedAssigned.length > 0;
+                    if (!hasAny) return null;
+                    return (
+                      <>
+                        <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2 mt-2">Quick Workouts</h2>
+                        <Card>
+                          <CardContent className="p-0 divide-y divide-border">
+                            {/* Completed assigned workouts - red circle white check */}
+                            {completedAssigned.map((workout: any) => (
+                              <div
+                                key={workout.id}
+                                className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-muted/50 transition-colors"
+                                onClick={() => navigate(`/client/workouts/${workout.workout_plan_id}`)}
+                              >
+                                <div className="h-6 w-6 rounded-full bg-primary flex items-center justify-center shrink-0">
+                                  <Check className="h-3.5 w-3.5 text-primary-foreground" strokeWidth={3} />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-semibold">{workout.workout_plan?.name || "Workout"}</p>
+                                  <p className="text-xs text-muted-foreground">Completed</p>
+                                </div>
+                                <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                              </div>
+                            ))}
+                            {/* Completed cardio - black circle white check */}
+                            {completedCardio.map((session: any) => (
+                              <SwipeToDeleteCardioRow
+                                key={session.id}
+                                session={session}
+                                onDelete={async () => {
+                                  await supabase.from("cardio_sessions" as any).delete().eq("id", session.id);
+                                  queryClient.invalidateQueries({ queryKey: ["cardio-sessions-today"] });
+                                  toast({ title: "Activity deleted" });
+                                }}
+                                onClick={() => setSelectedCardioSession(session)}
+                              />
+                            ))}
+                          </CardContent>
+                        </Card>
+                      </>
+                    );
+                  })()}
                 </div>
               ) : null;
 
