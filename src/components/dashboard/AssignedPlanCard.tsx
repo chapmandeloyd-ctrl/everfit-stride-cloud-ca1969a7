@@ -35,7 +35,7 @@ export function AssignedPlanCard({ clientId }: AssignedPlanCardProps) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("client_keto_assignments")
-        .select("keto_type_id, keto_types (id, name, abbreviation, theme_color)")
+        .select("keto_type_id, keto_types (id, name, abbreviation, color)")
         .eq("client_id", clientId)
         .eq("is_active", true)
         .maybeSingle();
