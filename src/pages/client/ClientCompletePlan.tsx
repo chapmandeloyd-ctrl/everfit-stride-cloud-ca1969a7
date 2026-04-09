@@ -68,6 +68,8 @@ interface StructuredSynergy {
 export default function ClientCompletePlan() {
   const clientId = useEffectiveClientId();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   // Get feature settings
   const { data: featureSettings } = useQuery({
