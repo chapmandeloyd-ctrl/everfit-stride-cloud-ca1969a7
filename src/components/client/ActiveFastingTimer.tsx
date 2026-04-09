@@ -17,6 +17,9 @@ interface ActiveFastingTimerProps {
   onEndFast: () => void;
   dayNumber?: number;
   totalDays?: number;
+  ketoTypeName?: string | null;
+  ketoTypeAbbreviation?: string | null;
+  ketoTypeColor?: string | null;
 }
 
 const SIZE = 320;
