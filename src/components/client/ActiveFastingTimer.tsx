@@ -17,6 +17,9 @@ interface ActiveFastingTimerProps {
   onEndFast: () => void;
   dayNumber?: number;
   totalDays?: number;
+  ketoTypeName?: string | null;
+  ketoTypeAbbreviation?: string | null;
+  ketoTypeColor?: string | null;
 }
 
 const SIZE = 320;
@@ -48,6 +51,9 @@ export function ActiveFastingTimer({
   onEndFast,
   dayNumber = 1,
   totalDays,
+  ketoTypeName,
+  ketoTypeAbbreviation,
+  ketoTypeColor,
 }: ActiveFastingTimerProps) {
   const [now, setNow] = useState(Date.now());
   const [showStages, setShowStages] = useState(false);
@@ -146,10 +152,15 @@ export function ActiveFastingTimer({
         {/* Header */}
         <div className="flex items-start justify-between">
           <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-red-400">
+            <div className="flex items-center gap-2 flex-wrap">
+              <p className="text-xs font-bold uppercase tracking-wider text-red-400">
                 Fasting Protocol
               </p>
+              {isCoachAssigned && (
+                <Badge className="text-[10px] px-2 py-0.5 bg-red-500/20 text-red-400 border border-red-500/30 font-semibold">
+                  Coach Assigned
+                </Badge>
+              )}
               {lockPin && (
                 <Badge className="bg-white/10 text-white/70 border-0 text-[10px] font-semibold px-2 py-0.5 gap-1">
                   <Lock className="h-3 w-3" />
@@ -157,11 +168,29 @@ export function ActiveFastingTimer({
                 </Badge>
               )}
             </div>
-            <h3 className="text-xl font-bold text-white">{protocolName}</h3>
+            <h3 className="text-xl font-black text-white">{protocolName}</h3>
+            {ketoTypeName && (
+              <div className="flex items-center gap-2 mt-0.5">
+                <div
+                  className="h-5 w-auto px-2 rounded-full flex items-center gap-1.5 text-[10px] font-bold"
+                  style={{ backgroundColor: `${ketoTypeColor || '#ef4444'}25`, color: ketoTypeColor || '#ef4444' }}
+                >
+                  {ketoTypeAbbreviation || ketoTypeName.slice(0, 3).toUpperCase()}
+                  <span className="text-white/40">·</span>
+                  <span className="text-white/60 font-medium">{ketoTypeName}</span>
+                </div>
+              </div>
+            )}
           </div>
-          <p className="text-sm font-semibold text-white/60">
-            Day {dayNumber}{totalDays ? ` / ${totalDays}` : ""}
-          </p>
+          {totalDays ? (
+            <Badge className="bg-white/15 text-white border-0 text-xs font-bold px-3 py-1 rounded-full shrink-0">
+              Day {dayNumber} / {totalDays}
+            </Badge>
+          ) : (
+            <Badge className="bg-white/15 text-white border-0 text-xs font-bold px-3 py-1 rounded-full shrink-0">
+              Day {dayNumber}
+            </Badge>
+          )}
         </div>
 
         {/* Ring */}
