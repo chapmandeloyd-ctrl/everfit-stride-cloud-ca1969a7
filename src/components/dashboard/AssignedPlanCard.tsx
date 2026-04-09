@@ -115,13 +115,7 @@ export function AssignedPlanCard({ clientId }: AssignedPlanCardProps) {
         <div className="space-y-2.5">
           {/* Protocol */}
           <button
-            onClick={() => {
-              if (isQuickPlan) {
-                navigate(`/client/quick-plan/${quickPlanId}`);
-              } else {
-                navigate(`/client/protocol/${protocolId}`);
-              }
-            }}
+            onClick={() => navigate("/client/complete-plan")}
             className="w-full flex items-center gap-3 p-3 rounded-xl border border-border hover:border-primary/30 hover:bg-muted/30 transition-all text-left"
           >
             <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
@@ -138,7 +132,7 @@ export function AssignedPlanCard({ clientId }: AssignedPlanCardProps) {
 
           {/* Keto Type */}
           <button
-            onClick={() => navigate(`/client/keto-types/${ketoTypeId}`)}
+            onClick={() => navigate("/client/complete-plan")}
             className="w-full flex items-center gap-3 p-3 rounded-xl border border-border hover:border-primary/30 hover:bg-muted/30 transition-all text-left"
           >
             <div
