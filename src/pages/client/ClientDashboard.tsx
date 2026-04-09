@@ -1141,6 +1141,7 @@ export default function ClientDashboard() {
   const [selectedSportEvent, setSelectedSportEvent] = useState<any>(null);
   const [sportCompletionOpen, setSportCompletionOpen] = useState(false);
   const [cardioFlowOpen, setCardioFlowOpen] = useState(false);
+  const [selectedCardioSession, setSelectedCardioSession] = useState<any>(null);
 
   // Fetch today's sport event completions
   const { data: sportEventCompletions } = useQuery({
