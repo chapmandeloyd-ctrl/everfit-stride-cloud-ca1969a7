@@ -13,11 +13,10 @@ serve(async (req) => {
 
   try {
     const { messages, client_context } = await req.json();
-
+    const ctx = client_context || {};
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const ctx = client_context || {};
     const engine = ctx.engine_mode || "metabolic";
     const firstName = ctx.first_name || "there";
     const level = ctx.current_level || 1;
