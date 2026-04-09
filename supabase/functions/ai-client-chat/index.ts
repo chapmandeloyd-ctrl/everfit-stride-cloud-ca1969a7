@@ -17,11 +17,31 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const engine = client_context?.engine_mode || "metabolic";
-    const ketoType = client_context?.keto_type || "Standard";
-    const protocol = client_context?.protocol_name || "your assigned protocol";
-    const level = client_context?.current_level || 1;
-    const firstName = client_context?.first_name || "there";
+    const ctx = client_context || {};
+    const engine = ctx.engine_mode || "metabolic";
+    const firstName = ctx.first_name || "there";
+    const level = ctx.current_level || 1;
+
+    // Keto type details
+    const ketoType = ctx.keto_type || "Standard";
+    const ketoAbbr = ctx.keto_abbreviation || "";
+    const ketoDesc = ctx.keto_description || "";
+    const ketoHowItWorks = ctx.keto_how_it_works || "";
+    const ketoBuiltFor = (ctx.keto_built_for || []).join(", ") || "General use";
+    const ketoCoachNotes = (ctx.keto_coach_notes || []).join(" • ") || "None";
+    const ketoDifficulty = ctx.keto_difficulty || "Unknown";
+    const ketoCarbLimit = ctx.keto_carb_limit ? `${ctx.keto_carb_limit}g` : "Not set";
+    const ketoMacros = ctx.keto_macros || {};
+    const ketoSubtitle = ctx.keto_subtitle || "";
+
+    // Protocol details
+    const protocolName = ctx.protocol_name || "your assigned protocol";
+    const protocolDesc = ctx.protocol_description || "";
+    const protocolFastHours = ctx.protocol_fast_hours || null;
+    const protocolDurationDays = ctx.protocol_duration_days || null;
+    const protocolCategory = ctx.protocol_category || "";
+    const protocolDifficulty = ctx.protocol_difficulty || "";
+    const protocolIntensity = ctx.protocol_intensity || "";
 
     let toneInstruction = "Be warm, supportive, and motivating.";
     if (engine === "metabolic") toneInstruction = "Be clear, structured, and clinically confident. Focus on metabolic health.";
@@ -42,16 +62,37 @@ CLIENT PROFILE:
 - Name: ${firstName}
 - Engine: ${engine.toUpperCase()}
 - Level: ${level}
-- Keto Type: ${ketoType}
-- Protocol: ${protocol}
+
+═══════════════════════════════════════
+ASSIGNED KETO TYPE: ${ketoType}${ketoAbbr ? ` (${ketoAbbr})` : ""}
+═══════════════════════════════════════
+${ketoSubtitle ? `Subtitle: ${ketoSubtitle}` : ""}
+${ketoDesc ? `Description: ${ketoDesc}` : ""}
+${ketoHowItWorks ? `How It Works: ${ketoHowItWorks}` : ""}
+- Difficulty: ${ketoDifficulty}
+- Carb Limit: ${ketoCarbLimit}/day
+- Macro Split: Protein ${ketoMacros.protein_pct || 0}% | Fat ${ketoMacros.fat_pct || 0}% | Carbs ${ketoMacros.carbs_pct || 0}%
+- Built For: ${ketoBuiltFor}
+- Coach Notes: ${ketoCoachNotes}
+
+═══════════════════════════════════════
+ASSIGNED FASTING PROTOCOL: ${protocolName}
+═══════════════════════════════════════
+${protocolDesc ? `Description: ${protocolDesc}` : ""}
+${protocolFastHours ? `Fast Window: ${protocolFastHours} hours` : ""}
+${protocolDurationDays ? `Program Duration: ${protocolDurationDays} days` : ""}
+${protocolCategory ? `Category: ${protocolCategory}` : ""}
+${protocolDifficulty ? `Difficulty: ${protocolDifficulty}` : ""}
+${protocolIntensity ? `Intensity: ${protocolIntensity}` : ""}
 
 WHAT YOU CAN HELP WITH:
-- Explain their fasting protocol and keto type
-- Answer questions about their program
+- Explain their keto type in detail — macros, food guidance, how it works physiologically
+- Explain their fasting protocol — timing, what to expect, adaptation phases
+- How their keto type and fasting protocol work TOGETHER as one metabolic system
 - Provide motivation and accountability
 - Explain the science behind their plan in simple terms
-- Give tips for staying on track
-- Help with common challenges (hunger, energy, cravings)
+- Give tips for staying on track (hunger, energy, cravings, food choices)
+- Suggest foods that fit their specific keto type macros
 
 STRICT RULES:
 - NEVER give medical advice or diagnose conditions
@@ -59,7 +100,9 @@ STRICT RULES:
 - If they ask to change their plan, tell them to speak with their coach
 - Keep responses under 150 words unless they ask for detail
 - Be encouraging but honest
-- Reference their specific program details when relevant`;
+- Reference their SPECIFIC keto type and protocol details when relevant — don't be generic
+- When discussing macros, use their actual assigned percentages
+- When discussing fasting, use their actual assigned hours`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
