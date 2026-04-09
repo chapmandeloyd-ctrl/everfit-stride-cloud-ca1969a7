@@ -1799,13 +1799,12 @@ export default function ClientDashboard() {
                   <Card>
                     <CardContent className="p-0 divide-y divide-border">
                       {todayCardioSessions.filter((s: any) => s.status === "completed").map((session: any) => (
-                        <div key={session.id} className="flex items-center gap-3 px-4 py-3">
+                        <div key={session.id} className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => setSelectedCardioSession(session)}>
                           <CheckCircle2 className="h-5 w-5 text-foreground shrink-0" />
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold capitalize">{session.activity_type.replace(/_/g, " ")}</p>
                             <p className="text-xs text-muted-foreground">
                               Completed.{" "}
-                              {session.distance_miles && `📍 ${session.distance_miles} miles `}
                               {session.duration_seconds > 0 && `⏱ ${formatCardioTime(session.duration_seconds)}`}
                             </p>
                           </div>
