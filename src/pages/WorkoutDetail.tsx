@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Play, Clock, Dumbbell } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { WorkoutPlayer, unlockAudioForMobile } from "@/components/WorkoutPlayer";
 import { WorkoutSummary } from "@/components/WorkoutSummary";
 import { awardBadges } from "@/hooks/useBadgeAwarder";
@@ -25,6 +26,7 @@ export default function WorkoutDetail() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, userRole } = useAuth();
+  const effectiveClientId = useEffectiveClientId();
   const [isPlaying, setIsPlaying] = useState(searchParams.get("start") === "true");
   const [summaryData, setSummaryData] = useState<{
     sessionId: string;
@@ -34,17 +36,18 @@ export default function WorkoutDetail() {
     completedAt: string;
     isPartial: boolean;
   } | null>(null);
-  const isClient = userRole === "client";
+  const isImpersonating = !!localStorage.getItem("impersonatedClientId");
+  const isClient = userRole === "client" || isImpersonating;
 
   // Fetch client_workout record for this workout plan
   const { data: clientWorkout } = useQuery({
-    queryKey: ["client-workout-for-plan", id, user?.id],
+    queryKey: ["client-workout-for-plan", id, effectiveClientId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("client_workouts")
         .select("*")
         .eq("workout_plan_id", id)
-        .eq("client_id", user?.id)
+        .eq("client_id", effectiveClientId)
         .is("completed_at", null)
         .order("assigned_at", { ascending: false })
         .limit(1)
@@ -52,7 +55,7 @@ export default function WorkoutDetail() {
       if (error) throw error;
       return data;
     },
-    enabled: !!id && !!user?.id && isClient,
+    enabled: !!id && !!effectiveClientId && isClient,
   });
 
   const { data: workout, isLoading } = useQuery({
@@ -139,7 +142,7 @@ export default function WorkoutDetail() {
       .from("workout_sessions")
       .insert({
         client_workout_id: clientWorkout?.id || null,
-        client_id: user?.id,
+        client_id: effectiveClientId,
         workout_plan_id: id,
         started_at: data.startedAt,
         completed_at: completedAt,
@@ -204,7 +207,7 @@ export default function WorkoutDetail() {
     }
 
     // Award badges
-    await awardBadges(user?.id!, session.id, workout?.difficulty);
+    await awardBadges(effectiveClientId!, session.id, workout?.difficulty);
 
     return { sessionId: session.id, completedAt };
   };
