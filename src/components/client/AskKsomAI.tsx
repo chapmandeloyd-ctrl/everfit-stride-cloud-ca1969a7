@@ -207,10 +207,10 @@ export function AskKsomAI({ clientId }: AskKsomAIProps) {
   };
 
   const quickPrompts = [
+    "Explain my keto type",
     "Explain my fasting program",
-    "Tips for staying in ketosis",
-    "What should I eat today?",
-    "How do I handle hunger?",
+    "What foods fit my macros?",
+    "How do my keto + fasting work together?",
   ];
 
   return (
