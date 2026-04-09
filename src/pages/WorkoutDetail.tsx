@@ -141,7 +141,7 @@ export default function WorkoutDetail() {
       .from("workout_sessions")
       .insert({
         client_workout_id: clientWorkout?.id || null,
-        client_id: user?.id,
+        client_id: effectiveClientId,
         workout_plan_id: id,
         started_at: data.startedAt,
         completed_at: completedAt,
@@ -206,7 +206,7 @@ export default function WorkoutDetail() {
     }
 
     // Award badges
-    await awardBadges(user?.id!, session.id, workout?.difficulty);
+    await awardBadges(effectiveClientId!, session.id, workout?.difficulty);
 
     return { sessionId: session.id, completedAt };
   };
