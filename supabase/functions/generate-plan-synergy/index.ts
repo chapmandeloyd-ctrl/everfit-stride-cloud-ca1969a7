@@ -46,23 +46,16 @@ serve(async (req) => {
       });
     }
 
-    // Fetch protocol data
-    let protocolData: Record<string, unknown> | null = null;
-    if (pType === "program") {
-      const { data } = await supabase
-        .from("fasting_protocols")
-        .select("*")
-        .eq("id", protocol_id)
-        .maybeSingle();
-      protocolData = data;
-    } else {
-      const { data } = await supabase
-        .from("quick_fasting_plans")
-        .select("*")
-        .eq("id", protocol_id)
-        .maybeSingle();
-      protocolData = data;
-    }
+    // Fetch protocol + keto type data in parallel
+    const [protocolResult, ketoResult] = await Promise.all([
+      pType === "program"
+        ? supabase.from("fasting_protocols").select("*").eq("id", protocol_id).maybeSingle()
+        : supabase.from("quick_fasting_plans").select("*").eq("id", protocol_id).maybeSingle(),
+      supabase.from("keto_types").select("*").eq("id", keto_type_id).maybeSingle(),
+    ]);
+
+    const protocolData = protocolResult.data;
+    const ketoType = ketoResult.data;
 
     if (!protocolData) {
       return new Response(JSON.stringify({ error: "Protocol not found" }), {
@@ -71,13 +64,6 @@ serve(async (req) => {
       });
     }
 
-    // Fetch keto type data
-    const { data: ketoType } = await supabase
-      .from("keto_types")
-      .select("*")
-      .eq("id", keto_type_id)
-      .maybeSingle();
-
     if (!ketoType) {
       return new Response(JSON.stringify({ error: "Keto type not found" }), {
         status: 404,
@@ -85,23 +71,18 @@ serve(async (req) => {
       });
     }
 
-    // Build context for AI
-    const fastHours = pType === "program"
-      ? protocolData.fast_target_hours
-      : protocolData.fast_hours;
-
+    const fastHours = pType === "program" ? protocolData.fast_target_hours : protocolData.fast_hours;
     const protocolName = protocolData.name as string;
     const ketoTypeName = ketoType.name as string;
     const ketoAbbrev = ketoType.abbreviation as string;
+    const durationDays = pType === "program" ? protocolData.duration_days : null;
 
-    const prompt = `You are a metabolic science expert writing for a premium health coaching platform called KSOM-360.
+    const prompt = `You are a metabolic performance coach for KSOM-360. Output ONLY valid JSON. No markdown, no code fences.
 
-A client has been assigned a combined fasting + nutrition plan. Generate a compelling, scientifically-grounded synergy description that explains WHY this specific pairing works together metabolically.
-
-FASTING PROTOCOL:
-- Name: ${protocolName}
-- Fasting Window: ${fastHours} hours
-- Type: ${pType === "program" ? `Multi-week program (${protocolData.duration_days} days)` : "Quick fasting plan"}
+CLIENT PROTOCOL:
+- Protocol: ${protocolName}
+- Fast Window: ${fastHours}h
+- Duration: ${durationDays ? `${durationDays} days` : "Ongoing"}
 - Category: ${protocolData.category || "general"}
 - Description: ${protocolData.description || "N/A"}
 
@@ -112,15 +93,27 @@ KETO TYPE:
 - How It Works: ${ketoType.how_it_works || "N/A"}
 - Built For: ${(ketoType.built_for || []).join(", ")}
 
-INSTRUCTIONS:
-1. Write 3-4 sentences explaining the metabolic synergy between this specific fasting window and this specific keto type.
-2. Reference real metabolic processes (glycogen depletion, ketone production, fat oxidation, autophagy, etc.) relevant to the fasting duration.
-3. Explain how the keto type's macro ratio complements and extends the benefits of the fast.
-4. End with a motivating statement about the KSOM Metabolic System.
-5. Do NOT use bullet points — write flowing, compelling prose.
-6. Do NOT start with "Your" — vary your opening.
-7. Keep it under 80 words. Make every word count.
-8. Sound authoritative but accessible — like a world-class metabolic coach.`;
+Generate a JSON object with these exact keys:
+
+{
+  "keto_synergy": "2-3 sentences. Direct. How ${fastHours}h fasting + ${ketoAbbrev} macro split work together metabolically. No fluff.",
+  "benefits": ["Fat loss benefit", "Muscle retention benefit", "Energy benefit", "Recovery benefit"],
+  "execution": ["Protein target instruction", "Meal timing instruction", "Fasting behavior instruction", "One more tactical tip"],
+  "timeline": [
+    {"period": "Week 1–2", "detail": "What happens metabolically"},
+    {"period": "Week 3–4", "detail": "What shifts"},
+    {"period": "Week 5+", "detail": "Expected adaptation"}
+  ],
+  "coach_warning": "One bold, direct warning. Example: Too much fat will slow results on this plan."
+}
+
+RULES:
+- No paragraphs. Short, punchy lines.
+- No AI tone. Sound like a coach giving orders.
+- Benefits and execution: max 8 words per bullet.
+- Timeline details: max 12 words each.
+- Coach warning: max 15 words.
+- Must be scannable in 5 seconds.`;
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -131,7 +124,7 @@ INSTRUCTIONS:
       body: JSON.stringify({
         model: "google/gemini-3-flash-preview",
         messages: [
-          { role: "system", content: "You are a metabolic science writer for a premium coaching platform. Write concise, compelling, scientifically-accurate content." },
+          { role: "system", content: "You output valid JSON only. No markdown. No explanation. No code fences." },
           { role: "user", content: prompt },
         ],
       }),
@@ -141,14 +134,12 @@ INSTRUCTIONS:
       const status = aiResponse.status;
       if (status === 429) {
         return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again shortly." }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       if (status === 402) {
         return new Response(JSON.stringify({ error: "AI credits exhausted. Please add funds." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       const errText = await aiResponse.text();
@@ -157,13 +148,22 @@ INSTRUCTIONS:
     }
 
     const aiData = await aiResponse.json();
-    const synergyText = aiData.choices?.[0]?.message?.content?.trim() || "";
+    let rawContent = aiData.choices?.[0]?.message?.content?.trim() || "";
 
-    if (!synergyText) {
-      throw new Error("AI returned empty synergy text");
+    // Strip markdown code fences if present
+    rawContent = rawContent.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+
+    let structured: Record<string, unknown>;
+    try {
+      structured = JSON.parse(rawContent);
+    } catch {
+      console.error("Failed to parse AI JSON:", rawContent);
+      throw new Error("AI returned invalid JSON");
     }
 
-    // Cache it
+    // Store the structured JSON as the synergy_text field (stringified)
+    const synergyText = JSON.stringify(structured);
+
     const { data: inserted, error: insertError } = await supabase
       .from("plan_synergy_content")
       .upsert({
@@ -179,16 +179,13 @@ INSTRUCTIONS:
 
     if (insertError) {
       console.error("Cache insert error:", insertError);
-      // Still return the text even if caching fails
       return new Response(JSON.stringify({
         synergy: {
           protocol_name: protocolName,
           keto_type_name: ketoTypeName,
           synergy_text: synergyText,
         },
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     return new Response(JSON.stringify({ synergy: inserted }), {
