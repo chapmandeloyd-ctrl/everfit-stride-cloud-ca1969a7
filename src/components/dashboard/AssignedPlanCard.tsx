@@ -138,7 +138,7 @@ export function AssignedPlanCard({ clientId }: AssignedPlanCardProps) {
 
           {/* Keto Type */}
           <button
-            onClick={() => navigate(`/client/keto-type/${ketoTypeId}`)}
+            onClick={() => navigate(`/client/keto-types/${ketoTypeId}`)}
             className="w-full flex items-center gap-3 p-3 rounded-xl border border-border hover:border-primary/30 hover:bg-muted/30 transition-all text-left"
           >
             <div
