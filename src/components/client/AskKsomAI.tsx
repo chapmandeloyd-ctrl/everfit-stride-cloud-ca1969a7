@@ -231,9 +231,9 @@ export function AskKsomAI({ clientId }: AskKsomAIProps) {
   };
 
   const quickPrompts = [
+    "Suggest meals for my keto type",
+    "What should I eat after my fast?",
     "Explain my keto type",
-    "Explain my fasting program",
-    "What foods fit my macros?",
     "How do my keto + fasting work together?",
   ];
 
