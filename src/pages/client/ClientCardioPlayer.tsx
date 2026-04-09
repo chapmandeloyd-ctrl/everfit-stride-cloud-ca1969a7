@@ -7,6 +7,7 @@ import { Square, Lock, Pause, Play, Heart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { getIconComponent, DEFAULT_ACTIVITIES } from "@/components/cardio/cardioActivities";
+import { CardioCelebration } from "@/components/cardio/CardioCelebration";
 
 export default function ClientCardioPlayer() {
   const navigate = useNavigate();
@@ -116,11 +117,19 @@ export default function ClientCardioPlayer() {
   const activityLabel = defaultMatch?.name || activity.replace(/_/g, " ");
   const ActivityIcon = getIconComponent(defaultMatch?.icon_name || "activity");
 
+  const [showCelebration, setShowCelebration] = useState(false);
+
+  const formatDurationLabel = (totalSeconds: number) => {
+    const hrs = Math.floor(totalSeconds / 3600);
+    const mins = Math.floor((totalSeconds % 3600) / 60);
+    const secs = totalSeconds % 60;
+    return `${hrs} h ${mins} m ${secs} s`;
+  };
+
   const handleStop = useCallback(async () => {
     if (isSaving) return;
     setIsSaving(true);
     if (intervalRef.current) clearInterval(intervalRef.current);
-    // Clean up persisted timer state
     try { sessionStorage.removeItem(STORAGE_KEY); } catch {}
     try {
       if (sessionId) {
@@ -130,13 +139,16 @@ export default function ClientCardioPlayer() {
           .eq("id", sessionId);
       }
       queryClient.invalidateQueries({ queryKey: ["cardio-sessions-today"] });
-      toast({ title: "Activity logged!", description: `${activityLabel} completed • ${formatTime(seconds)}` });
-      navigate("/client/dashboard");
+      setShowCelebration(true);
     } catch {
       toast({ title: "Error saving", variant: "destructive" });
       setIsSaving(false);
     }
   }, [sessionId, seconds, isSaving]);
+
+  const handleCelebrationComplete = useCallback(() => {
+    navigate("/client/dashboard");
+  }, [navigate]);
 
   const targetMins = targetType === "time" && targetValue ? parseFloat(targetValue) : null;
   const currentMins = seconds / 60;
