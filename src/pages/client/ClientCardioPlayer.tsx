@@ -266,7 +266,7 @@ export default function ClientCardioPlayer() {
           </div>
         </div>
         <div className="pb-8 pt-2">
-          {isLocked && <p className="pb-3 text-center text-xs font-medium text-muted-foreground">Screen locked — tap anywhere to unlock</p>}
+          {isLocked && <p className="pb-3 text-center text-xs font-medium text-muted-foreground">Screen locked — hold anywhere for 3s to unlock</p>}
           <div className="flex items-center justify-around px-6">
             <Button variant="outline" size="icon" className="h-14 w-14 rounded-full" onClick={handleStop} disabled={isLocked || isSaving}>
               <Square className="h-5 w-5" />
