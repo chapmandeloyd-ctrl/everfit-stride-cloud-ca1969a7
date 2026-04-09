@@ -25,6 +25,7 @@ import { SportEventCompletionDialog } from "@/components/SportEventCompletionDia
 import { DayStripCalendar } from "@/components/DayStripCalendar";
 import { QuickCardioFlow } from "@/components/cardio/QuickCardioFlow";
 import { CardioDetailSheet } from "@/components/cardio/CardioDetailSheet";
+import { SwipeToDeleteCardioRow } from "@/components/cardio/SwipeToDeleteCardioRow";
 import { SpeedDialFAB } from "@/components/SpeedDialFAB";
 
 import { ProgramsSelector } from "@/components/ProgramsSelector";
