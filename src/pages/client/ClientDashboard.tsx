@@ -1798,7 +1798,7 @@ export default function ClientDashboard() {
                     <CardContent className="p-0 divide-y divide-border">
                       {todayCardioSessions.filter((s: any) => s.status === "completed").map((session: any) => (
                         <div key={session.id} className="flex items-center gap-3 px-4 py-3">
-                          <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />
+                          <CheckCircle2 className="h-5 w-5 text-foreground shrink-0" />
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold capitalize">{session.activity_type.replace(/_/g, " ")}</p>
                             <p className="text-xs text-muted-foreground">
