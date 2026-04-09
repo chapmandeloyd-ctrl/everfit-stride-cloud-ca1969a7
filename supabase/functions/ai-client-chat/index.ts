@@ -42,6 +42,12 @@ serve(async (req) => {
     const protocolDifficulty = ctx.protocol_difficulty || "";
     const protocolIntensity = ctx.protocol_intensity || "";
 
+    // Keto-friendly recipes
+    const ketoRecipes = ctx.keto_friendly_recipes || [];
+    const recipeList = ketoRecipes.length > 0
+      ? ketoRecipes.map((r: any) => `• ${r.name} — ${r.calories || "?"}cal | P:${r.protein || "?"}g C:${r.carbs || "?"}g F:${r.fats || "?"}g`).join("\n")
+      : "No recipes loaded";
+
     let toneInstruction = "Be warm, supportive, and motivating.";
     if (engine === "metabolic") toneInstruction = "Be clear, structured, and clinically confident. Focus on metabolic health.";
     else if (engine === "performance") toneInstruction = "Be direct, confident, and results-driven. Focus on performance optimization.";
