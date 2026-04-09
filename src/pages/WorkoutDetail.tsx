@@ -26,6 +26,7 @@ export default function WorkoutDetail() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, userRole } = useAuth();
+  const effectiveClientId = useEffectiveClientId();
   const [isPlaying, setIsPlaying] = useState(searchParams.get("start") === "true");
   const [summaryData, setSummaryData] = useState<{
     sessionId: string;
