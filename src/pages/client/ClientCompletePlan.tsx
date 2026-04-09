@@ -5,10 +5,11 @@ import {
   ArrowLeft, Clock, CalendarDays, BarChart3, Utensils, Droplets, Users,
   TrendingUp, Lightbulb, Zap, Sparkles, Loader2, Check, Info
 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 import {
   CATEGORY_CONFIG,
   getDifficultyLabel,
