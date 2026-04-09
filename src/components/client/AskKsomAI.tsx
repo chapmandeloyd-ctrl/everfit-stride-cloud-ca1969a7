@@ -39,25 +39,51 @@ export function AskKsomAI({ clientId }: AskKsomAIProps) {
         .eq("id", clientId)
         .maybeSingle();
 
+      // Get assigned keto type with full details
       const { data: ketoAssign } = await supabase
         .from("client_keto_assignments")
-        .select("keto_type_id, keto_types(name)")
+        .select("keto_type_id, keto_types(name, abbreviation, description, how_it_works, built_for, coach_notes, difficulty, carb_limit_grams, protein_pct, fat_pct, carbs_pct, subtitle)")
         .eq("client_id", clientId)
         .eq("is_active", true)
         .maybeSingle();
 
-      const { data: protocol } = await supabase
+      // Get assigned protocol with full details
+      const { data: protocolSettings } = await supabase
         .from("client_feature_settings")
-        .select("selected_protocol_id, fasting_protocols(name)")
+        .select("selected_protocol_id, fasting_protocols(name, description, fast_target_hours, duration_days, category, difficulty_level, intensity_tier)")
         .eq("client_id", clientId)
         .maybeSingle();
+
+      const keto = (ketoAssign as any)?.keto_types;
+      const proto = (protocolSettings as any)?.fasting_protocols;
 
       return {
         engine_mode: settings?.engine_mode || "metabolic",
         current_level: settings?.current_level || 1,
         first_name: profile?.full_name?.split(" ")[0] || "there",
-        keto_type: (ketoAssign as any)?.keto_types?.name || "Standard",
-        protocol_name: (protocol as any)?.fasting_protocols?.name || "your assigned protocol",
+        // Keto type full details
+        keto_type: keto?.name || "Standard",
+        keto_abbreviation: keto?.abbreviation || "",
+        keto_description: keto?.description || "",
+        keto_how_it_works: keto?.how_it_works || "",
+        keto_built_for: keto?.built_for || [],
+        keto_coach_notes: keto?.coach_notes || [],
+        keto_difficulty: keto?.difficulty || "",
+        keto_carb_limit: keto?.carb_limit_grams || null,
+        keto_macros: {
+          protein_pct: keto?.protein_pct || 0,
+          fat_pct: keto?.fat_pct || 0,
+          carbs_pct: keto?.carbs_pct || 0,
+        },
+        keto_subtitle: keto?.subtitle || "",
+        // Protocol full details
+        protocol_name: proto?.name || "your assigned protocol",
+        protocol_description: proto?.description || "",
+        protocol_fast_hours: proto?.fast_target_hours || null,
+        protocol_duration_days: proto?.duration_days || null,
+        protocol_category: proto?.category || "",
+        protocol_difficulty: proto?.difficulty_level || "",
+        protocol_intensity: proto?.intensity_tier || "",
       };
     },
     enabled: !!clientId,
@@ -181,10 +207,10 @@ export function AskKsomAI({ clientId }: AskKsomAIProps) {
   };
 
   const quickPrompts = [
+    "Explain my keto type",
     "Explain my fasting program",
-    "Tips for staying in ketosis",
-    "What should I eat today?",
-    "How do I handle hunger?",
+    "What foods fit my macros?",
+    "How do my keto + fasting work together?",
   ];
 
   return (
