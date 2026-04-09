@@ -249,7 +249,7 @@ export default function ClientCompletePlan() {
               <h2 className="text-2xl font-black leading-tight">{protocol.name}</h2>
               {(customCopy?.descriptionOverride || protocol.description) && (
                 <p className="text-sm text-muted-foreground leading-relaxed mt-2">
-                  {customCopy?.descriptionOverride || protocol.description}
+                  {customCopy?.descriptionOverride || String(protocol.description || "")}
                 </p>
               )}
             </CardContent>
