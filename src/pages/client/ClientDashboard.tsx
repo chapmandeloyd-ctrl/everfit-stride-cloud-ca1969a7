@@ -24,6 +24,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { SportEventCompletionDialog } from "@/components/SportEventCompletionDialog";
 import { DayStripCalendar } from "@/components/DayStripCalendar";
 import { QuickCardioFlow } from "@/components/cardio/QuickCardioFlow";
+import { CardioDetailSheet } from "@/components/cardio/CardioDetailSheet";
 import { SpeedDialFAB } from "@/components/SpeedDialFAB";
 
 import { ProgramsSelector } from "@/components/ProgramsSelector";
@@ -1140,6 +1141,7 @@ export default function ClientDashboard() {
   const [selectedSportEvent, setSelectedSportEvent] = useState<any>(null);
   const [sportCompletionOpen, setSportCompletionOpen] = useState(false);
   const [cardioFlowOpen, setCardioFlowOpen] = useState(false);
+  const [selectedCardioSession, setSelectedCardioSession] = useState<any>(null);
 
   // Fetch today's sport event completions
   const { data: sportEventCompletions } = useQuery({
@@ -1797,13 +1799,12 @@ export default function ClientDashboard() {
                   <Card>
                     <CardContent className="p-0 divide-y divide-border">
                       {todayCardioSessions.filter((s: any) => s.status === "completed").map((session: any) => (
-                        <div key={session.id} className="flex items-center gap-3 px-4 py-3">
-                          <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />
+                        <div key={session.id} className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => setSelectedCardioSession(session)}>
+                          <CheckCircle2 className="h-5 w-5 text-foreground shrink-0" />
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold capitalize">{session.activity_type.replace(/_/g, " ")}</p>
                             <p className="text-xs text-muted-foreground">
                               Completed.{" "}
-                              {session.distance_miles && `📍 ${session.distance_miles} miles `}
                               {session.duration_seconds > 0 && `⏱ ${formatCardioTime(session.duration_seconds)}`}
                             </p>
                           </div>
@@ -1910,6 +1911,14 @@ export default function ClientDashboard() {
         onStart={handleCardioStart}
         onMarkComplete={handleCardioComplete}
       />
+
+      {selectedCardioSession && (
+        <CardioDetailSheet
+          open={!!selectedCardioSession}
+          onOpenChange={(open) => !open && setSelectedCardioSession(null)}
+          session={selectedCardioSession}
+        />
+      )}
 
       {/* Quick Edit Macros Sheet */}
       <Sheet open={macroEditOpen} onOpenChange={setMacroEditOpen}>
