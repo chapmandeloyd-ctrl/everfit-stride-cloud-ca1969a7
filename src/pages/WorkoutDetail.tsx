@@ -36,7 +36,8 @@ export default function WorkoutDetail() {
     completedAt: string;
     isPartial: boolean;
   } | null>(null);
-  const isClient = userRole === "client";
+  const isImpersonating = !!localStorage.getItem("impersonatedClientId");
+  const isClient = userRole === "client" || isImpersonating;
 
   // Fetch client_workout record for this workout plan
   const { data: clientWorkout } = useQuery({
