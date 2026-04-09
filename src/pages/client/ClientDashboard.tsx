@@ -1323,6 +1323,7 @@ export default function ClientDashboard() {
                         ))}
                       </CardContent>
                     </Card>
+                    </>
                   )}
                 </div>
               ) : null;
