@@ -51,6 +51,9 @@ export function ActiveFastingTimer({
   onEndFast,
   dayNumber = 1,
   totalDays,
+  ketoTypeName,
+  ketoTypeAbbreviation,
+  ketoTypeColor,
 }: ActiveFastingTimerProps) {
   const [now, setNow] = useState(Date.now());
   const [showStages, setShowStages] = useState(false);
