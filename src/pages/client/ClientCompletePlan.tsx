@@ -636,6 +636,28 @@ export default function ClientCompletePlan() {
             </Card>
           ) : null}
         </div>
+
+        {/* ═══════════════════════════════════════════ */}
+        {/* BOTTOM ACTION BUTTONS                       */}
+        {/* ═══════════════════════════════════════════ */}
+        <div className="px-5 mt-10 mb-6 space-y-3">
+          <Button
+            className="w-full h-12 text-base font-bold gap-2"
+            onClick={() => startFastMutation.mutate()}
+            disabled={startFastMutation.isPending}
+          >
+            <Zap className="h-5 w-5" />
+            {startFastMutation.isPending ? "Starting..." : "Start Fast"}
+          </Button>
+          <Button
+            variant="outline"
+            className="w-full h-11"
+            onClick={() => navigate("/client/dashboard")}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Home
+          </Button>
+        </div>
       </div>
     </ClientLayout>
   );
