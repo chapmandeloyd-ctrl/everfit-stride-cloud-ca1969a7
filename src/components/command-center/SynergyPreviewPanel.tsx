@@ -373,26 +373,115 @@ export function SynergyPreviewPanel({ clientId, trainerId }: SynergyPreviewPanel
         )}
 
         {hasBoth && synergy?.synergy_text && !synergyLoading && (
-          <div className="relative rounded-lg overflow-hidden border border-primary/20">
-            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary via-orange-500 to-red-500" />
-            <div className="p-4 pt-5">
-              <Badge variant="secondary" className="text-[10px] mb-2">
-                CLIENT PREVIEW
-              </Badge>
-              <p className="text-sm leading-relaxed text-foreground line-clamp-4">
-                {(() => {
-                  try {
-                    const parsed = JSON.parse(synergy.synergy_text);
-                    return parsed.keto_synergy || synergy.synergy_text;
-                  } catch {
-                    return synergy.synergy_text;
-                  }
-                })()}
-              </p>
-              <p className="text-[10px] text-muted-foreground mt-2">
-                Click "Edit" to modify all sections
-              </p>
-            </div>
+          <div className="space-y-3">
+            <Badge variant="secondary" className="text-[10px]">
+              CLIENT PREVIEW
+            </Badge>
+            {(() => {
+              const tc = ketoType?.color || "#ef4444";
+              try {
+                const s = JSON.parse(synergy.synergy_text);
+
+                return (
+                  <div className="space-y-2.5 max-h-[500px] overflow-y-auto pr-1">
+                    {/* Keto Synergy */}
+                    {s.keto_synergy && (
+                      <div className="relative rounded-lg overflow-hidden border p-3 pl-4" style={{ borderColor: `${tc}40` }}>
+                        <div className="absolute inset-y-0 left-0 w-1" style={{ backgroundColor: tc }} />
+                        <div className="flex items-center gap-1.5 mb-1.5">
+                          <Sparkles className="h-3 w-3" style={{ color: tc }} />
+                          <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: tc }}>Keto Synergy</span>
+                        </div>
+                        <p className="text-xs leading-relaxed text-foreground line-clamp-3">{s.keto_synergy}</p>
+                      </div>
+                    )}
+
+                    {/* How It Works */}
+                    {s.how_it_works && (
+                      <div className="relative rounded-lg overflow-hidden border border-border/50 p-3 pl-4">
+                        <div className="absolute inset-y-0 left-0 w-1" style={{ backgroundColor: `${tc}60` }} />
+                        <div className="flex items-center gap-1.5 mb-1.5">
+                          <Zap className="h-3 w-3" style={{ color: tc }} />
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">How It Works</span>
+                        </div>
+                        <p className="text-xs leading-relaxed text-muted-foreground line-clamp-2">{s.how_it_works}</p>
+                      </div>
+                    )}
+
+                    {/* Adaptation Timeline */}
+                    {s.adaptation_timeline?.length > 0 && (
+                      <div className="relative rounded-lg overflow-hidden border border-border/50 p-3 pl-4">
+                        <div className="absolute inset-y-0 left-0 w-1" style={{ backgroundColor: `${tc}60` }} />
+                        <div className="flex items-center gap-1.5 mb-2">
+                          <RefreshCw className="h-3 w-3" style={{ color: tc }} />
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Adaptation Timeline</span>
+                        </div>
+                        <div className="space-y-1.5">
+                          {s.adaptation_timeline.slice(0, 3).map((p: { phase?: number; title: string; period: string }, i: number) => (
+                            <div key={i} className="flex items-center gap-2">
+                              <span className="h-5 w-5 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0" style={{ backgroundColor: `${tc}15`, color: tc }}>
+                                {p.phase || i + 1}
+                              </span>
+                              <span className="text-xs font-semibold text-foreground">{p.title}</span>
+                              <span className="text-[9px] px-1.5 py-0.5 rounded-full" style={{ color: tc, backgroundColor: `${tc}12` }}>{p.period}</span>
+                            </div>
+                          ))}
+                          {s.adaptation_timeline.length > 3 && (
+                            <p className="text-[10px] text-muted-foreground ml-7">+{s.adaptation_timeline.length - 3} more phases</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Eat / Avoid preview */}
+                    {(s.eat_this?.length > 0 || s.avoid_this?.length > 0) && (
+                      <div className="grid grid-cols-2 gap-2">
+                        {s.eat_this?.length > 0 && (
+                          <div className="relative rounded-lg overflow-hidden border border-border/50 p-2.5 pl-3.5">
+                            <div className="absolute inset-y-0 left-0 w-1 bg-emerald-500/60" />
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1 mb-1">
+                              <Sparkles className="h-2.5 w-2.5" /> Eat This
+                            </span>
+                            {s.eat_this.slice(0, 3).map((item: string, i: number) => (
+                              <p key={i} className="text-[10px] text-foreground truncate">• {item}</p>
+                            ))}
+                          </div>
+                        )}
+                        {s.avoid_this?.length > 0 && (
+                          <div className="relative rounded-lg overflow-hidden border border-border/50 p-2.5 pl-3.5">
+                            <div className="absolute inset-y-0 left-0 w-1 bg-destructive/60" />
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-destructive flex items-center gap-1 mb-1">
+                              <Zap className="h-2.5 w-2.5" /> Avoid
+                            </span>
+                            {s.avoid_this.slice(0, 3).map((item: string, i: number) => (
+                              <p key={i} className="text-[10px] text-foreground truncate">• {item}</p>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Coach Warning */}
+                    {s.coach_warning && (
+                      <div className="bg-destructive/10 border border-destructive/25 rounded-lg p-2.5 flex items-center gap-2">
+                        <Sparkles className="h-3 w-3 text-destructive shrink-0" />
+                        <p className="text-[11px] font-semibold text-foreground">{s.coach_warning}</p>
+                      </div>
+                    )}
+                  </div>
+                );
+              } catch {
+                return (
+                  <div className="relative rounded-lg overflow-hidden border border-primary/20 p-4 pt-5">
+                    <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary via-orange-500 to-red-500" />
+                    <p className="text-sm leading-relaxed text-foreground line-clamp-4">{synergy.synergy_text}</p>
+                  </div>
+                );
+              }
+            })()}
+            <p className="text-[10px] text-muted-foreground">
+              Click "Edit" to modify all sections
+            </p>
           </div>
         )}
       </CardContent>
