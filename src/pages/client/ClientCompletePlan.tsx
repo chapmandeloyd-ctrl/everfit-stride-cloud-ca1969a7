@@ -5,10 +5,11 @@ import {
   ArrowLeft, Clock, CalendarDays, BarChart3, Utensils, Droplets, Users,
   TrendingUp, Lightbulb, Zap, Sparkles, Loader2, Check, Info
 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 import {
   CATEGORY_CONFIG,
   getDifficultyLabel,
@@ -67,6 +68,8 @@ interface StructuredSynergy {
 export default function ClientCompletePlan() {
   const clientId = useEffectiveClientId();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   // Get feature settings
   const { data: featureSettings } = useQuery({
@@ -177,6 +180,29 @@ export default function ClientCompletePlan() {
       return null;
     }
   }, [synergy?.synergy_text]);
+
+  const startFastMutation = useMutation({
+    mutationFn: async () => {
+      const targetHours = protocol?.fast_target_hours || 16;
+      const { error } = await supabase
+        .from("client_feature_settings")
+        .update({
+          active_fast_start_at: new Date().toISOString(),
+          active_fast_target_hours: targetHours,
+          last_fast_ended_at: null,
+        })
+        .eq("client_id", clientId!);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting"] });
+      toast({ title: "Fast Started! 🔥", description: "Your fasting timer is now running." });
+      navigate("/client/dashboard");
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Could not start fast.", variant: "destructive" });
+    },
+  });
 
   if (!activeProtocolId || !ketoTypeId) {
     return (
@@ -610,6 +636,28 @@ export default function ClientCompletePlan() {
               </CardContent>
             </Card>
           ) : null}
+        </div>
+
+        {/* ═══════════════════════════════════════════ */}
+        {/* BOTTOM ACTION BUTTONS                       */}
+        {/* ═══════════════════════════════════════════ */}
+        <div className="px-5 mt-10 mb-6 space-y-3">
+          <Button
+            className="w-full h-12 text-base font-bold gap-2"
+            onClick={() => startFastMutation.mutate()}
+            disabled={startFastMutation.isPending}
+          >
+            <Zap className="h-5 w-5" />
+            {startFastMutation.isPending ? "Starting..." : "Start Fast"}
+          </Button>
+          <Button
+            variant="outline"
+            className="w-full h-11"
+            onClick={() => navigate("/client/dashboard")}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Home
+          </Button>
         </div>
       </div>
     </ClientLayout>
