@@ -24,6 +24,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { SportEventCompletionDialog } from "@/components/SportEventCompletionDialog";
 import { DayStripCalendar } from "@/components/DayStripCalendar";
 import { QuickCardioFlow } from "@/components/cardio/QuickCardioFlow";
+import { CardioDetailSheet } from "@/components/cardio/CardioDetailSheet";
 import { SpeedDialFAB } from "@/components/SpeedDialFAB";
 
 import { ProgramsSelector } from "@/components/ProgramsSelector";
