@@ -2,11 +2,12 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Loader2, RefreshCw, Zap, ChevronDown } from "lucide-react";
+import { Sparkles, Loader2, RefreshCw, Zap, Pencil } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { usePlanSynergy } from "@/hooks/usePlanSynergy";
 import { toast } from "sonner";
+import { SynergyManualEditor } from "./SynergyManualEditor";
 import {
   Select,
   SelectContent,
@@ -22,8 +23,8 @@ interface SynergyPreviewPanelProps {
 
 export function SynergyPreviewPanel({ clientId, trainerId }: SynergyPreviewPanelProps) {
   const queryClient = useQueryClient();
+  const [isEditing, setIsEditing] = useState(false);
 
-  // Fetch client's active protocol/quick plan
   const { data: featureSettings } = useQuery({
     queryKey: ["synergy-panel-settings", clientId],
     queryFn: async () => {
@@ -36,7 +37,6 @@ export function SynergyPreviewPanel({ clientId, trainerId }: SynergyPreviewPanel
     },
   });
 
-  // Fetch active keto assignment
   const { data: ketoAssignment } = useQuery({
     queryKey: ["synergy-panel-keto", clientId],
     queryFn: async () => {
@@ -50,7 +50,6 @@ export function SynergyPreviewPanel({ clientId, trainerId }: SynergyPreviewPanel
     },
   });
 
-  // Fetch all protocols for dropdown
   const { data: allProtocols } = useQuery({
     queryKey: ["synergy-all-protocols"],
     queryFn: async () => {
@@ -63,7 +62,6 @@ export function SynergyPreviewPanel({ clientId, trainerId }: SynergyPreviewPanel
     },
   });
 
-  // Fetch all quick plans for dropdown
   const { data: allQuickPlans } = useQuery({
     queryKey: ["synergy-all-quick-plans"],
     queryFn: async () => {
@@ -75,7 +73,6 @@ export function SynergyPreviewPanel({ clientId, trainerId }: SynergyPreviewPanel
     },
   });
 
-  // Fetch all keto types for dropdown
   const { data: allKetoTypes } = useQuery({
     queryKey: ["synergy-all-keto-types"],
     queryFn: async () => {
@@ -88,7 +85,6 @@ export function SynergyPreviewPanel({ clientId, trainerId }: SynergyPreviewPanel
     },
   });
 
-  // Fetch protocol/plan name
   const protocolId = featureSettings?.selected_protocol_id;
   const quickPlanId = featureSettings?.selected_quick_plan_id;
   const activeProtocolId = protocolId || quickPlanId;
@@ -124,7 +120,6 @@ export function SynergyPreviewPanel({ clientId, trainerId }: SynergyPreviewPanel
     ketoTypeId,
   );
 
-  // Assign protocol mutation
   const assignProtocolMutation = useMutation({
     mutationFn: async ({ id, type }: { id: string; type: "program" | "quick_plan" }) => {
       const updates: Record<string, unknown> = type === "program"
@@ -145,17 +140,14 @@ export function SynergyPreviewPanel({ clientId, trainerId }: SynergyPreviewPanel
     onError: () => toast.error("Failed to assign protocol"),
   });
 
-  // Assign keto type mutation
   const assignKetoMutation = useMutation({
     mutationFn: async (ketoId: string) => {
-      // Deactivate current
       if (ketoAssignment?.id) {
         await supabase
           .from("client_keto_assignments")
           .update({ is_active: false })
           .eq("id", ketoAssignment.id);
       }
-      // Assign new
       await supabase.from("client_keto_assignments").insert({
         client_id: clientId,
         keto_type_id: ketoId,
@@ -172,7 +164,6 @@ export function SynergyPreviewPanel({ clientId, trainerId }: SynergyPreviewPanel
     onError: () => toast.error("Failed to assign keto type"),
   });
 
-  // Regenerate mutation
   const regenerateMutation = useMutation({
     mutationFn: async () => {
       if (!activeProtocolId || !ketoTypeId || !protocolType) throw new Error("Missing assignments");
@@ -197,13 +188,43 @@ export function SynergyPreviewPanel({ clientId, trainerId }: SynergyPreviewPanel
 
   const hasBoth = !!activeProtocolId && !!ketoTypeId;
 
-  // Combined list for protocol selector: programs + quick plans
   const protocolOptions = [
     ...(allProtocols?.map(p => ({ id: p.id, label: `${p.name} (${p.fast_target_hours}h)`, type: "program" as const })) || []),
     ...(allQuickPlans?.map(p => ({ id: p.id, label: `${p.name} (${p.fast_hours}h)`, type: "quick_plan" as const })) || []),
   ];
 
   const currentProtocolValue = activeProtocolId ? `${protocolType}:${activeProtocolId}` : "";
+
+  // If in editing mode, show the manual editor
+  if (isEditing && hasBoth && protocolType && activeProtocolId && ketoTypeId) {
+    return (
+      <Card>
+        <CardContent className="p-5 space-y-4">
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+              <Pencil className="h-4 w-4 text-primary" />
+            </div>
+            <div>
+              <h3 className="font-bold text-sm">Manual Synergy Editor</h3>
+              <p className="text-[10px] text-muted-foreground">
+                Paste your content — it renders exactly as you write it
+              </p>
+            </div>
+          </div>
+          <SynergyManualEditor
+            protocolType={protocolType}
+            protocolId={activeProtocolId}
+            ketoTypeId={ketoTypeId}
+            protocolName={protocolInfo?.name || "Protocol"}
+            ketoTypeName={ketoType?.name || "Keto Type"}
+            existingContent={synergy?.synergy_text}
+            onSaved={() => setIsEditing(false)}
+            onCancel={() => setIsEditing(false)}
+          />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -215,20 +236,33 @@ export function SynergyPreviewPanel({ clientId, trainerId }: SynergyPreviewPanel
             </div>
             <div>
               <h3 className="font-bold text-sm">Protocol + Keto Synergy</h3>
-              <p className="text-[11px] text-muted-foreground">AI-generated metabolic synergy</p>
+              <p className="text-[11px] text-muted-foreground">AI-generated or manually written</p>
             </div>
           </div>
-          {hasBoth && synergy && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-xs gap-1"
-              onClick={() => regenerateMutation.mutate()}
-              disabled={regenerateMutation.isPending}
-            >
-              <RefreshCw className={`h-3 w-3 ${regenerateMutation.isPending ? "animate-spin" : ""}`} />
-              Regenerate
-            </Button>
+          {hasBoth && (
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs gap-1"
+                onClick={() => setIsEditing(true)}
+              >
+                <Pencil className="h-3 w-3" />
+                Edit
+              </Button>
+              {synergy && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs gap-1"
+                  onClick={() => regenerateMutation.mutate()}
+                  disabled={regenerateMutation.isPending}
+                >
+                  <RefreshCw className={`h-3 w-3 ${regenerateMutation.isPending ? "animate-spin" : ""}`} />
+                  AI Generate
+                </Button>
+              )}
+            </div>
           )}
         </div>
 
@@ -308,7 +342,7 @@ export function SynergyPreviewPanel({ clientId, trainerId }: SynergyPreviewPanel
           <div className="rounded-lg bg-muted/50 p-4 text-center">
             <Zap className="h-5 w-5 mx-auto text-muted-foreground mb-2" />
             <p className="text-sm text-muted-foreground">
-              Assign both a protocol and keto type to auto-generate the metabolic synergy description.
+              Assign both a protocol and keto type to write or generate the synergy content.
             </p>
           </div>
         )}
@@ -316,7 +350,25 @@ export function SynergyPreviewPanel({ clientId, trainerId }: SynergyPreviewPanel
         {hasBoth && synergyLoading && (
           <div className="rounded-lg bg-primary/5 border border-primary/20 p-4 flex items-center gap-3">
             <Loader2 className="h-4 w-4 animate-spin text-primary" />
-            <span className="text-sm text-muted-foreground">Generating synergy content...</span>
+            <span className="text-sm text-muted-foreground">Loading synergy content...</span>
+          </div>
+        )}
+
+        {hasBoth && !synergy?.synergy_text && !synergyLoading && (
+          <div className="rounded-lg bg-muted/50 p-4 text-center space-y-3">
+            <p className="text-sm text-muted-foreground">No synergy content yet.</p>
+            <div className="flex gap-2 justify-center">
+              <Button size="sm" variant="outline" onClick={() => setIsEditing(true)}>
+                <Pencil className="h-3 w-3 mr-1" /> Write Manually
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => regenerateMutation.mutate()}
+                disabled={regenerateMutation.isPending}
+              >
+                <Sparkles className="h-3 w-3 mr-1" /> AI Generate
+              </Button>
+            </div>
           </div>
         )}
 
@@ -327,7 +379,19 @@ export function SynergyPreviewPanel({ clientId, trainerId }: SynergyPreviewPanel
               <Badge variant="secondary" className="text-[10px] mb-2">
                 CLIENT PREVIEW
               </Badge>
-              <p className="text-sm leading-relaxed text-foreground">{synergy.synergy_text}</p>
+              <p className="text-sm leading-relaxed text-foreground line-clamp-4">
+                {(() => {
+                  try {
+                    const parsed = JSON.parse(synergy.synergy_text);
+                    return parsed.keto_synergy || synergy.synergy_text;
+                  } catch {
+                    return synergy.synergy_text;
+                  }
+                })()}
+              </p>
+              <p className="text-[10px] text-muted-foreground mt-2">
+                Click "Edit" to modify all sections
+              </p>
             </div>
           </div>
         )}
