@@ -89,7 +89,7 @@ export function AssignedPlanCard({ clientId }: AssignedPlanCardProps) {
   if (!activeId || !ketoTypeId) return null;
 
   const ketoType = ketoAssignment?.keto_types;
-  const themeColor = ketoType?.theme_color || "#ef4444";
+  const themeColor = ketoType?.color || "#ef4444";
 
   return (
     <Card className="overflow-hidden border-0 shadow-lg relative">
