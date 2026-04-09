@@ -154,7 +154,7 @@ export function ActiveFastingTimer({
           <div className="space-y-1">
             <div className="flex items-center gap-2 flex-wrap">
               <p className="text-xs font-bold uppercase tracking-wider text-red-400">
-                Fasting Protocol
+                Fasting Program
               </p>
               {isCoachAssigned && (
                 <Badge className="text-[10px] px-2 py-0.5 bg-red-500/20 text-red-400 border border-red-500/30 font-semibold">
