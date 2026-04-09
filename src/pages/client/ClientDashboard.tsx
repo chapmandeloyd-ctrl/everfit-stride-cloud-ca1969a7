@@ -1912,6 +1912,14 @@ export default function ClientDashboard() {
         onMarkComplete={handleCardioComplete}
       />
 
+      {selectedCardioSession && (
+        <CardioDetailSheet
+          open={!!selectedCardioSession}
+          onOpenChange={(open) => !open && setSelectedCardioSession(null)}
+          session={selectedCardioSession}
+        />
+      )}
+
       {/* Quick Edit Macros Sheet */}
       <Sheet open={macroEditOpen} onOpenChange={setMacroEditOpen}>
         <SheetContent side="bottom" className="rounded-t-2xl max-h-[85vh] overflow-y-auto">
