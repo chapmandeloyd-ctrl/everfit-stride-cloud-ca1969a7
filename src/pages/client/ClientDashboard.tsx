@@ -1976,11 +1976,22 @@ export default function ClientDashboard() {
                           <p className="text-[10px] text-muted-foreground">Eating window opens at {fastEndTimeStr}</p>
                           <Button variant="outline" size="sm" className="w-full" onClick={async (e) => {
                             e.stopPropagation();
+                            const nowTs = new Date();
                             const ewHours = fastingState?.eating_window_hours || 8;
-                            const ewEnd = new Date(Date.now() + ewHours * 3600000).toISOString();
-                            await supabase.from("client_feature_settings").update({ last_fast_ended_at: new Date().toISOString(), last_fast_completed_at: new Date().toISOString(), active_fast_start_at: null, active_fast_target_hours: null, eating_window_ends_at: ewEnd }).eq("client_id", clientId);
+                            const ewEnd = new Date(nowTs.getTime() + ewHours * 3600000).toISOString();
+                            const startAt = fastingState?.active_fast_start_at;
+                            const targetHours = fastingState?.active_fast_target_hours || 16;
+                            const actualMs = startAt ? nowTs.getTime() - new Date(startAt).getTime() : 0;
+                            const actualHours = Math.round((actualMs / 3600000) * 100) / 100;
+                            const completionPct = Math.min(Math.round((actualHours / targetHours) * 100), 100);
+                            const endedEarly = actualHours < targetHours;
+                            await supabase.from("client_feature_settings").update({ last_fast_ended_at: nowTs.toISOString(), last_fast_completed_at: nowTs.toISOString(), active_fast_start_at: null, active_fast_target_hours: null, eating_window_ends_at: ewEnd }).eq("client_id", clientId);
+                            if (startAt && fastingState?.trainer_id) {
+                              await supabase.from("fasting_log").insert({ client_id: clientId!, trainer_id: fastingState.trainer_id, started_at: startAt, ended_at: nowTs.toISOString(), target_hours: targetHours, actual_hours: actualHours, completion_pct: completionPct, status: endedEarly ? "partial" : "completed", ended_early: endedEarly });
+                            }
                             queryClient.invalidateQueries({ queryKey: ["fasting-gate-state"] });
                             queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting"] });
+                            queryClient.invalidateQueries({ queryKey: ["today-fasting-log"] });
                           }}>
                             End Fast
                           </Button>
