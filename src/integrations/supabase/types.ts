@@ -4053,6 +4053,54 @@ export type Database = {
         }
         Relationships: []
       }
+      in_app_notifications: {
+        Row: {
+          action_url: string | null
+          body: string | null
+          created_at: string
+          id: string
+          read_at: string | null
+          send_id: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          action_url?: string | null
+          body?: string | null
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          send_id?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          action_url?: string | null
+          body?: string | null
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          send_id?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "in_app_notifications_send_id_fkey"
+            columns: ["send_id"]
+            isOneToOne: false
+            referencedRelation: "notification_sends"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "in_app_notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       keto_categories: {
         Row: {
           color: string
@@ -4989,6 +5037,176 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      notification_send_recipients: {
+        Row: {
+          channel: string
+          client_id: string
+          created_at: string
+          error_message: string | null
+          id: string
+          send_id: string
+          sent_at: string | null
+          status: string
+        }
+        Insert: {
+          channel?: string
+          client_id: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          send_id: string
+          sent_at?: string | null
+          status?: string
+        }
+        Update: {
+          channel?: string
+          client_id?: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          send_id?: string
+          sent_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_send_recipients_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_send_recipients_send_id_fkey"
+            columns: ["send_id"]
+            isOneToOne: false
+            referencedRelation: "notification_sends"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_sends: {
+        Row: {
+          body_html: string | null
+          channel: string
+          created_at: string
+          failed_count: number
+          id: string
+          recipient_filter: Json | null
+          recipient_type: string
+          scheduled_at: string | null
+          sent_at: string | null
+          sent_count: number
+          status: string
+          subject: string
+          template_id: string | null
+          total_recipients: number
+          trainer_id: string
+          updated_at: string
+        }
+        Insert: {
+          body_html?: string | null
+          channel?: string
+          created_at?: string
+          failed_count?: number
+          id?: string
+          recipient_filter?: Json | null
+          recipient_type?: string
+          scheduled_at?: string | null
+          sent_at?: string | null
+          sent_count?: number
+          status?: string
+          subject: string
+          template_id?: string | null
+          total_recipients?: number
+          trainer_id: string
+          updated_at?: string
+        }
+        Update: {
+          body_html?: string | null
+          channel?: string
+          created_at?: string
+          failed_count?: number
+          id?: string
+          recipient_filter?: Json | null
+          recipient_type?: string
+          scheduled_at?: string | null
+          sent_at?: string | null
+          sent_count?: number
+          status?: string
+          subject?: string
+          template_id?: string | null
+          total_recipients?: number
+          trainer_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_sends_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "notification_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_sends_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_templates: {
+        Row: {
+          body_html: string | null
+          body_json: Json | null
+          category: string
+          channel: string
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          subject: string | null
+          trainer_id: string
+          updated_at: string
+        }
+        Insert: {
+          body_html?: string | null
+          body_json?: Json | null
+          category?: string
+          channel?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          subject?: string | null
+          trainer_id: string
+          updated_at?: string
+        }
+        Update: {
+          body_html?: string | null
+          body_json?: Json | null
+          category?: string
+          channel?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          subject?: string | null
+          trainer_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_templates_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nutrition_logs: {
         Row: {

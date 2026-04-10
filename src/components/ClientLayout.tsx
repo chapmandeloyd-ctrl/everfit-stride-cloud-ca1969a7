@@ -1,6 +1,7 @@
 import { ClientBottomNav } from "./ClientBottomNav";
 import { UpdateBanner } from "./UpdateBanner";
 import { LogOut, RefreshCw, MessageCircle } from "lucide-react";
+import { NotificationBell } from "./notifications/NotificationBell";
 import { ThemeToggle } from "./ThemeToggle";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
@@ -144,7 +145,10 @@ export function ClientLayout({ children }: ClientLayoutProps) {
                 </span>
               )}
             </button>
-            <ThemeToggle />
+            <div className="flex items-center gap-1">
+              <NotificationBell />
+              <ThemeToggle />
+            </div>
           </>
         )}
       </header>

@@ -94,6 +94,7 @@ import KetoTypesManager from "./pages/KetoTypesManager";
 import ClientKetoTypes from "./pages/client/ClientKetoTypes";
 import ClientKetoTypeDetail from "./pages/client/ClientKetoTypeDetail";
 import CardStylesPreview from "./pages/client/CardStylesPreview";
+import NotificationCenter from "./pages/NotificationCenter";
 
 const queryClient = new QueryClient();
 
@@ -149,6 +150,7 @@ const App = () => (
           <Route path="/clients-health" element={<ProtectedRoute allowedRoles={["trainer"]}><ClientsHealth /></ProtectedRoute>} />
           <Route path="/scheduling" element={<ProtectedRoute allowedRoles={["trainer"]}><Scheduling /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerSettings /></ProtectedRoute>} />
+          <Route path="/notifications" element={<ProtectedRoute allowedRoles={["trainer"]}><NotificationCenter /></ProtectedRoute>} />
           
           {/* Client Routes */}
           <Route path="/client/dashboard" element={<ProtectedRoute allowedRoles={["client"]}><ClientDashboard /></ProtectedRoute>} />
