@@ -283,7 +283,58 @@ export default function WorkoutDetail() {
 
   const handleDiscard = () => {
     setIsPlaying(false);
+    // If there was an in-progress session, delete it
+    if (inProgressSession?.id) {
+      supabase.from("workout_sessions").delete().eq("id", inProgressSession.id).then(() => {});
+    }
     navigate(isClient ? "/client/dashboard" : "/workouts");
+  };
+
+  const handleSaveForLater = async (data: { setLogs: Record<string, any>; elapsedSeconds: number; startedAt: string; stepIdx: number; completionPercent: number }) => {
+    setIsPlaying(false);
+    try {
+      if (inProgressSession?.id) {
+        // Update existing in-progress session
+        await supabase.from("workout_sessions").update({
+          duration_seconds: data.elapsedSeconds,
+          resume_section_index: data.stepIdx,
+          resume_set_logs: data.setLogs as any,
+          completion_percentage: data.completionPercent,
+          status: "in_progress",
+        }).eq("id", inProgressSession.id);
+      } else {
+        // Create new in-progress session
+        await supabase.from("workout_sessions").insert({
+          client_workout_id: clientWorkout?.id || null,
+          client_id: effectiveClientId,
+          workout_plan_id: id,
+          started_at: data.startedAt,
+          duration_seconds: data.elapsedSeconds,
+          is_partial: true,
+          status: "in_progress",
+          resume_section_index: data.stepIdx,
+          resume_set_logs: data.setLogs as any,
+          completion_percentage: data.completionPercent,
+        });
+      }
+      navigate("/client/dashboard");
+    } catch (err) {
+      console.error("Failed to save for later:", err);
+      navigate("/client/dashboard");
+    }
+  };
+
+  const handleResume = () => {
+    if (inProgressSession) {
+      const savedLogs = (inProgressSession as any).resume_set_logs || {};
+      setResumeData({
+        stepIdx: (inProgressSession as any).resume_section_index || 0,
+        setLogs: savedLogs,
+        elapsed: inProgressSession.duration_seconds || 0,
+        sessionId: inProgressSession.id,
+      });
+    }
+    setIsPlaying(true);
   };
 
   const handleExit = () => {
