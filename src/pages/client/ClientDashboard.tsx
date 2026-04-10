@@ -2061,22 +2061,7 @@ export default function ClientDashboard() {
               ) : null;
 
             case "step_tracker":
-              return settings.activity_logging_enabled && !isViewingOtherDay ? (
-                <div key="step_tracker">
-                  <h2 className="text-lg font-bold mb-2">Step tracker</h2>
-                  <Card className="cursor-pointer hover:shadow-sm transition-shadow min-h-[120px]" onClick={() => navigate("/client/health-connect")}>
-                    <CardContent className="p-5 flex items-center gap-4 h-full">
-                      <div className="flex-1">
-                        <p className="font-semibold text-sm text-primary">Connect Apple Health</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">Track your daily steps and activity</p>
-                      </div>
-                      <div className="p-3 bg-primary/10 rounded-xl">
-                        <Footprints className="h-10 w-10 text-primary" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              ) : null;
+              return null;
 
             case "tasks":
               return settings.tasks_enabled && tasks && tasks.length > 0 && !isViewingOtherDay ? (
