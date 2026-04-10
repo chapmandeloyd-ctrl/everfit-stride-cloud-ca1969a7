@@ -1365,22 +1365,53 @@ export default function ClientDashboard() {
                             <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2 mt-4">Completed Assigned Workouts</h2>
                             <Card>
                               <CardContent className="p-0 divide-y divide-border">
-                                {completedAssigned.map((workout: any) => (
-                                  <div
-                                    key={workout.id}
-                                    className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-muted/50 transition-colors"
-                                    onClick={() => navigate(`/client/workouts/${workout.workout_plan_id}`)}
-                                  >
-                                    <div className="h-6 w-6 rounded-full bg-primary flex items-center justify-center shrink-0">
-                                      <Check className="h-3.5 w-3.5 text-primary-foreground" strokeWidth={3} />
+                                {completedAssigned.map((workout: any) => {
+                                  // If it came from sessions, it has an 'id' as session id
+                                  const sessionId = workout.client_workout_id ? undefined : workout.id;
+                                  const isInProgress = workout.status === "in_progress";
+                                  return (
+                                    <div
+                                      key={workout.id}
+                                      className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-muted/50 transition-colors"
+                                      onClick={() => {
+                                        if (isInProgress) {
+                                          navigate(`/client/workouts/${workout.workout_plan_id}`);
+                                        } else if (sessionId) {
+                                          navigate(`/client/workout-session/${sessionId}`);
+                                        } else {
+                                          // Find the session for this client_workout_id
+                                          const matchedSession = (todayTrackedAssignedSessions || []).find(
+                                            (s: any) => s.client_workout_id === workout.id
+                                          );
+                                          if (matchedSession) {
+                                            navigate(`/client/workout-session/${matchedSession.id}`);
+                                          } else {
+                                            navigate(`/client/workouts/${workout.workout_plan_id}`);
+                                          }
+                                        }
+                                      }}
+                                    >
+                                      <div className={`h-6 w-6 rounded-full flex items-center justify-center shrink-0 ${isInProgress ? "bg-amber-500" : "bg-primary"}`}>
+                                        {isInProgress ? (
+                                          <Clock className="h-3.5 w-3.5 text-primary-foreground" strokeWidth={3} />
+                                        ) : (
+                                          <Check className="h-3.5 w-3.5 text-primary-foreground" strokeWidth={3} />
+                                        )}
+                                      </div>
+                                      <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-semibold">{workout.workout_plan?.name || "Workout"}</p>
+                                        <p className="text-xs text-muted-foreground">
+                                          {isInProgress
+                                            ? `In Progress · ${workout.completion_percentage || 0}% Complete`
+                                            : workout.is_partial
+                                            ? `Tracked · ${workout.completion_percentage || ''}${workout.completion_percentage ? '% ' : ''}Complete`
+                                            : "Completed"}
+                                        </p>
+                                      </div>
+                                      <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                      <p className="text-sm font-semibold">{workout.workout_plan?.name || "Workout"}</p>
-                                      <p className="text-xs text-muted-foreground">{workout.is_partial ? "Tracked" : "Completed"}</p>
-                                    </div>
-                                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-                                  </div>
-                                ))}
+                                  );
+                                })}
                               </CardContent>
                             </Card>
                           </>
