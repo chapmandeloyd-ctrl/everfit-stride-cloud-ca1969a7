@@ -447,7 +447,7 @@ export default function ClientCompletePlan() {
           <div className="grid grid-cols-3 gap-2">
             {[
               { label: "Level", value: ketoType.difficulty === "beginner" ? "Beginner" : ketoType.difficulty === "intermediate" ? "Intermediate" : "Advanced" },
-              { label: "Type", value: ketoType.engine_compatibility === "both" ? "Universal" : ketoType.engine_compatibility === "metabolic" ? "KSOM-360" : "Athletic" },
+              { label: "System", value: "KSOM-360" },
               { label: "Carbs", value: ketoType.carb_limit_grams ? `≤${ketoType.carb_limit_grams}g` : `${ketoType.carbs_pct}%` },
             ].map((stat) => (
               <Card key={stat.label}>
