@@ -107,10 +107,11 @@ export function HealthSnapshotDialog({ open, onOpenChange }: HealthSnapshotDialo
         date: data.date,
       });
 
-      // Refresh health data queries
-      queryClient.invalidateQueries({ queryKey: ['health-data'] });
-      queryClient.invalidateQueries({ queryKey: ['health-stats'] });
-      queryClient.invalidateQueries({ queryKey: ['health-connections'] });
+      // Refresh all metric/health queries
+      queryClient.invalidateQueries({ queryKey: ['health-activity-metrics'] });
+      queryClient.invalidateQueries({ queryKey: ['health-activity-workouts'] });
+      queryClient.invalidateQueries({ queryKey: ['progress-tile-data'] });
+      queryClient.invalidateQueries({ queryKey: ['progress-client-metrics'] });
 
       toast.success(`${data.count} health metrics imported successfully!`);
     } catch (err: any) {

@@ -6,6 +6,17 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+// Map AI-extracted data types to our metric_definition names
+const DATA_TYPE_TO_METRIC: Record<string, string> = {
+  steps: 'Steps',
+  calories_burned: 'Caloric Burn',
+  active_energy: 'Caloric Burn',
+  resting_energy: 'Caloric Burn',
+  sleep: 'Sleep',
+  weight: 'Weight',
+  caloric_intake: 'Caloric Intake',
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -16,12 +27,10 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Authenticate user
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "No authorization header" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -29,8 +38,7 @@ serve(async (req) => {
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     if (authError || !user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -40,9 +48,8 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured');
 
-    console.log('Analyzing Apple Health screenshot with AI...');
+    console.log('Analyzing health screenshot with AI...');
 
-    // Use AI vision to extract health data from the screenshot
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -57,20 +64,20 @@ serve(async (req) => {
             content: [
               {
                 type: 'text',
-                text: `You are an expert at reading Apple Health app screenshots.
-Analyze this screenshot and extract ALL health metrics you can see.
+                text: `You are an expert at reading health app screenshots (Apple Health, Fitbit, Garmin, Samsung Health, etc.).
+Analyze this screenshot and extract health metrics you can see.
 
-IMPORTANT MAPPING RULES for data_type:
-- "Move" or "Active Calories" or "Active Energy" → calories_burned
-- "Exercise" minutes → active_minutes  
-- "Steps" → steps
-- "Heart Rate" or "Walking Heart Rate" or "Walking Heart Rate Average" → heart_rate
-- "Resting Heart Rate" → resting_heart_rate
-- "Workouts" (count) → workout
-- Do NOT map "Stand", "Sleep Score", "Walking Speed", "Weight", "Distance" — skip these metrics.
+MAPPING RULES for data_type:
+- "Steps" or step count → steps
+- "Active Calories" or "Active Energy" or "Move" → active_energy
+- "Calories Burned" or total calories → calories_burned
+- "Sleep" duration → sleep (value in HOURS as decimal, e.g. 7.5)
+- "Weight" → weight (value in lbs)
+- "Caloric Intake" or food calories → caloric_intake
 
-Extract exact numbers shown on screen. If a metric is not in the mapping above, omit it entirely.
-Today's date is ${new Date().toISOString().split('T')[0]}. Ignore any dates shown in the screenshot.`
+Extract exact numbers shown on screen. Convert minutes to hours for sleep (e.g. 7h 30m = 7.5).
+Skip any metrics not in the mapping above.
+Today's date is ${new Date().toISOString().split('T')[0]}.`
               },
               {
                 type: 'image_url',
@@ -84,41 +91,27 @@ Today's date is ${new Date().toISOString().split('T')[0]}. Ignore any dates show
             type: 'function',
             function: {
               name: 'extract_health_metrics',
-              description: 'Extract all health metrics visible in the Apple Health screenshot',
+              description: 'Extract health metrics from the screenshot',
               parameters: {
                 type: 'object',
                 properties: {
                   metrics: {
                     type: 'array',
-                    description: 'List of all health metrics extracted from the screenshot',
                     items: {
                       type: 'object',
                       properties: {
                         data_type: {
                           type: 'string',
-                          enum: ['steps', 'calories_burned', 'heart_rate', 'resting_heart_rate', 'active_minutes', 'workout'],
-                          description: 'The type of health metric'
+                          enum: ['steps', 'calories_burned', 'active_energy', 'sleep', 'weight', 'caloric_intake'],
                         },
-                        value: {
-                          type: 'number',
-                          description: 'The numeric value of the metric'
-                        },
-                        unit: {
-                          type: 'string',
-                          description: 'The unit (e.g. count, kcal, bpm, min)'
-                        },
-                        label: {
-                          type: 'string',
-                          description: 'Human-readable label shown in the screenshot (e.g. "Steps", "Active Calories")'
-                        }
+                        value: { type: 'number' },
+                        unit: { type: 'string' },
+                        label: { type: 'string' }
                       },
                       required: ['data_type', 'value', 'unit', 'label']
                     }
                   },
-                  summary: {
-                    type: 'string',
-                    description: 'Brief summary of what was detected in the screenshot'
-                  }
+                  summary: { type: 'string' }
                 },
                 required: ['metrics', 'summary']
               }
@@ -132,14 +125,12 @@ Today's date is ${new Date().toISOString().split('T')[0]}. Ignore any dates show
     if (!response.ok) {
       if (response.status === 429) {
         return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again later." }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "AI credits required. Please add funds to your workspace." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        return new Response(JSON.stringify({ error: "AI credits required. Please add funds." }), {
+          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       const errorText = await response.text();
@@ -156,58 +147,103 @@ Today's date is ${new Date().toISOString().split('T')[0]}. Ignore any dates show
 
     if (!extracted.metrics || extracted.metrics.length === 0) {
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          message: "No health metrics could be detected in this screenshot. Please make sure the image shows Apple Health data clearly.",
-          metrics: []
-        }),
+        JSON.stringify({ success: false, message: "No health metrics detected. Try a clearer screenshot.", metrics: [] }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Always use today's date — screenshot dates are unreliable (wrong year, partial dates)
+    // Save extracted metrics into metric_entries (the real data source)
     const now = new Date();
-    const recordDate = now.toISOString().split('T')[0];
-    const recordedAt = `${recordDate}T${String(now.getUTCHours()).padStart(2,'0')}:00:00Z`;
+    let savedCount = 0;
 
-    // Save to database
-    const healthRecords = extracted.metrics.map((metric: any) => ({
-      client_id: user.id,
-      data_type: metric.data_type,
-      value: Math.round(metric.value),
-      unit: metric.unit,
-      recorded_at: recordedAt,
-      source: 'apple_health',
-      metadata: { imported_via: 'screenshot', label: metric.label }
-    }));
+    // Get all metric definitions we need
+    const metricNames = [...new Set(extracted.metrics.map((m: any) => DATA_TYPE_TO_METRIC[m.data_type]).filter(Boolean))];
+    const { data: metricDefs } = await supabase
+      .from('metric_definitions')
+      .select('id, name')
+      .in('name', metricNames);
 
-    const { error: insertError } = await supabase
-      .from('health_data')
-      .upsert(healthRecords, { onConflict: 'client_id,data_type,recorded_at' });
-
-    if (insertError) {
-      console.error('DB insert error:', insertError);
-      throw insertError;
+    if (!metricDefs || metricDefs.length === 0) {
+      console.error('No metric definitions found for:', metricNames);
+      throw new Error('Metric definitions not found');
     }
 
-    // Update health connection to show as connected
-    await supabase
-      .from('health_connections')
-      .upsert({
-        client_id: user.id,
-        provider: 'apple_health',
-        is_connected: true,
-        last_sync_at: new Date().toISOString(),
-        permissions: ['heart_rate', 'steps', 'calories', 'workouts', 'active_minutes'],
-      }, { onConflict: 'client_id,provider' });
+    const defMap: Record<string, string> = {};
+    metricDefs.forEach(d => { defMap[d.name] = d.id; });
+
+    // Get or create client_metrics for each definition
+    for (const metric of extracted.metrics) {
+      const metricName = DATA_TYPE_TO_METRIC[metric.data_type];
+      if (!metricName || !defMap[metricName]) continue;
+
+      const metricDefId = defMap[metricName];
+
+      // Find existing client_metric
+      let { data: existingCM } = await supabase
+        .from('client_metrics')
+        .select('id')
+        .eq('client_id', user.id)
+        .eq('metric_definition_id', metricDefId)
+        .limit(1);
+
+      let clientMetricId: string;
+
+      if (existingCM && existingCM.length > 0) {
+        clientMetricId = existingCM[0].id;
+      } else {
+        // Need trainer_id — look up from client_feature_settings
+        const { data: cfs } = await supabase
+          .from('client_feature_settings')
+          .select('trainer_id')
+          .eq('client_id', user.id)
+          .limit(1);
+        
+        const trainerId = cfs?.[0]?.trainer_id || user.id;
+
+        const { data: newCM, error: cmErr } = await supabase
+          .from('client_metrics')
+          .insert({
+            client_id: user.id,
+            metric_definition_id: metricDefId,
+            trainer_id: trainerId,
+            order_index: 0,
+          })
+          .select('id')
+          .single();
+
+        if (cmErr) {
+          console.error('Error creating client_metric:', cmErr);
+          continue;
+        }
+        clientMetricId = newCM.id;
+      }
+
+      // Insert metric entry
+      const { error: entryErr } = await supabase
+        .from('metric_entries')
+        .insert({
+          client_id: user.id,
+          client_metric_id: clientMetricId,
+          value: metric.value,
+          recorded_at: now.toISOString(),
+        });
+
+      if (entryErr) {
+        console.error('Error inserting metric_entry:', entryErr);
+      } else {
+        savedCount++;
+      }
+    }
+
+    console.log(`Saved ${savedCount} metrics to metric_entries`);
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        count: healthRecords.length,
+      JSON.stringify({
+        success: true,
+        count: savedCount,
         metrics: extracted.metrics,
         summary: extracted.summary,
-        date: recordDate
+        date: now.toISOString().split('T')[0],
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
