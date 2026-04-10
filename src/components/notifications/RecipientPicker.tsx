@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/components/AuthProvider";
+import { useAuth } from "@/hooks/useAuth";
 import { RecipientMode, RecipientFilter } from "./types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
