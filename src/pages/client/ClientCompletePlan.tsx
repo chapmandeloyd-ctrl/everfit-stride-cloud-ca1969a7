@@ -170,6 +170,18 @@ export default function ClientCompletePlan() {
     ketoTypeId || null,
   );
 
+  // Realtime: auto-refresh when trainer updates keto_types macros
+  useEffect(() => {
+    const channel = supabase
+      .channel("keto-types-realtime")
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "keto_types" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["complete-plan-keto-type"] });
+        queryClient.invalidateQueries({ queryKey: ["complete-plan-all-keto"] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [queryClient]);
+
   const structured = useMemo<StructuredSynergy | null>(() => {
     if (!synergy?.synergy_text) return null;
     try {
