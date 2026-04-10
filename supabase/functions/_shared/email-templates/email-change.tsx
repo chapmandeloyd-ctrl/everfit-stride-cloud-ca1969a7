@@ -32,13 +32,13 @@ export const EmailChangeEmail = ({
 }: EmailChangeEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Confirm your KSOM360 email change</Preview>
+    <Preview>Confirm your KSOM-360 email change</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Img src={LOGO_URL} alt="KSOM360" width="80" height="80" style={logo} />
+        <Img src={LOGO_URL} alt="KSOM-360" width="80" height="80" style={logo} />
         <Heading style={h1}>Confirm your email change</Heading>
         <Text style={text}>
-          You requested to change your KSOM360 email from{' '}
+          You requested to change your KSOM-360 email from{' '}
           <Link href={`mailto:${email}`} style={link}>
             {email}
           </Link>{' '}

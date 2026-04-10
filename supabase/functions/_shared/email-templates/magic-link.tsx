@@ -27,13 +27,13 @@ export const MagicLinkEmail = ({
 }: MagicLinkEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Your KSOM360 login link</Preview>
+    <Preview>Your KSOM-360 login link</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Img src={LOGO_URL} alt="KSOM360" width="80" height="80" style={logo} />
+        <Img src={LOGO_URL} alt="KSOM-360" width="80" height="80" style={logo} />
         <Heading style={h1}>Your login link</Heading>
         <Text style={text}>
-          Tap the button below to log in to KSOM360. This link will expire shortly.
+          Tap the button below to log in to KSOM-360. This link will expire shortly.
         </Text>
         <Button style={button} href={confirmationUrl}>
           Log In

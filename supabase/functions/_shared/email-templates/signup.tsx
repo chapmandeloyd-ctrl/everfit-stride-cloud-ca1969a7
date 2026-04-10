@@ -32,15 +32,15 @@ export const SignupEmail = ({
 }: SignupEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Welcome to KSOM360 — verify your email</Preview>
+    <Preview>Welcome to KSOM-360 — verify your email</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Img src={LOGO_URL} alt="KSOM360" width="80" height="80" style={logo} />
+        <Img src={LOGO_URL} alt="KSOM-360" width="80" height="80" style={logo} />
         <Heading style={h1}>Welcome aboard!</Heading>
         <Text style={text}>
           Thanks for joining{' '}
           <Link href={siteUrl} style={link}>
-            <strong>KSOM360</strong>
+            <strong>KSOM-360</strong>
           </Link>
           ! Let's get you started.
         </Text>

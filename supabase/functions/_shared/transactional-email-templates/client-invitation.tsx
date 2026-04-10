@@ -35,18 +35,18 @@ const ClientInvitationEmail = ({
     <Head />
     <Preview>
       {trainerName
-        ? `${trainerName} invited you to KSOM360`
-        : 'You\'ve been invited to KSOM360'}
+        ? `${trainerName} invited you to KSOM-360`
+        : 'You\'ve been invited to KSOM-360'}
     </Preview>
     <Body style={main}>
       <Container style={container}>
-        <Img src={LOGO_URL} alt="KSOM360" width="80" height="80" style={logo} />
+        <Img src={LOGO_URL} alt="KSOM-360" width="80" height="80" style={logo} />
         <Heading style={h1}>You're in! 🎉</Heading>
         <Text style={text}>
           {name ? `Hey ${name}, ` : ''}
           {trainerName
-            ? `${trainerName} has set up your KSOM360 account.`
-            : 'Your KSOM360 account is ready.'}
+            ? `${trainerName} has set up your KSOM-360 account.`
+            : 'Your KSOM-360 account is ready.'}
           {' '}Log in to access your personalized training, nutrition, and progress tracking.
         </Text>
         {tempPassword && (
@@ -56,10 +56,10 @@ const ClientInvitationEmail = ({
         )}
         {loginUrl && (
           <Button style={button} href={loginUrl}>
-            Log In to KSOM360
+            Log In to KSOM-360
           </Button>
         )}
-        <Text style={footer}>— The KSOM360 Team</Text>
+        <Text style={footer}>— The KSOM-360 Team</Text>
       </Container>
     </Body>
   </Html>
@@ -69,8 +69,8 @@ export const template = {
   component: ClientInvitationEmail,
   subject: (data: Record<string, any>) =>
     data.trainerName
-      ? `${data.trainerName} invited you to KSOM360`
-      : 'You\'ve been invited to KSOM360',
+      ? `${data.trainerName} invited you to KSOM-360`
+      : 'You\'ve been invited to KSOM-360',
   displayName: 'Client invitation',
   previewData: {
     name: 'Jordan',

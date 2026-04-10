@@ -27,13 +27,13 @@ export const RecoveryEmail = ({
 }: RecoveryEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Reset your KSOM360 password</Preview>
+    <Preview>Reset your KSOM-360 password</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Img src={LOGO_URL} alt="KSOM360" width="80" height="80" style={logo} />
+        <Img src={LOGO_URL} alt="KSOM-360" width="80" height="80" style={logo} />
         <Heading style={h1}>Reset your password</Heading>
         <Text style={text}>
-          We received a request to reset your KSOM360 password. Tap the button
+          We received a request to reset your KSOM-360 password. Tap the button
           below to choose a new one.
         </Text>
         <Button style={button} href={confirmationUrl}>

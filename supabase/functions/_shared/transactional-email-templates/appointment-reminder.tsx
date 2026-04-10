@@ -38,7 +38,7 @@ const AppointmentReminderEmail = ({
     <Preview>Reminder: {appointmentType || 'appointment'} tomorrow</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Img src={LOGO_URL} alt="KSOM360" width="80" height="80" style={logo} />
+        <Img src={LOGO_URL} alt="KSOM-360" width="80" height="80" style={logo} />
         <Heading style={h1}>Heads up! ⏰</Heading>
         <Text style={text}>
           {name ? `Hey ${name}, just` : 'Just'} a reminder — you have an
@@ -61,7 +61,7 @@ const AppointmentReminderEmail = ({
         <Text style={text}>
           See you there! 💪
         </Text>
-        <Text style={footer}>— KSOM360</Text>
+        <Text style={footer}>— KSOM-360</Text>
       </Container>
     </Body>
   </Html>

@@ -24,15 +24,15 @@ interface WelcomeProps {
 const WelcomeEmail = ({ name }: WelcomeProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Welcome to KSOM360!</Preview>
+    <Preview>Welcome to KSOM-360!</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Img src={LOGO_URL} alt="KSOM360" width="80" height="80" style={logo} />
+        <Img src={LOGO_URL} alt="KSOM-360" width="80" height="80" style={logo} />
         <Heading style={h1}>
           {name ? `Welcome, ${name}!` : 'Welcome aboard!'}
         </Heading>
         <Text style={text}>
-          Your KSOM360 account is all set. Your coach is ready to help you
+          Your KSOM-360 account is all set. Your coach is ready to help you
           crush your goals — log in any time to check your workouts, nutrition,
           and progress.
         </Text>
@@ -40,7 +40,7 @@ const WelcomeEmail = ({ name }: WelcomeProps) => (
           If you have any questions, reach out to your coach through the
           in-app messaging. Let's get after it! 💪
         </Text>
-        <Text style={footer}>— The KSOM360 Team</Text>
+        <Text style={footer}>— The KSOM-360 Team</Text>
       </Container>
     </Body>
   </Html>
@@ -48,7 +48,7 @@ const WelcomeEmail = ({ name }: WelcomeProps) => (
 
 export const template = {
   component: WelcomeEmail,
-  subject: 'Welcome to KSOM360!',
+  subject: 'Welcome to KSOM-360!',
   displayName: 'Welcome email',
   previewData: { name: 'Jordan' },
 } satisfies TemplateEntry
