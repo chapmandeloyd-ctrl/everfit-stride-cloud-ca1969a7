@@ -610,21 +610,36 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
   }
 
   // Not fasting — ready state
+  const fastingCardBg = featureSettings?.fasting_card_image_url;
+  const hasBg = !!fastingCardBg;
+
   return (
     <>
-      <Card className="overflow-hidden border-primary/20 shadow-lg">
-        <CardContent className="px-5 pt-8 pb-6 space-y-4">
+      <Card className="overflow-hidden border-0 shadow-lg relative">
+        {/* Background image */}
+        {hasBg && (
+          <>
+            <div
+              className="absolute inset-0 bg-cover bg-center"
+              style={{ backgroundImage: `url(${fastingCardBg})` }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/40" />
+          </>
+        )}
+        {!hasBg && <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 to-black" />}
+
+        <CardContent className="relative z-10 px-5 pt-8 pb-6 space-y-4 text-white">
           <div className="flex items-start justify-between">
             <div className="space-y-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{isMaintenanceMode ? "Maintenance Schedule" : "Fasting Program"}</p>
+                <p className="text-xs font-bold text-white/70 uppercase tracking-wider">{isMaintenanceMode ? "Maintenance Schedule" : "Fasting Protocol"}</p>
                 {isCoachAssigned && !isMaintenanceMode && (
-                  <Badge className="text-[10px] px-2 py-0.5 bg-primary/20 text-primary border border-primary/30 font-semibold">
+                  <Badge className="text-[10px] px-2 py-0.5 bg-primary/20 text-primary border border-primary/30 hover:bg-primary/20 font-semibold">
                     Coach Assigned
                   </Badge>
                 )}
               </div>
-              <h3 className="text-lg font-black mt-0.5">{isMaintenanceMode ? (maintenanceLabel || "Maintenance") : planName}</h3>
+              <h3 className="text-lg font-black mt-0.5 text-white">{isMaintenanceMode ? (maintenanceLabel || "Maintenance") : planName}</h3>
               {activeKetoType && !isMaintenanceMode && (
                 <div className="flex items-center gap-2 mt-1">
                   <div
@@ -632,44 +647,53 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
                     style={{ backgroundColor: `${activeKetoType.color || '#ef4444'}20`, color: activeKetoType.color || '#ef4444' }}
                   >
                     {activeKetoType.abbreviation}
-                    <span className="text-muted-foreground">·</span>
-                    <span className="text-muted-foreground font-medium">{activeKetoType.name}</span>
+                    <span className="text-white/50">·</span>
+                    <span className="text-white/70 font-medium">{activeKetoType.name}</span>
                   </div>
                 </div>
               )}
             </div>
             {hasDuration && !isMaintenanceMode && (
-              <Badge variant="secondary" className="text-xs font-bold px-3 py-1 rounded-full shrink-0">
+              <Badge variant="outline" className="text-xs font-bold px-3 py-1 rounded-full shrink-0 border-white/30 text-white bg-white/10">
                 Day {dayNumber} / {activeProtocol!.duration_days}
               </Badge>
             )}
-            {isMaintenanceMode && <Badge variant="secondary" className="text-xs">Maintenance</Badge>}
+            {isMaintenanceMode && <Badge variant="outline" className="text-xs border-white/30 text-white bg-white/10">Maintenance</Badge>}
           </div>
-          <div className="text-center py-4">
-            <p className="text-sm text-muted-foreground">Ready to start your next fast</p>
-          </div>
+
+          {/* Day progress sub-card */}
+          {hasDuration && !isMaintenanceMode && dayNumber >= activeProtocol!.duration_days ? (
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-3 flex items-center gap-3 border border-white/10">
+              <div className="text-center">
+                <span className="text-2xl font-black text-white">{dayNumber}</span>
+                <span className="text-sm text-white/60">/{activeProtocol!.duration_days}</span>
+                <p className="text-[10px] text-white/50 uppercase tracking-wider font-bold">Day</p>
+              </div>
+              <div className="h-8 w-px bg-white/20" />
+              <div>
+                <p className="text-[10px] text-white/50 uppercase tracking-wider font-bold">Protocol</p>
+                <p className="text-sm font-bold text-white">Protocol Complete!</p>
+              </div>
+            </div>
+          ) : null}
+
           <Button
-            className="w-full h-12 text-base font-semibold gap-1.5"
+            className="w-full h-12 text-base font-semibold gap-2 bg-white/15 hover:bg-white/25 text-white border border-white/20 backdrop-blur-sm"
+            variant="ghost"
             onClick={() => navigate("/client/complete-plan")}
           >
-            View Program
-            <ArrowRight className="h-4 w-4" />
+            <Clock className="h-4 w-4" />
+            View Your Assigned Fast
           </Button>
-          {isCoachAssigned && (
-            <p className="text-[11px] text-muted-foreground text-center">
-              Need a different plan? Message your coach.
-            </p>
-          )}
-          {!isCoachAssigned && (
-            <div className="flex items-center justify-center gap-2">
-              <Button variant="ghost" size="sm" className="text-xs" onClick={() => navigate("/client/programs")}>
-                View protocol
-              </Button>
-              <Button variant="ghost" size="sm" className="text-xs" onClick={() => navigate("/client/keto-types")}>
-                View keto type
-              </Button>
-            </div>
-          )}
+
+          <div className="flex items-center justify-center gap-4">
+            <Button variant="link" size="sm" className="text-xs text-white/60 hover:text-white p-0 h-auto" onClick={() => navigate("/client/programs")}>
+              View protocols
+            </Button>
+            <Button variant="link" size="sm" className="text-xs text-primary hover:text-primary/80 p-0 h-auto" onClick={() => navigate("/client/keto-types")}>
+              View keto type
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
