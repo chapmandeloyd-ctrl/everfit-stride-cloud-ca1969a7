@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { usePlanSynergy } from "@/hooks/usePlanSynergy";
 import { toast } from "sonner";
 import { SynergyManualEditor } from "./SynergyManualEditor";
+import { KetoMacroEditor } from "@/components/keto/KetoMacroEditor";
 import {
   Select,
   SelectContent,
