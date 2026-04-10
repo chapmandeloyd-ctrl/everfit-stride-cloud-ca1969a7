@@ -206,28 +206,69 @@ export function DayStripPastSnapshot({
         );
       })}
 
-      {/* Workout Cards */}
-      {workouts?.map((w: any) => (
-        <Card key={w.id} className="overflow-hidden">
-          <div className="relative h-56 bg-gradient-to-br from-primary/20 to-primary/5">
-            {w.workout_plan?.image_url ? (
-              <img src={w.workout_plan.image_url} alt={w.workout_plan.name} className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <Dumbbell className="h-16 w-16 text-primary/20" />
+      {/* Workout Cards — horizontal carousel if multiple */}
+      {workouts && workouts.length > 0 && (() => {
+        const hasMultiple = workouts.length > 1;
+        return (
+          <div>
+            <div
+              ref={workoutScrollRef}
+              className={hasMultiple ? "flex overflow-x-auto snap-x snap-mandatory pb-2 scrollbar-hide" : ""}
+              onScroll={() => {
+                if (workoutScrollRef.current && hasMultiple) {
+                  const scrollLeft = workoutScrollRef.current.scrollLeft;
+                  const width = workoutScrollRef.current.clientWidth;
+                  setWorkoutActiveIndex(Math.round(scrollLeft / width));
+                }
+              }}
+            >
+              {workouts.map((w: any) => (
+                <Card
+                  key={w.id}
+                  className={cn(
+                    "overflow-hidden shrink-0 snap-center",
+                    hasMultiple ? "w-full min-w-full" : "w-full"
+                  )}
+                >
+                  <div className="relative h-56 bg-gradient-to-br from-primary/20 to-primary/5">
+                    {w.workout_plan?.image_url ? (
+                      <img src={w.workout_plan.image_url} alt={w.workout_plan.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Dumbbell className="h-16 w-16 text-primary/20" />
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-4">
+                      <p className="text-xs font-semibold text-white/70 uppercase tracking-wider">Workout</p>
+                      <p className="text-lg font-bold text-white">
+                        {w.workout_plan?.name || "Workout"}
+                        {w.completed_at && " ✅"}
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+            {hasMultiple && (
+              <div className="flex justify-center gap-1.5 mt-3">
+                {workouts.map((_: any, i: number) => (
+                  <button
+                    key={i}
+                    className={cn(
+                      "h-2 rounded-full transition-all duration-300",
+                      i === workoutActiveIndex ? "w-6 bg-primary" : "w-2 bg-muted-foreground/30"
+                    )}
+                    onClick={() => {
+                      workoutScrollRef.current?.scrollTo({ left: i * (workoutScrollRef.current?.clientWidth || 0), behavior: "smooth" });
+                    }}
+                  />
+                ))}
               </div>
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-            <div className="absolute bottom-0 left-0 right-0 p-4">
-              <p className="text-xs font-semibold text-white/70 uppercase tracking-wider">Workout</p>
-              <p className="text-lg font-bold text-white">
-                {w.workout_plan?.name || "Workout"}
-                {w.completed_at && " ✅"}
-              </p>
-            </div>
           </div>
-        </Card>
-      ))}
+        );
+      })()}
 
       {/* Rest Day Card */}
       {isRestDay && trainingEnabled && (
