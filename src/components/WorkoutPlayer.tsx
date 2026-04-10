@@ -618,6 +618,20 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
     onDiscard();
   };
 
+  const handleSaveForLater = () => {
+    if (elapsedRef.current) clearInterval(elapsedRef.current);
+    if (stepTimerRef.current) clearInterval(stepTimerRef.current);
+    try { sessionStorage.removeItem(WORKOUT_TIMER_KEY); } catch {}
+    setShowDiscardDialog(false);
+    onSaveForLater?.({
+      setLogs,
+      elapsedSeconds,
+      startedAt: startedAtRef.current,
+      stepIdx,
+      completionPercent: completedPercent,
+    });
+  };
+
   const togglePause = () => {
     const nowPaused = !isPausedRef.current;
     if (nowPaused) {
