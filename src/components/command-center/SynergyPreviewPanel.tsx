@@ -113,7 +113,7 @@ export function SynergyPreviewPanel({ clientId, trainerId }: SynergyPreviewPanel
   });
 
   const ketoTypeId = ketoAssignment?.keto_type_id || null;
-  const ketoType = ketoAssignment?.keto_types as { abbreviation: string; name: string; color: string } | null;
+  const ketoType = ketoAssignment?.keto_types as { id: string; abbreviation: string; name: string; color: string; fat_pct: number; protein_pct: number; carbs_pct: number; carb_limit_grams: number | null } | null;
 
   const { data: synergy, isLoading: synergyLoading } = usePlanSynergy(
     protocolType,
