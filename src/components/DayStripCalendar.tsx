@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { format, addDays, isToday, isSameDay } from "date-fns";
+import { useState, useRef, useEffect } from "react";
+import { format, addDays, startOfMonth, isToday, isSameDay, isBefore, startOfDay } from "date-fns";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -23,9 +23,30 @@ interface DayData {
 export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEnabled }: DayStripCalendarProps) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const today = new Date();
-  const days = Array.from({ length: daysAhead + 1 }, (_, i) => addDays(today, i));
-  const endDate = format(addDays(today, daysAhead), "yyyy-MM-dd");
-  const startDate = format(today, "yyyy-MM-dd");
+  const monthStart = startOfMonth(today);
+  const endDay = addDays(today, daysAhead);
+  // Build days from 1st of month through today + daysAhead
+  const days: Date[] = [];
+  let cursor = monthStart;
+  while (!isBefore(endDay, cursor)) {
+    days.push(cursor);
+    cursor = addDays(cursor, 1);
+  }
+  const startDate = format(monthStart, "yyyy-MM-dd");
+  const endDate = format(endDay, "yyyy-MM-dd");
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const todayRef = useRef<HTMLButtonElement>(null);
+
+  // Scroll to today on mount
+  useEffect(() => {
+    if (todayRef.current && scrollRef.current) {
+      const container = scrollRef.current;
+      const el = todayRef.current;
+      const scrollLeft = el.offsetLeft - container.offsetWidth / 2 + el.offsetWidth / 2;
+      container.scrollTo({ left: scrollLeft, behavior: "auto" });
+    }
+  }, []);
 
   // Fetch workouts, sport events, tasks, habits
   const { data: workouts } = useQuery({
@@ -36,8 +57,7 @@ export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEn
         .select("*, workout_plan:workout_plans(*)")
         .eq("client_id", clientId)
         .gte("scheduled_date", startDate)
-        .lte("scheduled_date", endDate)
-        .is("completed_at", null);
+        .lte("scheduled_date", endDate);
       if (error) throw error;
       return data;
     },
@@ -68,8 +88,7 @@ export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEn
         .select("*")
         .eq("client_id", clientId)
         .gte("due_date", startDate)
-        .lte("due_date", endDate)
-        .is("completed_at", null);
+        .lte("due_date", endDate);
       if (error) throw error;
       return data;
     },
@@ -164,23 +183,27 @@ export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEn
 
   return (
     <div className="space-y-3">
-      {/* Day Strip */}
-      <div className="flex gap-1 justify-between">
+      {/* Day Strip — scrollable */}
+      <div ref={scrollRef} className="flex gap-1 overflow-x-auto scrollbar-hide pb-1 -mx-1 px-1">
         {days.map((day) => {
           const isSelected = selectedDate ? isSameDay(day, selectedDate) : isToday(day);
           const isTodayDay = isToday(day);
+          const isPast = isBefore(startOfDay(day), startOfDay(today)) && !isTodayDay;
           const dots = hasDots(day);
           const hasAny = dots.hasWorkout || dots.hasSport || dots.hasTask;
 
           return (
             <button
               key={day.toISOString()}
+              ref={isTodayDay ? todayRef : undefined}
               onClick={() => setSelectedDate(isTodayDay && !selectedDate ? null : day)}
               className={cn(
-                "flex flex-col items-center gap-1 py-2 px-2 rounded-xl transition-all flex-1 min-w-0",
+                "flex flex-col items-center gap-1 py-2 px-2 rounded-xl transition-all shrink-0 w-12",
                 isSelected
                   ? "bg-primary text-primary-foreground shadow-sm"
-                  : "hover:bg-muted"
+                  : isPast
+                    ? "hover:bg-muted opacity-60"
+                    : "hover:bg-muted"
               )}
             >
               <span className={cn(
@@ -221,8 +244,8 @@ export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEn
         })}
       </div>
 
-      {/* Selected day preview (future days only) */}
-      {selectedDate && !isViewingToday && (
+      {/* Selected day preview */}
+      {selectedDate && !isToday(selectedDate) && (
         <div className="space-y-3">
           <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
             {format(viewDate, "EEEE, MMM d")}
@@ -287,7 +310,10 @@ export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEn
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-4">
                   <p className="text-xs font-semibold text-white/70 uppercase tracking-wider">Workout</p>
-                  <p className="text-lg font-bold text-white">{w.workout_plan?.name || "Workout"}</p>
+                  <p className="text-lg font-bold text-white">
+                    {w.workout_plan?.name || "Workout"}
+                    {w.completed_at && " ✅"}
+                  </p>
                 </div>
               </div>
             </Card>
