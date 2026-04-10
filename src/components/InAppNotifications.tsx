@@ -1,10 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Bell, X, Check } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import logoSrc from "@/assets/logo.png";
 
 export function InAppNotifications() {
   const clientId = useEffectiveClientId();
@@ -55,55 +55,78 @@ export function InAppNotifications() {
 
   if (!notifications || notifications.length === 0) return null;
 
+  const formatTime = (dateStr: string | null) => {
+    if (!dateStr || isNaN(new Date(dateStr).getTime())) return "Just now";
+    return formatDistanceToNow(new Date(dateStr), { addSuffix: true });
+  };
+
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base flex items-center gap-2">
-          <Bell className="h-4 w-4" />
+    <div className="space-y-3">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <img
+          src={logoSrc}
+          alt="KSOM-360"
+          className="h-8 w-8 rounded-lg object-contain"
+        />
+        <h2 className="text-lg font-heading font-bold text-foreground tracking-tight">
           Notifications
-          <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
-            {notifications.length}
-          </span>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-2">
+        </h2>
+        <span className="text-xs font-semibold bg-destructive text-destructive-foreground px-2 py-0.5 rounded-full">
+          {notifications.length}
+        </span>
+      </div>
+
+      {/* Notification cards */}
+      <div className="space-y-2">
         {notifications.map((n) => (
           <div
             key={n.id}
-            className="flex items-start gap-3 rounded-lg border border-border p-3 bg-card"
+            className="relative rounded-xl border border-border/60 bg-card p-4 shadow-sm transition-all hover:shadow-md"
           >
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground">{n.title}</p>
-              {n.body && (
-                <p className="text-xs text-muted-foreground mt-0.5">{n.body}</p>
-              )}
-              <p className="text-xs text-muted-foreground mt-1">
-                {n.sent_at && !isNaN(new Date(n.sent_at).getTime())
-                  ? formatDistanceToNow(new Date(n.sent_at), { addSuffix: true })
-                  : "Just now"}
-              </p>
-            </div>
-            <div className="flex gap-1 shrink-0">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7"
-                onClick={() => markOpenedMutation.mutate(n.id)}
-              >
-                <Check className="h-3.5 w-3.5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7"
-                onClick={() => dismissMutation.mutate(n.id)}
-              >
-                <X className="h-3.5 w-3.5" />
-              </Button>
+            <div className="flex items-start gap-3">
+              {/* Accent bar */}
+              <div className="w-1 self-stretch rounded-full bg-primary shrink-0" />
+
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-foreground leading-snug line-clamp-2">
+                  {n.title}
+                </p>
+                {n.body && (
+                  <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed line-clamp-3">
+                    {n.body}
+                  </p>
+                )}
+                <p className="text-[11px] text-muted-foreground/70 mt-2 font-medium">
+                  {formatTime(n.sent_at)}
+                </p>
+              </div>
+
+              {/* Actions */}
+              <div className="flex flex-col gap-1 shrink-0">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 rounded-full hover:bg-primary/10 hover:text-primary"
+                  onClick={() => markOpenedMutation.mutate(n.id)}
+                  title="Mark as read"
+                >
+                  <Check className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 rounded-full hover:bg-destructive/10 hover:text-destructive"
+                  onClick={() => dismissMutation.mutate(n.id)}
+                  title="Dismiss"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </Button>
+              </div>
             </div>
           </div>
         ))}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
