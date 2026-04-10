@@ -50,7 +50,7 @@ export function SpeedDialFAB({ items }: SpeedDialFABProps) {
       )}
 
       {/* Menu items */}
-      <div className="fixed bottom-[calc(5rem+3.5rem+0.75rem)] right-4 z-50 flex flex-col-reverse items-end gap-3">
+      <div className="fixed right-4 z-50 flex flex-col-reverse items-end gap-3" style={{ bottom: 'calc(5rem + 3.5rem + max(env(safe-area-inset-bottom, 0px), 4px))' }}>
         {/* FAB Button */}
         <button
           onClick={() => (open ? handleClose() : setOpen(true))}
