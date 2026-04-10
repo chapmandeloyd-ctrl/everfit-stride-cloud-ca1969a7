@@ -18,6 +18,7 @@ import Analytics from "./pages/Analytics";
 import Goals from "./pages/Goals";
 import TaskLibrary from "./pages/TaskLibrary";
 import Auth from "./pages/Auth";
+import Unsubscribe from "./pages/Unsubscribe";
 import ClientDashboard from "./pages/client/ClientDashboard";
 import ClientOnboarding from "./pages/client/ClientOnboarding";
 import ClientWorkouts from "./pages/client/ClientWorkouts";
@@ -107,6 +108,7 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/guardian/:token" element={<GuardianSummary />} />
+          <Route path="/unsubscribe" element={<Unsubscribe />} />
           
           {/* Trainer Routes */}
           <Route path="/" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerDashboard /></ProtectedRoute>} />
