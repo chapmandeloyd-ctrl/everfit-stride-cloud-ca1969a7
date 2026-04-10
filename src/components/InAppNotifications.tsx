@@ -78,7 +78,9 @@ export function InAppNotifications() {
                 <p className="text-xs text-muted-foreground mt-0.5">{n.body}</p>
               )}
               <p className="text-xs text-muted-foreground mt-1">
-                {formatDistanceToNow(new Date(n.sent_at), { addSuffix: true })}
+                {n.sent_at && !isNaN(new Date(n.sent_at).getTime())
+                  ? formatDistanceToNow(new Date(n.sent_at), { addSuffix: true })
+                  : "Just now"}
               </p>
             </div>
             <div className="flex gap-1 shrink-0">
