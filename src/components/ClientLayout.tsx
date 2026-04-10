@@ -109,7 +109,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
       <UpdateBanner />
       {/* Top bar — safe-area padding keeps it below the iOS notch / status bar */}
       <header
-        className="border-b border-border bg-card flex items-center justify-between px-4 shrink-0"
+        className="border-b border-border bg-card flex items-center justify-between px-4 shrink-0 relative z-[50]"
         style={{
           paddingTop: 'max(env(safe-area-inset-top, 0px), 12px)',
           minHeight: 'calc(3.5rem + env(safe-area-inset-top, 0px))',
