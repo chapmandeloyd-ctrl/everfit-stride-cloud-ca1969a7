@@ -11,7 +11,8 @@ interface DashboardNotification {
   id: string;
   title: string;
   body: string | null;
-  sent_at: string | null;
+  read_at: string | null;
+  created_at: string;
 }
 
 export function InAppNotifications() {
@@ -23,13 +24,11 @@ export function InAppNotifications() {
     queryKey: notificationsQueryKey,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("notification_events")
+        .from("in_app_notifications")
         .select("*")
         .eq("user_id", clientId!)
-        .is("opened_at", null)
-        .is("dismissed_at", null)
-        .is("suppression_reason", null)
-        .order("sent_at", { ascending: false })
+        .is("read_at", null)
+        .order("created_at", { ascending: false })
         .limit(10);
       if (error) throw error;
       return (data || []) as DashboardNotification[];
@@ -41,8 +40,8 @@ export function InAppNotifications() {
   const markOpenedMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from("notification_events")
-        .update({ opened_at: new Date().toISOString() })
+        .from("in_app_notifications")
+        .update({ read_at: new Date().toISOString() })
         .eq("id", id);
       if (error) throw error;
       return id;
@@ -74,8 +73,8 @@ export function InAppNotifications() {
   const dismissMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from("notification_events")
-        .update({ dismissed_at: new Date().toISOString() })
+        .from("in_app_notifications")
+        .update({ read_at: new Date().toISOString() })
         .eq("id", id);
       if (error) throw error;
       return id;
@@ -149,7 +148,7 @@ export function InAppNotifications() {
                   </p>
                 )}
                 <p className="text-[11px] text-muted-foreground/70 mt-2 font-medium">
-                  {formatTime(n.sent_at)}
+                  {formatTime(n.created_at)}
                 </p>
               </div>
 

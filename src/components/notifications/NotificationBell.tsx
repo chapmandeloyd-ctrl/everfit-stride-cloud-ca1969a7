@@ -55,7 +55,7 @@ export function NotificationBell() {
           filter: `user_id=eq.${activeClientId}`,
         },
         () => {
-          queryClient.invalidateQueries({ queryKey: ["in-app-notifications", activeClientId] });
+          queryClient.invalidateQueries({ queryKey: notificationsQueryKey });
         }
       )
       .subscribe();
@@ -139,7 +139,7 @@ export function NotificationBell() {
                     <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{notification.title}</p>
+                    <p className="text-sm font-medium line-clamp-2">{notification.title}</p>
                     {notification.body && (
                       <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{notification.body}</p>
                     )}
