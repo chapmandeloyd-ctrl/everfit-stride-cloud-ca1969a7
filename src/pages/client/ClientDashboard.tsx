@@ -3,7 +3,8 @@ import fastingCardBgImg from "@/assets/fasting-timer-bg.jpg";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Bell, Dumbbell, CheckCircle2, Circle, UtensilsCrossed, Footprints, ChevronRight, Smartphone, X, Plus, Pencil, Swords, Trophy, MapPin, Check, Activity, ScanBarcode, Camera, PenLine, MessageCircle, Clock, Sparkles, ArrowRight } from "lucide-react";
+import { Bell, Dumbbell, CheckCircle2, Circle, UtensilsCrossed, Footprints, ChevronRight, Smartphone, X, Plus, Pencil, Swords, Trophy, MapPin, Check, Activity, ScanBarcode, Camera, PenLine, MessageCircle, Clock, Sparkles, ArrowRight, CalendarDays, BarChart3 } from "lucide-react";
+import { getDifficultyLabel, getDurationLabel } from "@/lib/fastingCategoryConfig";
 import { useAuth } from "@/hooks/useAuth";
 import { differenceInCalendarDays, isToday, isBefore, startOfDay, parseISO, format } from "date-fns";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
@@ -90,7 +91,7 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
         .eq("id", featureSettings!.selected_protocol_id!)
         .single();
       if (error) throw error;
-      return data as { id: string; name: string; duration_days: number; fast_target_hours: number };
+      return data as { id: string; name: string; duration_days: number; fast_target_hours: number; difficulty_level: string };
     },
     enabled: !!featureSettings?.selected_protocol_id,
   });
@@ -676,6 +677,23 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
               </div>
             </div>
           ) : null}
+
+          {/* Stats row */}
+          {hasProtocol && activeProtocol && !isMaintenanceMode && (
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { icon: Clock, value: `${activeProtocol.fast_target_hours}h`, label: "Fasting Window" },
+                { icon: CalendarDays, value: activeProtocol.duration_days === 0 ? "∞" : getDurationLabel(activeProtocol.duration_days), label: activeProtocol.duration_days === 0 ? "Ongoing" : "Duration" },
+                { icon: BarChart3, value: getDifficultyLabel(activeProtocol.difficulty_level), label: "Difficulty" },
+              ].map((stat) => (
+                <div key={stat.label} className="bg-white/10 backdrop-blur-sm rounded-xl p-3 text-center border border-white/10">
+                  <stat.icon className="h-4 w-4 mx-auto text-white/50 mb-1" />
+                  <p className="text-lg font-black text-white">{stat.value}</p>
+                  <p className="text-[10px] text-white/50 uppercase tracking-wider font-medium">{stat.label}</p>
+                </div>
+              ))}
+            </div>
+          )}
 
           <Button
             className="w-full h-12 text-base font-semibold gap-2 bg-white/15 hover:bg-white/25 text-white border border-white/20 backdrop-blur-sm"
