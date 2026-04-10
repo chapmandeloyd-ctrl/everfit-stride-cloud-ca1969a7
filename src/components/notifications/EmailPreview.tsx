@@ -70,7 +70,7 @@ export function EmailPreview({ subject, blocks, previewMode }: EmailPreviewProps
       <div className="p-6 space-y-4 bg-white">
         {/* Logo */}
         <div className="text-center pb-2">
-          <img src="/lovable-uploads/e09e0f53-tried-these-logos.png" alt="KSOM-360" className="h-10 mx-auto" />
+          <img src="https://eexxmfuknqttujecbcho.supabase.co/storage/v1/object/public/email-assets/logo.png" alt="KSOM-360" className="h-16 w-16 mx-auto" />
         </div>
 
         {blocks.length === 0 ? (
