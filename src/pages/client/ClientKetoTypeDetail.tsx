@@ -50,6 +50,18 @@ export default function ClientKetoTypeDetail() {
     enabled: !!id,
   });
 
+  // Realtime: refresh when trainer updates keto macros
+  useEffect(() => {
+    const channel = supabase
+      .channel("keto-detail-realtime")
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "keto_types" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["keto-type"] });
+        queryClient.invalidateQueries({ queryKey: ["keto-types-all"] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [queryClient]);
+
   const { data: allTypes } = useQuery({
     queryKey: ["keto-types-all"],
     queryFn: async () => {
