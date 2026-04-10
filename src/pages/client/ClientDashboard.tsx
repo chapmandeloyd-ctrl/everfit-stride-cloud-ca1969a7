@@ -686,9 +686,9 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
                 { icon: CalendarDays, value: activeProtocol.duration_days === 0 ? "∞" : getDurationLabel(activeProtocol.duration_days), label: activeProtocol.duration_days === 0 ? "Ongoing" : "Duration" },
                 { icon: BarChart3, value: getDifficultyLabel(activeProtocol.difficulty_level), label: "Difficulty" },
               ].map((stat) => (
-                <div key={stat.label} className="bg-white/10 backdrop-blur-sm rounded-xl p-3 text-center border border-white/10">
+                <div key={stat.label} className="bg-white/10 backdrop-blur-sm rounded-xl p-3 text-center border border-white/10 overflow-hidden">
                   <stat.icon className="h-4 w-4 mx-auto text-white/50 mb-1" />
-                  <p className="text-lg font-black text-white">{stat.value}</p>
+                  <p className="text-base font-black text-white truncate">{stat.value}</p>
                   <p className="text-[10px] text-white/50 uppercase tracking-wider font-medium">{stat.label}</p>
                 </div>
               ))}
