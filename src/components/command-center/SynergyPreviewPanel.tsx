@@ -338,6 +338,19 @@ export function SynergyPreviewPanel({ clientId, trainerId }: SynergyPreviewPanel
           </div>
         </div>
 
+        {/* Keto Macro Editor - visible when a keto type is assigned */}
+        {ketoType && (
+          <KetoMacroEditor
+            ketoTypeId={ketoType.id}
+            fat_pct={ketoType.fat_pct}
+            protein_pct={ketoType.protein_pct}
+            carbs_pct={ketoType.carbs_pct}
+            carb_limit_grams={ketoType.carb_limit_grams}
+            color={ketoType.color}
+            abbreviation={ketoType.abbreviation}
+          />
+        )}
+
         {/* Synergy content */}
         {!hasBoth && (
           <div className="rounded-lg bg-muted/50 p-4 text-center">
