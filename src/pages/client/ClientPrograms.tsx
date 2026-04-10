@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, ChevronRight, Lock } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
+import { PlanLockedDialog } from "@/components/PlanLockedDialog";
 import { useNavigate } from "react-router-dom";
 import {
   CATEGORY_CONFIG,
