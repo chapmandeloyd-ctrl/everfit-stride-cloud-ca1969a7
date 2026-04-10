@@ -61,7 +61,8 @@ function getDifficultyLabel(group: string) {
     case "beginner": return "Beginner";
     case "intermediate": return "Intermediate";
     case "advanced": return "Advanced";
-    case "long_fasts": return "Extended";
+    case "long_fasts": return "Expert";
+    case "expert": return "Expert";
     default: return group;
   }
 }

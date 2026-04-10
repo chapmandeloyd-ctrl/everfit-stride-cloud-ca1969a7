@@ -94,7 +94,10 @@ export function getDifficultyLabel(level: string): string {
   switch (level) {
     case "beginner": return "Beginner";
     case "intermediate": return "Intermediate";
-    case "experienced": return "Experienced";
+    case "advanced": return "Advanced";
+    case "experienced": return "Advanced";
+    case "long_fasts": return "Expert";
+    case "expert": return "Expert";
     default: return level;
   }
 }

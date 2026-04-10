@@ -22,6 +22,7 @@ export function KetoTypeCard({
     if (d === "beginner") return "Beginner";
     if (d === "intermediate") return "Intermediate";
     if (d === "advanced") return "Advanced";
+    if (d === "long_fasts" || d === "expert") return "Expert";
     return d;
   };
 
