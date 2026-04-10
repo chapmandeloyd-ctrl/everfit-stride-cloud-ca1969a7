@@ -31,6 +31,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
+  const { updateAvailable } = useAppUpdate();
 
   // Use a single stable client id reference across the component
   const activeClientId = useEffectiveClientId();
