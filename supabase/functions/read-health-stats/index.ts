@@ -76,7 +76,14 @@ const handler = async (req: Request): Promise<Response> => {
         .eq("client_id", clientId)
         .maybeSingle();
 
-      if (!assignment) {
+      const { data: featureAssignment } = await admin
+        .from("client_feature_settings")
+        .select("id")
+        .eq("trainer_id", user.id)
+        .eq("client_id", clientId)
+        .maybeSingle();
+
+      if (!assignment && !featureAssignment) {
         console.error(
           "[read-health-stats] FORBIDDEN: user",
           user.id,
