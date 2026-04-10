@@ -1454,7 +1454,17 @@ export default function ClientDashboard() {
                   ) : (
                     <div>
                       <div ref={scrollRef} className={hasMultiple ? "flex overflow-x-auto snap-x snap-mandatory pb-2 scrollbar-hide" : ""}>
-                        {todaysWorkouts.map((workout) => (
+                        {todaysWorkouts.map((workout) => {
+                          // Check if this workout has a session today
+                          const workoutSession = (todayTrackedAssignedSessions || []).find(
+                            (s: any) => s.workout_plan_id === workout.workout_plan_id || s.client_workout_id === workout.id
+                          );
+                          const isCompleted = !!workout.completed_at || (workoutSession && workoutSession.status === "completed");
+                          const isInProgress = workoutSession?.status === "in_progress";
+                          const isPartial = workoutSession?.status === "partial";
+                          const pct = workoutSession?.completion_percentage || 0;
+
+                          return (
                           <Card
                             key={workout.id}
                             className={`overflow-hidden cursor-pointer hover:shadow-md transition-all duration-300 shrink-0 snap-center ${hasMultiple ? "w-full min-w-full" : "w-full"}`}
@@ -1469,9 +1479,35 @@ export default function ClientDashboard() {
                                 </div>
                               )}
                               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                              
+                              {/* Status badge */}
+                              {(isCompleted || isInProgress || isPartial) && (
+                                <div className="absolute top-3 right-3">
+                                  <div className={`px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1 ${
+                                    isCompleted ? "bg-emerald-500 text-white" :
+                                    isInProgress ? "bg-amber-500 text-white" :
+                                    "bg-sky-500 text-white"
+                                  }`}>
+                                    {isCompleted ? (
+                                      <><Check className="h-3 w-3" /> Completed</>
+                                    ) : isInProgress ? (
+                                      <><Clock className="h-3 w-3" /> {pct}% · Resume</>
+                                    ) : (
+                                      <><Check className="h-3 w-3" /> {pct}% Tracked</>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+
                               <div className="absolute bottom-0 left-0 right-0 p-4">
                                 <p className="text-xs font-semibold text-white/70 uppercase tracking-wider">Today's Workout</p>
                                 <p className="text-lg font-bold text-white">{workout.workout_plan?.name}</p>
+                                {/* Progress bar for in-progress */}
+                                {isInProgress && pct > 0 && (
+                                  <div className="mt-2 w-full bg-white/20 rounded-full h-1.5">
+                                    <div className="bg-amber-400 h-1.5 rounded-full" style={{ width: `${pct}%` }} />
+                                  </div>
+                                )}
                               </div>
                             </div>
                             <CardContent className="p-3">
@@ -1479,11 +1515,12 @@ export default function ClientDashboard() {
                                 e.stopPropagation();
                                 navigate(`/client/workouts/${workout.workout_plan_id}`);
                               }}>
-                                View Workout
+                                {isInProgress ? "Resume Workout" : isCompleted ? "View Summary" : "View Workout"}
                               </Button>
                             </CardContent>
                           </Card>
-                        ))}
+                          );
+                        })}
                         {todaySportEvents?.map((event: any) => {
                           const isGame = event.event_type === "game" || event.event_type === "event";
                           const customCard = isGame ? gameCard : practiceCard;
