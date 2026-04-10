@@ -266,10 +266,12 @@ export default function ClientCompletePlan() {
 
         {/* Protocol Hero */}
         <div className="px-5">
-          <Card className="overflow-hidden border-primary/20">
+          <Card className="overflow-hidden" style={{ backgroundColor: "hsl(var(--primary) / 0.06)", borderColor: "hsl(var(--primary) / 0.2)" }}>
             <CardContent className="p-5">
               <div className="flex items-center gap-2 mb-3">
-                <Zap className="h-4 w-4 text-primary" />
+                <div className="h-7 w-7 rounded-full flex items-center justify-center" style={{ backgroundColor: "hsl(var(--primary) / 0.12)" }}>
+                  <Zap className="h-3.5 w-3.5 text-primary" />
+                </div>
                 <span className="text-[11px] font-bold uppercase tracking-wider text-primary">Your KSOM Plan</span>
               </div>
               <h2 className="text-2xl font-black leading-tight">{protocol.name}</h2>
