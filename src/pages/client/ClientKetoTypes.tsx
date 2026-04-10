@@ -166,7 +166,13 @@ export default function ClientKetoTypes() {
                   difficulty={kt.difficulty}
                   color={kt.color}
                   isActive={kt.id === activeKetoTypeId}
-                  onClick={() => navigate(`/client/keto-types/${kt.id}`)}
+                  onClick={() => {
+                    if (kt.id === activeKetoTypeId) {
+                      navigate(`/client/keto-types/${kt.id}`);
+                    } else {
+                      setShowLocked(true);
+                    }
+                  }}
                 />
               ))}
             </div>
