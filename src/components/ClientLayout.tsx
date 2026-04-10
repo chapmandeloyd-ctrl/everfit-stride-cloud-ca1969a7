@@ -122,7 +122,8 @@ export function ClientLayout({ children }: ClientLayoutProps) {
             <Badge variant="default" className="bg-orange-500 hover:bg-orange-600 text-xs">
               Previewing: {profile?.full_name || profile?.email || "Client"}
             </Badge>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
+              <NotificationBell />
               <ThemeToggle />
               <Button variant="ghost" size="sm" onClick={handleBackToTrainer}>
                 <RefreshCw className="h-4 w-4 mr-1" />

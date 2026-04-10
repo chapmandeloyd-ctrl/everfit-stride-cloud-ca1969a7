@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,48 +19,49 @@ interface InAppNotification {
 }
 
 export function NotificationBell() {
-  const { user } = useAuth();
+  const activeClientId = useEffectiveClientId();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
 
   const { data: notifications = [] } = useQuery({
-    queryKey: ["in-app-notifications", user?.id],
+    queryKey: ["in-app-notifications", activeClientId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("in_app_notifications")
         .select("*")
-        .eq("user_id", user!.id)
+        .eq("user_id", activeClientId!)
         .order("created_at", { ascending: false })
         .limit(20);
       if (error) throw error;
       return (data || []) as InAppNotification[];
     },
-    enabled: !!user,
+    enabled: !!activeClientId,
     refetchInterval: 30000,
   });
 
-  // Realtime subscription
   useEffect(() => {
-    if (!user) return;
+    if (!activeClientId) return;
 
     const channel = supabase
-      .channel("in-app-notifications")
+      .channel(`in-app-notifications-${activeClientId}`)
       .on(
         "postgres_changes",
         {
           event: "INSERT",
           schema: "public",
           table: "in_app_notifications",
-          filter: `user_id=eq.${user.id}`,
+          filter: `user_id=eq.${activeClientId}`,
         },
         () => {
-          queryClient.invalidateQueries({ queryKey: ["in-app-notifications"] });
+          queryClient.invalidateQueries({ queryKey: ["in-app-notifications", activeClientId] });
         }
       )
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
-  }, [user, queryClient]);
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [activeClientId, queryClient]);
 
   const markReadMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -71,13 +72,13 @@ export function NotificationBell() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["in-app-notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["in-app-notifications", activeClientId] });
     },
   });
 
   const markAllReadMutation = useMutation({
     mutationFn: async () => {
-      const unreadIds = notifications.filter(n => !n.read_at).map(n => n.id);
+      const unreadIds = notifications.filter((notification) => !notification.read_at).map((notification) => notification.id);
       if (unreadIds.length === 0) return;
       const { error } = await supabase
         .from("in_app_notifications")
@@ -86,11 +87,11 @@ export function NotificationBell() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["in-app-notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["in-app-notifications", activeClientId] });
     },
   });
 
-  const unreadCount = notifications.filter(n => !n.read_at).length;
+  const unreadCount = notifications.filter((notification) => !notification.read_at).length;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -122,26 +123,26 @@ export function NotificationBell() {
           {notifications.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-8">No notifications yet</p>
           ) : (
-            notifications.map((notif) => (
+            notifications.map((notification) => (
               <button
-                key={notif.id}
-                className={`w-full text-left px-3 py-2.5 border-b border-border last:border-0 hover:bg-muted/50 transition-colors ${!notif.read_at ? "bg-primary/5" : ""}`}
+                key={notification.id}
+                className={`w-full text-left px-3 py-2.5 border-b border-border last:border-0 hover:bg-muted/50 transition-colors ${!notification.read_at ? "bg-primary/5" : ""}`}
                 onClick={() => {
-                  if (!notif.read_at) markReadMutation.mutate(notif.id);
-                  if (notif.action_url) window.location.href = notif.action_url;
+                  if (!notification.read_at) markReadMutation.mutate(notification.id);
+                  if (notification.action_url) window.location.href = notification.action_url;
                 }}
               >
                 <div className="flex items-start gap-2">
-                  {!notif.read_at && (
+                  {!notification.read_at && (
                     <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{notif.title}</p>
-                    {notif.body && (
-                      <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{notif.body}</p>
+                    <p className="text-sm font-medium truncate">{notification.title}</p>
+                    {notification.body && (
+                      <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{notification.body}</p>
                     )}
                     <p className="text-xs text-muted-foreground mt-1">
-                      {formatDistanceToNow(new Date(notif.created_at), { addSuffix: true })}
+                      {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
                     </p>
                   </div>
                 </div>
