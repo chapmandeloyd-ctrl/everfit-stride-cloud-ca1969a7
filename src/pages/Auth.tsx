@@ -129,11 +129,11 @@ export default function Auth() {
         <div className="text-center mb-8">
           <img
             src="/logo.png"
-            alt="KSOM360"
+            alt="KSOM-360"
             className="h-20 w-20 rounded-2xl object-contain mx-auto mb-4 shadow-lg"
           />
-          <h1 className="text-3xl font-bold text-foreground">KSOM360</h1>
-          <p className="text-muted-foreground mt-1 text-sm">KSOM360 Fitness Coaching Platform</p>
+          <h1 className="text-3xl font-bold text-foreground">KSOM-360</h1>
+          <p className="text-muted-foreground mt-1 text-sm">KSOM-360 Fitness Coaching Platform</p>
         </div>
 
         {/* Auth Card */}

@@ -65,7 +65,7 @@ export default function Unsubscribe() {
       <div className="max-w-md w-full text-center space-y-6">
         <img
           src="/logo.png"
-          alt="KSOM360"
+          alt="KSOM-360"
           className="h-20 w-20 mx-auto"
         />
 
@@ -81,7 +81,7 @@ export default function Unsubscribe() {
             <MailX className="h-12 w-12 mx-auto text-muted-foreground" />
             <h1 className="text-2xl font-bold">Unsubscribe</h1>
             <p className="text-muted-foreground">
-              Are you sure you want to unsubscribe from KSOM360 emails?
+              Are you sure you want to unsubscribe from KSOM-360 emails?
             </p>
             <Button
               onClick={handleUnsubscribe}
@@ -99,7 +99,7 @@ export default function Unsubscribe() {
             <CheckCircle className="h-12 w-12 mx-auto text-green-500" />
             <h1 className="text-2xl font-bold">You're unsubscribed</h1>
             <p className="text-muted-foreground">
-              You won't receive any more emails from KSOM360.
+              You won't receive any more emails from KSOM-360.
             </p>
           </div>
         )}
@@ -109,7 +109,7 @@ export default function Unsubscribe() {
             <CheckCircle className="h-12 w-12 mx-auto text-muted-foreground" />
             <h1 className="text-2xl font-bold">Already unsubscribed</h1>
             <p className="text-muted-foreground">
-              You've already unsubscribed from KSOM360 emails.
+              You've already unsubscribed from KSOM-360 emails.
             </p>
           </div>
         )}

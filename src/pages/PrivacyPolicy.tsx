@@ -15,7 +15,7 @@ export default function PrivacyPolicy() {
           </Button>
           <div className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-primary" />
-            <span className="font-semibold text-lg">KSOM360 Privacy Policy</span>
+            <span className="font-semibold text-lg">KSOM-360 Privacy Policy</span>
           </div>
         </div>
       </div>
@@ -30,13 +30,13 @@ export default function PrivacyPolicy() {
         <section className="space-y-3">
           <h2 className="text-xl font-semibold">1. Introduction</h2>
           <p className="text-muted-foreground leading-relaxed">
-            Welcome to KSOM360 ("we," "our," or "us"). KSOM360 is a fitness coaching platform
+            Welcome to KSOM-360 ("we," "our," or "us"). KSOM-360 is a fitness coaching platform
             designed to connect coaches and clients for personalized training, nutrition guidance,
             and health tracking. This Privacy Policy explains how we collect, use, disclose, and
             safeguard your information when you use our platform.
           </p>
           <p className="text-muted-foreground leading-relaxed">
-            By using KSOM360, you agree to the terms of this Privacy Policy. If you do not agree,
+            By using KSOM-360, you agree to the terms of this Privacy Policy. If you do not agree,
             please discontinue use of the platform.
           </p>
         </section>
@@ -70,7 +70,7 @@ export default function PrivacyPolicy() {
         <section className="space-y-3">
           <h2 className="text-xl font-semibold">3. How We Use Your Information</h2>
           <ul className="list-disc list-inside text-muted-foreground space-y-2 ml-2">
-            <li>To provide, operate, and improve the KSOM360 platform</li>
+            <li>To provide, operate, and improve the KSOM-360 platform</li>
             <li>To enable communication between coaches and clients</li>
             <li>To display your progress and health data to your assigned coach</li>
             <li>To send workout reminders and push notifications (with your permission)</li>
@@ -145,7 +145,7 @@ export default function PrivacyPolicy() {
         <section className="space-y-3">
           <h2 className="text-xl font-semibold">9. Children's Privacy</h2>
           <p className="text-muted-foreground leading-relaxed">
-            KSOM360 is not intended for children under the age of 13. We do not knowingly collect
+            KSOM-360 is not intended for children under the age of 13. We do not knowingly collect
             personal information from children under 13. If you believe a child has provided us
             with personal data, please contact us immediately.
           </p>
@@ -155,7 +155,7 @@ export default function PrivacyPolicy() {
           <h2 className="text-xl font-semibold">10. Changes to This Policy</h2>
           <p className="text-muted-foreground leading-relaxed">
             We may update this Privacy Policy from time to time. We will notify you of any
-            significant changes by email or through the platform. Continued use of KSOM360 after
+            significant changes by email or through the platform. Continued use of KSOM-360 after
             changes constitutes acceptance of the updated policy.
           </p>
         </section>
@@ -166,14 +166,14 @@ export default function PrivacyPolicy() {
             If you have any questions or concerns about this Privacy Policy or how we handle your data, please contact us at:
           </p>
           <div className="bg-muted rounded-lg p-4 text-sm text-muted-foreground space-y-1">
-            <p className="font-medium text-foreground">KSOM360</p>
+            <p className="font-medium text-foreground">KSOM-360</p>
             <p>Email: <a href="mailto:privacy@ksom360.com" className="text-primary underline">privacy@ksom360.com</a></p>
             <p>Website: <a href="https://everfit-stride-cloud.lovable.app" className="text-primary underline">ksom360.com</a></p>
           </div>
         </section>
 
         <div className="border-t border-border pt-6 text-center text-sm text-muted-foreground">
-          © {new Date().getFullYear()} KSOM360. All rights reserved.
+          © {new Date().getFullYear()} KSOM-360. All rights reserved.
         </div>
       </div>
     </div>

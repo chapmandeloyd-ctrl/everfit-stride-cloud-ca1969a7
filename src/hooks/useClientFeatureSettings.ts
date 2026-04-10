@@ -62,7 +62,7 @@ const DEFAULT_SETTINGS: ClientFeatureSettings = {
   restore_enabled: false,
   greeting_emoji: "👋",
   greeting_subtitle: "Let's do this",
-  fasting_card_subtitle: "Fasting is the foundation of your KSOM360 plan.",
+  fasting_card_subtitle: "Fasting is the foundation of your KSOM-360 plan.",
   dashboard_hero_image_url: null,
   dashboard_hero_message: null,
   fasting_card_image_url: null,
