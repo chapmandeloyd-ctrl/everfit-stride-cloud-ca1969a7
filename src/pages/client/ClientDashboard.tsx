@@ -1072,7 +1072,7 @@ export default function ClientDashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("client_feature_settings")
-        .select("selected_protocol_id, active_fast_start_at, active_fast_target_hours, fasting_strict_mode, eating_window_ends_at, eating_window_hours, protocol_start_date, maintenance_mode, maintenance_schedule_type")
+        .select("selected_protocol_id, active_fast_start_at, active_fast_target_hours, fasting_strict_mode, eating_window_ends_at, eating_window_hours, protocol_start_date, maintenance_mode, maintenance_schedule_type, trainer_id")
         .eq("client_id", clientId)
         .maybeSingle();
       if (error) throw error;
@@ -1086,6 +1086,7 @@ export default function ClientDashboard() {
         protocol_start_date: string | null;
         maintenance_mode: boolean;
         maintenance_schedule_type: string | null;
+        trainer_id: string;
       } | null;
     },
     enabled: !!clientId && settings.fasting_enabled,
