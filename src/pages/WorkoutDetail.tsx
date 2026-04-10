@@ -394,6 +394,10 @@ export default function WorkoutDetail() {
         onEndEarly={handleEndEarly}
         onDiscard={handleDiscard}
         onExit={handleExit}
+        onSaveForLater={isClient ? handleSaveForLater : undefined}
+        resumeFromStep={resumeData?.stepIdx}
+        resumeSetLogs={resumeData?.setLogs}
+        resumeElapsed={resumeData?.elapsed}
       />
     );
   }
