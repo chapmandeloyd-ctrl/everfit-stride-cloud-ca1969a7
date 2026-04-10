@@ -90,7 +90,7 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
         .eq("id", featureSettings!.selected_protocol_id!)
         .single();
       if (error) throw error;
-      return data as { id: string; name: string; duration_days: number; fast_target_hours: number };
+      return data as { id: string; name: string; duration_days: number; fast_target_hours: number; difficulty_level: string };
     },
     enabled: !!featureSettings?.selected_protocol_id,
   });
