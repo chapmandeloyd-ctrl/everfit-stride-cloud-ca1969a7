@@ -7,7 +7,7 @@ import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { toast } from "sonner";
 import { ClientLayout } from "@/components/ClientLayout";
 import { KetoTypeDetailView } from "@/components/keto/KetoTypeDetailView";
-import { PlanSynergySection } from "@/components/PlanSynergySection";
+
 
 interface KetoType {
   id: string;
@@ -145,12 +145,6 @@ export default function ClientKetoTypeDetail() {
           isActive={isActive}
         />
 
-        {/* Synergy Section */}
-        <PlanSynergySection
-          protocolType={featureSettings?.selected_protocol_id ? "program" : featureSettings?.selected_quick_plan_id ? "quick_plan" : null}
-          protocolId={featureSettings?.selected_protocol_id || featureSettings?.selected_quick_plan_id || null}
-          ketoTypeId={id || null}
-        />
       </div>
 
       {/* Fixed bottom CTA */}
