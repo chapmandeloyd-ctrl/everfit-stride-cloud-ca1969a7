@@ -1,4 +1,5 @@
 import { ClientBottomNav } from "./ClientBottomNav";
+import { UpdateBanner } from "./UpdateBanner";
 import { LogOut, RefreshCw, MessageCircle } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { Button } from "./ui/button";
