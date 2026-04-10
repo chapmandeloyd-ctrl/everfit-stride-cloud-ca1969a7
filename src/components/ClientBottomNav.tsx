@@ -37,9 +37,9 @@ export function ClientBottomNav() {
   // Athletic engine users get a Labs tab; others get On-Demand if enabled
   let navItems: NavItem[];
   if (isAthleticEngine) {
-    navItems = [baseItems[0], baseItems[1], labsItem, baseItems[2], baseItems[3]];
+    navItems = [baseItems[0], labsItem, baseItems[1], baseItems[2]];
   } else if (onDemandEnabled) {
-    navItems = [baseItems[0], baseItems[1], onDemandItem, baseItems[2], baseItems[3]];
+    navItems = [baseItems[0], onDemandItem, baseItems[1], baseItems[2]];
   } else {
     navItems = baseItems;
   }
