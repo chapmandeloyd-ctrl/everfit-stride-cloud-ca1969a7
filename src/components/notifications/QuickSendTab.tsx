@@ -20,8 +20,6 @@ interface QuickTemplate {
   id: string;
   name: string;
   subject: string;
-  icon: React.ReactNode;
-  color: string;
   blocks: EmailBlock[];
   channel: "email" | "in_app" | "both";
 }
