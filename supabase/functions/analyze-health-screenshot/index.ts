@@ -110,7 +110,7 @@ Today's date is ${new Date().toISOString().split('T')[0]}.`
                       properties: {
                         data_type: {
                           type: 'string',
-                          enum: ['steps', 'calories_burned', 'active_energy', 'sleep', 'weight', 'caloric_intake'],
+                          enum: ['steps', 'calories_burned', 'active_energy', 'resting_energy', 'sleep', 'weight', 'caloric_intake', 'dietary_energy'],
                         },
                         value: { type: 'number' },
                         unit: { type: 'string' },
