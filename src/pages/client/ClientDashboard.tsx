@@ -193,13 +193,26 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
 
   const endFastMutation = useMutation({
     mutationFn: async () => {
+      const nowTs = new Date();
+      const startAt = featureSettings?.active_fast_start_at;
+      const targetHours = featureSettings?.active_fast_target_hours || 16;
+      const trainerId = featureSettings?.trainer_id;
+
+      // Calculate actual hours fasted
+      const actualMs = startAt ? nowTs.getTime() - new Date(startAt).getTime() : 0;
+      const actualHours = Math.round((actualMs / 3600000) * 100) / 100;
+      const completionPct = Math.min(Math.round((actualHours / targetHours) * 100), 100);
+      const endedEarly = actualHours < targetHours;
+
       const eatingWindowHours = featureSettings?.eating_window_hours || 8;
-      const eatingWindowEnd = new Date(Date.now() + eatingWindowHours * 3600000).toISOString();
+      const eatingWindowEnd = new Date(nowTs.getTime() + eatingWindowHours * 3600000).toISOString();
+
+      // Update feature settings
       const { error } = await supabase
         .from("client_feature_settings")
         .update({
-          last_fast_ended_at: new Date().toISOString(),
-          last_fast_completed_at: new Date().toISOString(),
+          last_fast_ended_at: nowTs.toISOString(),
+          last_fast_completed_at: nowTs.toISOString(),
           active_fast_start_at: null,
           active_fast_target_hours: null,
           eating_window_ends_at: eatingWindowEnd,
@@ -207,10 +220,26 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
         })
         .eq("client_id", clientId);
       if (error) throw error;
+
+      // Log to fasting_log
+      if (startAt && trainerId) {
+        await supabase.from("fasting_log").insert({
+          client_id: clientId!,
+          trainer_id: trainerId,
+          started_at: startAt,
+          ended_at: nowTs.toISOString(),
+          target_hours: targetHours,
+          actual_hours: actualHours,
+          completion_pct: completionPct,
+          status: endedEarly ? "partial" : "completed",
+          ended_early: endedEarly,
+        });
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting"] });
       queryClient.invalidateQueries({ queryKey: ["fasting-gate-state"] });
+      queryClient.invalidateQueries({ queryKey: ["today-fasting-log"] });
     },
   });
 
