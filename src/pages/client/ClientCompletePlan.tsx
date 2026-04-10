@@ -16,7 +16,7 @@ import {
 } from "@/lib/fastingCategoryConfig";
 import { PROTOCOL_DETAIL_COPY } from "@/lib/protocolDetailContent";
 import { usePlanSynergy } from "@/hooks/usePlanSynergy";
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 
 function generateWeeklyProgression(durationDays: number, fastTargetHours: number) {
   const weeks = Math.ceil(durationDays / 7);
