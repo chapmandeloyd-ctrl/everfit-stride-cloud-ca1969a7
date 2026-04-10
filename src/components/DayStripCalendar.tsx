@@ -57,8 +57,7 @@ export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEn
         .select("*, workout_plan:workout_plans(*)")
         .eq("client_id", clientId)
         .gte("scheduled_date", startDate)
-        .lte("scheduled_date", endDate)
-        .is("completed_at", null);
+        .lte("scheduled_date", endDate);
       if (error) throw error;
       return data;
     },
@@ -89,8 +88,7 @@ export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEn
         .select("*")
         .eq("client_id", clientId)
         .gte("due_date", startDate)
-        .lte("due_date", endDate)
-        .is("completed_at", null);
+        .lte("due_date", endDate);
       if (error) throw error;
       return data;
     },
