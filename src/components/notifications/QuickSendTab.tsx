@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Send, Zap, Trophy, Dumbbell, Heart, Flame, Star, CalendarCheck, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 
-const LOGO_URL = "https://eexxmfuknqttujecbcho.supabase.co/storage/v1/object/public/email-assets/logo.png";
+
 
 interface QuickTemplate {
   id: string;
