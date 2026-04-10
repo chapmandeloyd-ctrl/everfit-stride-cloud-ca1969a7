@@ -114,17 +114,17 @@ export function ComposeTab() {
       // Create the send record
       const { data: send, error: sendError } = await supabase
         .from("notification_sends")
-        .insert({
+        .insert([{
           trainer_id: user!.id,
           subject,
           body_html: bodyHtml,
           channel,
           recipient_type: recipientMode,
-          recipient_filter: recipientMode === "group" ? recipientFilter : null,
+          recipient_filter: recipientMode === "group" ? (recipientFilter as any) : null,
           total_recipients: recipientIds.length,
           status: scheduledAt ? "scheduled" : "sending",
           scheduled_at: scheduledAt || null,
-        })
+        }])
         .select()
         .single();
       if (sendError) throw sendError;
