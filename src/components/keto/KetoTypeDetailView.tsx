@@ -107,7 +107,7 @@ export function KetoTypeDetailView({ ketoType: kt, allTypes, isActive = false }:
         {[
           { label: "Level", value: getDifficultyLabel(kt.difficulty) },
           { label: "System", value: "KSOM-360" },
-          { label: "Carbs", value: kt.carb_limit_grams ? `≤${kt.carb_limit_grams}g` : `${kt.carbs_pct}%` },
+          { label: "Protein", value: `${kt.protein_pct}%` },
         ].map((stat) => (
           <Card key={stat.label}>
             <CardContent className="p-3 text-center overflow-hidden">
