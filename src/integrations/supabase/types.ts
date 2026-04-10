@@ -7535,39 +7535,60 @@ export type Database = {
           client_id: string
           client_workout_id: string
           completed_at: string | null
+          completion_percentage: number | null
           created_at: string | null
           difficulty_rating: number | null
           duration_seconds: number | null
           id: string
           is_partial: boolean | null
           notes: string | null
+          resume_exercise_index: number | null
+          resume_round: number | null
+          resume_section_index: number | null
+          resume_set: number | null
+          resume_set_logs: Json | null
           started_at: string
+          status: string
           workout_plan_id: string
         }
         Insert: {
           client_id: string
           client_workout_id: string
           completed_at?: string | null
+          completion_percentage?: number | null
           created_at?: string | null
           difficulty_rating?: number | null
           duration_seconds?: number | null
           id?: string
           is_partial?: boolean | null
           notes?: string | null
+          resume_exercise_index?: number | null
+          resume_round?: number | null
+          resume_section_index?: number | null
+          resume_set?: number | null
+          resume_set_logs?: Json | null
           started_at: string
+          status?: string
           workout_plan_id: string
         }
         Update: {
           client_id?: string
           client_workout_id?: string
           completed_at?: string | null
+          completion_percentage?: number | null
           created_at?: string | null
           difficulty_rating?: number | null
           duration_seconds?: number | null
           id?: string
           is_partial?: boolean | null
           notes?: string | null
+          resume_exercise_index?: number | null
+          resume_round?: number | null
+          resume_section_index?: number | null
+          resume_set?: number | null
+          resume_set_logs?: Json | null
           started_at?: string
+          status?: string
           workout_plan_id?: string
         }
         Relationships: [
