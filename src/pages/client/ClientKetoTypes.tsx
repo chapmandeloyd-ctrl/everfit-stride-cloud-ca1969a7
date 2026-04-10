@@ -37,7 +37,19 @@ interface KetoType {
 export default function ClientKetoTypes() {
   const navigate = useNavigate();
   const clientId = useEffectiveClientId();
+  const queryClient = useQueryClient();
   const [showLocked, setShowLocked] = useState(false);
+
+  // Realtime: refresh when trainer updates keto macros
+  useEffect(() => {
+    const channel = supabase
+      .channel("keto-list-realtime")
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "keto_types" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["keto-types"] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [queryClient]);
 
   const { data: categories, isLoading } = useQuery({
     queryKey: ["keto-categories"],
