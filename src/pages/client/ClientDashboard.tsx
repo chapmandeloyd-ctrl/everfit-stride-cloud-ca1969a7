@@ -126,6 +126,25 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
     },
     enabled: !!clientId,
   });
+  // Fetch today's fasting log for post-fast summary
+  const todayDate = format(now, "yyyy-MM-dd");
+  const { data: todayFastLog } = useQuery({
+    queryKey: ["today-fasting-log", clientId, todayDate],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("fasting_log")
+        .select("*")
+        .eq("client_id", clientId!)
+        .gte("ended_at", `${todayDate}T00:00:00`)
+        .lte("ended_at", `${todayDate}T23:59:59`)
+        .order("ended_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!clientId,
+  });
 
   const [slideshowIndex, setSlideshowIndex] = useState(0);
 
