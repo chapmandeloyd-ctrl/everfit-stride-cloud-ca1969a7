@@ -756,6 +756,58 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
     );
   }
 
+  // ─── WELCOME BACK (Resume) ───
+  if (phase === "welcomeback") {
+    const remainPct = 100 - completedPercent;
+    // Auto-play welcome back message then transition to playing
+    const handleWelcomeBack = async () => {
+      setWorkoutVoice(chosenVoice);
+      unlockAudioForMobile();
+      preCacheCountdownClips();
+      await elevenLabsSpeakNow(`Welcome back! You're ${completedPercent}% through ${workoutName || "your workout"}. Let's pick up where you left off.`);
+      setPhase("playing");
+    };
+    return (
+      <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-foreground px-6">
+        <div className="text-primary text-xs font-bold uppercase tracking-[0.3em] mb-3">Welcome Back</div>
+        <h2 className="text-3xl font-black text-background text-center mb-2">{workoutName}</h2>
+        <p className="text-background/60 text-sm mb-6">{completedPercent}% done · {remainPct}% remaining</p>
+        <div className="w-full max-w-xs mb-8">
+          <div className="w-full bg-background/20 rounded-full h-3">
+            <div className="bg-primary h-3 rounded-full transition-all" style={{ width: `${completedPercent}%` }} />
+          </div>
+        </div>
+        <div className="flex flex-col gap-3 w-full max-w-sm">
+          <p className="text-xs text-background/50 font-medium text-center mb-2">Choose Your Coach</p>
+          {WORKOUT_VOICES.map((v) => (
+            <button
+              key={v.id}
+              onClick={() => { setChosenVoice(v.id); previewVoice(v.id); }}
+              className={cn(
+                "flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left",
+                chosenVoice === v.id
+                  ? "border-primary bg-primary/20 text-background"
+                  : "border-background/20 text-background/80 hover:border-background/40"
+              )}
+            >
+              <span className="text-2xl">{v.icon}</span>
+              <div className="flex-1">
+                <div className="font-semibold text-sm">{v.name}</div>
+                <div className="text-xs opacity-60">{v.desc}</div>
+              </div>
+            </button>
+          ))}
+        </div>
+        <Button size="lg" className="w-full max-w-sm mt-6" onClick={handleWelcomeBack}>
+          Resume Workout
+        </Button>
+        <Button variant="ghost" className="text-background/40 mt-2" onClick={onExit}>
+          Cancel
+        </Button>
+      </div>
+    );
+  }
+
   // ─── WORKOUT COMPLETE SCREEN ───
   if (!currentStep || stepIdx >= steps.length) {
     return (
