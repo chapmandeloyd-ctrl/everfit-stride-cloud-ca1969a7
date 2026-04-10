@@ -12,12 +12,10 @@ interface WeeklyActivityChartProps {
 export function WeeklyActivityChart({ clientId }: WeeklyActivityChartProps) {
   const { data: stepsData, isLoading: stepsLoading } = useHealthData(clientId, 'steps', 7);
   const { data: activeEnergyData, isLoading: aeLoading } = useHealthData(clientId, 'active_energy', 7);
+  const { data: restingEnergyData, isLoading: reLoading } = useHealthData(clientId, 'resting_energy', 7);
   const { data: legacyCalData, isLoading: lcLoading } = useHealthData(clientId, 'calories_burned', 7);
   
-  const isLoading = stepsLoading || aeLoading || lcLoading;
-  
-  // Prefer active_energy, fallback to legacy calories_burned
-  const caloriesData = (activeEnergyData && activeEnergyData.length > 0) ? activeEnergyData : legacyCalData;
+  const isLoading = stepsLoading || aeLoading || reLoading || lcLoading;
   
   const chartData = useMemo(() => {
     // Create map for all days
@@ -39,8 +37,13 @@ export function WeeklyActivityChart({ clientId }: WeeklyActivityChartProps) {
       }
     });
     
+    const hasAppleEnergyData = (activeEnergyData?.length || 0) > 0 || (restingEnergyData?.length || 0) > 0;
+    const calorieSources = hasAppleEnergyData
+      ? [...(activeEnergyData ?? []), ...(restingEnergyData ?? [])]
+      : (legacyCalData ?? []);
+
     // Add calories data
-    caloriesData?.forEach((point) => {
+    calorieSources.forEach((point) => {
       const dateKey = format(new Date(point.recorded_at), 'yyyy-MM-dd');
       if (dailyData[dateKey]) {
         dailyData[dateKey].calories += Number(point.value);
@@ -55,7 +58,7 @@ export function WeeklyActivityChart({ clientId }: WeeklyActivityChartProps) {
         calories: Math.round(data.calories),
       }))
       .sort((a, b) => a.date.localeCompare(b.date));
-  }, [stepsData, caloriesData]);
+  }, [stepsData, activeEnergyData, restingEnergyData, legacyCalData]);
   
   if (isLoading) {
     return (

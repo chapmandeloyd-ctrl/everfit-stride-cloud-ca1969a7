@@ -114,11 +114,13 @@ export const useHealthData = (clientId?: string, dataType?: string, days: number
 // Normalize edge function stats response to our HealthStats shape.
 // The edge function may return different field names (e.g. activeEnergy vs todayActiveEnergy).
 function normalizeEdgeStats(raw: Record<string, any>): HealthStats {
+  const todayActiveEnergy = raw.todayActiveEnergy ?? raw.activeEnergy ?? 0;
+  const todayRestingEnergy = raw.todayRestingEnergy ?? raw.restingEnergy ?? 0;
   return {
     todaySteps: raw.todaySteps ?? 0,
-    todayCalories: raw.todayCalories ?? raw.activeEnergy ?? 0,
-    todayActiveEnergy: raw.todayActiveEnergy ?? raw.activeEnergy ?? 0,
-    todayRestingEnergy: raw.todayRestingEnergy ?? raw.restingEnergy ?? 0,
+    todayCalories: raw.todayCalories ?? (todayActiveEnergy + todayRestingEnergy),
+    todayActiveEnergy,
+    todayRestingEnergy,
     todaySleep: raw.todaySleep ?? (raw.sleepHours != null ? Math.round(raw.sleepHours * 60) : 0),
     todayWeight: raw.todayWeight ?? raw.weight ?? null,
     avgHeartRate: raw.avgHeartRate ?? 0,
@@ -299,9 +301,11 @@ export const useHealthStats = (clientId?: string) => {
         console.warn('[useHealthStats] live stats failed, using DB values:', liveErr);
       }
 
+      const totalCaloriesBurned = liveActiveEnergy + liveRestingEnergy;
+
       const result: HealthStats = {
         todaySteps: liveSteps,
-        todayCalories: liveActiveEnergy,
+        todayCalories: totalCaloriesBurned,
         todayActiveEnergy: liveActiveEnergy,
         todayRestingEnergy: liveRestingEnergy,
         todaySleep: todaySleepMinutes,
