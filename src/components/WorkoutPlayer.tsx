@@ -57,6 +57,10 @@ interface WorkoutPlayerProps {
   onEndEarly: (data: { setLogs: Record<string, SetLog>; elapsedSeconds: number; startedAt: string }) => void;
   onDiscard: () => void;
   onExit: () => void;
+  onSaveForLater?: (data: { setLogs: Record<string, SetLog>; elapsedSeconds: number; startedAt: string; stepIdx: number; completionPercent: number }) => void;
+  resumeFromStep?: number;
+  resumeSetLogs?: Record<string, SetLog>;
+  resumeElapsed?: number;
 }
 
 interface WorkoutStep {
@@ -288,7 +292,7 @@ async function elevenLabsSpeakNow(text: string): Promise<void> {
 export { unlockAudioForMobile };
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, onDiscard, onExit }: WorkoutPlayerProps) {
+export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, onDiscard, onExit, onSaveForLater, resumeFromStep, resumeSetLogs, resumeElapsed }: WorkoutPlayerProps) {
   const { toast } = useToast();
   const startedAtRef = useRef(new Date().toISOString());
   const [setLogs, setSetLogs] = useState<Record<string, SetLog>>({});
