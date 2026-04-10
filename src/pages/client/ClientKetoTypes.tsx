@@ -185,6 +185,12 @@ export default function ClientKetoTypes() {
           </div>
         )}
       </div>
+
+      <PlanLockedDialog
+        open={showLocked}
+        onOpenChange={setShowLocked}
+        lockMessage="Message your trainer to request a different keto type."
+      />
     </ClientLayout>
   );
 }
