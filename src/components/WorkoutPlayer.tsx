@@ -57,6 +57,10 @@ interface WorkoutPlayerProps {
   onEndEarly: (data: { setLogs: Record<string, SetLog>; elapsedSeconds: number; startedAt: string }) => void;
   onDiscard: () => void;
   onExit: () => void;
+  onSaveForLater?: (data: { setLogs: Record<string, SetLog>; elapsedSeconds: number; startedAt: string; stepIdx: number; completionPercent: number }) => void;
+  resumeFromStep?: number;
+  resumeSetLogs?: Record<string, SetLog>;
+  resumeElapsed?: number;
 }
 
 interface WorkoutStep {
@@ -288,10 +292,10 @@ async function elevenLabsSpeakNow(text: string): Promise<void> {
 export { unlockAudioForMobile };
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, onDiscard, onExit }: WorkoutPlayerProps) {
+export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, onDiscard, onExit, onSaveForLater, resumeFromStep, resumeSetLogs, resumeElapsed }: WorkoutPlayerProps) {
   const { toast } = useToast();
   const startedAtRef = useRef(new Date().toISOString());
-  const [setLogs, setSetLogs] = useState<Record<string, SetLog>>({});
+  const [setLogs, setSetLogs] = useState<Record<string, SetLog>>(resumeSetLogs || {});
   const [isLocked, setIsLocked] = useState(false);
 
   // Unlock audio on mount + first user interaction (mobile Safari/Chrome requirement)
@@ -303,7 +307,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
     return () => { document.removeEventListener("touchstart", unlock); document.removeEventListener("click", unlock); };
   }, []);
 
-  const [phase, setPhase] = useState<"voiceselect" | "intro" | "playing">("voiceselect");
+  const [phase, setPhase] = useState<"voiceselect" | "intro" | "welcomeback" | "playing">(resumeFromStep !== undefined ? "welcomeback" : "voiceselect");
   const [countdownNum, setCountdownNum] = useState(3); // kept for reference but unused now
   const [chosenVoice, setChosenVoice] = useState<string>(WORKOUT_VOICES[0].id);
   const [previewingVoice, setPreviewingVoice] = useState(false);
@@ -311,8 +315,8 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
   const stepsRef = useRef<WorkoutStep[]>(buildSteps(sections));
   const steps = stepsRef.current;
 
-  const [stepIdx, setStepIdx] = useState(0);
-  const stepIdxRef = useRef(0);
+  const [stepIdx, setStepIdx] = useState(resumeFromStep ?? 0);
+  const stepIdxRef = useRef(resumeFromStep ?? 0);
 
   const [stepTimer, setStepTimer] = useState(-1);
   const stepTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -336,12 +340,13 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
 
   const savedTimer = loadWorkoutTimer();
   const [elapsedSeconds, setElapsedSeconds] = useState(() => {
+    if (resumeElapsed) return resumeElapsed;
     if (!savedTimer) return 0;
     if (savedTimer.paused) return savedTimer.accumulated;
     return savedTimer.accumulated + Math.floor((Date.now() - savedTimer.wallStart) / 1000);
   });
   const elapsedRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const elapsedAccRef = useRef<number>(savedTimer?.accumulated ?? 0);
+  const elapsedAccRef = useRef<number>(resumeElapsed ?? savedTimer?.accumulated ?? 0);
   const isPausedRef = useRef(savedTimer?.paused ?? false);
   const [isPaused, setIsPaused] = useState(savedTimer?.paused ?? false);
 
@@ -613,6 +618,20 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
     onDiscard();
   };
 
+  const handleSaveForLater = () => {
+    if (elapsedRef.current) clearInterval(elapsedRef.current);
+    if (stepTimerRef.current) clearInterval(stepTimerRef.current);
+    try { sessionStorage.removeItem(WORKOUT_TIMER_KEY); } catch {}
+    setShowDiscardDialog(false);
+    onSaveForLater?.({
+      setLogs,
+      elapsedSeconds,
+      startedAt: startedAtRef.current,
+      stepIdx,
+      completionPercent: completedPercent,
+    });
+  };
+
   const togglePause = () => {
     const nowPaused = !isPausedRef.current;
     if (nowPaused) {
@@ -734,6 +753,58 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
         speakFn={elevenLabsSpeakNow}
         onIntroComplete={() => setPhase("playing")}
       />
+    );
+  }
+
+  // ─── WELCOME BACK (Resume) ───
+  if (phase === "welcomeback") {
+    const remainPct = 100 - completedPercent;
+    // Auto-play welcome back message then transition to playing
+    const handleWelcomeBack = async () => {
+      setWorkoutVoice(chosenVoice);
+      unlockAudioForMobile();
+      preCacheCountdownClips();
+      await elevenLabsSpeakNow(`Welcome back! You're ${completedPercent}% through ${workoutName || "your workout"}. Let's pick up where you left off.`);
+      setPhase("playing");
+    };
+    return (
+      <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-foreground px-6">
+        <div className="text-primary text-xs font-bold uppercase tracking-[0.3em] mb-3">Welcome Back</div>
+        <h2 className="text-3xl font-black text-background text-center mb-2">{workoutName}</h2>
+        <p className="text-background/60 text-sm mb-6">{completedPercent}% done · {remainPct}% remaining</p>
+        <div className="w-full max-w-xs mb-8">
+          <div className="w-full bg-background/20 rounded-full h-3">
+            <div className="bg-primary h-3 rounded-full transition-all" style={{ width: `${completedPercent}%` }} />
+          </div>
+        </div>
+        <div className="flex flex-col gap-3 w-full max-w-sm">
+          <p className="text-xs text-background/50 font-medium text-center mb-2">Choose Your Coach</p>
+          {WORKOUT_VOICES.map((v) => (
+            <button
+              key={v.id}
+              onClick={() => { setChosenVoice(v.id); previewVoice(v.id); }}
+              className={cn(
+                "flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left",
+                chosenVoice === v.id
+                  ? "border-primary bg-primary/20 text-background"
+                  : "border-background/20 text-background/80 hover:border-background/40"
+              )}
+            >
+              <span className="text-2xl">{v.icon}</span>
+              <div className="flex-1">
+                <div className="font-semibold text-sm">{v.name}</div>
+                <div className="text-xs opacity-60">{v.desc}</div>
+              </div>
+            </button>
+          ))}
+        </div>
+        <Button size="lg" className="w-full max-w-sm mt-6" onClick={handleWelcomeBack}>
+          Resume Workout
+        </Button>
+        <Button variant="ghost" className="text-background/40 mt-2" onClick={onExit}>
+          Cancel
+        </Button>
+      </div>
     );
   }
 
@@ -967,10 +1038,19 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
           <AlertDialogContent className="z-[300]">
             <AlertDialogHeader>
               <AlertDialogTitle>End Workout?</AlertDialogTitle>
-              <AlertDialogDescription>What would you like to do with this session?</AlertDialogDescription>
+              <AlertDialogDescription>
+                You're {completedPercent}% through this workout. What would you like to do?
+              </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter className="flex-col gap-2 sm:flex-col">
-              <AlertDialogAction onClick={handleEndEarly}>Save & End</AlertDialogAction>
+              <AlertDialogAction onClick={handleEndEarly}>
+                Save & End ({completedPercent}% Complete)
+              </AlertDialogAction>
+              {onSaveForLater && (
+                <AlertDialogAction className="bg-secondary text-secondary-foreground hover:bg-secondary/80" onClick={handleSaveForLater}>
+                  Finish Later
+                </AlertDialogAction>
+              )}
               <AlertDialogAction className="bg-destructive hover:bg-destructive/90" onClick={handleDiscard}>Discard</AlertDialogAction>
               <AlertDialogCancel>Keep Going</AlertDialogCancel>
             </AlertDialogFooter>
@@ -1247,10 +1327,19 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
         <AlertDialogContent className="z-[300]">
           <AlertDialogHeader>
             <AlertDialogTitle>End Workout?</AlertDialogTitle>
-            <AlertDialogDescription>What would you like to do with this session?</AlertDialogDescription>
+            <AlertDialogDescription>
+              You're {completedPercent}% through this workout. What would you like to do?
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-col gap-2 sm:flex-col">
-            <AlertDialogAction onClick={handleEndEarly}>Save & End</AlertDialogAction>
+            <AlertDialogAction onClick={handleEndEarly}>
+              Save & End ({completedPercent}% Complete)
+            </AlertDialogAction>
+            {onSaveForLater && (
+              <AlertDialogAction className="bg-secondary text-secondary-foreground hover:bg-secondary/80" onClick={handleSaveForLater}>
+                Finish Later
+              </AlertDialogAction>
+            )}
             <AlertDialogAction className="bg-destructive hover:bg-destructive/90" onClick={handleDiscard}>
               Discard
             </AlertDialogAction>

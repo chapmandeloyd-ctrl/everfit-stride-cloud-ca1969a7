@@ -175,6 +175,9 @@ export function WorkoutSummary({
     },
   });
 
+  // Use DB duration as source of truth, fall back to prop
+  const effectiveDuration = session?.duration_seconds || durationSeconds;
+
   const formatDuration = (secs: number) => {
     const mins = Math.floor(secs / 60);
     const s = secs % 60;
@@ -186,26 +189,29 @@ export function WorkoutSummary({
   const completedSets = Object.values(setLogs).filter((s) => s.completed).length;
 
   // Build exercise summary from sections and setLogs
-  const exerciseSummary: { name: string; sets: { setNum: number; reps: string; weight: string; completed: boolean }[] }[] = [];
-  sections.forEach((section, sIdx) => {
+  const exerciseSummary: { name: string; isTimeBased: boolean; sectionType: string; sets: { setNum: number; reps: string; weight: string; duration: string; completed: boolean }[] }[] = [];
+  sections.forEach((section: any, sIdx: number) => {
     const isGrouped = ["superset", "circuit"].includes(section.section_type);
+    const isTimeBased = ["tabata", "circuit"].includes(section.section_type) || !!section.work_seconds;
     section.exercises.forEach((ex: any, eIdx: number) => {
-      const sets: { setNum: number; reps: string; weight: string; completed: boolean }[] = [];
+      const sets: { setNum: number; reps: string; weight: string; duration: string; completed: boolean }[] = [];
       if (isGrouped) {
         for (let r = 1; r <= section.rounds; r++) {
           const key = `${sIdx}-${eIdx}-${r}-1`;
           const log = setLogs[key];
-          sets.push({ setNum: r, reps: log?.reps || "-", weight: log?.weight || "-", completed: log?.completed || false });
+          const dur = ex.duration_seconds ? `${ex.duration_seconds}s` : (section.work_seconds ? `${section.work_seconds}s` : "");
+          sets.push({ setNum: r, reps: log?.reps || "-", weight: log?.weight || "-", duration: dur, completed: log?.completed || false });
         }
       } else {
         const totalS = ex.sets || 1;
         for (let s = 1; s <= totalS; s++) {
           const key = `${sIdx}-${eIdx}-1-${s}`;
           const log = setLogs[key];
-          sets.push({ setNum: s, reps: log?.reps || "-", weight: log?.weight || "-", completed: log?.completed || false });
+          const dur = ex.duration_seconds ? `${ex.duration_seconds}s` : "";
+          sets.push({ setNum: s, reps: log?.reps || "-", weight: log?.weight || "-", duration: dur, completed: log?.completed || false });
         }
       }
-      exerciseSummary.push({ name: ex.exercise_name || "Exercise", sets });
+      exerciseSummary.push({ name: ex.exercise_name || "Exercise", isTimeBased: isTimeBased || !!ex.duration_seconds, sectionType: section.section_type || "normal", sets });
     });
   });
 
@@ -258,7 +264,7 @@ export function WorkoutSummary({
           <CardContent className="p-6 text-center">
             <div className="flex items-center justify-center gap-2 mb-1">
               <Clock className="h-5 w-5 text-muted-foreground" />
-              <span className="text-3xl font-bold">{Math.floor(durationSeconds / 60)}</span>
+              <span className="text-3xl font-bold">{Math.floor(effectiveDuration / 60)}</span>
             </div>
             <p className="text-sm text-muted-foreground">Training min</p>
             <p className="text-xs text-muted-foreground mt-2">
@@ -376,8 +382,14 @@ export function WorkoutSummary({
                   {ex.sets.map((s) => (
                     <div key={s.setNum} className={cn("flex items-center gap-4 text-sm px-2 py-1 rounded", s.completed ? "" : "opacity-40")}>
                       <span className="w-6 text-muted-foreground">{s.setNum}.</span>
-                      <span className="flex-1">{s.reps || "-"} reps</span>
-                      <span className="text-muted-foreground">{s.weight ? `${s.weight} lbs` : "-"}</span>
+                      {ex.isTimeBased ? (
+                        <span className="flex-1">{s.duration || "-"}</span>
+                      ) : (
+                        <>
+                          <span className="flex-1">{s.reps || "-"} reps</span>
+                          <span className="text-muted-foreground">{s.weight && s.weight !== "-" && s.weight !== "0" ? `${s.weight} lbs` : ""}</span>
+                        </>
+                      )}
                     </div>
                   ))}
                 </div>

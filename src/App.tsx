@@ -81,6 +81,7 @@ import ClientHoopsLab from "./pages/client/ClientHoopsLab";
 import ClientBattingSession from "./pages/client/ClientBattingSession";
 import ClientShootingSession from "./pages/client/ClientShootingSession";
 import ClientWorkoutHistory from "./pages/ClientWorkoutHistory";
+import ClientWorkoutSession from "./pages/client/ClientWorkoutSession";
 import VibesAdmin from "./pages/VibesAdmin";
 import ClientCommandCenter from "./pages/ClientCommandCenter";
 import Scheduling from "./pages/Scheduling";
@@ -182,6 +183,7 @@ const App = () => (
           <Route path="/client/keto-types/:id" element={<ProtectedRoute allowedRoles={["client"]}><ClientKetoTypeDetail /></ProtectedRoute>} />
           <Route path="/client/card-styles" element={<ProtectedRoute allowedRoles={["client", "trainer"]}><CardStylesPreview /></ProtectedRoute>} />
           <Route path="/client/workouts/:id" element={<ProtectedRoute allowedRoles={["client"]}><WorkoutDetail /></ProtectedRoute>} />
+          <Route path="/client/workout-session/:sessionId" element={<ProtectedRoute allowedRoles={["client"]}><ClientWorkoutSession /></ProtectedRoute>} />
           <Route path="/client/messages" element={<ProtectedRoute allowedRoles={["client"]}><Messages /></ProtectedRoute>} />
           <Route path="/client/booking" element={<ProtectedRoute allowedRoles={["client"]}><ClientBooking /></ProtectedRoute>} />
           <Route path="/client/appointments" element={<ProtectedRoute allowedRoles={["client"]}><ClientAppointments /></ProtectedRoute>} />

@@ -28,6 +28,12 @@ export default function WorkoutDetail() {
   const { user, userRole } = useAuth();
   const effectiveClientId = useEffectiveClientId();
   const [isPlaying, setIsPlaying] = useState(searchParams.get("start") === "true");
+  const [resumeData, setResumeData] = useState<{
+    stepIdx: number;
+    setLogs: Record<string, any>;
+    elapsed: number;
+    sessionId: string;
+  } | null>(null);
   const [summaryData, setSummaryData] = useState<{
     sessionId: string;
     setLogs: Record<string, any>;
@@ -50,6 +56,25 @@ export default function WorkoutDetail() {
         .eq("client_id", effectiveClientId)
         .is("completed_at", null)
         .order("assigned_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id && !!effectiveClientId && isClient,
+  });
+
+  // Check for in-progress (paused) session
+  const { data: inProgressSession } = useQuery({
+    queryKey: ["in-progress-session", id, effectiveClientId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("workout_sessions")
+        .select("*")
+        .eq("workout_plan_id", id)
+        .eq("client_id", effectiveClientId)
+        .eq("status", "in_progress")
+        .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
       if (error) throw error;
@@ -258,7 +283,58 @@ export default function WorkoutDetail() {
 
   const handleDiscard = () => {
     setIsPlaying(false);
+    // If there was an in-progress session, delete it
+    if (inProgressSession?.id) {
+      supabase.from("workout_sessions").delete().eq("id", inProgressSession.id).then(() => {});
+    }
     navigate(isClient ? "/client/dashboard" : "/workouts");
+  };
+
+  const handleSaveForLater = async (data: { setLogs: Record<string, any>; elapsedSeconds: number; startedAt: string; stepIdx: number; completionPercent: number }) => {
+    setIsPlaying(false);
+    try {
+      if (inProgressSession?.id) {
+        // Update existing in-progress session
+        await supabase.from("workout_sessions").update({
+          duration_seconds: data.elapsedSeconds,
+          resume_section_index: data.stepIdx,
+          resume_set_logs: data.setLogs as any,
+          completion_percentage: data.completionPercent,
+          status: "in_progress",
+        }).eq("id", inProgressSession.id);
+      } else {
+        // Create new in-progress session
+        await supabase.from("workout_sessions").insert({
+          client_workout_id: clientWorkout?.id || null,
+          client_id: effectiveClientId,
+          workout_plan_id: id,
+          started_at: data.startedAt,
+          duration_seconds: data.elapsedSeconds,
+          is_partial: true,
+          status: "in_progress",
+          resume_section_index: data.stepIdx,
+          resume_set_logs: data.setLogs as any,
+          completion_percentage: data.completionPercent,
+        });
+      }
+      navigate("/client/dashboard");
+    } catch (err) {
+      console.error("Failed to save for later:", err);
+      navigate("/client/dashboard");
+    }
+  };
+
+  const handleResume = () => {
+    if (inProgressSession) {
+      const savedLogs = (inProgressSession as any).resume_set_logs || {};
+      setResumeData({
+        stepIdx: (inProgressSession as any).resume_section_index || 0,
+        setLogs: savedLogs,
+        elapsed: inProgressSession.duration_seconds || 0,
+        sessionId: inProgressSession.id,
+      });
+    }
+    setIsPlaying(true);
   };
 
   const handleExit = () => {
@@ -318,6 +394,10 @@ export default function WorkoutDetail() {
         onEndEarly={handleEndEarly}
         onDiscard={handleDiscard}
         onExit={handleExit}
+        onSaveForLater={isClient ? handleSaveForLater : undefined}
+        resumeFromStep={resumeData?.stepIdx}
+        resumeSetLogs={resumeData?.setLogs}
+        resumeElapsed={resumeData?.elapsed}
       />
     );
   }
@@ -341,10 +421,22 @@ export default function WorkoutDetail() {
               <Badge variant="outline">{workout.category}</Badge>
             </div>
           </div>
-          <Button size="lg" onClick={() => { unlockAudioForMobile(); setIsPlaying(true); }} className="gap-2">
-            <Play className="h-5 w-5" />
-            Start Workout
-          </Button>
+          {inProgressSession && isClient ? (
+            <div className="flex flex-col gap-2">
+              <Button size="lg" onClick={() => { unlockAudioForMobile(); handleResume(); }} className="gap-2">
+                <Play className="h-5 w-5" />
+                Resume ({(inProgressSession as any).completion_percentage || 0}%)
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => { unlockAudioForMobile(); setIsPlaying(true); }}>
+                Start Fresh
+              </Button>
+            </div>
+          ) : (
+            <Button size="lg" onClick={() => { unlockAudioForMobile(); setIsPlaying(true); }} className="gap-2">
+              <Play className="h-5 w-5" />
+              Start Workout
+            </Button>
+          )}
         </div>
 
         {/* Workout Info */}
