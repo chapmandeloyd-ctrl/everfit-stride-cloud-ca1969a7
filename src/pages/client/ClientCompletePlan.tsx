@@ -264,49 +264,42 @@ export default function ClientCompletePlan() {
           </div>
         </div>
 
-        {/* Protocol Hero */}
+        {/* Protocol Hero — large dynamic card */}
         <div className="px-5">
           <Card className="overflow-hidden" style={{ backgroundColor: "hsl(var(--primary) / 0.06)", borderColor: "hsl(var(--primary) / 0.2)" }}>
-            <CardContent className="p-5">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="h-7 w-7 rounded-full flex items-center justify-center" style={{ backgroundColor: "hsl(var(--primary) / 0.12)" }}>
-                  <Zap className="h-3.5 w-3.5 text-primary" />
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="h-11 w-11 rounded-xl flex items-center justify-center" style={{ backgroundColor: "hsl(var(--primary) / 0.10)" }}>
+                  <Zap className="h-5 w-5 text-primary" />
                 </div>
-                <span className="text-[11px] font-bold uppercase tracking-wider text-primary">Your KSOM Plan</span>
+                <span className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-primary">Your KSOM Plan</span>
               </div>
-              <h2 className="text-2xl font-black leading-tight">{protocol.name}</h2>
+              <h2 className="text-[28px] font-black leading-tight tracking-tight">{protocol.name}</h2>
               {(customCopy?.descriptionOverride || protocol.description) && (
-                <p className="text-sm text-muted-foreground leading-relaxed mt-2">
+                <p className="text-[15px] text-muted-foreground leading-relaxed mt-3">
                   {customCopy?.descriptionOverride || String(protocol.description || "")}
                 </p>
               )}
+
+              {/* Inline stats row */}
+              <div className="flex items-end gap-6 mt-6 pt-4 border-t border-border/40">
+                <div>
+                  <p className="text-2xl font-black">{protocol.fast_target_hours}h</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">Fast</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-black">
+                    {protocol.duration_days === 0 ? "∞" : `${Math.ceil(protocol.duration_days / 7)} week${Math.ceil(protocol.duration_days / 7) !== 1 ? "s" : ""}`}
+                  </p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">Duration</p>
+                </div>
+                <div className="ml-auto">
+                  <p className="text-2xl font-black capitalize">{getDifficultyLabel(protocol.difficulty_level)}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">Level</p>
+                </div>
+              </div>
             </CardContent>
           </Card>
-        </div>
-
-        {/* Stats Row */}
-        <div className="grid grid-cols-3 gap-3 px-5 mt-4">
-          <div className="rounded-xl bg-muted/50 p-3 text-center space-y-1">
-            <Clock className="h-5 w-5 mx-auto text-muted-foreground" />
-            <p className="text-[10px] text-muted-foreground">Fast Duration</p>
-            <p className="text-lg font-bold">{protocol.fast_target_hours}h</p>
-          </div>
-          <div className="rounded-xl bg-muted/50 p-3 text-center space-y-1">
-            <CalendarDays className="h-5 w-5 mx-auto text-muted-foreground" />
-            <p className="text-[10px] text-muted-foreground">
-              {protocol.duration_days === 0 ? "Ongoing" : "Duration"}
-            </p>
-            <p className="text-lg font-bold">
-              {protocol.duration_days === 0 ? "∞" : `${protocol.duration_days}d`}
-            </p>
-          </div>
-          <div className="rounded-xl bg-muted/50 p-3 text-center space-y-1">
-            <BarChart3 className="h-5 w-5 mx-auto text-muted-foreground" />
-            <p className="text-[10px] text-muted-foreground">Difficulty</p>
-            <p className="text-lg font-bold capitalize">
-              {getDifficultyLabel(protocol.difficulty_level).slice(0, 6)}
-            </p>
-          </div>
         </div>
 
         {/* Protocol Sections */}
