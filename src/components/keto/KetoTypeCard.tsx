@@ -27,7 +27,7 @@ export function KetoTypeCard({
 
   return (
     <div
-      className="cursor-pointer transition-all active:scale-[0.99] overflow-hidden rounded-2xl"
+      className={`cursor-pointer transition-all active:scale-[0.99] overflow-hidden rounded-2xl ${!isActive ? "opacity-60" : ""}`}
       onClick={onClick}
     >
       {/* Metallic dark card */}
