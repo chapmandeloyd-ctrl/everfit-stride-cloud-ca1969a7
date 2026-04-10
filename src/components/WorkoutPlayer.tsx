@@ -1038,10 +1038,19 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
           <AlertDialogContent className="z-[300]">
             <AlertDialogHeader>
               <AlertDialogTitle>End Workout?</AlertDialogTitle>
-              <AlertDialogDescription>What would you like to do with this session?</AlertDialogDescription>
+              <AlertDialogDescription>
+                You're {completedPercent}% through this workout. What would you like to do?
+              </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter className="flex-col gap-2 sm:flex-col">
-              <AlertDialogAction onClick={handleEndEarly}>Save & End</AlertDialogAction>
+              <AlertDialogAction onClick={handleEndEarly}>
+                Save & End ({completedPercent}% Complete)
+              </AlertDialogAction>
+              {onSaveForLater && (
+                <AlertDialogAction className="bg-secondary text-secondary-foreground hover:bg-secondary/80" onClick={handleSaveForLater}>
+                  Finish Later
+                </AlertDialogAction>
+              )}
               <AlertDialogAction className="bg-destructive hover:bg-destructive/90" onClick={handleDiscard}>Discard</AlertDialogAction>
               <AlertDialogCancel>Keep Going</AlertDialogCancel>
             </AlertDialogFooter>
@@ -1318,10 +1327,19 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
         <AlertDialogContent className="z-[300]">
           <AlertDialogHeader>
             <AlertDialogTitle>End Workout?</AlertDialogTitle>
-            <AlertDialogDescription>What would you like to do with this session?</AlertDialogDescription>
+            <AlertDialogDescription>
+              You're {completedPercent}% through this workout. What would you like to do?
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-col gap-2 sm:flex-col">
-            <AlertDialogAction onClick={handleEndEarly}>Save & End</AlertDialogAction>
+            <AlertDialogAction onClick={handleEndEarly}>
+              Save & End ({completedPercent}% Complete)
+            </AlertDialogAction>
+            {onSaveForLater && (
+              <AlertDialogAction className="bg-secondary text-secondary-foreground hover:bg-secondary/80" onClick={handleSaveForLater}>
+                Finish Later
+              </AlertDialogAction>
+            )}
             <AlertDialogAction className="bg-destructive hover:bg-destructive/90" onClick={handleDiscard}>
               Discard
             </AlertDialogAction>
