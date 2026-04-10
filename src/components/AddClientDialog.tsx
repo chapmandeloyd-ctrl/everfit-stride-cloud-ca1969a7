@@ -51,9 +51,39 @@ export function AddClientDialog({ open, onOpenChange }: AddClientDialogProps) {
       }
       return data;
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
-      setCreatedCredentials({ email: email.trim(), password: password.trim(), name: fullName.trim() });
+      const creds = { email: email.trim(), password: password.trim(), name: fullName.trim() };
+      setCreatedCredentials(creds);
+
+      // Send client invitation + welcome emails
+      try {
+        await Promise.all([
+          supabase.functions.invoke("send-transactional-email", {
+            body: {
+              templateName: "client-invitation",
+              recipientEmail: creds.email,
+              idempotencyKey: `invite-${creds.email}-${Date.now()}`,
+              templateData: {
+                name: creds.name,
+                trainerName: user?.user_metadata?.full_name || "Your Coach",
+                loginUrl: "https://ksom-360.app/auth",
+                tempPassword: creds.password,
+              },
+            },
+          }),
+          supabase.functions.invoke("send-transactional-email", {
+            body: {
+              templateName: "welcome",
+              recipientEmail: creds.email,
+              idempotencyKey: `welcome-${creds.email}-${Date.now()}`,
+              templateData: { name: creds.name },
+            },
+          }),
+        ]);
+      } catch (e) {
+        console.error("Failed to send invitation/welcome emails", e);
+      }
     },
     onError: (error: Error) => {
       toast({
