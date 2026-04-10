@@ -55,7 +55,7 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
     queryFn: async () => {
       const { data, error } = await supabase
         .from("client_feature_settings")
-        .select("selected_protocol_id, selected_quick_plan_id, protocol_start_date, active_fast_start_at, active_fast_target_hours, last_fast_ended_at, eating_window_ends_at, eating_window_hours, fasting_strict_mode, protocol_assigned_by, fasting_card_subtitle, fasting_card_image_url, eating_window_card_image_url, fast_lock_pin, protocol_completed, maintenance_mode, maintenance_schedule_type")
+        .select("selected_protocol_id, selected_quick_plan_id, protocol_start_date, active_fast_start_at, active_fast_target_hours, last_fast_ended_at, eating_window_ends_at, eating_window_hours, fasting_strict_mode, protocol_assigned_by, fasting_card_subtitle, fasting_card_image_url, eating_window_card_image_url, fast_lock_pin, protocol_completed, maintenance_mode, maintenance_schedule_type, trainer_id")
         .eq("client_id", clientId)
         .maybeSingle();
       if (error) throw error;
@@ -77,6 +77,7 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
         protocol_completed: boolean;
         maintenance_mode: boolean;
         maintenance_schedule_type: string | null;
+        trainer_id: string;
       } | null;
     },
     enabled: !!clientId,
@@ -122,6 +123,25 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
         .order("order_index", { ascending: true });
       if (error) throw error;
       return (data || []).map((p: any) => p.image_url as string);
+    },
+    enabled: !!clientId,
+  });
+  // Fetch today's fasting log for post-fast summary
+  const todayDate = format(now, "yyyy-MM-dd");
+  const { data: todayFastLog } = useQuery({
+    queryKey: ["today-fasting-log", clientId, todayDate],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("fasting_log")
+        .select("*")
+        .eq("client_id", clientId!)
+        .gte("ended_at", `${todayDate}T00:00:00`)
+        .lte("ended_at", `${todayDate}T23:59:59`)
+        .order("ended_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
     },
     enabled: !!clientId,
   });
@@ -173,13 +193,26 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
 
   const endFastMutation = useMutation({
     mutationFn: async () => {
+      const nowTs = new Date();
+      const startAt = featureSettings?.active_fast_start_at;
+      const targetHours = featureSettings?.active_fast_target_hours || 16;
+      const trainerId = featureSettings?.trainer_id;
+
+      // Calculate actual hours fasted
+      const actualMs = startAt ? nowTs.getTime() - new Date(startAt).getTime() : 0;
+      const actualHours = Math.round((actualMs / 3600000) * 100) / 100;
+      const completionPct = Math.min(Math.round((actualHours / targetHours) * 100), 100);
+      const endedEarly = actualHours < targetHours;
+
       const eatingWindowHours = featureSettings?.eating_window_hours || 8;
-      const eatingWindowEnd = new Date(Date.now() + eatingWindowHours * 3600000).toISOString();
+      const eatingWindowEnd = new Date(nowTs.getTime() + eatingWindowHours * 3600000).toISOString();
+
+      // Update feature settings
       const { error } = await supabase
         .from("client_feature_settings")
         .update({
-          last_fast_ended_at: new Date().toISOString(),
-          last_fast_completed_at: new Date().toISOString(),
+          last_fast_ended_at: nowTs.toISOString(),
+          last_fast_completed_at: nowTs.toISOString(),
           active_fast_start_at: null,
           active_fast_target_hours: null,
           eating_window_ends_at: eatingWindowEnd,
@@ -187,10 +220,26 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
         })
         .eq("client_id", clientId);
       if (error) throw error;
+
+      // Log to fasting_log
+      if (startAt && trainerId) {
+        await supabase.from("fasting_log").insert({
+          client_id: clientId!,
+          trainer_id: trainerId,
+          started_at: startAt,
+          ended_at: nowTs.toISOString(),
+          target_hours: targetHours,
+          actual_hours: actualHours,
+          completion_pct: completionPct,
+          status: endedEarly ? "partial" : "completed",
+          ended_early: endedEarly,
+        });
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting"] });
       queryClient.invalidateQueries({ queryKey: ["fasting-gate-state"] });
+      queryClient.invalidateQueries({ queryKey: ["today-fasting-log"] });
     },
   });
 
@@ -678,11 +727,11 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
             </div>
           ) : null}
 
-          {/* Stats row */}
+          {/* Stats row — show actual hours if fast completed today */}
           {hasProtocol && activeProtocol && !isMaintenanceMode && (
             <div className="grid grid-cols-3 gap-2">
               {[
-                { icon: Clock, value: `${activeProtocol.fast_target_hours}h`, label: "Fast" },
+                { icon: Clock, value: todayFastLog ? `${Math.round(todayFastLog.actual_hours)}h` : `${activeProtocol.fast_target_hours}h`, label: todayFastLog ? "Fasted" : "Fast" },
                 { icon: CalendarDays, value: `${24 - activeProtocol.fast_target_hours}h`, label: "Eat Window" },
                 { icon: BarChart3, value: getDifficultyLabel(activeProtocol.difficulty_level), label: "Level" },
               ].map((stat) => (
@@ -692,6 +741,53 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
                   <p className="text-[9px] text-white/50 uppercase tracking-wider font-medium mt-0.5">{stat.label}</p>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Post-fast summary card */}
+          {todayFastLog && !isFasting && (
+            <div className={`rounded-xl p-3 border ${
+              todayFastLog.ended_early
+                ? "bg-amber-500/10 border-amber-500/30"
+                : "bg-emerald-500/10 border-emerald-500/30"
+            }`}>
+              <div className="flex items-center gap-3">
+                {/* Progress ring */}
+                <div className="relative w-12 h-12 shrink-0">
+                  <svg viewBox="0 0 36 36" className="w-12 h-12 -rotate-90">
+                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="3" />
+                    <circle
+                      cx="18" cy="18" r="15.9" fill="none"
+                      stroke={todayFastLog.ended_early ? "#f59e0b" : "#10b981"}
+                      strokeWidth="3"
+                      strokeDasharray={`${todayFastLog.completion_pct} ${100 - todayFastLog.completion_pct}`}
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <span className="absolute inset-0 flex items-center justify-center text-[10px] font-black text-white">
+                    {todayFastLog.completion_pct}%
+                  </span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      todayFastLog.ended_early
+                        ? "bg-amber-500/20 text-amber-400"
+                        : "bg-emerald-500/20 text-emerald-400"
+                    }`}>
+                      {todayFastLog.ended_early ? "Partial" : "Completed"}
+                    </span>
+                  </div>
+                  <p className="text-sm font-bold text-white mt-1">
+                    {Math.floor(todayFastLog.actual_hours)}h {Math.round((todayFastLog.actual_hours % 1) * 60)}m fasted
+                  </p>
+                  <p className="text-[10px] text-white/50">
+                    {todayFastLog.ended_early
+                      ? `${Math.round(todayFastLog.actual_hours)} of ${todayFastLog.target_hours}h target`
+                      : `${todayFastLog.target_hours}h target reached`}
+                  </p>
+                </div>
+              </div>
             </div>
           )}
 
@@ -976,7 +1072,7 @@ export default function ClientDashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("client_feature_settings")
-        .select("selected_protocol_id, active_fast_start_at, active_fast_target_hours, fasting_strict_mode, eating_window_ends_at, eating_window_hours, protocol_start_date, maintenance_mode, maintenance_schedule_type")
+        .select("selected_protocol_id, active_fast_start_at, active_fast_target_hours, fasting_strict_mode, eating_window_ends_at, eating_window_hours, protocol_start_date, maintenance_mode, maintenance_schedule_type, trainer_id")
         .eq("client_id", clientId)
         .maybeSingle();
       if (error) throw error;
@@ -990,6 +1086,7 @@ export default function ClientDashboard() {
         protocol_start_date: string | null;
         maintenance_mode: boolean;
         maintenance_schedule_type: string | null;
+        trainer_id: string;
       } | null;
     },
     enabled: !!clientId && settings.fasting_enabled,
@@ -1880,11 +1977,22 @@ export default function ClientDashboard() {
                           <p className="text-[10px] text-muted-foreground">Eating window opens at {fastEndTimeStr}</p>
                           <Button variant="outline" size="sm" className="w-full" onClick={async (e) => {
                             e.stopPropagation();
+                            const nowTs = new Date();
                             const ewHours = fastingState?.eating_window_hours || 8;
-                            const ewEnd = new Date(Date.now() + ewHours * 3600000).toISOString();
-                            await supabase.from("client_feature_settings").update({ last_fast_ended_at: new Date().toISOString(), last_fast_completed_at: new Date().toISOString(), active_fast_start_at: null, active_fast_target_hours: null, eating_window_ends_at: ewEnd }).eq("client_id", clientId);
+                            const ewEnd = new Date(nowTs.getTime() + ewHours * 3600000).toISOString();
+                            const startAt = fastingState?.active_fast_start_at;
+                            const targetHours = fastingState?.active_fast_target_hours || 16;
+                            const actualMs = startAt ? nowTs.getTime() - new Date(startAt).getTime() : 0;
+                            const actualHours = Math.round((actualMs / 3600000) * 100) / 100;
+                            const completionPct = Math.min(Math.round((actualHours / targetHours) * 100), 100);
+                            const endedEarly = actualHours < targetHours;
+                            await supabase.from("client_feature_settings").update({ last_fast_ended_at: nowTs.toISOString(), last_fast_completed_at: nowTs.toISOString(), active_fast_start_at: null, active_fast_target_hours: null, eating_window_ends_at: ewEnd }).eq("client_id", clientId);
+                            if (startAt && fastingState?.trainer_id) {
+                              await supabase.from("fasting_log").insert({ client_id: clientId!, trainer_id: fastingState.trainer_id, started_at: startAt, ended_at: nowTs.toISOString(), target_hours: targetHours, actual_hours: actualHours, completion_pct: completionPct, status: endedEarly ? "partial" : "completed", ended_early: endedEarly });
+                            }
                             queryClient.invalidateQueries({ queryKey: ["fasting-gate-state"] });
                             queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting"] });
+                            queryClient.invalidateQueries({ queryKey: ["today-fasting-log"] });
                           }}>
                             End Fast
                           </Button>

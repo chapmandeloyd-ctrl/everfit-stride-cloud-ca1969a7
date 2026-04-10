@@ -3176,6 +3176,48 @@ export type Database = {
         }
         Relationships: []
       }
+      fasting_log: {
+        Row: {
+          actual_hours: number
+          client_id: string
+          completion_pct: number
+          created_at: string
+          ended_at: string
+          ended_early: boolean
+          id: string
+          started_at: string
+          status: string
+          target_hours: number
+          trainer_id: string
+        }
+        Insert: {
+          actual_hours: number
+          client_id: string
+          completion_pct?: number
+          created_at?: string
+          ended_at?: string
+          ended_early?: boolean
+          id?: string
+          started_at: string
+          status?: string
+          target_hours: number
+          trainer_id: string
+        }
+        Update: {
+          actual_hours?: number
+          client_id?: string
+          completion_pct?: number
+          created_at?: string
+          ended_at?: string
+          ended_early?: boolean
+          id?: string
+          started_at?: string
+          status?: string
+          target_hours?: number
+          trainer_id?: string
+        }
+        Relationships: []
+      }
       fasting_protocols: {
         Row: {
           category: string
