@@ -9,7 +9,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Send, Zap, Trophy, Dumbbell, Heart, Flame, Star, CalendarCheck, MessageCircle } from "lucide-react";
+import { Send, Zap } from "lucide-react";
+
+const LOGO_URL = "https://eexxmfuknqttujecbcho.supabase.co/storage/v1/object/public/email-assets/logo.png";
 import { toast } from "sonner";
 
 
