@@ -1326,6 +1326,7 @@ export default function ClientDashboard() {
                     daysAhead={settings.calendar_days_ahead}
                     trainingEnabled={settings.training_enabled}
                     tasksEnabled={settings.tasks_enabled}
+                    onDateChange={setCalendarSelectedDate}
                   />
                   {/* Completed workouts under calendar */}
                   {(() => {
