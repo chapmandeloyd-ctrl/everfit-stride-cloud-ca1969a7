@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { usePlanSynergy } from "@/hooks/usePlanSynergy";
 import { toast } from "sonner";
 import { SynergyManualEditor } from "./SynergyManualEditor";
+import { KetoMacroEditor } from "@/components/keto/KetoMacroEditor";
 import {
   Select,
   SelectContent,
@@ -42,7 +43,7 @@ export function SynergyPreviewPanel({ clientId, trainerId }: SynergyPreviewPanel
     queryFn: async () => {
       const { data } = await supabase
         .from("client_keto_assignments")
-        .select("id, keto_type_id, keto_types(abbreviation, name, color)")
+        .select("id, keto_type_id, keto_types(id, abbreviation, name, color, fat_pct, protein_pct, carbs_pct, carb_limit_grams)")
         .eq("client_id", clientId)
         .eq("is_active", true)
         .maybeSingle();
@@ -112,7 +113,7 @@ export function SynergyPreviewPanel({ clientId, trainerId }: SynergyPreviewPanel
   });
 
   const ketoTypeId = ketoAssignment?.keto_type_id || null;
-  const ketoType = ketoAssignment?.keto_types as { abbreviation: string; name: string; color: string } | null;
+  const ketoType = ketoAssignment?.keto_types as { id: string; abbreviation: string; name: string; color: string; fat_pct: number; protein_pct: number; carbs_pct: number; carb_limit_grams: number | null } | null;
 
   const { data: synergy, isLoading: synergyLoading } = usePlanSynergy(
     protocolType,
@@ -336,6 +337,19 @@ export function SynergyPreviewPanel({ clientId, trainerId }: SynergyPreviewPanel
             </Select>
           </div>
         </div>
+
+        {/* Keto Macro Editor - visible when a keto type is assigned */}
+        {ketoType && (
+          <KetoMacroEditor
+            ketoTypeId={ketoType.id}
+            fat_pct={ketoType.fat_pct}
+            protein_pct={ketoType.protein_pct}
+            carbs_pct={ketoType.carbs_pct}
+            carb_limit_grams={ketoType.carb_limit_grams}
+            color={ketoType.color}
+            abbreviation={ketoType.abbreviation}
+          />
+        )}
 
         {/* Synergy content */}
         {!hasBoth && (
