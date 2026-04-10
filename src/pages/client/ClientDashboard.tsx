@@ -55,7 +55,7 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
     queryFn: async () => {
       const { data, error } = await supabase
         .from("client_feature_settings")
-        .select("selected_protocol_id, selected_quick_plan_id, protocol_start_date, active_fast_start_at, active_fast_target_hours, last_fast_ended_at, eating_window_ends_at, eating_window_hours, fasting_strict_mode, protocol_assigned_by, fasting_card_subtitle, fasting_card_image_url, eating_window_card_image_url, fast_lock_pin, protocol_completed, maintenance_mode, maintenance_schedule_type")
+        .select("selected_protocol_id, selected_quick_plan_id, protocol_start_date, active_fast_start_at, active_fast_target_hours, last_fast_ended_at, eating_window_ends_at, eating_window_hours, fasting_strict_mode, protocol_assigned_by, fasting_card_subtitle, fasting_card_image_url, eating_window_card_image_url, fast_lock_pin, protocol_completed, maintenance_mode, maintenance_schedule_type, trainer_id")
         .eq("client_id", clientId)
         .maybeSingle();
       if (error) throw error;
