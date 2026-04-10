@@ -15,6 +15,8 @@ const DATA_TYPE_TO_METRIC: Record<string, string> = {
   sleep: 'Sleep',
   weight: 'Weight',
   caloric_intake: 'Caloric Intake',
+  dietary_energy: 'Caloric Intake',
+  food_energy: 'Caloric Intake',
 };
 
 serve(async (req) => {
@@ -74,6 +76,12 @@ MAPPING RULES for data_type:
 - "Sleep" duration → sleep (value in HOURS as decimal, e.g. 7.5)
 - "Weight" → weight (value in lbs)
 - "Caloric Intake" or food calories → caloric_intake
+- "Dietary Energy" → dietary_energy (this is Apple's name for calories consumed/eaten)
+
+IMPORTANT: Apple Health shows "Active Energy" and "Resting Energy" separately. 
+- Map "Active Energy" → active_energy
+- Map "Resting Energy" → resting_energy  
+- Do NOT combine them into one entry.
 
 Extract exact numbers shown on screen. Convert minutes to hours for sleep (e.g. 7h 30m = 7.5).
 Skip any metrics not in the mapping above.
@@ -102,7 +110,7 @@ Today's date is ${new Date().toISOString().split('T')[0]}.`
                       properties: {
                         data_type: {
                           type: 'string',
-                          enum: ['steps', 'calories_burned', 'active_energy', 'sleep', 'weight', 'caloric_intake'],
+                          enum: ['steps', 'calories_burned', 'active_energy', 'resting_energy', 'sleep', 'weight', 'caloric_intake', 'dietary_energy'],
                         },
                         value: { type: 'number' },
                         unit: { type: 'string' },
@@ -156,8 +164,16 @@ Today's date is ${new Date().toISOString().split('T')[0]}.`
     const now = new Date();
     let savedCount = 0;
 
+    // Pre-aggregate: sum metrics that map to the same definition (e.g. active_energy + resting_energy → Caloric Burn)
+    const aggregated: Record<string, number> = {};
+    for (const m of extracted.metrics) {
+      const metricName = DATA_TYPE_TO_METRIC[m.data_type];
+      if (!metricName) continue;
+      aggregated[metricName] = (aggregated[metricName] || 0) + m.value;
+    }
+
     // Get all metric definitions we need
-    const metricNames = [...new Set(extracted.metrics.map((m: any) => DATA_TYPE_TO_METRIC[m.data_type]).filter(Boolean))];
+    const metricNames = Object.keys(aggregated);
     const { data: metricDefs } = await supabase
       .from('metric_definitions')
       .select('id, name')
@@ -171,11 +187,9 @@ Today's date is ${new Date().toISOString().split('T')[0]}.`
     const defMap: Record<string, string> = {};
     metricDefs.forEach(d => { defMap[d.name] = d.id; });
 
-    // Get or create client_metrics for each definition
-    for (const metric of extracted.metrics) {
-      const metricName = DATA_TYPE_TO_METRIC[metric.data_type];
-      if (!metricName || !defMap[metricName]) continue;
-
+    // Get or create client_metrics and insert entries for each aggregated metric
+    for (const [metricName, value] of Object.entries(aggregated)) {
+      if (!defMap[metricName]) continue;
       const metricDefId = defMap[metricName];
 
       // Find existing client_metric
@@ -218,13 +232,13 @@ Today's date is ${new Date().toISOString().split('T')[0]}.`
         clientMetricId = newCM.id;
       }
 
-      // Insert metric entry
+      // Insert metric entry with aggregated value
       const { error: entryErr } = await supabase
         .from('metric_entries')
         .insert({
           client_id: user.id,
           client_metric_id: clientMetricId,
-          value: metric.value,
+          value: value,
           recorded_at: now.toISOString(),
         });
 
