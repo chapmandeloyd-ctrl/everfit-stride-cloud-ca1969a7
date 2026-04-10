@@ -23,7 +23,7 @@ export function TemplatesTab() {
         .eq("trainer_id", user!.id)
         .order("updated_at", { ascending: false });
       if (error) throw error;
-      return (data || []) as NotificationTemplate[];
+      return (data || []) as unknown as NotificationTemplate[];
     },
     enabled: !!user,
   });

@@ -78,7 +78,7 @@ export function ComposeTab() {
         return data || [];
       }
 
-      const { data, error } = query;
+      const { data, error } = await query;
       if (error) throw error;
       return data || [];
     },
