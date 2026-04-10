@@ -18,6 +18,7 @@ export const DEFAULT_CARD_ORDER: DashboardCardConfig[] = [
   { key: "step_tracker", label: "Step Tracker", visible: true },
   { key: "tasks", label: "Tasks", visible: true },
   { key: "progress", label: "My Progress", visible: true },
+  { key: "health_dashboard", label: "Health Dashboard", visible: true },
   { key: "game_stats", label: "Game Stats", visible: true },
   { key: "cardio", label: "Cardio Activity", visible: true },
 ];

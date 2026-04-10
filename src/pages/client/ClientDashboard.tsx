@@ -3,7 +3,7 @@ import fastingCardBgImg from "@/assets/fasting-timer-bg.jpg";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Bell, Dumbbell, CheckCircle2, Circle, UtensilsCrossed, Footprints, ChevronRight, Smartphone, X, Plus, Pencil, Swords, Trophy, MapPin, Check, Activity, ScanBarcode, Camera, PenLine, MessageCircle, Clock, Sparkles, ArrowRight, CalendarDays, BarChart3 } from "lucide-react";
+import { Bell, Dumbbell, CheckCircle2, Circle, UtensilsCrossed, Footprints, ChevronRight, Smartphone, X, Plus, Pencil, Swords, Trophy, MapPin, Check, Activity, ScanBarcode, Camera, PenLine, MessageCircle, Clock, Sparkles, ArrowRight, CalendarDays, BarChart3, Settings } from "lucide-react";
 import { getDifficultyLabel, getDurationLabel } from "@/lib/fastingCategoryConfig";
 import { useAuth } from "@/hooks/useAuth";
 import { differenceInCalendarDays, isToday, isBefore, startOfDay, parseISO, format } from "date-fns";
@@ -36,12 +36,45 @@ import { CreatePinDialog, VerifyPinDialog, HoldToEndButton } from "@/components/
 import { FastingCoachTipCard } from "@/components/FastingCoachTipCard";
 import { ProtocolCompletionDialog } from "@/components/ProtocolCompletionDialog";
 import { MyProgressSection } from "@/components/MyProgressSection";
+import { ActivitySummary } from "@/components/health/ActivitySummary";
+import { HealthSnapshotDialog } from "@/components/health/HealthSnapshotDialog";
 
 import { InAppNotifications } from "@/components/InAppNotifications";
 import { useDashboardLayoutClient } from "@/hooks/useDashboardLayoutClient";
 import { SportHeroBanner } from "@/components/SportHeroBanner";
 import { AssignedPlanCard } from "@/components/dashboard/AssignedPlanCard";
 import { AskKsomAI } from "@/components/client/AskKsomAI";
+
+// Health Dashboard Section sub-component
+function HealthDashboardSection({ clientId, navigate }: { clientId: string; navigate: (path: string) => void }) {
+  const [snapshotOpen, setSnapshotOpen] = useState(false);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-bold tracking-tight">Health Dashboard</h2>
+          <p className="text-sm text-muted-foreground">
+            Track your heart rate, activity, and more from your wearable
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => setSnapshotOpen(true)}>
+            <Camera className="h-4 w-4 mr-2" />
+            AI Snapshot
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => navigate("/client/health-connect")}>
+            <Settings className="h-4 w-4 mr-2" />
+            Settings
+          </Button>
+        </div>
+      </div>
+      <ActivitySummary clientId={clientId} />
+      <HealthSnapshotDialog open={snapshotOpen} onOpenChange={setSnapshotOpen} />
+    </div>
+  );
+}
+
 // Fasting Program Card sub-component
 function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; navigate: (path: string) => void }) {
   const queryClient = useQueryClient();
@@ -2118,6 +2151,11 @@ export default function ClientDashboard() {
             case "progress":
               return settings.body_metrics_enabled && clientId ? (
                 <MyProgressSection key="progress" clientId={clientId} />
+              ) : null;
+
+            case "health_dashboard":
+              return clientId ? (
+                <HealthDashboardSection key="health_dashboard" clientId={clientId} navigate={navigate} />
               ) : null;
 
             case "game_stats":
