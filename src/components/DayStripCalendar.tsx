@@ -12,6 +12,7 @@ interface DayStripCalendarProps {
   daysAhead: number;
   trainingEnabled: boolean;
   tasksEnabled: boolean;
+  onDateChange?: (date: Date | null) => void;
 }
 
 interface DayData {
@@ -21,8 +22,13 @@ interface DayData {
   habits: any[];
 }
 
-export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEnabled }: DayStripCalendarProps) {
+export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEnabled, onDateChange }: DayStripCalendarProps) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+
+  const handleDateSelect = (date: Date | null) => {
+    setSelectedDate(date);
+    onDateChange?.(date);
+  };
   const today = new Date();
   const monthStart = startOfMonth(today);
   const endDay = addDays(today, daysAhead);
@@ -197,7 +203,7 @@ export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEn
             <button
               key={day.toISOString()}
               ref={isTodayDay ? todayRef : undefined}
-              onClick={() => setSelectedDate(isTodayDay && !selectedDate ? null : day)}
+              onClick={() => handleDateSelect(isTodayDay && !selectedDate ? null : day)}
               className={cn(
                 "flex flex-col items-center gap-1 py-2 px-2 rounded-xl transition-all shrink-0 w-12",
                 isSelected
