@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { formatDistanceToNow } from "date-fns";
+import { notificationQueryKeys } from "@/lib/notification-query-keys";
 
 interface InAppNotification {
   id: string;
@@ -22,9 +23,10 @@ export function NotificationBell() {
   const activeClientId = useEffectiveClientId();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
+  const notificationsQueryKey = notificationQueryKeys.bellNotifications(activeClientId);
 
   const { data: notifications = [] } = useQuery({
-    queryKey: ["in-app-notifications", activeClientId],
+    queryKey: notificationsQueryKey,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("in_app_notifications")
@@ -72,7 +74,7 @@ export function NotificationBell() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["in-app-notifications", activeClientId] });
+      queryClient.invalidateQueries({ queryKey: notificationsQueryKey, exact: true });
     },
   });
 
@@ -87,7 +89,7 @@ export function NotificationBell() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["in-app-notifications", activeClientId] });
+      queryClient.invalidateQueries({ queryKey: notificationsQueryKey, exact: true });
     },
   });
 

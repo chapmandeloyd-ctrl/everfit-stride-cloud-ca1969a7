@@ -5,13 +5,22 @@ import { Button } from "@/components/ui/button";
 import { Check, X } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import logoSrc from "@/assets/logo.png";
+import { notificationQueryKeys } from "@/lib/notification-query-keys";
+
+interface DashboardNotification {
+  id: string;
+  title: string;
+  body: string | null;
+  sent_at: string | null;
+}
 
 export function InAppNotifications() {
   const clientId = useEffectiveClientId();
   const queryClient = useQueryClient();
+  const notificationsQueryKey = notificationQueryKeys.dashboardEvents(clientId);
 
   const { data: notifications } = useQuery({
-    queryKey: ["in-app-notifications", clientId],
+    queryKey: notificationsQueryKey,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("notification_events")
@@ -23,7 +32,7 @@ export function InAppNotifications() {
         .order("sent_at", { ascending: false })
         .limit(10);
       if (error) throw error;
-      return data || [];
+      return (data || []) as DashboardNotification[];
     },
     enabled: !!clientId,
     refetchInterval: 60000,
@@ -31,25 +40,67 @@ export function InAppNotifications() {
 
   const markOpenedMutation = useMutation({
     mutationFn: async (id: string) => {
-      await supabase
+      const { error } = await supabase
         .from("notification_events")
         .update({ opened_at: new Date().toISOString() })
         .eq("id", id);
+      if (error) throw error;
+      return id;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["in-app-notifications"] });
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: notificationsQueryKey });
+
+      const previousNotifications =
+        queryClient.getQueryData<DashboardNotification[]>(notificationsQueryKey) || [];
+
+      queryClient.setQueryData<DashboardNotification[]>(
+        notificationsQueryKey,
+        (current = []) => current.filter((notification) => notification.id !== id)
+      );
+
+      return { previousNotifications };
+    },
+    onError: (_error, _id, context) => {
+      queryClient.setQueryData(
+        notificationsQueryKey,
+        context?.previousNotifications || []
+      );
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: notificationsQueryKey, exact: true });
     },
   });
 
   const dismissMutation = useMutation({
     mutationFn: async (id: string) => {
-      await supabase
+      const { error } = await supabase
         .from("notification_events")
         .update({ dismissed_at: new Date().toISOString() })
         .eq("id", id);
+      if (error) throw error;
+      return id;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["in-app-notifications"] });
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: notificationsQueryKey });
+
+      const previousNotifications =
+        queryClient.getQueryData<DashboardNotification[]>(notificationsQueryKey) || [];
+
+      queryClient.setQueryData<DashboardNotification[]>(
+        notificationsQueryKey,
+        (current = []) => current.filter((notification) => notification.id !== id)
+      );
+
+      return { previousNotifications };
+    },
+    onError: (_error, _id, context) => {
+      queryClient.setQueryData(
+        notificationsQueryKey,
+        context?.previousNotifications || []
+      );
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: notificationsQueryKey, exact: true });
     },
   });
 
