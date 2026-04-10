@@ -47,13 +47,50 @@ export function KetoMacroEditor({
         .update(vals)
         .eq("id", ketoTypeId);
       if (error) throw error;
+
+      // Auto-sync: recalculate gram targets for all clients on this keto type
+      const { data: assignments } = await supabase
+        .from("client_keto_assignments")
+        .select("client_id")
+        .eq("keto_type_id", ketoTypeId)
+        .eq("is_active", true);
+
+      if (assignments && assignments.length > 0) {
+        for (const a of assignments) {
+          const { data: macroTarget } = await supabase
+            .from("client_macro_targets")
+            .select("id, target_calories")
+            .eq("client_id", a.client_id)
+            .eq("is_active", true)
+            .maybeSingle();
+
+          if (macroTarget?.target_calories) {
+            const cal = macroTarget.target_calories;
+            // Fat: 9 cal/g, Protein: 4 cal/g, Carbs: 4 cal/g
+            const newFats = Math.round((vals.fat_pct / 100) * cal / 9);
+            const newProtein = Math.round((vals.protein_pct / 100) * cal / 4);
+            const newCarbs = Math.round((vals.carbs_pct / 100) * cal / 4);
+
+            await supabase
+              .from("client_macro_targets")
+              .update({
+                target_fats: newFats,
+                target_protein: newProtein,
+                target_carbs: newCarbs,
+                diet_style: "keto",
+              })
+              .eq("id", macroTarget.id);
+          }
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["trainer-keto-types"] });
       queryClient.invalidateQueries({ queryKey: ["synergy-all-keto-types"] });
       queryClient.invalidateQueries({ queryKey: ["synergy-panel-keto"] });
       queryClient.invalidateQueries({ queryKey: ["client-keto-assignment"] });
-      toast.success("Macros updated — client view will update in real-time");
+      queryClient.invalidateQueries({ queryKey: ["client-macro-targets"] });
+      toast.success("Macros updated — client targets synced in real-time");
     },
     onError: () => toast.error("Failed to update macros"),
   });

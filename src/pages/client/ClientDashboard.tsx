@@ -1048,6 +1048,18 @@ export default function ClientDashboard() {
     enabled: !!clientId && settings.macros_enabled,
   });
 
+  // Realtime: auto-refresh macros when trainer syncs from keto macro editor
+  useEffect(() => {
+    if (!clientId) return;
+    const channel = supabase
+      .channel("dashboard-macro-realtime")
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "client_macro_targets", filter: `client_id=eq.${clientId}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ["client-macro-targets", clientId] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [clientId, queryClient]);
+
 
   // Quick macro edit mutation
   const saveMacrosMutation = useMutation({
