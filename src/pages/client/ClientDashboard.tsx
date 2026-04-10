@@ -645,22 +645,16 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
             )}
             {isMaintenanceMode && <Badge variant="secondary" className="text-xs">Maintenance</Badge>}
           </div>
-          <div className="text-center py-6">
-            <p className="text-lg text-muted-foreground">Ready to start your next fast</p>
+          <div className="text-center py-4">
+            <p className="text-sm text-muted-foreground">Ready to start your next fast</p>
           </div>
-          <Button className="w-full h-12 text-base" onClick={() => startFastMutation.mutate()}>
-            <Clock className="h-4 w-4 mr-2" /> Start Fast
+          <Button
+            className="w-full h-12 text-base font-semibold gap-1.5"
+            onClick={() => navigate("/client/complete-plan")}
+          >
+            View Program
+            <ArrowRight className="h-4 w-4" />
           </Button>
-          {activeKetoType && (
-            <Button
-              variant="outline"
-              className="w-full h-10 text-sm font-semibold gap-1.5"
-              onClick={() => navigate("/client/complete-plan")}
-            >
-              View Program
-              <ArrowRight className="h-3.5 w-3.5" />
-            </Button>
-          )}
           {isCoachAssigned && (
             <p className="text-[11px] text-muted-foreground text-center">
               Need a different plan? Message your coach.
