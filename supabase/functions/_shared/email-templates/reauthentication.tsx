@@ -29,10 +29,7 @@ export const ReauthenticationEmail = ({ token }: ReauthenticationEmailProps) => 
         <Heading style={h1}>Verification code</Heading>
         <Text style={text}>Use the code below to confirm your identity:</Text>
         <Text style={codeStyle}>{token}</Text>
-        <Text style={footer}>
-          This code will expire shortly. If you didn't request this, you can
-          safely ignore this email.
-        </Text>
+        <Text style={footer}>This code will expire shortly. If you didn't request this, you can safely ignore this email.</Text>
       </Container>
     </Body>
   </Html>
@@ -43,26 +40,7 @@ export default ReauthenticationEmail
 const main = { backgroundColor: '#ffffff', fontFamily: "'Space Grotesk', 'Inter', Arial, sans-serif" }
 const container = { padding: '30px 25px', maxWidth: '480px', margin: '0 auto' }
 const logo = { margin: '0 auto 20px', display: 'block' as const }
-const h1 = {
-  fontSize: '24px',
-  fontWeight: 'bold' as const,
-  color: '#1f1f1f',
-  margin: '0 0 16px',
-  textAlign: 'center' as const,
-}
-const text = {
-  fontSize: '15px',
-  color: '#555555',
-  lineHeight: '1.6',
-  margin: '0 0 20px',
-}
-const codeStyle = {
-  fontFamily: "'Space Grotesk', Courier, monospace",
-  fontSize: '28px',
-  fontWeight: 'bold' as const,
-  color: '#CC1A1A',
-  margin: '0 0 30px',
-  textAlign: 'center' as const,
-  letterSpacing: '4px',
-}
+const h1 = { fontSize: '24px', fontWeight: 'bold' as const, color: '#1f1f1f', margin: '0 0 16px', textAlign: 'center' as const }
+const text = { fontSize: '15px', color: '#555555', lineHeight: '1.6', margin: '0 0 20px' }
+const codeStyle = { fontFamily: "'Space Grotesk', Courier, monospace", fontSize: '28px', fontWeight: 'bold' as const, color: '#CC1A1A', margin: '0 0 30px', textAlign: 'center' as const, letterSpacing: '4px' }
 const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0', textAlign: 'center' as const }

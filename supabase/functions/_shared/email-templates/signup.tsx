@@ -67,30 +67,8 @@ export default SignupEmail
 const main = { backgroundColor: '#ffffff', fontFamily: "'Space Grotesk', 'Inter', Arial, sans-serif" }
 const container = { padding: '30px 25px', maxWidth: '480px', margin: '0 auto' }
 const logo = { margin: '0 auto 20px', display: 'block' as const }
-const h1 = {
-  fontSize: '24px',
-  fontWeight: 'bold' as const,
-  color: '#1f1f1f',
-  margin: '0 0 16px',
-  textAlign: 'center' as const,
-}
-const text = {
-  fontSize: '15px',
-  color: '#555555',
-  lineHeight: '1.6',
-  margin: '0 0 20px',
-}
+const h1 = { fontSize: '24px', fontWeight: 'bold' as const, color: '#1f1f1f', margin: '0 0 16px', textAlign: 'center' as const }
+const text = { fontSize: '15px', color: '#555555', lineHeight: '1.6', margin: '0 0 20px' }
 const link = { color: '#CC1A1A', textDecoration: 'underline' }
-const button = {
-  backgroundColor: '#CC1A1A',
-  color: '#ffffff',
-  fontSize: '15px',
-  fontWeight: '600' as const,
-  borderRadius: '12px',
-  padding: '14px 28px',
-  textDecoration: 'none',
-  display: 'block' as const,
-  textAlign: 'center' as const,
-  width: '100%',
-}
+const button = { backgroundColor: '#CC1A1A', color: '#ffffff', fontSize: '15px', fontWeight: '600' as const, borderRadius: '12px', padding: '14px 28px', textDecoration: 'none', display: 'block' as const, textAlign: 'center' as const, width: '100%' }
 const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0', textAlign: 'center' as const }
