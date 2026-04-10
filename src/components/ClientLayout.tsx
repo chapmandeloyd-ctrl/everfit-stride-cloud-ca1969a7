@@ -113,8 +113,8 @@ export function ClientLayout({ children }: ClientLayoutProps) {
       <header
         className="border-b border-border bg-card flex items-center justify-between px-4 shrink-0 relative z-[50]"
         style={{
-          paddingTop: 'max(env(safe-area-inset-top, 0px), 12px)',
-          minHeight: 'calc(3.5rem + env(safe-area-inset-top, 0px))',
+          paddingTop: updateAvailable ? '12px' : 'max(env(safe-area-inset-top, 0px), 12px)',
+          minHeight: updateAvailable ? '3.5rem' : 'calc(3.5rem + env(safe-area-inset-top, 0px))',
           paddingLeft: 'max(env(safe-area-inset-left, 0px), 16px)',
           paddingRight: 'max(env(safe-area-inset-right, 0px), 16px)',
         }}
