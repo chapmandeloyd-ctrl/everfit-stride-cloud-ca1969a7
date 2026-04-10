@@ -625,11 +625,11 @@ export default function ClientCompletePlan() {
                 </div>
 
                 {structured ? (
-                  <p className="text-[15px] leading-relaxed text-foreground font-medium">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
                     {structured.keto_synergy}
                   </p>
                 ) : (
-                  <p className="text-[15px] leading-relaxed text-foreground font-medium">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
                     {synergy.synergy_text}
                   </p>
                 )}
