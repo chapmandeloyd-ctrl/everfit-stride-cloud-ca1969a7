@@ -32,7 +32,7 @@ const AdminNotificationEmail = ({ subject, bodyHtml }: AdminNotificationProps) =
         <Img src={LOGO_URL} alt="KSOM-360" width="80" height="80" style={logo} />
         <Heading style={h1}>{subject || 'Notification'}</Heading>
         {bodyHtml ? (
-          <Section dangerouslySetInnerHTML={{ __html: bodyHtml }} />
+          <div dangerouslySetInnerHTML={{ __html: bodyHtml }} />
         ) : (
           <Text style={text}>You have a new notification from your coach.</Text>
         )}
