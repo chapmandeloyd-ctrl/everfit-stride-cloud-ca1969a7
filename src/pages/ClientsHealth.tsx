@@ -63,7 +63,17 @@ export default function ClientsHealth() {
         const clientHealthData = healthData?.filter(h => h.client_id === tc.client_id) || [];
         
         const steps = clientHealthData.find(h => h.data_type === 'steps')?.value || 0;
-        const calories = clientHealthData.find(h => h.data_type === 'active_energy')?.value || clientHealthData.find(h => h.data_type === 'calories_burned')?.value || 0;
+        const activeEnergy = clientHealthData
+          .filter(h => h.data_type === 'active_energy')
+          .reduce((sum, entry) => sum + Number(entry.value || 0), 0);
+        const restingEnergy = clientHealthData
+          .filter(h => h.data_type === 'resting_energy')
+          .reduce((sum, entry) => sum + Number(entry.value || 0), 0);
+        const calories = activeEnergy || restingEnergy
+          ? activeEnergy + restingEnergy
+          : clientHealthData
+              .filter(h => h.data_type === 'calories_burned')
+              .reduce((sum, entry) => sum + Number(entry.value || 0), 0);
         const heartRate = clientHealthData.find(h => h.data_type === 'heart_rate')?.value;
         const activeMinutes = clientHealthData.find(h => h.data_type === 'active_minutes')?.value || 0;
 

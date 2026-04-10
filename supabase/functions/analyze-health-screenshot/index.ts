@@ -19,6 +19,27 @@ const DATA_TYPE_TO_METRIC: Record<string, string> = {
   food_energy: 'Caloric Intake',
 };
 
+const APPLE_HEALTH_LABEL_RULES: Array<{ pattern: RegExp; dataType: string }> = [
+  { pattern: /active\s+energy|active\s+calories|move/i, dataType: 'active_energy' },
+  { pattern: /resting\s+energy|basal\s+energy|basal\s+energy\s+burned/i, dataType: 'resting_energy' },
+  { pattern: /dietary\s+energy|food\s+energy|calories\s+eaten|calories\s+consumed|energy\s+consumed/i, dataType: 'dietary_energy' },
+  { pattern: /calories\s+burned|energy\s+burned|total\s+energy/i, dataType: 'calories_burned' },
+  { pattern: /steps?/i, dataType: 'steps' },
+  { pattern: /sleep/i, dataType: 'sleep' },
+  { pattern: /weight/i, dataType: 'weight' },
+];
+
+function normalizeMetric(metric: { data_type: string; value: number; unit: string; label: string }) {
+  const label = metric.label?.trim() || '';
+  const override = APPLE_HEALTH_LABEL_RULES.find((rule) => rule.pattern.test(label));
+
+  return {
+    ...metric,
+    data_type: override?.dataType || metric.data_type,
+    label,
+  };
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -96,6 +117,9 @@ MAPPING RULES for data_type:
 - "Steps" or step count → steps
 - "Active Calories" or "Active Energy" or "Move" → active_energy
 - "Calories Burned" or total calories → calories_burned
+- "Active Energy" or "Active Calories" or "Move" → active_energy
+- "Resting Energy" or "Basal Energy Burned" → resting_energy
+- "Dietary Energy" or "Food Energy" or calories eaten/consumed → dietary_energy
 - "Sleep" duration → sleep (value in HOURS as decimal, e.g. 7.5)
 - "Weight" → weight (value in lbs)
 - "Caloric Intake" or food calories → caloric_intake
@@ -104,6 +128,8 @@ MAPPING RULES for data_type:
 IMPORTANT: Apple Health shows "Active Energy" and "Resting Energy" separately. 
 - Map "Active Energy" → active_energy
 - Map "Resting Energy" → resting_energy  
+- Map "Basal Energy Burned" → resting_energy
+- Map "Dietary Energy" / "Food Energy" → dietary_energy
 - Do NOT combine them into one entry.
 
 Extract exact numbers shown on screen. Convert minutes to hours for sleep (e.g. 7h 30m = 7.5).
@@ -133,7 +159,7 @@ Today's date is ${new Date().toISOString().split('T')[0]}.`
                       properties: {
                         data_type: {
                           type: 'string',
-                          enum: ['steps', 'calories_burned', 'active_energy', 'resting_energy', 'sleep', 'weight', 'caloric_intake', 'dietary_energy'],
+                           enum: ['steps', 'calories_burned', 'active_energy', 'resting_energy', 'sleep', 'weight', 'caloric_intake', 'dietary_energy', 'food_energy'],
                         },
                         value: { type: 'number' },
                         unit: { type: 'string' },
@@ -174,9 +200,10 @@ Today's date is ${new Date().toISOString().split('T')[0]}.`
     if (!toolCall) throw new Error('No health data returned from AI');
 
     const extracted = JSON.parse(toolCall.function.arguments);
-    console.log('Extracted metrics:', extracted.metrics.length, 'items');
+    const normalizedMetrics = (extracted.metrics ?? []).map(normalizeMetric);
+    console.log('Extracted metrics:', normalizedMetrics.length, 'items');
 
-    if (!extracted.metrics || extracted.metrics.length === 0) {
+    if (normalizedMetrics.length === 0) {
       return new Response(
         JSON.stringify({ success: false, message: "No health metrics detected. Try a clearer screenshot.", metrics: [] }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -187,7 +214,7 @@ Today's date is ${new Date().toISOString().split('T')[0]}.`
     let savedCount = 0;
 
     const aggregated: Record<string, number> = {};
-    for (const metric of extracted.metrics) {
+    for (const metric of normalizedMetrics) {
       const metricName = DATA_TYPE_TO_METRIC[metric.data_type];
       if (!metricName) continue;
       aggregated[metricName] = (aggregated[metricName] || 0) + metric.value;
@@ -271,7 +298,7 @@ Today's date is ${new Date().toISOString().split('T')[0]}.`
       JSON.stringify({
         success: true,
         count: savedCount,
-        metrics: extracted.metrics,
+        metrics: normalizedMetrics,
         summary: extracted.summary,
         date: now.toISOString().split('T')[0],
       }),
