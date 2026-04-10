@@ -121,7 +121,6 @@ export default function ClientPrograms() {
                       <div className="absolute inset-0 z-10 flex items-center justify-center">
                         <Lock className="h-6 w-6 text-muted-foreground" />
                       </div>
-                    >
                       <div className={`absolute inset-0 rounded-[28px] ${group.config.cardShadowClass}`} />
                       <div className={`absolute -inset-[1px] rounded-[28px] bg-gradient-to-br ${group.config.glowGradient} opacity-90`} />
                       <div className={`absolute inset-[1px] rounded-[27px] ${group.config.cardSurfaceClass}`} />
@@ -225,7 +224,6 @@ export default function ClientPrograms() {
                         <div className="absolute inset-0 z-10 flex items-center justify-center">
                           <Lock className="h-6 w-6 text-muted-foreground" />
                         </div>
-                      >
                         {/* Aurora glow shadow */}
                         <div className={`absolute inset-0 rounded-[28px] ${planTier.glowShadow}`} />
 
