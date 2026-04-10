@@ -167,7 +167,22 @@ const handler = async (req: Request): Promise<Response> => {
         }
       }
 
-      const { count: workoutCount, error: workoutsError } = await admin
+      const { data: workoutRows, error: workoutRowsError } = await admin
+        .from("health_data")
+        .select("value, unit, recorded_at")
+        .eq("client_id", clientId)
+        .eq("data_type", "workout")
+        .order("recorded_at", { ascending: false })
+        .limit(50);
+
+      if (workoutRowsError) {
+        console.error("[read-health-stats] workout rows query error:", workoutRowsError);
+        throw workoutRowsError;
+      }
+
+      const latestSnapshotWorkout = (workoutRows ?? []).find((row: any) => row.unit === "count");
+
+      const { count: workoutCountFallback, error: workoutsError } = await admin
         .from("client_workouts")
         .select("id", { count: "exact", head: true })
         .eq("client_id", clientId)
@@ -178,9 +193,15 @@ const handler = async (req: Request): Promise<Response> => {
         throw workoutsError;
       }
 
+      const workoutCount = latestSnapshotWorkout
+        ? Math.max(0, Math.round(Number(latestSnapshotWorkout.value) || 0))
+        : (workoutRows?.length || 0) > 0
+          ? (workoutRows ?? []).length
+          : (workoutCountFallback ?? 0);
+
       return json({
         metrics,
-        workoutCount: workoutCount ?? 0,
+        workoutCount,
       });
     }
 

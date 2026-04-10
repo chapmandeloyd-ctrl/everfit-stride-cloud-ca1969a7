@@ -303,7 +303,9 @@ export const useHealthStats = (clientId?: string) => {
 
       const totalCaloriesBurned = liveActiveEnergy + liveRestingEnergy;
 
-      const result: HealthStats = {
+        const latestSnapshotWorkout = workoutData.find(d => d.unit === 'count');
+
+        const result: HealthStats = {
         todaySteps: liveSteps,
         todayCalories: totalCaloriesBurned,
         todayActiveEnergy: liveActiveEnergy,
@@ -317,7 +319,9 @@ export const useHealthStats = (clientId?: string) => {
           ? Math.round(restingHrData[restingHrData.length - 1].value)
           : 0,
         activeMinutes: activeMinData.reduce((sum, d) => sum + Number(d.value), 0),
-        workoutsCount: workoutData.length,
+          workoutsCount: latestSnapshotWorkout
+            ? Math.max(0, Math.round(Number(latestSnapshotWorkout.value) || 0))
+            : workoutData.length,
       };
       console.log('[useHealthStats] RESULT:', JSON.stringify(result));
       return result;
