@@ -33,12 +33,10 @@ const QUICK_TEMPLATES: QuickTemplate[] = [
     color: "bg-orange-500/10 text-orange-500",
     channel: "both",
     blocks: [
-      { id: "1", type: "image", content: "", url: LOGO_URL, alt: "KSOM-360", alignment: "center" },
-      { id: "2", type: "spacer", content: "", height: 10 },
-      { id: "3", type: "heading", content: "Keep Pushing! 💪", level: 1, alignment: "center" },
-      { id: "4", type: "text", content: "Hey there! Just a quick reminder — every rep, every meal, every choice you make is building a stronger you. Your consistency is what separates good from great. Keep going, the results are coming!", alignment: "left" },
-      { id: "5", type: "divider", content: "" },
-      { id: "6", type: "text", content: "Your coach believes in you. Let's finish this week strong! 🔥", alignment: "center" },
+      { id: "1", type: "heading", content: "Keep Pushing! 💪", level: 1, alignment: "center" },
+      { id: "2", type: "text", content: "Hey there! Just a quick reminder — every rep, every meal, every choice you make is building a stronger you. Your consistency is what separates good from great. Keep going, the results are coming!", alignment: "left" },
+      { id: "3", type: "divider", content: "" },
+      { id: "4", type: "text", content: "Your coach believes in you. Let's finish this week strong! 🔥", alignment: "center" },
     ],
   },
   {
@@ -49,11 +47,9 @@ const QUICK_TEMPLATES: QuickTemplate[] = [
     color: "bg-blue-500/10 text-blue-500",
     channel: "both",
     blocks: [
-      { id: "1", type: "image", content: "", url: LOGO_URL, alt: "KSOM-360", alignment: "center" },
-      { id: "2", type: "spacer", content: "", height: 10 },
-      { id: "3", type: "heading", content: "Weekly Check-In Time ✅", level: 1, alignment: "center" },
-      { id: "4", type: "text", content: "It's time for your weekly check-in! Take a moment to log your progress — weigh in, update your measurements, and reflect on the week. Tracking is key to staying on pace.", alignment: "left" },
-      { id: "5", type: "button", content: "Open Dashboard", url: "https://everfit-stride-cloud.lovable.app/client/dashboard", alignment: "center" },
+      { id: "1", type: "heading", content: "Weekly Check-In Time ✅", level: 1, alignment: "center" },
+      { id: "2", type: "text", content: "It's time for your weekly check-in! Take a moment to log your progress — weigh in, update your measurements, and reflect on the week. Tracking is key to staying on pace.", alignment: "left" },
+      { id: "3", type: "button", content: "Open Dashboard", url: "https://everfit-stride-cloud.lovable.app/client/dashboard", alignment: "center" },
     ],
   },
   {
@@ -64,11 +60,9 @@ const QUICK_TEMPLATES: QuickTemplate[] = [
     color: "bg-primary/10 text-primary",
     channel: "both",
     blocks: [
-      { id: "1", type: "image", content: "", url: LOGO_URL, alt: "KSOM-360", alignment: "center" },
-      { id: "2", type: "spacer", content: "", height: 10 },
-      { id: "3", type: "heading", content: "Workout Time! 🏋️", level: 1, alignment: "center" },
-      { id: "4", type: "text", content: "Your workout is waiting for you! Remember — showing up is half the battle. Let's get moving and crush this session!", alignment: "left" },
-      { id: "5", type: "button", content: "Start Workout", url: "https://everfit-stride-cloud.lovable.app/client/dashboard", alignment: "center" },
+      { id: "1", type: "heading", content: "Workout Time! 🏋️", level: 1, alignment: "center" },
+      { id: "2", type: "text", content: "Your workout is waiting for you! Remember — showing up is half the battle. Let's get moving and crush this session!", alignment: "left" },
+      { id: "3", type: "button", content: "Start Workout", url: "https://everfit-stride-cloud.lovable.app/client/dashboard", alignment: "center" },
     ],
   },
   {
@@ -79,12 +73,10 @@ const QUICK_TEMPLATES: QuickTemplate[] = [
     color: "bg-yellow-500/10 text-yellow-500",
     channel: "both",
     blocks: [
-      { id: "1", type: "image", content: "", url: LOGO_URL, alt: "KSOM-360", alignment: "center" },
-      { id: "2", type: "spacer", content: "", height: 10 },
-      { id: "3", type: "heading", content: "Congratulations! 🏆", level: 1, alignment: "center" },
-      { id: "4", type: "text", content: "You've hit an incredible milestone! Your hard work, dedication, and consistency have paid off. Take a moment to celebrate this win — you've earned it!", alignment: "left" },
-      { id: "5", type: "divider", content: "" },
-      { id: "6", type: "text", content: "Keep the momentum going. The best is yet to come! ⭐", alignment: "center" },
+      { id: "1", type: "heading", content: "Congratulations! 🏆", level: 1, alignment: "center" },
+      { id: "2", type: "text", content: "You've hit an incredible milestone! Your hard work, dedication, and consistency have paid off. Take a moment to celebrate this win — you've earned it!", alignment: "left" },
+      { id: "3", type: "divider", content: "" },
+      { id: "4", type: "text", content: "Keep the momentum going. The best is yet to come! ⭐", alignment: "center" },
     ],
   },
   {
@@ -95,11 +87,9 @@ const QUICK_TEMPLATES: QuickTemplate[] = [
     color: "bg-green-500/10 text-green-500",
     channel: "both",
     blocks: [
-      { id: "1", type: "image", content: "", url: LOGO_URL, alt: "KSOM-360", alignment: "center" },
-      { id: "2", type: "spacer", content: "", height: 10 },
-      { id: "3", type: "heading", content: "Nutrition Tip of the Day 🥗", level: 1, alignment: "center" },
-      { id: "4", type: "text", content: "Remember: nutrition is the foundation of your results. Focus on getting enough protein with every meal, staying hydrated, and keeping your meals balanced. Small changes add up to big results!", alignment: "left" },
-      { id: "5", type: "button", content: "View Meal Plan", url: "https://everfit-stride-cloud.lovable.app/client/dashboard", alignment: "center" },
+      { id: "1", type: "heading", content: "Nutrition Tip of the Day 🥗", level: 1, alignment: "center" },
+      { id: "2", type: "text", content: "Remember: nutrition is the foundation of your results. Focus on getting enough protein with every meal, staying hydrated, and keeping your meals balanced. Small changes add up to big results!", alignment: "left" },
+      { id: "3", type: "button", content: "View Meal Plan", url: "https://everfit-stride-cloud.lovable.app/client/dashboard", alignment: "center" },
     ],
   },
   {
@@ -110,11 +100,9 @@ const QUICK_TEMPLATES: QuickTemplate[] = [
     color: "bg-purple-500/10 text-purple-500",
     channel: "both",
     blocks: [
-      { id: "1", type: "image", content: "", url: LOGO_URL, alt: "KSOM-360", alignment: "center" },
-      { id: "2", type: "spacer", content: "", height: 10 },
-      { id: "3", type: "heading", content: "Welcome Back! 🚀", level: 1, alignment: "center" },
-      { id: "4", type: "text", content: "We noticed you've been away for a bit — and that's okay! Life happens. What matters is that you're here now. Let's get back into the routine and pick up right where you left off.", alignment: "left" },
-      { id: "5", type: "button", content: "Open Dashboard", url: "https://everfit-stride-cloud.lovable.app/client/dashboard", alignment: "center" },
+      { id: "1", type: "heading", content: "Welcome Back! 🚀", level: 1, alignment: "center" },
+      { id: "2", type: "text", content: "We noticed you've been away for a bit — and that's okay! Life happens. What matters is that you're here now. Let's get back into the routine and pick up right where you left off.", alignment: "left" },
+      { id: "3", type: "button", content: "Open Dashboard", url: "https://everfit-stride-cloud.lovable.app/client/dashboard", alignment: "center" },
     ],
   },
   {
@@ -125,11 +113,9 @@ const QUICK_TEMPLATES: QuickTemplate[] = [
     color: "bg-teal-500/10 text-teal-500",
     channel: "both",
     blocks: [
-      { id: "1", type: "image", content: "", url: LOGO_URL, alt: "KSOM-360", alignment: "center" },
-      { id: "2", type: "spacer", content: "", height: 10 },
-      { id: "3", type: "heading", content: "Message From Your Coach 📝", level: 1, alignment: "center" },
-      { id: "4", type: "text", content: "Just wanted to check in and see how things are going. Remember, I'm here to help you every step of the way. If you have questions or need adjustments to your plan, don't hesitate to reach out!", alignment: "left" },
-      { id: "5", type: "button", content: "Reply to Coach", url: "https://everfit-stride-cloud.lovable.app/client/messages", alignment: "center" },
+      { id: "1", type: "heading", content: "Message From Your Coach 📝", level: 1, alignment: "center" },
+      { id: "2", type: "text", content: "Just wanted to check in and see how things are going. Remember, I'm here to help you every step of the way. If you have questions or need adjustments to your plan, don't hesitate to reach out!", alignment: "left" },
+      { id: "3", type: "button", content: "Reply to Coach", url: "https://everfit-stride-cloud.lovable.app/client/messages", alignment: "center" },
     ],
   },
 ];
