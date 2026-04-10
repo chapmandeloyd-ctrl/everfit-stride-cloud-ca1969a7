@@ -28,6 +28,12 @@ export default function WorkoutDetail() {
   const { user, userRole } = useAuth();
   const effectiveClientId = useEffectiveClientId();
   const [isPlaying, setIsPlaying] = useState(searchParams.get("start") === "true");
+  const [resumeData, setResumeData] = useState<{
+    stepIdx: number;
+    setLogs: Record<string, any>;
+    elapsed: number;
+    sessionId: string;
+  } | null>(null);
   const [summaryData, setSummaryData] = useState<{
     sessionId: string;
     setLogs: Record<string, any>;
