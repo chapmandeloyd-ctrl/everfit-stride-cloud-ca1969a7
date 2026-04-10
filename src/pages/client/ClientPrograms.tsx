@@ -310,6 +310,12 @@ export default function ClientPrograms() {
           </div>
         )}
       </div>
+
+      <PlanLockedDialog
+        open={showLocked}
+        onOpenChange={setShowLocked}
+        lockMessage="Finish your current plan to unlock more protocols."
+      />
     </ClientLayout>
   );
 }
