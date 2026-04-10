@@ -9,7 +9,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Send, Zap, Trophy, Dumbbell, Heart, Flame, Star, CalendarCheck, MessageCircle } from "lucide-react";
+import { Send, Zap } from "lucide-react";
+
+const LOGO_URL = "https://eexxmfuknqttujecbcho.supabase.co/storage/v1/object/public/email-assets/logo.png";
 import { toast } from "sonner";
 
 
@@ -18,8 +20,6 @@ interface QuickTemplate {
   id: string;
   name: string;
   subject: string;
-  icon: React.ReactNode;
-  color: string;
   blocks: EmailBlock[];
   channel: "email" | "in_app" | "both";
 }
@@ -29,8 +29,6 @@ const QUICK_TEMPLATES: QuickTemplate[] = [
     id: "motivation",
     name: "Motivational Boost",
     subject: "Keep Pushing — You're Doing Amazing! 💪",
-    icon: <Flame className="h-5 w-5" />,
-    color: "bg-orange-500/10 text-orange-500",
     channel: "both",
     blocks: [
       { id: "1", type: "heading", content: "Keep Pushing! 💪", level: 1, alignment: "center" },
@@ -43,8 +41,6 @@ const QUICK_TEMPLATES: QuickTemplate[] = [
     id: "checkin-reminder",
     name: "Check-In Reminder",
     subject: "Time for Your Weekly Check-In ✅",
-    icon: <CalendarCheck className="h-5 w-5" />,
-    color: "bg-blue-500/10 text-blue-500",
     channel: "both",
     blocks: [
       { id: "1", type: "heading", content: "Weekly Check-In Time ✅", level: 1, alignment: "center" },
@@ -56,8 +52,6 @@ const QUICK_TEMPLATES: QuickTemplate[] = [
     id: "workout-reminder",
     name: "Workout Reminder",
     subject: "Don't Forget Today's Workout! 🏋️",
-    icon: <Dumbbell className="h-5 w-5" />,
-    color: "bg-primary/10 text-primary",
     channel: "both",
     blocks: [
       { id: "1", type: "heading", content: "Workout Time! 🏋️", level: 1, alignment: "center" },
@@ -69,8 +63,6 @@ const QUICK_TEMPLATES: QuickTemplate[] = [
     id: "milestone",
     name: "Milestone Celebration",
     subject: "🏆 Amazing Achievement — Celebrate Your Win!",
-    icon: <Trophy className="h-5 w-5" />,
-    color: "bg-yellow-500/10 text-yellow-500",
     channel: "both",
     blocks: [
       { id: "1", type: "heading", content: "Congratulations! 🏆", level: 1, alignment: "center" },
@@ -83,8 +75,6 @@ const QUICK_TEMPLATES: QuickTemplate[] = [
     id: "nutrition-tip",
     name: "Nutrition Tip",
     subject: "Quick Nutrition Tip for Better Results 🥗",
-    icon: <Heart className="h-5 w-5" />,
-    color: "bg-green-500/10 text-green-500",
     channel: "both",
     blocks: [
       { id: "1", type: "heading", content: "Nutrition Tip of the Day 🥗", level: 1, alignment: "center" },
@@ -96,8 +86,6 @@ const QUICK_TEMPLATES: QuickTemplate[] = [
     id: "welcome-back",
     name: "Welcome Back",
     subject: "We Missed You — Let's Get Back On Track! 🚀",
-    icon: <Star className="h-5 w-5" />,
-    color: "bg-purple-500/10 text-purple-500",
     channel: "both",
     blocks: [
       { id: "1", type: "heading", content: "Welcome Back! 🚀", level: 1, alignment: "center" },
@@ -109,8 +97,6 @@ const QUICK_TEMPLATES: QuickTemplate[] = [
     id: "coach-message",
     name: "Coach Note",
     subject: "A Quick Message From Your Coach 📝",
-    icon: <MessageCircle className="h-5 w-5" />,
-    color: "bg-teal-500/10 text-teal-500",
     channel: "both",
     blocks: [
       { id: "1", type: "heading", content: "Message From Your Coach 📝", level: 1, alignment: "center" },
@@ -291,9 +277,7 @@ export function QuickSendTab() {
           >
             <CardContent className="p-4 space-y-3">
               <div className="flex items-start gap-3">
-                <div className={`p-2.5 rounded-lg shrink-0 ${template.color}`}>
-                  {template.icon}
-                </div>
+                <img src={LOGO_URL} alt="KSOM-360" className="h-10 w-10 shrink-0 rounded-lg" />
                 <div className="space-y-1 min-w-0">
                   <h3 className="font-semibold text-sm text-foreground">{template.name}</h3>
                   <p className="text-xs text-muted-foreground line-clamp-2">{template.subject}</p>
