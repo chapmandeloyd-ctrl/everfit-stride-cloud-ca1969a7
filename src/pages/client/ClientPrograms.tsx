@@ -112,10 +112,15 @@ export default function ClientPrograms() {
                 {group.items.map((protocol) => {
                   const CatIcon = group.config.icon;
                   return (
-                    <div
+                     <div
                       key={protocol.id}
-                      className="group relative cursor-pointer overflow-hidden rounded-[28px] transition-all duration-300 hover:-translate-y-1 active:scale-[0.985]"
-                      onClick={() => navigate(`/client/protocol/${protocol.id}`)}
+                      className="group relative cursor-pointer overflow-hidden rounded-[28px] transition-all duration-300 hover:-translate-y-1 active:scale-[0.985] opacity-60"
+                      onClick={() => setShowLocked(true)}
+                    >
+                      {/* Lock overlay */}
+                      <div className="absolute inset-0 z-10 flex items-center justify-center">
+                        <Lock className="h-6 w-6 text-muted-foreground" />
+                      </div>
                     >
                       <div className={`absolute inset-0 rounded-[28px] ${group.config.cardShadowClass}`} />
                       <div className={`absolute -inset-[1px] rounded-[28px] bg-gradient-to-br ${group.config.glowGradient} opacity-90`} />
@@ -213,8 +218,13 @@ export default function ClientPrograms() {
                     return (
                       <div
                         key={plan.id}
-                        className="group relative cursor-pointer overflow-hidden rounded-[28px] transition-all duration-300 hover:-translate-y-1 active:scale-[0.985]"
-                        onClick={() => navigate(`/client/quick-plan/${plan.id}`)}
+                        className="group relative cursor-pointer overflow-hidden rounded-[28px] transition-all duration-300 hover:-translate-y-1 active:scale-[0.985] opacity-60"
+                        onClick={() => setShowLocked(true)}
+                      >
+                        {/* Lock overlay */}
+                        <div className="absolute inset-0 z-10 flex items-center justify-center">
+                          <Lock className="h-6 w-6 text-muted-foreground" />
+                        </div>
                       >
                         {/* Aurora glow shadow */}
                         <div className={`absolute inset-0 rounded-[28px] ${planTier.glowShadow}`} />
