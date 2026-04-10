@@ -190,15 +190,29 @@ export function MyProgressSection({ clientId }: Props) {
 
       <div className="grid grid-cols-2 gap-3">
         {visibleTiles.map(tile => {
+          const isWorkoutTile = tile.tile_key === "workouts";
           const cmId = tile.metric_definition_id ? clientMetricsMap?.[tile.metric_definition_id] : null;
           const data = cmId ? tileData?.[cmId] : null;
+
+          // Workout tile uses different data source
+          const displayValue = isWorkoutTile
+            ? (workoutData ? String(workoutData.total) : null)
+            : (data ? Number(data.latestValue).toLocaleString() : null);
+          const displayDate = isWorkoutTile
+            ? (workoutData?.latestDate ? getRelativeDate(workoutData.latestDate) : "No data")
+            : (data ? getRelativeDate(data.latestDate) : "No data");
+          const sparkline = isWorkoutTile
+            ? (workoutData?.sparkline || [])
+            : (data?.sparkline || []);
           
           return (
             <Card
               key={tile.id}
               className="cursor-pointer hover:shadow-md transition-all overflow-hidden"
               onClick={() => {
-                if (cmId) {
+                if (isWorkoutTile) {
+                  navigate("/client/training");
+                } else if (cmId) {
                   navigate(`/client/progress?metric=${cmId}`);
                 } else {
                   navigate("/client/progress");
@@ -207,13 +221,11 @@ export function MyProgressSection({ clientId }: Props) {
             >
               <CardContent className="p-4 pb-2 space-y-1">
                 <p className="text-sm font-semibold text-foreground">{tile.label}</p>
-                <p className="text-[11px] text-muted-foreground">
-                  {data ? getRelativeDate(data.latestDate) : "No data"}
-                </p>
+                <p className="text-[11px] text-muted-foreground">{displayDate}</p>
                 <p className="text-2xl font-bold text-foreground leading-tight">
-                  {data ? (
+                  {displayValue !== null ? (
                     <>
-                      {Number(data.latestValue).toLocaleString()}
+                      {displayValue}
                       <span className="text-sm font-normal text-muted-foreground ml-1">{tile.unit}</span>
                     </>
                   ) : (
@@ -222,9 +234,9 @@ export function MyProgressSection({ clientId }: Props) {
                 </p>
                 {/* Sparkline */}
                 <div className="h-8 -mx-1">
-                  {data && data.sparkline.length > 1 ? (
+                  {sparkline.length > 1 ? (
                     <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={data.sparkline.map((v, i) => ({ v, i }))}>
+                      <LineChart data={sparkline.map((v, i) => ({ v, i }))}>
                         <Line
                           type="monotone"
                           dataKey="v"
