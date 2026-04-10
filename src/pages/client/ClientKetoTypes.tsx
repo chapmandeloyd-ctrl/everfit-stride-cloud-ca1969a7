@@ -37,6 +37,7 @@ interface KetoType {
 export default function ClientKetoTypes() {
   const navigate = useNavigate();
   const clientId = useEffectiveClientId();
+  const [showLocked, setShowLocked] = useState(false);
 
   const { data: categories, isLoading } = useQuery({
     queryKey: ["keto-categories"],
