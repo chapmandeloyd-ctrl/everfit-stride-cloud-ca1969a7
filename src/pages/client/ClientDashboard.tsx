@@ -727,11 +727,11 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
             </div>
           ) : null}
 
-          {/* Stats row */}
+          {/* Stats row — show actual hours if fast completed today */}
           {hasProtocol && activeProtocol && !isMaintenanceMode && (
             <div className="grid grid-cols-3 gap-2">
               {[
-                { icon: Clock, value: `${activeProtocol.fast_target_hours}h`, label: "Fast" },
+                { icon: Clock, value: todayFastLog ? `${Math.round(todayFastLog.actual_hours)}h` : `${activeProtocol.fast_target_hours}h`, label: todayFastLog ? "Fasted" : "Fast" },
                 { icon: CalendarDays, value: `${24 - activeProtocol.fast_target_hours}h`, label: "Eat Window" },
                 { icon: BarChart3, value: getDifficultyLabel(activeProtocol.difficulty_level), label: "Level" },
               ].map((stat) => (
@@ -741,6 +741,53 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
                   <p className="text-[9px] text-white/50 uppercase tracking-wider font-medium mt-0.5">{stat.label}</p>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Post-fast summary card */}
+          {todayFastLog && !isFasting && (
+            <div className={`rounded-xl p-3 border ${
+              todayFastLog.ended_early
+                ? "bg-amber-500/10 border-amber-500/30"
+                : "bg-emerald-500/10 border-emerald-500/30"
+            }`}>
+              <div className="flex items-center gap-3">
+                {/* Progress ring */}
+                <div className="relative w-12 h-12 shrink-0">
+                  <svg viewBox="0 0 36 36" className="w-12 h-12 -rotate-90">
+                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="3" />
+                    <circle
+                      cx="18" cy="18" r="15.9" fill="none"
+                      stroke={todayFastLog.ended_early ? "#f59e0b" : "#10b981"}
+                      strokeWidth="3"
+                      strokeDasharray={`${todayFastLog.completion_pct} ${100 - todayFastLog.completion_pct}`}
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <span className="absolute inset-0 flex items-center justify-center text-[10px] font-black text-white">
+                    {todayFastLog.completion_pct}%
+                  </span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      todayFastLog.ended_early
+                        ? "bg-amber-500/20 text-amber-400"
+                        : "bg-emerald-500/20 text-emerald-400"
+                    }`}>
+                      {todayFastLog.ended_early ? "Partial" : "Completed"}
+                    </span>
+                  </div>
+                  <p className="text-sm font-bold text-white mt-1">
+                    {Math.floor(todayFastLog.actual_hours)}h {Math.round((todayFastLog.actual_hours % 1) * 60)}m fasted
+                  </p>
+                  <p className="text-[10px] text-white/50">
+                    {todayFastLog.ended_early
+                      ? `${Math.round(todayFastLog.actual_hours)} of ${todayFastLog.target_hours}h target`
+                      : `${todayFastLog.target_hours}h target reached`}
+                  </p>
+                </div>
+              </div>
             </div>
           )}
 
