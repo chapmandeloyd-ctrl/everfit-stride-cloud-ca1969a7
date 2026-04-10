@@ -1,12 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Zap } from "lucide-react";
+import { ArrowLeft, Lock, Zap } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { ClientLayout } from "@/components/ClientLayout";
 import { KetoTypeCard } from "@/components/keto/KetoTypeCard";
+import { useState } from "react";
+import { PlanLockedDialog } from "@/components/PlanLockedDialog";
 
 interface KetoCategory {
   id: string;
@@ -35,6 +37,7 @@ interface KetoType {
 export default function ClientKetoTypes() {
   const navigate = useNavigate();
   const clientId = useEffectiveClientId();
+  const [showLocked, setShowLocked] = useState(false);
 
   const { data: categories, isLoading } = useQuery({
     queryKey: ["keto-categories"],
@@ -163,7 +166,13 @@ export default function ClientKetoTypes() {
                   difficulty={kt.difficulty}
                   color={kt.color}
                   isActive={kt.id === activeKetoTypeId}
-                  onClick={() => navigate(`/client/keto-types/${kt.id}`)}
+                  onClick={() => {
+                    if (kt.id === activeKetoTypeId) {
+                      navigate(`/client/keto-types/${kt.id}`);
+                    } else {
+                      setShowLocked(true);
+                    }
+                  }}
                 />
               ))}
             </div>
@@ -176,6 +185,12 @@ export default function ClientKetoTypes() {
           </div>
         )}
       </div>
+
+      <PlanLockedDialog
+        open={showLocked}
+        onOpenChange={setShowLocked}
+        lockMessage="Message your trainer to request a different keto type."
+      />
     </ClientLayout>
   );
 }

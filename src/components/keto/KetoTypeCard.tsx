@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { ChevronRight, Zap } from "lucide-react";
+import { ChevronRight, Lock, Zap } from "lucide-react";
 
 interface KetoTypeCardProps {
   abbreviation: string;
@@ -27,7 +27,7 @@ export function KetoTypeCard({
 
   return (
     <div
-      className="cursor-pointer transition-all active:scale-[0.99] overflow-hidden rounded-2xl"
+      className={`cursor-pointer transition-all active:scale-[0.99] overflow-hidden rounded-2xl ${!isActive ? "opacity-60" : ""}`}
       onClick={onClick}
     >
       {/* Metallic dark card */}
@@ -65,7 +65,7 @@ export function KetoTypeCard({
                 {isActive ? "Active Keto Type" : "Keto Type"}
               </span>
             </div>
-            {isActive && (
+            {isActive ? (
               <Badge
                 className="text-[10px] px-2.5 py-0.5 border"
                 style={{
@@ -76,6 +76,8 @@ export function KetoTypeCard({
               >
                 ACTIVE
               </Badge>
+            ) : (
+              <Lock className="h-4 w-4 text-zinc-500" />
             )}
           </div>
 
