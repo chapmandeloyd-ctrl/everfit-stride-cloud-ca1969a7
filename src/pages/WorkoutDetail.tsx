@@ -64,6 +64,25 @@ export default function WorkoutDetail() {
     enabled: !!id && !!effectiveClientId && isClient,
   });
 
+  // Check for in-progress (paused) session
+  const { data: inProgressSession } = useQuery({
+    queryKey: ["in-progress-session", id, effectiveClientId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("workout_sessions")
+        .select("*")
+        .eq("workout_plan_id", id)
+        .eq("client_id", effectiveClientId)
+        .eq("status", "in_progress")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id && !!effectiveClientId && isClient,
+  });
+
   const { data: workout, isLoading } = useQuery({
     queryKey: ["workout-detail", id],
     queryFn: async () => {
