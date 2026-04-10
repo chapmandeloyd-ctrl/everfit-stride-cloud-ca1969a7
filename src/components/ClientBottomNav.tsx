@@ -1,4 +1,4 @@
-import { Home, LayoutGrid, BarChart3, User, MonitorPlay, FlaskConical } from "lucide-react";
+import { Home, BarChart3, User, MonitorPlay, FlaskConical } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useClientFeatureSettings } from "@/hooks/useClientFeatureSettings";
