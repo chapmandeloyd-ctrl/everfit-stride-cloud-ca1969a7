@@ -310,7 +310,10 @@ export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEn
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-4">
                   <p className="text-xs font-semibold text-white/70 uppercase tracking-wider">Workout</p>
-                  <p className="text-lg font-bold text-white">{w.workout_plan?.name || "Workout"}</p>
+                  <p className="text-lg font-bold text-white">
+                    {w.workout_plan?.name || "Workout"}
+                    {w.completed_at && " ✅"}
+                  </p>
                 </div>
               </div>
             </Card>
