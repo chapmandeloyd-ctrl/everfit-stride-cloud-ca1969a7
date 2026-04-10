@@ -3,9 +3,20 @@ import { Footprints, Flame, Moon, Scale, Dumbbell, BatteryCharging } from 'lucid
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAuth } from '@/hooks/useAuth';
 
 interface ActivitySummaryProps {
   clientId?: string;
+}
+
+interface MetricSnapshot {
+  value: number;
+  date: string;
+}
+
+interface ActivitySummaryResponse {
+  metrics: Record<string, MetricSnapshot>;
+  workoutCount: number;
 }
 
 // The 6 metrics we display, mapped to their metric_definition names
@@ -19,68 +30,43 @@ const METRIC_CARDS = [
 ];
 
 export function ActivitySummary({ clientId }: ActivitySummaryProps) {
-  // Fetch latest metric values for this client
-  const { data: metricData, isLoading: metricsLoading } = useQuery({
+  const { user, loading } = useAuth();
+
+  const { data: summaryData, isLoading } = useQuery({
     queryKey: ['health-activity-metrics', clientId],
-    queryFn: async () => {
-      if (!clientId) return {};
+    queryFn: async (): Promise<ActivitySummaryResponse> => {
+      if (!clientId) return { metrics: {}, workoutCount: 0 };
 
-      // Get client_metrics for the 5 metric definitions we care about
-      const metricNames = ['Weight', 'Steps', 'Sleep', 'Caloric Intake', 'Caloric Burn'];
-      const { data: defs } = await supabase
-        .from('metric_definitions')
-        .select('id, name')
-        .in('name', metricNames);
-      if (!defs || defs.length === 0) return {};
-
-      const defIds = defs.map(d => d.id);
-      const { data: clientMetrics } = await supabase
-        .from('client_metrics')
-        .select('id, metric_definition_id')
-        .eq('client_id', clientId)
-        .in('metric_definition_id', defIds);
-      if (!clientMetrics || clientMetrics.length === 0) return {};
-
-      // Build a map: metric name → client_metric_id
-      const defNameMap: Record<string, string> = {};
-      defs.forEach(d => { defNameMap[d.id] = d.name; });
-
-      const results: Record<string, { value: number; date: string }> = {};
-
-      for (const cm of clientMetrics) {
-        const { data: entries } = await supabase
-          .from('metric_entries')
-          .select('value, recorded_at')
-          .eq('client_metric_id', cm.id)
-          .order('recorded_at', { ascending: false })
-          .limit(1);
-
-        if (entries && entries.length > 0) {
-          const name = defNameMap[cm.metric_definition_id];
-          results[name] = { value: entries[0].value, date: entries[0].recorded_at };
-        }
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        return { metrics: {}, workoutCount: 0 };
       }
-      return results;
+
+      const response = await supabase.functions.invoke('read-health-stats', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: {
+          client_id: clientId,
+          mode: 'metric_summary',
+        },
+      });
+
+      if (response.error) {
+        throw response.error;
+      }
+
+      return {
+        metrics: response.data?.metrics ?? {},
+        workoutCount: response.data?.workoutCount ?? 0,
+      };
     },
-    enabled: !!clientId,
+    enabled: !!clientId && !loading && !!user,
+    refetchOnMount: 'always',
   });
 
-  // Fetch workout count
-  const { data: workoutCount, isLoading: workoutsLoading } = useQuery({
-    queryKey: ['health-activity-workouts', clientId],
-    queryFn: async () => {
-      if (!clientId) return 0;
-      const { count } = await supabase
-        .from('client_workouts')
-        .select('*', { count: 'exact', head: true })
-        .eq('client_id', clientId)
-        .not('completed_at', 'is', null);
-      return count || 0;
-    },
-    enabled: !!clientId,
-  });
-
-  const isLoading = metricsLoading || workoutsLoading;
+  const metricData = summaryData?.metrics ?? {};
+  const workoutCount = summaryData?.workoutCount ?? 0;
 
   if (isLoading) {
     return (
@@ -104,9 +90,9 @@ export function ActivitySummary({ clientId }: ActivitySummaryProps) {
       {METRIC_CARDS.map((card) => {
         const Icon = card.icon;
         const isWorkout = card.key === 'Workouts';
-        const data = isWorkout ? null : metricData?.[card.key];
+        const data = isWorkout ? null : metricData[card.key];
         const displayValue = isWorkout
-          ? String(workoutCount || 0)
+          ? String(workoutCount)
           : data
             ? Number(data.value).toLocaleString()
             : '--';

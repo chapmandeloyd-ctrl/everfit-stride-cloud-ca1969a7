@@ -19,7 +19,7 @@ const corsHeaders = {
  *
  * Query params (passed in JSON body):
  *   client_id  – required
- *   mode       – "stats" | "connections" | "data" (default: "stats")
+ *   mode       – "stats" | "connections" | "data" | "metric_summary" (default: "stats")
  *   data_type  – optional filter for "data" mode
  *   days       – how far back to query (default: 7)
  */
@@ -104,6 +104,77 @@ const handler = async (req: Request): Promise<Response> => {
       }
 
       return json({ connections: data });
+    }
+
+    if (mode === "metric_summary") {
+      const metricNames = ["Weight", "Steps", "Sleep", "Caloric Intake", "Caloric Burn"];
+
+      const { data: defs, error: defsError } = await admin
+        .from("metric_definitions")
+        .select("id, name")
+        .in("name", metricNames);
+
+      if (defsError) {
+        console.error("[read-health-stats] metric definitions query error:", defsError);
+        throw defsError;
+      }
+
+      const defIds = (defs ?? []).map((def: any) => def.id);
+      const defNameMap = Object.fromEntries((defs ?? []).map((def: any) => [def.id, def.name]));
+      const metrics: Record<string, { value: number; date: string }> = {};
+
+      if (defIds.length > 0) {
+        const { data: clientMetrics, error: clientMetricsError } = await admin
+          .from("client_metrics")
+          .select("id, metric_definition_id")
+          .eq("client_id", clientId)
+          .in("metric_definition_id", defIds);
+
+        if (clientMetricsError) {
+          console.error("[read-health-stats] client metrics query error:", clientMetricsError);
+          throw clientMetricsError;
+        }
+
+        for (const clientMetric of clientMetrics ?? []) {
+          const { data: entry, error: entryError } = await admin
+            .from("metric_entries")
+            .select("value, recorded_at")
+            .eq("client_id", clientId)
+            .eq("client_metric_id", clientMetric.id)
+            .order("recorded_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (entryError) {
+            console.error("[read-health-stats] metric entry query error:", entryError);
+            throw entryError;
+          }
+
+          const metricName = defNameMap[clientMetric.metric_definition_id];
+          if (metricName && entry) {
+            metrics[metricName] = {
+              value: Number(entry.value),
+              date: entry.recorded_at,
+            };
+          }
+        }
+      }
+
+      const { count: workoutCount, error: workoutsError } = await admin
+        .from("client_workouts")
+        .select("id", { count: "exact", head: true })
+        .eq("client_id", clientId)
+        .not("completed_at", "is", null);
+
+      if (workoutsError) {
+        console.error("[read-health-stats] workout count query error:", workoutsError);
+        throw workoutsError;
+      }
+
+      return json({
+        metrics,
+        workoutCount: workoutCount ?? 0,
+      });
     }
 
     // ── Raw data ────────────────────────────────────────────────────────
