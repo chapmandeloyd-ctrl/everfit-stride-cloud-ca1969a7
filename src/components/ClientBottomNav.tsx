@@ -12,7 +12,6 @@ interface NavItem {
 
 const baseItems: NavItem[] = [
   { label: "Home", to: "/client/dashboard", icon: Home },
-  { label: "Plans", to: "/client/choose-protocol", icon: LayoutGrid },
   { label: "Progress", to: "/client/progress", icon: BarChart3 },
   { label: "Profile", to: "/client/profile", icon: User },
 ];
