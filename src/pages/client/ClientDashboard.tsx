@@ -44,6 +44,37 @@ import { useDashboardLayoutClient } from "@/hooks/useDashboardLayoutClient";
 import { SportHeroBanner } from "@/components/SportHeroBanner";
 import { AssignedPlanCard } from "@/components/dashboard/AssignedPlanCard";
 import { AskKsomAI } from "@/components/client/AskKsomAI";
+
+// Health Dashboard Section sub-component
+function HealthDashboardSection({ clientId, navigate }: { clientId: string; navigate: (path: string) => void }) {
+  const [snapshotOpen, setSnapshotOpen] = useState(false);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-bold tracking-tight">Health Dashboard</h2>
+          <p className="text-sm text-muted-foreground">
+            Track your heart rate, activity, and more from your wearable
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => setSnapshotOpen(true)}>
+            <Camera className="h-4 w-4 mr-2" />
+            AI Snapshot
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => navigate("/client/health-connect")}>
+            <Settings className="h-4 w-4 mr-2" />
+            Settings
+          </Button>
+        </div>
+      </div>
+      <ActivitySummary clientId={clientId} />
+      <HealthSnapshotDialog open={snapshotOpen} onOpenChange={setSnapshotOpen} />
+    </div>
+  );
+}
+
 // Fasting Program Card sub-component
 function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; navigate: (path: string) => void }) {
   const queryClient = useQueryClient();
