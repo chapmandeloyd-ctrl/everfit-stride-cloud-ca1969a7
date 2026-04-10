@@ -36,6 +36,8 @@ import { CreatePinDialog, VerifyPinDialog, HoldToEndButton } from "@/components/
 import { FastingCoachTipCard } from "@/components/FastingCoachTipCard";
 import { ProtocolCompletionDialog } from "@/components/ProtocolCompletionDialog";
 import { MyProgressSection } from "@/components/MyProgressSection";
+import { ActivitySummary } from "@/components/health/ActivitySummary";
+import { HealthSnapshotDialog } from "@/components/health/HealthSnapshotDialog";
 
 import { InAppNotifications } from "@/components/InAppNotifications";
 import { useDashboardLayoutClient } from "@/hooks/useDashboardLayoutClient";
@@ -2118,6 +2120,11 @@ export default function ClientDashboard() {
             case "progress":
               return settings.body_metrics_enabled && clientId ? (
                 <MyProgressSection key="progress" clientId={clientId} />
+              ) : null;
+
+            case "health_dashboard":
+              return clientId ? (
+                <HealthDashboardSection key="health_dashboard" clientId={clientId} navigate={navigate} />
               ) : null;
 
             case "game_stats":
