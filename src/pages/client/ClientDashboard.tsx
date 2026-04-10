@@ -1394,7 +1394,7 @@ export default function ClientDashboard() {
               ) : null;
 
             case "workouts":
-              return settings.training_enabled ? (
+              return settings.training_enabled && !isViewingPastDay ? (
                 <div key="workouts">
                   <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
                     {isRestDay ? "Today" : hasSportEvents && todaysWorkouts.length === 0 ? "Today's Schedule" : `Today's Workout${hasMultiple ? "s" : ""}`}
