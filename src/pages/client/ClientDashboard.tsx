@@ -651,6 +651,16 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
           <Button className="w-full h-12 text-base" onClick={() => startFastMutation.mutate()}>
             <Clock className="h-4 w-4 mr-2" /> Start Fast
           </Button>
+          {activeKetoType && (
+            <Button
+              variant="outline"
+              className="w-full h-10 text-sm font-semibold gap-1.5"
+              onClick={() => navigate("/client/complete-plan")}
+            >
+              View Program
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Button>
+          )}
           {isCoachAssigned && (
             <p className="text-[11px] text-muted-foreground text-center">
               Need a different plan? Message your coach.
