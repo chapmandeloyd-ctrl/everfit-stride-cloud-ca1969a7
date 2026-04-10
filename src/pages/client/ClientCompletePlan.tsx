@@ -446,14 +446,14 @@ export default function ClientCompletePlan() {
           {/* Stats */}
           <div className="grid grid-cols-3 gap-2">
             {[
-              { label: "Difficulty", value: ketoType.difficulty === "beginner" ? "Beginner" : ketoType.difficulty === "intermediate" ? "Intermediate" : "Advanced" },
-              { label: "Engine", value: ketoType.engine_compatibility === "both" ? "Both Engines" : ketoType.engine_compatibility },
-              { label: "Carbs", value: `${ketoType.carbs_pct}%` },
+              { label: "Level", value: ketoType.difficulty === "beginner" ? "Beginner" : ketoType.difficulty === "intermediate" ? "Intermediate" : "Advanced" },
+              { label: "Type", value: ketoType.engine_compatibility === "both" ? "Universal" : ketoType.engine_compatibility === "metabolic" ? "KSOM-360" : "Athletic" },
+              { label: "Carbs", value: ketoType.carb_limit_grams ? `≤${ketoType.carb_limit_grams}g` : `${ketoType.carbs_pct}%` },
             ].map((stat) => (
               <Card key={stat.label}>
-                <CardContent className="p-3 text-center">
+                <CardContent className="p-3 text-center overflow-hidden">
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wide font-medium">{stat.label}</p>
-                  <p className="font-bold mt-0.5 text-base capitalize">{stat.value}</p>
+                  <p className="font-bold mt-0.5 text-sm capitalize truncate">{stat.value}</p>
                 </CardContent>
               </Card>
             ))}

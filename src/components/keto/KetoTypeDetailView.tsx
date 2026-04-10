@@ -106,7 +106,7 @@ export function KetoTypeDetailView({ ketoType: kt, allTypes, isActive = false }:
       <div className="grid grid-cols-3 gap-2">
         {[
           { label: "Level", value: getDifficultyLabel(kt.difficulty) },
-          { label: "Engine", value: kt.engine_compatibility === "both" ? "Both" : kt.engine_compatibility },
+          { label: "Type", value: kt.engine_compatibility === "both" ? "Universal" : kt.engine_compatibility === "metabolic" ? "KSOM-360" : "Athletic" },
           { label: "Carbs", value: kt.carb_limit_grams ? `≤${kt.carb_limit_grams}g` : `${kt.carbs_pct}%` },
         ].map((stat) => (
           <Card key={stat.label}>
