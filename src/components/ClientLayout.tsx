@@ -105,6 +105,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <UpdateBanner />
       {/* Top bar — safe-area padding keeps it below the iOS notch / status bar */}
       <header
         className="border-b border-border bg-card flex items-center justify-between px-4 shrink-0"
