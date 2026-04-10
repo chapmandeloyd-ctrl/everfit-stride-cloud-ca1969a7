@@ -818,12 +818,10 @@ export default function ClientDashboard() {
 
       const { data, error } = await supabase
         .from("workout_sessions")
-        .select("id, client_workout_id, workout_plan_id, completed_at, is_partial, workout_plan:workout_plans(*)")
+        .select("id, client_workout_id, workout_plan_id, completed_at, is_partial, status, completion_percentage, workout_plan:workout_plans(*)")
         .eq("client_id", clientId)
-        .not("client_workout_id", "is", null)
-        .gte("completed_at", startOfDay.toISOString())
-        .lte("completed_at", endOfDay.toISOString())
-        .order("completed_at", { ascending: false });
+        .or(`completed_at.gte.${startOfDay.toISOString()},status.eq.in_progress`)
+        .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
     },
