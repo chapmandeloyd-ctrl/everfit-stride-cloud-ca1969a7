@@ -27,6 +27,8 @@ export function DayStripPastSnapshot({
   sportDayCards,
 }: DaySnapshotProps) {
   const dateStr = format(date, "yyyy-MM-dd");
+  const workoutScrollRef = useRef<HTMLDivElement>(null);
+  const [workoutActiveIndex, setWorkoutActiveIndex] = useState(0);
 
   const practiceCard = sportDayCards?.find((c: any) => c.card_type === "practice");
   const gameCard = sportDayCards?.find((c: any) => c.card_type === "game");
