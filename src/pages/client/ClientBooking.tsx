@@ -220,9 +220,34 @@ export default function ClientBooking() {
       });
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ["client-existing-appointments"] });
+      const apptDate = format(selectedSlot!.start, "EEEE, MMM d");
+      const apptTime = format(selectedSlot!.start, "h:mm a");
       toast({ title: "Appointment booked!", description: `${selectedType?.name} on ${format(selectedSlot!.start, "EEE, MMM d 'at' h:mm a")}` });
+
+      // Send booking confirmation email
+      if (user?.email) {
+        try {
+          await supabase.functions.invoke("send-transactional-email", {
+            body: {
+              templateName: "booking-confirmation",
+              recipientEmail: user.email,
+              idempotencyKey: `booking-${clientId}-${selectedSlot!.start.toISOString()}`,
+              templateData: {
+                name: user.user_metadata?.full_name || undefined,
+                appointmentType: selectedType?.name,
+                date: apptDate,
+                time: apptTime,
+                location: selectedType?.location_type === "virtual" ? "Virtual" : undefined,
+              },
+            },
+          });
+        } catch (e) {
+          console.error("Failed to send booking confirmation email", e);
+        }
+      }
+
       setStep("type");
       setSelectedSlot(null);
       setSelectedTypeId(null);
