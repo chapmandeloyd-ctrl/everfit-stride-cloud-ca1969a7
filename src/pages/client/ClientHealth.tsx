@@ -46,7 +46,7 @@ export default function ClientHealth() {
         </div>
       </div>
 
-      <HealthSnapshotDialog open={snapshotOpen} onOpenChange={setSnapshotOpen} />
+      <HealthSnapshotDialog open={snapshotOpen} onOpenChange={setSnapshotOpen} clientId={effectiveClientId} />
     </ClientLayout>
   );
 }

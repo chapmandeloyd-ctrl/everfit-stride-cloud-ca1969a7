@@ -17,6 +17,7 @@ interface HealthMetric {
 interface HealthSnapshotDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  clientId?: string;
 }
 
 const METRIC_ICONS: Record<string, React.ReactNode> = {
@@ -49,7 +50,7 @@ const METRIC_COLORS: Record<string, string> = {
   weight: 'text-primary',
 };
 
-export function HealthSnapshotDialog({ open, onOpenChange }: HealthSnapshotDialogProps) {
+export function HealthSnapshotDialog({ open, onOpenChange, clientId }: HealthSnapshotDialogProps) {
   const [image, setImage] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
@@ -76,7 +77,6 @@ export function HealthSnapshotDialog({ open, onOpenChange }: HealthSnapshotDialo
     setError(null);
 
     try {
-      // Convert to base64
       const base64 = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onloadend = () => {
@@ -89,7 +89,7 @@ export function HealthSnapshotDialog({ open, onOpenChange }: HealthSnapshotDialo
 
       const { data: { session } } = await supabase.auth.getSession();
       const response = await supabase.functions.invoke('analyze-health-screenshot', {
-        body: { image: base64 },
+        body: { image: base64, clientId },
         headers: {
           Authorization: `Bearer ${session?.access_token}`,
         },
@@ -111,11 +111,14 @@ export function HealthSnapshotDialog({ open, onOpenChange }: HealthSnapshotDialo
         date: data.date,
       });
 
-      // Refresh all metric/health queries
-      queryClient.invalidateQueries({ queryKey: ['health-activity-metrics'] });
-      queryClient.invalidateQueries({ queryKey: ['health-activity-workouts'] });
-      queryClient.invalidateQueries({ queryKey: ['progress-tile-data'] });
-      queryClient.invalidateQueries({ queryKey: ['progress-client-metrics'] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['health-activity-metrics'] }),
+        queryClient.invalidateQueries({ queryKey: ['health-activity-workouts'] }),
+        queryClient.invalidateQueries({ queryKey: ['progress-tiles'] }),
+        queryClient.invalidateQueries({ queryKey: ['progress-client-metrics'] }),
+        queryClient.invalidateQueries({ queryKey: ['progress-tile-data'] }),
+        queryClient.invalidateQueries({ queryKey: ['progress-workout-count'] }),
+      ]);
 
       toast.success(`${data.count} health metrics imported successfully!`);
     } catch (err: any) {
