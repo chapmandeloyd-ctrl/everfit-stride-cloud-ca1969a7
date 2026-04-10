@@ -77,6 +77,7 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
         protocol_completed: boolean;
         maintenance_mode: boolean;
         maintenance_schedule_type: string | null;
+        trainer_id: string;
       } | null;
     },
     enabled: !!clientId,
