@@ -682,9 +682,9 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
           {hasProtocol && activeProtocol && !isMaintenanceMode && (
             <div className="grid grid-cols-3 gap-2">
               {[
-                { icon: Clock, value: `${activeProtocol.fast_target_hours}h`, label: "Fasting Window" },
-                { icon: CalendarDays, value: activeProtocol.duration_days === 0 ? "∞" : getDurationLabel(activeProtocol.duration_days), label: activeProtocol.duration_days === 0 ? "Ongoing" : "Duration" },
-                { icon: BarChart3, value: getDifficultyLabel(activeProtocol.difficulty_level), label: "Difficulty" },
+                { icon: Clock, value: `${activeProtocol.fast_target_hours}h`, label: "Fast" },
+                { icon: CalendarDays, value: `${24 - activeProtocol.fast_target_hours}h`, label: "Eat Window" },
+                { icon: BarChart3, value: getDifficultyLabel(activeProtocol.difficulty_level), label: "Level" },
               ].map((stat) => (
                 <div key={stat.label} className="bg-white/10 backdrop-blur-sm rounded-xl p-2.5 text-center border border-white/10">
                   <stat.icon className="h-4 w-4 mx-auto text-white/50 mb-1" />
