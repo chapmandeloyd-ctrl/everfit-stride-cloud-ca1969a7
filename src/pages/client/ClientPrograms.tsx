@@ -42,6 +42,7 @@ interface QuickPlan {
 
 export default function ClientPrograms() {
   const navigate = useNavigate();
+  const [showLocked, setShowLocked] = useState(false);
 
   const { data: protocols, isLoading } = useQuery({
     queryKey: ["fasting-protocols"],
