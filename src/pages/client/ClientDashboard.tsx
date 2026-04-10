@@ -1165,8 +1165,11 @@ export default function ClientDashboard() {
   const [sportCompletionOpen, setSportCompletionOpen] = useState(false);
   const [cardioFlowOpen, setCardioFlowOpen] = useState(false);
   const [selectedCardioSession, setSelectedCardioSession] = useState<any>(null);
+  const [calendarSelectedDate, setCalendarSelectedDate] = useState<Date | null>(null);
 
-  // Fetch today's sport event completions
+  // Determine if we're viewing a past day (hide today's cards)
+  const isViewingPastDay = calendarSelectedDate && !isToday(calendarSelectedDate) && isBefore(startOfDay(calendarSelectedDate), startOfDay(new Date()));
+
   const { data: sportEventCompletions } = useQuery({
     queryKey: ["sport-event-completions", clientId],
     queryFn: async () => {
