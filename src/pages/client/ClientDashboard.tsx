@@ -1954,7 +1954,7 @@ export default function ClientDashboard() {
       {clientId && <AskKsomAI clientId={clientId} />}
 
       {/* Floating Message Button */}
-      <div className="fixed bottom-20 right-4 z-30">
+      <div className="fixed right-4 z-30" style={{ bottom: 'calc(5rem + max(env(safe-area-inset-bottom, 0px), 4px))' }}>
         <button
           onClick={() => navigate("/client/messages")}
           className="relative w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-transform hover:scale-105 overflow-visible"
