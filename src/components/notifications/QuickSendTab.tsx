@@ -29,8 +29,6 @@ const QUICK_TEMPLATES: QuickTemplate[] = [
     id: "motivation",
     name: "Motivational Boost",
     subject: "Keep Pushing — You're Doing Amazing! 💪",
-    icon: <Flame className="h-5 w-5" />,
-    color: "bg-orange-500/10 text-orange-500",
     channel: "both",
     blocks: [
       { id: "1", type: "heading", content: "Keep Pushing! 💪", level: 1, alignment: "center" },
@@ -43,8 +41,6 @@ const QUICK_TEMPLATES: QuickTemplate[] = [
     id: "checkin-reminder",
     name: "Check-In Reminder",
     subject: "Time for Your Weekly Check-In ✅",
-    icon: <CalendarCheck className="h-5 w-5" />,
-    color: "bg-blue-500/10 text-blue-500",
     channel: "both",
     blocks: [
       { id: "1", type: "heading", content: "Weekly Check-In Time ✅", level: 1, alignment: "center" },
@@ -56,8 +52,6 @@ const QUICK_TEMPLATES: QuickTemplate[] = [
     id: "workout-reminder",
     name: "Workout Reminder",
     subject: "Don't Forget Today's Workout! 🏋️",
-    icon: <Dumbbell className="h-5 w-5" />,
-    color: "bg-primary/10 text-primary",
     channel: "both",
     blocks: [
       { id: "1", type: "heading", content: "Workout Time! 🏋️", level: 1, alignment: "center" },
@@ -69,8 +63,6 @@ const QUICK_TEMPLATES: QuickTemplate[] = [
     id: "milestone",
     name: "Milestone Celebration",
     subject: "🏆 Amazing Achievement — Celebrate Your Win!",
-    icon: <Trophy className="h-5 w-5" />,
-    color: "bg-yellow-500/10 text-yellow-500",
     channel: "both",
     blocks: [
       { id: "1", type: "heading", content: "Congratulations! 🏆", level: 1, alignment: "center" },
@@ -83,8 +75,6 @@ const QUICK_TEMPLATES: QuickTemplate[] = [
     id: "nutrition-tip",
     name: "Nutrition Tip",
     subject: "Quick Nutrition Tip for Better Results 🥗",
-    icon: <Heart className="h-5 w-5" />,
-    color: "bg-green-500/10 text-green-500",
     channel: "both",
     blocks: [
       { id: "1", type: "heading", content: "Nutrition Tip of the Day 🥗", level: 1, alignment: "center" },
@@ -96,8 +86,6 @@ const QUICK_TEMPLATES: QuickTemplate[] = [
     id: "welcome-back",
     name: "Welcome Back",
     subject: "We Missed You — Let's Get Back On Track! 🚀",
-    icon: <Star className="h-5 w-5" />,
-    color: "bg-purple-500/10 text-purple-500",
     channel: "both",
     blocks: [
       { id: "1", type: "heading", content: "Welcome Back! 🚀", level: 1, alignment: "center" },
@@ -109,8 +97,6 @@ const QUICK_TEMPLATES: QuickTemplate[] = [
     id: "coach-message",
     name: "Coach Note",
     subject: "A Quick Message From Your Coach 📝",
-    icon: <MessageCircle className="h-5 w-5" />,
-    color: "bg-teal-500/10 text-teal-500",
     channel: "both",
     blocks: [
       { id: "1", type: "heading", content: "Message From Your Coach 📝", level: 1, alignment: "center" },
