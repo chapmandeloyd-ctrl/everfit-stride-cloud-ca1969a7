@@ -295,7 +295,7 @@ export { unlockAudioForMobile };
 export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, onDiscard, onExit, onSaveForLater, resumeFromStep, resumeSetLogs, resumeElapsed }: WorkoutPlayerProps) {
   const { toast } = useToast();
   const startedAtRef = useRef(new Date().toISOString());
-  const [setLogs, setSetLogs] = useState<Record<string, SetLog>>({});
+  const [setLogs, setSetLogs] = useState<Record<string, SetLog>>(resumeSetLogs || {});
   const [isLocked, setIsLocked] = useState(false);
 
   // Unlock audio on mount + first user interaction (mobile Safari/Chrome requirement)
@@ -307,7 +307,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
     return () => { document.removeEventListener("touchstart", unlock); document.removeEventListener("click", unlock); };
   }, []);
 
-  const [phase, setPhase] = useState<"voiceselect" | "intro" | "playing">("voiceselect");
+  const [phase, setPhase] = useState<"voiceselect" | "intro" | "welcomeback" | "playing">(resumeFromStep !== undefined ? "welcomeback" : "voiceselect");
   const [countdownNum, setCountdownNum] = useState(3); // kept for reference but unused now
   const [chosenVoice, setChosenVoice] = useState<string>(WORKOUT_VOICES[0].id);
   const [previewingVoice, setPreviewingVoice] = useState(false);
@@ -315,8 +315,8 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
   const stepsRef = useRef<WorkoutStep[]>(buildSteps(sections));
   const steps = stepsRef.current;
 
-  const [stepIdx, setStepIdx] = useState(0);
-  const stepIdxRef = useRef(0);
+  const [stepIdx, setStepIdx] = useState(resumeFromStep ?? 0);
+  const stepIdxRef = useRef(resumeFromStep ?? 0);
 
   const [stepTimer, setStepTimer] = useState(-1);
   const stepTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
