@@ -61,9 +61,9 @@ export function TransformationPathCard() {
 
         <Separator className="opacity-40" />
 
-        {/* KSOM360 Difference */}
+        {/* KSOM-360 Difference */}
         <div className="space-y-2">
-          <p className="text-xs font-bold text-foreground/80">The KSOM360 Difference</p>
+          <p className="text-xs font-bold text-foreground/80">The KSOM-360 Difference</p>
           <p className="text-xs text-muted-foreground">We do not chase extremes.</p>
           <div className="flex flex-wrap gap-2 pt-0.5">
             {PILLARS.map((p) => (

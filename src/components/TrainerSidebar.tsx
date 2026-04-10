@@ -68,10 +68,10 @@ export function TrainerSidebar() {
       <SidebarContent>
         <div className="p-4 border-b border-sidebar-border" style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 16px)' }}>
           <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="KSOM360" className="h-16 w-16 rounded-xl object-cover" />
+            <img src="/logo.png" alt="KSOM-360" className="h-16 w-16 rounded-xl object-cover" />
             {open && (
               <div>
-                <h2 className="font-bold text-sidebar-foreground">KSOM360</h2>
+                <h2 className="font-bold text-sidebar-foreground">KSOM-360</h2>
                 <p className="text-xs text-sidebar-foreground/60">Trainer Portal</p>
               </div>
             )}

@@ -29,13 +29,13 @@ export const InviteEmail = ({
 }: InviteEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>You've been invited to join KSOM360</Preview>
+    <Preview>You've been invited to join KSOM-360</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Img src={LOGO_URL} alt="KSOM360" width="80" height="80" style={logo} />
+        <Img src={LOGO_URL} alt="KSOM-360" width="80" height="80" style={logo} />
         <Heading style={h1}>You've been invited!</Heading>
         <Text style={text}>
-          You've been invited to join <strong>KSOM360</strong>. Tap the button
+          You've been invited to join <strong>KSOM-360</strong>. Tap the button
           below to accept the invitation and get started.
         </Text>
         <Button style={button} href={confirmationUrl}>

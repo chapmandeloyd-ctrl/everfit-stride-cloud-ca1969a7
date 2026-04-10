@@ -369,9 +369,9 @@ export function ClientSettingsTab({ clientId, trainerId }: ClientSettingsTabProp
             </Label>
             <p className="text-xs text-muted-foreground">The message shown on the fasting protocol card</p>
             <Input
-              value={(settings as any)?.fasting_card_subtitle ?? "Fasting is the foundation of your KSOM360 plan."}
+              value={(settings as any)?.fasting_card_subtitle ?? "Fasting is the foundation of your KSOM-360 plan."}
               onChange={(e) => toggleMutation.mutate({ key: "fasting_card_subtitle", value: e.target.value })}
-              placeholder="Fasting is the foundation of your KSOM360 plan."
+              placeholder="Fasting is the foundation of your KSOM-360 plan."
               className="max-w-sm"
             />
           </div>

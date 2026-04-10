@@ -111,8 +111,8 @@ export default function ClientOnboarding() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/5 p-4">
       <div className="w-full max-w-2xl">
         <div className="text-center mb-8">
-          <img src="/logo.png" alt="KSOM360" className="h-16 w-16 rounded-2xl object-contain mx-auto mb-4" />
-          <h1 className="text-3xl font-bold text-foreground">Welcome to KSOM360!</h1>
+          <img src="/logo.png" alt="KSOM-360" className="h-16 w-16 rounded-2xl object-contain mx-auto mb-4" />
+          <h1 className="text-3xl font-bold text-foreground">Welcome to KSOM-360!</h1>
           <p className="text-muted-foreground mt-2">Let's get you started on your fitness journey</p>
         </div>
 

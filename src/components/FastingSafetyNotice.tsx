@@ -55,7 +55,7 @@ export function FastingSafetyNotice() {
         </p>
 
         <p className="text-xs font-semibold text-muted-foreground italic">
-          KSOM360 promotes structured, intentional fasting — not extreme restriction.
+          KSOM-360 promotes structured, intentional fasting — not extreme restriction.
         </p>
       </CollapsibleContent>
     </Collapsible>

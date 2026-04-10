@@ -112,7 +112,7 @@ export function AddClientDialog({ open, onOpenChange }: AddClientDialogProps) {
 
   const getShareText = () => {
     if (!createdCredentials) return "";
-    return `Hey ${createdCredentials.name}! Your KSOM360 account is ready 💪\n\nLogin here: ${productionUrl}/auth\nEmail: ${createdCredentials.email}\nPassword: ${createdCredentials.password}`;
+    return `Hey ${createdCredentials.name}! Your KSOM-360 account is ready 💪\n\nLogin here: ${productionUrl}/auth\nEmail: ${createdCredentials.email}\nPassword: ${createdCredentials.password}`;
   };
 
   const handleCopy = async () => {

@@ -38,7 +38,7 @@ const BookingConfirmationEmail = ({
     <Preview>Your {appointmentType || 'appointment'} is confirmed!</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Img src={LOGO_URL} alt="KSOM360" width="80" height="80" style={logo} />
+        <Img src={LOGO_URL} alt="KSOM-360" width="80" height="80" style={logo} />
         <Heading style={h1}>Booking Confirmed ✅</Heading>
         <Text style={text}>
           {name ? `Hey ${name}, your` : 'Your'} session has been booked!
@@ -58,9 +58,9 @@ const BookingConfirmationEmail = ({
           )}
         </Section>
         <Text style={text}>
-          Need to reschedule? Open the KSOM360 app and visit your Appointments.
+          Need to reschedule? Open the KSOM-360 app and visit your Appointments.
         </Text>
-        <Text style={footer}>— KSOM360</Text>
+        <Text style={footer}>— KSOM-360</Text>
       </Container>
     </Body>
   </Html>
