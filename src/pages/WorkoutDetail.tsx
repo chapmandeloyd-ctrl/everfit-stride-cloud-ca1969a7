@@ -421,10 +421,22 @@ export default function WorkoutDetail() {
               <Badge variant="outline">{workout.category}</Badge>
             </div>
           </div>
-          <Button size="lg" onClick={() => { unlockAudioForMobile(); setIsPlaying(true); }} className="gap-2">
-            <Play className="h-5 w-5" />
-            Start Workout
-          </Button>
+          {inProgressSession && isClient ? (
+            <div className="flex flex-col gap-2">
+              <Button size="lg" onClick={() => { unlockAudioForMobile(); handleResume(); }} className="gap-2">
+                <Play className="h-5 w-5" />
+                Resume ({(inProgressSession as any).completion_percentage || 0}%)
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => { unlockAudioForMobile(); setIsPlaying(true); }}>
+                Start Fresh
+              </Button>
+            </div>
+          ) : (
+            <Button size="lg" onClick={() => { unlockAudioForMobile(); setIsPlaying(true); }} className="gap-2">
+              <Play className="h-5 w-5" />
+              Start Workout
+            </Button>
+          )}
         </div>
 
         {/* Workout Info */}
