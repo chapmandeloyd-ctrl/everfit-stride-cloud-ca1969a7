@@ -2,12 +2,13 @@ import { useState } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ComposeTab } from "@/components/notifications/ComposeTab";
+import { QuickSendTab } from "@/components/notifications/QuickSendTab";
 import { TemplatesTab } from "@/components/notifications/TemplatesTab";
 import { HistoryTab } from "@/components/notifications/HistoryTab";
-import { Bell, FileText, History, Send } from "lucide-react";
+import { Bell, FileText, History, Send, Zap } from "lucide-react";
 
 export default function NotificationCenter() {
-  const [activeTab, setActiveTab] = useState("compose");
+  const [activeTab, setActiveTab] = useState("quick");
 
   return (
     <DashboardLayout>
@@ -23,7 +24,11 @@ export default function NotificationCenter() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid w-full max-w-md grid-cols-3">
+          <TabsList className="grid w-full max-w-lg grid-cols-4">
+            <TabsTrigger value="quick" className="flex items-center gap-1.5">
+              <Zap className="h-4 w-4" />
+              Quick Send
+            </TabsTrigger>
             <TabsTrigger value="compose" className="flex items-center gap-1.5">
               <Send className="h-4 w-4" />
               Compose
@@ -37,6 +42,10 @@ export default function NotificationCenter() {
               History
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="quick">
+            <QuickSendTab />
+          </TabsContent>
 
           <TabsContent value="compose">
             <ComposeTab />
