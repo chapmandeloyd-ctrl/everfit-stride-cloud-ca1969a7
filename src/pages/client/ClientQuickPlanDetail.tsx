@@ -21,7 +21,7 @@ import { toast } from "sonner";
 import { FastingSafetyNotice } from "@/components/FastingSafetyNotice";
 import { FastingStructureComparison } from "@/components/FastingStructureComparison";
 import { getTierForLevel, getIntensityLabel } from "@/lib/quickPlanTierConfig";
-import { PlanSynergySection } from "@/components/PlanSynergySection";
+
 
 interface PlanDescription {
   subtitle?: string;
@@ -337,12 +337,6 @@ export default function ClientQuickPlanDetail() {
             </section>
           )}
 
-          {/* Synergy Section */}
-          <PlanSynergySection
-            protocolType="quick_plan"
-            protocolId={id || null}
-            ketoTypeId={activeKetoAssignment?.keto_type_id || null}
-          />
 
           <FastingStructureComparison />
           <FastingSafetyNotice />

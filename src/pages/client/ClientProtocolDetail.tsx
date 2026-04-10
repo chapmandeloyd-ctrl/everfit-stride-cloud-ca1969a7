@@ -14,7 +14,7 @@ import {
 import { PROTOCOL_DETAIL_COPY } from "@/lib/protocolDetailContent";
 import { FastingSafetyNotice } from "@/components/FastingSafetyNotice";
 import { FastingStructureComparison } from "@/components/FastingStructureComparison";
-import { PlanSynergySection } from "@/components/PlanSynergySection";
+
 
 function generateWeeklyProgression(durationDays: number, fastTargetHours: number) {
   const weeks = Math.ceil(durationDays / 7);
@@ -363,12 +363,6 @@ export default function ClientProtocolDetail() {
               </>
             )}
           </Section>
-          {/* Synergy Section */}
-          <PlanSynergySection
-            protocolType="program"
-            protocolId={id || null}
-            ketoTypeId={activeKetoAssignment?.keto_type_id || null}
-          />
         </div>
       </div>
 
