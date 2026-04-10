@@ -683,7 +683,7 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
             onClick={() => navigate("/client/complete-plan")}
           >
             <Clock className="h-4 w-4" />
-            View Your Assigned Fast
+            View Your Assigned Program
           </Button>
 
           <div className="flex items-center justify-center gap-4">
