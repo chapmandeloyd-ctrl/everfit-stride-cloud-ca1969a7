@@ -340,12 +340,13 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
 
   const savedTimer = loadWorkoutTimer();
   const [elapsedSeconds, setElapsedSeconds] = useState(() => {
+    if (resumeElapsed) return resumeElapsed;
     if (!savedTimer) return 0;
     if (savedTimer.paused) return savedTimer.accumulated;
     return savedTimer.accumulated + Math.floor((Date.now() - savedTimer.wallStart) / 1000);
   });
   const elapsedRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const elapsedAccRef = useRef<number>(savedTimer?.accumulated ?? 0);
+  const elapsedAccRef = useRef<number>(resumeElapsed ?? savedTimer?.accumulated ?? 0);
   const isPausedRef = useRef(savedTimer?.paused ?? false);
   const [isPaused, setIsPaused] = useState(savedTimer?.paused ?? false);
 
