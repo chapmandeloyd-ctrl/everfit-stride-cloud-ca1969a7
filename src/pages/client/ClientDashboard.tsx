@@ -1659,9 +1659,7 @@ export default function ClientDashboard() {
               return null;
 
             case "assigned_plan":
-              return (
-                <AssignedPlanCard key="assigned_plan" clientId={clientId!} />
-              );
+              return null;
 
             case "coach_tip":
               return !isViewingOtherDay && settings.fasting_enabled && !engineConfig.fastingDisabled && (fastingState?.selected_protocol_id || fastingState?.maintenance_mode) ? (
