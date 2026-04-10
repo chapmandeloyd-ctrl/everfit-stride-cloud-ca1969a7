@@ -1551,7 +1551,7 @@ export default function ClientDashboard() {
               ) : null;
 
             case "fasting":
-              return settings.fasting_enabled && !engineConfig.fastingDisabled ? (
+              return settings.fasting_enabled && !engineConfig.fastingDisabled && !isViewingPastDay ? (
                 <div key="fasting">
                   <FastingProtocolCard clientId={clientId} navigate={navigate} />
                 </div>
@@ -1586,7 +1586,7 @@ export default function ClientDashboard() {
               );
 
             case "coach_tip":
-              return settings.fasting_enabled && !engineConfig.fastingDisabled && (fastingState?.selected_protocol_id || fastingState?.maintenance_mode) ? (
+              return !isViewingPastDay && settings.fasting_enabled && !engineConfig.fastingDisabled && (fastingState?.selected_protocol_id || fastingState?.maintenance_mode) ? (
                 <FastingCoachTipCard
                   key="coach_tip"
                   protocolStartDate={fastingState?.protocol_start_date ?? null}
@@ -1596,7 +1596,7 @@ export default function ClientDashboard() {
               ) : null;
 
             case "habits":
-              return settings.tasks_enabled && habits && habits.length > 0 ? (
+              return settings.tasks_enabled && habits && habits.length > 0 && !isViewingPastDay ? (
                 <div key="habits">
                   <div className="flex items-center justify-between mb-2">
                     <h2 className="text-lg font-bold">Habits</h2>
@@ -1630,7 +1630,7 @@ export default function ClientDashboard() {
               ) : null;
 
             case "nutrition":
-              if (!settings.macros_enabled) return null;
+              if (!settings.macros_enabled || isViewingPastDay) return null;
               if (!macroTargets) {
                 return (
                   <div key="nutrition">
@@ -1777,7 +1777,7 @@ export default function ClientDashboard() {
               );
 
             case "food_journal":
-              return settings.food_journal_enabled && !settings.macros_enabled ? (
+              return settings.food_journal_enabled && !settings.macros_enabled && !isViewingPastDay ? (
                 <div key="food_journal">
                   <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Food Journal</h2>
                   <Card className="cursor-pointer hover:shadow-sm transition-shadow" onClick={() => navigate("/client/nutrition")}>
@@ -1818,7 +1818,7 @@ export default function ClientDashboard() {
               ) : null;
 
             case "step_tracker":
-              return settings.activity_logging_enabled ? (
+              return settings.activity_logging_enabled && !isViewingPastDay ? (
                 <div key="step_tracker">
                   <h2 className="text-lg font-bold mb-2">Step tracker</h2>
                   <Card className="cursor-pointer hover:shadow-sm transition-shadow min-h-[120px]" onClick={() => navigate("/client/health-connect")}>
@@ -1836,7 +1836,7 @@ export default function ClientDashboard() {
               ) : null;
 
             case "tasks":
-              return settings.tasks_enabled && tasks && tasks.length > 0 ? (
+              return settings.tasks_enabled && tasks && tasks.length > 0 && !isViewingPastDay ? (
                 <div key="tasks">
                   <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
                     Tasks ({completedTaskCount}/{totalTaskCount})
