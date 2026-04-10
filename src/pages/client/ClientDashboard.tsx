@@ -678,6 +678,23 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
             </div>
           ) : null}
 
+          {/* Stats row */}
+          {hasProtocol && activeProtocol && !isMaintenanceMode && (
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { icon: Clock, value: `${activeProtocol.fast_target_hours}h`, label: "Fasting Window" },
+                { icon: CalendarDays, value: activeProtocol.duration_days === 0 ? "∞" : getDurationLabel(activeProtocol.duration_days), label: activeProtocol.duration_days === 0 ? "Ongoing" : "Duration" },
+                { icon: BarChart3, value: getDifficultyLabel(activeProtocol.difficulty_level), label: "Difficulty" },
+              ].map((stat) => (
+                <div key={stat.label} className="bg-white/10 backdrop-blur-sm rounded-xl p-3 text-center border border-white/10">
+                  <stat.icon className="h-4 w-4 mx-auto text-white/50 mb-1" />
+                  <p className="text-lg font-black text-white">{stat.value}</p>
+                  <p className="text-[10px] text-white/50 uppercase tracking-wider font-medium">{stat.label}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
           <Button
             className="w-full h-12 text-base font-semibold gap-2 bg-white/15 hover:bg-white/25 text-white border border-white/20 backdrop-blur-sm"
             variant="ghost"
