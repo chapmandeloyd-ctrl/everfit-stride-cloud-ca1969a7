@@ -1385,8 +1385,8 @@ export default function ClientDashboard() {
                                         if (workout.completed_at && workout.id) {
                                           await supabase.from("client_workouts").update({ completed_at: null }).eq("id", workout.id);
                                         }
-                                        queryClient.invalidateQueries({ queryKey: ["client-workouts-today"] });
-                                        queryClient.invalidateQueries({ queryKey: ["today-tracked-assigned-sessions"] });
+                                        queryClient.invalidateQueries({ queryKey: ["client-workouts-today", clientId] });
+                                        queryClient.invalidateQueries({ queryKey: ["today-tracked-assigned-sessions", clientId] });
                                         toast({ title: "Workout deleted" });
                                       }}
                                       onClick={() => {
