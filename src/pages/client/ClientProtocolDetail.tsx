@@ -363,8 +363,12 @@ export default function ClientProtocolDetail() {
               </>
             )}
           </Section>
+          <FastingStructureComparison />
+          <FastingSafetyNotice />
         </div>
       </div>
+
+      <div className="pb-36" />
 
       <div className="fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-t p-4 safe-area-bottom space-y-2">
         <Button
@@ -383,9 +387,6 @@ export default function ClientProtocolDetail() {
           Save program for later
         </Button>
       </div>
-
-      <FastingStructureComparison />
-      <FastingSafetyNotice />
     </ClientLayout>
   );
 }
