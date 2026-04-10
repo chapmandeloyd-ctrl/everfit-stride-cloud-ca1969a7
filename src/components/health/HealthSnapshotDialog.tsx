@@ -114,13 +114,15 @@ export function HealthSnapshotDialog({ open, onOpenChange, clientId }: HealthSna
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['health-activity-metrics'] }),
         queryClient.invalidateQueries({ queryKey: ['health-activity-workouts'] }),
+        queryClient.invalidateQueries({ queryKey: ['health-stats'] }),
+        queryClient.invalidateQueries({ queryKey: ['health-data'] }),
         queryClient.invalidateQueries({ queryKey: ['progress-tiles'] }),
         queryClient.invalidateQueries({ queryKey: ['progress-client-metrics'] }),
         queryClient.invalidateQueries({ queryKey: ['progress-tile-data'] }),
         queryClient.invalidateQueries({ queryKey: ['progress-workout-count'] }),
       ]);
 
-      toast.success(`${data.count} health metrics imported successfully!`);
+      toast.success(`${data.importedCards ?? data.count} health cards updated successfully!`);
     } catch (err: any) {
       const msg = err.message || 'Failed to analyze screenshot';
       setError(msg);

@@ -24,6 +24,7 @@ const APPLE_HEALTH_LABEL_RULES: Array<{ pattern: RegExp; dataType: string }> = [
   { pattern: /resting\s+energy|basal\s+energy|basal\s+energy\s+burned/i, dataType: 'resting_energy' },
   { pattern: /dietary\s+energy|food\s+energy|calories\s+eaten|calories\s+consumed|energy\s+consumed/i, dataType: 'dietary_energy' },
   { pattern: /calories\s+burned|energy\s+burned|total\s+energy/i, dataType: 'calories_burned' },
+  { pattern: /workouts?/i, dataType: 'workout' },
   { pattern: /steps?/i, dataType: 'steps' },
   { pattern: /sleep/i, dataType: 'sleep' },
   { pattern: /weight/i, dataType: 'weight' },
@@ -37,6 +38,27 @@ function normalizeMetric(metric: { data_type: string; value: number; unit: strin
     ...metric,
     data_type: override?.dataType || metric.data_type,
     label,
+  };
+}
+
+function buildWorkoutHealthRow(
+  workoutCount: number,
+  clientId: string,
+  recordedAt: string,
+) {
+  if (workoutCount <= 0) return null;
+
+  return {
+    client_id: clientId,
+    data_type: 'workout',
+    value: workoutCount,
+    unit: 'count',
+    recorded_at: recordedAt,
+    source: 'ai_snapshot',
+    metadata: {
+      imported_via: 'ai_snapshot',
+      inferred_from: 'apple_health_summary_screenshot',
+    },
   };
 }
 
@@ -120,10 +142,11 @@ MAPPING RULES for data_type:
 - "Active Energy" or "Active Calories" or "Move" → active_energy
 - "Resting Energy" or "Basal Energy Burned" → resting_energy
 - "Dietary Energy" or "Food Energy" or calories eaten/consumed → dietary_energy
-- "Sleep" duration → sleep (value in HOURS as decimal, e.g. 7.5)
+                - "Sleep" duration → sleep (value in HOURS as decimal, e.g. 7.5)
 - "Weight" → weight (value in lbs)
 - "Caloric Intake" or food calories → caloric_intake
 - "Dietary Energy" → dietary_energy (this is Apple's name for calories consumed/eaten)
+                - "Workouts" → workout (count of workouts shown)
 
 IMPORTANT: Apple Health shows "Active Energy" and "Resting Energy" separately. 
 - Map "Active Energy" → active_energy
@@ -159,7 +182,7 @@ Today's date is ${new Date().toISOString().split('T')[0]}.`
                       properties: {
                         data_type: {
                           type: 'string',
-                           enum: ['steps', 'calories_burned', 'active_energy', 'resting_energy', 'sleep', 'weight', 'caloric_intake', 'dietary_energy', 'food_energy'],
+                           enum: ['steps', 'calories_burned', 'active_energy', 'resting_energy', 'sleep', 'weight', 'caloric_intake', 'dietary_energy', 'food_energy', 'workout'],
                         },
                         value: { type: 'number' },
                         unit: { type: 'string' },
@@ -212,12 +235,47 @@ Today's date is ${new Date().toISOString().split('T')[0]}.`
 
     const now = new Date();
     let savedCount = 0;
+    let workoutCount = 0;
+    let totalBurnFromParts = 0;
+    let totalBurnExplicit = 0;
+    let totalIntake = 0;
 
     const aggregated: Record<string, number> = {};
     for (const metric of normalizedMetrics) {
+      const value = Number(metric.value) || 0;
+
+      if (metric.data_type === 'workout') {
+        workoutCount = Math.max(workoutCount, Math.round(value));
+        continue;
+      }
+
+      if (metric.data_type === 'active_energy' || metric.data_type === 'resting_energy') {
+        totalBurnFromParts += value;
+        continue;
+      }
+
+      if (metric.data_type === 'calories_burned') {
+        totalBurnExplicit = Math.max(totalBurnExplicit, value);
+        continue;
+      }
+
+      if (metric.data_type === 'caloric_intake' || metric.data_type === 'dietary_energy' || metric.data_type === 'food_energy') {
+        totalIntake = Math.max(totalIntake, value);
+        continue;
+      }
+
       const metricName = DATA_TYPE_TO_METRIC[metric.data_type];
       if (!metricName) continue;
-      aggregated[metricName] = (aggregated[metricName] || 0) + metric.value;
+      aggregated[metricName] = Math.max(aggregated[metricName] || 0, value);
+    }
+
+    const resolvedBurn = Math.max(totalBurnExplicit, totalBurnFromParts);
+    if (resolvedBurn > 0) {
+      aggregated['Caloric Burn'] = resolvedBurn;
+    }
+
+    if (totalIntake > 0) {
+      aggregated['Caloric Intake'] = totalIntake;
     }
 
     const metricNames = Object.keys(aggregated);
@@ -294,10 +352,22 @@ Today's date is ${new Date().toISOString().split('T')[0]}.`
       }
     }
 
+    const workoutHealthRow = buildWorkoutHealthRow(workoutCount, targetClientId, now.toISOString());
+    if (workoutHealthRow) {
+      const { error: workoutHealthError } = await supabase
+        .from('health_data')
+        .upsert(workoutHealthRow, { onConflict: 'client_id,data_type,recorded_at' });
+
+      if (workoutHealthError) {
+        console.error('Error inserting AI snapshot workout row:', workoutHealthError);
+      }
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
         count: savedCount,
+        importedCards: Object.keys(aggregated).length + (workoutCount > 0 ? 1 : 0),
         metrics: normalizedMetrics,
         summary: extracted.summary,
         date: now.toISOString().split('T')[0],
