@@ -348,6 +348,7 @@ export function SynergyPreviewPanel({ clientId, trainerId }: SynergyPreviewPanel
             carb_limit_grams={ketoType.carb_limit_grams}
             color={ketoType.color}
             abbreviation={ketoType.abbreviation}
+            clientId={clientId}
           />
         )}
 
