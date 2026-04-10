@@ -111,6 +111,50 @@ export function MyProgressSection({ clientId }: Props) {
     enabled: clientMetricIds.length > 0,
   });
 
+  // Fetch workout count for the "workouts" tile
+  const hasWorkoutTile = visibleTiles.some(t => t.tile_key === "workouts");
+  const { data: workoutData } = useQuery({
+    queryKey: ["progress-workout-count", clientId],
+    queryFn: async () => {
+      // Get completed workouts in last 14 days for sparkline + total count
+      const fourteenDaysAgo = new Date();
+      fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+      
+      const { data, error } = await supabase
+        .from("client_workouts")
+        .select("completed_at")
+        .eq("client_id", clientId)
+        .not("completed_at", "is", null)
+        .gte("completed_at", fourteenDaysAgo.toISOString())
+        .order("completed_at", { ascending: false });
+      if (error) throw error;
+
+      // Also get total completed count
+      const { count } = await supabase
+        .from("client_workouts")
+        .select("*", { count: "exact", head: true })
+        .eq("client_id", clientId)
+        .not("completed_at", "is", null);
+
+      // Build sparkline: workouts per day for last 14 days
+      const dailyCounts: number[] = [];
+      for (let i = 13; i >= 0; i--) {
+        const day = new Date();
+        day.setDate(day.getDate() - i);
+        const dayStr = day.toISOString().slice(0, 10);
+        const c = (data || []).filter(w => w.completed_at?.slice(0, 10) === dayStr).length;
+        dailyCounts.push(c);
+      }
+
+      return {
+        total: count || 0,
+        latestDate: data?.[0]?.completed_at || null,
+        sparkline: dailyCounts,
+      };
+    },
+    enabled: !!clientId && hasWorkoutTile,
+  });
+
   const toggleVisibility = useMutation({
     mutationFn: async ({ tileId, visible }: { tileId: string; visible: boolean }) => {
       const { error } = await supabase
