@@ -39,17 +39,17 @@ export function CardioDetailSheet({ open, onOpenChange, session }: CardioDetailS
           <p className="text-muted-foreground text-sm mb-8">Completed</p>
 
           <div className="w-full max-w-sm space-y-0 divide-y divide-border">
-            <div className="flex justify-between py-3">
-              <span className="text-sm font-medium text-foreground">Time</span>
-              <span className="text-sm text-muted-foreground">{formatDetailTime(session.duration_seconds || 0)}</span>
-            </div>
-            {session.distance_miles && (
+            {session.distance_miles != null && session.distance_miles > 0 && (
               <div className="flex justify-between py-3">
                 <span className="text-sm font-medium text-foreground">Distance</span>
                 <span className="text-sm text-muted-foreground">{session.distance_miles} mi</span>
               </div>
             )}
-            {session.calories && (
+            <div className="flex justify-between py-3">
+              <span className="text-sm font-medium text-foreground">Time</span>
+              <span className="text-sm text-muted-foreground">{formatDetailTime(session.duration_seconds || 0)}</span>
+            </div>
+            {session.calories != null && session.calories > 0 && (
               <div className="flex justify-between py-3">
                 <span className="text-sm font-medium text-foreground">Total calories</span>
                 <span className="text-sm text-muted-foreground">{Math.round(session.calories)} cal</span>
