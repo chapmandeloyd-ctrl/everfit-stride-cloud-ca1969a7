@@ -249,7 +249,6 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const steps = rows.filter((d: any) => d.data_type === "steps");
-    const cals = rows.filter((d: any) => d.data_type === "calories_burned");
     const hr = rows.filter((d: any) => d.data_type === "heart_rate");
     const rhr = rows.filter((d: any) => d.data_type === "resting_heart_rate");
     const active = rows.filter((d: any) => d.data_type === "active_minutes");
@@ -257,7 +256,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     const stats = {
       todaySteps: dedupeMaxPerHour(steps),
-      todayCalories: dedupeMaxPerHour(cals),
+      todayCalories: getTotalCaloriesBurned(rows),
       avgHeartRate:
         hr.length > 0
           ? Math.round(
@@ -306,6 +305,27 @@ function json(body: unknown): Response {
     headers: { ...corsHeaders, "Content-Type": "application/json" },
     status: 200,
   });
+}
+
+function getTotalCaloriesBurned(rows: Array<{ data_type: string; value: number; recorded_at: string }>): number {
+  const activeEnergy = rows.filter((row) => row.data_type === "active_energy");
+  const restingEnergy = rows.filter((row) => row.data_type === "resting_energy");
+
+  if (activeEnergy.length > 0 || restingEnergy.length > 0) {
+    return dedupeMaxPerHour(activeEnergy) + dedupeMaxPerHour(restingEnergy);
+  }
+
+  return dedupeMaxPerHour(rows.filter((row) => row.data_type === "calories_burned"));
+}
+
+function dedupeMaxPerHour(items: Array<{ value: number; recorded_at: string }>): number {
+  const byHour = new Map<string, number>();
+  for (const r of items) {
+    const d = new Date(r.recorded_at);
+    const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}-${d.getHours()}`;
+    byHour.set(key, Math.max(byHour.get(key) ?? 0, Number(r.value)));
+  }
+  return Array.from(byHour.values()).reduce((s, v) => s + v, 0);
 }
 
 serve(handler);
