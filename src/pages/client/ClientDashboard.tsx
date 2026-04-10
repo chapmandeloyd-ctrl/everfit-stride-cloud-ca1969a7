@@ -25,6 +25,7 @@ import { DayStripCalendar } from "@/components/DayStripCalendar";
 import { QuickCardioFlow } from "@/components/cardio/QuickCardioFlow";
 import { CardioDetailSheet } from "@/components/cardio/CardioDetailSheet";
 import { SwipeToDeleteCardioRow } from "@/components/cardio/SwipeToDeleteCardioRow";
+import { SwipeToDeleteWorkoutRow } from "@/components/workout/SwipeToDeleteWorkoutRow";
 import { SpeedDialFAB } from "@/components/SpeedDialFAB";
 
 import { ProgramsSelector } from "@/components/ProgramsSelector";
@@ -1366,20 +1367,34 @@ export default function ClientDashboard() {
                             <Card>
                               <CardContent className="p-0 divide-y divide-border">
                                 {completedAssigned.map((workout: any) => {
-                                  // If it came from sessions, it has an 'id' as session id
                                   const sessionId = workout.client_workout_id ? undefined : workout.id;
-                                  const isInProgress = workout.status === "in_progress";
+                                  const isInProgressW = workout.status === "in_progress";
                                   return (
-                                    <div
+                                    <SwipeToDeleteWorkoutRow
                                       key={workout.id}
-                                      className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-muted/50 transition-colors"
+                                      workout={workout}
+                                      onDelete={async () => {
+                                        // Delete session row
+                                        const matchedSession = sessionId
+                                          ? { id: sessionId }
+                                          : (todayTrackedAssignedSessions || []).find((s: any) => s.client_workout_id === workout.id);
+                                        if (matchedSession) {
+                                          await supabase.from("workout_sessions").delete().eq("id", matchedSession.id);
+                                        }
+                                        // Also clear completed_at on the client_workouts row if applicable
+                                        if (workout.completed_at && workout.id) {
+                                          await supabase.from("client_workouts").update({ completed_at: null }).eq("id", workout.id);
+                                        }
+                                        queryClient.invalidateQueries({ queryKey: ["client-workouts-today"] });
+                                        queryClient.invalidateQueries({ queryKey: ["today-tracked-assigned-sessions"] });
+                                        toast({ title: "Workout deleted" });
+                                      }}
                                       onClick={() => {
-                                        if (isInProgress) {
+                                        if (isInProgressW) {
                                           navigate(`/client/workouts/${workout.workout_plan_id}`);
                                         } else if (sessionId) {
                                           navigate(`/client/workout-session/${sessionId}`);
                                         } else {
-                                          // Find the session for this client_workout_id
                                           const matchedSession = (todayTrackedAssignedSessions || []).find(
                                             (s: any) => s.client_workout_id === workout.id
                                           );
@@ -1390,26 +1405,7 @@ export default function ClientDashboard() {
                                           }
                                         }
                                       }}
-                                    >
-                                      <div className={`h-6 w-6 rounded-full flex items-center justify-center shrink-0 ${isInProgress ? "bg-amber-500" : "bg-primary"}`}>
-                                        {isInProgress ? (
-                                          <Clock className="h-3.5 w-3.5 text-primary-foreground" strokeWidth={3} />
-                                        ) : (
-                                          <Check className="h-3.5 w-3.5 text-primary-foreground" strokeWidth={3} />
-                                        )}
-                                      </div>
-                                      <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-semibold">{workout.workout_plan?.name || "Workout"}</p>
-                                        <p className="text-xs text-muted-foreground">
-                                          {isInProgress
-                                            ? `In Progress · ${workout.completion_percentage || 0}% Complete`
-                                            : workout.is_partial
-                                            ? `Tracked · ${workout.completion_percentage || ''}${workout.completion_percentage ? '% ' : ''}Complete`
-                                            : "Completed"}
-                                        </p>
-                                      </div>
-                                      <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-                                    </div>
+                                    />
                                   );
                                 })}
                               </CardContent>
