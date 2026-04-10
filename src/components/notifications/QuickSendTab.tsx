@@ -277,9 +277,7 @@ export function QuickSendTab() {
           >
             <CardContent className="p-4 space-y-3">
               <div className="flex items-start gap-3">
-                <div className={`p-2.5 rounded-lg shrink-0 ${template.color}`}>
-                  {template.icon}
-                </div>
+                <img src={LOGO_URL} alt="KSOM-360" className="h-10 w-10 shrink-0 rounded-lg" />
                 <div className="space-y-1 min-w-0">
                   <h3 className="font-semibold text-sm text-foreground">{template.name}</h3>
                   <p className="text-xs text-muted-foreground line-clamp-2">{template.subject}</p>
