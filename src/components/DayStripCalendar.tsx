@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { Dumbbell, Swords, Trophy, CheckSquare, Droplets, MapPin } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { DayStripPastSnapshot } from "@/components/DayStripPastSnapshot";
 
 interface DayStripCalendarProps {
   clientId: string;
