@@ -44,8 +44,31 @@ serve(async (req) => {
       });
     }
 
-    const { image } = await req.json();
+    const { image, clientId } = await req.json();
     if (!image) throw new Error('No image provided');
+
+    const targetClientId = clientId || user.id;
+
+    if (targetClientId !== user.id) {
+      const { data: linkedClient, error: linkedClientError } = await supabase
+        .from('client_feature_settings')
+        .select('client_id')
+        .eq('client_id', targetClientId)
+        .eq('trainer_id', user.id)
+        .maybeSingle();
+
+      if (linkedClientError) {
+        console.error('Error validating trainer-client relationship:', linkedClientError);
+        throw new Error('Unable to validate client access');
+      }
+
+      if (!linkedClient) {
+        return new Response(JSON.stringify({ error: 'Forbidden' }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured');
@@ -160,19 +183,16 @@ Today's date is ${new Date().toISOString().split('T')[0]}.`
       );
     }
 
-    // Save extracted metrics into metric_entries (the real data source)
     const now = new Date();
     let savedCount = 0;
 
-    // Pre-aggregate: sum metrics that map to the same definition (e.g. active_energy + resting_energy → Caloric Burn)
     const aggregated: Record<string, number> = {};
-    for (const m of extracted.metrics) {
-      const metricName = DATA_TYPE_TO_METRIC[m.data_type];
+    for (const metric of extracted.metrics) {
+      const metricName = DATA_TYPE_TO_METRIC[metric.data_type];
       if (!metricName) continue;
-      aggregated[metricName] = (aggregated[metricName] || 0) + m.value;
+      aggregated[metricName] = (aggregated[metricName] || 0) + metric.value;
     }
 
-    // Get all metric definitions we need
     const metricNames = Object.keys(aggregated);
     const { data: metricDefs } = await supabase
       .from('metric_definitions')
@@ -185,18 +205,26 @@ Today's date is ${new Date().toISOString().split('T')[0]}.`
     }
 
     const defMap: Record<string, string> = {};
-    metricDefs.forEach(d => { defMap[d.name] = d.id; });
+    metricDefs.forEach(d => {
+      defMap[d.name] = d.id;
+    });
 
-    // Get or create client_metrics and insert entries for each aggregated metric
+    const { data: clientSettings } = await supabase
+      .from('client_feature_settings')
+      .select('trainer_id')
+      .eq('client_id', targetClientId)
+      .limit(1);
+
+    const trainerId = clientSettings?.[0]?.trainer_id || user.id;
+
     for (const [metricName, value] of Object.entries(aggregated)) {
-      if (!defMap[metricName]) continue;
       const metricDefId = defMap[metricName];
+      if (!metricDefId) continue;
 
-      // Find existing client_metric
-      let { data: existingCM } = await supabase
+      const { data: existingCM } = await supabase
         .from('client_metrics')
         .select('id')
-        .eq('client_id', user.id)
+        .eq('client_id', targetClientId)
         .eq('metric_definition_id', metricDefId)
         .limit(1);
 
@@ -205,19 +233,10 @@ Today's date is ${new Date().toISOString().split('T')[0]}.`
       if (existingCM && existingCM.length > 0) {
         clientMetricId = existingCM[0].id;
       } else {
-        // Need trainer_id — look up from client_feature_settings
-        const { data: cfs } = await supabase
-          .from('client_feature_settings')
-          .select('trainer_id')
-          .eq('client_id', user.id)
-          .limit(1);
-        
-        const trainerId = cfs?.[0]?.trainer_id || user.id;
-
         const { data: newCM, error: cmErr } = await supabase
           .from('client_metrics')
           .insert({
-            client_id: user.id,
+            client_id: targetClientId,
             metric_definition_id: metricDefId,
             trainer_id: trainerId,
             order_index: 0,
@@ -232,13 +251,12 @@ Today's date is ${new Date().toISOString().split('T')[0]}.`
         clientMetricId = newCM.id;
       }
 
-      // Insert metric entry with aggregated value
       const { error: entryErr } = await supabase
         .from('metric_entries')
         .insert({
-          client_id: user.id,
+          client_id: targetClientId,
           client_metric_id: clientMetricId,
-          value: value,
+          value,
           recorded_at: now.toISOString(),
         });
 
@@ -248,8 +266,6 @@ Today's date is ${new Date().toISOString().split('T')[0]}.`
         savedCount++;
       }
     }
-
-    console.log(`Saved ${savedCount} metrics to metric_entries`);
 
     return new Response(
       JSON.stringify({
