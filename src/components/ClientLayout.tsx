@@ -148,7 +148,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
       </header>
 
       {/* Main content with bottom padding for nav */}
-      <main className="flex-1 overflow-auto pb-20">
+      <main className="flex-1 overflow-auto" style={{ paddingBottom: 'calc(5rem + max(env(safe-area-inset-bottom, 0px), 4px))' }}>
         {children}
       </main>
 

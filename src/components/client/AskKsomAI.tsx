@@ -240,7 +240,7 @@ export function AskKsomAI({ clientId }: AskKsomAIProps) {
   return (
     <>
       {/* Floating AI Button */}
-      <div className="fixed bottom-20 left-4 z-30">
+      <div className="fixed left-4 z-30" style={{ bottom: 'calc(5rem + max(env(safe-area-inset-bottom, 0px), 4px))' }}>
         <button
           onClick={() => setOpen(true)}
           className="group relative w-12 h-12 rounded-full shadow-lg flex items-center justify-center bg-black text-white transition-all hover:scale-110 hover:shadow-xl"
