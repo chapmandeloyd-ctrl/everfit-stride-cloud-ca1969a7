@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { Dumbbell, Swords, Trophy, CheckSquare, Droplets, MapPin } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { DayStripPastSnapshot } from "@/components/DayStripPastSnapshot";
 
 interface DayStripCalendarProps {
   clientId: string;
@@ -244,14 +245,24 @@ export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEn
         })}
       </div>
 
-      {/* Selected day preview */}
-      {selectedDate && !isToday(selectedDate) && (
+      {/* Selected day preview — past days get full snapshot, future days get schedule preview */}
+      {selectedDate && !isToday(selectedDate) && isBefore(startOfDay(selectedDate), startOfDay(today)) && (
+        <DayStripPastSnapshot
+          clientId={clientId}
+          date={selectedDate}
+          trainingEnabled={trainingEnabled}
+          tasksEnabled={tasksEnabled}
+          restDayCard={restDayCard}
+          sportDayCards={sportDayCards || []}
+        />
+      )}
+
+      {selectedDate && !isToday(selectedDate) && !isBefore(startOfDay(selectedDate), startOfDay(today)) && (
         <div className="space-y-3">
           <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
             {format(viewDate, "EEEE, MMM d")}
           </p>
 
-          {/* Sport Event Cards — full-bleed, matching dashboard */}
           {viewData.sportEvents.map((event: any) => {
             const isGame = event.event_type === "game" || event.event_type === "event";
             const customCard = isGame ? gameCard : practiceCard;
@@ -296,7 +307,6 @@ export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEn
             );
           })}
 
-          {/* Workout Cards — full-bleed, matching dashboard */}
           {viewData.workouts.map((w: any) => (
             <Card key={w.id} className="overflow-hidden">
               <div className="relative h-56 bg-gradient-to-br from-primary/20 to-primary/5">
@@ -312,14 +322,12 @@ export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEn
                   <p className="text-xs font-semibold text-white/70 uppercase tracking-wider">Workout</p>
                   <p className="text-lg font-bold text-white">
                     {w.workout_plan?.name || "Workout"}
-                    {w.completed_at && " ✅"}
                   </p>
                 </div>
               </div>
             </Card>
           ))}
 
-          {/* Rest Day Card — full-bleed, matching dashboard */}
           {isRestDay && trainingEnabled && (
             <Card className="overflow-hidden">
               {restDayCard?.image_url ? (
@@ -345,7 +353,6 @@ export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEn
             </Card>
           )}
 
-          {/* Tasks */}
           {viewData.tasks.map((t: any) => (
             <div key={t.id} className="flex items-center gap-3 rounded-lg p-3 bg-amber-500/5 border border-amber-500/10">
               <div className="p-2 rounded-lg bg-amber-500/10">
@@ -358,7 +365,6 @@ export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEn
             </div>
           ))}
 
-          {/* Habits */}
           {viewData.habits.length > 0 && (
             <div className="flex items-center gap-3 rounded-lg p-3 bg-emerald-500/5 border border-emerald-500/10">
               <div className="p-2 rounded-lg bg-emerald-500/10">
@@ -375,7 +381,6 @@ export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEn
             </div>
           )}
 
-          {/* Nothing scheduled at all */}
           {!hasAnything && !trainingEnabled && (
             <p className="text-sm text-muted-foreground py-2">Nothing scheduled</p>
           )}
