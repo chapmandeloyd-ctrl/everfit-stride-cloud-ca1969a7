@@ -1,4 +1,4 @@
-import { Home, LayoutGrid, BarChart3, User, MonitorPlay, FlaskConical } from "lucide-react";
+import { Home, BarChart3, User, MonitorPlay, FlaskConical } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useClientFeatureSettings } from "@/hooks/useClientFeatureSettings";
@@ -12,7 +12,6 @@ interface NavItem {
 
 const baseItems: NavItem[] = [
   { label: "Home", to: "/client/dashboard", icon: Home },
-  { label: "Plans", to: "/client/choose-protocol", icon: LayoutGrid },
   { label: "Progress", to: "/client/progress", icon: BarChart3 },
   { label: "Profile", to: "/client/profile", icon: User },
 ];
@@ -38,9 +37,9 @@ export function ClientBottomNav() {
   // Athletic engine users get a Labs tab; others get On-Demand if enabled
   let navItems: NavItem[];
   if (isAthleticEngine) {
-    navItems = [baseItems[0], baseItems[1], labsItem, baseItems[2], baseItems[3]];
+    navItems = [baseItems[0], labsItem, baseItems[1], baseItems[2]];
   } else if (onDemandEnabled) {
-    navItems = [baseItems[0], baseItems[1], onDemandItem, baseItems[2], baseItems[3]];
+    navItems = [baseItems[0], onDemandItem, baseItems[1], baseItems[2]];
   } else {
     navItems = baseItems;
   }
