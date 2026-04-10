@@ -15,6 +15,8 @@ const DATA_TYPE_TO_METRIC: Record<string, string> = {
   sleep: 'Sleep',
   weight: 'Weight',
   caloric_intake: 'Caloric Intake',
+  dietary_energy: 'Caloric Intake',
+  food_energy: 'Caloric Intake',
 };
 
 serve(async (req) => {
@@ -74,6 +76,12 @@ MAPPING RULES for data_type:
 - "Sleep" duration → sleep (value in HOURS as decimal, e.g. 7.5)
 - "Weight" → weight (value in lbs)
 - "Caloric Intake" or food calories → caloric_intake
+- "Dietary Energy" → dietary_energy (this is Apple's name for calories consumed/eaten)
+
+IMPORTANT: Apple Health shows "Active Energy" and "Resting Energy" separately. 
+- Map "Active Energy" → active_energy
+- Map "Resting Energy" → resting_energy  
+- Do NOT combine them into one entry.
 
 Extract exact numbers shown on screen. Convert minutes to hours for sleep (e.g. 7h 30m = 7.5).
 Skip any metrics not in the mapping above.
