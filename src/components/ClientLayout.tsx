@@ -1,4 +1,5 @@
 import { ClientBottomNav } from "./ClientBottomNav";
+import { UpdateBanner } from "./UpdateBanner";
 import { LogOut, RefreshCw, MessageCircle } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { Button } from "./ui/button";
@@ -104,6 +105,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <UpdateBanner />
       {/* Top bar — safe-area padding keeps it below the iOS notch / status bar */}
       <header
         className="border-b border-border bg-card flex items-center justify-between px-4 shrink-0"

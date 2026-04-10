@@ -1954,13 +1954,14 @@ export default function ClientDashboard() {
       {clientId && <AskKsomAI clientId={clientId} />}
 
       {/* Floating Message Button */}
+      {/* Floating Message Button - positioned just above the nav bar */}
       <div className="fixed right-4 z-30" style={{ bottom: 'calc(5rem + max(env(safe-area-inset-bottom, 0px), 4px))' }}>
         <button
           onClick={() => navigate("/client/messages")}
-          className="relative w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-transform hover:scale-105 overflow-visible"
+          className="relative w-11 h-11 rounded-full shadow-lg flex items-center justify-center transition-transform hover:scale-105 overflow-visible"
           aria-label="Messages"
         >
-          <img src="/logo.png" alt="Messages" className="w-12 h-12 rounded-full object-cover" />
+          <img src="/logo.png" alt="Messages" className="w-11 h-11 rounded-full object-cover" />
           {unreadMessageCount > 0 && (
             <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground flex items-center justify-center px-1 border-2 border-background shadow-md z-10">
               {unreadMessageCount > 99 ? "99+" : unreadMessageCount}
