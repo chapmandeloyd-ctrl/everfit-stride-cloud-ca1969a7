@@ -7890,6 +7890,10 @@ export type Database = {
         Returns: boolean
       }
       is_trainer: { Args: { _user_id: string }; Returns: boolean }
+      is_trainer_of_client: {
+        Args: { _client_id: string; _trainer_id: string }
+        Returns: boolean
+      }
       is_trainer_of_collection: {
         Args: { p_collection_id: string }
         Returns: boolean
