@@ -3,7 +3,7 @@ import fastingCardBgImg from "@/assets/fasting-timer-bg.jpg";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Bell, Dumbbell, CheckCircle2, Circle, UtensilsCrossed, Footprints, ChevronRight, Smartphone, X, Plus, Pencil, Swords, Trophy, MapPin, Check, Activity, ScanBarcode, Camera, PenLine, MessageCircle, Clock, Sparkles } from "lucide-react";
+import { Bell, Dumbbell, CheckCircle2, Circle, UtensilsCrossed, Footprints, ChevronRight, Smartphone, X, Plus, Pencil, Swords, Trophy, MapPin, Check, Activity, ScanBarcode, Camera, PenLine, MessageCircle, Clock, Sparkles, ArrowRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { differenceInCalendarDays, isToday, isBefore, startOfDay, parseISO, format } from "date-fns";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
