@@ -57,6 +57,7 @@ export default function Exercises() {
     if (/^\d+$/.test(trimmed)) return true;
     if (/^\d+\s/.test(trimmed)) return true;
     if (/\.(mp4|mov|avi|mkv|webm)$/i.test(trimmed)) return true;
+    if (/^Exercises\s+\d/i.test(trimmed)) return true;
     return false;
   };
   const { data: exercises, isLoading } = useQuery({
