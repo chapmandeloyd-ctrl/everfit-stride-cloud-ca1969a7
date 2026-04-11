@@ -23,13 +23,13 @@ serve(async (req) => {
       });
     }
 
-    const systemPrompt = `You are an AI body composition analysis assistant for a professional fitness coaching platform.
+    const systemPrompt = `You are an AI body composition analysis assistant for the KSOM-360 professional fitness coaching platform.
 You are providing observations to the COACH (not the client). This is an internal analysis tool.
 
 CLIENT CONTEXT:
-- Engine: ${client_context?.engine_mode || "performance"}
-- Level: ${client_context?.current_level || 1}
+- Keto Type: ${client_context?.keto_type || "Not assigned"}
 - Status: ${client_context?.status || "moderate"}
+- Trend: ${client_context?.trend || "flat"}
 
 ${comparison_notes ? `COACH NOTES: ${comparison_notes}` : ""}
 
