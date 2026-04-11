@@ -1483,15 +1483,6 @@ export default function ClientDashboard() {
                     tasksEnabled={settings.tasks_enabled}
                     onDateChange={setCalendarSelectedDate}
                   />
-                  {/* Fasting Status card */}
-                  {dashRecentFastLog && !isViewingOtherDay && (
-                    <FastingStatusCard
-                      actualHours={dashRecentFastLog.actual_hours}
-                      targetHours={dashRecentFastLog.target_hours}
-                      completionPct={dashRecentFastLog.completion_pct}
-                      endedEarly={dashRecentFastLog.ended_early}
-                    />
-                  )}
                   {/* Completed workouts under calendar */}
                   {(() => {
                     const completedCardio = todayCardioSessions?.filter((s: any) => s.status === "completed") || [];
@@ -1795,8 +1786,16 @@ export default function ClientDashboard() {
 
             case "fasting":
               return settings.fasting_enabled && !engineConfig.fastingDisabled && !isViewingOtherDay ? (
-                <div key="fasting">
+                <div key="fasting" className="space-y-3">
                   <FastingProtocolCard clientId={clientId} navigate={navigate} />
+                  {dashRecentFastLog && (
+                    <FastingStatusCard
+                      actualHours={dashRecentFastLog.actual_hours}
+                      targetHours={dashRecentFastLog.target_hours}
+                      completionPct={dashRecentFastLog.completion_pct}
+                      endedEarly={dashRecentFastLog.ended_early}
+                    />
+                  )}
                 </div>
               ) : null;
 
