@@ -164,22 +164,36 @@ export default function WorkoutDetail() {
   const saveSession = async (data: CompletionData, isPartial: boolean) => {
     const completedAt = new Date().toISOString();
 
-    // Create workout session
-    const { data: session, error: sessionError } = await supabase
-      .from("workout_sessions")
-      .insert({
-        client_workout_id: clientWorkout?.id || null,
-        client_id: effectiveClientId,
-        workout_plan_id: id,
-        started_at: data.startedAt,
-        completed_at: completedAt,
-        duration_seconds: data.elapsedSeconds,
-        is_partial: isPartial,
-      })
-      .select()
-      .single();
-
-    if (sessionError) throw sessionError;
+    // Use existing active session if available, otherwise create new one
+    let sessionId = activeSessionId;
+    if (sessionId) {
+      const { error: updateError } = await supabase
+        .from("workout_sessions")
+        .update({
+          completed_at: completedAt,
+          duration_seconds: data.elapsedSeconds,
+          is_partial: isPartial,
+          status: isPartial ? "partial" : "completed",
+        })
+        .eq("id", sessionId);
+      if (updateError) throw updateError;
+    } else {
+      const { data: session, error: sessionError } = await supabase
+        .from("workout_sessions")
+        .insert({
+          client_workout_id: clientWorkout?.id || null,
+          client_id: effectiveClientId,
+          workout_plan_id: id,
+          started_at: data.startedAt,
+          completed_at: completedAt,
+          duration_seconds: data.elapsedSeconds,
+          is_partial: isPartial,
+        })
+        .select()
+        .single();
+      if (sessionError) throw sessionError;
+      sessionId = session.id;
+    }
 
     // Save exercise logs
     const logs: any[] = [];
@@ -192,7 +206,7 @@ export default function WorkoutDetail() {
             const log = data.setLogs[key];
             if (log) {
               logs.push({
-                session_id: session.id,
+                session_id: sessionId,
                 exercise_id: ex.exercise_id,
                 set_number: r,
                 reps: log.reps ? parseInt(log.reps) : null,
@@ -208,7 +222,7 @@ export default function WorkoutDetail() {
             const log = data.setLogs[key];
             if (log) {
               logs.push({
-                session_id: session.id,
+                session_id: sessionId,
                 exercise_id: ex.exercise_id,
                 set_number: s,
                 reps: log.reps ? parseInt(log.reps) : null,
@@ -234,9 +248,9 @@ export default function WorkoutDetail() {
     }
 
     // Award badges
-    await awardBadges(effectiveClientId!, session.id, workout?.difficulty);
+    await awardBadges(effectiveClientId!, sessionId!, workout?.difficulty);
 
-    return { sessionId: session.id, completedAt };
+    return { sessionId: sessionId!, completedAt };
   };
 
   const handleComplete = async (data: CompletionData) => {
@@ -295,17 +309,18 @@ export default function WorkoutDetail() {
   const handleSaveForLater = async (data: { setLogs: Record<string, any>; elapsedSeconds: number; startedAt: string; stepIdx: number; completionPercent: number }) => {
     setIsPlaying(false);
     try {
-      if (inProgressSession?.id) {
-        // Update existing in-progress session
+      const existingId = activeSessionId || inProgressSession?.id;
+      if (existingId) {
+        // Update existing session
         await supabase.from("workout_sessions").update({
           duration_seconds: data.elapsedSeconds,
           resume_section_index: data.stepIdx,
           resume_set_logs: data.setLogs as any,
           completion_percentage: data.completionPercent,
           status: "in_progress",
-        }).eq("id", inProgressSession.id);
+        }).eq("id", existingId);
       } else {
-        // Create new in-progress session
+        // Fallback: create new in-progress session
         await supabase.from("workout_sessions").insert({
           client_workout_id: clientWorkout?.id || null,
           client_id: effectiveClientId,
