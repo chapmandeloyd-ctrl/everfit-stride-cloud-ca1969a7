@@ -61,6 +61,8 @@ interface WorkoutPlayerProps {
   resumeFromStep?: number;
   resumeSetLogs?: Record<string, SetLog>;
   resumeElapsed?: number;
+  activeSessionId?: string | null;
+  dbStartedAt?: string | null;
 }
 
 interface WorkoutStep {
@@ -292,7 +294,7 @@ async function elevenLabsSpeakNow(text: string): Promise<void> {
 export { unlockAudioForMobile };
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, onDiscard, onExit, onSaveForLater, resumeFromStep, resumeSetLogs, resumeElapsed }: WorkoutPlayerProps) {
+export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, onDiscard, onExit, onSaveForLater, resumeFromStep, resumeSetLogs, resumeElapsed, activeSessionId, dbStartedAt }: WorkoutPlayerProps) {
   const { toast } = useToast();
   const startedAtRef = useRef(new Date().toISOString());
   const [setLogs, setSetLogs] = useState<Record<string, SetLog>>(resumeSetLogs || {});
@@ -342,12 +344,20 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
   const savedTimer = loadWorkoutTimer();
   const [elapsedSeconds, setElapsedSeconds] = useState(() => {
     if (resumeElapsed) return resumeElapsed;
-    if (!savedTimer) return 0;
+    if (!savedTimer) {
+      // DB fallback: recover elapsed from the session's started_at timestamp
+      if (dbStartedAt) {
+        return Math.max(0, Math.floor((Date.now() - new Date(dbStartedAt).getTime()) / 1000));
+      }
+      return 0;
+    }
     if (savedTimer.paused) return savedTimer.accumulated;
     return savedTimer.accumulated + Math.floor((Date.now() - savedTimer.wallStart) / 1000);
   });
   const elapsedRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const elapsedAccRef = useRef<number>(resumeElapsed ?? savedTimer?.accumulated ?? 0);
+  const elapsedAccRef = useRef<number>(
+    resumeElapsed ?? savedTimer?.accumulated ?? (dbStartedAt ? Math.max(0, Math.floor((Date.now() - new Date(dbStartedAt).getTime()) / 1000)) : 0)
+  );
   const isPausedRef = useRef(savedTimer?.paused ?? false);
   const [isPaused, setIsPaused] = useState(savedTimer?.paused ?? false);
 
