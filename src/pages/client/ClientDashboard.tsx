@@ -99,6 +99,21 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
     enabled: !!featureSettings?.selected_protocol_id,
   });
 
+  // Fetch active quick plan details when one is selected
+  const { data: activeQuickPlan } = useQuery({
+    queryKey: ["active-quick-plan", featureSettings?.selected_quick_plan_id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("quick_fasting_plans")
+        .select("id, name, fast_hours, intensity_tier")
+        .eq("id", featureSettings!.selected_quick_plan_id!)
+        .single();
+      if (error) throw error;
+      return data as { id: string; name: string; fast_hours: number; intensity_tier: string };
+    },
+    enabled: !!featureSettings?.selected_quick_plan_id,
+  });
+
   // Fetch active keto type for display
   const { data: activeKetoType } = useQuery({
     queryKey: ["fasting-card-keto-type", clientId],
