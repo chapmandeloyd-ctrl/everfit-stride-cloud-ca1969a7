@@ -28,6 +28,7 @@ import { CardioDetailSheet } from "@/components/cardio/CardioDetailSheet";
 import { SwipeToDeleteCardioRow } from "@/components/cardio/SwipeToDeleteCardioRow";
 import { SwipeToDeleteWorkoutRow } from "@/components/workout/SwipeToDeleteWorkoutRow";
 import { SpeedDialFAB } from "@/components/SpeedDialFAB";
+import { FastingStatusCard } from "@/components/client/FastingStatusCard";
 
 import { ProgramsSelector } from "@/components/ProgramsSelector";
 import { FastingTimer } from "@/components/FastingTimer";
