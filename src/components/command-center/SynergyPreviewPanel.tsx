@@ -123,9 +123,14 @@ export function SynergyPreviewPanel({ clientId, trainerId }: SynergyPreviewPanel
 
   const assignProtocolMutation = useMutation({
     mutationFn: async ({ id, type }: { id: string; type: "program" | "quick_plan" }) => {
-      const updates: Record<string, unknown> = type === "program"
-        ? { selected_protocol_id: id, selected_quick_plan_id: null, protocol_assigned_by: trainerId }
-        : { selected_quick_plan_id: id, selected_protocol_id: null, protocol_assigned_by: trainerId };
+      let updates: Record<string, unknown>;
+      if (type === "program") {
+        updates = { selected_protocol_id: id, selected_quick_plan_id: null, protocol_assigned_by: trainerId, active_fast_target_hours: null };
+      } else {
+        // Fetch quick plan hours for active_fast_target_hours
+        const { data: qp } = await supabase.from("quick_fasting_plans").select("fast_hours").eq("id", id).single();
+        updates = { selected_quick_plan_id: id, selected_protocol_id: null, protocol_assigned_by: trainerId, active_fast_target_hours: qp?.fast_hours ?? null };
+      }
       const { error } = await supabase
         .from("client_feature_settings")
         .update(updates)
