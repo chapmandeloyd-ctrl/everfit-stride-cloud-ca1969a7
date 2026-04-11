@@ -29,9 +29,28 @@ export function AIOnboardingSummaryPanel({ clientId, trainerId }: AIOnboardingSu
 
       const { data: settings } = await supabase
         .from("client_feature_settings")
-        .select("engine_mode, current_level, subscription_tier")
+        .select("subscription_tier, fasting_enabled, selected_protocol_id")
         .eq("client_id", clientId)
         .maybeSingle();
+
+      // Keto type
+      const { data: ketoAssignment } = await supabase
+        .from("client_keto_assignments")
+        .select("keto_type_id, keto_types(name)")
+        .eq("client_id", clientId)
+        .eq("is_active", true)
+        .maybeSingle();
+
+      // Fasting protocol
+      let protocolName: string | null = null;
+      if (settings?.selected_protocol_id) {
+        const { data: proto } = await supabase
+          .from("fasting_protocols")
+          .select("name")
+          .eq("id", settings.selected_protocol_id)
+          .maybeSingle();
+        protocolName = proto?.name ?? null;
+      }
 
       const { data: sportProfile } = await supabase
         .from("client_sport_profiles")
@@ -39,13 +58,16 @@ export function AIOnboardingSummaryPanel({ clientId, trainerId }: AIOnboardingSu
         .eq("client_id", clientId)
         .maybeSingle();
 
+      const ketoName = (ketoAssignment as any)?.keto_types?.name ?? null;
+
       return {
         name: profile?.full_name || "Client",
         onboarding_completed: profile?.onboarding_completed,
         onboarding_answers: profile?.onboarding_answers,
-        engine_mode: settings?.engine_mode || "metabolic",
-        current_level: settings?.current_level || 1,
         tier: settings?.subscription_tier || "starter",
+        fasting_enabled: settings?.fasting_enabled ?? false,
+        fasting_protocol: protocolName,
+        keto_type: ketoName,
         sport_profile: sportProfile,
       };
     },
@@ -59,11 +81,12 @@ export function AIOnboardingSummaryPanel({ clientId, trainerId }: AIOnboardingSu
       const { data, error } = await supabase.functions.invoke("ai-onboarding-summary", {
         body: {
           client_name: clientData.name,
-          engine_mode: clientData.engine_mode,
           onboarding_answers: clientData.onboarding_answers,
           profile_data: {
-            level: clientData.current_level,
             tier: clientData.tier,
+            keto_type: clientData.keto_type,
+            fasting_protocol: clientData.fasting_protocol,
+            fasting_enabled: clientData.fasting_enabled,
             sport_profile: clientData.sport_profile,
             onboarding_completed: clientData.onboarding_completed,
           },
@@ -106,11 +129,10 @@ export function AIOnboardingSummaryPanel({ clientId, trainerId }: AIOnboardingSu
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Quick context */}
         {clientData && (
           <div className="grid grid-cols-3 gap-2 text-[11px] text-muted-foreground">
-            <div>Engine: <span className="text-foreground font-medium capitalize">{clientData.engine_mode}</span></div>
-            <div>Level: <span className="text-foreground font-medium">{clientData.current_level}</span></div>
+            <div>Keto: <span className="text-foreground font-medium">{clientData.keto_type || "None"}</span></div>
+            <div>Fasting: <span className="text-foreground font-medium">{clientData.fasting_protocol || (clientData.fasting_enabled ? "Enabled" : "Off")}</span></div>
             <div>Tier: <span className="text-foreground font-medium capitalize">{clientData.tier}</span></div>
           </div>
         )}

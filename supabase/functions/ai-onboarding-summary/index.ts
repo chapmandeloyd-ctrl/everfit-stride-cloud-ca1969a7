@@ -12,17 +12,22 @@ serve(async (req) => {
   }
 
   try {
-    const { client_name, engine_mode, onboarding_answers, profile_data } = await req.json();
+    const { client_name, onboarding_answers, profile_data } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const systemPrompt = `You are an AI coaching assistant for a professional fitness platform.
+    const systemPrompt = `You are an AI coaching assistant for the KSOM-360 professional fitness platform.
 
 Generate a concise coaching brief for a trainer about their new client. This is an internal document — NOT client-facing.
 
 CLIENT: ${client_name || "New Client"}
-ENGINE: ${engine_mode || "performance"}
+
+CLIENT PROGRAM:
+- Keto Type: ${profile_data?.keto_type || "Not assigned"}
+- Fasting Protocol: ${profile_data?.fasting_protocol || (profile_data?.fasting_enabled ? "Enabled (no protocol set)" : "Not enabled")}
+- Subscription Tier: ${profile_data?.tier || "starter"}
+${profile_data?.sport_profile ? `- Sport: ${profile_data.sport_profile.sport || "N/A"} | Position: ${profile_data.sport_profile.position || "N/A"} | Team: ${profile_data.sport_profile.team_name || "N/A"}` : ""}
 
 ONBOARDING ANSWERS:
 ${JSON.stringify(onboarding_answers || {}, null, 2)}
@@ -44,15 +49,12 @@ Generate a structured coaching brief with:
 💡 RECOMMENDED STARTING APPROACH
 - Suggested training frequency
 - Suggested intensity level
-- Any engine-specific recommendations (e.g., fasting intro for metabolic, progressive overload for performance, sport-specific periodization for athletic)
+- Keto/fasting-specific recommendations if applicable (e.g., keto adaptation phase, fasting ramp-up)
 
 🗒️ NOTES FOR COACH
 - Any additional context that would help the coach personalize the experience
 
-Keep it professional, data-driven, and actionable. Use the engine mode to inform the tone:
-- Metabolic: clinical, structured, health-focused
-- Performance: direct, goal-oriented, progressive
-- Athletic: competitive, development-focused, periodized`;
+Keep it professional, data-driven, and actionable. Use a supportive, health-focused tone.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
