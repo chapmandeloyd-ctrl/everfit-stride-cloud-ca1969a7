@@ -1370,8 +1370,48 @@ export default function ClientDashboard() {
     return `${mins}m ${secs.toString().padStart(2, "0")}s`;
   };
 
+  const openCardioSession = useCallback((session: {
+    id: string;
+    activity_type: string;
+    target_type: string | null;
+    target_value: number | null;
+  }) => {
+    const params = new URLSearchParams({
+      activity: session.activity_type,
+      targetType: session.target_type || "none",
+      sessionId: session.id,
+    });
+
+    if (session.target_value !== null && session.target_value !== undefined) {
+      params.set("targetValue", String(session.target_value));
+    }
+
+    navigate(`/client/cardio-player?${params.toString()}`);
+  }, [navigate]);
+
   const handleCardioStart = async (activity: string, targetType: string, targetValue?: number) => {
     if (!clientId) return;
+
+    const { data: existingSession, error: existingSessionError } = await supabase
+      .from("cardio_sessions" as any)
+      .select("id, activity_type, target_type, target_value")
+      .eq("client_id", clientId)
+      .eq("status", "in_progress")
+      .order("started_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (existingSessionError) {
+      toast({ title: "Error", variant: "destructive" });
+      return;
+    }
+
+    if (existingSession) {
+      toast({ title: "Resuming your active cardio session" });
+      openCardioSession(existingSession as any);
+      return;
+    }
+
     const { data, error } = await supabase
       .from("cardio_sessions" as any)
       .insert({
@@ -1382,10 +1422,10 @@ export default function ClientDashboard() {
         status: "in_progress",
         started_at: new Date().toISOString(),
       })
-      .select("id")
+      .select("id, activity_type, target_type, target_value")
       .single();
     if (error) { toast({ title: "Error", variant: "destructive" }); return; }
-    navigate(`/client/cardio-player?activity=${activity}&targetType=${targetType}&targetValue=${targetValue || ""}&sessionId=${(data as any).id}`);
+    openCardioSession(data as any);
   };
 
   const handleCardioComplete = async (activity: string, targetType: string, targetValue?: number) => {
