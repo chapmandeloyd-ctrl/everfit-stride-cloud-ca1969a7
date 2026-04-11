@@ -380,17 +380,40 @@ export default function Exercises() {
           </div>
         </div>
 
-        {/* Results */}
-        <div className="flex items-center justify-between">
+        {/* Results & Naming Filter */}
+        <div className="flex items-center justify-between flex-wrap gap-2">
           <p className="text-sm text-muted-foreground">
             Showing {sortedExercises.length} of {exercises?.length || 0} exercises
+            {needsNameCount > 0 && (
+              <span className="text-amber-600 ml-2">• {needsNameCount} need naming</span>
+            )}
           </p>
-          {videoDemoCount > 0 && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Video className="h-4 w-4" />
-              <span>{videoDemoCount} with videos</span>
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            {needsNameCount > 0 && (
+              <div className="flex items-center gap-1">
+                <span className="text-xs text-muted-foreground mr-1">Names:</span>
+                {(["all", "named", "needs_name"] as const).map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => { setNameFilter(f); resetPage(); }}
+                    className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                      nameFilter === f
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "border-border text-muted-foreground hover:border-primary hover:text-primary"
+                    }`}
+                  >
+                    {f === "all" ? "All" : f === "named" ? "Named ✓" : `Needs name (${needsNameCount})`}
+                  </button>
+                ))}
+              </div>
+            )}
+            {videoDemoCount > 0 && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Video className="h-4 w-4" />
+                <span>{videoDemoCount} with videos</span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Exercise Grid */}
