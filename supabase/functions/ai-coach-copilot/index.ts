@@ -42,21 +42,17 @@ ${toneInstruction}
 ${SAFETY_RULES}
 
 Client context:
-- Readiness Score: ${context.readiness_score ?? "N/A"}/100
-- Status: ${context.status}
+- Keto Type: ${context.keto_type || "Not assigned"}
+- Status: ${context.status || "moderate"}
 - Lowest Factor: ${context.lowest_factor || "N/A"}
 - Weekly Completion: ${context.weekly_completion_pct ?? "N/A"}%
-- Streak Days: ${context.streak_days ?? "N/A"}
-- 7-Day Trend: ${context.last_7_day_trend}
-- Parent Link Active: ${context.parent_link_active}
-- Fasting Sessions Completed (7d): ${context.fasting_completed_count ?? "N/A"}
+- 7-Day Trend: ${context.last_7_day_trend || "flat"}
+- Adherence Score: ${context.adherence_score ?? "N/A"}
 - Fasting Protocol: ${context.fasting_protocol_name || "None assigned"}
-- Keto Type: ${context.keto_type || "None assigned"}
 - Workouts Completed: ${context.workouts_completed ?? "N/A"} / ${context.workouts_assigned ?? "N/A"} assigned
 - Tasks Completed: ${context.tasks_completed ?? "N/A"} / ${context.tasks_total ?? "N/A"} total
 - Current Weight: ${context.current_weight ?? "N/A"} lbs
 - Weight Change: ${context.weight_change_lbs != null ? (context.weight_change_lbs > 0 ? "+" : "") + context.weight_change_lbs + " lbs" : "N/A"}
-- Adherence Score: ${context.adherence_score ?? "N/A"}
 - Injury Flag: ${context.injury_flag ? "⚠️ Yes" : "No"}
 `;
 
