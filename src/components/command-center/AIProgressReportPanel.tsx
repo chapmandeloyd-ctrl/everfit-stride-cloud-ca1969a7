@@ -48,13 +48,13 @@ export function AIProgressReportPanel({ clientId, trainerId }: AIProgressReportP
       // Fasting data (last 7 days)
       const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString();
       const { count: fastingCount } = await supabase
-        .from("fasting_sessions")
+        .from("fasting_log")
         .select("id", { count: "exact", head: true })
         .eq("client_id", clientId)
         .eq("status", "completed")
-        .gte("completed_at", sevenDaysAgo);
+        .gte("ended_at", sevenDaysAgo);
 
-      // Fasting protocol name
+      // Keto type
       const { data: ketoAssignment } = await supabase
         .from("client_keto_assignments")
         .select("keto_type_id, keto_types(name)")
@@ -89,14 +89,25 @@ export function AIProgressReportPanel({ clientId, trainerId }: AIProgressReportP
       const tasksTotal = tasks?.length ?? 0;
       const tasksCompleted = tasks?.filter(t => t.completed_at)?.length ?? 0;
 
-      // Weight change — latest 2 entries
-      const { data: weightEntries } = await supabase
-        .from("metric_entries")
-        .select("value, recorded_at, client_metrics!inner(metric_definition_id, metric_definitions!inner(name))")
+      // Weight — latest 2 metric entries for Weight
+      const { data: weightMetric } = await supabase
+        .from("client_metrics")
+        .select("id, metric_definitions!inner(name)")
         .eq("client_id", clientId)
-        .eq("client_metrics.metric_definitions.name", "Weight")
-        .order("recorded_at", { ascending: false })
-        .limit(2);
+        .eq("metric_definitions.name" as any, "Weight")
+        .limit(1)
+        .maybeSingle();
+
+      let weightEntries: { value: number }[] = [];
+      if (weightMetric) {
+        const { data } = await supabase
+          .from("metric_entries")
+          .select("value")
+          .eq("client_metric_id", weightMetric.id)
+          .order("recorded_at", { ascending: false })
+          .limit(2);
+        weightEntries = data ?? [];
+      }
 
       let weightChange: number | null = null;
       let currentWeight: number | null = null;
