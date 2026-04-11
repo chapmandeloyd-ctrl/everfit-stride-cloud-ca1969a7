@@ -63,11 +63,21 @@ export function AIProgressReportPanel({ clientId, trainerId }: AIProgressReportP
         .maybeSingle();
 
       // Fasting protocol
-      const { data: fastingProto } = await supabase
+      const { data: settingsForProto } = await supabase
         .from("client_feature_settings")
-        .select("selected_protocol_id, fasting_protocols(name)")
+        .select("selected_protocol_id")
         .eq("client_id", clientId)
         .maybeSingle();
+
+      let protocolName: string | null = null;
+      if (settingsForProto?.selected_protocol_id) {
+        const { data: proto } = await supabase
+          .from("fasting_protocols")
+          .select("name")
+          .eq("id", settingsForProto.selected_protocol_id)
+          .maybeSingle();
+        protocolName = proto?.name ?? null;
+      }
 
       // Workouts (last 7 days)
       const { data: workouts } = await supabase
