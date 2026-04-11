@@ -1076,9 +1076,7 @@ export default function ClientDashboard() {
   });
 
   // Fasting status for the standalone card in tracking section
-  const dashNow = new Date();
-  const dashTodayDate = format(dashNow, "yyyy-MM-dd");
-  const dashIsFasting = !!featureSettings?.active_fast_start_at;
+  const dashTodayDate = format(new Date(), "yyyy-MM-dd");
   const { data: dashTodayFastLog } = useQuery({
     queryKey: ["today-fasting-log-dash", clientId, dashTodayDate],
     queryFn: async () => {
