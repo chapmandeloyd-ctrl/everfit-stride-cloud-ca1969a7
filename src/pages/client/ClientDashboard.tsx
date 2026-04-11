@@ -1566,16 +1566,16 @@ export default function ClientDashboard() {
                     );
                     const completedAssigned = [...completedAssignedFromRow, ...completedAssignedFromSessions];
                     const hasAny = completedCardio.length > 0 || completedAssigned.length > 0;
-                    const showFastingStatus = todayFastLog && !isFasting;
+                    const showFastingStatus = !!dashTodayFastLog;
                     if (!hasAny && !showFastingStatus) return null;
                     return (
                       <>
-                        {showFastingStatus && todayFastLog && (
+                        {showFastingStatus && dashTodayFastLog && (
                           <FastingStatusCard
-                            actualHours={todayFastLog.actual_hours}
-                            targetHours={todayFastLog.target_hours}
-                            completionPct={todayFastLog.completion_pct}
-                            endedEarly={todayFastLog.ended_early}
+                            actualHours={dashTodayFastLog.actual_hours}
+                            targetHours={dashTodayFastLog.target_hours}
+                            completionPct={dashTodayFastLog.completion_pct}
+                            endedEarly={dashTodayFastLog.ended_early}
                           />
                         )}
                         {completedCardio.length > 0 && (
