@@ -25,15 +25,23 @@ export function AIPhotoAnalysisPanel({ clientId, trainerId }: AIPhotoAnalysisPan
   const { data: contextData } = useQuery({
     queryKey: ["ai-photo-context", clientId],
     queryFn: async () => {
-      const { data: settings } = await supabase
-        .from("client_feature_settings")
-        .select("engine_mode, current_level")
+      const { data: ketoAssignment } = await supabase
+        .from("client_keto_assignments")
+        .select("keto_type_id, keto_types(name)")
+        .eq("client_id", clientId)
+        .eq("is_active", true)
+        .maybeSingle();
+
+      const { data: summary } = await supabase
+        .from("client_weekly_summaries")
+        .select("score_status, trend_direction")
         .eq("client_id", clientId)
         .maybeSingle();
+
       return {
-        engine_mode: settings?.engine_mode || "metabolic",
-        current_level: settings?.current_level || 1,
-        status: "moderate",
+        keto_type: (ketoAssignment as any)?.keto_types?.name || null,
+        status: summary?.score_status || "moderate",
+        trend: summary?.trend_direction || "flat",
       };
     },
   });
