@@ -9,7 +9,7 @@ import { ParentLinkSection } from "./ParentLinkSection";
 import { CopilotAssistPanel } from "./CopilotAssistPanel";
 import { AIWriteFeedbackPanel } from "./AIWriteFeedbackPanel";
 import { AIProgressReportPanel } from "./AIProgressReportPanel";
-import { AIWorkoutBuilderPanel } from "./AIWorkoutBuilderPanel";
+
 import { AIMealPlanPanel } from "./AIMealPlanPanel";
 import { AIOnboardingSummaryPanel } from "./AIOnboardingSummaryPanel";
 import { AICoachChatPanel } from "./AICoachChatPanel";
