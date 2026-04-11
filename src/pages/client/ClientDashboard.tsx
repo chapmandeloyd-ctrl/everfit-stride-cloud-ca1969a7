@@ -28,6 +28,7 @@ import { CardioDetailSheet } from "@/components/cardio/CardioDetailSheet";
 import { SwipeToDeleteCardioRow } from "@/components/cardio/SwipeToDeleteCardioRow";
 import { SwipeToDeleteWorkoutRow } from "@/components/workout/SwipeToDeleteWorkoutRow";
 import { SpeedDialFAB } from "@/components/SpeedDialFAB";
+import { FastingStatusCard } from "@/components/client/FastingStatusCard";
 
 import { ProgramsSelector } from "@/components/ProgramsSelector";
 import { FastingTimer } from "@/components/FastingTimer";
@@ -1074,7 +1075,33 @@ export default function ClientDashboard() {
     enabled: !!clientId && settings.tasks_enabled,
   });
 
-  // Toggle habit completion
+  // Fasting status for the standalone card in tracking section
+  const dashTodayDate = format(new Date(), "yyyy-MM-dd");
+  const { data: dashTodayFastLog } = useQuery({
+    queryKey: ["today-fasting-log-dash", clientId, dashTodayDate],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("fasting_log" as any)
+        .select("*")
+        .eq("client_id", clientId)
+        .gte("started_at", `${dashTodayDate}T00:00:00`)
+        .lte("started_at", `${dashTodayDate}T23:59:59`)
+        .order("started_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error || !data) return null;
+      const d = data as any;
+      return {
+        actual_hours: d.actual_hours ?? 0,
+        target_hours: d.target_hours ?? 0,
+        completion_pct: d.completion_pct ?? 0,
+        ended_early: d.ended_early ?? false,
+      };
+    },
+    enabled: !!clientId,
+  });
+
+
   const toggleHabitMutation = useMutation({
     mutationFn: async ({ habitId, completed }: { habitId: string; completed: boolean }) => {
       const today = format(new Date(), "yyyy-MM-dd");
@@ -1539,9 +1566,18 @@ export default function ClientDashboard() {
                     );
                     const completedAssigned = [...completedAssignedFromRow, ...completedAssignedFromSessions];
                     const hasAny = completedCardio.length > 0 || completedAssigned.length > 0;
-                    if (!hasAny) return null;
+                    const showFastingStatus = !!dashTodayFastLog;
+                    if (!hasAny && !showFastingStatus) return null;
                     return (
                       <>
+                        {showFastingStatus && dashTodayFastLog && (
+                          <FastingStatusCard
+                            actualHours={dashTodayFastLog.actual_hours}
+                            targetHours={dashTodayFastLog.target_hours}
+                            completionPct={dashTodayFastLog.completion_pct}
+                            endedEarly={dashTodayFastLog.ended_early}
+                          />
+                        )}
                         {completedCardio.length > 0 && (
                           <>
                             <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2 mt-2">Quick Workouts</h2>
