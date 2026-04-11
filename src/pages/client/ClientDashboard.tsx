@@ -747,22 +747,26 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
             </div>
           ) : null}
 
-          {/* Stats row — show actual hours if fast completed today */}
-          {hasProtocol && activeProtocol && !isMaintenanceMode && (
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { icon: Clock, value: todayFastLog ? `${Math.round(todayFastLog.actual_hours)}h` : `${activeProtocol.fast_target_hours}h`, label: todayFastLog ? "Fasted" : "Fast" },
-                { icon: CalendarDays, value: `${24 - activeProtocol.fast_target_hours}h`, label: "Eat Window" },
-                { icon: BarChart3, value: getDifficultyLabel(activeProtocol.difficulty_level), label: "Level" },
-              ].map((stat) => (
-                <div key={stat.label} className="bg-white/10 backdrop-blur-sm rounded-xl p-2.5 text-center border border-white/10">
-                  <stat.icon className="h-4 w-4 mx-auto text-white/50 mb-1" />
-                  <p className="text-sm font-black text-white leading-tight">{stat.value}</p>
-                  <p className="text-[9px] text-white/50 uppercase tracking-wider font-medium mt-0.5">{stat.label}</p>
-                </div>
-              ))}
-            </div>
-          )}
+          {/* Stats row — show for both protocols and quick plans */}
+          {(hasProtocol || hasQuickPlan) && !isMaintenanceMode && (() => {
+            const fastHours = activeProtocol?.fast_target_hours || activeQuickPlan?.fast_hours || 16;
+            const diffLevel = activeProtocol?.difficulty_level || activeQuickPlan?.intensity_tier || "beginner";
+            return (
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { icon: Clock, value: todayFastLog ? `${Math.round(todayFastLog.actual_hours)}h` : `${fastHours}h`, label: todayFastLog ? "Fasted" : "Fast" },
+                  { icon: CalendarDays, value: `${Math.max(24 - fastHours, 0)}h`, label: "Eat Window" },
+                  { icon: BarChart3, value: getDifficultyLabel(diffLevel), label: "Level" },
+                ].map((stat) => (
+                  <div key={stat.label} className="bg-white/10 backdrop-blur-sm rounded-xl p-2.5 text-center border border-white/10">
+                    <stat.icon className="h-4 w-4 mx-auto text-white/50 mb-1" />
+                    <p className="text-sm font-black text-white leading-tight">{stat.value}</p>
+                    <p className="text-[9px] text-white/50 uppercase tracking-wider font-medium mt-0.5">{stat.label}</p>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
 
           <Button
             className="w-full h-12 text-base font-semibold gap-2 bg-white/15 hover:bg-white/25 text-white border border-white/20 backdrop-blur-sm"
