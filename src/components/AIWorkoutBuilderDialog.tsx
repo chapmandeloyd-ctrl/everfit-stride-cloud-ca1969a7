@@ -342,8 +342,7 @@ export function AIWorkoutBuilderDialog({
                   </p>
                 )}
 
-                <ScrollArea className="max-h-[300px]">
-                  <div className="space-y-3">
+                <div className="space-y-3">
                     {workoutResult.sections.map((section, si) => (
                       <div key={si} className="border rounded-lg overflow-hidden">
                         <div className="bg-muted/50 px-3 py-1.5 flex items-center gap-2">
@@ -381,7 +380,6 @@ export function AIWorkoutBuilderDialog({
                       </div>
                     ))}
                   </div>
-                </ScrollArea>
 
                 <div className="flex gap-2 pt-2">
                   <Button
