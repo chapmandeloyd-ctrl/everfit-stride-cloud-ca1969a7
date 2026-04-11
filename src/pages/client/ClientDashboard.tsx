@@ -1540,9 +1540,18 @@ export default function ClientDashboard() {
                     );
                     const completedAssigned = [...completedAssignedFromRow, ...completedAssignedFromSessions];
                     const hasAny = completedCardio.length > 0 || completedAssigned.length > 0;
-                    if (!hasAny) return null;
+                    const showFastingStatus = todayFastLog && !isFasting;
+                    if (!hasAny && !showFastingStatus) return null;
                     return (
                       <>
+                        {showFastingStatus && todayFastLog && (
+                          <FastingStatusCard
+                            actualHours={todayFastLog.actual_hours}
+                            targetHours={todayFastLog.target_hours}
+                            completionPct={todayFastLog.completion_pct}
+                            endedEarly={todayFastLog.ended_early}
+                          />
+                        )}
                         {completedCardio.length > 0 && (
                           <>
                             <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2 mt-2">Quick Workouts</h2>
