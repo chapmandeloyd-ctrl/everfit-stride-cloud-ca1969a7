@@ -105,8 +105,6 @@ export function CoachCommandCenterTab({ clientId, trainerId }: CoachCommandCente
       {/* G2) AI Progress Report */}
       <AIProgressReportPanel clientId={clientId} trainerId={trainerId} />
 
-      {/* G3) AI Workout Builder */}
-      <AIWorkoutBuilderPanel clientId={clientId} trainerId={trainerId} />
 
       {/* G4) AI Meal Plan Generator */}
       <AIMealPlanPanel clientId={clientId} trainerId={trainerId} />
