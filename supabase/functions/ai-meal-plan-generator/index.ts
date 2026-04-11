@@ -17,15 +17,21 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
+    const ketoSection = client_context?.keto_type_name
+      ? `KETO TYPE: ${client_context.keto_type_name}
+- Target Fat: ${client_context.keto_fat_pct ?? "N/A"}%
+- Target Protein: ${client_context.keto_protein_pct ?? "N/A"}%
+- Target Carbs: ${client_context.keto_carb_pct ?? "N/A"}%
+Prioritize meals that align with this keto macro split. Favor high-fat, adequate-protein, low-carb recipes.`
+      : "No keto type assigned — use the macro targets below for guidance.";
+
     const systemPrompt = `You are an AI meal plan generator for a professional fitness coaching platform.
 
 SAFETY:
 - Never give medical or dietary advice. You are creating meal plan drafts for a coach to review.
 - All output is a DRAFT for coach approval.
 
-CLIENT CONTEXT:
-- Engine: ${client_context?.engine_mode || "performance"}
-- Level: ${client_context?.current_level || 1}
+${ketoSection}
 
 MACRO TARGETS:
 - Daily Calories: ${macro_targets?.target_calories || "Not set"}
@@ -64,10 +70,8 @@ Generate a structured meal plan using ONLY recipe IDs from the list above. Retur
 Rules:
 - Only use recipe IDs from the provided list
 - Try to hit the macro targets as closely as possible
+- If a keto type is assigned, prioritize recipes that match the keto macro ratios
 - Vary meals across days — avoid repeating the same recipe more than twice per week
-- For metabolic engine: focus on nutrient timing, anti-inflammatory foods
-- For performance engine: prioritize protein, adequate carbs for training
-- For athletic engine: performance fuel, recovery nutrition
 - Return ONLY valid JSON`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {

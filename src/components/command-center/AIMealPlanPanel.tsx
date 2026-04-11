@@ -29,14 +29,20 @@ export function AIMealPlanPanel({ clientId, trainerId }: AIMealPlanPanelProps) {
   const { data: contextData } = useQuery({
     queryKey: ["ai-mp-context", clientId],
     queryFn: async () => {
-      const { data: settings } = await supabase
-        .from("client_feature_settings")
-        .select("engine_mode, current_level")
+      // Get active keto assignment
+      const { data: ketoAssignment } = await supabase
+        .from("client_keto_assignments")
+        .select("keto_type_id, keto_types(name, fat_pct, protein_pct, carb_pct)")
         .eq("client_id", clientId)
+        .eq("is_active", true)
         .maybeSingle();
+
+      const keto = (ketoAssignment as any)?.keto_types;
       return {
-        engine_mode: settings?.engine_mode || "metabolic",
-        current_level: settings?.current_level || 1,
+        keto_type_name: keto?.name || null,
+        keto_fat_pct: keto?.fat_pct || null,
+        keto_protein_pct: keto?.protein_pct || null,
+        keto_carb_pct: keto?.carb_pct || null,
       };
     },
   });
