@@ -299,10 +299,13 @@ export default function WorkoutDetail() {
 
   const handleDiscard = () => {
     setIsPlaying(false);
-    // If there was an in-progress session, delete it
-    if (inProgressSession?.id) {
-      supabase.from("workout_sessions").delete().eq("id", inProgressSession.id).then(() => {});
+    // Delete the active session (either freshly created or previously in-progress)
+    const idToDelete = activeSessionId || inProgressSession?.id;
+    if (idToDelete) {
+      supabase.from("workout_sessions").delete().eq("id", idToDelete).then(() => {});
     }
+    setActiveSessionId(null);
+    setActiveStartedAt(null);
     navigate(isClient ? "/client/dashboard" : "/workouts");
   };
 
