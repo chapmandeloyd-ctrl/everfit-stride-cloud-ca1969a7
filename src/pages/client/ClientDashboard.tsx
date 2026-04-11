@@ -1075,7 +1075,35 @@ export default function ClientDashboard() {
     enabled: !!clientId && settings.tasks_enabled,
   });
 
-  // Toggle habit completion
+  // Fasting status for the standalone card in tracking section
+  const dashNow = new Date();
+  const dashTodayDate = format(dashNow, "yyyy-MM-dd");
+  const dashIsFasting = !!settings?.active_fast_start_at;
+  const { data: dashTodayFastLog } = useQuery({
+    queryKey: ["today-fasting-log-dash", clientId, dashTodayDate],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("fasting_log" as any)
+        .select("*")
+        .eq("client_id", clientId)
+        .gte("started_at", `${dashTodayDate}T00:00:00`)
+        .lte("started_at", `${dashTodayDate}T23:59:59`)
+        .order("started_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error || !data) return null;
+      const d = data as any;
+      return {
+        actual_hours: d.actual_hours ?? 0,
+        target_hours: d.target_hours ?? 0,
+        completion_pct: d.completion_pct ?? 0,
+        ended_early: d.ended_early ?? false,
+      };
+    },
+    enabled: !!clientId,
+  });
+
+
   const toggleHabitMutation = useMutation({
     mutationFn: async ({ habitId, completed }: { habitId: string; completed: boolean }) => {
       const today = format(new Date(), "yyyy-MM-dd");
