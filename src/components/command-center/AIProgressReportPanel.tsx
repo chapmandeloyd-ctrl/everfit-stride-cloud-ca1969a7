@@ -6,7 +6,6 @@ import { Separator } from "@/components/ui/separator";
 import { BarChart3, Sparkles, Loader2, Copy, Check, RefreshCw } from "lucide-react";
 import { useCopilot } from "@/hooks/useCopilot";
 import { buildCopilotContext } from "@/lib/buildCopilotContext";
-import type { EngineMode } from "@/lib/engineConfig";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -23,18 +22,21 @@ export function AIProgressReportPanel({ clientId, trainerId }: AIProgressReportP
   const { data: contextData } = useQuery({
     queryKey: ["ai-report-context", clientId],
     queryFn: async () => {
+      // Core settings
       const { data: settings } = await supabase
         .from("client_feature_settings")
-        .select("engine_mode, current_level, parent_link_enabled, is_minor")
+        .select("parent_link_enabled, is_minor")
         .eq("client_id", clientId)
         .maybeSingle();
 
+      // Weekly summary
       const { data: summary } = await supabase
         .from("client_weekly_summaries")
         .select("*")
         .eq("client_id", clientId)
         .maybeSingle();
 
+      // Latest readiness event
       const { data: latestEvent } = await supabase
         .from("recommendation_events")
         .select("score_total, status, lowest_factor")
@@ -42,6 +44,103 @@ export function AIProgressReportPanel({ clientId, trainerId }: AIProgressReportP
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
+
+      // Fasting data (last 7 days)
+      const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString();
+      const { count: fastingCount } = await supabase
+        .from("fasting_log")
+        .select("id", { count: "exact", head: true })
+        .eq("client_id", clientId)
+        .eq("status", "completed")
+        .gte("ended_at", sevenDaysAgo);
+
+      // Keto type
+      const { data: ketoAssignment } = await supabase
+        .from("client_keto_assignments")
+        .select("keto_type_id, keto_types(name)")
+        .eq("client_id", clientId)
+        .eq("is_active", true)
+        .maybeSingle();
+
+      // Fasting protocol
+      const { data: settingsForProto } = await supabase
+        .from("client_feature_settings")
+        .select("selected_protocol_id")
+        .eq("client_id", clientId)
+        .maybeSingle();
+
+      let protocolName: string | null = null;
+      if (settingsForProto?.selected_protocol_id) {
+        const { data: proto } = await supabase
+          .from("fasting_protocols")
+          .select("name")
+          .eq("id", settingsForProto.selected_protocol_id)
+          .maybeSingle();
+        protocolName = proto?.name ?? null;
+      }
+
+      // Workouts (last 7 days)
+      const { data: workouts } = await supabase
+        .from("client_workouts")
+        .select("id, completed_at")
+        .eq("client_id", clientId)
+        .gte("assigned_at", sevenDaysAgo);
+
+      const workoutsAssigned = workouts?.length ?? 0;
+      const workoutsCompleted = workouts?.filter(w => w.completed_at)?.length ?? 0;
+
+      // Tasks (last 7 days)
+      const { data: tasks } = await supabase
+        .from("client_tasks")
+        .select("id, completed_at")
+        .eq("client_id", clientId)
+        .gte("assigned_at", sevenDaysAgo);
+
+      const tasksTotal = tasks?.length ?? 0;
+      const tasksCompleted = tasks?.filter(t => t.completed_at)?.length ?? 0;
+
+      // Weight — find the Weight client_metric, then get last 2 entries
+      const { data: allClientMetrics } = await supabase
+        .from("client_metrics")
+        .select("id, metric_definition_id")
+        .eq("client_id", clientId);
+
+      // Find weight metric definition
+      let weightMetricId: string | null = null;
+      if (allClientMetrics?.length) {
+        const { data: weightDef } = await supabase
+          .from("metric_definitions")
+          .select("id")
+          .eq("name", "Weight")
+          .eq("is_default", true)
+          .maybeSingle();
+        if (weightDef) {
+          const match = allClientMetrics.find(m => m.metric_definition_id === weightDef.id);
+          weightMetricId = match?.id ?? null;
+        }
+      }
+
+      let weightEntries: { value: number }[] = [];
+      if (weightMetricId) {
+        const { data } = await supabase
+          .from("metric_entries")
+          .select("value")
+          .eq("client_metric_id", weightMetricId)
+          .order("recorded_at", { ascending: false })
+          .limit(2);
+        weightEntries = data ?? [];
+      }
+
+      let weightChange: number | null = null;
+      let currentWeight: number | null = null;
+      if (weightEntries.length >= 1) {
+        currentWeight = weightEntries[0].value;
+        if (weightEntries.length >= 2) {
+          weightChange = Number((weightEntries[0].value - weightEntries[1].value).toFixed(1));
+        }
+      }
+
+      const ketoName = (ketoAssignment as any)?.keto_types?.name ?? null;
 
       return buildCopilotContext({
         readinessScore: latestEvent?.score_total ?? (summary?.avg_score_7d ? Number(summary.avg_score_7d) : null),
@@ -51,6 +150,17 @@ export function AIProgressReportPanel({ clientId, trainerId }: AIProgressReportP
         streakDays: null,
         trendDirection: (summary?.trend_direction as "up" | "down" | "flat") || "flat",
         parentLinkActive: !!(settings?.is_minor && settings?.parent_link_enabled),
+        fastingCompletedCount: fastingCount ?? 0,
+        fastingProtocolName: protocolName,
+        workoutsCompleted,
+        workoutsAssigned,
+        tasksCompleted,
+        tasksTotal,
+        weightChangeLbs: weightChange,
+        currentWeight,
+        ketoType: ketoName,
+        adherenceScore: summary?.adherence_score ? Number(summary.adherence_score) : null,
+        injuryFlag: summary?.injury_flag ?? false,
       });
     },
   });
