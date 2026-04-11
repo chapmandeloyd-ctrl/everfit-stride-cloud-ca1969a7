@@ -1,5 +1,5 @@
 import { StatusOverviewPanel } from "./StatusOverviewPanel";
-import { PendingApprovals } from "./PendingApprovals";
+
 import { ManualOverrides } from "./ManualOverrides";
 import { InsightCoachControls } from "./InsightCoachControls";
 import { SafetyControls } from "./SafetyControls";
