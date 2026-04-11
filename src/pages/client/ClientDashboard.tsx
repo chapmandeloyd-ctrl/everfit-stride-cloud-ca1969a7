@@ -295,11 +295,13 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
   const fastingSubtitle = featureSettings?.fasting_card_subtitle || "Fasting is the foundation of your KSOM-360 plan.";
 
   // No protocol selected — empty state
-  const hasQuickPlan = !!featureSettings?.selected_quick_plan_id;
+  const hasQuickPlan = !!featureSettings?.selected_quick_plan_id && !!activeQuickPlan;
   const hasProtocol = !!featureSettings?.selected_protocol_id && !!activeProtocol;
 
   const isCoachAssigned = !!featureSettings?.protocol_assigned_by;
-  const planName = activeProtocol?.name || `${featureSettings?.active_fast_target_hours || 16}h Fast`;
+  const planName = activeProtocol?.name 
+    || (activeQuickPlan ? `${activeQuickPlan.fast_hours}h Fast` : null)
+    || `${featureSettings?.active_fast_target_hours || 16}h Fast`;
   const hasDuration = !!activeProtocol?.duration_days;
 
   const startDate = featureSettings?.protocol_start_date ? new Date(featureSettings.protocol_start_date + "T00:00:00") : new Date();
