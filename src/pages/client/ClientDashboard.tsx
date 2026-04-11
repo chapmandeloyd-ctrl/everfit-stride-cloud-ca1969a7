@@ -120,7 +120,7 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
     queryFn: async () => {
       const { data: assignment } = await supabase
         .from("client_keto_assignments")
-        .select("keto_type_id, keto_types (name, abbreviation, color)")
+        .select("keto_type_id, keto_types (name, abbreviation, color, fat_pct, protein_pct, carbs_pct)")
         .eq("client_id", clientId!)
         .eq("is_active", true)
         .maybeSingle();
@@ -753,17 +753,34 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
             const diffLevel = activeProtocol?.difficulty_level || activeQuickPlan?.intensity_tier || "beginner";
             return (
               <div className="grid grid-cols-3 gap-2">
-                {[
-                  { icon: Clock, value: todayFastLog ? `${Math.round(todayFastLog.actual_hours)}h` : `${fastHours}h`, label: todayFastLog ? "Fasted" : "Fast" },
-                  { icon: CalendarDays, value: `${Math.max(24 - fastHours, 0)}h`, label: "Eat Window" },
-                  { icon: BarChart3, value: getDifficultyLabel(diffLevel), label: "Level" },
-                ].map((stat) => (
-                  <div key={stat.label} className="bg-white/10 backdrop-blur-sm rounded-xl p-2.5 text-center border border-white/10">
-                    <stat.icon className="h-4 w-4 mx-auto text-white/50 mb-1" />
-                    <p className="text-sm font-black text-white leading-tight">{stat.value}</p>
-                    <p className="text-[9px] text-white/50 uppercase tracking-wider font-medium mt-0.5">{stat.label}</p>
-                  </div>
-                ))}
+                {/* Fast tile */}
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-2.5 text-center border border-white/10">
+                  <Clock className="h-4 w-4 mx-auto text-white/50 mb-1" />
+                  <p className="text-sm font-black text-white leading-tight">{todayFastLog ? `${Math.round(todayFastLog.actual_hours)}h` : `${fastHours}h`}</p>
+                  <p className="text-[9px] text-white/50 uppercase tracking-wider font-medium mt-0.5">{todayFastLog ? "Fasted" : "Fast"}</p>
+                </div>
+                {/* Keto macro tile */}
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-2.5 text-center border border-white/10">
+                  {activeKetoType ? (
+                    <>
+                      <p className="text-[10px] font-bold leading-tight" style={{ color: activeKetoType.color || '#ef4444' }}>{activeKetoType.abbreviation}</p>
+                      <p className="text-sm font-black text-white leading-tight mt-0.5">{activeKetoType.fat_pct}/{activeKetoType.protein_pct}/{activeKetoType.carbs_pct}</p>
+                      <p className="text-[9px] text-white/50 uppercase tracking-wider font-medium mt-0.5">F / P / C</p>
+                    </>
+                  ) : (
+                    <>
+                      <CalendarDays className="h-4 w-4 mx-auto text-white/50 mb-1" />
+                      <p className="text-sm font-black text-white leading-tight">--</p>
+                      <p className="text-[9px] text-white/50 uppercase tracking-wider font-medium mt-0.5">Macros</p>
+                    </>
+                  )}
+                </div>
+                {/* Level tile */}
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-2.5 text-center border border-white/10">
+                  <BarChart3 className="h-4 w-4 mx-auto text-white/50 mb-1" />
+                  <p className="text-sm font-black text-white leading-tight">{getDifficultyLabel(diffLevel)}</p>
+                  <p className="text-[9px] text-white/50 uppercase tracking-wider font-medium mt-0.5">Level</p>
+                </div>
               </div>
             );
           })()}

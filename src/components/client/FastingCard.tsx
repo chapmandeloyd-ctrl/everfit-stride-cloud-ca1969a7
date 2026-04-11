@@ -16,7 +16,7 @@ interface FastingCardProps {
   lockPin?: string | null;
   fastHours?: number;
   difficultyLevel?: string;
-  ketoType?: { abbreviation: string; name: string; color: string } | null;
+  ketoType?: { abbreviation: string; name: string; color: string; fat_pct?: number; protein_pct?: number; carbs_pct?: number } | null;
   todayFastedHours?: number | null;
 }
 
@@ -50,7 +50,6 @@ export function FastingCard({
   }
 
   const hasBg = !!backgroundImageUrl;
-  const eatWindow = Math.max(24 - fastHours, 0);
 
   return (
     <div className="rounded-2xl overflow-hidden border-0 shadow-lg relative">
@@ -95,17 +94,34 @@ export function FastingCard({
 
         {/* Stats row */}
         <div className="grid grid-cols-3 gap-2">
-          {[
-            { icon: Clock, value: todayFastedHours != null ? `${Math.round(todayFastedHours)}h` : `${fastHours}h`, label: todayFastedHours != null ? "Fasted" : "Fast" },
-            { icon: CalendarDays, value: `${eatWindow}h`, label: "Eat Window" },
-            { icon: BarChart3, value: getDifficultyLabel(difficultyLevel), label: "Level" },
-          ].map((stat) => (
-            <div key={stat.label} className="bg-white/10 backdrop-blur-sm rounded-xl p-2.5 text-center border border-white/10">
-              <stat.icon className="h-4 w-4 mx-auto text-white/50 mb-1" />
-              <p className="text-sm font-black text-white leading-tight">{stat.value}</p>
-              <p className="text-[9px] text-white/50 uppercase tracking-wider font-medium mt-0.5">{stat.label}</p>
-            </div>
-          ))}
+          {/* Fast tile */}
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-2.5 text-center border border-white/10">
+            <Clock className="h-4 w-4 mx-auto text-white/50 mb-1" />
+            <p className="text-sm font-black text-white leading-tight">{todayFastedHours != null ? `${Math.round(todayFastedHours)}h` : `${fastHours}h`}</p>
+            <p className="text-[9px] text-white/50 uppercase tracking-wider font-medium mt-0.5">{todayFastedHours != null ? "Fasted" : "Fast"}</p>
+          </div>
+          {/* Keto macro tile */}
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-2.5 text-center border border-white/10">
+            {ketoType ? (
+              <>
+                <p className="text-[10px] font-bold leading-tight" style={{ color: ketoType.color || '#ef4444' }}>{ketoType.abbreviation}</p>
+                <p className="text-sm font-black text-white leading-tight mt-0.5">{ketoType.fat_pct}/{ketoType.protein_pct}/{ketoType.carbs_pct}</p>
+                <p className="text-[9px] text-white/50 uppercase tracking-wider font-medium mt-0.5">F / P / C</p>
+              </>
+            ) : (
+              <>
+                <CalendarDays className="h-4 w-4 mx-auto text-white/50 mb-1" />
+                <p className="text-sm font-black text-white leading-tight">--</p>
+                <p className="text-[9px] text-white/50 uppercase tracking-wider font-medium mt-0.5">Macros</p>
+              </>
+            )}
+          </div>
+          {/* Level tile */}
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-2.5 text-center border border-white/10">
+            <BarChart3 className="h-4 w-4 mx-auto text-white/50 mb-1" />
+            <p className="text-sm font-black text-white leading-tight">{getDifficultyLabel(difficultyLevel)}</p>
+            <p className="text-[9px] text-white/50 uppercase tracking-wider font-medium mt-0.5">Level</p>
+          </div>
         </div>
 
         {/* Action */}
