@@ -1464,6 +1464,15 @@ export default function ClientDashboard() {
                     tasksEnabled={settings.tasks_enabled}
                     onDateChange={setCalendarSelectedDate}
                   />
+                  {/* Fasting Status card */}
+                  {dashTodayFastLog && (
+                    <FastingStatusCard
+                      actualHours={dashTodayFastLog.actual_hours}
+                      targetHours={dashTodayFastLog.target_hours}
+                      completionPct={dashTodayFastLog.completion_pct}
+                      endedEarly={dashTodayFastLog.ended_early}
+                    />
+                  )}
                   {/* Completed workouts under calendar */}
                   {(() => {
                     const completedCardio = todayCardioSessions?.filter((s: any) => s.status === "completed") || [];
@@ -1473,18 +1482,9 @@ export default function ClientDashboard() {
                     );
                     const completedAssigned = [...completedAssignedFromRow, ...completedAssignedFromSessions];
                     const hasAny = completedCardio.length > 0 || completedAssigned.length > 0;
-                    const showFastingStatus = !!dashTodayFastLog;
-                    if (!hasAny && !showFastingStatus) return null;
+                    if (!hasAny) return null;
                     return (
                       <>
-                        {showFastingStatus && dashTodayFastLog && (
-                          <FastingStatusCard
-                            actualHours={dashTodayFastLog.actual_hours}
-                            targetHours={dashTodayFastLog.target_hours}
-                            completionPct={dashTodayFastLog.completion_pct}
-                            endedEarly={dashTodayFastLog.ended_early}
-                          />
-                        )}
                         {completedCardio.length > 0 && (
                           <>
                             <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2 mt-2">Quick Workouts</h2>
