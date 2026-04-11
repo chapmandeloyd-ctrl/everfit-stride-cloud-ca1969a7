@@ -99,21 +99,33 @@ export function AIProgressReportPanel({ clientId, trainerId }: AIProgressReportP
       const tasksTotal = tasks?.length ?? 0;
       const tasksCompleted = tasks?.filter(t => t.completed_at)?.length ?? 0;
 
-      // Weight — latest 2 metric entries for Weight
-      const { data: weightMetric } = await supabase
+      // Weight — find the Weight client_metric, then get last 2 entries
+      const { data: allClientMetrics } = await supabase
         .from("client_metrics")
-        .select("id, metric_definitions!inner(name)")
-        .eq("client_id", clientId)
-        .eq("metric_definitions.name" as any, "Weight")
-        .limit(1)
-        .maybeSingle();
+        .select("id, metric_definition_id")
+        .eq("client_id", clientId);
+
+      // Find weight metric definition
+      let weightMetricId: string | null = null;
+      if (allClientMetrics?.length) {
+        const { data: weightDef } = await supabase
+          .from("metric_definitions")
+          .select("id")
+          .eq("name", "Weight")
+          .eq("is_default", true)
+          .maybeSingle();
+        if (weightDef) {
+          const match = allClientMetrics.find(m => m.metric_definition_id === weightDef.id);
+          weightMetricId = match?.id ?? null;
+        }
+      }
 
       let weightEntries: { value: number }[] = [];
-      if (weightMetric) {
+      if (weightMetricId) {
         const { data } = await supabase
           .from("metric_entries")
           .select("value")
-          .eq("client_metric_id", weightMetric.id)
+          .eq("client_metric_id", weightMetricId)
           .order("recorded_at", { ascending: false })
           .limit(2);
         weightEntries = data ?? [];
@@ -121,7 +133,7 @@ export function AIProgressReportPanel({ clientId, trainerId }: AIProgressReportP
 
       let weightChange: number | null = null;
       let currentWeight: number | null = null;
-      if (weightEntries && weightEntries.length >= 1) {
+      if (weightEntries.length >= 1) {
         currentWeight = weightEntries[0].value;
         if (weightEntries.length >= 2) {
           weightChange = Number((weightEntries[0].value - weightEntries[1].value).toFixed(1));
@@ -129,7 +141,6 @@ export function AIProgressReportPanel({ clientId, trainerId }: AIProgressReportP
       }
 
       const ketoName = (ketoAssignment as any)?.keto_types?.name ?? null;
-      const protocolName = (fastingProto as any)?.fasting_protocols?.name ?? null;
 
       return buildCopilotContext({
         readinessScore: latestEvent?.score_total ?? (summary?.avg_score_7d ? Number(summary.avg_score_7d) : null),
