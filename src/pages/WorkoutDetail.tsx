@@ -28,6 +28,8 @@ export default function WorkoutDetail() {
   const { user, userRole } = useAuth();
   const effectiveClientId = useEffectiveClientId();
   const [isPlaying, setIsPlaying] = useState(searchParams.get("start") === "true");
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const [activeStartedAt, setActiveStartedAt] = useState<string | null>(null);
   const [resumeData, setResumeData] = useState<{
     stepIdx: number;
     setLogs: Record<string, any>;
@@ -324,6 +326,35 @@ export default function WorkoutDetail() {
     }
   };
 
+  // Create an in-progress session immediately when starting a workout
+  const createActiveSession = async () => {
+    if (!isClient || !effectiveClientId || !id) return null;
+    const startedAt = new Date().toISOString();
+    try {
+      const { data: session } = await supabase
+        .from("workout_sessions")
+        .insert({
+          client_workout_id: clientWorkout?.id || null,
+          client_id: effectiveClientId,
+          workout_plan_id: id,
+          started_at: startedAt,
+          is_partial: true,
+          status: "in_progress",
+          completion_percentage: 0,
+        })
+        .select("id")
+        .single();
+      if (session) {
+        setActiveSessionId(session.id);
+        setActiveStartedAt(startedAt);
+        return { sessionId: session.id, startedAt };
+      }
+    } catch (err) {
+      console.error("Failed to create active session:", err);
+    }
+    return null;
+  };
+
   const handleResume = () => {
     if (inProgressSession) {
       const savedLogs = (inProgressSession as any).resume_set_logs || {};
@@ -333,6 +364,8 @@ export default function WorkoutDetail() {
         elapsed: inProgressSession.duration_seconds || 0,
         sessionId: inProgressSession.id,
       });
+      setActiveSessionId(inProgressSession.id);
+      setActiveStartedAt(inProgressSession.started_at);
     }
     setIsPlaying(true);
   };
@@ -398,6 +431,8 @@ export default function WorkoutDetail() {
         resumeFromStep={resumeData?.stepIdx}
         resumeSetLogs={resumeData?.setLogs}
         resumeElapsed={resumeData?.elapsed}
+        activeSessionId={activeSessionId}
+        dbStartedAt={activeStartedAt}
       />
     );
   }
@@ -427,12 +462,12 @@ export default function WorkoutDetail() {
                 <Play className="h-5 w-5" />
                 Resume ({(inProgressSession as any).completion_percentage || 0}%)
               </Button>
-              <Button size="sm" variant="outline" onClick={() => { unlockAudioForMobile(); setIsPlaying(true); }}>
+              <Button size="sm" variant="outline" onClick={async () => { unlockAudioForMobile(); await createActiveSession(); setIsPlaying(true); }}>
                 Start Fresh
               </Button>
             </div>
           ) : (
-            <Button size="lg" onClick={() => { unlockAudioForMobile(); setIsPlaying(true); }} className="gap-2">
+            <Button size="lg" onClick={async () => { unlockAudioForMobile(); await createActiveSession(); setIsPlaying(true); }} className="gap-2">
               <Play className="h-5 w-5" />
               Start Workout
             </Button>
