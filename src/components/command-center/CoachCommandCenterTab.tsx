@@ -3,7 +3,7 @@ import { StatusOverviewPanel } from "./StatusOverviewPanel";
 
 import { InsightCoachControls } from "./InsightCoachControls";
 
-import { AuthorityControls } from "./AuthorityControls";
+
 import { ActivityLog } from "./ActivityLog";
 import { ParentLinkSection } from "./ParentLinkSection";
 import { CopilotAssistPanel } from "./CopilotAssistPanel";
@@ -85,8 +85,6 @@ export function CoachCommandCenterTab({ clientId, trainerId }: CoachCommandCente
       />
 
 
-      {/* E2) Authority Controls */}
-      <AuthorityControls clientId={clientId} trainerId={trainerId} />
 
       {/* Protocol + Keto Synergy Preview */}
       <SynergyPreviewPanel clientId={clientId} trainerId={trainerId} />
