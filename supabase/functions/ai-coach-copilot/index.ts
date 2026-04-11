@@ -11,18 +11,14 @@ SAFETY CONSTRAINTS — You MUST follow these rules:
 - NEVER give medical advice or diagnose conditions.
 - NEVER change nutrition plans autonomously.
 - NEVER override coach decisions — you are a drafting assistant only.
-- NEVER modify billing, subscription, or level state.
+- NEVER modify billing, subscription, or state.
 - NEVER expose sensitive client data (emails, passwords, payment info).
 - All responses are DRAFTS requiring coach approval before reaching the client.
-- Keep responses concise (2-4 sentences for suggestions, 2-3 sentences for level-up messages).
+- Keep responses concise (2-4 sentences for suggestions, 2-3 sentences for messages).
 `;
 
 function buildSystemPrompt(useCase: string, context: Record<string, unknown>, styleSettings?: Record<string, unknown>): string {
-  const engine = context.engine_mode || "performance";
-  let toneInstruction = "Use a professional coaching tone.";
-  if (engine === "metabolic") toneInstruction = "Use a structured, clinical tone. Focus on metabolic stability and fasting adherence.";
-  else if (engine === "performance") toneInstruction = "Use a confident, direct tone. Focus on training readiness and performance.";
-  else if (engine === "athletic") toneInstruction = "Use an energetic, growth-oriented tone. Focus on recovery and competitive development.";
+  let toneInstruction = "Use a professional, supportive coaching tone focused on health, nutrition, and training.";
 
   // Style overrides from AI settings panel
   if (styleSettings) {
@@ -41,21 +37,11 @@ function buildSystemPrompt(useCase: string, context: Record<string, unknown>, st
     else if (emojiLevel === "lots") toneInstruction += " Use emojis liberally throughout the response for energy and personality.";
   }
 
-  const levelBand = context.level_band || "1-3";
-  const levelContext = levelBand === "7"
-    ? "This client is at Mastery Level 7 — focus on optimization and fine-tuning."
-    : levelBand === "4-6"
-    ? "This client is at an intermediate level — encourage progression while maintaining consistency."
-    : "This client is at a foundational level — focus on building habits and fundamentals.";
-
-  const base = `You are an AI Coach Copilot for the KSOM360 platform.
+  const base = `You are an AI Coach Copilot for the KSOM-360 platform.
 ${toneInstruction}
-${levelContext}
 ${SAFETY_RULES}
 
 Client context:
-- Engine: ${context.engine_mode}
-- Level: ${context.current_level} (Band: ${context.level_band})
 - Readiness Score: ${context.readiness_score ?? "N/A"}/100
 - Status: ${context.status}
 - Lowest Factor: ${context.lowest_factor || "N/A"}
@@ -74,35 +60,27 @@ Generate a plan adjustment suggestion for the coach to review. Include:
 3. Risk flags if any (1 sentence, or "No risk flags." if none)
 Do NOT auto-apply. This is a draft for coach approval.`;
 
-    case "level_up":
-      return `${base}
-The client has met Level Up eligibility criteria. Generate:
-1. A personalized reinforcement message (1-2 sentences)
-2. A growth insight specific to their engine and level (1-2 sentences)
-This will be shown to the client as a system insight after coach approval.`;
-
     case "insight_rephrase":
       return `${base}
-Rephrase the following insight message to better match the client's engine tone, level band, and current status. Keep the core meaning intact. Do NOT add medical advice or freeform recommendations. Return only the rephrased message.`;
+Rephrase the following insight message to better match the client's current status. Keep the core meaning intact. Do NOT add medical advice or freeform recommendations. Return only the rephrased message.`;
 
     case "insight_pin_suggest":
       return `${base}
 Generate a short, impactful daily insight message (1-2 sentences) that a coach can pin to this client's dashboard for 24 hours. The insight should:
-1. Be specific to the client's current status, lowest factor, and engine mode
+1. Be specific to the client's current status and lowest factor
 2. Include a motivational or actionable element
-3. Match the engine tone perfectly
 Return ONLY the insight text, nothing else.`;
 
     case "custom_insight_suggest":
       return `${base}
 Generate a custom daily insight with an action line for this client. Return in this exact format:
-MESSAGE: [1-2 sentence insight matching the engine tone and client context]
+MESSAGE: [1-2 sentence insight matching the client context]
 ACTION: [short actionable task for today, e.g. "Drink 3L water today"]
 Base the insight on the client's lowest scoring factor, current status, and trend direction.`;
 
     case "nudge_message_suggest":
       return `${base}
-Generate a short push notification message (max 100 characters) to nudge this client based on their current status and lowest factor. The message should feel personal and motivating, not generic. Match the engine tone.
+Generate a short push notification message (max 100 characters) to nudge this client based on their current status and lowest factor. The message should feel personal and motivating, not generic.
 Return ONLY the notification text, nothing else.`;
 
     case "client_feedback":
@@ -170,8 +148,10 @@ serve(async (req) => {
       userMessage = "Generate a comprehensive weekly progress report summary for the coach to review.";
     } else if (use_case === "alert_message") {
       userMessage = "Generate a brief, actionable alert message for this client.";
+    } else if (use_case === "plan_suggestion") {
+      userMessage = "Generate a plan adjustment suggestion based on the client context provided.";
     } else {
-      userMessage = `Generate the ${use_case === "plan_suggestion" ? "plan adjustment suggestion" : "level-up message"} based on the client context provided.`;
+      userMessage = `Generate the ${use_case} content based on the client context provided.`;
     }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {

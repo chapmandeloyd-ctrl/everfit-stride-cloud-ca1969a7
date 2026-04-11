@@ -11,7 +11,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { MessageSquare, Sparkles, Loader2, Copy, Check, RefreshCw, Settings2, Send, Bell } from "lucide-react";
 import { useCopilot, type CopilotStyleSettings } from "@/hooks/useCopilot";
 import { buildCopilotContext } from "@/lib/buildCopilotContext";
-import type { EngineMode } from "@/lib/engineConfig";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -33,8 +32,8 @@ const EMOJI_LABELS = ["None", "Some", "Lots"];
 
 export function AIWriteFeedbackPanel({ clientId, trainerId }: AIWriteFeedbackPanelProps) {
   const [tone, setTone] = useState<CopilotStyleSettings["tone"]>("casual");
-  const [lengthIdx, setLengthIdx] = useState(1); // 0=short, 1=medium, 2=long
-  const [emojiIdx, setEmojiIdx] = useState(1); // 0=none, 1=some, 2=lots
+  const [lengthIdx, setLengthIdx] = useState(1);
+  const [emojiIdx, setEmojiIdx] = useState(1);
   const [feedbackTopic, setFeedbackTopic] = useState("");
   const [generatedText, setGeneratedText] = useState("");
   const [copied, setCopied] = useState(false);
@@ -46,7 +45,7 @@ export function AIWriteFeedbackPanel({ clientId, trainerId }: AIWriteFeedbackPan
     queryFn: async () => {
       const { data: settings } = await supabase
         .from("client_feature_settings")
-        .select("engine_mode, current_level, parent_link_enabled, is_minor")
+        .select("parent_link_enabled, is_minor")
         .eq("client_id", clientId)
         .maybeSingle();
 
@@ -64,27 +63,22 @@ export function AIWriteFeedbackPanel({ clientId, trainerId }: AIWriteFeedbackPan
         .limit(1)
         .maybeSingle();
 
-      const engine = (settings?.engine_mode as string) || "metabolic";
       return buildCopilotContext({
-        engineMode: engine as EngineMode,
-        currentLevel: settings?.current_level || 1,
         readinessScore: latestEvent?.score_total ?? (summary?.avg_score_7d ? Number(summary.avg_score_7d) : null),
         status: latestEvent?.status || summary?.score_status || "moderate",
         lowestFactor: latestEvent?.lowest_factor || summary?.lowest_factor_mode || null,
         weeklyCompletionPct: summary?.completion_7d ? Number(summary.completion_7d) : null,
         streakDays: null,
         trendDirection: (summary?.trend_direction as "up" | "down" | "flat") || "flat",
-        parentLinkActive: !!(settings?.is_minor && engine === "athletic" && settings?.parent_link_enabled),
+        parentLinkActive: !!(settings?.is_minor && settings?.parent_link_enabled),
       });
     },
   });
 
-  const engineMode = contextData?.engine_mode || "metabolic";
-
   const copilot = useCopilot({
     clientId,
     coachId: trainerId,
-    engineMode: engineMode as string,
+    engineMode: "metabolic",
   });
 
   const getStyleSettings = (): CopilotStyleSettings => ({
@@ -189,7 +183,6 @@ export function AIWriteFeedbackPanel({ clientId, trainerId }: AIWriteFeedbackPan
         {/* Settings panel */}
         {showSettings && (
           <div className="space-y-4 p-3 rounded-lg bg-muted/50 border border-border">
-            {/* Tone */}
             <div className="space-y-2">
               <Label className="text-xs font-medium">Tone</Label>
               <RadioGroup
@@ -215,43 +208,25 @@ export function AIWriteFeedbackPanel({ clientId, trainerId }: AIWriteFeedbackPan
               </RadioGroup>
             </div>
 
-            {/* Length slider */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label className="text-xs font-medium text-primary">Length</Label>
                 <span className="text-[10px] text-muted-foreground">{LENGTH_LABELS[lengthIdx]}</span>
               </div>
-              <Slider
-                value={[lengthIdx]}
-                onValueChange={([v]) => setLengthIdx(v)}
-                min={0}
-                max={2}
-                step={1}
-                className="w-full"
-              />
+              <Slider value={[lengthIdx]} onValueChange={([v]) => setLengthIdx(v)} min={0} max={2} step={1} className="w-full" />
               <div className="flex justify-between text-[10px] text-muted-foreground">
-                <span>Short</span>
-                <span>Long</span>
+                <span>Short</span><span>Long</span>
               </div>
             </div>
 
-            {/* Emoji slider */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label className="text-xs font-medium text-primary">Emojis</Label>
                 <span className="text-[10px] text-muted-foreground">{EMOJI_LABELS[emojiIdx]}</span>
               </div>
-              <Slider
-                value={[emojiIdx]}
-                onValueChange={([v]) => setEmojiIdx(v)}
-                min={0}
-                max={2}
-                step={1}
-                className="w-full"
-              />
+              <Slider value={[emojiIdx]} onValueChange={([v]) => setEmojiIdx(v)} min={0} max={2} step={1} className="w-full" />
               <div className="flex justify-between text-[10px] text-muted-foreground">
-                <span>None</span>
-                <span>Lots</span>
+                <span>None</span><span>Lots</span>
               </div>
             </div>
           </div>
@@ -263,9 +238,7 @@ export function AIWriteFeedbackPanel({ clientId, trainerId }: AIWriteFeedbackPan
             <Separator />
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <Badge variant="secondary" className="text-[10px]">
-                  {modeConfig[activeMode].label}
-                </Badge>
+                <Badge variant="secondary" className="text-[10px]">{modeConfig[activeMode].label}</Badge>
                 <span className="text-[10px] text-muted-foreground">AI Draft — Review before sending</span>
               </div>
               <div className="text-sm text-foreground bg-muted/50 rounded-lg p-3 whitespace-pre-wrap leading-relaxed border border-border">
@@ -276,24 +249,10 @@ export function AIWriteFeedbackPanel({ clientId, trainerId }: AIWriteFeedbackPan
                   {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
                   {copied ? "Copied" : "Copy"}
                 </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="text-xs gap-1"
-                  onClick={handleGenerate}
-                  disabled={copilot.isGenerating}
-                >
-                  <RefreshCw className="h-3 w-3" />
-                  Regenerate
+                <Button size="sm" variant="ghost" className="text-xs gap-1" onClick={handleGenerate} disabled={copilot.isGenerating}>
+                  <RefreshCw className="h-3 w-3" /> Regenerate
                 </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="text-xs"
-                  onClick={() => setGeneratedText("")}
-                >
-                  Dismiss
-                </Button>
+                <Button size="sm" variant="ghost" className="text-xs" onClick={() => setGeneratedText("")}>Dismiss</Button>
               </div>
             </div>
           </>
