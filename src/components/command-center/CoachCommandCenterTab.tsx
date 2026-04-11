@@ -1,6 +1,6 @@
 import { StatusOverviewPanel } from "./StatusOverviewPanel";
 
-import { ManualOverrides } from "./ManualOverrides";
+
 import { InsightCoachControls } from "./InsightCoachControls";
 import { SafetyControls } from "./SafetyControls";
 import { AuthorityControls } from "./AuthorityControls";
@@ -75,8 +75,6 @@ export function CoachCommandCenterTab({ clientId, trainerId }: CoachCommandCente
       <StatusOverviewPanel clientId={clientId} />
 
 
-      {/* C) Manual Overrides */}
-      <ManualOverrides clientId={clientId} trainerId={trainerId} />
 
       {/* D) Insight Controls */}
       <InsightCoachControls
