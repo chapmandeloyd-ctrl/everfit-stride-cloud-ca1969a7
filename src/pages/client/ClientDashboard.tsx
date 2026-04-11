@@ -1079,7 +1079,51 @@ export default function ClientDashboard() {
     return "allowed";
   })();
 
-  const fastEndTimeStr = (() => {
+
+  // Fasting status for the standalone card in tracking section
+  const { data: dashRecentFastLog } = useQuery({
+    queryKey: ["recent-fasting-log-dash", clientId, fastingState?.last_fast_ended_at],
+    queryFn: async () => {
+      if (!clientId || !fastingState?.last_fast_ended_at) return null;
+
+      const { data, error } = await supabase
+        .from("fasting_log" as any)
+        .select("*")
+        .eq("client_id", clientId)
+        .eq("ended_at", fastingState.last_fast_ended_at)
+        .maybeSingle();
+
+      if (error || !data) {
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from("fasting_log" as any)
+          .select("*")
+          .eq("client_id", clientId)
+          .not("ended_at", "is", null)
+          .order("ended_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (fallbackError || !fallbackData) return null;
+        const fallback = fallbackData as any;
+        return {
+          actual_hours: fallback.actual_hours ?? 0,
+          target_hours: fallback.target_hours ?? 0,
+          completion_pct: fallback.completion_pct ?? 0,
+          ended_early: fallback.ended_early ?? false,
+        };
+      }
+
+      const d = data as any;
+      return {
+        actual_hours: d.actual_hours ?? 0,
+        target_hours: d.target_hours ?? 0,
+        completion_pct: d.completion_pct ?? 0,
+        ended_early: d.ended_early ?? false,
+      };
+    },
+    enabled: !!clientId && !!fastingState?.last_fast_ended_at,
+  });
+
     if (mealGateStatus !== "fasting" || !fastingState?.active_fast_start_at || !fastingState?.active_fast_target_hours) return "";
     const end = new Date(new Date(fastingState.active_fast_start_at).getTime() + fastingState.active_fast_target_hours * 3600000);
     return end.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
