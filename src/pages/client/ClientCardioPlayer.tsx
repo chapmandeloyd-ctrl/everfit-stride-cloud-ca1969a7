@@ -21,28 +21,72 @@ export default function ClientCardioPlayer() {
   const targetValue = searchParams.get("targetValue") || "";
   const sessionId = searchParams.get("sessionId") || "";
 
-  // ── Persistent wall-clock timer (survives page unloads & background kills) ──
+  // ── Persistent wall-clock timer (survives page unloads, background kills & tab termination) ──
+  // CRITICAL: Use localStorage (not sessionStorage) — iOS/Android kill tabs and wipe sessionStorage
   const STORAGE_KEY = `cardio_timer_${sessionId || "tmp"}`;
 
   const loadPersistedState = useCallback(() => {
     try {
-      const raw = sessionStorage.getItem(STORAGE_KEY);
+      const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) return JSON.parse(raw) as { wallStart: number; accumulated: number; paused: boolean };
     } catch {}
     return null;
-  }, [STORAGE_KEY]);
+  }, []);
 
   const persistState = useCallback((wallStart: number, accumulated: number, paused: boolean) => {
-    try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ wallStart, accumulated, paused })); } catch {}
-  }, [STORAGE_KEY]);
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ wallStart, accumulated, paused })); } catch {}
+  }, []);
 
   const saved = loadPersistedState();
+
+  // DB-based fallback: if localStorage was also wiped (e.g., Safari clears storage under pressure),
+  // we can still recover from the session's started_at timestamp in the database.
+  const [dbStartedAt, setDbStartedAt] = useState<string | null>(null);
+  const [dbLoaded, setDbLoaded] = useState(!!saved); // skip DB fetch if localStorage has state
+
+  useEffect(() => {
+    if (saved || !sessionId) { setDbLoaded(true); return; }
+    // No localStorage state — try DB fallback
+    supabase
+      .from("cardio_sessions" as any)
+      .select("started_at")
+      .eq("id", sessionId)
+      .single()
+      .then(({ data }: any) => {
+        if (data?.started_at) setDbStartedAt(data.started_at);
+        setDbLoaded(true);
+      })
+      .catch(() => setDbLoaded(true));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const computeInitialSeconds = useCallback(() => {
+    if (saved) {
+      if (saved.paused) return saved.accumulated;
+      return saved.accumulated + Math.floor((Date.now() - saved.wallStart) / 1000);
+    }
+    if (dbStartedAt) {
+      // Recover from DB: elapsed = now - started_at
+      return Math.max(0, Math.floor((Date.now() - new Date(dbStartedAt).getTime()) / 1000));
+    }
+    return 0;
+  }, [saved, dbStartedAt]);
+
   const [isPaused, setIsPaused] = useState(saved?.paused ?? false);
-  const [seconds, setSeconds] = useState(() => {
-    if (!saved) return 0;
-    if (saved.paused) return saved.accumulated;
-    return saved.accumulated + Math.floor((Date.now() - saved.wallStart) / 1000);
-  });
+  const [seconds, setSeconds] = useState(computeInitialSeconds);
+
+  // Once DB loads and we had no localStorage, recalculate seconds
+  useEffect(() => {
+    if (dbLoaded && !saved && dbStartedAt) {
+      const elapsed = Math.max(0, Math.floor((Date.now() - new Date(dbStartedAt).getTime()) / 1000));
+      setSeconds(elapsed);
+      // Seed localStorage so future visibility changes work
+      startWallRef.current = Date.now();
+      accumulatedRef.current = elapsed;
+      persistState(startWallRef.current, accumulatedRef.current, false);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dbLoaded, dbStartedAt]);
 
   const [isLocked, setIsLocked] = useState(true); // locked by default
   const [isSaving, setIsSaving] = useState(false);
@@ -134,7 +178,7 @@ export default function ClientCardioPlayer() {
     if (isSaving) return;
     setIsSaving(true);
     if (intervalRef.current) clearInterval(intervalRef.current);
-    try { sessionStorage.removeItem(STORAGE_KEY); } catch {}
+    try { localStorage.removeItem(STORAGE_KEY); } catch {}
     try {
       if (sessionId) {
         await supabase
