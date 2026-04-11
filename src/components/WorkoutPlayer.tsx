@@ -322,20 +322,21 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
   const stepTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const stepTimerDurationRef = useRef(0);
 
-  // ── Persistent wall-clock elapsed timer (survives page kills) ──
+  // ── Persistent wall-clock elapsed timer (survives page kills & tab termination) ──
+  // CRITICAL: Use localStorage (not sessionStorage) — iOS/Android kill tabs and wipe sessionStorage
   const WORKOUT_TIMER_KEY = "workout_timer_state";
   const wallStartRef = useRef<number>(Date.now());
 
   const loadWorkoutTimer = useCallback(() => {
     try {
-      const raw = sessionStorage.getItem(WORKOUT_TIMER_KEY);
+      const raw = localStorage.getItem(WORKOUT_TIMER_KEY);
       if (raw) return JSON.parse(raw) as { wallStart: number; accumulated: number; paused: boolean };
     } catch {}
     return null;
   }, []);
 
   const persistWorkoutTimer = useCallback((wallStart: number, accumulated: number, paused: boolean) => {
-    try { sessionStorage.setItem(WORKOUT_TIMER_KEY, JSON.stringify({ wallStart, accumulated, paused })); } catch {}
+    try { localStorage.setItem(WORKOUT_TIMER_KEY, JSON.stringify({ wallStart, accumulated, paused })); } catch {}
   }, []);
 
   const savedTimer = loadWorkoutTimer();
@@ -600,28 +601,28 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
   const handleComplete = () => {
     if (elapsedRef.current) clearInterval(elapsedRef.current);
     if (stepTimerRef.current) clearInterval(stepTimerRef.current);
-    try { sessionStorage.removeItem(WORKOUT_TIMER_KEY); } catch {}
+    try { localStorage.removeItem(WORKOUT_TIMER_KEY); } catch {}
     onComplete({ setLogs, elapsedSeconds, startedAt: startedAtRef.current });
   };
 
   const handleEndEarly = () => {
     if (elapsedRef.current) clearInterval(elapsedRef.current);
     if (stepTimerRef.current) clearInterval(stepTimerRef.current);
-    try { sessionStorage.removeItem(WORKOUT_TIMER_KEY); } catch {}
+    try { localStorage.removeItem(WORKOUT_TIMER_KEY); } catch {}
     onEndEarly({ setLogs, elapsedSeconds, startedAt: startedAtRef.current });
   };
 
   const handleDiscard = () => {
     if (elapsedRef.current) clearInterval(elapsedRef.current);
     if (stepTimerRef.current) clearInterval(stepTimerRef.current);
-    try { sessionStorage.removeItem(WORKOUT_TIMER_KEY); } catch {}
+    try { localStorage.removeItem(WORKOUT_TIMER_KEY); } catch {}
     onDiscard();
   };
 
   const handleSaveForLater = () => {
     if (elapsedRef.current) clearInterval(elapsedRef.current);
     if (stepTimerRef.current) clearInterval(stepTimerRef.current);
-    try { sessionStorage.removeItem(WORKOUT_TIMER_KEY); } catch {}
+    try { localStorage.removeItem(WORKOUT_TIMER_KEY); } catch {}
     setShowDiscardDialog(false);
     onSaveForLater?.({
       setLogs,
