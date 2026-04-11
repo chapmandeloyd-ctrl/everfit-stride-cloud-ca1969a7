@@ -2,7 +2,7 @@ import { StatusOverviewPanel } from "./StatusOverviewPanel";
 
 
 import { InsightCoachControls } from "./InsightCoachControls";
-import { SafetyControls } from "./SafetyControls";
+
 import { AuthorityControls } from "./AuthorityControls";
 import { ActivityLog } from "./ActivityLog";
 import { ParentLinkSection } from "./ParentLinkSection";
@@ -84,8 +84,6 @@ export function CoachCommandCenterTab({ clientId, trainerId }: CoachCommandCente
         toggleMutation={toggleMutation}
       />
 
-      {/* E) Safety Controls */}
-      <SafetyControls clientId={clientId} trainerId={trainerId} />
 
       {/* E2) Authority Controls */}
       <AuthorityControls clientId={clientId} trainerId={trainerId} />
