@@ -55,8 +55,7 @@ export default function ClientCardioPlayer() {
       .then(({ data }: any) => {
         if (data?.started_at) setDbStartedAt(data.started_at);
         setDbLoaded(true);
-      })
-      .catch(() => setDbLoaded(true));
+      });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
