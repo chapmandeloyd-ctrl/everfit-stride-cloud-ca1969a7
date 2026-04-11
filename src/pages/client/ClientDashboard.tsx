@@ -647,6 +647,53 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
                 </div>
               )}
             </div>
+
+            {/* Post-fast summary inside eating window */}
+            {todayFastLog && (
+              <div className={`rounded-xl p-3 border ${
+                todayFastLog.ended_early
+                  ? "bg-amber-500/10 border-amber-500/30"
+                  : "bg-emerald-500/10 border-emerald-500/30"
+              }`}>
+                <div className="flex items-center gap-3">
+                  <div className="relative w-10 h-10 shrink-0">
+                    <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
+                      <circle cx="18" cy="18" r="15.9" fill="none" stroke="currentColor" strokeWidth="3" className="text-white/10" />
+                      <circle
+                        cx="18" cy="18" r="15.9" fill="none"
+                        stroke={todayFastLog.ended_early ? "#f59e0b" : "#10b981"}
+                        strokeWidth="3"
+                        strokeDasharray={`${todayFastLog.completion_pct} ${100 - todayFastLog.completion_pct}`}
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                    <span className="absolute inset-0 flex items-center justify-center text-[10px] font-black text-white">
+                      {todayFastLog.completion_pct}%
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        todayFastLog.ended_early
+                          ? "bg-amber-500/20 text-amber-400"
+                          : "bg-emerald-500/20 text-emerald-400"
+                      }`}>
+                        {todayFastLog.ended_early ? "Partial" : "Completed"}
+                      </span>
+                    </div>
+                    <p className="text-sm font-bold text-white mt-1">
+                      {Math.floor(todayFastLog.actual_hours)}h {Math.round((todayFastLog.actual_hours % 1) * 60)}m fasted
+                    </p>
+                    <p className="text-[10px] text-white/50">
+                      {todayFastLog.ended_early
+                        ? `${Math.round(todayFastLog.actual_hours)} of ${todayFastLog.target_hours}h target`
+                        : `${todayFastLog.target_hours}h target reached`}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <Button
               variant={hasBackground ? "secondary" : "outline"}
               className={`w-full h-12 text-base font-bold ${hasBackground ? "bg-white/20 hover:bg-white/30 text-white border-white/30" : ""}`}
