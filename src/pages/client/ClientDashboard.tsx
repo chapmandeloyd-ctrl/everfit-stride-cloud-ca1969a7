@@ -1124,6 +1124,7 @@ export default function ClientDashboard() {
     enabled: !!clientId && !!fastingState?.last_fast_ended_at,
   });
 
+  const fastEndTimeStr = (() => {
     if (mealGateStatus !== "fasting" || !fastingState?.active_fast_start_at || !fastingState?.active_fast_target_hours) return "";
     const end = new Date(new Date(fastingState.active_fast_start_at).getTime() + fastingState.active_fast_target_hours * 3600000);
     return end.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
