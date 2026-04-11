@@ -94,9 +94,17 @@ export function AIWorkoutBuilderDialog({
 
   const exerciseNames = exercises?.map((e) => e.name) || [];
 
+  const normalize = (s: string) =>
+    s.toLowerCase().replace(/[-_'']/g, " ").replace(/\s+/g, " ").trim();
+
   const findExerciseByName = (name: string) => {
+    const n = normalize(name);
+    // Exact match first
+    const exact = exercises?.find((e) => normalize(e.name) === n);
+    if (exact) return exact;
+    // Contains match (AI might add/drop words)
     return exercises?.find(
-      (e) => e.name.toLowerCase().trim() === name.toLowerCase().trim()
+      (e) => normalize(e.name).includes(n) || n.includes(normalize(e.name))
     );
   };
 
@@ -243,13 +251,15 @@ export function AIWorkoutBuilderDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
-        <DialogHeader>
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0">
+        <DialogHeader className="px-6 pt-6 pb-2">
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary" />
             AI Workout Builder
           </DialogTitle>
         </DialogHeader>
+
+        <ScrollArea className="flex-1 overflow-y-auto px-6 pb-6">
 
         <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v); setWorkoutResult(null); setSuggestions([]); }}>
           <TabsList className="grid grid-cols-2 w-full">
@@ -332,8 +342,7 @@ export function AIWorkoutBuilderDialog({
                   </p>
                 )}
 
-                <ScrollArea className="max-h-[300px]">
-                  <div className="space-y-3">
+                <div className="space-y-3">
                     {workoutResult.sections.map((section, si) => (
                       <div key={si} className="border rounded-lg overflow-hidden">
                         <div className="bg-muted/50 px-3 py-1.5 flex items-center gap-2">
@@ -371,7 +380,6 @@ export function AIWorkoutBuilderDialog({
                       </div>
                     ))}
                   </div>
-                </ScrollArea>
 
                 <div className="flex gap-2 pt-2">
                   <Button
@@ -396,8 +404,7 @@ export function AIWorkoutBuilderDialog({
           {/* Suggestion Results */}
           <TabsContent value="suggest" className="mt-0">
             {suggestions.length > 0 && (
-              <ScrollArea className="max-h-[350px] mt-4">
-                <div className="space-y-2">
+              <div className="space-y-2 mt-4">
                   {suggestions.map((suggestion, i) => {
                     const found = findExerciseByName(suggestion.exercise_name);
                     const isAdded = addedSuggestions.has(suggestion.exercise_name);
@@ -441,11 +448,11 @@ export function AIWorkoutBuilderDialog({
                       </div>
                     );
                   })}
-                </div>
-              </ScrollArea>
+              </div>
             )}
           </TabsContent>
         </Tabs>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
