@@ -239,22 +239,11 @@ export default function ClientCardioPlayer() {
           </div>
         </div>
         <div className="pb-8 pt-2">
-          {isLocked && <p className="pb-3 text-center text-xs font-medium text-muted-foreground">Screen locked — hold anywhere for 3s to unlock</p>}
           <div className="flex items-center justify-around px-6">
-            <Button variant="outline" size="icon" className="h-14 w-14 rounded-full" onClick={handleStop} disabled={isLocked || isSaving}>
+            <Button variant="outline" size="icon" className="h-14 w-14 rounded-full" onClick={handleStop} disabled={isSaving}>
               <Square className="h-5 w-5" />
             </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className={`h-14 w-14 rounded-full ${isLocked ? "bg-primary text-primary-foreground" : ""}`}
-              onClick={() => setIsLocked(!isLocked)}
-              aria-label={isLocked ? "Unlock cardio controls" : "Lock cardio controls"}
-              title={isLocked ? "Unlock cardio controls" : "Lock cardio controls"}
-            >
-              <Lock className="h-5 w-5" />
-            </Button>
-            <Button variant="outline" size="icon" className="h-14 w-14 rounded-full" onClick={() => setIsPaused(!isPaused)} disabled={isLocked}>
+            <Button variant="outline" size="icon" className="h-14 w-14 rounded-full" onClick={() => setIsPaused(!isPaused)}>
               {isPaused ? <Play className="h-5 w-5" /> : <Pause className="h-5 w-5" />}
             </Button>
           </div>
