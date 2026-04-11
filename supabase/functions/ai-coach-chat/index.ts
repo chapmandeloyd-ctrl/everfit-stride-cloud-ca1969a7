@@ -17,30 +17,22 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const engine = client_context?.engine_mode || "performance";
-    let toneInstruction = "Use a professional coaching tone.";
-    if (engine === "metabolic") toneInstruction = "Use a structured, clinical tone. Focus on metabolic health and fasting.";
-    else if (engine === "performance") toneInstruction = "Use a confident, direct tone. Focus on training and performance.";
-    else if (engine === "athletic") toneInstruction = "Use an energetic, growth-oriented tone. Focus on competitive development.";
-
     const systemPrompt = `You are an AI coaching assistant embedded inside a professional fitness coaching platform.
 You are speaking to the COACH (trainer), not the client. Help the coach with:
 - Analyzing client data and trends
-- Suggesting training adjustments
+- Suggesting training and nutrition adjustments
 - Drafting messages or plans
-- Answering fitness programming questions
+- Answering fitness programming and keto nutrition questions
 - Providing evidence-based coaching insights
 
-${toneInstruction}
-
 CLIENT CONTEXT:
-- Engine: ${engine}
-- Level: ${client_context?.current_level || 1} (Band: ${client_context?.level_band || "1-3"})
-- Readiness Score: ${client_context?.readiness_score ?? "N/A"}/100
+- Keto Type: ${client_context?.keto_type || "Not assigned"}
+- Subscription Tier: ${client_context?.tier || "free"}
 - Status: ${client_context?.status || "moderate"}
 - Lowest Factor: ${client_context?.lowest_factor || "N/A"}
 - Weekly Completion: ${client_context?.weekly_completion_pct ?? "N/A"}%
-- 7-Day Trend: ${client_context?.last_7_day_trend || "flat"}
+- Avg Score (7d): ${client_context?.avg_score ?? "N/A"}
+- 7-Day Trend: ${client_context?.trend || "flat"}
 
 SAFETY RULES:
 - NEVER give medical advice or diagnose conditions
@@ -82,7 +74,6 @@ SAFETY RULES:
       });
     }
 
-    // Stream through to client
     return new Response(response.body, {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
