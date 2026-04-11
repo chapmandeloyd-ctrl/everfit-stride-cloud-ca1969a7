@@ -16,7 +16,7 @@ interface FastingCardProps {
   lockPin?: string | null;
   fastHours?: number;
   difficultyLevel?: string;
-  ketoType?: { abbreviation: string; name: string; color: string } | null;
+  ketoType?: { abbreviation: string; name: string; color: string; fat_pct?: number; protein_pct?: number; carbs_pct?: number } | null;
   todayFastedHours?: number | null;
 }
 
