@@ -169,7 +169,6 @@ export function CopilotAssistPanel({ clientId, trainerId }: CopilotAssistPanelPr
         {contextData && (
           <div className="grid grid-cols-3 gap-2 text-[11px] text-muted-foreground">
             <div>Score: <span className="text-foreground font-medium">{contextData.readinessScore ?? "—"}</span></div>
-            <div>Level: <span className="text-foreground font-medium">{contextData.currentLevel}</span></div>
             <div>Status: <span className="text-foreground font-medium capitalize">{contextData.status}</span></div>
             <div>Trend: <span className="text-foreground font-medium capitalize">{contextData.trendDirection}</span></div>
             <div>Completion: <span className="text-foreground font-medium">{contextData.weeklyCompletionPct ?? "—"}%</span></div>
