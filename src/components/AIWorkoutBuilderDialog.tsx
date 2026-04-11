@@ -404,8 +404,7 @@ export function AIWorkoutBuilderDialog({
           {/* Suggestion Results */}
           <TabsContent value="suggest" className="mt-0">
             {suggestions.length > 0 && (
-              <ScrollArea className="max-h-[350px] mt-4">
-                <div className="space-y-2">
+              <div className="space-y-2 mt-4">
                   {suggestions.map((suggestion, i) => {
                     const found = findExerciseByName(suggestion.exercise_name);
                     const isAdded = addedSuggestions.has(suggestion.exercise_name);
@@ -449,11 +448,11 @@ export function AIWorkoutBuilderDialog({
                       </div>
                     );
                   })}
-                </div>
-              </ScrollArea>
+              </div>
             )}
           </TabsContent>
         </Tabs>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
