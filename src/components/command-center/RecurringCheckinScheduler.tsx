@@ -38,7 +38,7 @@ export function RecurringCheckinScheduler({ clientId, trainerId }: Props) {
     day_of_week: 1,
     day_of_month: 1,
     time_of_day: "09:00",
-    template_id: "",
+    template_id: "none",
     ai_auto_draft: false,
     ai_auto_send: false,
   });
@@ -89,7 +89,7 @@ export function RecurringCheckinScheduler({ clientId, trainerId }: Props) {
           day_of_week: formData.frequency === "weekly" || formData.frequency === "biweekly" ? formData.day_of_week : null,
           day_of_month: formData.frequency === "monthly" ? formData.day_of_month : null,
           time_of_day: formData.time_of_day + ":00",
-          template_id: formData.template_id || null,
+          template_id: formData.template_id === "none" ? null : formData.template_id || null,
           ai_auto_draft: formData.ai_auto_draft,
           ai_auto_send: formData.ai_auto_send,
           next_trigger_at: nextTrigger.toISOString(),
@@ -141,7 +141,7 @@ export function RecurringCheckinScheduler({ clientId, trainerId }: Props) {
       day_of_week: 1,
       day_of_month: 1,
       time_of_day: "09:00",
-      template_id: "",
+      template_id: "none",
       ai_auto_draft: false,
       ai_auto_send: false,
     });
@@ -304,7 +304,7 @@ export function RecurringCheckinScheduler({ clientId, trainerId }: Props) {
               <Select value={formData.template_id} onValueChange={(v) => setFormData({ ...formData, template_id: v })}>
                 <SelectTrigger><SelectValue placeholder="None — use name only" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {templates?.map((t) => (
                     <SelectItem key={t.id} value={t.id}>
                       {t.name} ({t.task_type})
