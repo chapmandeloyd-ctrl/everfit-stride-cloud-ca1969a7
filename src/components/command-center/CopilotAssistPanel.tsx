@@ -42,12 +42,9 @@ export function CopilotAssistPanel({ clientId, trainerId }: CopilotAssistPanelPr
         .limit(1)
         .maybeSingle();
 
-      const engineMode = (settings?.engine_mode as string) || "metabolic";
-      const parentLinkActive = !!(settings?.is_minor && engineMode === "athletic" && settings?.parent_link_enabled);
+      const parentLinkActive = !!(settings?.is_minor && settings?.parent_link_enabled);
 
       return {
-        engineMode,
-        currentLevel: settings?.current_level || 1,
         readinessScore: latestEvent?.score_total ?? (summary?.avg_score_7d ? Number(summary.avg_score_7d) : null),
         status: latestEvent?.status || summary?.score_status || "moderate",
         lowestFactor: latestEvent?.lowest_factor || summary?.lowest_factor_mode || null,
@@ -59,12 +56,10 @@ export function CopilotAssistPanel({ clientId, trainerId }: CopilotAssistPanelPr
     },
   });
 
-  const engineMode = contextData?.engineMode || "metabolic";
-
   const copilot = useCopilot({
     clientId,
     coachId: trainerId,
-    engineMode,
+    engineMode: "metabolic",
   });
 
   const handleGenerate = async (useCase: "plan_suggestion" | "level_up") => {
@@ -72,8 +67,6 @@ export function CopilotAssistPanel({ clientId, trainerId }: CopilotAssistPanelPr
     setActiveUseCase(useCase);
 
     const context = buildCopilotContext({
-      engineMode: contextData.engineMode as any,
-      currentLevel: contextData.currentLevel,
       readinessScore: contextData.readinessScore,
       status: contextData.status,
       lowestFactor: contextData.lowestFactor,
@@ -86,7 +79,7 @@ export function CopilotAssistPanel({ clientId, trainerId }: CopilotAssistPanelPr
     await copilot.generate(useCase, context);
   };
 
-  const engineLabel = engineMode === "athletic" ? "Athletic" : "KSOM-360";
+  const engineLabel = "KSOM-360";
 
   return (
     <Card>
@@ -176,7 +169,6 @@ export function CopilotAssistPanel({ clientId, trainerId }: CopilotAssistPanelPr
         {contextData && (
           <div className="grid grid-cols-3 gap-2 text-[11px] text-muted-foreground">
             <div>Score: <span className="text-foreground font-medium">{contextData.readinessScore ?? "—"}</span></div>
-            <div>Level: <span className="text-foreground font-medium">{contextData.currentLevel}</span></div>
             <div>Status: <span className="text-foreground font-medium capitalize">{contextData.status}</span></div>
             <div>Trend: <span className="text-foreground font-medium capitalize">{contextData.trendDirection}</span></div>
             <div>Completion: <span className="text-foreground font-medium">{contextData.weeklyCompletionPct ?? "—"}%</span></div>
