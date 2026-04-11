@@ -27,38 +27,33 @@ export function AICoachChatPanel({ clientId, trainerId }: AICoachChatPanelProps)
   const { data: contextData } = useQuery({
     queryKey: ["ai-chat-context", clientId],
     queryFn: async () => {
+      const { data: ketoAssignment } = await supabase
+        .from("client_keto_assignments")
+        .select("keto_types(name)")
+        .eq("client_id", clientId)
+        .eq("is_active", true)
+        .maybeSingle();
+
       const { data: settings } = await supabase
         .from("client_feature_settings")
-        .select("engine_mode, current_level, parent_link_enabled, is_minor")
+        .select("subscription_tier")
         .eq("client_id", clientId)
         .maybeSingle();
 
       const { data: summary } = await supabase
         .from("client_weekly_summaries")
-        .select("*")
+        .select("score_status, trend_direction, completion_7d, avg_score_7d, lowest_factor_mode")
         .eq("client_id", clientId)
         .maybeSingle();
 
-      const { data: latestEvent } = await supabase
-        .from("recommendation_events")
-        .select("score_total, status, lowest_factor")
-        .eq("client_id", clientId)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      const engine = (settings?.engine_mode as string) || "metabolic";
       return {
-        engine_mode: engine,
-        current_level: settings?.current_level || 1,
-        level_band: settings?.current_level
-          ? settings.current_level >= 7 ? "7" : settings.current_level >= 4 ? "4-6" : "1-3"
-          : "1-3",
-        readiness_score: latestEvent?.score_total ?? (summary?.avg_score_7d ? Number(summary.avg_score_7d) : null),
-        status: latestEvent?.status || summary?.score_status || "moderate",
-        lowest_factor: latestEvent?.lowest_factor || summary?.lowest_factor_mode || null,
+        keto_type: (ketoAssignment?.keto_types as any)?.name || "Not assigned",
+        tier: settings?.subscription_tier || "free",
+        status: summary?.score_status || "moderate",
+        trend: (summary?.trend_direction as string) || "flat",
         weekly_completion_pct: summary?.completion_7d ? Number(summary.completion_7d) : null,
-        last_7_day_trend: (summary?.trend_direction as string) || "flat",
+        avg_score: summary?.avg_score_7d ? Number(summary.avg_score_7d) : null,
+        lowest_factor: summary?.lowest_factor_mode || null,
       };
     },
   });
