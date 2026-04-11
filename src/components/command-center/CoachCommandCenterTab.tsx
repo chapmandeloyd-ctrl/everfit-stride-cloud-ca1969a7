@@ -74,8 +74,6 @@ export function CoachCommandCenterTab({ clientId, trainerId }: CoachCommandCente
       {/* A) Status Overview */}
       <StatusOverviewPanel clientId={clientId} />
 
-      {/* B) Pending Approvals */}
-      <PendingApprovals clientId={clientId} trainerId={trainerId} />
 
       {/* C) Manual Overrides */}
       <ManualOverrides clientId={clientId} trainerId={trainerId} />
