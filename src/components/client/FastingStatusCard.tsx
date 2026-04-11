@@ -14,13 +14,13 @@ export function FastingStatusCard({
   const hours = Math.floor(actualHours);
   const minutes = Math.round((actualHours % 1) * 60);
   const bgClass = endedEarly
-    ? "bg-amber-500/14 border-amber-500/30"
+    ? "bg-yellow-500/14 border-yellow-500/30"
     : "bg-emerald-500/14 border-emerald-500/30";
   const badgeClass = endedEarly
-    ? "bg-amber-500/18 text-amber-950 dark:text-amber-50 ring-1 ring-amber-500/25"
+    ? "bg-yellow-500/18 text-yellow-950 dark:text-yellow-50 ring-1 ring-yellow-500/25"
     : "bg-emerald-500/18 text-emerald-950 dark:text-emerald-50 ring-1 ring-emerald-500/25";
   const ringClass = endedEarly
-    ? "text-amber-600 dark:text-amber-300"
+    ? "text-yellow-600 dark:text-yellow-300"
     : "text-emerald-600 dark:text-emerald-300";
 
   return (
