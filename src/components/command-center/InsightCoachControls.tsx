@@ -60,17 +60,14 @@ export function InsightCoachControls({ clientId, trainerId, settings, toggleMuta
         .limit(1)
         .maybeSingle();
 
-      const engine = (clientSettings?.engine_mode as string) || "metabolic";
       return buildCopilotContext({
-        engineMode: engine as EngineMode,
-        currentLevel: clientSettings?.current_level || 1,
         readinessScore: latestEvent?.score_total ?? (summary?.avg_score_7d ? Number(summary.avg_score_7d) : null),
         status: latestEvent?.status || summary?.score_status || "moderate",
         lowestFactor: latestEvent?.lowest_factor || summary?.lowest_factor_mode || null,
         weeklyCompletionPct: summary?.completion_7d ? Number(summary.completion_7d) : null,
         streakDays: null,
         trendDirection: (summary?.trend_direction as "up" | "down" | "flat") || "flat",
-        parentLinkActive: !!(clientSettings?.is_minor && engine === "athletic" && clientSettings?.parent_link_enabled),
+        parentLinkActive: !!(clientSettings?.is_minor && clientSettings?.parent_link_enabled),
       });
     },
   });

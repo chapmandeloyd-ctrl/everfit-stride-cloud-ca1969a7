@@ -43,27 +43,22 @@ export function AIProgressReportPanel({ clientId, trainerId }: AIProgressReportP
         .limit(1)
         .maybeSingle();
 
-      const engine = (settings?.engine_mode as string) || "metabolic";
       return buildCopilotContext({
-        engineMode: engine as EngineMode,
-        currentLevel: settings?.current_level || 1,
         readinessScore: latestEvent?.score_total ?? (summary?.avg_score_7d ? Number(summary.avg_score_7d) : null),
         status: latestEvent?.status || summary?.score_status || "moderate",
         lowestFactor: latestEvent?.lowest_factor || summary?.lowest_factor_mode || null,
         weeklyCompletionPct: summary?.completion_7d ? Number(summary.completion_7d) : null,
         streakDays: null,
         trendDirection: (summary?.trend_direction as "up" | "down" | "flat") || "flat",
-        parentLinkActive: !!(settings?.is_minor && engine === "athletic" && settings?.parent_link_enabled),
+        parentLinkActive: !!(settings?.is_minor && settings?.parent_link_enabled),
       });
     },
   });
 
-  const engineMode = contextData?.engine_mode || "metabolic";
-
   const copilot = useCopilot({
     clientId,
     coachId: trainerId,
-    engineMode: engineMode as string,
+    engineMode: "metabolic",
   });
 
   const handleGenerate = async () => {
