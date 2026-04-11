@@ -304,7 +304,7 @@ export function RecurringCheckinScheduler({ clientId, trainerId }: Props) {
               <Select value={formData.template_id} onValueChange={(v) => setFormData({ ...formData, template_id: v })}>
                 <SelectTrigger><SelectValue placeholder="None — use name only" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {templates?.map((t) => (
                     <SelectItem key={t.id} value={t.id}>
                       {t.name} ({t.task_type})
