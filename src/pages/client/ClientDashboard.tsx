@@ -982,33 +982,6 @@ export default function ClientDashboard() {
     enabled: !!clientId && settings.tasks_enabled,
   });
 
-  // Fasting status for the standalone card in tracking section
-  const dashTodayDate = format(new Date(), "yyyy-MM-dd");
-  const { data: dashTodayFastLog } = useQuery({
-    queryKey: ["today-fasting-log-dash", clientId, dashTodayDate],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("fasting_log" as any)
-        .select("*")
-        .eq("client_id", clientId)
-        .gte("started_at", `${dashTodayDate}T00:00:00`)
-        .lte("started_at", `${dashTodayDate}T23:59:59`)
-        .order("started_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (error || !data) return null;
-      const d = data as any;
-      return {
-        actual_hours: d.actual_hours ?? 0,
-        target_hours: d.target_hours ?? 0,
-        completion_pct: d.completion_pct ?? 0,
-        ended_early: d.ended_early ?? false,
-      };
-    },
-    enabled: !!clientId,
-  });
-
-
   const toggleHabitMutation = useMutation({
     mutationFn: async ({ habitId, completed }: { habitId: string; completed: boolean }) => {
       const today = format(new Date(), "yyyy-MM-dd");
@@ -1054,7 +1027,7 @@ export default function ClientDashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("client_feature_settings")
-        .select("selected_protocol_id, active_fast_start_at, active_fast_target_hours, fasting_strict_mode, eating_window_ends_at, eating_window_hours, protocol_start_date, maintenance_mode, maintenance_schedule_type, trainer_id")
+        .select("selected_protocol_id, active_fast_start_at, active_fast_target_hours, fasting_strict_mode, eating_window_ends_at, eating_window_hours, protocol_start_date, maintenance_mode, maintenance_schedule_type, trainer_id, last_fast_ended_at")
         .eq("client_id", clientId)
         .maybeSingle();
       if (error) throw error;
@@ -1069,6 +1042,7 @@ export default function ClientDashboard() {
         maintenance_mode: boolean;
         maintenance_schedule_type: string | null;
         trainer_id: string;
+        last_fast_ended_at: string | null;
       } | null;
     },
     enabled: !!clientId && settings.fasting_enabled,
@@ -1104,6 +1078,51 @@ export default function ClientDashboard() {
     }
     return "allowed";
   })();
+
+
+  // Fasting status for the standalone card in tracking section
+  const { data: dashRecentFastLog } = useQuery({
+    queryKey: ["recent-fasting-log-dash", clientId, fastingState?.last_fast_ended_at],
+    queryFn: async () => {
+      if (!clientId || !fastingState?.last_fast_ended_at) return null;
+
+      const { data, error } = await supabase
+        .from("fasting_log" as any)
+        .select("*")
+        .eq("client_id", clientId)
+        .eq("ended_at", fastingState.last_fast_ended_at)
+        .maybeSingle();
+
+      if (error || !data) {
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from("fasting_log" as any)
+          .select("*")
+          .eq("client_id", clientId)
+          .not("ended_at", "is", null)
+          .order("ended_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (fallbackError || !fallbackData) return null;
+        const fallback = fallbackData as any;
+        return {
+          actual_hours: fallback.actual_hours ?? 0,
+          target_hours: fallback.target_hours ?? 0,
+          completion_pct: fallback.completion_pct ?? 0,
+          ended_early: fallback.ended_early ?? false,
+        };
+      }
+
+      const d = data as any;
+      return {
+        actual_hours: d.actual_hours ?? 0,
+        target_hours: d.target_hours ?? 0,
+        completion_pct: d.completion_pct ?? 0,
+        ended_early: d.ended_early ?? false,
+      };
+    },
+    enabled: !!clientId && !!fastingState?.last_fast_ended_at,
+  });
 
   const fastEndTimeStr = (() => {
     if (mealGateStatus !== "fasting" || !fastingState?.active_fast_start_at || !fastingState?.active_fast_target_hours) return "";
@@ -1464,15 +1483,6 @@ export default function ClientDashboard() {
                     tasksEnabled={settings.tasks_enabled}
                     onDateChange={setCalendarSelectedDate}
                   />
-                  {/* Fasting Status card */}
-                  {dashTodayFastLog && (
-                    <FastingStatusCard
-                      actualHours={dashTodayFastLog.actual_hours}
-                      targetHours={dashTodayFastLog.target_hours}
-                      completionPct={dashTodayFastLog.completion_pct}
-                      endedEarly={dashTodayFastLog.ended_early}
-                    />
-                  )}
                   {/* Completed workouts under calendar */}
                   {(() => {
                     const completedCardio = todayCardioSessions?.filter((s: any) => s.status === "completed") || [];
@@ -1776,8 +1786,16 @@ export default function ClientDashboard() {
 
             case "fasting":
               return settings.fasting_enabled && !engineConfig.fastingDisabled && !isViewingOtherDay ? (
-                <div key="fasting">
+                <div key="fasting" className="space-y-3">
                   <FastingProtocolCard clientId={clientId} navigate={navigate} />
+                  {dashRecentFastLog && (
+                    <FastingStatusCard
+                      actualHours={dashRecentFastLog.actual_hours}
+                      targetHours={dashRecentFastLog.target_hours}
+                      completionPct={dashRecentFastLog.completion_pct}
+                      endedEarly={dashRecentFastLog.ended_early}
+                    />
+                  )}
                 </div>
               ) : null;
 
