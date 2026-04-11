@@ -230,6 +230,7 @@ export default function Exercises() {
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Exercise Library</h1>
             <p className="text-muted-foreground mt-1 text-sm">
               {exercises?.length || 0} total exercises • {videoDemoCount} with video demos
+              {needsNameCount > 0 && <> • <span className="text-amber-600">{needsNameCount} need naming</span></>}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
