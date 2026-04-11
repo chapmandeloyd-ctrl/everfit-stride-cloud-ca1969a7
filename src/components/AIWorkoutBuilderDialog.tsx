@@ -94,9 +94,17 @@ export function AIWorkoutBuilderDialog({
 
   const exerciseNames = exercises?.map((e) => e.name) || [];
 
+  const normalize = (s: string) =>
+    s.toLowerCase().replace(/[-_'']/g, " ").replace(/\s+/g, " ").trim();
+
   const findExerciseByName = (name: string) => {
+    const n = normalize(name);
+    // Exact match first
+    const exact = exercises?.find((e) => normalize(e.name) === n);
+    if (exact) return exact;
+    // Contains match (AI might add/drop words)
     return exercises?.find(
-      (e) => e.name.toLowerCase().trim() === name.toLowerCase().trim()
+      (e) => normalize(e.name).includes(n) || n.includes(normalize(e.name))
     );
   };
 
