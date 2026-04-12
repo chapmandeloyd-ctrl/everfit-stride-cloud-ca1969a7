@@ -92,7 +92,7 @@ export default function ClientMealResults() {
     setTimeout(() => window.location.reload(), 100);
   };
 
-
+  useEffect(() => {
     if (!user?.id) return;
     fetchMeals();
   }, [user?.id]);
