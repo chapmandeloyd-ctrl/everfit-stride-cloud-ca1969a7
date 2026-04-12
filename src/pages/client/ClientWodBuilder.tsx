@@ -1029,6 +1029,13 @@ export default function ClientWodBuilder() {
           />
         );
       })()}
+
+      {/* Block Type Picker */}
+      <BlockTypePicker
+        open={showBlockPicker}
+        onOpenChange={setShowBlockPicker}
+        onSelect={handleBlockTypeSelected}
+      />
     </div>
   );
 }
