@@ -328,7 +328,7 @@ export default function ClientWodBuilder() {
         .from("workout_plans")
         .insert({
           name: workoutName.trim(),
-          trainer_id: user.id,
+          trainer_id: effectiveClientId!,
           category: workoutType,
           difficulty: "intermediate" as any,
           duration_minutes: estMinutes,
@@ -425,7 +425,7 @@ export default function ClientWodBuilder() {
 
       // Auto-save to favorites
       await supabase.from("saved_workouts").upsert(
-        { client_id: user.id, workout_plan_id: planId },
+        { client_id: effectiveClientId!, workout_plan_id: planId },
         { onConflict: "client_id,workout_plan_id" }
       );
 
