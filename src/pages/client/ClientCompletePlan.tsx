@@ -309,14 +309,14 @@ export default function ClientCompletePlan() {
               </div>
 
               {/* Stats row */}
-              <div className="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-border/40">
+              <div className="flex items-center justify-center gap-8 mt-4 pt-4 border-t border-border/40">
                 <div className="text-center">
                   <p className="text-base font-black">{protocol.fast_target_hours}h</p>
                   <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">Fast</p>
                 </div>
                 <div className="text-center">
                   <p className="text-base font-black">
-                    {protocol.duration_days === 0 ? "∞" : `${Math.ceil(protocol.duration_days / 7)} week${Math.ceil(protocol.duration_days / 7) !== 1 ? "s" : ""}`}
+                    {protocol.duration_days === 0 ? "∞" : `${Math.ceil(protocol.duration_days / 7)} wk${Math.ceil(protocol.duration_days / 7) !== 1 ? "s" : ""}`}
                   </p>
                   <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">Duration</p>
                 </div>
