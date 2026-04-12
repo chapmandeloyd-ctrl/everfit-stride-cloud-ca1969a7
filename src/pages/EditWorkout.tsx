@@ -477,6 +477,7 @@ export default function EditWorkout() {
         sectionInserts.push({ workout_plan_id: id, name: "Main", section_type: "straight_set", order_index: sectionIdx++, rounds: 1 });
       }
 
+      let supersetBlockIdx = 1;
       for (const group of groups) {
         sectionInserts.push({
           workout_plan_id: id,
