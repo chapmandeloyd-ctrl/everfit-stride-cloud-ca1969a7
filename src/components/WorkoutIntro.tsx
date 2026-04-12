@@ -209,7 +209,7 @@ export function WorkoutIntro({
             </h2>
           </div>
 
-          <div className="flex-1 overflow-y-auto space-y-2 pr-1 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <div className="flex-1 overflow-y-auto space-y-2 pr-1 scrollbar-hide">
             {allExercises.map((ex, idx) => (
               <div
                 key={ex.id + idx}
