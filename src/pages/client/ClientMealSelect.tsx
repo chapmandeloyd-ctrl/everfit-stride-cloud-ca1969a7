@@ -233,3 +233,17 @@ function RadioChip({ label, selected, onSelect }: { label: string; selected: boo
     </button>
   );
 }
+
+function QuickActionCard({ emoji, title, description, onClick }: { emoji: string; title: string; description: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex flex-col items-start gap-2 rounded-2xl border bg-card p-4 text-left transition-all active:scale-[0.97] hover:border-primary/40 hover:shadow-md"
+    >
+      <span className="text-2xl">{emoji}</span>
+      <span className="text-sm font-bold text-foreground">{title}</span>
+      <span className="text-xs text-muted-foreground leading-relaxed">{description}</span>
+    </button>
+  );
+}
