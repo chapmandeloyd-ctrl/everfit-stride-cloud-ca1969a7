@@ -6,6 +6,8 @@ import { ExerciseLibrarySheet } from "@/components/workout/ExerciseLibrarySheet"
 import { SetsSliderSheet } from "@/components/workout/SetsSliderSheet";
 import { SetTargetSheet } from "@/components/workout/SetTargetSheet";
 import { RestTimePickerSheet } from "@/components/workout/RestTimePickerSheet";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 interface WodExercise {
   id: string;
