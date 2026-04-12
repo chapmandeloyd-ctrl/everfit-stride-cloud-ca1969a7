@@ -15,17 +15,20 @@ function SwipeToDeleteCard({ children, onDelete }: { children: React.ReactNode; 
   const containerRef = useRef<HTMLDivElement>(null);
   const startXRef = useRef(0);
   const currentXRef = useRef(0);
-  const swipingRef = useRef(false);
+  const activeRef = useRef(false); // Only true after horizontal threshold met
 
   const onTS = (e: React.TouchEvent) => {
     startXRef.current = e.touches[0].clientX;
     currentXRef.current = 0;
-    swipingRef.current = true;
+    activeRef.current = false;
   };
 
   const onTM = (e: React.TouchEvent) => {
-    if (!swipingRef.current || !containerRef.current) return;
+    if (!containerRef.current) return;
     const dx = e.touches[0].clientX - startXRef.current;
+    // Only activate swipe after 15px horizontal movement
+    if (!activeRef.current && Math.abs(dx) < 15) return;
+    activeRef.current = true;
     if (dx > 0) { currentXRef.current = 0; containerRef.current.style.transform = ''; return; }
     currentXRef.current = dx;
     containerRef.current.style.transform = `translateX(${Math.max(dx, -120)}px)`;
@@ -33,16 +36,16 @@ function SwipeToDeleteCard({ children, onDelete }: { children: React.ReactNode; 
   };
 
   const onTE = () => {
-    swipingRef.current = false;
     if (!containerRef.current) return;
     containerRef.current.style.transition = 'transform 0.25s ease';
-    if (currentXRef.current < -70) {
+    if (activeRef.current && currentXRef.current < -70) {
       containerRef.current.style.transform = 'translateX(-100%)';
       setTimeout(onDelete, 250);
     } else {
       containerRef.current.style.transform = '';
     }
     currentXRef.current = 0;
+    activeRef.current = false;
   };
 
   return (
