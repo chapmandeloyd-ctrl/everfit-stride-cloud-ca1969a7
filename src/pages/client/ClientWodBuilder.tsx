@@ -434,18 +434,27 @@ export default function ClientWodBuilder() {
 
       {/* Content area */}
       <div className="flex-1 overflow-auto">
-        {exercises.length === 0 ? (
+        {exercises.length === 0 && (workoutType !== "superset" || groups.length === 0) ? (
           <div className="flex flex-col items-center justify-center h-full px-6 gap-4">
             <Dumbbell className="w-20 h-20 text-muted-foreground/25" strokeWidth={1.2} />
             <p className="text-base font-medium text-muted-foreground">
               No exercises added yet
             </p>
-            <button
-              onClick={() => handleInsertExercise()}
-              className="text-sm font-semibold text-primary uppercase tracking-wide"
-            >
-              + INSERT EXERCISE
-            </button>
+            {workoutType === "superset" ? (
+              <button
+                onClick={handleAddBlock}
+                className="text-sm font-semibold text-primary uppercase tracking-wide"
+              >
+                + ADD BLOCK
+              </button>
+            ) : (
+              <button
+                onClick={() => handleInsertExercise()}
+                className="text-sm font-semibold text-primary uppercase tracking-wide"
+              >
+                + INSERT EXERCISE
+              </button>
+            )}
           </div>
         ) : (
           <div className="px-3 pt-3 pb-4 space-y-0">
