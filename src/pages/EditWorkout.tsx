@@ -428,13 +428,46 @@ export default function EditWorkout() {
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    if (over && active.id !== over.id) {
-      setExerciseItems((items) => {
-        const oldIndex = items.findIndex((i) => i.id === active.id);
-        const newIndex = items.findIndex((i) => i.id === over.id);
-        return arrayMove(items, oldIndex, newIndex);
-      });
+    if (!over || active.id === over.id) return;
+
+    const activeId = String(active.id);
+    const overId = String(over.id);
+
+    // Group-level drag: move entire block
+    if (activeId.startsWith("group-")) {
+      const activeGroupId = activeId.replace("group-", "");
+      const overGroupId = overId.startsWith("group-") ? overId.replace("group-", "") : null;
+
+      if (overGroupId) {
+        setGroups((prev) => {
+          const oldIdx = prev.findIndex((g) => g.id === activeGroupId);
+          const newIdx = prev.findIndex((g) => g.id === overGroupId);
+          return arrayMove(prev, oldIdx, newIdx);
+        });
+        setExerciseItems((prev) => {
+          const groupExercises = prev.filter((i) => i.group_id === activeGroupId);
+          const rest = prev.filter((i) => i.group_id !== activeGroupId);
+          const targetFirstIdx = rest.findIndex((i) => i.group_id === overGroupId);
+          if (targetFirstIdx === -1) return prev;
+          const targetGroupEnd = rest.filter((i, idx) => idx <= targetFirstIdx || i.group_id === overGroupId).length;
+          const result = [...rest];
+          const activeGroupIdx = groups.findIndex((g) => g.id === activeGroupId);
+          const overGroupIdx = groups.findIndex((g) => g.id === overGroupId);
+          const insertIdx = activeGroupIdx < overGroupIdx ? targetGroupEnd : targetFirstIdx;
+          result.splice(insertIdx, 0, ...groupExercises);
+          return result;
+        });
+      }
+      return;
     }
+
+    // Exercise-level drag
+    setExerciseItems((items) => {
+      const oldIndex = items.findIndex((i) => i.id === activeId);
+      const newIndex = items.findIndex((i) => i.id === overId);
+      if (oldIndex === -1 || newIndex === -1) return items;
+      return arrayMove(items, oldIndex, newIndex);
+    });
   };
 
   // Update mutation
