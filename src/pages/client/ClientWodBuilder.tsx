@@ -256,6 +256,27 @@ export default function ClientWodBuilder() {
           </div>
         ) : (
           <div className="px-3 pt-3 pb-4 space-y-0">
+            {/* Select all / Deselect all */}
+            <div className="flex items-center gap-2 pb-3 border-b border-border">
+              <button
+                onClick={() => {
+                  const allSelected = exercises.every((e) => e.selected);
+                  setExercises((prev) => prev.map((e) => ({ ...e, selected: !allSelected })));
+                }}
+                className="shrink-0"
+              >
+                <div className={`w-5 h-5 rounded border-[1.5px] flex items-center justify-center transition-colors ${exercises.length > 0 && exercises.every((e) => e.selected) ? "bg-primary border-primary" : "border-muted-foreground/30 bg-transparent"}`}>
+                  {exercises.length > 0 && exercises.every((e) => e.selected) && (
+                    <svg className="h-3 w-3 text-primary-foreground" viewBox="0 0 14 14" fill="none">
+                      <path d="M2 7l3.5 3.5L12 4" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  )}
+                </div>
+              </button>
+              <span className="text-xs font-medium text-muted-foreground">
+                {exercises.every((e) => e.selected) ? "Deselect All" : "Select All"}
+              </span>
+            </div>
             {/* Drag hint tooltip */}
             {showDragHint && (
               <div className="relative mb-3 bg-primary text-primary-foreground rounded-xl px-4 py-3 flex items-start gap-3 shadow-lg">
