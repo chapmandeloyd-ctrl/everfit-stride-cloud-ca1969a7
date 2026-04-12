@@ -1,5 +1,5 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Dumbbell, Repeat, Timer } from "lucide-react";
+import { Dumbbell, Repeat, Timer, Layers } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface BuildWorkoutSheetProps {
@@ -10,6 +10,7 @@ interface BuildWorkoutSheetProps {
 const WORKOUT_TYPES = [
   { label: "Regular", value: "regular", icon: Dumbbell },
   { label: "Circuit", value: "circuit", icon: Repeat },
+  { label: "Superset", value: "superset", icon: Layers },
   { label: "Interval", value: "interval", icon: Timer },
 ] as const;
 
