@@ -771,7 +771,7 @@ export default function ClientWodBuilder() {
                         onDragStart={() => { setIntraBlockDragFrom({ groupId: group.id, index: exIdx }); setIntraBlockDragOver(exIdx); }}
                         onDragOver={(e) => { e.preventDefault(); setIntraBlockDragOver(exIdx); }}
                         onDragEnd={() => handleIntraBlockDragEnd(group.id)}
-                        className={`py-3 px-3 border-t border-border bg-border transition-all ${intraBlockDragFrom?.groupId === group.id && intraBlockDragFrom.index === exIdx ? "opacity-50 scale-95" : ""} ${intraBlockDragFrom?.groupId === group.id && intraBlockDragOver === exIdx && intraBlockDragFrom.index !== exIdx ? "border-t-2 border-t-primary" : ""}`}
+                        className={`py-3 px-3 border-t border-border bg-card transition-all ${intraBlockDragFrom?.groupId === group.id && intraBlockDragFrom.index === exIdx ? "opacity-50 scale-95" : ""} ${intraBlockDragFrom?.groupId === group.id && intraBlockDragOver === exIdx && intraBlockDragFrom.index !== exIdx ? "border-t-2 border-t-primary" : ""}`}
                       >
                         <div className="flex items-center gap-2">
                           <div className="w-14 h-14 rounded-lg overflow-hidden bg-muted shrink-0 flex items-center justify-center">
@@ -803,7 +803,7 @@ export default function ClientWodBuilder() {
                     ))}
                     {/* Per-block Add Exercises button for superset mode */}
                     {workoutType === "superset" && (
-                      <div className="px-3 py-2 border-t border-border bg-border">
+                      <div className="px-3 py-2 border-t border-border bg-card">
                         <button
                           onClick={() => handleInsertExercise(group.id)}
                           className="text-xs font-semibold text-primary"
