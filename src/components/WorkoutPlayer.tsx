@@ -397,27 +397,33 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
         const ex = step.exercise;
         const section = sections[step.sectionIdx];
         const isGrouped = ["superset", "circuit"].includes(section?.section_type);
-        const isSuperset = section?.section_type === "superset";
         let msg = "";
 
-        // Announce block type at the start of each new section/round
+        // Announce block name at the start of each new section
         if (isGrouped && step.exerciseIdx === 0 && section?.name) {
-          // Extract block type label from section name (e.g., "Warm-Up Block 1" → "Warm-Up")
-          const blockName = section.name.replace(/\s*Block\s*\d+$/i, "").trim();
+          const blockName = section.name.replace(/\s*Block\s*\d+$/i, "").replace(/\s*\d+$/, "").trim();
           if (step.round === 1) {
-            msg += `${blockName}. `;
+            // Announce block with its structure info
+            const exCount = section.exercises.length;
+            const rounds = section.rounds;
+            msg += `${blockName}. ${exCount} exercise${exCount > 1 ? "s" : ""}, ${rounds} round${rounds > 1 ? "s" : ""}. `;
           }
           msg += `Round ${step.round}. `;
-        } else if (isGrouped) {
-          // Not first exercise but still grouped — just mention round context
         }
 
         msg += ex.exercise_name || "";
 
+        // For non-grouped (regular), announce set info
         if (!isGrouped && ex.sets && ex.sets >= 1) {
           msg += `, set ${step.round} of ${ex.sets}`;
         }
-        if (ex.reps) msg += `, ${ex.reps} reps`;
+
+        // Announce reps or duration based on what the exercise has
+        if (ex.duration_seconds) {
+          msg += `, ${ex.duration_seconds} seconds`;
+        } else if (ex.reps) {
+          msg += `, ${ex.reps} reps`;
+        }
         elevenLabsSpeakNow(msg).catch(() => {});
       }
     }, delayMs);

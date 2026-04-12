@@ -100,14 +100,18 @@ export function WorkoutIntro({
 
     // Phase 3: First up announcement
     const firstEx = allExercises[0];
+    const firstSection = sections[0];
     if (firstEx) {
       setPhase("firstup");
+      const blockName = firstSection?.name?.replace(/\s*Block\s*\d+$/i, "").replace(/\s*\d+$/, "").trim() || "";
+      const rounds = firstSection?.rounds || 1;
       const repsInfo = firstEx.reps ? `, ${firstEx.reps} reps` : "";
       const durationInfo = firstEx.duration_seconds
         ? `, ${firstEx.duration_seconds} seconds`
         : "";
+      const blockAnnounce = blockName ? `${blockName}, ${rounds} round${rounds > 1 ? "s" : ""}. ` : "";
       await speakFn(
-        `First up, 1 out of ${allExercises.length}, ${firstEx.exercise_name}${repsInfo}${durationInfo}. Ready, let's go!`
+        `${blockAnnounce}First up, ${firstEx.exercise_name}${repsInfo}${durationInfo}. Let's go!`
       );
     }
 
@@ -205,7 +209,7 @@ export function WorkoutIntro({
             </h2>
           </div>
 
-          <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+          <div className="flex-1 overflow-y-auto space-y-2 pr-1 scrollbar-hide">
             {allExercises.map((ex, idx) => (
               <div
                 key={ex.id + idx}
