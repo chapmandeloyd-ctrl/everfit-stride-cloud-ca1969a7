@@ -201,11 +201,23 @@ export default function ClientWodBuilder() {
             )}
 
             {/* Exercise cards */}
-            {exercises.map((ex) => (
+            {exercises.map((ex, index) => (
               <div
                 key={ex.id}
-                className={`border-b border-border py-3 ${
+                ref={(el) => { itemRefs.current[index] = el; }}
+                draggable
+                onDragStart={() => handleDragStart(index)}
+                onDragOver={(e) => { e.preventDefault(); handleDragOver(index); }}
+                onDragEnd={handleDragEnd}
+                onTouchStart={(e) => handleTouchStart(e, index)}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+                className={`border-b border-border py-3 transition-all ${
                   ex.selected ? "bg-primary/5" : ""
+                } ${dragIndex === index ? "opacity-50 scale-95" : ""} ${
+                  overIndex === index && dragIndex !== null && dragIndex !== index
+                    ? "border-t-2 border-t-primary"
+                    : ""
                 }`}
               >
                 <div className="flex items-center gap-2">
