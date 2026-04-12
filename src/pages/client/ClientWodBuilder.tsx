@@ -45,8 +45,14 @@ export default function ClientWodBuilder() {
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isDragging = useRef(false);
   const dragStartY = useRef(0);
-  const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const itemRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
+  const setItemRef = useCallback((id: string, el: HTMLDivElement | null) => {
+    if (el) itemRefs.current.set(id, el);
+    else itemRefs.current.delete(id);
+  }, []);
+
+  // Drag operates on the exercises array index
   const handleDragStart = useCallback((index: number) => {
     setDragIndex(index);
     setOverIndex(index);
@@ -91,9 +97,9 @@ export default function ClientWodBuilder() {
     if (!isDragging.current) return;
     e.preventDefault();
     const touch = e.touches[0];
-    const elements = itemRefs.current;
-    for (let i = 0; i < elements.length; i++) {
-      const el = elements[i];
+    // Find which exercise the finger is over by checking all refs
+    for (let i = 0; i < exercises.length; i++) {
+      const el = itemRefs.current.get(exercises[i].id);
       if (!el) continue;
       const rect = el.getBoundingClientRect();
       if (touch.clientY >= rect.top && touch.clientY <= rect.bottom) {
@@ -101,7 +107,7 @@ export default function ClientWodBuilder() {
         break;
       }
     }
-  }, []);
+  }, [exercises]);
 
   const handleTouchEnd = useCallback(() => {
     if (longPressTimer.current) {
