@@ -314,6 +314,16 @@ export default function ClientMealResults() {
   );
 }
 
+function getNudgeTitle(type: string): string {
+  switch (type) {
+    case "exceeded": return "⚠️ Macro Alert";
+    case "warning": return "⚡ Heads Up";
+    case "suggestion": return "💪 Coach Tip";
+    case "prompt": return "🍽️ Time to Eat!";
+    default: return "💡 Coach Says";
+  }
+}
+
 function MacroMini({ label, value, unit, color }: { label: string; value: number | null; unit?: string; color: string }) {
   return (
     <div className="rounded-xl bg-card border border-border p-2 text-center">
