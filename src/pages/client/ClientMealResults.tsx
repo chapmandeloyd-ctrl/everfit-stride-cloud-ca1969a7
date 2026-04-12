@@ -5,12 +5,26 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Flame, Zap, Clock, Sparkles, Plus, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Flame, Zap, Clock, Sparkles, Plus, AlertTriangle, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
+
+interface CoachingSuggestion {
+  type: string;
+  label: string;
+  action: string;
+}
+
+interface CoachNudge {
+  type: string;
+  message: string;
+  exceeded: string[];
+  signals?: string[];
+  suggestions?: CoachingSuggestion[];
+}
 
 interface MealResult {
   id: string;
@@ -46,6 +60,7 @@ export default function ClientMealResults() {
   const [ketoType, setKetoType] = useState<string | null>(null);
   const [usedFallback, setUsedFallback] = useState(false);
   const [hasAiSuggestions, setHasAiSuggestions] = useState(false);
+  const [activeNudge, setActiveNudge] = useState<CoachNudge | null>(null);
 
   // Parse filters from URL
   const filters = {
@@ -53,6 +68,28 @@ export default function ClientMealResults() {
     meal_goals: searchParams.get("goals")?.split(",").filter(Boolean) || [],
     hunger_level: searchParams.get("hunger") || null,
     prep_styles: searchParams.get("prep")?.split(",").filter(Boolean) || [],
+  };
+
+  const handleSuggestionTap = (suggestion: CoachingSuggestion) => {
+    setActiveNudge(null);
+    const goalMap: Record<string, string> = {
+      high_protein: "High Protein",
+      low_carb: "Light & Clean",
+      quick_meal: "Quick & Easy",
+      break_fast: "Break My Fast",
+      protein_boost: "High Protein",
+    };
+    const prepMap: Record<string, string> = {
+      quick_meal: "Quick,Grab & Go",
+    };
+    const goal = goalMap[suggestion.type] || "";
+    const prep = prepMap[suggestion.type] || "";
+    const params = new URLSearchParams();
+    if (goal) params.set("goals", goal);
+    if (prep) params.set("prep", prep);
+    navigate(`/client/meal-results?${params.toString()}`);
+    // Re-fetch with new filters
+    setTimeout(() => window.location.reload(), 100);
   };
 
   useEffect(() => {
@@ -128,11 +165,12 @@ export default function ClientMealResults() {
         description: "Added to your daily nutrition log.",
       });
 
-      // Show coaching nudge if macro exceeded
+      // Show coaching nudge with suggestions
       if (nudgeData?.nudge) {
+        setActiveNudge(nudgeData.nudge);
         setTimeout(() => {
           toast({
-            title: nudgeData.nudge.type === "exceeded" ? "⚠️ Macro Alert" : "💡 Heads Up",
+            title: getNudgeTitle(nudgeData.nudge.type),
             description: nudgeData.nudge.message,
             variant: nudgeData.nudge.type === "exceeded" ? "destructive" : "default",
             duration: 8000,
@@ -214,6 +252,39 @@ export default function ClientMealResults() {
           </div>
         )}
 
+        {/* Smart Coaching Banner */}
+        {activeNudge && (
+          <div className="mx-5 mb-3">
+            <div className={`rounded-2xl p-4 border ${
+              activeNudge.type === "exceeded" ? "bg-destructive/10 border-destructive/30" :
+              activeNudge.type === "warning" ? "bg-amber-500/10 border-amber-500/30" :
+              "bg-primary/10 border-primary/30"
+            }`}>
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <p className="text-sm font-medium flex-1">{activeNudge.message}</p>
+                <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => setActiveNudge(null)}>
+                  <X className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+              {activeNudge.suggestions && activeNudge.suggestions.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {activeNudge.suggestions.map((s) => (
+                    <Button
+                      key={s.type}
+                      variant="secondary"
+                      size="sm"
+                      className="rounded-xl text-xs h-8"
+                      onClick={() => handleSuggestionTap(s)}
+                    >
+                      {s.label}
+                    </Button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Results */}
         <div className="px-5 space-y-3">
           {loading ? (
@@ -241,6 +312,16 @@ export default function ClientMealResults() {
       </div>
     </ClientLayout>
   );
+}
+
+function getNudgeTitle(type: string): string {
+  switch (type) {
+    case "exceeded": return "⚠️ Macro Alert";
+    case "warning": return "⚡ Heads Up";
+    case "suggestion": return "💪 Coach Tip";
+    case "prompt": return "🍽️ Time to Eat!";
+    default: return "💡 Coach Says";
+  }
 }
 
 function MacroMini({ label, value, unit, color }: { label: string; value: number | null; unit?: string; color: string }) {
