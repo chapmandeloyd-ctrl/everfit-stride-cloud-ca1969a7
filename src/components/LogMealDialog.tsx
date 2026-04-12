@@ -56,7 +56,7 @@ export function LogMealDialog({ open, onOpenChange, prefilledData }: LogMealDial
         throw new Error("Meal name is required");
       }
 
-      const { error } = await supabase.from("nutrition_logs").insert({
+      const mealData = {
         client_id: user?.id,
         log_date: format(date, "yyyy-MM-dd"),
         meal_name: mealName.trim(),
@@ -65,17 +65,51 @@ export function LogMealDialog({ open, onOpenChange, prefilledData }: LogMealDial
         carbs: carbs ? parseFloat(carbs) : null,
         fats: fats ? parseFloat(fats) : null,
         notes: notes.trim() || null,
+      };
+
+      const { error } = await supabase.from("nutrition_logs").insert(mealData);
+      if (error) throw error;
+
+      // Trigger coaching nudge
+      const { data: nudgeData } = await supabase.functions.invoke("meal-coach-nudge", {
+        body: {
+          client_id: user?.id,
+          logged_meal: {
+            name: mealName.trim(),
+            calories: mealData.calories,
+            protein: mealData.protein,
+            carbs: mealData.carbs,
+            fats: mealData.fats,
+          },
+        },
       });
 
-      if (error) throw error;
+      return nudgeData;
     },
-    onSuccess: () => {
+    onSuccess: (nudgeData) => {
       queryClient.invalidateQueries({ queryKey: ["nutrition-logs"] });
       queryClient.invalidateQueries({ queryKey: ["nutrition-today"] });
       toast({
         title: "Success",
         description: "Meal logged successfully",
       });
+
+      // Show smart coaching nudge
+      if (nudgeData?.nudge) {
+        setTimeout(() => {
+          const title = nudgeData.nudge.type === "exceeded" ? "⚠️ Macro Alert"
+            : nudgeData.nudge.type === "suggestion" ? "💪 Coach Tip"
+            : nudgeData.nudge.type === "prompt" ? "🍽️ Time to Eat!"
+            : "💡 Heads Up";
+          toast({
+            title,
+            description: nudgeData.nudge.message,
+            variant: nudgeData.nudge.type === "exceeded" ? "destructive" : "default",
+            duration: 8000,
+          });
+        }, 1500);
+      }
+
       handleClose();
     },
     onError: (error: Error) => {
