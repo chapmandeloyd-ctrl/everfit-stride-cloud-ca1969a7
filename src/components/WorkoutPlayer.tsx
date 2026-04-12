@@ -1026,6 +1026,36 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
           )}
         </div>
 
+        {/* Rep/Weight logging for rep-based circuit exercises */}
+        {!isRest && currentExercise && !currentExercise.duration_seconds && currentStep.setKey && (
+          <div className="px-4 py-3 border-t border-border/40 bg-background">
+            <div className="flex items-center gap-3">
+              <div className="flex-1">
+                <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wide">Reps</p>
+                <Input
+                  type="number"
+                  value={setLogs[currentStep.setKey]?.reps || ""}
+                  onChange={(e) => updateSetLog(currentStep.setKey!, "reps", e.target.value)}
+                  className="h-10 text-center text-lg font-bold border-2 focus:border-primary"
+                  placeholder={currentExercise.reps ? String(currentExercise.reps) : "0"}
+                  inputMode="numeric"
+                />
+              </div>
+              <div className="flex-1">
+                <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wide">Weight (lbs)</p>
+                <Input
+                  type="number"
+                  value={setLogs[currentStep.setKey]?.weight || ""}
+                  onChange={(e) => updateSetLog(currentStep.setKey!, "weight", e.target.value)}
+                  className="h-10 text-center text-lg font-bold border-2 focus:border-primary"
+                  placeholder="BW"
+                  inputMode="decimal"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Bottom controls */}
         {!isLocked && (
           <div className="bg-background border-t border-border/50 px-4 pb-8 pt-3">
@@ -1247,34 +1277,29 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
                 {/* Rep + weight logging for rep-based */}
                 {!currentExercise.duration_seconds && currentStep.setKey && (
                   <div className="px-3 pb-3">
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <p className="text-xs font-semibold text-muted-foreground mb-1.5 uppercase tracking-wide">Previous</p>
-                        <p className="text-sm text-muted-foreground">—</p>
-                      </div>
-                      <div>
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1">
                         <p className="text-xs font-semibold text-muted-foreground mb-1.5 uppercase tracking-wide">Reps</p>
                         <Input
                           type="number"
                           value={setLogs[currentStep.setKey]?.reps || ""}
                           onChange={(e) => updateSetLog(currentStep.setKey!, "reps", e.target.value)}
                           className="h-10 text-center text-lg font-bold border-2 focus:border-primary"
-                          placeholder="0"
+                          placeholder={currentExercise.reps ? String(currentExercise.reps) : "0"}
                           inputMode="numeric"
                         />
                       </div>
-                    </div>
-                    {/* Weight row */}
-                    <div className="mt-2">
-                      <p className="text-xs font-semibold text-muted-foreground mb-1.5 uppercase tracking-wide">Weight (lbs)</p>
-                      <Input
-                        type="number"
-                        value={setLogs[currentStep.setKey]?.weight || ""}
-                        onChange={(e) => updateSetLog(currentStep.setKey!, "weight", e.target.value)}
-                        className="h-10 text-center text-lg font-bold border-2 focus:border-primary"
-                        placeholder="0"
-                        inputMode="decimal"
-                      />
+                      <div className="flex-1">
+                        <p className="text-xs font-semibold text-muted-foreground mb-1.5 uppercase tracking-wide">Weight (lbs)</p>
+                        <Input
+                          type="number"
+                          value={setLogs[currentStep.setKey]?.weight || ""}
+                          onChange={(e) => updateSetLog(currentStep.setKey!, "weight", e.target.value)}
+                          className="h-10 text-center text-lg font-bold border-2 focus:border-primary"
+                          placeholder="BW"
+                          inputMode="decimal"
+                        />
+                      </div>
                     </div>
                   </div>
                 )}
@@ -1320,7 +1345,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
               className="flex-1 h-12 font-bold text-base rounded-xl"
               onClick={!isRest && currentStep?.type === "exercise" && !currentExercise?.duration_seconds ? markStepDone : advanceStep}
             >
-              {isRest ? "Skip Rest" : currentExercise?.duration_seconds ? "Skip" : "Next →"}
+              {isRest ? "Skip Rest" : currentExercise?.duration_seconds ? "Skip" : "Save →"}
             </Button>
 
             <Button variant="ghost" size="icon" onClick={() => setIsLocked(true)} className="text-muted-foreground">
