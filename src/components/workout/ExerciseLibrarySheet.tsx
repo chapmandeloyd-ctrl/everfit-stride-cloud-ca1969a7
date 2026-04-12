@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { Search, SlidersHorizontal, Dumbbell } from "lucide-react";
@@ -24,6 +24,7 @@ interface ExerciseLibrarySheetProps {
 
 export function ExerciseLibrarySheet({ open, onClose, onAdd, title }: ExerciseLibrarySheetProps) {
   const clientId = useEffectiveClientId();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
@@ -55,6 +56,22 @@ export function ExerciseLibrarySheet({ open, onClose, onAdd, title }: ExerciseLi
     },
     enabled: !!trainerId,
   });
+
+  // Realtime subscription: instantly sync exercise changes from admin
+  useEffect(() => {
+    if (!trainerId) return;
+    const channel = supabase
+      .channel('exercises-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'exercises', filter: `trainer_id=eq.${trainerId}` },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["trainer-exercises", trainerId] });
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [trainerId, queryClient]);
 
   const filtered = exercises.filter((ex) =>
     ex.name.toLowerCase().includes(search.toLowerCase())
