@@ -8,7 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Play, Clock, Dumbbell } from "lucide-react";
+import { ArrowLeft, Play, Clock, Dumbbell, Bookmark } from "lucide-react";
+import { useSavedWorkouts } from "@/hooks/useSavedWorkouts";
+import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { WorkoutPlayer, unlockAudioForMobile } from "@/components/WorkoutPlayer";
@@ -461,19 +463,15 @@ export default function WorkoutDetail() {
   return (
     <Layout>
       <div className="max-w-4xl mx-auto p-6">
-        <div className="flex items-center gap-4 mb-6">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div className="flex-1">
-            <h1 className="text-3xl font-bold">{workout.name}</h1>
-            <div className="flex gap-2 mt-2">
-              <Badge variant="outline" className="capitalize">
-                {workout.difficulty}
-              </Badge>
-              <Badge variant="outline">{workout.category}</Badge>
-            </div>
-          </div>
+        <WorkoutDetailHeader
+          workout={workout}
+          id={id!}
+          isClient={isClient}
+          inProgressSession={inProgressSession}
+          onResume={() => { unlockAudioForMobile(); handleResume(); }}
+          onStartFresh={async () => { unlockAudioForMobile(); await createActiveSession(); setIsPlaying(true); }}
+          onBack={() => navigate(-1)}
+        />
           {inProgressSession && isClient ? (
             <div className="flex flex-col gap-2">
               <Button size="lg" onClick={() => { unlockAudioForMobile(); handleResume(); }} className="gap-2">
