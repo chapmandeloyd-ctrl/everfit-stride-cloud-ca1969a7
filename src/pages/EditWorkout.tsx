@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Search, Plus, X, GripVertical, Copy, Trash2, Timer, FileText, Clock, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { SortableGroupHeader } from "@/components/workout/SortableGroupHeader";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
@@ -428,13 +429,46 @@ export default function EditWorkout() {
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    if (over && active.id !== over.id) {
-      setExerciseItems((items) => {
-        const oldIndex = items.findIndex((i) => i.id === active.id);
-        const newIndex = items.findIndex((i) => i.id === over.id);
-        return arrayMove(items, oldIndex, newIndex);
-      });
+    if (!over || active.id === over.id) return;
+
+    const activeId = String(active.id);
+    const overId = String(over.id);
+
+    // Group-level drag: move entire block
+    if (activeId.startsWith("group-")) {
+      const activeGroupId = activeId.replace("group-", "");
+      const overGroupId = overId.startsWith("group-") ? overId.replace("group-", "") : null;
+
+      if (overGroupId) {
+        setGroups((prev) => {
+          const oldIdx = prev.findIndex((g) => g.id === activeGroupId);
+          const newIdx = prev.findIndex((g) => g.id === overGroupId);
+          return arrayMove(prev, oldIdx, newIdx);
+        });
+        setExerciseItems((prev) => {
+          const groupExercises = prev.filter((i) => i.group_id === activeGroupId);
+          const rest = prev.filter((i) => i.group_id !== activeGroupId);
+          const targetFirstIdx = rest.findIndex((i) => i.group_id === overGroupId);
+          if (targetFirstIdx === -1) return prev;
+          const targetGroupEnd = rest.filter((i, idx) => idx <= targetFirstIdx || i.group_id === overGroupId).length;
+          const result = [...rest];
+          const activeGroupIdx = groups.findIndex((g) => g.id === activeGroupId);
+          const overGroupIdx = groups.findIndex((g) => g.id === overGroupId);
+          const insertIdx = activeGroupIdx < overGroupIdx ? targetGroupEnd : targetFirstIdx;
+          result.splice(insertIdx, 0, ...groupExercises);
+          return result;
+        });
+      }
+      return;
     }
+
+    // Exercise-level drag
+    setExerciseItems((items) => {
+      const oldIndex = items.findIndex((i) => i.id === activeId);
+      const newIndex = items.findIndex((i) => i.id === overId);
+      if (oldIndex === -1 || newIndex === -1) return items;
+      return arrayMove(items, oldIndex, newIndex);
+    });
   };
 
   // Update mutation
@@ -551,6 +585,24 @@ export default function EditWorkout() {
 
   const anySelected = exerciseItems.some((i) => i.selected);
 
+  // Build sortable IDs list: includes both exercise IDs and group- prefixed IDs
+  const sortableIds = useMemo(() => {
+    const ids: string[] = [];
+    const renderedGroups = new Set<string>();
+    for (const item of exerciseItems) {
+      if (item.group_id && !renderedGroups.has(item.group_id)) {
+        renderedGroups.add(item.group_id);
+        ids.push(`group-${item.group_id}`);
+        const groupItems = exerciseItems.filter((ei) => ei.group_id === item.group_id);
+        groupItems.forEach((gi) => ids.push(gi.id));
+      }
+      if (!item.group_id) {
+        ids.push(item.id);
+      }
+    }
+    return ids;
+  }, [exerciseItems]);
+
   const renderExerciseList = () => {
     const rendered: React.ReactNode[] = [];
     const renderedGroups = new Set<string>();
@@ -566,30 +618,19 @@ export default function EditWorkout() {
         if (group) {
           rendered.push(
             <div key={`group-${item.group_id}`} className="border-2 border-primary/20 rounded-lg mx-2 my-2 overflow-hidden">
-              <div className="flex items-center gap-3 px-4 py-2 bg-primary/5 border-b">
-                <Checkbox
-                  checked={groupItems.every((gi) => gi.selected)}
-                  onCheckedChange={() => {
-                    const allSelected = groupItems.every((gi) => gi.selected);
-                    setExerciseItems((prev) => prev.map((ei) => ei.group_id === item.group_id ? { ...ei, selected: !allSelected } : ei));
-                  }}
-                />
-                {group.type === "superset" ? (
-                  <>
-                    <span className="text-sm font-medium text-foreground">
-                      Block {groups.filter(g => g.type === "superset").indexOf(group) + 1}
-                    </span>
-                    <span className="text-sm text-muted-foreground">·</span>
-                  </>
-                ) : (
-                  <span className="text-sm text-muted-foreground">Circuit of</span>
-                )}
-                <Input type="number" value={group.sets} onChange={(e) => updateGroupSets(group.id, parseInt(e.target.value) || 1)} className="h-7 w-14 text-sm text-center" min={1} />
-                <span className="text-sm text-muted-foreground">{group.type === "superset" ? "rounds" : "sets"}</span>
-                <div className="flex-1" />
-                <Button variant="link" size="sm" className="text-primary text-xs p-0 h-auto" onClick={() => ungroupItems(group.id)}>Ungroup</Button>
-                <GripVertical className="h-4 w-4 text-muted-foreground" />
-              </div>
+              <SortableGroupHeader
+                groupId={group.id}
+                groupType={group.type}
+                blockNumber={groups.filter(g => g.type === "superset").indexOf(group) + 1}
+                sets={group.sets}
+                allSelected={groupItems.every((gi) => gi.selected)}
+                onToggleSelectAll={() => {
+                  const allSelected = groupItems.every((gi) => gi.selected);
+                  setExerciseItems((prev) => prev.map((ei) => ei.group_id === item.group_id ? { ...ei, selected: !allSelected } : ei));
+                }}
+                onUpdateSets={(sets) => updateGroupSets(group.id, sets)}
+                onUngroup={() => ungroupItems(group.id)}
+              />
               {groupItems.map((gi) => (
                 <ExerciseRow key={gi.id} item={gi} exerciseInfo={getExerciseById(gi.exercise_id)} onUpdate={updateItem} onToggleSelect={toggleSelect} />
               ))}
@@ -726,7 +767,7 @@ export default function EditWorkout() {
           {/* Exercise List */}
           <ScrollArea className="flex-1">
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-              <SortableContext items={exerciseItems.map((i) => i.id)} strategy={verticalListSortingStrategy}>
+              <SortableContext items={sortableIds} strategy={verticalListSortingStrategy}>
                 {renderExerciseList()}
               </SortableContext>
             </DndContext>
