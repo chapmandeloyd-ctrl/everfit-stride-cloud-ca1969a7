@@ -3,6 +3,9 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Trash2, Dumbbell, Hand, Layers, Repeat, GripVertical, Timer, X } from "lucide-react";
 import { ExerciseLibrarySheet } from "@/components/workout/ExerciseLibrarySheet";
+import { SetsSliderSheet } from "@/components/workout/SetsSliderSheet";
+import { SetTargetSheet } from "@/components/workout/SetTargetSheet";
+import { RestTimePickerSheet } from "@/components/workout/RestTimePickerSheet";
 
 interface WodExercise {
   id: string;
@@ -24,6 +27,9 @@ export default function ClientWodBuilder() {
   const [showExerciseLibrary, setShowExerciseLibrary] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showDragHint, setShowDragHint] = useState(true);
+  const [editingSetsId, setEditingSetsId] = useState<string | null>(null);
+  const [editingTargetId, setEditingTargetId] = useState<string | null>(null);
+  const [editingRestId, setEditingRestId] = useState<string | null>(null);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [overIndex, setOverIndex] = useState<number | null>(null);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -269,32 +275,23 @@ export default function ClientWodBuilder() {
                 {ex.exercise_id !== "rest" && (
                   <div className="flex items-center gap-2 mt-2 ml-7 pl-1">
                     <button
-                      onClick={() => {
-                        const val = prompt("Number of sets:", String(ex.sets));
-                        if (val) updateExerciseField(ex.id, "sets", parseInt(val) || 3);
-                      }}
+                      onClick={() => setEditingSetsId(ex.id)}
                       className="px-3 py-1 rounded-full border border-border text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors"
                     >
                       {ex.sets} sets
                     </button>
                     <button
-                      onClick={() => {
-                        const val = prompt("Target (e.g. 10, 12-15, 30s):", ex.reps);
-                        if (val) updateExerciseField(ex.id, "reps", val);
-                      }}
+                      onClick={() => setEditingTargetId(ex.id)}
                       className="px-3 py-1 rounded-full border border-border text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors"
                     >
                       {ex.reps === "10" ? "Set Target" : ex.reps}
                     </button>
                     <button
-                      onClick={() => {
-                        const val = prompt("Rest seconds:", String(ex.rest_seconds));
-                        if (val) updateExerciseField(ex.id, "rest_seconds", parseInt(val) || 60);
-                      }}
+                      onClick={() => setEditingRestId(ex.id)}
                       className="px-3 py-1 rounded-full border border-border text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors flex items-center gap-1"
                     >
                       <Hand className="h-3 w-3" />
-                      {ex.rest_seconds}s
+                      {ex.rest_seconds > 0 ? (ex.rest_seconds >= 60 ? `${Math.floor(ex.rest_seconds / 60)}m${ex.rest_seconds % 60 > 0 ? ` ${ex.rest_seconds % 60}s` : ""}` : `${ex.rest_seconds}s`) : "None"}
                     </button>
                   </div>
                 )}
