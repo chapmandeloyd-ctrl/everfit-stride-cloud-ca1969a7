@@ -84,6 +84,7 @@ export default function ClientWodBuilder() {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const workoutType = searchParams.get("type") || "regular";
+  const defaultGroupType: ExerciseGroup["type"] = workoutType === "superset" || workoutType === "interval" ? "superset" : "circuit";
 
   const [exercises, setExercises] = useState<WodExercise[]>([]);
   const [showExerciseLibrary, setShowExerciseLibrary] = useState(false);
