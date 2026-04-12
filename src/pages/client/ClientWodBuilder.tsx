@@ -90,8 +90,8 @@ export default function ClientWodBuilder() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
-  const workoutType = searchParams.get("type") || "regular";
-  const defaultGroupType: ExerciseGroup["type"] = workoutType === "superset" || workoutType === "interval" ? "superset" : "circuit";
+  const workoutType = "superset"; // All blocks mode - always supports multiple blocks
+  const defaultGroupType: ExerciseGroup["type"] = "superset";
 
   const [exercises, setExercises] = useState<WodExercise[]>([]);
   const [showExerciseLibrary, setShowExerciseLibrary] = useState(false);

@@ -2247,7 +2247,7 @@ export default function ClientDashboard() {
             label: "Workout",
             icon: <Dumbbell className="h-5 w-5" />,
             color: "hsl(217, 91%, 60%)",
-            onClick: () => setWodSheetOpen(true),
+            onClick: () => navigate("/client/wod-builder"),
           },
           {
             label: "Cardio",
