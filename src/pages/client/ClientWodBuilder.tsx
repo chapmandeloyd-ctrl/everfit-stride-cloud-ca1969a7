@@ -590,7 +590,9 @@ export default function ClientWodBuilder() {
                     </button>
                     <div className="flex-1 min-w-0">
                       <span className="text-sm text-foreground">
-                        {group.type === "circuit" ? "Circuit" : "Superset"} of{" "}
+                        {workoutType === "superset" 
+                          ? `Block ${groups.indexOf(group) + 1} · `
+                          : `${group.type === "circuit" ? "Circuit" : "Superset"} of `}
                         <button
                           onClick={() => setEditingCircuitRoundsId(group.id)}
                           className="text-primary font-semibold"
@@ -599,15 +601,25 @@ export default function ClientWodBuilder() {
                         </button>
                       </span>
                     </div>
+                    {workoutType !== "superset" && (
+                      <button
+                        onClick={() => handleUngroup(group.id)}
+                        className="text-xs font-semibold text-primary mr-1"
+                      >
+                        Ungroup
+                      </button>
+                    )}
                     <button
-                      onClick={() => handleUngroup(group.id)}
-                      className="text-xs font-semibold text-primary mr-1"
+                      onClick={() => {
+                        // Delete this block and its exercises
+                        setExercises((prev) => prev.filter((e) => e.group_id !== group.id));
+                        setGroups((prev) => prev.filter((g) => g.id !== group.id));
+                        toast.success("Block removed");
+                      }}
+                      className="text-xs mr-1"
                     >
-                      Ungroup
+                      <X className="h-4 w-4 text-muted-foreground hover:text-destructive" />
                     </button>
-                    <div className="shrink-0 text-muted-foreground/30 cursor-grab">
-                      <GripVertical className="h-5 w-5" />
-                    </div>
                   </div>
 
                   {/* Group exercises - no checkbox, no sets pill */}
