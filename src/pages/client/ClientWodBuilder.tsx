@@ -638,9 +638,32 @@ export default function ClientWodBuilder() {
                       )}
                     </div>
                   ))}
+                  {/* Per-block Add Exercises button for superset mode */}
+                  {workoutType === "superset" && (
+                    <div className="px-3 py-2 border-t border-border/50">
+                      <button
+                        onClick={() => handleInsertExercise(group.id)}
+                        className="text-xs font-semibold text-primary"
+                      >
+                        + Add Exercises
+                      </button>
+                    </div>
+                  )}
                 </div>
               );
             })}
+
+            {/* Add Block button for superset mode */}
+            {workoutType === "superset" && (
+              <div className="flex justify-center pt-4 pb-2">
+                <button
+                  onClick={handleAddBlock}
+                  className="text-sm font-semibold text-primary uppercase tracking-wide"
+                >
+                  + ADD BLOCK
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
