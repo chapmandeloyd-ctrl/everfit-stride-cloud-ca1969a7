@@ -13,6 +13,7 @@ import { SetTargetSheet } from "@/components/workout/SetTargetSheet";
 import { RestTimePickerSheet } from "@/components/workout/RestTimePickerSheet";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 
 function SwipeToDeleteCard({ children, onDelete }: { children: React.ReactNode; onDelete: () => void }) {
   const containerRef = useRef<HTMLDivElement>(null);
