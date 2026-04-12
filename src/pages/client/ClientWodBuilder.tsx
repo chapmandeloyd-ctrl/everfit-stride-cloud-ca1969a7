@@ -744,8 +744,15 @@ export default function ClientWodBuilder() {
                   </div>
 
                   {/* Group exercises - no checkbox, no sets pill */}
-                  {groupExercises.map((ex) => (
-                    <div key={ex.id} className="py-3 px-3 border-t border-border/50">
+                  {groupExercises.map((ex, exIdx) => (
+                    <div
+                      key={ex.id}
+                      draggable
+                      onDragStart={() => { setIntraBlockDragFrom({ groupId: group.id, index: exIdx }); setIntraBlockDragOver(exIdx); }}
+                      onDragOver={(e) => { e.preventDefault(); setIntraBlockDragOver(exIdx); }}
+                      onDragEnd={() => handleIntraBlockDragEnd(group.id)}
+                      className={`py-3 px-3 border-t border-border/50 transition-all ${intraBlockDragFrom?.groupId === group.id && intraBlockDragFrom.index === exIdx ? "opacity-50 scale-95" : ""} ${intraBlockDragFrom?.groupId === group.id && intraBlockDragOver === exIdx && intraBlockDragFrom.index !== exIdx ? "border-t-2 border-t-primary" : ""}`}
+                    >
                       <div className="flex items-center gap-2">
                         <div className="w-14 h-14 rounded-lg overflow-hidden bg-muted shrink-0 flex items-center justify-center">
                           {ex.image_url ? (
@@ -756,6 +763,9 @@ export default function ClientWodBuilder() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-semibold text-foreground truncate">{ex.exercise_name}</p>
+                        </div>
+                        <div className="shrink-0 text-muted-foreground/30 cursor-grab">
+                          <GripVertical className="h-5 w-5" />
                         </div>
                       </div>
                       {ex.exercise_id !== "rest" && (
