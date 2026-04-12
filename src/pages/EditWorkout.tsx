@@ -286,7 +286,7 @@ export default function EditWorkout() {
             target_value: wpe.notes || "",
             time_seconds: wpe.duration_seconds || 30,
             rest_seconds: wpe.rest_seconds || 30,
-            exercise_type: wpe.exercise_type || "normal",
+            exercise_type: (wpe.exercise_type === "rest" ? "rest" : "normal") as "normal" | "rest",
             selected: false,
             group_id: groupId,
           });
