@@ -122,33 +122,9 @@ export default function ClientProfile() {
           </CardContent>
         </Card>
 
-
-        {/* Fasting section */}
+        {/* Fasting & menu section */}
         <div className="divide-y divide-border">
-          {/* Favorite Protocol (last used) */}
-          {fastingData?.lastUsedAt && fastingData?.saved && (
-            <button
-              className="flex items-center justify-between w-full py-4 text-left"
-              onClick={() => navigate("/client/choose-protocol")}
-            >
-              <div className="flex items-center gap-2">
-                <Star className="h-4 w-4 text-amber-400" />
-                <span className="text-foreground">Favorite Protocol</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-amber-500 font-medium">
-                  {fastingData.saved.name}
-                  {fastingData.saved.type === "quick" && ` (${fastingData.saved.fast_hours}:${fastingData.saved.eat_hours})`}
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  {format(new Date(fastingData.lastUsedAt), "MMM d, h:mm a")}
-                </span>
-                <ChevronRight className="h-5 w-5 text-muted-foreground" />
-              </div>
-            </button>
-          )}
 
-          {/* Saved Protocol (for later) */}
           <button
             className="flex items-center justify-between w-full py-4 text-left"
             onClick={() => navigate("/client/choose-protocol")}
