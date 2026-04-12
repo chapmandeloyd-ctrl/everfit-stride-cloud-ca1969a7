@@ -600,6 +600,7 @@ export default function ClientWodBuilder() {
                 + INSERT EXERCISE
               </button>
             )}
+            <SavedWorkoutsQuickLoad navigate={navigate} />
           </div>
         ) : (
           <div className="px-3 pt-3 pb-4 space-y-0">
