@@ -1,5 +1,5 @@
-import { useState, useRef, useCallback } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useState, useRef, useCallback, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Trash2, Dumbbell, Hand, Layers, Repeat, GripVertical, Timer, X } from "lucide-react";
 import { getBlockType, WORKOUT_BLOCK_TYPES, WorkoutBlockType } from "@/lib/workoutBlockTypes";
@@ -89,9 +89,9 @@ const isGroupedWorkoutType = (type: string) => type === "circuit" || type === "s
 export default function ClientWodBuilder() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [searchParams] = useSearchParams();
-  const workoutType = searchParams.get("type") || "regular";
-  const defaultGroupType: ExerciseGroup["type"] = workoutType === "superset" || workoutType === "interval" ? "superset" : "circuit";
+  
+  const workoutType = "superset"; // All blocks mode - always supports multiple blocks
+  const defaultGroupType: ExerciseGroup["type"] = "superset";
 
   const [exercises, setExercises] = useState<WodExercise[]>([]);
   const [showExerciseLibrary, setShowExerciseLibrary] = useState(false);
@@ -103,7 +103,7 @@ export default function ClientWodBuilder() {
   const [groups, setGroups] = useState<ExerciseGroup[]>([]);
   const [editingCircuitRoundsId, setEditingCircuitRoundsId] = useState<string | null>(null);
   const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
-  const [showBlockPicker, setShowBlockPicker] = useState(false);
+  const [showBlockPicker, setShowBlockPicker] = useState(true); // Auto-open on mount
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [overIndex, setOverIndex] = useState<number | null>(null);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -544,7 +544,7 @@ export default function ClientWodBuilder() {
         >
           Cancel
         </button>
-        <span className="text-sm font-semibold text-foreground capitalize">{workoutType} Workout</span>
+        <span className="text-sm font-semibold text-foreground">Build Workout</span>
         <button
           onClick={handleSave}
           disabled={saving || exercises.length === 0}
@@ -682,7 +682,7 @@ export default function ClientWodBuilder() {
                           <button onClick={() => setEditingTargetId(ex.id)} className="px-3 py-1 rounded-full border border-border text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors">
                             {ex.reps === "10" && ex.target_type === "text" ? "Set Target" : ex.target_type === "time" ? `⏱ ${ex.reps}` : ex.reps}
                           </button>
-                          {workoutType !== "interval" && (
+                          {(() => { const exGroup = groups.find(g => g.id === ex.group_id); return !exGroup || exGroup.block_type !== "interval"; })() && (
                             <button onClick={() => setEditingRestId(ex.id)} className="px-3 py-1 rounded-full border border-border text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors flex items-center gap-1">
                               <Hand className="h-3 w-3" />
                               {ex.rest_seconds > 0 ? (ex.rest_seconds >= 60 ? `${Math.floor(ex.rest_seconds / 60)}m${ex.rest_seconds % 60 > 0 ? ` ${ex.rest_seconds % 60}s` : ""}` : `${ex.rest_seconds}s`) : "None"}
@@ -881,7 +881,7 @@ export default function ClientWodBuilder() {
       <ExerciseLibrarySheet
         open={showExerciseLibrary}
         onClose={() => setShowExerciseLibrary(false)}
-        title={`Add Exercises · ${workoutType.charAt(0).toUpperCase() + workoutType.slice(1)}`}
+        title="Add Exercises"
         onAdd={(selectedExercises) => {
           const newItems: WodExercise[] = selectedExercises.map((ex) => ({
             id: crypto.randomUUID(),
@@ -929,8 +929,9 @@ export default function ClientWodBuilder() {
             }
           }
 
-          // For interval mode, interleave rest blocks between exercises
-          if (workoutType === "interval") {
+          // For interval blocks, interleave rest blocks between exercises
+          const activeGroup = groups.find(g => g.id === activeBlockId);
+          if (activeGroup?.block_type === "interval") {
             const interleaved: WodExercise[] = [];
             newItems.forEach((item, i) => {
               interleaved.push(item);
