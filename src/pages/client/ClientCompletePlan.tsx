@@ -289,9 +289,7 @@ export default function ClientCompletePlan() {
               <h2 className="text-[28px] font-black leading-tight tracking-tight">
                 {protocol.name}
                 {isQuickPlan && protocol.fast_target_hours >= 24 && (
-                  <span className="text-muted-foreground font-bold text-lg ml-2">
-                    — {Math.round(protocol.fast_target_hours / 24)} Day{Math.round(protocol.fast_target_hours / 24) !== 1 ? "s" : ""}
-                  </span>
+                  <> — {Math.round(protocol.fast_target_hours / 24)} Day{Math.round(protocol.fast_target_hours / 24) !== 1 ? "s" : ""}</>
                 )}
               </h2>
 
