@@ -1,10 +1,9 @@
 import { ClientLayout } from "@/components/ClientLayout";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   ArrowLeft,
   Clock,
-  CalendarDays,
-  BarChart3,
   Zap,
   Target,
   Users,
@@ -12,6 +11,8 @@ import {
   Shield,
   CheckCircle2,
   ChevronRight,
+  Lightbulb,
+  Info,
 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,7 +22,6 @@ import { toast } from "sonner";
 import { FastingSafetyNotice } from "@/components/FastingSafetyNotice";
 import { FastingStructureComparison } from "@/components/FastingStructureComparison";
 import { getTierForLevel, getIntensityLabel } from "@/lib/quickPlanTierConfig";
-
 
 interface PlanDescription {
   subtitle?: string;
@@ -67,6 +67,21 @@ function getDifficultyLabel(group: string) {
   }
 }
 
+/* ── Section wrapper (matches Complete Plan) ── */
+function Section({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <Card>
+      <CardContent className="p-5">
+        <div className="flex items-center gap-2 mb-3">
+          {icon}
+          <h3 className="text-sm font-bold">{title}</h3>
+        </div>
+        {children}
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function ClientQuickPlanDetail() {
   const { id } = useParams<{ id: string }>();
   const clientId = useEffectiveClientId();
@@ -99,6 +114,22 @@ export default function ClientQuickPlanDetail() {
       return data;
     },
     enabled: !!clientId,
+  });
+
+  const ketoTypeId = activeKetoAssignment?.keto_type_id;
+
+  const { data: ketoType } = useQuery({
+    queryKey: ["quick-plan-keto-type", ketoTypeId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("keto_types")
+        .select("*")
+        .eq("id", ketoTypeId!)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!ketoTypeId,
   });
 
   const selectPlanMutation = useMutation({
@@ -143,202 +174,253 @@ export default function ClientQuickPlanDetail() {
   }
 
   const desc = plan.description;
-  const tier = getTierForLevel(plan.min_level_required);
-  const TierIcon = tier.icon;
+  const themeColor = ketoType?.color || "#ef4444";
+  const maxPct = ketoType ? Math.max(ketoType.fat_pct, ketoType.protein_pct, ketoType.carbs_pct) : 1;
 
   return (
     <ClientLayout>
-      <div className="pb-32 w-full">
-        {/* ── Hero Header ── */}
-        <div className="relative overflow-hidden">
-          {/* Aurora background */}
-          <div className={`absolute inset-0 bg-gradient-to-br ${tier.cardGradient} opacity-60`} />
-          <div className={`absolute -right-10 -top-10 h-40 w-40 rounded-full bg-gradient-to-br ${tier.cardGradient} blur-3xl opacity-40`} />
-          <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-background to-transparent" />
-
-          <div className="relative px-5 pt-4 pb-8">
-            <button
-              onClick={() => navigate("/client/programs")}
-              className="flex items-center gap-1.5 text-sm text-muted-foreground mb-6 hover:text-foreground transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Programs
-            </button>
-
-            <div className="flex items-start justify-between">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${tier.badgeBg} ring-1 ring-white/40`}>
-                    <TierIcon className={`h-5 w-5 ${tier.accentColor}`} />
-                  </div>
-                  <div>
-                    <span className={`text-[10px] font-bold uppercase tracking-[0.2em] ${tier.accentColor}`}>
-                      Level {plan.min_level_required} • {tier.label}
-                    </span>
-                  </div>
-                </div>
-                <h1 className="text-4xl font-black tracking-[-0.03em] leading-none text-foreground">
-                  {plan.name}
-                </h1>
-                {desc?.subtitle && (
-                  <p className="text-base text-muted-foreground leading-relaxed max-w-[30ch]">
-                    {desc.subtitle}
-                  </p>
-                )}
-              </div>
-
-              <span className={`text-xs font-bold px-3 py-1.5 rounded-full ${tier.badgeBg} ${tier.accentColor} ring-1 ${tier.borderClass}`}>
-                {getIntensityLabel(plan.intensity_tier)}
-              </span>
-            </div>
+      <div className="pb-8 w-full">
+        {/* Back + Title */}
+        <div className="px-4 pt-4 pb-2 flex items-center gap-3">
+          <Button variant="ghost" size="icon" onClick={() => navigate("/client/programs")}>
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Quick Plan</p>
+            <h1 className="text-lg font-bold leading-tight">{plan.name}</h1>
           </div>
         </div>
 
-        {/* ── Stats Row ── */}
-        <div className="grid grid-cols-3 gap-2.5 px-5 -mt-2">
-          {[
-            {
-              icon: Clock,
-              label: "Fasting Window",
-              value: `${plan.fast_hours}:${plan.eat_hours}`,
-            },
-            {
-              icon: CalendarDays,
-              label: "Duration",
-              value: desc?.length || "Flexible",
-            },
-            {
-              icon: BarChart3,
-              label: "Difficulty",
-              value: getDifficultyLabel(plan.difficulty_group),
-            },
-          ].map((stat) => (
-            <div
-              key={stat.label}
-              className={`relative overflow-hidden rounded-2xl border ${tier.borderClass} bg-card/80 backdrop-blur-sm p-4 text-center`}
-            >
-              <div className={`absolute -right-3 -top-3 h-10 w-10 rounded-full bg-gradient-to-br ${tier.cardGradient} blur-xl opacity-30`} />
-              <stat.icon className={`h-5 w-5 mx-auto ${tier.accentColor} mb-2`} />
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground leading-tight mb-1">{stat.label}</p>
-              <p className="text-base font-black text-foreground leading-tight">{stat.value}</p>
-            </div>
-          ))}
+        {/* ═══════════════════════════════════════════ */}
+        {/* PART 1 — YOUR KSOM PLAN (Protocol Hero)    */}
+        {/* ═══════════════════════════════════════════ */}
+        <div className="px-5 mt-4">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="h-px flex-1 bg-border" />
+            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              Part 1 — Your Fasting Plan
+            </span>
+            <div className="h-px flex-1 bg-border" />
+          </div>
         </div>
 
+        <div className="px-5">
+          <Card className="overflow-hidden" style={{ backgroundColor: "hsl(var(--primary) / 0.06)", borderColor: "hsl(var(--primary) / 0.2)" }}>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="h-11 w-11 rounded-xl flex items-center justify-center" style={{ backgroundColor: "hsl(var(--primary) / 0.10)" }}>
+                  <Zap className="h-5 w-5 text-primary" />
+                </div>
+                <span className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-primary">Your KSOM Plan</span>
+              </div>
+              <h2 className="text-[28px] font-black leading-tight tracking-tight">{plan.name}</h2>
+              {desc?.subtitle && (
+                <p className="text-[15px] text-muted-foreground leading-relaxed mt-3">
+                  {desc.subtitle}
+                </p>
+              )}
+
+              {/* Inline stats row */}
+              <div className="flex items-end gap-4 mt-6 pt-4 border-t border-border/40">
+                <div>
+                  <p className="text-2xl font-black">{plan.fast_hours}h</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">Fast</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-black">{desc?.length || "Flexible"}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">Duration</p>
+                </div>
+                <div className="ml-auto text-right">
+                  <p className="text-xl font-black capitalize">{getDifficultyLabel(plan.difficulty_group)}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">Level</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Protocol Sections */}
         <div className="px-5 mt-6 space-y-4">
-          {/* ── Protocol Overview ── */}
+          {/* How it works */}
           {desc?.how_it_works && (
-            <section className={`rounded-2xl border ${tier.borderClass} bg-card/80 backdrop-blur-sm p-5 space-y-3`}>
-              <h3 className={`text-xs font-bold uppercase tracking-widest ${tier.accentColor} flex items-center gap-1.5`}>
-                <Target className="h-3.5 w-3.5" />
-                Protocol Overview
-              </h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {desc.how_it_works}
-              </p>
-            </section>
+            <Section title="How This Protocol Works" icon={<Lightbulb className="h-5 w-5 text-blue-400" />}>
+              <p className="text-sm text-muted-foreground leading-relaxed">{desc.how_it_works}</p>
+            </Section>
           )}
 
-          {/* ── Focus ── */}
+          {/* Focus */}
           {desc?.focus && (
-            <section className={`rounded-2xl border ${tier.borderClass} bg-gradient-to-r ${tier.cardGradient} p-5 space-y-2`}>
-              <h3 className={`text-[10px] font-bold uppercase tracking-widest ${tier.accentColor}`}>
-                Primary Focus
-              </h3>
-              <p className="text-sm font-semibold text-foreground leading-relaxed">{desc.focus}</p>
-            </section>
+            <Section title="Primary Focus" icon={<Target className="h-5 w-5 text-blue-400" />}>
+              <p className="text-sm font-semibold leading-relaxed">{desc.focus}</p>
+            </Section>
           )}
 
-          {/* ── Benefits ── */}
+          {/* Benefits */}
           {desc?.benefits && desc.benefits.length > 0 && (
-            <section className={`rounded-2xl border ${tier.borderClass} bg-card/80 backdrop-blur-sm p-5 space-y-3`}>
-              <h3 className={`text-xs font-bold uppercase tracking-widest ${tier.accentColor} flex items-center gap-1.5`}>
-                <Flame className="h-3.5 w-3.5" />
-                Benefits
-              </h3>
-              <ul className="space-y-2.5">
+            <Section title="Benefits" icon={<Flame className="h-5 w-5 text-blue-400" />}>
+              <ul className="space-y-2">
                 {desc.benefits.map((b, i) => (
                   <li key={i} className="flex items-start gap-2.5 text-sm text-muted-foreground">
-                    <CheckCircle2 className={`h-4 w-4 shrink-0 mt-0.5 ${tier.accentColor}`} />
+                    <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5 text-primary" />
                     {b}
                   </li>
                 ))}
               </ul>
-            </section>
+            </Section>
           )}
 
-          {/* ── Daily Structure ── */}
+          {/* Daily Structure */}
           {desc?.daily_structure && (
-            <section className={`rounded-2xl border ${tier.borderClass} bg-card/80 backdrop-blur-sm p-5 space-y-3`}>
-              <h3 className={`text-xs font-bold uppercase tracking-widest ${tier.accentColor} flex items-center gap-1.5`}>
-                <Clock className="h-3.5 w-3.5" />
-                Daily Structure
-              </h3>
-              <div className="space-y-2">
+            <Section title="Daily Structure" icon={<Clock className="h-5 w-5 text-blue-400" />}>
+              <div className="space-y-2 text-sm">
                 {desc.daily_structure.stop_eating && (
-                  <div className={`flex justify-between items-center rounded-xl bg-muted/30 border ${tier.borderClass} px-4 py-3`}>
-                    <span className="text-sm text-muted-foreground">Stop Eating</span>
-                    <span className="text-sm font-bold text-foreground">{desc.daily_structure.stop_eating}</span>
+                  <div className="flex justify-between rounded-lg bg-muted/40 px-4 py-3">
+                    <span className="text-muted-foreground">Stop Eating</span>
+                    <span className="font-semibold">{desc.daily_structure.stop_eating}</span>
                   </div>
                 )}
                 {desc.daily_structure.break_fast && (
-                  <div className={`flex justify-between items-center rounded-xl bg-muted/30 border ${tier.borderClass} px-4 py-3`}>
-                    <span className="text-sm text-muted-foreground">Break Fast</span>
-                    <span className="text-sm font-bold text-foreground">{desc.daily_structure.break_fast}</span>
+                  <div className="flex justify-between rounded-lg bg-muted/40 px-4 py-3">
+                    <span className="text-muted-foreground">Break Fast</span>
+                    <span className="font-semibold">{desc.daily_structure.break_fast}</span>
                   </div>
                 )}
                 {desc.daily_structure.meals && desc.daily_structure.meals.length > 0 && (
-                  <div className={`flex justify-between items-center rounded-xl bg-muted/30 border ${tier.borderClass} px-4 py-3`}>
-                    <span className="text-sm text-muted-foreground">Meals</span>
-                    <span className="text-sm font-bold text-foreground">{desc.daily_structure.meals.join(" • ")}</span>
+                  <div className="flex justify-between rounded-lg bg-muted/40 px-4 py-3">
+                    <span className="text-muted-foreground">Meals</span>
+                    <span className="font-semibold">{desc.daily_structure.meals.join(" • ")}</span>
                   </div>
                 )}
               </div>
               {desc.daily_structure.note && (
-                <p className="text-xs text-muted-foreground/80 italic pt-1">
-                  {desc.daily_structure.note}
-                </p>
+                <p className="text-xs text-muted-foreground/80 italic pt-2">{desc.daily_structure.note}</p>
               )}
-            </section>
+            </Section>
           )}
 
-          {/* ── Who This Is For ── */}
+          {/* Who This Is For */}
           {desc?.who_for && desc.who_for.length > 0 && (
-            <section className={`rounded-2xl border ${tier.borderClass} bg-card/80 backdrop-blur-sm p-5 space-y-3`}>
-              <h3 className={`text-xs font-bold uppercase tracking-widest ${tier.accentColor} flex items-center gap-1.5`}>
-                <Users className="h-3.5 w-3.5" />
-                Who This Is For
-              </h3>
-              <ul className="space-y-2.5">
+            <Section title="Who This Is For" icon={<Users className="h-5 w-5 text-blue-400" />}>
+              <ul className="space-y-2">
                 {desc.who_for.map((w, i) => (
                   <li key={i} className="flex items-start gap-2.5 text-sm text-muted-foreground">
-                    <ChevronRight className={`h-4 w-4 shrink-0 mt-0.5 ${tier.accentColor}`} />
+                    <ChevronRight className="h-4 w-4 shrink-0 mt-0.5 text-primary" />
                     {w}
                   </li>
                 ))}
               </ul>
-            </section>
+            </Section>
           )}
 
-          {/* ── Coach Guidance ── */}
+          {/* Coach Guidance */}
           {desc?.coach_guidance && desc.coach_guidance.length > 0 && (
-            <section className={`rounded-2xl border ${tier.borderClass} bg-card/80 backdrop-blur-sm p-5 space-y-3`}>
-              <h3 className={`text-xs font-bold uppercase tracking-widest ${tier.accentColor} flex items-center gap-1.5`}>
-                <Zap className="h-3.5 w-3.5" />
-                Coach Guidance
-              </h3>
-              <ul className="space-y-2.5">
+            <Section title="Coach Guidance" icon={<Shield className="h-5 w-5 text-blue-400" />}>
+              <ul className="text-sm text-muted-foreground space-y-2">
                 {desc.coach_guidance.map((tip, i) => (
-                  <li key={i} className="flex items-start gap-2.5 text-sm text-muted-foreground">
-                    <Shield className={`h-4 w-4 shrink-0 mt-0.5 ${tier.accentColor}`} />
+                  <li key={i} className="flex items-start gap-2">
+                    <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-blue-400 shrink-0" />
                     {tip}
                   </li>
                 ))}
               </ul>
-            </section>
+            </Section>
           )}
+        </div>
 
+        {/* ═══════════════════════════════════════════ */}
+        {/* PART 2 — YOUR KETO TYPE                    */}
+        {/* ═══════════════════════════════════════════ */}
+        {ketoType && (
+          <>
+            <div className="px-5 mt-10">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="h-px flex-1 bg-border" />
+                <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                  Part 2 — Your Keto Type
+                </span>
+                <div className="h-px flex-1 bg-border" />
+              </div>
+            </div>
 
+            <div className="px-5 space-y-4">
+              {/* Keto Hero */}
+              <Card className="overflow-hidden" style={{ backgroundColor: `${themeColor}08`, borderColor: `${themeColor}25` }}>
+                <CardContent className="p-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="h-7 w-7 rounded-full flex items-center justify-center" style={{ backgroundColor: `${themeColor}15` }}>
+                      <Zap className="h-3.5 w-3.5" style={{ color: themeColor }} />
+                    </div>
+                    <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: themeColor }}>
+                      Your Active Keto Type
+                    </span>
+                  </div>
+                  <div className="flex items-baseline gap-3 mb-1">
+                    <h2 className="text-5xl font-black tracking-tight" style={{ color: themeColor }}>
+                      {ketoType.abbreviation}
+                    </h2>
+                    <span className="text-lg text-muted-foreground">{ketoType.name}</span>
+                  </div>
+                  {ketoType.subtitle && <p className="font-bold text-base mt-1">{ketoType.subtitle}</p>}
+                  {ketoType.description && (
+                    <p className="text-sm text-muted-foreground leading-relaxed mt-2">{ketoType.description}</p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Stats */}
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { label: "Level", value: ketoType.difficulty === "beginner" ? "Beginner" : ketoType.difficulty === "intermediate" ? "Intermediate" : "Advanced" },
+                  { label: "System", value: "KSOM-360" },
+                  { label: "Protein", value: `${ketoType.protein_pct}%` },
+                ].map((stat) => (
+                  <Card key={stat.label}>
+                    <CardContent className="p-3 text-center overflow-hidden">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide font-medium">{stat.label}</p>
+                      <p className="font-bold mt-0.5 text-sm capitalize truncate">{stat.value}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              {/* Macro Breakdown */}
+              <Card>
+                <CardContent className="p-5">
+                  <h3 className="text-sm font-bold uppercase tracking-wider mb-4">Macro Breakdown</h3>
+                  {[
+                    { label: "Fat", pct: ketoType.fat_pct, barColor: themeColor },
+                    { label: "Protein", pct: ketoType.protein_pct, barColor: "#94a3b8" },
+                    { label: "Carbs", pct: ketoType.carbs_pct, barColor: "#475569" },
+                  ].map((m) => (
+                    <div key={m.label} className="flex items-center gap-3 mb-3 last:mb-0">
+                      <span className="text-sm w-14 text-muted-foreground">{m.label}</span>
+                      <div className="flex-1 h-3 bg-muted rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all"
+                          style={{ width: `${(m.pct / maxPct) * 100}%`, backgroundColor: m.barColor }}
+                        />
+                      </div>
+                      <span className="text-sm font-bold w-10 text-right" style={{ color: themeColor }}>
+                        {m.pct}%
+                      </span>
+                    </div>
+                  ))}
+                  {ketoType.carb_limit_grams && (
+                    <div className="mt-3 pt-3 border-t flex items-start gap-2">
+                      <Info className="h-3.5 w-3.5 mt-0.5 text-muted-foreground shrink-0" />
+                      <p className="text-xs text-muted-foreground">
+                        Carb limit: <strong>≤{ketoType.carb_limit_grams}g net carbs</strong>
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </>
+        )}
+
+        {/* Comparisons & Safety */}
+        <div className="px-5 mt-6 space-y-4">
           <FastingStructureComparison />
           <FastingSafetyNotice />
         </div>
