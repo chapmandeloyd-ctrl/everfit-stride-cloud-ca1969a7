@@ -16,6 +16,7 @@ interface WodExercise {
   image_url: string | null;
   sets: number;
   reps: string;
+  target_type: "text" | "time";
   rest_seconds: number;
   selected: boolean;
   group_id: string | null;
@@ -142,7 +143,7 @@ export default function ClientWodBuilder() {
           estSeconds += ex.rest_seconds || 0;
         } else {
           const repsVal = parseInt(ex.reps) || 0;
-          const isTime = ex.reps.includes("s") || ex.reps.includes("m");
+          const isTime = ex.target_type === "time";
           const durationSec = isTime ? (parseInt(ex.reps) || 30) : (repsVal * 3);
           estSeconds += (durationSec + (ex.rest_seconds || 0)) * (ex.sets || 1);
         }
@@ -218,7 +219,7 @@ export default function ClientWodBuilder() {
         const exInserts = sec.exerciseItems
           .filter((ex) => ex.exercise_id !== "rest")
           .map((ex, eIdx) => {
-            const isTime = ex.reps.includes("s") || ex.reps.includes("m");
+            const isTime = ex.target_type === "time";
             return {
               workout_plan_id: planId,
               section_id: sectionRow.id,
@@ -257,6 +258,7 @@ export default function ClientWodBuilder() {
       image_url: null,
       sets: 1,
       reps: "60s",
+      target_type: "time",
       rest_seconds: 60,
       selected: false,
       group_id: null,
@@ -473,7 +475,7 @@ export default function ClientWodBuilder() {
                           {ex.sets} sets
                         </button>
                         <button onClick={() => setEditingTargetId(ex.id)} className="px-3 py-1 rounded-full border border-border text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors">
-                          {ex.reps === "10" ? "Set Target" : ex.reps}
+                          {ex.reps === "10" && ex.target_type === "text" ? "Set Target" : ex.target_type === "time" ? `⏱ ${ex.reps}` : ex.reps}
                         </button>
                         <button onClick={() => setEditingRestId(ex.id)} className="px-3 py-1 rounded-full border border-border text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors flex items-center gap-1">
                           <Hand className="h-3 w-3" />
@@ -540,7 +542,7 @@ export default function ClientWodBuilder() {
                       {ex.exercise_id !== "rest" && (
                         <div className="flex items-center gap-2 mt-2 ml-1">
                           <button onClick={() => setEditingTargetId(ex.id)} className="px-3 py-1 rounded-full border border-border text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors">
-                            {ex.reps === "10" ? "Set Target" : ex.reps}
+                            {ex.reps === "10" && ex.target_type === "text" ? "Set Target" : ex.target_type === "time" ? `⏱ ${ex.reps}` : ex.reps}
                           </button>
                           <button onClick={() => setEditingRestId(ex.id)} className="px-3 py-1 rounded-full border border-border text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors flex items-center gap-1">
                             <Hand className="h-3 w-3" />
@@ -606,13 +608,14 @@ export default function ClientWodBuilder() {
         open={showExerciseLibrary}
         onClose={() => setShowExerciseLibrary(false)}
         onAdd={(selectedExercises) => {
-          const newItems: WodExercise[] = selectedExercises.map((ex) => ({
+           const newItems: WodExercise[] = selectedExercises.map((ex) => ({
             id: crypto.randomUUID(),
             exercise_id: ex.id,
             exercise_name: ex.name,
             image_url: ex.image_url,
             sets: 3,
             reps: "10",
+            target_type: "text" as const,
             rest_seconds: 90,
             selected: false,
             group_id: null,
@@ -644,7 +647,10 @@ export default function ClientWodBuilder() {
           <SetTargetSheet
             open
             value={ex.reps}
-            onSave={(v) => updateExerciseField(editingTargetId, "reps", v)}
+            initialTargetType={ex.target_type}
+            onSave={(v, type) => {
+              setExercises((prev) => prev.map((e) => e.id === editingTargetId ? { ...e, reps: v, target_type: type } : e));
+            }}
             onClose={() => setEditingTargetId(null)}
           />
         );
