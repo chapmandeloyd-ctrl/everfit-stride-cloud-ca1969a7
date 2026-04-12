@@ -1565,18 +1565,22 @@ export default function ClientDashboard() {
                   {/* Completed workouts under calendar */}
                   {(() => {
                     const completedCardio = todayCardioSessions?.filter((s: any) => s.status === "completed") || [];
+                    const completedCustomSessions = (todayTrackedAssignedSessions || []).filter((session: any) =>
+                      !session.client_workout_id && (session.completed_at || session.status === "completed")
+                    );
                     const completedAssignedFromRow = clientWorkouts?.filter((w: any) => w.completed_at && w.scheduled_date && isToday(parseISO(w.scheduled_date))) || [];
                     const completedAssignedFromSessions = (todayTrackedAssignedSessions || []).filter((session: any) =>
-                      !completedAssignedFromRow.some((workout: any) => workout.id === session.client_workout_id)
+                      session.client_workout_id && !completedAssignedFromRow.some((workout: any) => workout.id === session.client_workout_id)
                     );
                     const completedAssigned = [...completedAssignedFromRow, ...completedAssignedFromSessions];
-                    const hasAny = completedCardio.length > 0 || completedAssigned.length > 0;
+                    const hasCustom = completedCardio.length > 0 || completedCustomSessions.length > 0;
+                    const hasAny = hasCustom || completedAssigned.length > 0;
                     if (!hasAny) return null;
                     return (
                       <>
-                        {completedCardio.length > 0 && (
+                        {hasCustom && (
                           <>
-                            <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2 mt-2">Quick Workouts</h2>
+                            <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2 mt-2">Completed Custom Workouts by {firstName}</h2>
                             <Card>
                               <CardContent className="p-0 divide-y divide-border">
                                 {completedCardio.map((session: any) => (
@@ -1589,6 +1593,26 @@ export default function ClientDashboard() {
                                       toast({ title: "Activity deleted" });
                                     }}
                                     onClick={() => setSelectedCardioSession(session)}
+                                  />
+                                ))}
+                                {completedCustomSessions.map((session: any) => (
+                                  <SwipeToDeleteWorkoutRow
+                                    key={session.id}
+                                    workout={{
+                                      ...session,
+                                      workout_plan_id: session.workout_plan_id,
+                                      workout_plan: session.workout_plan,
+                                    }}
+                                    onDelete={async () => {
+                                      try {
+                                        await supabase.from("workout_sessions").delete().eq("id", session.id);
+                                        queryClient.invalidateQueries({ queryKey: ["today-tracked-assigned-sessions", clientId] });
+                                        toast({ title: "Workout deleted" });
+                                      } catch (error) {
+                                        toast({ title: "Couldn't delete workout", variant: "destructive" });
+                                      }
+                                    }}
+                                    onClick={() => navigate(`/client/workout-session/${session.id}`)}
                                   />
                                 ))}
                               </CardContent>
@@ -1620,24 +1644,19 @@ export default function ClientDashboard() {
                                               .from("workout_sessions")
                                               .delete()
                                               .eq("id", sessionId);
-
                                             if (sessionDeleteError) throw sessionDeleteError;
                                           }
-
                                           if (clientWorkoutId) {
                                             const { error: workoutResetError } = await supabase
                                               .from("client_workouts")
                                               .update({ completed_at: null })
                                               .eq("id", clientWorkoutId);
-
                                             if (workoutResetError) throw workoutResetError;
                                           }
-
                                           await Promise.all([
                                             queryClient.invalidateQueries({ queryKey: ["client-workouts-today", clientId] }),
                                             queryClient.invalidateQueries({ queryKey: ["today-tracked-assigned-sessions", clientId] }),
                                           ]);
-
                                           toast({ title: "Workout deleted" });
                                         } catch (error) {
                                           toast({
