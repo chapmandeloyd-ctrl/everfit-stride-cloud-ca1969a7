@@ -288,26 +288,8 @@ export default function ClientCompletePlan() {
               </div>
               <h2 className="text-[28px] font-black leading-tight tracking-tight">{protocol.name}</h2>
 
-              {/* Inline stats row */}
-              <div className="flex items-end gap-4 mt-6 pt-4 border-t border-border/40">
-                <div>
-                  <p className="text-2xl font-black">{protocol.fast_target_hours}h</p>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">Fast</p>
-                </div>
-                <div>
-                  <p className="text-2xl font-black">
-                    {protocol.duration_days === 0 ? "∞" : `${Math.ceil(protocol.duration_days / 7)} week${Math.ceil(protocol.duration_days / 7) !== 1 ? "s" : ""}`}
-                  </p>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">Duration</p>
-                </div>
-                <div className="ml-auto text-right">
-                  <p className="text-xl font-black capitalize">{getDifficultyLabel(protocol.difficulty_level)}</p>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">Level</p>
-                </div>
-              </div>
-
-              {/* How This Protocol Works — inside the card */}
-              <div className="mt-6 pt-4 border-t border-border/40">
+              {/* How This Protocol Works */}
+              <div className="mt-4 pt-4 border-t border-border/40">
                 <div className="flex items-center gap-2 mb-2">
                   <Lightbulb className="h-4 w-4 text-blue-400" />
                   <h3 className="text-sm font-bold">How This Protocol Works</h3>
@@ -324,6 +306,24 @@ export default function ClientCompletePlan() {
                     program designed to help your body transition from sugar-burning to fat-burning safely and sustainably.
                   </p>
                 )}
+              </div>
+
+              {/* Stats row */}
+              <div className="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-border/40">
+                <div className="text-center">
+                  <p className="text-lg font-black">{protocol.fast_target_hours}h</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">Fast</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-lg font-black">
+                    {protocol.duration_days === 0 ? "∞" : `${Math.ceil(protocol.duration_days / 7)} week${Math.ceil(protocol.duration_days / 7) !== 1 ? "s" : ""}`}
+                  </p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">Duration</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-lg font-black capitalize">{getDifficultyLabel(protocol.difficulty_level)}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">Level</p>
+                </div>
               </div>
             </CardContent>
           </Card>
