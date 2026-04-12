@@ -955,21 +955,19 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
               </div>
             )}
 
-            {/* Overlay gradient at bottom */}
-            <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background to-transparent" />
+          </div>
 
-            {/* Exercise name overlay */}
-            <div className="absolute inset-x-0 bottom-0 px-4 pb-3">
-              <p className="text-2xl font-black text-foreground drop-shadow-lg leading-tight">
-                {currentExercise?.exercise_name}
-              </p>
-              {currentExercise?.reps && (
-                <p className="text-base font-semibold text-primary">{currentExercise.reps} reps</p>
-              )}
-              {currentExercise?.notes && (
-                <p className="text-xs text-muted-foreground italic mt-0.5">{currentExercise.notes}</p>
-              )}
-            </div>
+          {/* Exercise name + reps below video */}
+          <div className="px-4 py-3 bg-background">
+            <p className="text-2xl font-black text-foreground leading-tight">
+              {currentExercise?.exercise_name}
+            </p>
+            {currentExercise?.reps && (
+              <p className="text-base font-semibold text-primary">{currentExercise.reps} reps</p>
+            )}
+            {currentExercise?.notes && (
+              <p className="text-xs text-muted-foreground italic mt-0.5">{currentExercise.notes}</p>
+            )}
 
             {/* Countdown timer bubble — for timed exercises */}
             {currentExercise?.duration_seconds && stepTimer > 0 && (
