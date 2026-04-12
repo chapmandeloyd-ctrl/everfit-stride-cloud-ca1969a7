@@ -98,6 +98,7 @@ export default function ClientWodBuilder() {
   const [editingRestId, setEditingRestId] = useState<string | null>(null);
   const [groups, setGroups] = useState<ExerciseGroup[]>([]);
   const [editingCircuitRoundsId, setEditingCircuitRoundsId] = useState<string | null>(null);
+  const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [overIndex, setOverIndex] = useState<number | null>(null);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -370,7 +371,20 @@ export default function ClientWodBuilder() {
     );
   };
 
-  const handleInsertExercise = () => {
+  const handleInsertExercise = (blockId?: string) => {
+    if (blockId) setActiveBlockId(blockId);
+    else setActiveBlockId(null);
+    setShowExerciseLibrary(true);
+  };
+
+  const handleAddBlock = () => {
+    const blockId = crypto.randomUUID();
+    const blockNumber = groups.length + 1;
+    const newGroup: ExerciseGroup = { id: blockId, type: "superset", rounds: 3, selected: false };
+    setGroups((prev) => [...prev, newGroup]);
+    toast.success(`Block ${blockNumber} added`);
+    // Open exercise library for this block
+    setActiveBlockId(blockId);
     setShowExerciseLibrary(true);
   };
 
@@ -420,18 +434,27 @@ export default function ClientWodBuilder() {
 
       {/* Content area */}
       <div className="flex-1 overflow-auto">
-        {exercises.length === 0 ? (
+        {exercises.length === 0 && (workoutType !== "superset" || groups.length === 0) ? (
           <div className="flex flex-col items-center justify-center h-full px-6 gap-4">
             <Dumbbell className="w-20 h-20 text-muted-foreground/25" strokeWidth={1.2} />
             <p className="text-base font-medium text-muted-foreground">
               No exercises added yet
             </p>
-            <button
-              onClick={handleInsertExercise}
-              className="text-sm font-semibold text-primary uppercase tracking-wide"
-            >
-              + INSERT EXERCISE
-            </button>
+            {workoutType === "superset" ? (
+              <button
+                onClick={handleAddBlock}
+                className="text-sm font-semibold text-primary uppercase tracking-wide"
+              >
+                + ADD BLOCK
+              </button>
+            ) : (
+              <button
+                onClick={() => handleInsertExercise()}
+                className="text-sm font-semibold text-primary uppercase tracking-wide"
+              >
+                + INSERT EXERCISE
+              </button>
+            )}
           </div>
         ) : (
           <div className="px-3 pt-3 pb-4 space-y-0">
@@ -567,7 +590,9 @@ export default function ClientWodBuilder() {
                     </button>
                     <div className="flex-1 min-w-0">
                       <span className="text-sm text-foreground">
-                        {group.type === "circuit" ? "Circuit" : "Superset"} of{" "}
+                        {workoutType === "superset" 
+                          ? `Block ${groups.indexOf(group) + 1} · `
+                          : `${group.type === "circuit" ? "Circuit" : "Superset"} of `}
                         <button
                           onClick={() => setEditingCircuitRoundsId(group.id)}
                           className="text-primary font-semibold"
@@ -576,15 +601,25 @@ export default function ClientWodBuilder() {
                         </button>
                       </span>
                     </div>
+                    {workoutType !== "superset" && (
+                      <button
+                        onClick={() => handleUngroup(group.id)}
+                        className="text-xs font-semibold text-primary mr-1"
+                      >
+                        Ungroup
+                      </button>
+                    )}
                     <button
-                      onClick={() => handleUngroup(group.id)}
-                      className="text-xs font-semibold text-primary mr-1"
+                      onClick={() => {
+                        // Delete this block and its exercises
+                        setExercises((prev) => prev.filter((e) => e.group_id !== group.id));
+                        setGroups((prev) => prev.filter((g) => g.id !== group.id));
+                        toast.success("Block removed");
+                      }}
+                      className="text-xs mr-1"
                     >
-                      Ungroup
+                      <X className="h-4 w-4 text-muted-foreground hover:text-destructive" />
                     </button>
-                    <div className="shrink-0 text-muted-foreground/30 cursor-grab">
-                      <GripVertical className="h-5 w-5" />
-                    </div>
                   </div>
 
                   {/* Group exercises - no checkbox, no sets pill */}
@@ -615,9 +650,32 @@ export default function ClientWodBuilder() {
                       )}
                     </div>
                   ))}
+                  {/* Per-block Add Exercises button for superset mode */}
+                  {workoutType === "superset" && (
+                    <div className="px-3 py-2 border-t border-border/50">
+                      <button
+                        onClick={() => handleInsertExercise(group.id)}
+                        className="text-xs font-semibold text-primary"
+                      >
+                        + Add Exercises
+                      </button>
+                    </div>
+                  )}
                 </div>
               );
             })}
+
+            {/* Add Block button for superset mode */}
+            {workoutType === "superset" && (
+              <div className="flex justify-center pt-4 pb-2">
+                <button
+                  onClick={handleAddBlock}
+                  className="text-sm font-semibold text-primary uppercase tracking-wide"
+                >
+                  + ADD BLOCK
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -659,11 +717,11 @@ export default function ClientWodBuilder() {
           <span className="text-[10px] font-medium">Rest</span>
         </button>
         <button
-          onClick={handleInsertExercise}
+          onClick={() => workoutType === "superset" ? handleAddBlock() : handleInsertExercise()}
           className="flex flex-col items-center gap-1 text-primary hover:text-primary/80 transition-colors"
         >
-          <Dumbbell className="h-5 w-5" />
-          <span className="text-[10px] font-medium">Insert</span>
+          {workoutType === "superset" ? <Layers className="h-5 w-5" /> : <Dumbbell className="h-5 w-5" />}
+          <span className="text-[10px] font-medium">{workoutType === "superset" ? "Add Block" : "Insert"}</span>
         </button>
       </div>
 
@@ -685,7 +743,15 @@ export default function ClientWodBuilder() {
             group_id: null,
           }));
 
-          if (isGroupedWorkoutType(workoutType)) {
+          // Superset mode: add exercises to the active block
+          if (workoutType === "superset" && activeBlockId) {
+            setExercises((prev) => [...prev, ...newItems.map((item) => ({ ...item, group_id: activeBlockId }))]);
+            setActiveBlockId(null);
+            toast.success(`Added ${selectedExercises.length} exercise(s)`);
+            return;
+          }
+
+          if (isGroupedWorkoutType(workoutType) && workoutType !== "superset") {
             const existingUngrouped = exercises.filter((exercise) => !exercise.group_id && exercise.exercise_id !== "rest");
             const shouldCreateGroup = groups.length === 0 && existingUngrouped.length + newItems.length >= 2;
 
