@@ -1386,8 +1386,7 @@ export default function ClientDashboard() {
         .from("cardio_sessions" as any)
         .select("*")
         .eq("client_id", clientId)
-        .gte("created_at", `${today}T00:00:00`)
-        .lte("created_at", `${today}T23:59:59`)
+        .or(`created_at.gte.${today}T00:00:00,completed_at.gte.${today}T00:00:00,status.eq.in_progress`)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data as any[];
