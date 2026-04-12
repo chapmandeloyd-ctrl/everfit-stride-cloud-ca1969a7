@@ -714,7 +714,7 @@ export default function CreateWorkout() {
         if (group) {
           const groupIndex = groups.indexOf(group);
           rendered.push(
-            <div key={`group-${item.group_id}`} className={`border-2 rounded-lg mx-2 overflow-hidden ${getBlockType(group.block_type || "custom").borderColor}`}>
+            <div key={`group-${item.group_id}`} className="border-2 rounded-lg mx-2 overflow-hidden border-border">
               {/* Sortable Group Header */}
               <SortableGroupHeader
                 groupId={group.id}
