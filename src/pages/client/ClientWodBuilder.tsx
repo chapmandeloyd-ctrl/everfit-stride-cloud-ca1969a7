@@ -441,7 +441,7 @@ export default function ClientWodBuilder() {
               No exercises added yet
             </p>
             <button
-              onClick={handleInsertExercise}
+              onClick={() => handleInsertExercise()}
               className="text-sm font-semibold text-primary uppercase tracking-wide"
             >
               + INSERT EXERCISE
@@ -673,7 +673,7 @@ export default function ClientWodBuilder() {
           <span className="text-[10px] font-medium">Rest</span>
         </button>
         <button
-          onClick={handleInsertExercise}
+          onClick={() => handleInsertExercise()}
           className="flex flex-col items-center gap-1 text-primary hover:text-primary/80 transition-colors"
         >
           <Dumbbell className="h-5 w-5" />
