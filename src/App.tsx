@@ -57,6 +57,7 @@ import ClientHealth from "./pages/client/ClientHealth";
 import ClientHealthConnect from "./pages/client/ClientHealthConnect";
 import ClientBadges from "./pages/client/ClientBadges";
 import ClientMealPlan from "./pages/client/ClientMealPlan";
+import ClientMealSelect from "./pages/client/ClientMealSelect";
 import ClientHabits from "./pages/client/ClientHabits";
 import ClientHabitDetail from "./pages/client/ClientHabitDetail";
 import ClientMacroSetup from "./pages/client/ClientMacroSetup";
@@ -164,6 +165,7 @@ const App = () => (
           <Route path="/client/workouts" element={<ProtectedRoute allowedRoles={["client"]}><ClientWorkouts /></ProtectedRoute>} />
           <Route path="/client/progress" element={<ProtectedRoute allowedRoles={["client"]}><ClientProgress /></ProtectedRoute>} />
           <Route path="/client/meal-plan" element={<ProtectedRoute allowedRoles={["client"]}><ClientMealPlan /></ProtectedRoute>} />
+          <Route path="/client/meal-select" element={<ProtectedRoute allowedRoles={["client"]}><ClientMealSelect /></ProtectedRoute>} />
           <Route path="/client/nutrition" element={<ProtectedRoute allowedRoles={["client"]}><ClientNutrition /></ProtectedRoute>} />
           <Route path="/client/nutrition-dashboard" element={<ProtectedRoute allowedRoles={["client"]}><ClientNutritionDashboard /></ProtectedRoute>} />
           <Route path="/client/calendar" element={<ProtectedRoute allowedRoles={["client"]}><ClientCalendar /></ProtectedRoute>} />
