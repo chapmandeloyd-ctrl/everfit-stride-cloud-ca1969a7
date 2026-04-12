@@ -271,10 +271,13 @@ export default function EditWorkout() {
 
         if (isGrouped) {
           groupId = crypto.randomUUID();
+          const detectedBt = getBlockTypeFromSectionName(section.name || "");
           newGroups.push({
             id: groupId,
             type: section.section_type as "superset" | "circuit",
             sets: section.rounds || 3,
+            block_type: detectedBt.id,
+            custom_name: detectedBt.id === "custom" ? section.name : undefined,
           });
         }
 
