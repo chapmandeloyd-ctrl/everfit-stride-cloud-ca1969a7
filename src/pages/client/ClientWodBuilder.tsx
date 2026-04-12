@@ -712,10 +712,10 @@ export default function ClientWodBuilder() {
                     onTouchStart={(e) => workoutType === "superset" && handleBlockTouchStart(e, blockIdx)}
                     onTouchMove={workoutType === "superset" ? handleBlockTouchMove : undefined}
                     onTouchEnd={workoutType === "superset" ? handleBlockTouchEnd : undefined}
-                     className={`border rounded-lg overflow-hidden transition-all border-muted-foreground/20 bg-muted/30 ${blockDragIndex === blockIdx ? "opacity-50 scale-95" : ""} ${blockOverIndex === blockIdx && blockDragIndex !== null && blockDragIndex !== blockIdx ? "border-t-2 border-t-primary" : ""}`}
+                     className={`border rounded-lg overflow-hidden transition-all border-muted-foreground/20 bg-muted/20 ${blockDragIndex === blockIdx ? "opacity-50 scale-95" : ""} ${blockOverIndex === blockIdx && blockDragIndex !== null && blockDragIndex !== blockIdx ? "border-t-2 border-t-primary" : ""}`}
                    >
                      {/* Group header */}
-                     <div className="flex items-center gap-2 px-3 py-3 bg-muted/50">
+                     <div className="flex items-center gap-2 px-3 py-3 bg-muted/30">
                       <button onClick={() => toggleGroupSelect(group.id)} className="shrink-0">
                         <div className={`w-5 h-5 rounded border-[1.5px] flex items-center justify-center transition-colors ${group.selected ? "bg-primary border-primary" : "border-muted-foreground/30 bg-transparent"}`}>
                           {group.selected && (
@@ -771,7 +771,7 @@ export default function ClientWodBuilder() {
                         onDragStart={() => { setIntraBlockDragFrom({ groupId: group.id, index: exIdx }); setIntraBlockDragOver(exIdx); }}
                         onDragOver={(e) => { e.preventDefault(); setIntraBlockDragOver(exIdx); }}
                         onDragEnd={() => handleIntraBlockDragEnd(group.id)}
-                        className={`py-3 px-3 border-t border-border/50 bg-background transition-all ${intraBlockDragFrom?.groupId === group.id && intraBlockDragFrom.index === exIdx ? "opacity-50 scale-95" : ""} ${intraBlockDragFrom?.groupId === group.id && intraBlockDragOver === exIdx && intraBlockDragFrom.index !== exIdx ? "border-t-2 border-t-primary" : ""}`}
+                        className={`py-3 px-3 border-t border-muted-foreground/20 bg-muted/10 transition-all ${intraBlockDragFrom?.groupId === group.id && intraBlockDragFrom.index === exIdx ? "opacity-50 scale-95" : ""} ${intraBlockDragFrom?.groupId === group.id && intraBlockDragOver === exIdx && intraBlockDragFrom.index !== exIdx ? "border-t-2 border-t-primary" : ""}`}
                       >
                         <div className="flex items-center gap-2">
                           <div className="w-14 h-14 rounded-lg overflow-hidden bg-muted shrink-0 flex items-center justify-center">
@@ -803,7 +803,7 @@ export default function ClientWodBuilder() {
                     ))}
                     {/* Per-block Add Exercises button for superset mode */}
                     {workoutType === "superset" && (
-                      <div className="px-3 py-2 border-t border-border/50">
+                      <div className="px-3 py-2 border-t border-muted-foreground/20 bg-muted/10">
                         <button
                           onClick={() => handleInsertExercise(group.id)}
                           className="text-xs font-semibold text-primary"
