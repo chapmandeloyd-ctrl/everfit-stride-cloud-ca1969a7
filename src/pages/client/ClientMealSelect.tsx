@@ -1,6 +1,6 @@
 import { ClientLayout } from "@/components/ClientLayout";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, UtensilsCrossed } from "lucide-react";
+import { ArrowLeft, UtensilsCrossed, Brain, ScanBarcode, Camera, Keyboard } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useCallback } from "react";
 
@@ -108,6 +108,51 @@ export default function ClientMealSelect() {
               ))}
             </div>
           </FilterSection>
+
+          {/* Divider */}
+          <div className="pt-4 pb-1">
+            <div className="h-px bg-border" />
+          </div>
+
+          {/* Alternative Options */}
+          <div className="space-y-2.5">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Not Sure What You Want?</h2>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              You can follow your plan — or track your own meal.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 pb-4">
+            <QuickActionCard
+              emoji="🧠"
+              title="Can't Decide"
+              description="Let KSOM360 pick the best meals for you."
+              onClick={() => {
+                // Auto-filter: select break-my-fast + high-protein goals
+                if (!mealGoal.selected.has("Break My Fast")) mealGoal.toggle("Break My Fast");
+                if (!mealGoal.selected.has("High Protein")) mealGoal.toggle("High Protein");
+                navigate("/client/meal-plan");
+              }}
+            />
+            <QuickActionCard
+              emoji="📦"
+              title="Scan Your Food"
+              description="Scan a barcode to instantly track your food."
+              onClick={() => navigate("/client/nutrition", { state: { openScanner: true } })}
+            />
+            <QuickActionCard
+              emoji="📸"
+              title="Snap Your Meal"
+              description="Take a photo and let AI estimate your macros."
+              onClick={() => navigate("/client/nutrition", { state: { openSnap: true } })}
+            />
+            <QuickActionCard
+              emoji="⌨️"
+              title="Type Your Meal"
+              description="Enter your meal manually for full macro breakdown."
+              onClick={() => navigate("/client/nutrition", { state: { openType: true } })}
+            />
+          </div>
         </div>
       </div>
 
@@ -185,6 +230,20 @@ function RadioChip({ label, selected, onSelect }: { label: string; selected: boo
         {selected && <span className="h-2.5 w-2.5 rounded-full bg-primary" />}
       </span>
       {label}
+    </button>
+  );
+}
+
+function QuickActionCard({ emoji, title, description, onClick }: { emoji: string; title: string; description: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex flex-col items-start gap-2 rounded-2xl border bg-card p-4 text-left transition-all active:scale-[0.97] hover:border-primary/40 hover:shadow-md"
+    >
+      <span className="text-2xl">{emoji}</span>
+      <span className="text-sm font-bold text-foreground">{title}</span>
+      <span className="text-xs text-muted-foreground leading-relaxed">{description}</span>
     </button>
   );
 }
