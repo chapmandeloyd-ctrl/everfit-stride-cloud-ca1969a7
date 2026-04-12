@@ -86,19 +86,7 @@ export default function ClientWodBuilder() {
         {exercises.length === 0 ? (
           /* Empty state */
           <div className="flex flex-col items-center justify-center h-full px-6">
-            <div className="w-24 h-24 mb-6 text-muted-foreground/30">
-              <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-                <rect x="30" y="15" width="40" height="8" rx="4" fill="currentColor" />
-                <rect x="38" y="23" width="24" height="50" rx="4" fill="currentColor" />
-                <rect x="30" y="73" width="40" height="8" rx="4" fill="currentColor" />
-                <rect x="42" y="8" width="16" height="7" rx="3" fill="currentColor" />
-                <rect x="42" y="81" width="16" height="7" rx="3" fill="currentColor" />
-                <circle cx="50" cy="48" r="8" stroke="currentColor" strokeWidth="3" fill="none" />
-              </svg>
-            </div>
-            <p className="text-base font-medium text-muted-foreground mb-3">
-              No exercises added yet
-            </p>
+            <Dumbbell className="w-20 h-20 text-muted-foreground/25" strokeWidth={1.2} />
             <button
               onClick={handleInsertExercise}
               className="text-sm font-semibold text-primary uppercase tracking-wide"
