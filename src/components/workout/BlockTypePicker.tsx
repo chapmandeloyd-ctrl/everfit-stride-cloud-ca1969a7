@@ -87,10 +87,10 @@ export function BlockTypePicker({ open, onOpenChange, onSelect }: BlockTypePicke
             <button
               key={bt.id}
               onClick={() => handleSelect(bt)}
-              className={`flex flex-col items-center text-center p-4 rounded-xl border-2 transition-all hover:scale-[1.02] hover:shadow-md ${bt.borderColor} ${bt.color}`}
+              className="flex flex-col items-center text-center p-4 rounded-xl border-2 border-border bg-card transition-all hover:scale-[1.02] hover:shadow-md hover:border-primary"
             >
               <span className="text-3xl mb-2">{bt.emoji}</span>
-              <span className={`text-sm font-bold ${bt.textColor}`}>{bt.label}</span>
+              <span className="text-sm font-bold text-foreground">{bt.label}</span>
               <span className="text-[11px] text-muted-foreground mt-1 leading-tight">{bt.description}</span>
             </button>
           ))}
