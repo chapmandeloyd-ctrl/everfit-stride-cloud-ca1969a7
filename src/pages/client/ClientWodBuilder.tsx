@@ -98,6 +98,7 @@ export default function ClientWodBuilder() {
   const [editingRestId, setEditingRestId] = useState<string | null>(null);
   const [groups, setGroups] = useState<ExerciseGroup[]>([]);
   const [editingCircuitRoundsId, setEditingCircuitRoundsId] = useState<string | null>(null);
+  const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [overIndex, setOverIndex] = useState<number | null>(null);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
