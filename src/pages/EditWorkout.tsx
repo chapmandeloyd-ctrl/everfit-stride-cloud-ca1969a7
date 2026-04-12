@@ -477,10 +477,11 @@ export default function EditWorkout() {
         sectionInserts.push({ workout_plan_id: id, name: "Main", section_type: "straight_set", order_index: sectionIdx++, rounds: 1 });
       }
 
+      let supersetBlockIdx = 1;
       for (const group of groups) {
         sectionInserts.push({
           workout_plan_id: id,
-          name: group.type === "superset" ? "Superset" : "Circuit",
+          name: group.type === "superset" ? `Superset Block ${supersetBlockIdx++}` : "Circuit",
           section_type: group.type,
           order_index: sectionIdx++,
           rounds: group.sets,
@@ -573,9 +574,18 @@ export default function EditWorkout() {
                     setExerciseItems((prev) => prev.map((ei) => ei.group_id === item.group_id ? { ...ei, selected: !allSelected } : ei));
                   }}
                 />
-                <span className="text-sm text-muted-foreground">{group.type === "superset" ? "Superset" : "Circuit"} of</span>
+                {group.type === "superset" ? (
+                  <>
+                    <span className="text-sm font-medium text-foreground">
+                      Block {groups.filter(g => g.type === "superset").indexOf(group) + 1}
+                    </span>
+                    <span className="text-sm text-muted-foreground">·</span>
+                  </>
+                ) : (
+                  <span className="text-sm text-muted-foreground">Circuit of</span>
+                )}
                 <Input type="number" value={group.sets} onChange={(e) => updateGroupSets(group.id, parseInt(e.target.value) || 1)} className="h-7 w-14 text-sm text-center" min={1} />
-                <span className="text-sm text-muted-foreground">sets</span>
+                <span className="text-sm text-muted-foreground">{group.type === "superset" ? "rounds" : "sets"}</span>
                 <div className="flex-1" />
                 <Button variant="link" size="sm" className="text-primary text-xs p-0 h-auto" onClick={() => ungroupItems(group.id)}>Ungroup</Button>
                 <GripVertical className="h-4 w-4 text-muted-foreground" />

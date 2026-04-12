@@ -555,10 +555,11 @@ export default function CreateWorkout() {
         });
       }
 
+      let supersetBlockIdx = 1;
       for (const group of groups) {
         sectionInserts.push({
           workout_plan_id: workout.id,
-          name: group.type === "superset" ? "Superset" : "Circuit",
+          name: group.type === "superset" ? `Superset Block ${supersetBlockIdx++}` : "Circuit",
           section_type: group.type,
           order_index: sectionIdx++,
           rounds: group.sets,
@@ -666,9 +667,16 @@ export default function CreateWorkout() {
                     );
                   }}
                 />
-                <span className="text-sm text-muted-foreground">
-                  {group.type === "superset" ? "Superset" : "Circuit"} of
-                </span>
+                {group.type === "superset" ? (
+                  <>
+                    <span className="text-sm font-medium text-foreground">
+                      Block {groups.filter(g => g.type === "superset").indexOf(group) + 1}
+                    </span>
+                    <span className="text-sm text-muted-foreground">·</span>
+                  </>
+                ) : (
+                  <span className="text-sm text-muted-foreground">Circuit of</span>
+                )}
                 <Input
                   type="number"
                   value={group.sets}
@@ -676,7 +684,7 @@ export default function CreateWorkout() {
                   className="h-7 w-14 text-sm text-center"
                   min={1}
                 />
-                <span className="text-sm text-muted-foreground">sets</span>
+                <span className="text-sm text-muted-foreground">{group.type === "superset" ? "rounds" : "sets"}</span>
                 <div className="flex-1" />
                 <Button
                   variant="link"

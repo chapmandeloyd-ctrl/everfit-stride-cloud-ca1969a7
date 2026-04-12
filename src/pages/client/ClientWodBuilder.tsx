@@ -253,10 +253,10 @@ export default function ClientWodBuilder() {
         sections.push({ name: "Main", type: "regular", rounds: 1, exerciseItems: currentUngrouped });
       }
 
-      // Insert sections + exercises
+      let supersetBlockNum = 0;
       for (let sIdx = 0; sIdx < sections.length; sIdx++) {
         const sec = sections[sIdx];
-        const sectionName = sec.type === "circuit" ? "Circuit" : sec.type === "superset" ? "Superset" : `Section ${sIdx + 1}`;
+        const sectionName = sec.type === "circuit" ? "Circuit" : sec.type === "superset" ? `Superset Block ${++supersetBlockNum}` : `Section ${sIdx + 1}`;
 
         const { data: sectionRow, error: secError } = await supabase
           .from("workout_sections")

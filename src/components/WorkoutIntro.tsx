@@ -70,7 +70,13 @@ export function WorkoutIntro({
 
     // Announce welcome
     const exerciseWord = totalExercises === 1 ? "exercise" : "exercises";
-    const welcomeText = `Welcome to ${workoutName}. Today you'll be doing ${totalExercises} ${exerciseWord} in about ${totalMinutes} minutes.`;
+    const supersetSections = sections.filter(s => s.section_type === "superset");
+    const blockInfo = supersetSections.length > 1
+      ? ` across ${supersetSections.length} superset blocks`
+      : supersetSections.length === 1
+        ? " in a superset"
+        : "";
+    const welcomeText = `Welcome to ${workoutName}. Today you'll be doing ${totalExercises} ${exerciseWord}${blockInfo} in about ${totalMinutes} minutes.`;
     await speakFn(welcomeText);
     if (!mountedRef.current) return;
 
