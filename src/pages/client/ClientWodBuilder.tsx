@@ -682,7 +682,7 @@ export default function ClientWodBuilder() {
                           <button onClick={() => setEditingTargetId(ex.id)} className="px-3 py-1 rounded-full border border-border text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors">
                             {ex.reps === "10" && ex.target_type === "text" ? "Set Target" : ex.target_type === "time" ? `⏱ ${ex.reps}` : ex.reps}
                           </button>
-                          {group.block_type !== "interval" && (
+                          {(() => { const exGroup = groups.find(g => g.id === ex.group_id); return !exGroup || exGroup.block_type !== "interval"; })() && (
                             <button onClick={() => setEditingRestId(ex.id)} className="px-3 py-1 rounded-full border border-border text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors flex items-center gap-1">
                               <Hand className="h-3 w-3" />
                               {ex.rest_seconds > 0 ? (ex.rest_seconds >= 60 ? `${Math.floor(ex.rest_seconds / 60)}m${ex.rest_seconds % 60 > 0 ? ` ${ex.rest_seconds % 60}s` : ""}` : `${ex.rest_seconds}s`) : "None"}
