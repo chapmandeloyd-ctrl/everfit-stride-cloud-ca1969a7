@@ -1,7 +1,8 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Trash2, Dumbbell, Hand, Layers, Repeat, GripVertical, Timer, X } from "lucide-react";
+import { Trash2, Dumbbell, Hand, Layers, Repeat, GripVertical, Timer, X, Bookmark } from "lucide-react";
+import { useSavedWorkouts } from "@/hooks/useSavedWorkouts";
 import { getBlockType, WORKOUT_BLOCK_TYPES, WorkoutBlockType } from "@/lib/workoutBlockTypes";
 import { BlockTypePicker } from "@/components/workout/BlockTypePicker";
 
@@ -420,7 +421,13 @@ export default function ClientWodBuilder() {
         }
       }
 
-      toast.success("Workout saved!");
+      // Auto-save to favorites
+      await supabase.from("saved_workouts").upsert(
+        { client_id: user.id, workout_plan_id: planId },
+        { onConflict: "client_id,workout_plan_id" }
+      );
+
+      toast.success("Workout saved to favorites!");
       navigate(`/client/workouts/${planId}`);
     } catch (err) {
       console.error("Failed to save WOD:", err);
@@ -593,6 +600,7 @@ export default function ClientWodBuilder() {
                 + INSERT EXERCISE
               </button>
             )}
+            <SavedWorkoutsQuickLoad navigate={navigate} />
           </div>
         ) : (
           <div className="px-3 pt-3 pb-4 space-y-0">
@@ -1056,6 +1064,36 @@ export default function ClientWodBuilder() {
         onOpenChange={setShowBlockPicker}
         onSelect={handleBlockTypeSelected}
       />
+    </div>
+  );
+}
+
+function SavedWorkoutsQuickLoad({ navigate }: { navigate: (path: string) => void }) {
+  const { savedWorkouts, isLoading } = useSavedWorkouts();
+
+  if (isLoading || savedWorkouts.length === 0) return null;
+
+  return (
+    <div className="w-full mt-4 space-y-2">
+      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground text-center">
+        Or load a saved workout
+      </p>
+      <div className="space-y-2">
+        {savedWorkouts.slice(0, 5).map((sw: any) => {
+          const plan = sw.workout_plans;
+          return (
+            <button
+              key={sw.id}
+              onClick={() => navigate(`/client/workouts/${sw.workout_plan_id}`)}
+              className="w-full flex items-center gap-3 p-3 rounded-xl border border-border bg-card hover:bg-muted/50 transition-colors text-left"
+            >
+              <Bookmark className="h-4 w-4 text-primary shrink-0" />
+              <span className="text-sm font-medium text-foreground truncate flex-1">{plan?.name || "Workout"}</span>
+              <span className="text-xs text-muted-foreground shrink-0">{plan?.duration_minutes && `${plan.duration_minutes} min`}</span>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
