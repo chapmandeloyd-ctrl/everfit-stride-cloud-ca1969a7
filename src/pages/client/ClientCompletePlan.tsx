@@ -16,6 +16,7 @@ import {
   getDifficultyLabel,
 } from "@/lib/fastingCategoryConfig";
 import { PROTOCOL_DETAIL_COPY } from "@/lib/protocolDetailContent";
+import { getProtocolCardContent } from "@/lib/protocolCardContent";
 import { usePlanSynergy } from "@/hooks/usePlanSynergy";
 import { useMemo, useEffect } from "react";
 
@@ -42,14 +43,11 @@ function getDailySchedule(fastHours: number) {
   return { stopEating: fmt(stopHour), breakFast: fmt(breakHour) };
 }
 
-function Section({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
+function SectionHeader({ title, icon }: { title: string; icon: React.ReactNode }) {
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2">
-        {icon}
-        <h2 className="text-base font-bold">{title}</h2>
-      </div>
-      <div>{children}</div>
+    <div className="flex items-center gap-2.5 mb-3">
+      {icon}
+      <h3 className="text-sm font-bold uppercase tracking-wide">{title}</h3>
     </div>
   );
 }
