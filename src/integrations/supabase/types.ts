@@ -5809,58 +5809,94 @@ export type Database = {
       }
       recipes: {
         Row: {
+          avoid_if: string[] | null
+          best_for: string[] | null
           calories: number | null
+          carb_limit_note: string | null
           carbs: number | null
           cook_time_minutes: number | null
           created_at: string
           description: string | null
           fats: number | null
           id: string
+          if_roles: string[] | null
           image_url: string | null
+          ingredients_list: string | null
           instructions: string | null
+          keto_types: string[] | null
+          meal_role: string | null
+          meal_timing: string | null
           name: string
           prep_time_minutes: number | null
           protein: number | null
+          protein_target_note: string | null
           servings: number | null
+          subtype: string | null
           tags: string[] | null
           trainer_id: string
+          trigger_conditions: string[] | null
           updated_at: string
+          why_it_works: string | null
         }
         Insert: {
+          avoid_if?: string[] | null
+          best_for?: string[] | null
           calories?: number | null
+          carb_limit_note?: string | null
           carbs?: number | null
           cook_time_minutes?: number | null
           created_at?: string
           description?: string | null
           fats?: number | null
           id?: string
+          if_roles?: string[] | null
           image_url?: string | null
+          ingredients_list?: string | null
           instructions?: string | null
+          keto_types?: string[] | null
+          meal_role?: string | null
+          meal_timing?: string | null
           name: string
           prep_time_minutes?: number | null
           protein?: number | null
+          protein_target_note?: string | null
           servings?: number | null
+          subtype?: string | null
           tags?: string[] | null
           trainer_id: string
+          trigger_conditions?: string[] | null
           updated_at?: string
+          why_it_works?: string | null
         }
         Update: {
+          avoid_if?: string[] | null
+          best_for?: string[] | null
           calories?: number | null
+          carb_limit_note?: string | null
           carbs?: number | null
           cook_time_minutes?: number | null
           created_at?: string
           description?: string | null
           fats?: number | null
           id?: string
+          if_roles?: string[] | null
           image_url?: string | null
+          ingredients_list?: string | null
           instructions?: string | null
+          keto_types?: string[] | null
+          meal_role?: string | null
+          meal_timing?: string | null
           name?: string
           prep_time_minutes?: number | null
           protein?: number | null
+          protein_target_note?: string | null
           servings?: number | null
+          subtype?: string | null
           tags?: string[] | null
           trainer_id?: string
+          trigger_conditions?: string[] | null
           updated_at?: string
+          why_it_works?: string | null
         }
         Relationships: []
       }
