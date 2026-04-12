@@ -143,11 +143,12 @@ export default function ClientMealResults() {
         description: "Added to your daily nutrition log.",
       });
 
-      // Show coaching nudge if macro exceeded
+      // Show coaching nudge with suggestions
       if (nudgeData?.nudge) {
+        setActiveNudge(nudgeData.nudge);
         setTimeout(() => {
           toast({
-            title: nudgeData.nudge.type === "exceeded" ? "⚠️ Macro Alert" : "💡 Heads Up",
+            title: getNudgeTitle(nudgeData.nudge.type),
             description: nudgeData.nudge.message,
             variant: nudgeData.nudge.type === "exceeded" ? "destructive" : "default",
             duration: 8000,
