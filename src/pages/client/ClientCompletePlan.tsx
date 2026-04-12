@@ -119,7 +119,7 @@ export default function ClientCompletePlan() {
           .eq("id", quickPlanId!)
           .single();
         if (error) throw error;
-        return { ...data, fast_target_hours: (data as any).fast_hours, duration_days: 0, category: "general", difficulty_level: (data as any).difficulty_level || "beginner" };
+        return { ...data, fast_target_hours: (data as any).fast_hours, duration_days: 0, category: "general", difficulty_level: (data as any).difficulty_group || "beginner" };
       } else {
         const { data, error } = await supabase
           .from("fasting_protocols")
@@ -289,9 +289,7 @@ export default function ClientCompletePlan() {
               <h2 className="text-[28px] font-black leading-tight tracking-tight">
                 {protocol.name}
                 {isQuickPlan && protocol.fast_target_hours >= 24 && (
-                  <span className="text-muted-foreground font-bold text-lg ml-2">
-                    — {Math.round(protocol.fast_target_hours / 24)} Day{Math.round(protocol.fast_target_hours / 24) !== 1 ? "s" : ""}
-                  </span>
+                  <> — {Math.round(protocol.fast_target_hours / 24)} Day{Math.round(protocol.fast_target_hours / 24) !== 1 ? "s" : ""}</>
                 )}
               </h2>
 
