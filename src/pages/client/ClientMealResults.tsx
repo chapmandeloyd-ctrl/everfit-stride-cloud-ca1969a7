@@ -70,7 +70,29 @@ export default function ClientMealResults() {
     prep_styles: searchParams.get("prep")?.split(",").filter(Boolean) || [],
   };
 
-  useEffect(() => {
+  const handleSuggestionTap = (suggestion: CoachingSuggestion) => {
+    setActiveNudge(null);
+    const goalMap: Record<string, string> = {
+      high_protein: "High Protein",
+      low_carb: "Light & Clean",
+      quick_meal: "Quick & Easy",
+      break_fast: "Break My Fast",
+      protein_boost: "High Protein",
+    };
+    const prepMap: Record<string, string> = {
+      quick_meal: "Quick,Grab & Go",
+    };
+    const goal = goalMap[suggestion.type] || "";
+    const prep = prepMap[suggestion.type] || "";
+    const params = new URLSearchParams();
+    if (goal) params.set("goals", goal);
+    if (prep) params.set("prep", prep);
+    navigate(`/client/meal-results?${params.toString()}`);
+    // Re-fetch with new filters
+    setTimeout(() => window.location.reload(), 100);
+  };
+
+
     if (!user?.id) return;
     fetchMeals();
   }, [user?.id]);
