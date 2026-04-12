@@ -712,10 +712,10 @@ export default function ClientWodBuilder() {
                     onTouchStart={(e) => workoutType === "superset" && handleBlockTouchStart(e, blockIdx)}
                     onTouchMove={workoutType === "superset" ? handleBlockTouchMove : undefined}
                     onTouchEnd={workoutType === "superset" ? handleBlockTouchEnd : undefined}
-                     className={`border rounded-lg overflow-hidden transition-all border-muted-foreground/20 bg-muted/20 ${blockDragIndex === blockIdx ? "opacity-50 scale-95" : ""} ${blockOverIndex === blockIdx && blockDragIndex !== null && blockDragIndex !== blockIdx ? "border-t-2 border-t-primary" : ""}`}
+                     className={`border rounded-lg overflow-hidden transition-all border-input bg-secondary ${blockDragIndex === blockIdx ? "opacity-50 scale-95" : ""} ${blockOverIndex === blockIdx && blockDragIndex !== null && blockDragIndex !== blockIdx ? "border-t-2 border-t-primary" : ""}`}
                    >
                      {/* Group header */}
-                     <div className="flex items-center gap-2 px-3 py-3 bg-muted/30">
+                     <div className="flex items-center gap-2 px-3 py-3 bg-secondary">
                       <button onClick={() => toggleGroupSelect(group.id)} className="shrink-0">
                         <div className={`w-5 h-5 rounded border-[1.5px] flex items-center justify-center transition-colors ${group.selected ? "bg-primary border-primary" : "border-muted-foreground/30 bg-transparent"}`}>
                           {group.selected && (
@@ -771,7 +771,7 @@ export default function ClientWodBuilder() {
                         onDragStart={() => { setIntraBlockDragFrom({ groupId: group.id, index: exIdx }); setIntraBlockDragOver(exIdx); }}
                         onDragOver={(e) => { e.preventDefault(); setIntraBlockDragOver(exIdx); }}
                         onDragEnd={() => handleIntraBlockDragEnd(group.id)}
-                        className={`py-3 px-3 border-t border-muted-foreground/20 bg-muted/10 transition-all ${intraBlockDragFrom?.groupId === group.id && intraBlockDragFrom.index === exIdx ? "opacity-50 scale-95" : ""} ${intraBlockDragFrom?.groupId === group.id && intraBlockDragOver === exIdx && intraBlockDragFrom.index !== exIdx ? "border-t-2 border-t-primary" : ""}`}
+                        className={`py-3 px-3 border-t border-input bg-secondary transition-all ${intraBlockDragFrom?.groupId === group.id && intraBlockDragFrom.index === exIdx ? "opacity-50 scale-95" : ""} ${intraBlockDragFrom?.groupId === group.id && intraBlockDragOver === exIdx && intraBlockDragFrom.index !== exIdx ? "border-t-2 border-t-primary" : ""}`}
                       >
                         <div className="flex items-center gap-2">
                           <div className="w-14 h-14 rounded-lg overflow-hidden bg-muted shrink-0 flex items-center justify-center">
@@ -790,10 +790,10 @@ export default function ClientWodBuilder() {
                         </div>
                         {ex.exercise_id !== "rest" && (
                           <div className="flex items-center gap-2 mt-2 ml-1">
-                            <button onClick={() => setEditingTargetId(ex.id)} className="px-3 py-1 rounded-full border border-border text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors">
+                            <button onClick={() => setEditingTargetId(ex.id)} className="px-3 py-1 rounded-full border border-input text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors">
                               {ex.reps === "10" && ex.target_type === "text" ? "Set Target" : ex.target_type === "time" ? `⏱ ${ex.reps}` : ex.reps}
                             </button>
-                            <button onClick={() => setEditingRestId(ex.id)} className="px-3 py-1 rounded-full border border-border text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors flex items-center gap-1">
+                            <button onClick={() => setEditingRestId(ex.id)} className="px-3 py-1 rounded-full border border-input text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors flex items-center gap-1">
                               <Hand className="h-3 w-3" />
                               {ex.rest_seconds > 0 ? (ex.rest_seconds >= 60 ? `${Math.floor(ex.rest_seconds / 60)}m${ex.rest_seconds % 60 > 0 ? ` ${ex.rest_seconds % 60}s` : ""}` : `${ex.rest_seconds}s`) : "None"}
                             </button>
@@ -803,7 +803,7 @@ export default function ClientWodBuilder() {
                     ))}
                     {/* Per-block Add Exercises button for superset mode */}
                     {workoutType === "superset" && (
-                      <div className="px-3 py-2 border-t border-muted-foreground/20 bg-muted/10">
+                      <div className="px-3 py-2 border-t border-input bg-secondary">
                         <button
                           onClick={() => handleInsertExercise(group.id)}
                           className="text-xs font-semibold text-primary"
