@@ -287,11 +287,6 @@ export default function ClientCompletePlan() {
                 <span className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-primary">Your KSOM Plan</span>
               </div>
               <h2 className="text-[28px] font-black leading-tight tracking-tight">{protocol.name}</h2>
-              {(customCopy?.descriptionOverride || protocol.description) && (
-                <p className="text-[15px] text-muted-foreground leading-relaxed mt-3">
-                  {customCopy?.descriptionOverride || String(protocol.description || "")}
-                </p>
-              )}
 
               {/* Inline stats row */}
               <div className="flex items-end gap-4 mt-6 pt-4 border-t border-border/40">
