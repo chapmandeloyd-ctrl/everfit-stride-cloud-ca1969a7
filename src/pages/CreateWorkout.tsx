@@ -555,10 +555,11 @@ export default function CreateWorkout() {
         });
       }
 
+      let supersetBlockIdx = 1;
       for (const group of groups) {
         sectionInserts.push({
           workout_plan_id: workout.id,
-          name: group.type === "superset" ? "Superset" : "Circuit",
+          name: group.type === "superset" ? `Superset Block ${supersetBlockIdx++}` : "Circuit",
           section_type: group.type,
           order_index: sectionIdx++,
           rounds: group.sets,
