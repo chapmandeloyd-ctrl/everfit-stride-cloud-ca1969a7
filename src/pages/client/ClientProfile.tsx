@@ -1,6 +1,6 @@
 import { ClientLayout } from "@/components/ClientLayout";
 import { Card, CardContent } from "@/components/ui/card";
-import { ChevronRight, Settings, Clock, Star, Bookmark } from "lucide-react";
+import { ChevronRight, Settings, Clock, Star, Bookmark, Dumbbell, Play } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
+import { useSavedWorkouts } from "@/hooks/useSavedWorkouts";
 
 export default function ClientProfile() {
   const navigate = useNavigate();
@@ -119,6 +120,9 @@ export default function ClientProfile() {
             </div>
           </CardContent>
         </Card>
+
+        {/* My Workouts (Saved) */}
+        <SavedWorkoutsSection />
 
         {/* Fasting section */}
         <div className="divide-y divide-border">
