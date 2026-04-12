@@ -4,12 +4,13 @@ import { X, Check } from "lucide-react";
 interface SetTargetSheetProps {
   open: boolean;
   value: string;
-  onSave: (value: string) => void;
+  initialTargetType?: "text" | "time";
+  onSave: (value: string, targetType: "text" | "time") => void;
   onClose: () => void;
 }
 
-export function SetTargetSheet({ open, value, onSave, onClose }: SetTargetSheetProps) {
-  const [targetType, setTargetType] = useState<"text" | "time">("text");
+export function SetTargetSheet({ open, value, initialTargetType, onSave, onClose }: SetTargetSheetProps) {
+  const [targetType, setTargetType] = useState<"text" | "time">(initialTargetType || "text");
   const [textValue, setTextValue] = useState(value === "10" ? "" : value);
 
   if (!open) return null;
@@ -25,7 +26,7 @@ export function SetTargetSheet({ open, value, onSave, onClose }: SetTargetSheetP
         <button
           onClick={() => {
             const val = targetType === "text" ? (textValue.trim() || "10") : textValue.trim();
-            onSave(val);
+            onSave(val, targetType);
             onClose();
           }}
           className="text-sm font-semibold text-primary"
