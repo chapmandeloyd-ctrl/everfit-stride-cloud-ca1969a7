@@ -169,7 +169,7 @@ function unlockAudioForMobile() {
   }
   // A silent play+pause satisfies the user-gesture requirement
   persistentAudio.src = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=";
-  persistentAudio.volume = 0;
+  persistentAudio.volume = 1;
   persistentAudio.play().then(() => persistentAudio?.pause()).catch(() => {});
 }
 
