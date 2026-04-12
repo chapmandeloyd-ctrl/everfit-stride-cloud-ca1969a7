@@ -192,6 +192,7 @@ const App = () => (
           <Route path="/client/sports" element={<ProtectedRoute allowedRoles={["client"]}><ClientSportsProfile /></ProtectedRoute>} />
           <Route path="/client/cardio-player" element={<ProtectedRoute allowedRoles={["client"]}><ClientCardioPlayer /></ProtectedRoute>} />
           <Route path="/client/wod-builder" element={<ProtectedRoute allowedRoles={["client"]}><ClientWodBuilder /></ProtectedRoute>} />
+          <Route path="/client/my-workouts" element={<ProtectedRoute allowedRoles={["client"]}><ClientMyWorkouts /></ProtectedRoute>} />
           <Route path="/client/programs" element={<ProtectedRoute allowedRoles={["client"]}><FastingRouteGuard><ClientPrograms /></FastingRouteGuard></ProtectedRoute>} />
           <Route path="/client/choose-protocol" element={<ProtectedRoute allowedRoles={["client"]}><ClientChooseProtocol /></ProtectedRoute>} />
           <Route path="/client/quick-plans" element={<ProtectedRoute allowedRoles={["client"]}><FastingRouteGuard><ClientQuickPlans /></FastingRouteGuard></ProtectedRoute>} />
