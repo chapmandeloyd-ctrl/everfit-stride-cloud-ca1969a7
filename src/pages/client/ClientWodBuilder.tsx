@@ -136,9 +136,11 @@ export default function ClientWodBuilder() {
   };
 
   const handleDeleteSelected = () => {
-    const hasSelected = exercises.some((e) => e.selected);
+    const hasSelected = exercises.some((e) => e.selected) || groups.some((g) => g.selected);
     if (hasSelected) {
-      setExercises((prev) => prev.filter((e) => !e.selected));
+      const selectedGroupIds = groups.filter((g) => g.selected).map((g) => g.id);
+      setExercises((prev) => prev.filter((e) => !e.selected && !selectedGroupIds.includes(e.group_id || "")));
+      setGroups((prev) => prev.filter((g) => !g.selected));
     } else if (exercises.length > 0) {
       toast.error("Select exercises to delete first");
     }
@@ -148,6 +150,33 @@ export default function ClientWodBuilder() {
     setExercises((prev) =>
       prev.map((e) => (e.id === id ? { ...e, selected: !e.selected } : e))
     );
+  };
+
+  const toggleGroupSelect = (groupId: string) => {
+    setGroups((prev) =>
+      prev.map((g) => (g.id === groupId ? { ...g, selected: !g.selected } : g))
+    );
+  };
+
+  const handleCreateGroup = (type: "circuit" | "superset") => {
+    const selectedIds = exercises.filter((e) => e.selected && !e.group_id).map((e) => e.id);
+    if (selectedIds.length < 2) return;
+    const groupId = crypto.randomUUID();
+    const newGroup: ExerciseGroup = { id: groupId, type, rounds: 3, selected: false };
+    setGroups((prev) => [...prev, newGroup]);
+    setExercises((prev) =>
+      prev.map((e) =>
+        selectedIds.includes(e.id) ? { ...e, selected: false, group_id: groupId } : e
+      )
+    );
+    toast.success(`${type === "circuit" ? "Circuit" : "Superset"} created!`);
+  };
+
+  const handleUngroup = (groupId: string) => {
+    setExercises((prev) =>
+      prev.map((e) => (e.group_id === groupId ? { ...e, group_id: null } : e))
+    );
+    setGroups((prev) => prev.filter((g) => g.id !== groupId));
   };
 
   const updateExerciseField = (id: string, field: keyof WodExercise, value: any) => {
@@ -161,6 +190,28 @@ export default function ClientWodBuilder() {
   };
 
   const selectedCount = exercises.filter((e) => e.selected).length;
+  const anyGroupSelected = groups.some((g) => g.selected);
+
+  // Build render items: ungrouped exercises + groups with their children
+  const renderItems: Array<{ type: "exercise"; exercise: WodExercise; index: number } | { type: "group"; group: ExerciseGroup; exercises: WodExercise[] }> = [];
+  const usedIds = new Set<string>();
+
+  exercises.forEach((ex, index) => {
+    if (usedIds.has(ex.id)) return;
+
+    if (ex.group_id) {
+      const group = groups.find((g) => g.id === ex.group_id);
+      if (group && !usedIds.has(group.id)) {
+        usedIds.add(group.id);
+        const groupExercises = exercises.filter((e) => e.group_id === group.id);
+        groupExercises.forEach((ge) => usedIds.add(ge.id));
+        renderItems.push({ type: "group", group, exercises: groupExercises });
+      }
+    } else {
+      usedIds.add(ex.id);
+      renderItems.push({ type: "exercise", exercise: ex, index });
+    }
+  });
 
   return (
     <div className="flex flex-col h-screen bg-background">
