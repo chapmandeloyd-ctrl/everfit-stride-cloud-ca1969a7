@@ -2,8 +2,9 @@ import { ClientLayout } from "@/components/ClientLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  ArrowLeft, Clock, CalendarDays, BarChart3, Utensils, Droplets, Users,
-  TrendingUp, Lightbulb, Zap, Sparkles, Loader2, Check, Info
+  ArrowLeft, Clock, Utensils, Droplets, Users,
+  TrendingUp, Lightbulb, Zap, Sparkles, Loader2, Check, Info,
+  Flame, Brain, AlertTriangle, CalendarDays, Shield
 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +16,7 @@ import {
   getDifficultyLabel,
 } from "@/lib/fastingCategoryConfig";
 import { PROTOCOL_DETAIL_COPY } from "@/lib/protocolDetailContent";
+import { getProtocolCardContent } from "@/lib/protocolCardContent";
 import { usePlanSynergy } from "@/hooks/usePlanSynergy";
 import { useMemo, useEffect } from "react";
 
@@ -41,14 +43,11 @@ function getDailySchedule(fastHours: number) {
   return { stopEating: fmt(stopHour), breakFast: fmt(breakHour) };
 }
 
-function Section({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
+function SectionHeader({ title, icon }: { title: string; icon: React.ReactNode }) {
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2">
-        {icon}
-        <h2 className="text-base font-bold">{title}</h2>
-      </div>
-      <div>{children}</div>
+    <div className="flex items-center gap-2.5 mb-3">
+      {icon}
+      <h3 className="text-sm font-bold uppercase tracking-wide">{title}</h3>
     </div>
   );
 }
@@ -242,11 +241,7 @@ export default function ClientCompletePlan() {
   const themeColor = ketoType.color || "#ef4444";
   const config = protocol.category ? CATEGORY_CONFIG[protocol.category] : undefined;
   const Icon = config?.icon;
-  const customCopy = activeProtocolId ? PROTOCOL_DETAIL_COPY[activeProtocolId] : undefined;
-  const autoProgression = !isQuickPlan && protocol.duration_days
-    ? generateWeeklyProgression(protocol.duration_days, protocol.fast_target_hours)
-    : null;
-  const autoSchedule = getDailySchedule(protocol.fast_target_hours);
+  const protocolContent = getProtocolCardContent(protocol.fast_target_hours, isQuickPlan);
   const maxPct = Math.max(ketoType.fat_pct, ketoType.protein_pct, ketoType.carbs_pct);
 
   return (
@@ -276,151 +271,155 @@ export default function ClientCompletePlan() {
           </div>
         </div>
 
-        {/* Protocol Hero — large dynamic card */}
+        {/* PROTOCOL DETAIL CARD — Single structured premium card */}
         <div className="px-5">
-          <Card className="overflow-hidden" style={{ backgroundColor: "hsl(var(--primary) / 0.06)", borderColor: "hsl(var(--primary) / 0.2)" }}>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="h-11 w-11 rounded-xl flex items-center justify-center" style={{ backgroundColor: "hsl(var(--primary) / 0.10)" }}>
-                  <Zap className="h-5 w-5 text-primary" />
-                </div>
-                <span className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-primary">Your KSOM Plan</span>
-              </div>
-              <h2 className="text-[28px] font-black leading-tight tracking-tight">
-                {protocol.name}
-                {isQuickPlan && protocol.fast_target_hours >= 24 && (
-                  <> — {Math.round(protocol.fast_target_hours / 24)} Day{Math.round(protocol.fast_target_hours / 24) !== 1 ? "s" : ""}</>
-                )}
-              </h2>
+          <Card className="overflow-hidden" style={{ backgroundColor: "hsl(var(--primary) / 0.04)", borderColor: "hsl(var(--primary) / 0.18)" }}>
+            <CardContent className="p-0">
 
-              {/* How This Protocol Works */}
-              <div className="mt-4 pt-4 border-t border-border/40">
-                <div className="flex items-center gap-2 mb-2">
-                  <Lightbulb className="h-4 w-4 text-blue-400" />
-                  <h3 className="text-sm font-bold">How This Protocol Works</h3>
-                </div>
-                {customCopy ? (
-                  <div className="space-y-3">
-                    {customCopy.howItWorks.map((p, i) => (
-                      <p key={i} className="text-sm text-muted-foreground leading-relaxed">{p}</p>
-                    ))}
+              {/* HERO HEADER */}
+              <div className="p-5 pb-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="h-10 w-10 rounded-xl flex items-center justify-center bg-primary/10">
+                    <Zap className="h-5 w-5 text-primary" />
                   </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {protocol.name} is a {protocol.duration_days === 0 ? "flexible ongoing" : `${protocol.duration_days}-day`} fasting
-                    program designed to help your body transition from sugar-burning to fat-burning safely and sustainably.
-                  </p>
-                )}
+                  <span className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-primary">Your KSOM Plan</span>
+                </div>
+                <h2 className="text-[26px] font-black leading-tight tracking-tight">
+                  {protocol.name}
+                  {isQuickPlan && protocol.fast_target_hours >= 24 && (
+                    <> — {Math.round(protocol.fast_target_hours / 24)} Day{Math.round(protocol.fast_target_hours / 24) !== 1 ? "s" : ""}</>
+                  )}
+                </h2>
+
+                {/* Stats row */}
+                <div className="flex items-center justify-center gap-8 mt-4 pt-3 border-t border-border/30">
+                  <div className="text-center">
+                    <p className="text-base font-black">{protocol.fast_target_hours}h</p>
+                    <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">Fast</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-base font-black">
+                      {protocol.duration_days === 0 ? "∞" : `${Math.ceil(protocol.duration_days / 7)} wk${Math.ceil(protocol.duration_days / 7) !== 1 ? "s" : ""}`}
+                    </p>
+                    <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">Duration</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-base font-black capitalize">{getDifficultyLabel(protocol.difficulty_level)}</p>
+                    <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">Level</p>
+                  </div>
+                </div>
               </div>
 
-              {/* Stats row */}
-              <div className="flex items-center justify-center gap-8 mt-4 pt-4 border-t border-border/40">
-                <div className="text-center">
-                  <p className="text-base font-black">{protocol.fast_target_hours}h</p>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">Fast</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-base font-black">
-                    {protocol.duration_days === 0 ? "∞" : `${Math.ceil(protocol.duration_days / 7)} wk${Math.ceil(protocol.duration_days / 7) !== 1 ? "s" : ""}`}
-                  </p>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">Duration</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-base font-black capitalize">{getDifficultyLabel(protocol.difficulty_level)}</p>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">Level</p>
+              {/* DIVIDER */}
+              <div className="h-px bg-border/50 mx-5" />
+
+              {/* HOW THIS PROTOCOL WORKS */}
+              <div className="p-5">
+                <SectionHeader title="How This Protocol Works" icon={<Brain className="h-4 w-4 text-primary" />} />
+                <div className="space-y-2.5">
+                  {protocolContent.overview.map((p, i) => (
+                    <p key={i} className="text-[13px] text-muted-foreground leading-relaxed">{p}</p>
+                  ))}
                 </div>
               </div>
+
+              {/* DIVIDER */}
+              <div className="h-px bg-border/50 mx-5" />
+
+              {/* WHAT YOUR BODY IS DOING (BY PHASE) */}
+              <div className="p-5">
+                <SectionHeader title="What Your Body Is Doing" icon={<Flame className="h-4 w-4 text-destructive" />} />
+                <div className="space-y-3">
+                  {protocolContent.phases.map((phase, i) => (
+                    <div key={i} className="rounded-lg bg-muted/50 p-3">
+                      <div className="flex items-baseline gap-2 mb-1">
+                        <span className="text-[11px] font-bold text-primary">{phase.range}</span>
+                        <span className="text-xs font-bold">— {phase.title}</span>
+                      </div>
+                      <p className="text-[12px] text-muted-foreground leading-relaxed">{phase.detail}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* DIVIDER */}
+              <div className="h-px bg-border/50 mx-5" />
+
+              {/* WHAT THIS DOES FOR YOU */}
+              <div className="p-5">
+                <SectionHeader title="What This Does For You" icon={<Zap className="h-4 w-4 text-primary" />} />
+                <ul className="space-y-2">
+                  {protocolContent.benefits.map((b, i) => (
+                    <li key={i} className="flex items-center gap-2.5">
+                      <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                        <Check className="h-3 w-3 text-primary" />
+                      </div>
+                      <span className="text-[13px] text-muted-foreground">{b}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* DIVIDER */}
+              <div className="h-px bg-border/50 mx-5" />
+
+              {/* EXECUTION RULES */}
+              <div className="p-5">
+                <SectionHeader title="Execution Rules" icon={<Shield className="h-4 w-4 text-primary" />} />
+                <ul className="space-y-2">
+                  {protocolContent.rules.map((r, i) => (
+                    <li key={i} className="flex items-start gap-2.5">
+                      <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
+                      <span className="text-[13px] text-muted-foreground">{r}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* DIVIDER */}
+              <div className="h-px bg-border/50 mx-5" />
+
+              {/* MENTAL REALITY */}
+              <div className="p-5">
+                <SectionHeader title="Mental Reality" icon={<Brain className="h-4 w-4 text-primary" />} />
+                <div className="space-y-2">
+                  {protocolContent.mentalReality.map((m, i) => (
+                    <p key={i} className="text-[13px] text-muted-foreground leading-relaxed font-medium">{m}</p>
+                  ))}
+                </div>
+              </div>
+
+              {/* DIVIDER */}
+              <div className="h-px bg-border/50 mx-5" />
+
+              {/* DAILY SCHEDULE */}
+              <div className="p-5">
+                <SectionHeader title="Daily Schedule" icon={<CalendarDays className="h-4 w-4 text-primary" />} />
+                <div className="space-y-2">
+                  {protocolContent.schedule.map((s, i) => (
+                    <div key={i} className="flex items-center justify-between rounded-lg bg-muted/40 px-3.5 py-2.5">
+                      <span className="text-[13px] text-muted-foreground">{s.label}</span>
+                      <span className="text-[13px] font-semibold">{s.detail}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* DIVIDER */}
+              <div className="h-px bg-border/50 mx-5" />
+
+              {/* COACH WARNING */}
+              <div className="p-5">
+                <SectionHeader title="Coach Warning" icon={<AlertTriangle className="h-4 w-4 text-destructive" />} />
+                <div className="rounded-lg bg-destructive/5 border border-destructive/15 p-3.5 space-y-2">
+                  {protocolContent.coachWarning.map((w, i) => (
+                    <p key={i} className="text-[13px] text-muted-foreground leading-relaxed font-medium">{w}</p>
+                  ))}
+                </div>
+              </div>
+
             </CardContent>
           </Card>
-        </div>
-
-        {/* Protocol Sections */}
-        <div className="px-5 mt-6 space-y-6">
-
-          {(customCopy?.progression || autoProgression) && (
-            <Section title="Weekly Progression" icon={<TrendingUp className="h-5 w-5 text-blue-400" />}>
-              <div className="space-y-2">
-                {customCopy?.progression ? (
-                  customCopy.progression.map((w, i) => (
-                    <div key={i} className="flex items-center justify-between rounded-lg bg-muted/40 px-4 py-3">
-                      <span className="font-semibold text-sm">{w.label}</span>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <span>Fasting: <strong className="text-foreground">{w.fastHours}</strong></span>
-                        <span>Eating: <strong className="text-foreground">{w.eatHours}</strong></span>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  autoProgression!.map((w) => (
-                    <div key={w.week} className="flex items-center justify-between rounded-lg bg-muted/40 px-4 py-3">
-                      <span className="font-semibold text-sm">Week {w.week}</span>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <span>Fasting: <strong className="text-foreground">{w.fastHours}h</strong></span>
-                        <span>Eating: <strong className="text-foreground">{w.eatHours}h</strong></span>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </Section>
-          )}
-
-          <Section title="Daily Schedule Example" icon={<Clock className="h-5 w-5 text-blue-400" />}>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between rounded-lg bg-muted/40 px-4 py-3">
-                <span className="text-muted-foreground">Stop eating</span>
-                <span className="font-semibold">{customCopy?.schedule.stopEating || autoSchedule.stopEating}</span>
-              </div>
-              <div className="flex justify-between rounded-lg bg-muted/40 px-4 py-3">
-                <span className="text-muted-foreground">Break fast</span>
-                <span className="font-semibold">{customCopy?.schedule.breakFast || autoSchedule.breakFast}</span>
-              </div>
-            </div>
-          </Section>
-
-          <Section title="Meal Strategy" icon={<Utensils className="h-5 w-5 text-blue-400" />}>
-            {customCopy ? (
-              <div className="text-sm text-muted-foreground space-y-2">
-                {customCopy.mealStrategy.map((p, i) => (
-                  <p key={i}>{p}</p>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Start meals with protein to stabilize appetite and energy. Focus on protein-rich meals, vegetables, healthy fats, and moderate carbohydrates.
-              </p>
-            )}
-          </Section>
-
-          <Section title="Coach Guidance" icon={<Droplets className="h-5 w-5 text-blue-400" />}>
-            <ul className="text-sm text-muted-foreground space-y-2">
-              {(customCopy?.coachGuidance || [
-                "Stay hydrated during fasting hours.",
-                "Keep meals simple and protein-focused.",
-                "Stop eating when comfortably satisfied.",
-                "Daily movement supports metabolic health.",
-              ]).map((tip, i) => (
-                <li key={i} className="flex items-start gap-2">
-                  <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-blue-400 shrink-0" />
-                  {tip}
-                </li>
-              ))}
-            </ul>
-          </Section>
-
-          <Section title="Who This Is For" icon={<Users className="h-5 w-5 text-blue-400" />}>
-            {customCopy ? (
-              <div className="space-y-2">
-                {customCopy.whoThisIsFor.map((p, i) => (
-                  <p key={i} className="text-sm text-muted-foreground leading-relaxed">{p}</p>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Clients who want structured support without aggressive fasting. Ideal for {getDifficultyLabel(protocol.difficulty_level).toLowerCase()}-level clients.
-              </p>
-            )}
-          </Section>
         </div>
 
         {/* ═══════════════════════════════════════════ */}
