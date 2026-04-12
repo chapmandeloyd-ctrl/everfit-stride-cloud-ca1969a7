@@ -106,6 +106,19 @@ export default function ClientWodBuilder() {
   const dragStartY = useRef(0);
   const itemRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
+  // Block-level drag state
+  const [blockDragIndex, setBlockDragIndex] = useState<number | null>(null);
+  const [blockOverIndex, setBlockOverIndex] = useState<number | null>(null);
+  const isBlockDragging = useRef(false);
+  const blockDragStartY = useRef(0);
+  const blockLongPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const blockRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+
+  const setBlockRef = useCallback((id: string, el: HTMLDivElement | null) => {
+    if (el) blockRefs.current.set(id, el);
+    else blockRefs.current.delete(id);
+  }, []);
+
   const setItemRef = useCallback((id: string, el: HTMLDivElement | null) => {
     if (el) itemRefs.current.set(id, el);
     else itemRefs.current.delete(id);
@@ -175,6 +188,77 @@ export default function ClientWodBuilder() {
     }
     handleDragEnd();
   }, [handleDragEnd]);
+
+  // Block-level drag handlers
+  const handleBlockDragStart = useCallback((index: number) => {
+    setBlockDragIndex(index);
+    setBlockOverIndex(index);
+    isBlockDragging.current = true;
+  }, []);
+
+  const handleBlockDragEnd = useCallback(() => {
+    if (blockDragIndex !== null && blockOverIndex !== null && blockDragIndex !== blockOverIndex) {
+      setGroups((prev) => {
+        const updated = [...prev];
+        const [moved] = updated.splice(blockDragIndex, 1);
+        updated.splice(blockOverIndex, 0, moved);
+        return updated;
+      });
+      // Also reorder exercises to match new group order
+      setExercises((prev) => {
+        const ungrouped = prev.filter((e) => !e.group_id);
+        const reorderedGroups = (() => {
+          const g = [...groups];
+          const [moved] = g.splice(blockDragIndex, 1);
+          g.splice(blockOverIndex, 0, moved);
+          return g;
+        })();
+        const grouped = reorderedGroups.flatMap((g) => prev.filter((e) => e.group_id === g.id));
+        return [...ungrouped, ...grouped];
+      });
+    }
+    setBlockDragIndex(null);
+    setBlockOverIndex(null);
+    isBlockDragging.current = false;
+  }, [blockDragIndex, blockOverIndex, groups]);
+
+  const handleBlockTouchStart = useCallback((e: React.TouchEvent, index: number) => {
+    blockDragStartY.current = e.touches[0].clientY;
+    blockLongPressTimer.current = setTimeout(() => {
+      handleBlockDragStart(index);
+    }, 400);
+  }, [handleBlockDragStart]);
+
+  const handleBlockTouchMove = useCallback((e: React.TouchEvent) => {
+    if (blockLongPressTimer.current && !isBlockDragging.current) {
+      const dy = Math.abs(e.touches[0].clientY - blockDragStartY.current);
+      if (dy > 10) {
+        clearTimeout(blockLongPressTimer.current);
+        blockLongPressTimer.current = null;
+      }
+    }
+    if (!isBlockDragging.current) return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    for (let i = 0; i < groups.length; i++) {
+      const el = blockRefs.current.get(groups[i].id);
+      if (!el) continue;
+      const rect = el.getBoundingClientRect();
+      if (touch.clientY >= rect.top && touch.clientY <= rect.bottom) {
+        setBlockOverIndex(i);
+        break;
+      }
+    }
+  }, [groups]);
+
+  const handleBlockTouchEnd = useCallback(() => {
+    if (blockLongPressTimer.current) {
+      clearTimeout(blockLongPressTimer.current);
+      blockLongPressTimer.current = null;
+    }
+    handleBlockDragEnd();
+  }, [handleBlockDragEnd]);
+
 
   const handleSave = async () => {
     if (exercises.length === 0) {
@@ -575,8 +659,20 @@ export default function ClientWodBuilder() {
 
               // Group (circuit or superset)
               const { group, exercises: groupExercises } = item;
+              const blockIdx = groups.indexOf(group);
               return (
-                <div key={group.id} className="border-b border-border bg-muted/30 rounded-lg my-1 overflow-hidden">
+                <div
+                  key={group.id}
+                  ref={(el) => setBlockRef(group.id, el)}
+                  draggable={workoutType === "superset"}
+                  onDragStart={() => workoutType === "superset" && handleBlockDragStart(blockIdx)}
+                  onDragOver={(e) => { if (workoutType === "superset") { e.preventDefault(); setBlockOverIndex(blockIdx); } }}
+                  onDragEnd={() => workoutType === "superset" && handleBlockDragEnd()}
+                  onTouchStart={(e) => workoutType === "superset" && handleBlockTouchStart(e, blockIdx)}
+                  onTouchMove={workoutType === "superset" ? handleBlockTouchMove : undefined}
+                  onTouchEnd={workoutType === "superset" ? handleBlockTouchEnd : undefined}
+                  className={`border-b border-border bg-muted/30 rounded-lg my-1 overflow-hidden transition-all ${blockDragIndex === blockIdx ? "opacity-50 scale-95" : ""} ${blockOverIndex === blockIdx && blockDragIndex !== null && blockDragIndex !== blockIdx ? "border-t-2 border-t-primary" : ""}`}
+                >
                   {/* Group header */}
                   <div className="flex items-center gap-2 px-3 py-3 bg-muted/50">
                     <button onClick={() => toggleGroupSelect(group.id)} className="shrink-0">
@@ -611,7 +707,6 @@ export default function ClientWodBuilder() {
                     )}
                     <button
                       onClick={() => {
-                        // Delete this block and its exercises
                         setExercises((prev) => prev.filter((e) => e.group_id !== group.id));
                         setGroups((prev) => prev.filter((g) => g.id !== group.id));
                         toast.success("Block removed");
@@ -620,6 +715,11 @@ export default function ClientWodBuilder() {
                     >
                       <X className="h-4 w-4 text-muted-foreground hover:text-destructive" />
                     </button>
+                    {workoutType === "superset" && (
+                      <div className="shrink-0 text-muted-foreground/30 cursor-grab">
+                        <GripVertical className="h-5 w-5" />
+                      </div>
+                    )}
                   </div>
 
                   {/* Group exercises - no checkbox, no sets pill */}
