@@ -1,9 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
+import { useAuth } from "@/hooks/useAuth";
 
 export function useSavedWorkouts() {
-  const clientId = useEffectiveClientId();
+  const { user } = useAuth();
+  const clientId = user?.id;
   const queryClient = useQueryClient();
 
   const { data: savedWorkouts = [], isLoading } = useQuery({
