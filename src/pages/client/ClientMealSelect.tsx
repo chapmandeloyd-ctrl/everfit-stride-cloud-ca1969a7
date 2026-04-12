@@ -138,19 +138,19 @@ export default function ClientMealSelect() {
               emoji="📦"
               title="Scan Your Food"
               description="Scan a barcode to instantly track your food."
-              onClick={() => navigate("/client/nutrition", { state: { openScanner: true } })}
+              onClick={() => navigate("/client/log-meal?tab=scan")}
             />
             <QuickActionCard
               emoji="📸"
               title="Snap Your Meal"
               description="Take a photo and let AI estimate your macros."
-              onClick={() => navigate("/client/nutrition", { state: { openSnap: true } })}
+              onClick={() => navigate("/client/log-meal?tab=photo")}
             />
             <QuickActionCard
               emoji="⌨️"
               title="Type Your Meal"
               description="Enter your meal manually for full macro breakdown."
-              onClick={() => navigate("/client/nutrition", { state: { openType: true } })}
+              onClick={() => navigate("/client/log-meal?tab=manual")}
             />
           </div>
         </div>
