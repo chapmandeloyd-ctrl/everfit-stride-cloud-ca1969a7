@@ -144,7 +144,7 @@ export default function ClientWodBuilder() {
         </button>
         <button
           onClick={handleAddRest}
-          className="flex flex-col items-center gap-1 text-amber-500 hover:text-amber-600 transition-colors"
+          className="flex flex-col items-center gap-1 text-yellow-500 hover:text-yellow-600 transition-colors"
         >
           <Timer className="h-5 w-5" />
           <span className="text-[10px] font-medium">Rest</span>
