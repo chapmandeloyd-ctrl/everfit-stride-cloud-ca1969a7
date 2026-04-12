@@ -576,3 +576,61 @@ export default function WorkoutDetail() {
     </Layout>
   );
 }
+
+function WorkoutDetailHeader({ workout, id, isClient, inProgressSession, onResume, onStartFresh, onBack }: {
+  workout: any;
+  id: string;
+  isClient: boolean;
+  inProgressSession: any;
+  onResume: () => void;
+  onStartFresh: () => void;
+  onBack: () => void;
+}) {
+  const { isSaved, toggleSave } = useSavedWorkouts();
+  const saved = isSaved(id);
+
+  return (
+    <div className="flex items-center gap-4 mb-6">
+      <Button variant="ghost" size="icon" onClick={onBack}>
+        <ArrowLeft className="h-5 w-5" />
+      </Button>
+      <div className="flex-1">
+        <h1 className="text-3xl font-bold">{workout.name}</h1>
+        <div className="flex gap-2 mt-2">
+          <Badge variant="outline" className="capitalize">{workout.difficulty}</Badge>
+          <Badge variant="outline">{workout.category}</Badge>
+        </div>
+      </div>
+      {isClient && (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => {
+            toggleSave.mutate(id, {
+              onSuccess: () => toast(saved ? "Removed from favorites" : "Saved to favorites"),
+            });
+          }}
+          className="shrink-0"
+        >
+          <Bookmark className={`h-5 w-5 ${saved ? "fill-primary text-primary" : "text-muted-foreground"}`} />
+        </Button>
+      )}
+      {inProgressSession && isClient ? (
+        <div className="flex flex-col gap-2">
+          <Button size="lg" onClick={onResume} className="gap-2">
+            <Play className="h-5 w-5" />
+            Resume ({inProgressSession.completion_percentage || 0}%)
+          </Button>
+          <Button size="sm" variant="outline" onClick={onStartFresh}>
+            Start Fresh
+          </Button>
+        </div>
+      ) : (
+        <Button size="lg" onClick={onStartFresh} className="gap-2">
+          <Play className="h-5 w-5" />
+          Start Workout
+        </Button>
+      )}
+    </div>
+  );
+}
