@@ -83,6 +83,7 @@ import ClientBattingSession from "./pages/client/ClientBattingSession";
 import ClientShootingSession from "./pages/client/ClientShootingSession";
 import ClientWorkoutHistory from "./pages/ClientWorkoutHistory";
 import ClientWorkoutSession from "./pages/client/ClientWorkoutSession";
+import ClientMyWorkouts from "./pages/client/ClientMyWorkouts";
 import VibesAdmin from "./pages/VibesAdmin";
 import ClientCommandCenter from "./pages/ClientCommandCenter";
 import Scheduling from "./pages/Scheduling";
