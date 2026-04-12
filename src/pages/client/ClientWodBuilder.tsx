@@ -1,7 +1,8 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Trash2, Dumbbell, Hand, Layers, Repeat, GripVertical, Timer, X } from "lucide-react";
+import { Trash2, Dumbbell, Hand, Layers, Repeat, GripVertical, Timer, X, Bookmark } from "lucide-react";
+import { useSavedWorkouts } from "@/hooks/useSavedWorkouts";
 import { getBlockType, WORKOUT_BLOCK_TYPES, WorkoutBlockType } from "@/lib/workoutBlockTypes";
 import { BlockTypePicker } from "@/components/workout/BlockTypePicker";
 
