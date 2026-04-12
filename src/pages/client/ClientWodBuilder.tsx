@@ -324,11 +324,13 @@ export default function ClientWodBuilder() {
       const estMinutes = Math.max(1, Math.ceil(estSeconds / 60));
 
       // Create workout plan
+      // Use auth user ID for trainer_id (RLS requires auth.uid() match)
+      // effectiveClientId is only for client-facing associations like saved_workouts
       const { data: plan, error: planError } = await supabase
         .from("workout_plans")
         .insert({
           name: workoutName.trim(),
-          trainer_id: effectiveClientId!,
+          trainer_id: user.id,
           category: workoutType,
           difficulty: "intermediate" as any,
           duration_minutes: estMinutes,
@@ -425,7 +427,7 @@ export default function ClientWodBuilder() {
 
       // Auto-save to favorites
       await supabase.from("saved_workouts").upsert(
-        { client_id: effectiveClientId!, workout_plan_id: planId },
+        { client_id: user.id, workout_plan_id: planId },
         { onConflict: "client_id,workout_plan_id" }
       );
 
