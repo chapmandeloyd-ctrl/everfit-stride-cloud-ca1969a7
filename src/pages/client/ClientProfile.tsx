@@ -122,11 +122,9 @@ export default function ClientProfile() {
           </CardContent>
         </Card>
 
+        {/* Fasting & menu section */}
+        <div className="divide-y divide-border">
 
-
-
-
-          {/* Saved Protocol (for later) */}
           <button
             className="flex items-center justify-between w-full py-4 text-left"
             onClick={() => navigate("/client/choose-protocol")}
