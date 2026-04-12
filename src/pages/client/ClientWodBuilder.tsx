@@ -13,6 +13,7 @@ import { SetTargetSheet } from "@/components/workout/SetTargetSheet";
 import { RestTimePickerSheet } from "@/components/workout/RestTimePickerSheet";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 
 function SwipeToDeleteCard({ children, onDelete }: { children: React.ReactNode; onDelete: () => void }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -90,6 +91,7 @@ const isGroupedWorkoutType = (type: string) => type === "circuit" || type === "s
 export default function ClientWodBuilder() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const effectiveClientId = useEffectiveClientId();
   
   const workoutType = "superset"; // All blocks mode - always supports multiple blocks
   const defaultGroupType: ExerciseGroup["type"] = "superset";
@@ -326,7 +328,7 @@ export default function ClientWodBuilder() {
         .from("workout_plans")
         .insert({
           name: workoutName.trim(),
-          trainer_id: user.id,
+          trainer_id: effectiveClientId!,
           category: workoutType,
           difficulty: "intermediate" as any,
           duration_minutes: estMinutes,
@@ -423,7 +425,7 @@ export default function ClientWodBuilder() {
 
       // Auto-save to favorites
       await supabase.from("saved_workouts").upsert(
-        { client_id: user.id, workout_plan_id: planId },
+        { client_id: effectiveClientId!, workout_plan_id: planId },
         { onConflict: "client_id,workout_plan_id" }
       );
 
