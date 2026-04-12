@@ -5,12 +5,26 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Flame, Zap, Clock, Sparkles, Plus, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Flame, Zap, Clock, Sparkles, Plus, AlertTriangle, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
+
+interface CoachingSuggestion {
+  type: string;
+  label: string;
+  action: string;
+}
+
+interface CoachNudge {
+  type: string;
+  message: string;
+  exceeded: string[];
+  signals?: string[];
+  suggestions?: CoachingSuggestion[];
+}
 
 interface MealResult {
   id: string;
