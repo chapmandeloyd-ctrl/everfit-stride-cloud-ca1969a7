@@ -307,15 +307,29 @@ export default function ClientWodBuilder() {
       {/* Bottom toolbar */}
       <div className="flex items-center justify-around border-t border-border bg-background px-2 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]">
         <button
-          disabled
-          className="flex flex-col items-center gap-1 text-muted-foreground/30 cursor-not-allowed"
+          disabled={selectedCount < 2}
+          onClick={() => {
+            if (selectedCount >= 2) toast("Superset created!");
+          }}
+          className={`flex flex-col items-center gap-1 transition-colors ${
+            selectedCount >= 2
+              ? "text-primary hover:text-primary/80"
+              : "text-muted-foreground/30 cursor-not-allowed"
+          }`}
         >
           <Layers className="h-5 w-5" />
           <span className="text-[10px] font-medium">Superset</span>
         </button>
         <button
-          disabled
-          className="flex flex-col items-center gap-1 text-muted-foreground/30 cursor-not-allowed"
+          disabled={selectedCount < 2}
+          onClick={() => {
+            if (selectedCount >= 2) toast("Circuit created!");
+          }}
+          className={`flex flex-col items-center gap-1 transition-colors ${
+            selectedCount >= 2
+              ? "text-primary hover:text-primary/80"
+              : "text-muted-foreground/30 cursor-not-allowed"
+          }`}
         >
           <Repeat className="h-5 w-5" />
           <span className="text-[10px] font-medium">Circuit</span>
