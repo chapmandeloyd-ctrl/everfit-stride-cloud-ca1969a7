@@ -843,7 +843,9 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
   const isCircuitMode = currentStep.isCircuit;
 
   const sectionLabel = isGrouped
-    ? `${currentSection.section_type === "superset" ? "Superset" : "Circuit"} of ${currentSection.rounds} sets`
+    ? currentSection.section_type === "superset" && currentSection.name
+      ? `${currentSection.name} · ${currentSection.rounds} rounds`
+      : `${currentSection.section_type === "superset" ? "Superset" : "Circuit"} of ${currentSection.rounds} sets`
     : currentSection?.name || "";
 
   // Next exercise info
