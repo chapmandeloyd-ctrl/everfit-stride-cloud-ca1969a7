@@ -12,6 +12,7 @@ import { Search, Plus, X, GripVertical, Copy, Trash2, Timer, FileText, Clock, Sp
 import { useToast } from "@/hooks/use-toast";
 import { CreateFromTemplateDialog } from "@/components/CreateFromTemplateDialog";
 import { SortableGroupHeader } from "@/components/workout/SortableGroupHeader";
+import { getBlockType } from "@/lib/workoutBlockTypes";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
@@ -594,11 +595,13 @@ export default function CreateWorkout() {
         });
       }
 
-      let supersetBlockIdx = 1;
+      let blockNum = 0;
       for (const group of groups) {
+        const bt = getBlockType(group.block_type || "custom");
+        const label = group.block_type === "custom" && group.custom_name ? group.custom_name : bt.label;
         sectionInserts.push({
           workout_plan_id: workout.id,
-          name: group.type === "superset" ? `Superset Block ${supersetBlockIdx++}` : "Circuit",
+          name: group.type === "superset" ? `${label} Block ${++blockNum}` : "Circuit",
           section_type: group.type,
           order_index: sectionIdx++,
           rounds: group.sets,
