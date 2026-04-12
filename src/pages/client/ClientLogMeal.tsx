@@ -38,6 +38,7 @@ export default function ClientLogMeal() {
   // Handle deep-link query params
   const tabParam = searchParams.get("tab");
   const [initialTabHandled, setInitialTabHandled] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>(tabParam === "manual" ? "manual" : "search");
 
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<FoodItem[]>([]);
@@ -236,7 +237,7 @@ export default function ClientLogMeal() {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="search" className="flex-1 flex flex-col">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
           <TabsList className="mx-4 mt-3 grid grid-cols-2 w-auto">
             <TabsTrigger value="search" className="gap-1.5">
               <Search className="h-3.5 w-3.5" /> Search
