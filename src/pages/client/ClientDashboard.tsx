@@ -2289,6 +2289,7 @@ export default function ClientDashboard() {
         </button>
       </div>
 
+      <BuildWorkoutSheet open={wodSheetOpen} onOpenChange={setWodSheetOpen} />
 
       <QuickCardioFlow
         open={cardioFlowOpen}
