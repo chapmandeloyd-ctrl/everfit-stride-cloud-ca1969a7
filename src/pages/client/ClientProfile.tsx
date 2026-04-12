@@ -196,3 +196,44 @@ export default function ClientProfile() {
     </ClientLayout>
   );
 }
+
+function SavedWorkoutsSection() {
+  const navigate = useNavigate();
+  const { savedWorkouts, isLoading } = useSavedWorkouts();
+
+  if (isLoading) return null;
+  if (savedWorkouts.length === 0) return null;
+
+  return (
+    <section className="space-y-2">
+      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-1">
+        My Workouts
+      </p>
+      <div className="space-y-2">
+        {savedWorkouts.map((sw: any) => {
+          const plan = sw.workout_plans;
+          return (
+            <button
+              key={sw.id}
+              onClick={() => navigate(`/client/workouts/${sw.workout_plan_id}`)}
+              className="w-full flex items-center gap-3 p-3 rounded-xl border border-border bg-card hover:bg-muted/50 transition-colors text-left"
+            >
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <Dumbbell className="h-5 w-5 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-foreground truncate">{plan?.name || "Workout"}</p>
+                <p className="text-xs text-muted-foreground">
+                  {plan?.duration_minutes && `${plan.duration_minutes} min`}
+                  {plan?.duration_minutes && " · "}
+                  Saved {format(new Date(sw.saved_at), "MMM d")}
+                </p>
+              </div>
+              <Play className="h-4 w-4 text-muted-foreground shrink-0" />
+            </button>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
