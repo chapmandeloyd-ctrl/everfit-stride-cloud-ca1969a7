@@ -66,6 +66,7 @@ import ClientProfile from "./pages/client/ClientProfile";
 import ClientSportsProfile from "./pages/client/ClientSportsProfile";
 import ClientBooking from "./pages/client/ClientBooking";
 import ClientCardioPlayer from "./pages/client/ClientCardioPlayer";
+import ClientWodBuilder from "./pages/client/ClientWodBuilder";
 import ClientAppointments from "./pages/client/ClientAppointments";
 import ClientRecipeDetail from "./pages/client/ClientRecipeDetail";
 import ClientPrograms from "./pages/client/ClientPrograms";
@@ -189,6 +190,7 @@ const App = () => (
           <Route path="/client/appointments" element={<ProtectedRoute allowedRoles={["client"]}><ClientAppointments /></ProtectedRoute>} />
           <Route path="/client/sports" element={<ProtectedRoute allowedRoles={["client"]}><ClientSportsProfile /></ProtectedRoute>} />
           <Route path="/client/cardio-player" element={<ProtectedRoute allowedRoles={["client"]}><ClientCardioPlayer /></ProtectedRoute>} />
+          <Route path="/client/wod-builder" element={<ProtectedRoute allowedRoles={["client"]}><ClientWodBuilder /></ProtectedRoute>} />
           <Route path="/client/programs" element={<ProtectedRoute allowedRoles={["client"]}><FastingRouteGuard><ClientPrograms /></FastingRouteGuard></ProtectedRoute>} />
           <Route path="/client/choose-protocol" element={<ProtectedRoute allowedRoles={["client"]}><ClientChooseProtocol /></ProtectedRoute>} />
           <Route path="/client/quick-plans" element={<ProtectedRoute allowedRoles={["client"]}><FastingRouteGuard><ClientQuickPlans /></FastingRouteGuard></ProtectedRoute>} />

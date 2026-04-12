@@ -29,6 +29,7 @@ import { SwipeToDeleteCardioRow } from "@/components/cardio/SwipeToDeleteCardioR
 import { SwipeToDeleteWorkoutRow } from "@/components/workout/SwipeToDeleteWorkoutRow";
 import { SpeedDialFAB } from "@/components/SpeedDialFAB";
 import { FastingStatusCard } from "@/components/client/FastingStatusCard";
+import { BuildWorkoutSheet } from "@/components/workout/BuildWorkoutSheet";
 
 import { ProgramsSelector } from "@/components/ProgramsSelector";
 import { FastingTimer } from "@/components/FastingTimer";
@@ -1356,6 +1357,7 @@ export default function ClientDashboard() {
   const [selectedSportEvent, setSelectedSportEvent] = useState<any>(null);
   const [sportCompletionOpen, setSportCompletionOpen] = useState(false);
   const [cardioFlowOpen, setCardioFlowOpen] = useState(false);
+  const [wodSheetOpen, setWodSheetOpen] = useState(false);
   const [selectedCardioSession, setSelectedCardioSession] = useState<any>(null);
   const [calendarSelectedDate, setCalendarSelectedDate] = useState<Date | null>(null);
 
@@ -2245,7 +2247,7 @@ export default function ClientDashboard() {
             label: "Workout",
             icon: <Dumbbell className="h-5 w-5" />,
             color: "hsl(217, 91%, 60%)",
-            onClick: () => navigate("/client/workouts"),
+            onClick: () => setWodSheetOpen(true),
           },
           {
             label: "Cardio",
@@ -2287,6 +2289,7 @@ export default function ClientDashboard() {
         </button>
       </div>
 
+      <BuildWorkoutSheet open={wodSheetOpen} onOpenChange={setWodSheetOpen} />
 
       <QuickCardioFlow
         open={cardioFlowOpen}

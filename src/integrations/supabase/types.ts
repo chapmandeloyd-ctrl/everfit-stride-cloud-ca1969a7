@@ -800,6 +800,7 @@ export type Database = {
           calendar_days_ahead: number
           client_can_edit_goal: boolean
           client_id: string
+          client_wod_builder_enabled: boolean
           created_at: string
           current_level: number
           daily_checkin_enabled: boolean
@@ -889,6 +890,7 @@ export type Database = {
           calendar_days_ahead?: number
           client_can_edit_goal?: boolean
           client_id: string
+          client_wod_builder_enabled?: boolean
           created_at?: string
           current_level?: number
           daily_checkin_enabled?: boolean
@@ -978,6 +980,7 @@ export type Database = {
           calendar_days_ahead?: number
           client_can_edit_goal?: boolean
           client_id?: string
+          client_wod_builder_enabled?: boolean
           created_at?: string
           current_level?: number
           daily_checkin_enabled?: boolean
