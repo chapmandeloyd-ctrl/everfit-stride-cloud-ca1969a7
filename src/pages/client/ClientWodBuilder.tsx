@@ -2,12 +2,60 @@ import { useState, useRef, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Trash2, Dumbbell, Hand, Layers, Repeat, GripVertical, Timer, X } from "lucide-react";
+
+
 import { ExerciseLibrarySheet } from "@/components/workout/ExerciseLibrarySheet";
 import { SetsSliderSheet } from "@/components/workout/SetsSliderSheet";
 import { SetTargetSheet } from "@/components/workout/SetTargetSheet";
 import { RestTimePickerSheet } from "@/components/workout/RestTimePickerSheet";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+
+function SwipeToDeleteCard({ children, onDelete }: { children: React.ReactNode; onDelete: () => void }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const startXRef = useRef(0);
+  const currentXRef = useRef(0);
+  const swipingRef = useRef(false);
+
+  const onTS = (e: React.TouchEvent) => {
+    startXRef.current = e.touches[0].clientX;
+    currentXRef.current = 0;
+    swipingRef.current = true;
+  };
+
+  const onTM = (e: React.TouchEvent) => {
+    if (!swipingRef.current || !containerRef.current) return;
+    const dx = e.touches[0].clientX - startXRef.current;
+    if (dx > 0) { currentXRef.current = 0; containerRef.current.style.transform = ''; return; }
+    currentXRef.current = dx;
+    containerRef.current.style.transform = `translateX(${Math.max(dx, -120)}px)`;
+    containerRef.current.style.transition = 'none';
+  };
+
+  const onTE = () => {
+    swipingRef.current = false;
+    if (!containerRef.current) return;
+    containerRef.current.style.transition = 'transform 0.25s ease';
+    if (currentXRef.current < -70) {
+      containerRef.current.style.transform = 'translateX(-100%)';
+      setTimeout(onDelete, 250);
+    } else {
+      containerRef.current.style.transform = '';
+    }
+    currentXRef.current = 0;
+  };
+
+  return (
+    <div className="relative overflow-hidden">
+      <div className="absolute inset-0 flex items-center justify-end bg-destructive pr-5">
+        <Trash2 className="h-5 w-5 text-destructive-foreground" />
+      </div>
+      <div ref={containerRef} onTouchStart={onTS} onTouchMove={onTM} onTouchEnd={onTE} className="relative z-10">
+        {children}
+      </div>
+    </div>
+  );
+}
 
 interface WodExercise {
   id: string;
@@ -426,64 +474,71 @@ export default function ClientWodBuilder() {
                 const ex = item.exercise;
                 const exIndex = exercises.indexOf(ex);
                 return (
-                  <div
+                  <SwipeToDeleteCard
                     key={ex.id}
-                    ref={(el) => setItemRef(ex.id, el)}
-                    draggable
-                    onDragStart={() => handleDragStart(exIndex)}
-                    onDragOver={(e) => { e.preventDefault(); handleDragOver(exIndex); }}
-                    onDragEnd={handleDragEnd}
-                    onTouchStart={(e) => handleTouchStart(e, exIndex)}
-                    onTouchMove={handleTouchMove}
-                    onTouchEnd={handleTouchEnd}
-                    className={`border-b border-border py-3 transition-all ${ex.selected ? "bg-primary/5" : ""} ${dragIndex === exIndex ? "opacity-50 scale-95" : ""} ${overIndex === exIndex && dragIndex !== null && dragIndex !== exIndex ? "border-t-2 border-t-primary" : ""}`}
+                    onDelete={() => {
+                      setExercises((prev) => prev.filter((e) => e.id !== ex.id));
+                      toast.success(`Removed ${ex.exercise_name}`);
+                    }}
                   >
-                    <div className="flex items-center gap-2">
-                      <button onClick={() => toggleSelect(ex.id)} className="shrink-0">
-                        <div className={`w-5 h-5 rounded border-[1.5px] flex items-center justify-center transition-colors ${ex.selected ? "bg-primary border-primary" : "border-muted-foreground/30 bg-transparent"}`}>
-                          {ex.selected && (
-                            <svg className="h-3 w-3 text-primary-foreground" viewBox="0 0 14 14" fill="none">
-                              <path d="M2 7l3.5 3.5L12 4" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
+                    <div
+                      ref={(el) => setItemRef(ex.id, el)}
+                      draggable
+                      onDragStart={() => handleDragStart(exIndex)}
+                      onDragOver={(e) => { e.preventDefault(); handleDragOver(exIndex); }}
+                      onDragEnd={handleDragEnd}
+                      onTouchStart={(e) => handleTouchStart(e, exIndex)}
+                      onTouchMove={handleTouchMove}
+                      onTouchEnd={handleTouchEnd}
+                      className={`border-b border-border py-3 transition-all bg-background ${ex.selected ? "bg-primary/5" : ""} ${dragIndex === exIndex ? "opacity-50 scale-95" : ""} ${overIndex === exIndex && dragIndex !== null && dragIndex !== exIndex ? "border-t-2 border-t-primary" : ""}`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => toggleSelect(ex.id)} className="shrink-0">
+                          <div className={`w-5 h-5 rounded border-[1.5px] flex items-center justify-center transition-colors ${ex.selected ? "bg-primary border-primary" : "border-muted-foreground/30 bg-transparent"}`}>
+                            {ex.selected && (
+                              <svg className="h-3 w-3 text-primary-foreground" viewBox="0 0 14 14" fill="none">
+                                <path d="M2 7l3.5 3.5L12 4" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            )}
+                          </div>
+                        </button>
+                        <div className="w-14 h-14 rounded-lg overflow-hidden bg-muted shrink-0 flex items-center justify-center">
+                          {ex.exercise_id === "rest" ? (
+                            <Timer className="h-6 w-6 text-muted-foreground/40" />
+                          ) : ex.image_url ? (
+                            <img src={ex.image_url} alt={ex.exercise_name} className="w-full h-full object-cover" />
+                          ) : (
+                            <Dumbbell className="h-6 w-6 text-muted-foreground/40" />
                           )}
                         </div>
-                      </button>
-                      <div className="w-14 h-14 rounded-lg overflow-hidden bg-muted shrink-0 flex items-center justify-center">
-                        {ex.exercise_id === "rest" ? (
-                          <Timer className="h-6 w-6 text-muted-foreground/40" />
-                        ) : ex.image_url ? (
-                          <img src={ex.image_url} alt={ex.exercise_name} className="w-full h-full object-cover" />
-                        ) : (
-                          <Dumbbell className="h-6 w-6 text-muted-foreground/40" />
-                        )}
+                        <div
+                          className="flex-1 min-w-0 cursor-pointer"
+                          onClick={() => { if (ex.exercise_id === "rest") setEditingRestId(ex.id); }}
+                        >
+                          <p className="text-sm font-semibold text-foreground truncate">
+                            {ex.exercise_name}{ex.exercise_id === "rest" && ex.rest_seconds > 0 ? ` · ${ex.rest_seconds >= 60 ? `${Math.floor(ex.rest_seconds / 60)}m${ex.rest_seconds % 60 > 0 ? ` ${ex.rest_seconds % 60}s` : ""}` : `${ex.rest_seconds}s`}` : ""}
+                          </p>
+                        </div>
+                        <div className="shrink-0 text-muted-foreground/30 cursor-grab">
+                          <GripVertical className="h-5 w-5" />
+                        </div>
                       </div>
-                      <div
-                        className="flex-1 min-w-0 cursor-pointer"
-                        onClick={() => { if (ex.exercise_id === "rest") setEditingRestId(ex.id); }}
-                      >
-                        <p className="text-sm font-semibold text-foreground truncate">
-                          {ex.exercise_name}{ex.exercise_id === "rest" && ex.rest_seconds > 0 ? ` · ${ex.rest_seconds >= 60 ? `${Math.floor(ex.rest_seconds / 60)}m${ex.rest_seconds % 60 > 0 ? ` ${ex.rest_seconds % 60}s` : ""}` : `${ex.rest_seconds}s`}` : ""}
-                        </p>
-                      </div>
-                      <div className="shrink-0 text-muted-foreground/30 cursor-grab">
-                        <GripVertical className="h-5 w-5" />
-                      </div>
+                      {ex.exercise_id !== "rest" && (
+                        <div className="flex items-center gap-2 mt-2 ml-7 pl-1">
+                          <button onClick={() => setEditingSetsId(ex.id)} className="px-3 py-1 rounded-full border border-border text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors">
+                            {ex.sets} sets
+                          </button>
+                          <button onClick={() => setEditingTargetId(ex.id)} className="px-3 py-1 rounded-full border border-border text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors">
+                            {ex.reps === "10" && ex.target_type === "text" ? "Set Target" : ex.target_type === "time" ? `⏱ ${ex.reps}` : ex.reps}
+                          </button>
+                          <button onClick={() => setEditingRestId(ex.id)} className="px-3 py-1 rounded-full border border-border text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors flex items-center gap-1">
+                            <Hand className="h-3 w-3" />
+                            {ex.rest_seconds > 0 ? (ex.rest_seconds >= 60 ? `${Math.floor(ex.rest_seconds / 60)}m${ex.rest_seconds % 60 > 0 ? ` ${ex.rest_seconds % 60}s` : ""}` : `${ex.rest_seconds}s`) : "None"}
+                          </button>
+                        </div>
+                      )}
                     </div>
-                    {ex.exercise_id !== "rest" && (
-                      <div className="flex items-center gap-2 mt-2 ml-7 pl-1">
-                        <button onClick={() => setEditingSetsId(ex.id)} className="px-3 py-1 rounded-full border border-border text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors">
-                          {ex.sets} sets
-                        </button>
-                        <button onClick={() => setEditingTargetId(ex.id)} className="px-3 py-1 rounded-full border border-border text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors">
-                          {ex.reps === "10" && ex.target_type === "text" ? "Set Target" : ex.target_type === "time" ? `⏱ ${ex.reps}` : ex.reps}
-                        </button>
-                        <button onClick={() => setEditingRestId(ex.id)} className="px-3 py-1 rounded-full border border-border text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors flex items-center gap-1">
-                          <Hand className="h-3 w-3" />
-                          {ex.rest_seconds > 0 ? (ex.rest_seconds >= 60 ? `${Math.floor(ex.rest_seconds / 60)}m${ex.rest_seconds % 60 > 0 ? ` ${ex.rest_seconds % 60}s` : ""}` : `${ex.rest_seconds}s`) : "None"}
-                        </button>
-                      </div>
-                    )}
-                  </div>
+                  </SwipeToDeleteCard>
                 );
               }
 
@@ -620,7 +675,29 @@ export default function ClientWodBuilder() {
             selected: false,
             group_id: null,
           }));
-          setExercises((prev) => [...prev, ...newItems]);
+
+          // Auto-group for circuit/interval workout types
+          if ((workoutType === "circuit" || workoutType === "interval") && newItems.length >= 2) {
+            const groupType = workoutType === "circuit" ? "circuit" : "superset";
+            const groupId = crypto.randomUUID();
+            const newGroup: ExerciseGroup = { id: groupId, type: groupType, rounds: 3, selected: false };
+            const groupedItems = newItems.map((item) => ({ ...item, group_id: groupId }));
+            setGroups((prev) => [...prev, newGroup]);
+            setExercises((prev) => [...prev, ...groupedItems]);
+          } else if ((workoutType === "circuit" || workoutType === "interval") && newItems.length === 1) {
+            // If only 1 exercise added, check if there's an existing auto-group to add to
+            const autoGroupType = workoutType === "circuit" ? "circuit" : "superset";
+            const existingGroup = groups.find((g) => g.type === autoGroupType);
+            if (existingGroup) {
+              const groupedItems = newItems.map((item) => ({ ...item, group_id: existingGroup.id }));
+              setExercises((prev) => [...prev, ...groupedItems]);
+            } else {
+              // Just add ungrouped for now, will auto-group when 2+
+              setExercises((prev) => [...prev, ...newItems]);
+            }
+          } else {
+            setExercises((prev) => [...prev, ...newItems]);
+          }
           toast.success(`Added ${selectedExercises.length} exercise(s)`);
         }}
       />
