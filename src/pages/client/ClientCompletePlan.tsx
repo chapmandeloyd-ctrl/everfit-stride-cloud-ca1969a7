@@ -286,7 +286,14 @@ export default function ClientCompletePlan() {
                 </div>
                 <span className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-primary">Your KSOM Plan</span>
               </div>
-              <h2 className="text-[28px] font-black leading-tight tracking-tight">{protocol.name}</h2>
+              <h2 className="text-[28px] font-black leading-tight tracking-tight">
+                {protocol.name}
+                {isQuickPlan && protocol.fast_target_hours >= 24 && (
+                  <span className="text-muted-foreground font-bold text-lg ml-2">
+                    — {Math.round(protocol.fast_target_hours / 24)} Day{Math.round(protocol.fast_target_hours / 24) !== 1 ? "s" : ""}
+                  </span>
+                )}
+              </h2>
 
               {/* How This Protocol Works */}
               <div className="mt-4 pt-4 border-t border-border/40">
