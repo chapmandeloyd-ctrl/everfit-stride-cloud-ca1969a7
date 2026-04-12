@@ -699,8 +699,13 @@ export default function ClientWodBuilder() {
                   onTouchStart={(e) => workoutType === "superset" && handleBlockTouchStart(e, blockIdx)}
                   onTouchMove={workoutType === "superset" ? handleBlockTouchMove : undefined}
                   onTouchEnd={workoutType === "superset" ? handleBlockTouchEnd : undefined}
-                  className={`border-b border-border bg-muted/30 rounded-lg my-1 overflow-hidden transition-all ${blockDragIndex === blockIdx ? "opacity-50 scale-95" : ""} ${blockOverIndex === blockIdx && blockDragIndex !== null && blockDragIndex !== blockIdx ? "border-t-2 border-t-primary" : ""}`}
+                  className={`border-b border-border rounded-lg my-1 overflow-hidden transition-all ${bt.color} ${blockDragIndex === blockIdx ? "opacity-50 scale-95" : ""} ${blockOverIndex === blockIdx && blockDragIndex !== null && blockDragIndex !== blockIdx ? "border-t-2 border-t-primary" : ""}`}
                 >
+                  {(() => {
+                    const bt = getBlockType(group.block_type || "custom");
+                    const blockLabel = group.block_type === "custom" && group.custom_name ? group.custom_name : bt.label;
+                    return null; // just computing bt for the className above
+                  })()}
                   {/* Group header */}
                   <div className="flex items-center gap-2 px-3 py-3 bg-muted/50">
                     <button onClick={() => toggleGroupSelect(group.id)} className="shrink-0">
