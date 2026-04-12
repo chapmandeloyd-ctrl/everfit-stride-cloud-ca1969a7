@@ -803,7 +803,7 @@ export default function ClientWodBuilder() {
                     ))}
                     {/* Per-block Add Exercises button for superset mode */}
                     {workoutType === "superset" && (
-                      <div className="px-3 py-2 border-t border-border bg-border">
+                      <div className="px-3 py-2 border-t border-border bg-card">
                         <button
                           onClick={() => handleInsertExercise(group.id)}
                           className="text-xs font-semibold text-primary"
