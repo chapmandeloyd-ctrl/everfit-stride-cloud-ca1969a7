@@ -30,6 +30,7 @@ interface ExerciseGroup {
 
 export default function ClientWodBuilder() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const workoutType = searchParams.get("type") || "regular";
 
