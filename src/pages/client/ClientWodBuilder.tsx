@@ -427,7 +427,7 @@ export default function ClientWodBuilder() {
 
       // Auto-save to favorites
       await supabase.from("saved_workouts").upsert(
-        { client_id: effectiveClientId!, workout_plan_id: planId },
+        { client_id: user.id, workout_plan_id: planId },
         { onConflict: "client_id,workout_plan_id" }
       );
 
