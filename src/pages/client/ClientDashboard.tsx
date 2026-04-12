@@ -258,6 +258,7 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
       queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting"] });
       queryClient.invalidateQueries({ queryKey: ["fasting-gate-state"] });
       queryClient.invalidateQueries({ queryKey: ["today-fasting-log"] });
+      navigate("/client/fast-complete");
     },
   });
 
