@@ -259,8 +259,29 @@ export default function ClientWodBuilder() {
     handleBlockDragEnd();
   }, [handleBlockDragEnd]);
 
+  // Intra-block exercise drag state
+  const [intraBlockDragFrom, setIntraBlockDragFrom] = useState<{ groupId: string; index: number } | null>(null);
+  const [intraBlockDragOver, setIntraBlockDragOver] = useState<number | null>(null);
 
-  const handleSave = async () => {
+  const handleIntraBlockDragEnd = useCallback((groupId: string) => {
+    if (intraBlockDragFrom && intraBlockDragOver !== null && intraBlockDragFrom.index !== intraBlockDragOver) {
+      setExercises((prev) => {
+        const groupExs = prev.filter((e) => e.group_id === groupId);
+        const others = prev.filter((e) => e.group_id !== groupId);
+        const [moved] = groupExs.splice(intraBlockDragFrom.index, 1);
+        groupExs.splice(intraBlockDragOver, 0, moved);
+        // Re-insert group exercises at the position of the first group exercise
+        const firstGroupIdx = prev.findIndex((e) => e.group_id === groupId);
+        const result = [...others];
+        result.splice(firstGroupIdx, 0, ...groupExs);
+        return result;
+      });
+    }
+    setIntraBlockDragFrom(null);
+    setIntraBlockDragOver(null);
+  }, [intraBlockDragFrom, intraBlockDragOver]);
+
+
     if (exercises.length === 0) {
       toast.error("Add at least one exercise");
       return;
