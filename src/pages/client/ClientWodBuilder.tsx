@@ -24,6 +24,76 @@ export default function ClientWodBuilder() {
   const [showExerciseLibrary, setShowExerciseLibrary] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showDragHint, setShowDragHint] = useState(true);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [overIndex, setOverIndex] = useState<number | null>(null);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isDragging = useRef(false);
+  const dragStartY = useRef(0);
+  const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  const handleDragStart = useCallback((index: number) => {
+    setDragIndex(index);
+    setOverIndex(index);
+    isDragging.current = true;
+  }, []);
+
+  const handleDragOver = useCallback((index: number) => {
+    if (isDragging.current && dragIndex !== null) {
+      setOverIndex(index);
+    }
+  }, [dragIndex]);
+
+  const handleDragEnd = useCallback(() => {
+    if (dragIndex !== null && overIndex !== null && dragIndex !== overIndex) {
+      setExercises((prev) => {
+        const updated = [...prev];
+        const [moved] = updated.splice(dragIndex, 1);
+        updated.splice(overIndex, 0, moved);
+        return updated;
+      });
+    }
+    setDragIndex(null);
+    setOverIndex(null);
+    isDragging.current = false;
+  }, [dragIndex, overIndex]);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent, index: number) => {
+    dragStartY.current = e.touches[0].clientY;
+    longPressTimer.current = setTimeout(() => {
+      handleDragStart(index);
+    }, 400);
+  }, [handleDragStart]);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (longPressTimer.current && !isDragging.current) {
+      const dy = Math.abs(e.touches[0].clientY - dragStartY.current);
+      if (dy > 10) {
+        clearTimeout(longPressTimer.current);
+        longPressTimer.current = null;
+      }
+    }
+    if (!isDragging.current) return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    const elements = itemRefs.current;
+    for (let i = 0; i < elements.length; i++) {
+      const el = elements[i];
+      if (!el) continue;
+      const rect = el.getBoundingClientRect();
+      if (touch.clientY >= rect.top && touch.clientY <= rect.bottom) {
+        setOverIndex(i);
+        break;
+      }
+    }
+  }, []);
+
+  const handleTouchEnd = useCallback(() => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+    handleDragEnd();
+  }, [handleDragEnd]);
 
   const handleSave = async () => {
     if (exercises.length === 0) {
