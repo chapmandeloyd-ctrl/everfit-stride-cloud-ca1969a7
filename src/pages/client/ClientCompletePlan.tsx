@@ -272,152 +272,139 @@ export default function ClientCompletePlan() {
         </div>
 
         {/* PROTOCOL DETAIL CARD — Single structured premium card */}
-        <div className="px-5">
+        <div className="px-5 space-y-4">
+          {/* BLOCK 1 — HERO (colored) */}
           <Card className="overflow-hidden" style={{ backgroundColor: "hsl(var(--primary) / 0.04)", borderColor: "hsl(var(--primary) / 0.18)" }}>
-            <CardContent className="p-0">
-
-              {/* HERO HEADER */}
-              <div className="p-5 pb-4">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="h-10 w-10 rounded-xl flex items-center justify-center bg-primary/10">
-                    <Zap className="h-5 w-5 text-primary" />
-                  </div>
-                  <span className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-primary">Your KSOM Plan</span>
+            <CardContent className="p-5">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="h-10 w-10 rounded-xl flex items-center justify-center bg-primary/10">
+                  <Zap className="h-5 w-5 text-primary" />
                 </div>
-                <h2 className="text-[26px] font-black leading-tight tracking-tight">
-                  {protocol.name}
-                  {isQuickPlan && protocol.fast_target_hours >= 24 && (
-                    <> — {Math.round(protocol.fast_target_hours / 24)} Day{Math.round(protocol.fast_target_hours / 24) !== 1 ? "s" : ""}</>
-                  )}
-                </h2>
-
-                {/* Stats row */}
-                <div className="flex items-center justify-center gap-8 mt-4 pt-3 border-t border-border/30">
-                  <div className="text-center">
-                    <p className="text-base font-black">{protocol.fast_target_hours}h</p>
-                    <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">Fast</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-base font-black">
-                      {protocol.duration_days === 0 ? "∞" : `${Math.ceil(protocol.duration_days / 7)} wk${Math.ceil(protocol.duration_days / 7) !== 1 ? "s" : ""}`}
-                    </p>
-                    <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">Duration</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-base font-black capitalize">{getDifficultyLabel(protocol.difficulty_level)}</p>
-                    <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">Level</p>
-                  </div>
+                <span className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-primary">Your KSOM Plan</span>
+              </div>
+              <h2 className="text-[26px] font-black leading-tight tracking-tight">
+                {protocol.name}
+                {isQuickPlan && protocol.fast_target_hours >= 24 && (
+                  <> — {Math.round(protocol.fast_target_hours / 24)} Day{Math.round(protocol.fast_target_hours / 24) !== 1 ? "s" : ""}</>
+                )}
+              </h2>
+              <div className="flex items-center justify-center gap-8 mt-4 pt-3 border-t border-border/30">
+                <div className="text-center">
+                  <p className="text-base font-black">{protocol.fast_target_hours}h</p>
+                  <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">Fast</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-base font-black">
+                    {protocol.duration_days === 0 ? "∞" : `${Math.ceil(protocol.duration_days / 7)} wk${Math.ceil(protocol.duration_days / 7) !== 1 ? "s" : ""}`}
+                  </p>
+                  <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">Duration</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-base font-black capitalize">{getDifficultyLabel(protocol.difficulty_level)}</p>
+                  <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">Level</p>
                 </div>
               </div>
+            </CardContent>
+          </Card>
 
-              {/* DIVIDER */}
-              <div className="h-px bg-border/50 mx-5" />
-
-              {/* HOW THIS PROTOCOL WORKS */}
-              <div className="p-5">
-                <SectionHeader title="How This Protocol Works" icon={<Brain className="h-4 w-4 text-primary" />} />
-                <div className="space-y-2.5">
-                  {protocolContent.overview.map((p, i) => (
-                    <p key={i} className="text-[13px] text-muted-foreground leading-relaxed">{p}</p>
-                  ))}
-                </div>
+          {/* BLOCK 2 — HOW THIS PROTOCOL WORKS */}
+          <Card>
+            <CardContent className="p-5">
+              <SectionHeader title="How This Protocol Works" icon={<Brain className="h-4 w-4 text-primary" />} />
+              <div className="space-y-2.5">
+                {protocolContent.overview.map((p, i) => (
+                  <p key={i} className="text-[13px] text-muted-foreground leading-relaxed">{p}</p>
+                ))}
               </div>
+            </CardContent>
+          </Card>
 
-              {/* DIVIDER */}
-              <div className="h-px bg-border/50 mx-5" />
-
-              {/* WHAT YOUR BODY IS DOING (BY PHASE) */}
-              <div className="p-5">
-                <SectionHeader title="What Your Body Is Doing" icon={<Flame className="h-4 w-4 text-destructive" />} />
-                <div className="space-y-3">
-                  {protocolContent.phases.map((phase, i) => (
-                    <div key={i} className="rounded-lg bg-muted/50 p-3">
-                      <div className="flex items-baseline gap-2 mb-1">
-                        <span className="text-[11px] font-bold text-primary">{phase.range}</span>
-                        <span className="text-xs font-bold">— {phase.title}</span>
-                      </div>
-                      <p className="text-[12px] text-muted-foreground leading-relaxed">{phase.detail}</p>
+          {/* BLOCK 3 — WHAT YOUR BODY IS DOING */}
+          <Card>
+            <CardContent className="p-5">
+              <SectionHeader title="What Your Body Is Doing" icon={<Flame className="h-4 w-4 text-destructive" />} />
+              <div className="space-y-3">
+                {protocolContent.phases.map((phase, i) => (
+                  <div key={i} className="rounded-lg bg-muted/50 p-3">
+                    <div className="flex items-baseline gap-2 mb-1">
+                      <span className="text-[11px] font-bold text-primary">{phase.range}</span>
+                      <span className="text-xs font-bold">— {phase.title}</span>
                     </div>
-                  ))}
-                </div>
+                    <p className="text-[12px] text-muted-foreground leading-relaxed">{phase.detail}</p>
+                  </div>
+                ))}
               </div>
+            </CardContent>
+          </Card>
 
-              {/* DIVIDER */}
-              <div className="h-px bg-border/50 mx-5" />
-
-              {/* WHAT THIS DOES FOR YOU */}
-              <div className="p-5">
-                <SectionHeader title="What This Does For You" icon={<Zap className="h-4 w-4 text-primary" />} />
-                <ul className="space-y-2">
-                  {protocolContent.benefits.map((b, i) => (
-                    <li key={i} className="flex items-center gap-2.5">
-                      <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                        <Check className="h-3 w-3 text-primary" />
-                      </div>
-                      <span className="text-[13px] text-muted-foreground">{b}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* DIVIDER */}
-              <div className="h-px bg-border/50 mx-5" />
-
-              {/* EXECUTION RULES */}
-              <div className="p-5">
-                <SectionHeader title="Execution Rules" icon={<Shield className="h-4 w-4 text-primary" />} />
-                <ul className="space-y-2">
-                  {protocolContent.rules.map((r, i) => (
-                    <li key={i} className="flex items-start gap-2.5">
-                      <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
-                      <span className="text-[13px] text-muted-foreground">{r}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* DIVIDER */}
-              <div className="h-px bg-border/50 mx-5" />
-
-              {/* MENTAL REALITY */}
-              <div className="p-5">
-                <SectionHeader title="Mental Reality" icon={<Brain className="h-4 w-4 text-primary" />} />
-                <div className="space-y-2">
-                  {protocolContent.mentalReality.map((m, i) => (
-                    <p key={i} className="text-[13px] text-muted-foreground leading-relaxed font-medium">{m}</p>
-                  ))}
-                </div>
-              </div>
-
-              {/* DIVIDER */}
-              <div className="h-px bg-border/50 mx-5" />
-
-              {/* DAILY SCHEDULE */}
-              <div className="p-5">
-                <SectionHeader title="Daily Schedule" icon={<CalendarDays className="h-4 w-4 text-primary" />} />
-                <div className="space-y-2">
-                  {protocolContent.schedule.map((s, i) => (
-                    <div key={i} className="flex items-center justify-between rounded-lg bg-muted/40 px-3.5 py-2.5">
-                      <span className="text-[13px] text-muted-foreground">{s.label}</span>
-                      <span className="text-[13px] font-semibold">{s.detail}</span>
+          {/* BLOCK 4 — WHAT THIS DOES FOR YOU */}
+          <Card>
+            <CardContent className="p-5">
+              <SectionHeader title="What This Does For You" icon={<Zap className="h-4 w-4 text-primary" />} />
+              <ul className="space-y-2">
+                {protocolContent.benefits.map((b, i) => (
+                  <li key={i} className="flex items-center gap-2.5">
+                    <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                      <Check className="h-3 w-3 text-primary" />
                     </div>
-                  ))}
-                </div>
+                    <span className="text-[13px] text-muted-foreground">{b}</span>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+
+          {/* BLOCK 5 — EXECUTION RULES */}
+          <Card>
+            <CardContent className="p-5">
+              <SectionHeader title="Execution Rules" icon={<Shield className="h-4 w-4 text-primary" />} />
+              <ul className="space-y-2">
+                {protocolContent.rules.map((r, i) => (
+                  <li key={i} className="flex items-start gap-2.5">
+                    <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
+                    <span className="text-[13px] text-muted-foreground">{r}</span>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+
+          {/* BLOCK 6 — MENTAL REALITY */}
+          <Card>
+            <CardContent className="p-5">
+              <SectionHeader title="Mental Reality" icon={<Brain className="h-4 w-4 text-primary" />} />
+              <div className="space-y-2">
+                {protocolContent.mentalReality.map((m, i) => (
+                  <p key={i} className="text-[13px] text-muted-foreground leading-relaxed font-medium">{m}</p>
+                ))}
               </div>
+            </CardContent>
+          </Card>
 
-              {/* DIVIDER */}
-              <div className="h-px bg-border/50 mx-5" />
-
-              {/* COACH WARNING */}
-              <div className="p-5">
-                <SectionHeader title="Coach Warning" icon={<AlertTriangle className="h-4 w-4 text-destructive" />} />
-                <div className="rounded-lg bg-destructive/5 border border-destructive/15 p-3.5 space-y-2">
-                  {protocolContent.coachWarning.map((w, i) => (
-                    <p key={i} className="text-[13px] text-muted-foreground leading-relaxed font-medium">{w}</p>
-                  ))}
-                </div>
+          {/* BLOCK 7 — DAILY SCHEDULE */}
+          <Card>
+            <CardContent className="p-5">
+              <SectionHeader title="Daily Schedule" icon={<CalendarDays className="h-4 w-4 text-primary" />} />
+              <div className="space-y-2">
+                {protocolContent.schedule.map((s, i) => (
+                  <div key={i} className="flex items-center justify-between rounded-lg bg-muted/40 px-3.5 py-2.5">
+                    <span className="text-[13px] text-muted-foreground">{s.label}</span>
+                    <span className="text-[13px] font-semibold">{s.detail}</span>
+                  </div>
+                ))}
               </div>
+            </CardContent>
+          </Card>
 
+          {/* BLOCK 8 — COACH WARNING */}
+          <Card>
+            <CardContent className="p-5">
+              <SectionHeader title="Coach Warning" icon={<AlertTriangle className="h-4 w-4 text-destructive" />} />
+              <div className="rounded-lg bg-destructive/5 border border-destructive/15 p-3.5 space-y-2">
+                {protocolContent.coachWarning.map((w, i) => (
+                  <p key={i} className="text-[13px] text-muted-foreground leading-relaxed font-medium">{w}</p>
+                ))}
+              </div>
             </CardContent>
           </Card>
         </div>
