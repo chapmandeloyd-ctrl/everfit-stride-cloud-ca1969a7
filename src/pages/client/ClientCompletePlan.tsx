@@ -650,6 +650,14 @@ export default function ClientCompletePlan() {
             {startFastMutation.isPending ? "Starting..." : "Start Fast"}
           </Button>
           <Button
+            variant="secondary"
+            className="w-full h-11 gap-2"
+            onClick={() => navigate("/client/fast-complete")}
+          >
+            <Check className="h-4 w-4" />
+            Preview Fast Complete Screen
+          </Button>
+          <Button
             variant="outline"
             className="w-full h-11"
             onClick={() => navigate("/client/dashboard")}
