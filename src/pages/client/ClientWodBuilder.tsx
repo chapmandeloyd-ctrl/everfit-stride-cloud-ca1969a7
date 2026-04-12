@@ -701,117 +701,120 @@ export default function ClientWodBuilder() {
               const bt = getBlockType(group.block_type || "custom");
               const blockLabel = group.block_type === "custom" && group.custom_name ? group.custom_name : bt.label;
               return (
-                <div
-                  key={group.id}
-                  ref={(el) => setBlockRef(group.id, el)}
-                  draggable={workoutType === "superset"}
-                  onDragStart={() => workoutType === "superset" && handleBlockDragStart(blockIdx)}
-                  onDragOver={(e) => { if (workoutType === "superset") { e.preventDefault(); setBlockOverIndex(blockIdx); } }}
-                  onDragEnd={() => workoutType === "superset" && handleBlockDragEnd()}
-                  onTouchStart={(e) => workoutType === "superset" && handleBlockTouchStart(e, blockIdx)}
-                  onTouchMove={workoutType === "superset" ? handleBlockTouchMove : undefined}
-                  onTouchEnd={workoutType === "superset" ? handleBlockTouchEnd : undefined}
-                  className={`border rounded-lg my-12 overflow-hidden transition-all ${bt.borderColor} ${bt.color} ${blockDragIndex === blockIdx ? "opacity-50 scale-95" : ""} ${blockOverIndex === blockIdx && blockDragIndex !== null && blockDragIndex !== blockIdx ? "border-t-2 border-t-primary" : ""}`}
-                >
-                  {/* Group header */}
-                  <div className={`flex items-center gap-2 px-3 py-3 ${bt.color}`}>
-                    <button onClick={() => toggleGroupSelect(group.id)} className="shrink-0">
-                      <div className={`w-5 h-5 rounded border-[1.5px] flex items-center justify-center transition-colors ${group.selected ? "bg-primary border-primary" : "border-muted-foreground/30 bg-transparent"}`}>
-                        {group.selected && (
-                          <svg className="h-3 w-3 text-primary-foreground" viewBox="0 0 14 14" fill="none">
-                            <path d="M2 7l3.5 3.5L12 4" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
-                        )}
-                      </div>
-                    </button>
-                    <span className="text-lg">{bt.emoji}</span>
-                    <div className="flex-1 min-w-0">
-                      <span className="text-sm text-foreground">
-                        <span className={`font-semibold ${bt.textColor}`}>{blockLabel}</span>
-                        {" · "}
-                        <button
-                          onClick={() => setEditingCircuitRoundsId(group.id)}
-                          className="text-primary font-semibold"
-                        >
-                          {group.rounds} rounds
-                        </button>
-                      </span>
-                    </div>
-                    {workoutType !== "superset" && (
-                      <button
-                        onClick={() => handleUngroup(group.id)}
-                        className="text-xs font-semibold text-primary mr-1"
-                      >
-                        Ungroup
-                      </button>
-                    )}
-                    <button
-                      onClick={() => {
-                        setExercises((prev) => prev.filter((e) => e.group_id !== group.id));
-                        setGroups((prev) => prev.filter((g) => g.id !== group.id));
-                        toast.success("Block removed");
-                      }}
-                      className="text-xs mr-1"
-                    >
-                      <X className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-                    </button>
-                    {workoutType === "superset" && (
-                      <div className="shrink-0 text-muted-foreground/30 cursor-grab">
-                        <GripVertical className="h-5 w-5" />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Group exercises - no checkbox, no sets pill */}
-                  {groupExercises.map((ex, exIdx) => (
-                    <div
-                      key={ex.id}
-                      draggable
-                      onDragStart={() => { setIntraBlockDragFrom({ groupId: group.id, index: exIdx }); setIntraBlockDragOver(exIdx); }}
-                      onDragOver={(e) => { e.preventDefault(); setIntraBlockDragOver(exIdx); }}
-                      onDragEnd={() => handleIntraBlockDragEnd(group.id)}
-                      className={`py-3 px-3 border-t border-border/50 bg-background transition-all ${intraBlockDragFrom?.groupId === group.id && intraBlockDragFrom.index === exIdx ? "opacity-50 scale-95" : ""} ${intraBlockDragFrom?.groupId === group.id && intraBlockDragOver === exIdx && intraBlockDragFrom.index !== exIdx ? "border-t-2 border-t-primary" : ""}`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <div className="w-14 h-14 rounded-lg overflow-hidden bg-muted shrink-0 flex items-center justify-center">
-                          {ex.image_url ? (
-                            <img src={ex.image_url} alt={ex.exercise_name} className="w-full h-full object-cover" />
-                          ) : (
-                            <Dumbbell className="h-6 w-6 text-muted-foreground/40" />
+                <>
+                  <div
+                    key={group.id}
+                    ref={(el) => setBlockRef(group.id, el)}
+                    draggable={workoutType === "superset"}
+                    onDragStart={() => workoutType === "superset" && handleBlockDragStart(blockIdx)}
+                    onDragOver={(e) => { if (workoutType === "superset") { e.preventDefault(); setBlockOverIndex(blockIdx); } }}
+                    onDragEnd={() => workoutType === "superset" && handleBlockDragEnd()}
+                    onTouchStart={(e) => workoutType === "superset" && handleBlockTouchStart(e, blockIdx)}
+                    onTouchMove={workoutType === "superset" ? handleBlockTouchMove : undefined}
+                    onTouchEnd={workoutType === "superset" ? handleBlockTouchEnd : undefined}
+                    className={`border rounded-lg overflow-hidden transition-all ${bt.borderColor} ${bt.color} ${blockDragIndex === blockIdx ? "opacity-50 scale-95" : ""} ${blockOverIndex === blockIdx && blockDragIndex !== null && blockDragIndex !== blockIdx ? "border-t-2 border-t-primary" : ""}`}
+                  >
+                    {/* Group header */}
+                    <div className={`flex items-center gap-2 px-3 py-3 ${bt.color}`}>
+                      <button onClick={() => toggleGroupSelect(group.id)} className="shrink-0">
+                        <div className={`w-5 h-5 rounded border-[1.5px] flex items-center justify-center transition-colors ${group.selected ? "bg-primary border-primary" : "border-muted-foreground/30 bg-transparent"}`}>
+                          {group.selected && (
+                            <svg className="h-3 w-3 text-primary-foreground" viewBox="0 0 14 14" fill="none">
+                              <path d="M2 7l3.5 3.5L12 4" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
                           )}
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-foreground truncate">{ex.exercise_name}</p>
-                        </div>
+                      </button>
+                      <span className="text-lg">{bt.emoji}</span>
+                      <div className="flex-1 min-w-0">
+                        <span className="text-sm text-foreground">
+                          <span className={`font-semibold ${bt.textColor}`}>{blockLabel}</span>
+                          {" · "}
+                          <button
+                            onClick={() => setEditingCircuitRoundsId(group.id)}
+                            className="text-primary font-semibold"
+                          >
+                            {group.rounds} rounds
+                          </button>
+                        </span>
+                      </div>
+                      {workoutType !== "superset" && (
+                        <button
+                          onClick={() => handleUngroup(group.id)}
+                          className="text-xs font-semibold text-primary mr-1"
+                        >
+                          Ungroup
+                        </button>
+                      )}
+                      <button
+                        onClick={() => {
+                          setExercises((prev) => prev.filter((e) => e.group_id !== group.id));
+                          setGroups((prev) => prev.filter((g) => g.id !== group.id));
+                          toast.success("Block removed");
+                        }}
+                        className="text-xs mr-1"
+                      >
+                        <X className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+                      </button>
+                      {workoutType === "superset" && (
                         <div className="shrink-0 text-muted-foreground/30 cursor-grab">
                           <GripVertical className="h-5 w-5" />
                         </div>
-                      </div>
-                      {ex.exercise_id !== "rest" && (
-                        <div className="flex items-center gap-2 mt-2 ml-1">
-                          <button onClick={() => setEditingTargetId(ex.id)} className="px-3 py-1 rounded-full border border-border text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors">
-                            {ex.reps === "10" && ex.target_type === "text" ? "Set Target" : ex.target_type === "time" ? `⏱ ${ex.reps}` : ex.reps}
-                          </button>
-                          <button onClick={() => setEditingRestId(ex.id)} className="px-3 py-1 rounded-full border border-border text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors flex items-center gap-1">
-                            <Hand className="h-3 w-3" />
-                            {ex.rest_seconds > 0 ? (ex.rest_seconds >= 60 ? `${Math.floor(ex.rest_seconds / 60)}m${ex.rest_seconds % 60 > 0 ? ` ${ex.rest_seconds % 60}s` : ""}` : `${ex.rest_seconds}s`) : "None"}
-                          </button>
-                        </div>
                       )}
                     </div>
-                  ))}
-                  {/* Per-block Add Exercises button for superset mode */}
-                  {workoutType === "superset" && (
-                    <div className="px-3 py-2 border-t border-border/50">
-                      <button
-                        onClick={() => handleInsertExercise(group.id)}
-                        className="text-xs font-semibold text-primary"
+
+                    {/* Group exercises - no checkbox, no sets pill */}
+                    {groupExercises.map((ex, exIdx) => (
+                      <div
+                        key={ex.id}
+                        draggable
+                        onDragStart={() => { setIntraBlockDragFrom({ groupId: group.id, index: exIdx }); setIntraBlockDragOver(exIdx); }}
+                        onDragOver={(e) => { e.preventDefault(); setIntraBlockDragOver(exIdx); }}
+                        onDragEnd={() => handleIntraBlockDragEnd(group.id)}
+                        className={`py-3 px-3 border-t border-border/50 bg-background transition-all ${intraBlockDragFrom?.groupId === group.id && intraBlockDragFrom.index === exIdx ? "opacity-50 scale-95" : ""} ${intraBlockDragFrom?.groupId === group.id && intraBlockDragOver === exIdx && intraBlockDragFrom.index !== exIdx ? "border-t-2 border-t-primary" : ""}`}
                       >
-                        + Add Exercises
-                      </button>
-                    </div>
-                  )}
-                </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-14 h-14 rounded-lg overflow-hidden bg-muted shrink-0 flex items-center justify-center">
+                            {ex.image_url ? (
+                              <img src={ex.image_url} alt={ex.exercise_name} className="w-full h-full object-cover" />
+                            ) : (
+                              <Dumbbell className="h-6 w-6 text-muted-foreground/40" />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-foreground truncate">{ex.exercise_name}</p>
+                          </div>
+                          <div className="shrink-0 text-muted-foreground/30 cursor-grab">
+                            <GripVertical className="h-5 w-5" />
+                          </div>
+                        </div>
+                        {ex.exercise_id !== "rest" && (
+                          <div className="flex items-center gap-2 mt-2 ml-1">
+                            <button onClick={() => setEditingTargetId(ex.id)} className="px-3 py-1 rounded-full border border-border text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors">
+                              {ex.reps === "10" && ex.target_type === "text" ? "Set Target" : ex.target_type === "time" ? `⏱ ${ex.reps}` : ex.reps}
+                            </button>
+                            <button onClick={() => setEditingRestId(ex.id)} className="px-3 py-1 rounded-full border border-border text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors flex items-center gap-1">
+                              <Hand className="h-3 w-3" />
+                              {ex.rest_seconds > 0 ? (ex.rest_seconds >= 60 ? `${Math.floor(ex.rest_seconds / 60)}m${ex.rest_seconds % 60 > 0 ? ` ${ex.rest_seconds % 60}s` : ""}` : `${ex.rest_seconds}s`) : "None"}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                    {/* Per-block Add Exercises button for superset mode */}
+                    {workoutType === "superset" && (
+                      <div className="px-3 py-2 border-t border-border/50">
+                        <button
+                          onClick={() => handleInsertExercise(group.id)}
+                          className="text-xs font-semibold text-primary"
+                        >
+                          + Add Exercises
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  {blockIdx < groups.length - 1 && <div className="h-10" />}
+                </>
               );
             })}
 

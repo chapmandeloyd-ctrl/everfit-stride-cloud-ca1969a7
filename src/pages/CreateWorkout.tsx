@@ -712,8 +712,9 @@ export default function CreateWorkout() {
         const groupItems = exerciseItems.filter((ei) => ei.group_id === item.group_id);
 
         if (group) {
+          const groupIndex = groups.indexOf(group);
           rendered.push(
-            <div key={`group-${item.group_id}`} className={`border-2 rounded-lg mx-2 my-12 overflow-hidden ${getBlockType(group.block_type || "custom").borderColor}`}>
+            <div key={`group-${item.group_id}`} className={`border-2 rounded-lg mx-2 overflow-hidden ${getBlockType(group.block_type || "custom").borderColor}`}>
               {/* Sortable Group Header */}
               <SortableGroupHeader
                 groupId={group.id}
@@ -746,6 +747,9 @@ export default function CreateWorkout() {
               ))}
             </div>
           );
+          if (groupIndex < groups.length - 1) {
+            rendered.push(<div key={`group-spacer-${item.group_id}`} className="h-10" />);
+          }
         }
       }
 
