@@ -670,6 +670,7 @@ export default function ClientWodBuilder() {
       <ExerciseLibrarySheet
         open={showExerciseLibrary}
         onClose={() => setShowExerciseLibrary(false)}
+        title={`Add Exercises · ${workoutType.charAt(0).toUpperCase() + workoutType.slice(1)}`}
         onAdd={(selectedExercises) => {
           const newItems: WodExercise[] = selectedExercises.map((ex) => ({
             id: crypto.randomUUID(),
