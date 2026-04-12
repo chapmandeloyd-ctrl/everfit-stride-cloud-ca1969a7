@@ -125,27 +125,6 @@ export default function ClientProfile() {
         {/* Fasting & menu section */}
         <div className="divide-y divide-border">
 
-          <button
-            className="flex items-center justify-between w-full py-4 text-left"
-            onClick={() => navigate("/client/choose-protocol")}
-          >
-            <div className="flex items-center gap-2">
-              <Bookmark className="h-4 w-4 text-blue-400" />
-              <span className="text-foreground">Saved Protocol</span>
-            </div>
-            <div className="flex items-center gap-2">
-              {fastingData?.saved ? (
-                <span className="text-sm text-blue-400 font-medium">
-                  {fastingData.saved.name}
-                  {fastingData.saved.type === "quick" && ` (${fastingData.saved.fast_hours}:${fastingData.saved.eat_hours})`}
-                </span>
-              ) : (
-                <span className="text-sm text-muted-foreground">None selected</span>
-              )}
-              <ChevronRight className="h-5 w-5 text-muted-foreground" />
-            </div>
-          </button>
-
           {menuItems.map((item) => (
             <button
               key={item.label}
