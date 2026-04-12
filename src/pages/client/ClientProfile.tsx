@@ -122,8 +122,6 @@ export default function ClientProfile() {
           </CardContent>
         </Card>
 
-        {/* My Workouts (Saved) */}
-        <SavedWorkoutsSection />
 
         {/* Fasting section */}
         <div className="divide-y divide-border">
