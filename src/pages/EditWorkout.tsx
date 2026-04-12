@@ -585,6 +585,24 @@ export default function EditWorkout() {
 
   const anySelected = exerciseItems.some((i) => i.selected);
 
+  // Build sortable IDs list: includes both exercise IDs and group- prefixed IDs
+  const sortableIds = useMemo(() => {
+    const ids: string[] = [];
+    const renderedGroups = new Set<string>();
+    for (const item of exerciseItems) {
+      if (item.group_id && !renderedGroups.has(item.group_id)) {
+        renderedGroups.add(item.group_id);
+        ids.push(`group-${item.group_id}`);
+        const groupItems = exerciseItems.filter((ei) => ei.group_id === item.group_id);
+        groupItems.forEach((gi) => ids.push(gi.id));
+      }
+      if (!item.group_id) {
+        ids.push(item.id);
+      }
+    }
+    return ids;
+  }, [exerciseItems]);
+
   const renderExerciseList = () => {
     const rendered: React.ReactNode[] = [];
     const renderedGroups = new Set<string>();
@@ -600,30 +618,19 @@ export default function EditWorkout() {
         if (group) {
           rendered.push(
             <div key={`group-${item.group_id}`} className="border-2 border-primary/20 rounded-lg mx-2 my-2 overflow-hidden">
-              <div className="flex items-center gap-3 px-4 py-2 bg-primary/5 border-b">
-                <Checkbox
-                  checked={groupItems.every((gi) => gi.selected)}
-                  onCheckedChange={() => {
-                    const allSelected = groupItems.every((gi) => gi.selected);
-                    setExerciseItems((prev) => prev.map((ei) => ei.group_id === item.group_id ? { ...ei, selected: !allSelected } : ei));
-                  }}
-                />
-                {group.type === "superset" ? (
-                  <>
-                    <span className="text-sm font-medium text-foreground">
-                      Block {groups.filter(g => g.type === "superset").indexOf(group) + 1}
-                    </span>
-                    <span className="text-sm text-muted-foreground">·</span>
-                  </>
-                ) : (
-                  <span className="text-sm text-muted-foreground">Circuit of</span>
-                )}
-                <Input type="number" value={group.sets} onChange={(e) => updateGroupSets(group.id, parseInt(e.target.value) || 1)} className="h-7 w-14 text-sm text-center" min={1} />
-                <span className="text-sm text-muted-foreground">{group.type === "superset" ? "rounds" : "sets"}</span>
-                <div className="flex-1" />
-                <Button variant="link" size="sm" className="text-primary text-xs p-0 h-auto" onClick={() => ungroupItems(group.id)}>Ungroup</Button>
-                <GripVertical className="h-4 w-4 text-muted-foreground" />
-              </div>
+              <SortableGroupHeader
+                groupId={group.id}
+                groupType={group.type}
+                blockNumber={groups.filter(g => g.type === "superset").indexOf(group) + 1}
+                sets={group.sets}
+                allSelected={groupItems.every((gi) => gi.selected)}
+                onToggleSelectAll={() => {
+                  const allSelected = groupItems.every((gi) => gi.selected);
+                  setExerciseItems((prev) => prev.map((ei) => ei.group_id === item.group_id ? { ...ei, selected: !allSelected } : ei));
+                }}
+                onUpdateSets={(sets) => updateGroupSets(group.id, sets)}
+                onUngroup={() => ungroupItems(group.id)}
+              />
               {groupItems.map((gi) => (
                 <ExerciseRow key={gi.id} item={gi} exerciseInfo={getExerciseById(gi.exercise_id)} onUpdate={updateItem} onToggleSelect={toggleSelect} />
               ))}
