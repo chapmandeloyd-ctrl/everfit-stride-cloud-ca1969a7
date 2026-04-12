@@ -103,6 +103,7 @@ export default function ClientWodBuilder() {
   const [groups, setGroups] = useState<ExerciseGroup[]>([]);
   const [editingCircuitRoundsId, setEditingCircuitRoundsId] = useState<string | null>(null);
   const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
+  const [showBlockPicker, setShowBlockPicker] = useState(false);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [overIndex, setOverIndex] = useState<number | null>(null);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -487,12 +488,14 @@ export default function ClientWodBuilder() {
   };
 
   const handleAddBlock = () => {
+    setShowBlockPicker(true);
+  };
+
+  const handleBlockTypeSelected = (bt: WorkoutBlockType, customName?: string) => {
     const blockId = crypto.randomUUID();
-    const blockNumber = groups.length + 1;
-    const newGroup: ExerciseGroup = { id: blockId, type: "superset", rounds: 3, selected: false };
+    const newGroup: ExerciseGroup = { id: blockId, type: "superset", rounds: 3, selected: false, block_type: bt.id, custom_name: bt.id === "custom" ? customName : undefined };
     setGroups((prev) => [...prev, newGroup]);
-    toast.success(`Block ${blockNumber} added`);
-    // Open exercise library for this block
+    toast.success(`${bt.id === "custom" ? customName : bt.label} block added`);
     setActiveBlockId(blockId);
     setShowExerciseLibrary(true);
   };
