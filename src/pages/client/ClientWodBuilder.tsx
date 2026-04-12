@@ -143,7 +143,7 @@ export default function ClientWodBuilder() {
           estSeconds += ex.rest_seconds || 0;
         } else {
           const repsVal = parseInt(ex.reps) || 0;
-          const isTime = ex.reps.includes("s") || ex.reps.includes("m");
+          const isTime = ex.target_type === "time";
           const durationSec = isTime ? (parseInt(ex.reps) || 30) : (repsVal * 3);
           estSeconds += (durationSec + (ex.rest_seconds || 0)) * (ex.sets || 1);
         }
@@ -219,7 +219,7 @@ export default function ClientWodBuilder() {
         const exInserts = sec.exerciseItems
           .filter((ex) => ex.exercise_id !== "rest")
           .map((ex, eIdx) => {
-            const isTime = ex.reps.includes("s") || ex.reps.includes("m");
+            const isTime = ex.target_type === "time";
             return {
               workout_plan_id: planId,
               section_id: sectionRow.id,
