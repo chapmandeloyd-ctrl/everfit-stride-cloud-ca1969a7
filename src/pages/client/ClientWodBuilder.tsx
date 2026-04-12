@@ -372,6 +372,48 @@ export default function ClientWodBuilder() {
           toast.success(`Added ${selectedExercises.length} exercise(s)`);
         }}
       />
+
+      {/* Sets slider sheet */}
+      {editingSetsId && (() => {
+        const ex = exercises.find((e) => e.id === editingSetsId);
+        if (!ex) return null;
+        return (
+          <SetsSliderSheet
+            open
+            value={ex.sets}
+            onSave={(v) => updateExerciseField(editingSetsId, "sets", v)}
+            onClose={() => setEditingSetsId(null)}
+          />
+        );
+      })()}
+
+      {/* Set target sheet */}
+      {editingTargetId && (() => {
+        const ex = exercises.find((e) => e.id === editingTargetId);
+        if (!ex) return null;
+        return (
+          <SetTargetSheet
+            open
+            value={ex.reps}
+            onSave={(v) => updateExerciseField(editingTargetId, "reps", v)}
+            onClose={() => setEditingTargetId(null)}
+          />
+        );
+      })()}
+
+      {/* Rest time picker sheet */}
+      {editingRestId && (() => {
+        const ex = exercises.find((e) => e.id === editingRestId);
+        if (!ex) return null;
+        return (
+          <RestTimePickerSheet
+            open
+            value={ex.rest_seconds}
+            onSave={(v) => updateExerciseField(editingRestId, "rest_seconds", v)}
+            onClose={() => setEditingRestId(null)}
+          />
+        );
+      })()}
     </div>
   );
 }
