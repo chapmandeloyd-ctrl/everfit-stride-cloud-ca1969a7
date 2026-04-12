@@ -1067,3 +1067,33 @@ export default function ClientWodBuilder() {
     </div>
   );
 }
+
+function SavedWorkoutsQuickLoad({ navigate }: { navigate: (path: string) => void }) {
+  const { savedWorkouts, isLoading } = useSavedWorkouts();
+
+  if (isLoading || savedWorkouts.length === 0) return null;
+
+  return (
+    <div className="w-full mt-4 space-y-2">
+      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground text-center">
+        Or load a saved workout
+      </p>
+      <div className="space-y-2">
+        {savedWorkouts.slice(0, 5).map((sw: any) => {
+          const plan = sw.workout_plans;
+          return (
+            <button
+              key={sw.id}
+              onClick={() => navigate(`/client/workouts/${sw.workout_plan_id}`)}
+              className="w-full flex items-center gap-3 p-3 rounded-xl border border-border bg-card hover:bg-muted/50 transition-colors text-left"
+            >
+              <Bookmark className="h-4 w-4 text-primary shrink-0" />
+              <span className="text-sm font-medium text-foreground truncate flex-1">{plan?.name || "Workout"}</span>
+              <span className="text-xs text-muted-foreground shrink-0">{plan?.duration_minutes && `${plan.duration_minutes} min`}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
