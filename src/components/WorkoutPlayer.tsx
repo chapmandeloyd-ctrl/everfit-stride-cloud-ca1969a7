@@ -1345,7 +1345,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
               className="flex-1 h-12 font-bold text-base rounded-xl"
               onClick={!isRest && currentStep?.type === "exercise" && !currentExercise?.duration_seconds ? markStepDone : advanceStep}
             >
-              {isRest ? "Skip Rest" : currentExercise?.duration_seconds ? "Skip" : "Next →"}
+              {isRest ? "Skip Rest" : currentExercise?.duration_seconds ? "Skip" : "Save →"}
             </Button>
 
             <Button variant="ghost" size="icon" onClick={() => setIsLocked(true)} className="text-muted-foreground">
