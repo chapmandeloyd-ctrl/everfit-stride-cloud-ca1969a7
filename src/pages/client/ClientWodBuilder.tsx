@@ -45,8 +45,14 @@ export default function ClientWodBuilder() {
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isDragging = useRef(false);
   const dragStartY = useRef(0);
-  const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const itemRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
+  const setItemRef = useCallback((id: string, el: HTMLDivElement | null) => {
+    if (el) itemRefs.current.set(id, el);
+    else itemRefs.current.delete(id);
+  }, []);
+
+  // Drag operates on the exercises array index
   const handleDragStart = useCallback((index: number) => {
     setDragIndex(index);
     setOverIndex(index);
@@ -91,9 +97,9 @@ export default function ClientWodBuilder() {
     if (!isDragging.current) return;
     e.preventDefault();
     const touch = e.touches[0];
-    const elements = itemRefs.current;
-    for (let i = 0; i < elements.length; i++) {
-      const el = elements[i];
+    // Find which exercise the finger is over by checking all refs
+    for (let i = 0; i < exercises.length; i++) {
+      const el = itemRefs.current.get(exercises[i].id);
       if (!el) continue;
       const rect = el.getBoundingClientRect();
       if (touch.clientY >= rect.top && touch.clientY <= rect.bottom) {
@@ -101,7 +107,7 @@ export default function ClientWodBuilder() {
         break;
       }
     }
-  }, []);
+  }, [exercises]);
 
   const handleTouchEnd = useCallback(() => {
     if (longPressTimer.current) {
@@ -272,8 +278,20 @@ export default function ClientWodBuilder() {
             {renderItems.map((item) => {
               if (item.type === "exercise") {
                 const ex = item.exercise;
+                const exIndex = exercises.indexOf(ex);
                 return (
-                  <div key={ex.id} className={`border-b border-border py-3 ${ex.selected ? "bg-primary/5" : ""}`}>
+                  <div
+                    key={ex.id}
+                    ref={(el) => setItemRef(ex.id, el)}
+                    draggable
+                    onDragStart={() => handleDragStart(exIndex)}
+                    onDragOver={(e) => { e.preventDefault(); handleDragOver(exIndex); }}
+                    onDragEnd={handleDragEnd}
+                    onTouchStart={(e) => handleTouchStart(e, exIndex)}
+                    onTouchMove={handleTouchMove}
+                    onTouchEnd={handleTouchEnd}
+                    className={`border-b border-border py-3 transition-all ${ex.selected ? "bg-primary/5" : ""} ${dragIndex === exIndex ? "opacity-50 scale-95" : ""} ${overIndex === exIndex && dragIndex !== null && dragIndex !== exIndex ? "border-t-2 border-t-primary" : ""}`}
+                  >
                     <div className="flex items-center gap-2">
                       <button onClick={() => toggleSelect(ex.id)} className="shrink-0">
                         <div className={`w-5 h-5 rounded border-[1.5px] flex items-center justify-center transition-colors ${ex.selected ? "bg-primary border-primary" : "border-muted-foreground/30 bg-transparent"}`}>
