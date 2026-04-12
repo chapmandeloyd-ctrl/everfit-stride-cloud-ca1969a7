@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Trash2, Dumbbell, Hand, Layers, Repeat, GripVertical, Timer, X } from "lucide-react";
@@ -103,7 +103,7 @@ export default function ClientWodBuilder() {
   const [groups, setGroups] = useState<ExerciseGroup[]>([]);
   const [editingCircuitRoundsId, setEditingCircuitRoundsId] = useState<string | null>(null);
   const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
-  const [showBlockPicker, setShowBlockPicker] = useState(false);
+  const [showBlockPicker, setShowBlockPicker] = useState(true); // Auto-open on mount
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [overIndex, setOverIndex] = useState<number | null>(null);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -544,7 +544,7 @@ export default function ClientWodBuilder() {
         >
           Cancel
         </button>
-        <span className="text-sm font-semibold text-foreground capitalize">{workoutType} Workout</span>
+        <span className="text-sm font-semibold text-foreground">Build Workout</span>
         <button
           onClick={handleSave}
           disabled={saving || exercises.length === 0}
