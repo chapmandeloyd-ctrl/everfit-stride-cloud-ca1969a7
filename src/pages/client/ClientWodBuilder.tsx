@@ -678,6 +678,32 @@ export default function ClientWodBuilder() {
             selected: false,
             group_id: null,
           }));
+
+          if (isGroupedWorkoutType(workoutType)) {
+            const existingUngrouped = exercises.filter((exercise) => !exercise.group_id && exercise.exercise_id !== "rest");
+            const shouldCreateGroup = groups.length === 0 && existingUngrouped.length + newItems.length >= 2;
+
+            if (shouldCreateGroup) {
+              const groupId = crypto.randomUUID();
+              const newGroup: ExerciseGroup = { id: groupId, type: defaultGroupType, rounds: 3, selected: false };
+              setGroups((prev) => [...prev, newGroup]);
+              setExercises((prev) => prev.map((exercise) => (
+                !exercise.group_id && exercise.exercise_id !== "rest"
+                  ? { ...exercise, group_id: groupId }
+                  : exercise
+              )).concat(newItems.map((item) => ({ ...item, group_id: groupId }))));
+              toast.success(`Added ${selectedExercises.length} exercise(s)`);
+              return;
+            }
+
+            const existingPrimaryGroup = groups[0];
+            if (existingPrimaryGroup) {
+              setExercises((prev) => [...prev, ...newItems.map((item) => ({ ...item, group_id: existingPrimaryGroup.id }))]);
+              toast.success(`Added ${selectedExercises.length} exercise(s)`);
+              return;
+            }
+          }
+
           setExercises((prev) => [...prev, ...newItems]);
           toast.success(`Added ${selectedExercises.length} exercise(s)`);
         }}
