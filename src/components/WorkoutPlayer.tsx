@@ -398,17 +398,23 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
         const section = sections[step.sectionIdx];
         const isGrouped = ["superset", "circuit"].includes(section?.section_type);
         const isSuperset = section?.section_type === "superset";
-        let msg = ex.exercise_name || "";
-        if (isGrouped) {
-          if (isSuperset && section?.name) {
-            // Use section name for block identification (e.g. "Superset Block 1")
-            const blockLabel = section.name.replace("Superset ", "");
-            msg += `, ${blockLabel}, round ${step.round}`;
-          } else {
-            msg += `, round ${step.round}`;
+        let msg = "";
+
+        // Announce block type at the start of each new section/round
+        if (isGrouped && step.exerciseIdx === 0 && section?.name) {
+          // Extract block type label from section name (e.g., "Warm-Up Block 1" → "Warm-Up")
+          const blockName = section.name.replace(/\s*Block\s*\d+$/i, "").trim();
+          if (step.round === 1) {
+            msg += `${blockName}. `;
           }
+          msg += `Round ${step.round}. `;
+        } else if (isGrouped) {
+          // Not first exercise but still grouped — just mention round context
         }
-        if (ex.sets && ex.sets >= 1 && !isGrouped) {
+
+        msg += ex.exercise_name || "";
+
+        if (!isGrouped && ex.sets && ex.sets >= 1) {
           msg += `, set ${step.round} of ${ex.sets}`;
         }
         if (ex.reps) msg += `, ${ex.reps} reps`;

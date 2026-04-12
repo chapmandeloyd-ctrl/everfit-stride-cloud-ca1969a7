@@ -12,6 +12,7 @@ import { Search, Plus, X, GripVertical, Copy, Trash2, Timer, FileText, Clock, Sp
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SortableGroupHeader } from "@/components/workout/SortableGroupHeader";
+import { getBlockType, getBlockTypeFromSectionName } from "@/lib/workoutBlockTypes";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
@@ -34,6 +35,8 @@ interface ExerciseGroup {
   id: string;
   type: "superset" | "circuit";
   sets: number;
+  block_type?: string;
+  custom_name?: string;
 }
 
 const REST_OPTIONS = [
@@ -268,10 +271,13 @@ export default function EditWorkout() {
 
         if (isGrouped) {
           groupId = crypto.randomUUID();
+          const detectedBt = getBlockTypeFromSectionName(section.name || "");
           newGroups.push({
             id: groupId,
             type: section.section_type as "superset" | "circuit",
             sets: section.rounds || 3,
+            block_type: detectedBt.id,
+            custom_name: detectedBt.id === "custom" ? section.name : undefined,
           });
         }
 
@@ -511,11 +517,13 @@ export default function EditWorkout() {
         sectionInserts.push({ workout_plan_id: id, name: "Main", section_type: "straight_set", order_index: sectionIdx++, rounds: 1 });
       }
 
-      let supersetBlockIdx = 1;
+      let blockNum = 0;
       for (const group of groups) {
+        const bt = getBlockType(group.block_type || "custom");
+        const label = group.block_type === "custom" && group.custom_name ? group.custom_name : bt.label;
         sectionInserts.push({
           workout_plan_id: id,
-          name: group.type === "superset" ? `Superset Block ${supersetBlockIdx++}` : "Circuit",
+          name: group.type === "superset" ? `${label} Block ${++blockNum}` : "Circuit",
           section_type: group.type,
           order_index: sectionIdx++,
           rounds: group.sets,
@@ -617,7 +625,7 @@ export default function EditWorkout() {
 
         if (group) {
           rendered.push(
-            <div key={`group-${item.group_id}`} className="border-2 border-primary/20 rounded-lg mx-2 my-2 overflow-hidden">
+            <div key={`group-${item.group_id}`} className={`border-2 rounded-lg mx-2 my-2 overflow-hidden ${getBlockType(group.block_type || "custom").borderColor}`}>
               <SortableGroupHeader
                 groupId={group.id}
                 groupType={group.type}
@@ -630,6 +638,8 @@ export default function EditWorkout() {
                 }}
                 onUpdateSets={(sets) => updateGroupSets(group.id, sets)}
                 onUngroup={() => ungroupItems(group.id)}
+                blockTypeId={group.block_type}
+                customName={group.custom_name}
               />
               {groupItems.map((gi) => (
                 <ExerciseRow key={gi.id} item={gi} exerciseInfo={getExerciseById(gi.exercise_id)} onUpdate={updateItem} onToggleSelect={toggleSelect} />

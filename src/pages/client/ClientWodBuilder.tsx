@@ -2,6 +2,8 @@ import { useState, useRef, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Trash2, Dumbbell, Hand, Layers, Repeat, GripVertical, Timer, X } from "lucide-react";
+import { getBlockType, WORKOUT_BLOCK_TYPES, WorkoutBlockType } from "@/lib/workoutBlockTypes";
+import { BlockTypePicker } from "@/components/workout/BlockTypePicker";
 
 
 import { ExerciseLibrarySheet } from "@/components/workout/ExerciseLibrarySheet";
@@ -78,6 +80,8 @@ interface ExerciseGroup {
   type: "circuit" | "superset";
   rounds: number;
   selected: boolean;
+  block_type?: string;
+  custom_name?: string;
 }
 
 const isGroupedWorkoutType = (type: string) => type === "circuit" || type === "superset";
@@ -99,6 +103,7 @@ export default function ClientWodBuilder() {
   const [groups, setGroups] = useState<ExerciseGroup[]>([]);
   const [editingCircuitRoundsId, setEditingCircuitRoundsId] = useState<string | null>(null);
   const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
+  const [showBlockPicker, setShowBlockPicker] = useState(false);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [overIndex, setOverIndex] = useState<number | null>(null);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -358,10 +363,20 @@ export default function ClientWodBuilder() {
         sections.push({ name: "Main", type: "regular", rounds: 1, exerciseItems: currentUngrouped });
       }
 
-      let supersetBlockNum = 0;
+      let blockNum = 0;
       for (let sIdx = 0; sIdx < sections.length; sIdx++) {
         const sec = sections[sIdx];
-        const sectionName = sec.type === "circuit" ? "Circuit" : sec.type === "superset" ? `Superset Block ${++supersetBlockNum}` : `Section ${sIdx + 1}`;
+        let sectionName: string;
+        if (sec.type === "circuit") {
+          sectionName = "Circuit";
+        } else if (sec.type === "superset") {
+          const group = groups.find((g) => g.id === sec.name);
+          const bt = getBlockType(group?.block_type || "custom");
+          const label = group?.block_type === "custom" && group?.custom_name ? group.custom_name : bt.label;
+          sectionName = `${label} Block ${++blockNum}`;
+        } else {
+          sectionName = `Section ${sIdx + 1}`;
+        }
 
         const { data: sectionRow, error: secError } = await supabase
           .from("workout_sections")
@@ -483,12 +498,14 @@ export default function ClientWodBuilder() {
   };
 
   const handleAddBlock = () => {
+    setShowBlockPicker(true);
+  };
+
+  const handleBlockTypeSelected = (bt: WorkoutBlockType, customName?: string) => {
     const blockId = crypto.randomUUID();
-    const blockNumber = groups.length + 1;
-    const newGroup: ExerciseGroup = { id: blockId, type: "superset", rounds: 3, selected: false };
+    const newGroup: ExerciseGroup = { id: blockId, type: "superset", rounds: 3, selected: false, block_type: bt.id, custom_name: bt.id === "custom" ? customName : undefined };
     setGroups((prev) => [...prev, newGroup]);
-    toast.success(`Block ${blockNumber} added`);
-    // Open exercise library for this block
+    toast.success(`${bt.id === "custom" ? customName : bt.label} block added`);
     setActiveBlockId(blockId);
     setShowExerciseLibrary(true);
   };
@@ -681,6 +698,8 @@ export default function ClientWodBuilder() {
               // Group (circuit or superset)
               const { group, exercises: groupExercises } = item;
               const blockIdx = groups.indexOf(group);
+              const bt = getBlockType(group.block_type || "custom");
+              const blockLabel = group.block_type === "custom" && group.custom_name ? group.custom_name : bt.label;
               return (
                 <div
                   key={group.id}
@@ -692,10 +711,10 @@ export default function ClientWodBuilder() {
                   onTouchStart={(e) => workoutType === "superset" && handleBlockTouchStart(e, blockIdx)}
                   onTouchMove={workoutType === "superset" ? handleBlockTouchMove : undefined}
                   onTouchEnd={workoutType === "superset" ? handleBlockTouchEnd : undefined}
-                  className={`border-b border-border bg-muted/30 rounded-lg my-1 overflow-hidden transition-all ${blockDragIndex === blockIdx ? "opacity-50 scale-95" : ""} ${blockOverIndex === blockIdx && blockDragIndex !== null && blockDragIndex !== blockIdx ? "border-t-2 border-t-primary" : ""}`}
+                  className={`border rounded-lg my-1 overflow-hidden transition-all ${bt.borderColor} ${bt.color} ${blockDragIndex === blockIdx ? "opacity-50 scale-95" : ""} ${blockOverIndex === blockIdx && blockDragIndex !== null && blockDragIndex !== blockIdx ? "border-t-2 border-t-primary" : ""}`}
                 >
                   {/* Group header */}
-                  <div className="flex items-center gap-2 px-3 py-3 bg-muted/50">
+                  <div className={`flex items-center gap-2 px-3 py-3 ${bt.color}`}>
                     <button onClick={() => toggleGroupSelect(group.id)} className="shrink-0">
                       <div className={`w-5 h-5 rounded border-[1.5px] flex items-center justify-center transition-colors ${group.selected ? "bg-primary border-primary" : "border-muted-foreground/30 bg-transparent"}`}>
                         {group.selected && (
@@ -705,11 +724,11 @@ export default function ClientWodBuilder() {
                         )}
                       </div>
                     </button>
+                    <span className="text-lg">{bt.emoji}</span>
                     <div className="flex-1 min-w-0">
                       <span className="text-sm text-foreground">
-                        {workoutType === "superset" 
-                          ? `Block ${groups.indexOf(group) + 1} · `
-                          : `${group.type === "circuit" ? "Circuit" : "Superset"} of `}
+                        <span className={`font-semibold ${bt.textColor}`}>{blockLabel}</span>
+                        {" · "}
                         <button
                           onClick={() => setEditingCircuitRoundsId(group.id)}
                           className="text-primary font-semibold"
@@ -1010,6 +1029,13 @@ export default function ClientWodBuilder() {
           />
         );
       })()}
+
+      {/* Block Type Picker */}
+      <BlockTypePicker
+        open={showBlockPicker}
+        onOpenChange={setShowBlockPicker}
+        onSelect={handleBlockTypeSelected}
+      />
     </div>
   );
 }

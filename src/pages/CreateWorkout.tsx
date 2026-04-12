@@ -12,6 +12,7 @@ import { Search, Plus, X, GripVertical, Copy, Trash2, Timer, FileText, Clock, Sp
 import { useToast } from "@/hooks/use-toast";
 import { CreateFromTemplateDialog } from "@/components/CreateFromTemplateDialog";
 import { SortableGroupHeader } from "@/components/workout/SortableGroupHeader";
+import { getBlockType } from "@/lib/workoutBlockTypes";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
@@ -35,6 +36,8 @@ interface ExerciseGroup {
   id: string;
   type: "superset" | "circuit";
   sets: number;
+  block_type?: string;
+  custom_name?: string;
 }
 
 const REST_OPTIONS = [
@@ -592,11 +595,13 @@ export default function CreateWorkout() {
         });
       }
 
-      let supersetBlockIdx = 1;
+      let blockNum = 0;
       for (const group of groups) {
+        const bt = getBlockType(group.block_type || "custom");
+        const label = group.block_type === "custom" && group.custom_name ? group.custom_name : bt.label;
         sectionInserts.push({
           workout_plan_id: workout.id,
-          name: group.type === "superset" ? `Superset Block ${supersetBlockIdx++}` : "Circuit",
+          name: group.type === "superset" ? `${label} Block ${++blockNum}` : "Circuit",
           section_type: group.type,
           order_index: sectionIdx++,
           rounds: group.sets,
@@ -708,7 +713,7 @@ export default function CreateWorkout() {
 
         if (group) {
           rendered.push(
-            <div key={`group-${item.group_id}`} className="border-2 border-primary/20 rounded-lg mx-2 my-2 overflow-hidden">
+            <div key={`group-${item.group_id}`} className={`border-2 rounded-lg mx-2 my-2 overflow-hidden ${getBlockType(group.block_type || "custom").borderColor}`}>
               {/* Sortable Group Header */}
               <SortableGroupHeader
                 groupId={group.id}
@@ -726,6 +731,8 @@ export default function CreateWorkout() {
                 }}
                 onUpdateSets={(sets) => updateGroupSets(group.id, sets)}
                 onUngroup={() => ungroupItems(group.id)}
+                blockTypeId={group.block_type}
+                customName={group.custom_name}
               />
               {/* Group Items */}
               {groupItems.map((gi) => (
