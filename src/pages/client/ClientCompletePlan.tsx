@@ -119,7 +119,7 @@ export default function ClientCompletePlan() {
           .eq("id", quickPlanId!)
           .single();
         if (error) throw error;
-        return { ...data, fast_target_hours: (data as any).fast_hours, duration_days: 0, category: "general", difficulty_level: (data as any).difficulty_level || "beginner" };
+        return { ...data, fast_target_hours: (data as any).fast_hours, duration_days: 0, category: "general", difficulty_level: (data as any).difficulty_group || "beginner" };
       } else {
         const { data, error } = await supabase
           .from("fasting_protocols")
