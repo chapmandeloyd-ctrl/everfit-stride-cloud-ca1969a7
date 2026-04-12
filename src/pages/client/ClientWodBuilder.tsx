@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Trash2, Timer, Dumbbell } from "lucide-react";
+import { Trash2, Timer, Dumbbell, Hand, Layers, Repeat } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface WodExercise {
@@ -122,19 +122,33 @@ export default function ClientWodBuilder() {
       </div>
 
       {/* Bottom toolbar */}
-      <div className="flex items-center justify-around border-t border-border bg-background px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]">
+      <div className="flex items-center justify-around border-t border-border bg-background px-2 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]">
+        <button
+          disabled
+          className="flex flex-col items-center gap-1 text-muted-foreground/30 cursor-not-allowed"
+        >
+          <Layers className="h-5 w-5" />
+          <span className="text-[10px] font-medium">Superset</span>
+        </button>
+        <button
+          disabled
+          className="flex flex-col items-center gap-1 text-muted-foreground/30 cursor-not-allowed"
+        >
+          <Repeat className="h-5 w-5" />
+          <span className="text-[10px] font-medium">Circuit</span>
+        </button>
         <button
           onClick={handleDeleteSelected}
-          className="flex flex-col items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
+          className="flex flex-col items-center gap-1 text-primary hover:text-primary/80 transition-colors"
         >
           <Trash2 className="h-5 w-5" />
           <span className="text-[10px] font-medium">Delete</span>
         </button>
         <button
           onClick={handleAddRest}
-          className="flex flex-col items-center gap-1 text-yellow-500 hover:text-yellow-600 transition-colors"
+          className="flex flex-col items-center gap-1 text-primary hover:text-primary/80 transition-colors"
         >
-          <Timer className="h-5 w-5" />
+          <Hand className="h-5 w-5" />
           <span className="text-[10px] font-medium">Rest</span>
         </button>
         <button
