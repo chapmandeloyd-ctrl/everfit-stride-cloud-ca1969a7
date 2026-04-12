@@ -707,7 +707,6 @@ export default function ClientWodBuilder() {
                     )}
                     <button
                       onClick={() => {
-                        // Delete this block and its exercises
                         setExercises((prev) => prev.filter((e) => e.group_id !== group.id));
                         setGroups((prev) => prev.filter((g) => g.id !== group.id));
                         toast.success("Block removed");
@@ -716,6 +715,11 @@ export default function ClientWodBuilder() {
                     >
                       <X className="h-4 w-4 text-muted-foreground hover:text-destructive" />
                     </button>
+                    {workoutType === "superset" && (
+                      <div className="shrink-0 text-muted-foreground/30 cursor-grab">
+                        <GripVertical className="h-5 w-5" />
+                      </div>
+                    )}
                   </div>
 
                   {/* Group exercises - no checkbox, no sets pill */}
