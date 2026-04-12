@@ -496,6 +496,20 @@ export default function ClientWodBuilder() {
           />
         );
       })()}
+
+      {/* Circuit/Superset rounds slider */}
+      {editingCircuitRoundsId && (() => {
+        const group = groups.find((g) => g.id === editingCircuitRoundsId);
+        if (!group) return null;
+        return (
+          <SetsSliderSheet
+            open
+            value={group.rounds}
+            onSave={(v) => setGroups((prev) => prev.map((g) => g.id === editingCircuitRoundsId ? { ...g, rounds: v } : g))}
+            onClose={() => setEditingCircuitRoundsId(null)}
+          />
+        );
+      })()}
     </div>
   );
 }
