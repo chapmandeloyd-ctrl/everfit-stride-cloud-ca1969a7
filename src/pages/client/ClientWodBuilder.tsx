@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Trash2, Timer, Dumbbell, Hand, Layers, Repeat } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { ExerciseLibrarySheet } from "@/components/workout/ExerciseLibrarySheet";
 
 interface WodExercise {
   id: string;
@@ -160,7 +161,22 @@ export default function ClientWodBuilder() {
         </button>
       </div>
 
-      {/* TODO: Exercise library sheet */}
+      <ExerciseLibrarySheet
+        open={showExerciseLibrary}
+        onClose={() => setShowExerciseLibrary(false)}
+        onAdd={(selectedExercises) => {
+          const newItems: WodExercise[] = selectedExercises.map((ex) => ({
+            id: crypto.randomUUID(),
+            exercise_id: ex.id,
+            exercise_name: ex.name,
+            sets: 3,
+            reps: "10",
+            rest_seconds: 60,
+          }));
+          setExercises((prev) => [...prev, ...newItems]);
+          toast.success(`Added ${selectedExercises.length} exercise(s)`);
+        }}
+      />
     </div>
   );
 }
