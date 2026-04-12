@@ -68,6 +68,7 @@ export default function ClientProfile() {
   });
 
   const menuItems = [
+    { label: "My Workouts", to: "/client/my-workouts" },
     { label: "Sports Profile", to: "/client/sports" },
     { label: "Activity history", to: "/client/workouts" },
     { label: "Your exercises", to: "/client/workouts" },
@@ -121,8 +122,6 @@ export default function ClientProfile() {
           </CardContent>
         </Card>
 
-        {/* My Workouts (Saved) */}
-        <SavedWorkoutsSection />
 
         {/* Fasting section */}
         <div className="divide-y divide-border">
