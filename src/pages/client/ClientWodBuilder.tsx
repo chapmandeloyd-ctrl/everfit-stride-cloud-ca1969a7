@@ -256,7 +256,8 @@ export default function ClientWodBuilder() {
       // Insert sections + exercises
       for (let sIdx = 0; sIdx < sections.length; sIdx++) {
         const sec = sections[sIdx];
-        const sectionName = sec.type === "circuit" ? "Circuit" : sec.type === "superset" ? "Superset" : `Section ${sIdx + 1}`;
+        let supersetBlockNum = 0;
+        const sectionName = sec.type === "circuit" ? "Circuit" : sec.type === "superset" ? `Superset Block ${++supersetBlockNum}` : `Section ${sIdx + 1}`;
 
         const { data: sectionRow, error: secError } = await supabase
           .from("workout_sections")
