@@ -363,10 +363,20 @@ export default function ClientWodBuilder() {
         sections.push({ name: "Main", type: "regular", rounds: 1, exerciseItems: currentUngrouped });
       }
 
-      let supersetBlockNum = 0;
+      let blockNum = 0;
       for (let sIdx = 0; sIdx < sections.length; sIdx++) {
         const sec = sections[sIdx];
-        const sectionName = sec.type === "circuit" ? "Circuit" : sec.type === "superset" ? `Superset Block ${++supersetBlockNum}` : `Section ${sIdx + 1}`;
+        let sectionName: string;
+        if (sec.type === "circuit") {
+          sectionName = "Circuit";
+        } else if (sec.type === "superset") {
+          const group = groups.find((g) => g.id === sec.name);
+          const bt = getBlockType(group?.block_type || "custom");
+          const label = group?.block_type === "custom" && group?.custom_name ? group.custom_name : bt.label;
+          sectionName = `${label} Block ${++blockNum}`;
+        } else {
+          sectionName = `Section ${sIdx + 1}`;
+        }
 
         const { data: sectionRow, error: secError } = await supabase
           .from("workout_sections")
