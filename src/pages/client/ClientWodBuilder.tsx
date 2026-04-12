@@ -420,7 +420,13 @@ export default function ClientWodBuilder() {
         }
       }
 
-      toast.success("Workout saved!");
+      // Auto-save to favorites
+      await supabase.from("saved_workouts").upsert(
+        { client_id: user.id, workout_plan_id: planId },
+        { onConflict: "client_id,workout_plan_id" }
+      );
+
+      toast.success("Workout saved to favorites!");
       navigate(`/client/workouts/${planId}`);
     } catch (err) {
       console.error("Failed to save WOD:", err);
