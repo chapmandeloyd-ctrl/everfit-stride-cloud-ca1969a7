@@ -16,6 +16,14 @@ interface WodExercise {
   reps: string;
   rest_seconds: number;
   selected: boolean;
+  group_id: string | null;
+}
+
+interface ExerciseGroup {
+  id: string;
+  type: "circuit" | "superset";
+  rounds: number;
+  selected: boolean;
 }
 
 export default function ClientWodBuilder() {
