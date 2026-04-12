@@ -731,7 +731,15 @@ export default function ClientWodBuilder() {
             group_id: null,
           }));
 
-          if (isGroupedWorkoutType(workoutType)) {
+          // Superset mode: add exercises to the active block
+          if (workoutType === "superset" && activeBlockId) {
+            setExercises((prev) => [...prev, ...newItems.map((item) => ({ ...item, group_id: activeBlockId }))]);
+            setActiveBlockId(null);
+            toast.success(`Added ${selectedExercises.length} exercise(s)`);
+            return;
+          }
+
+          if (isGroupedWorkoutType(workoutType) && workoutType !== "superset") {
             const existingUngrouped = exercises.filter((exercise) => !exercise.group_id && exercise.exercise_id !== "rest");
             const shouldCreateGroup = groups.length === 0 && existingUngrouped.length + newItems.length >= 2;
 
