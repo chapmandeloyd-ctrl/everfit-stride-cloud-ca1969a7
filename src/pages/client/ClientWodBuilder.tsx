@@ -881,7 +881,7 @@ export default function ClientWodBuilder() {
       <ExerciseLibrarySheet
         open={showExerciseLibrary}
         onClose={() => setShowExerciseLibrary(false)}
-        title="Add Exercises"
+        title={activeBlockId ? `Add to ${(() => { const g = groups.find(g => g.id === activeBlockId); return g?.custom_name || (g?.block_type ? getBlockType(g.block_type).label : "Block"); })()}` : "Add Exercises"}
         onAdd={(selectedExercises) => {
           const newItems: WodExercise[] = selectedExercises.map((ex) => ({
             id: crypto.randomUUID(),
