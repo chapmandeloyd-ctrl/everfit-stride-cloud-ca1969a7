@@ -230,6 +230,39 @@ export default function ClientMealResults() {
           </div>
         )}
 
+        {/* Smart Coaching Banner */}
+        {activeNudge && (
+          <div className="mx-5 mb-3">
+            <div className={`rounded-2xl p-4 border ${
+              activeNudge.type === "exceeded" ? "bg-destructive/10 border-destructive/30" :
+              activeNudge.type === "warning" ? "bg-amber-500/10 border-amber-500/30" :
+              "bg-primary/10 border-primary/30"
+            }`}>
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <p className="text-sm font-medium flex-1">{activeNudge.message}</p>
+                <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => setActiveNudge(null)}>
+                  <X className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+              {activeNudge.suggestions && activeNudge.suggestions.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {activeNudge.suggestions.map((s) => (
+                    <Button
+                      key={s.type}
+                      variant="secondary"
+                      size="sm"
+                      className="rounded-xl text-xs h-8"
+                      onClick={() => handleSuggestionTap(s)}
+                    >
+                      {s.label}
+                    </Button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Results */}
         <div className="px-5 space-y-3">
           {loading ? (
