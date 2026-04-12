@@ -625,7 +625,7 @@ export default function EditWorkout() {
 
         if (group) {
           rendered.push(
-            <div key={`group-${item.group_id}`} className="border-2 border-primary/20 rounded-lg mx-2 my-2 overflow-hidden">
+            <div key={`group-${item.group_id}`} className={`border-2 rounded-lg mx-2 my-2 overflow-hidden ${getBlockType(group.block_type || "custom").borderColor}`}>
               <SortableGroupHeader
                 groupId={group.id}
                 groupType={group.type}
@@ -638,6 +638,8 @@ export default function EditWorkout() {
                 }}
                 onUpdateSets={(sets) => updateGroupSets(group.id, sets)}
                 onUngroup={() => ungroupItems(group.id)}
+                blockTypeId={group.block_type}
+                customName={group.custom_name}
               />
               {groupItems.map((gi) => (
                 <ExerciseRow key={gi.id} item={gi} exerciseInfo={getExerciseById(gi.exercise_id)} onUpdate={updateItem} onToggleSelect={toggleSelect} />

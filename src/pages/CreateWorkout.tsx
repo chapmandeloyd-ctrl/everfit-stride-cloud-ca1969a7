@@ -713,7 +713,7 @@ export default function CreateWorkout() {
 
         if (group) {
           rendered.push(
-            <div key={`group-${item.group_id}`} className="border-2 border-primary/20 rounded-lg mx-2 my-2 overflow-hidden">
+            <div key={`group-${item.group_id}`} className={`border-2 rounded-lg mx-2 my-2 overflow-hidden ${getBlockType(group.block_type || "custom").borderColor}`}>
               {/* Sortable Group Header */}
               <SortableGroupHeader
                 groupId={group.id}
@@ -731,6 +731,8 @@ export default function CreateWorkout() {
                 }}
                 onUpdateSets={(sets) => updateGroupSets(group.id, sets)}
                 onUngroup={() => ungroupItems(group.id)}
+                blockTypeId={group.block_type}
+                customName={group.custom_name}
               />
               {/* Group Items */}
               {groupItems.map((gi) => (
