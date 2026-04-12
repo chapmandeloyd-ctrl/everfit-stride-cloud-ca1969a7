@@ -688,6 +688,8 @@ export default function ClientWodBuilder() {
               // Group (circuit or superset)
               const { group, exercises: groupExercises } = item;
               const blockIdx = groups.indexOf(group);
+              const bt = getBlockType(group.block_type || "custom");
+              const blockLabel = group.block_type === "custom" && group.custom_name ? group.custom_name : bt.label;
               return (
                 <div
                   key={group.id}
@@ -699,15 +701,10 @@ export default function ClientWodBuilder() {
                   onTouchStart={(e) => workoutType === "superset" && handleBlockTouchStart(e, blockIdx)}
                   onTouchMove={workoutType === "superset" ? handleBlockTouchMove : undefined}
                   onTouchEnd={workoutType === "superset" ? handleBlockTouchEnd : undefined}
-                  className={`border-b border-border rounded-lg my-1 overflow-hidden transition-all ${bt.color} ${blockDragIndex === blockIdx ? "opacity-50 scale-95" : ""} ${blockOverIndex === blockIdx && blockDragIndex !== null && blockDragIndex !== blockIdx ? "border-t-2 border-t-primary" : ""}`}
+                  className={`border rounded-lg my-1 overflow-hidden transition-all ${bt.borderColor} ${bt.color} ${blockDragIndex === blockIdx ? "opacity-50 scale-95" : ""} ${blockOverIndex === blockIdx && blockDragIndex !== null && blockDragIndex !== blockIdx ? "border-t-2 border-t-primary" : ""}`}
                 >
-                  {(() => {
-                    const bt = getBlockType(group.block_type || "custom");
-                    const blockLabel = group.block_type === "custom" && group.custom_name ? group.custom_name : bt.label;
-                    return null; // just computing bt for the className above
-                  })()}
                   {/* Group header */}
-                  <div className="flex items-center gap-2 px-3 py-3 bg-muted/50">
+                  <div className={`flex items-center gap-2 px-3 py-3 ${bt.color}`}>
                     <button onClick={() => toggleGroupSelect(group.id)} className="shrink-0">
                       <div className={`w-5 h-5 rounded border-[1.5px] flex items-center justify-center transition-colors ${group.selected ? "bg-primary border-primary" : "border-muted-foreground/30 bg-transparent"}`}>
                         {group.selected && (
@@ -717,11 +714,11 @@ export default function ClientWodBuilder() {
                         )}
                       </div>
                     </button>
+                    <span className="text-lg">{bt.emoji}</span>
                     <div className="flex-1 min-w-0">
                       <span className="text-sm text-foreground">
-                        {workoutType === "superset" 
-                          ? `Block ${groups.indexOf(group) + 1} · `
-                          : `${group.type === "circuit" ? "Circuit" : "Superset"} of `}
+                        <span className={`font-semibold ${bt.textColor}`}>{blockLabel}</span>
+                        {" · "}
                         <button
                           onClick={() => setEditingCircuitRoundsId(group.id)}
                           className="text-primary font-semibold"
