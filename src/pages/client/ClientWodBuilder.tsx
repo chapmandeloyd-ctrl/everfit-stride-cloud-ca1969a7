@@ -93,6 +93,7 @@ export default function ClientWodBuilder() {
   const workoutType = "superset"; // All blocks mode - always supports multiple blocks
   const defaultGroupType: ExerciseGroup["type"] = "superset";
 
+  const [workoutName, setWorkoutName] = useState("");
   const [exercises, setExercises] = useState<WodExercise[]>([]);
   const [showExerciseLibrary, setShowExerciseLibrary] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -287,6 +288,10 @@ export default function ClientWodBuilder() {
   }, [intraBlockDragFrom, intraBlockDragOver]);
 
   const handleSave = async () => {
+    if (!workoutName.trim()) {
+      toast.error("Give your workout a name");
+      return;
+    }
     if (exercises.length === 0) {
       toast.error("Add at least one exercise");
       return;
@@ -319,7 +324,7 @@ export default function ClientWodBuilder() {
       const { data: plan, error: planError } = await supabase
         .from("workout_plans")
         .insert({
-          name: "Workout of the Day",
+          name: workoutName.trim(),
           trainer_id: user.id,
           category: workoutType,
           difficulty: "intermediate" as any,
@@ -373,7 +378,7 @@ export default function ClientWodBuilder() {
           const group = groups.find((g) => g.id === sec.name);
           const bt = getBlockType(group?.block_type || "custom");
           const label = group?.block_type === "custom" && group?.custom_name ? group.custom_name : bt.label;
-          sectionName = `${label} Block ${++blockNum}`;
+          sectionName = `${label} ${++blockNum}`;
         } else {
           sectionName = `Section ${sIdx + 1}`;
         }
@@ -505,7 +510,7 @@ export default function ClientWodBuilder() {
     const blockId = crypto.randomUUID();
     const newGroup: ExerciseGroup = { id: blockId, type: "superset", rounds: 3, selected: false, block_type: bt.id, custom_name: bt.id === "custom" ? customName : undefined };
     setGroups((prev) => [...prev, newGroup]);
-    toast.success(`${bt.id === "custom" ? customName : bt.label} block added`);
+    toast.success(`${bt.id === "custom" ? customName : bt.label} added`);
     setActiveBlockId(blockId);
     setShowExerciseLibrary(true);
   };
@@ -552,6 +557,17 @@ export default function ClientWodBuilder() {
         >
           Save
         </button>
+      </div>
+
+      {/* Workout Name Input */}
+      <div className="px-4 py-3 border-b border-border bg-background">
+        <input
+          type="text"
+          placeholder="Workout Name (required)"
+          value={workoutName}
+          onChange={(e) => setWorkoutName(e.target.value)}
+          className="w-full text-lg font-bold text-foreground bg-transparent outline-none placeholder:text-muted-foreground/40"
+        />
       </div>
 
       {/* Content area */}
