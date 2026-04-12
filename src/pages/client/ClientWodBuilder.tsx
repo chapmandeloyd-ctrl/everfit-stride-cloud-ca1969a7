@@ -704,7 +704,47 @@ export default function ClientWodBuilder() {
             }
           }
 
-          setExercises((prev) => [...prev, ...newItems]);
+          // For interval mode, interleave rest blocks between exercises
+          if (workoutType === "interval") {
+            const interleaved: WodExercise[] = [];
+            newItems.forEach((item, i) => {
+              interleaved.push(item);
+              if (i < newItems.length - 1) {
+                interleaved.push({
+                  id: crypto.randomUUID(),
+                  exercise_id: "rest",
+                  exercise_name: "Rest",
+                  image_url: null,
+                  sets: 1,
+                  reps: "30s",
+                  target_type: "time",
+                  rest_seconds: 30,
+                  selected: false,
+                  group_id: null,
+                });
+              }
+            });
+            setExercises((prev) => {
+              // Also add a rest before the new batch if there are existing exercises
+              if (prev.length > 0 && prev[prev.length - 1].exercise_id !== "rest") {
+                return [...prev, {
+                  id: crypto.randomUUID(),
+                  exercise_id: "rest",
+                  exercise_name: "Rest",
+                  image_url: null,
+                  sets: 1,
+                  reps: "30s",
+                  target_type: "time" as const,
+                  rest_seconds: 30,
+                  selected: false,
+                  group_id: null,
+                }, ...interleaved];
+              }
+              return [...prev, ...interleaved];
+            });
+          } else {
+            setExercises((prev) => [...prev, ...newItems]);
+          }
           toast.success(`Added ${selectedExercises.length} exercise(s)`);
         }}
       />
