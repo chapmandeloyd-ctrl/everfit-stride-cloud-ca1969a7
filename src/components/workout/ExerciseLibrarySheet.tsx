@@ -142,7 +142,7 @@ export function ExerciseLibrarySheet({ open, onClose, onAdd }: ExerciseLibrarySh
                 <button
                   key={ex.id}
                   onClick={() => toggleSelect(ex.id)}
-                  className="grid w-full grid-cols-[3.5rem,minmax(0,1fr),2rem] items-center gap-3 px-4 py-3 text-left hover:bg-muted/30 active:bg-muted/50 transition-colors"
+                  className="grid w-full grid-cols-[3.5rem,minmax(0,1fr),1.5rem] items-center gap-3 px-4 py-3 text-left hover:bg-muted/30 active:bg-muted/50 transition-colors"
                 >
                   <div className="h-14 w-14 rounded-lg overflow-hidden bg-muted shrink-0 flex items-center justify-center">
                     {thumb ? (
@@ -159,14 +159,14 @@ export function ExerciseLibrarySheet({ open, onClose, onAdd }: ExerciseLibrarySh
                   </div>
 
                   <div
-                    className={`h-8 w-8 justify-self-end rounded-md border-2 flex items-center justify-center transition-colors ${
+                    className={`h-5 w-5 justify-self-end rounded border-[1.5px] flex items-center justify-center transition-colors ${
                       isSelected
                         ? "bg-destructive border-destructive"
                         : "border-destructive bg-transparent"
                     }`}
                   >
                     {isSelected && (
-                      <svg className="h-4 w-4 text-destructive-foreground" viewBox="0 0 14 14" fill="none">
+                      <svg className="h-3 w-3 text-destructive-foreground" viewBox="0 0 14 14" fill="none">
                         <path d="M2 7l3.5 3.5L12 4" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                     )}
