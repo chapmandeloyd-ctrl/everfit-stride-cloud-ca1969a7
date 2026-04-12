@@ -309,19 +309,19 @@ export default function ClientCompletePlan() {
               </div>
 
               {/* Stats row */}
-              <div className="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-border/40">
+              <div className="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-border/40">
                 <div className="text-center">
-                  <p className="text-lg font-black">{protocol.fast_target_hours}h</p>
+                  <p className="text-base font-black">{protocol.fast_target_hours}h</p>
                   <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">Fast</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-lg font-black">
+                  <p className="text-base font-black">
                     {protocol.duration_days === 0 ? "∞" : `${Math.ceil(protocol.duration_days / 7)} week${Math.ceil(protocol.duration_days / 7) !== 1 ? "s" : ""}`}
                   </p>
                   <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">Duration</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-lg font-black capitalize">{getDifficultyLabel(protocol.difficulty_level)}</p>
+                  <p className="text-base font-black capitalize">{getDifficultyLabel(protocol.difficulty_level)}</p>
                   <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">Level</p>
                 </div>
               </div>
