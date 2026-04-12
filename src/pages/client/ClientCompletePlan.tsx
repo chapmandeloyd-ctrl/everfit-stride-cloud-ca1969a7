@@ -2,8 +2,9 @@ import { ClientLayout } from "@/components/ClientLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  ArrowLeft, Clock, CalendarDays, BarChart3, Utensils, Droplets, Users,
-  TrendingUp, Lightbulb, Zap, Sparkles, Loader2, Check, Info
+  ArrowLeft, Clock, Utensils, Droplets, Users,
+  TrendingUp, Lightbulb, Zap, Sparkles, Loader2, Check, Info,
+  Flame, Brain, AlertTriangle, CalendarDays, Shield
 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
