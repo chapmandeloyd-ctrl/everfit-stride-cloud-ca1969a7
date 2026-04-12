@@ -727,7 +727,7 @@ export default function ClientWodBuilder() {
                       </button>
                       <span className="text-lg">{bt.emoji}</span>
                       <div className="flex-1 min-w-0">
-                        <span className="text-sm text-foreground">
+                        <span className="text-sm text-muted-foreground">
                           <span className="font-semibold text-foreground">{blockLabel}</span>
                           {" · "}
                           <button

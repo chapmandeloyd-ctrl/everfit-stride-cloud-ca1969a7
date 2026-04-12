@@ -50,7 +50,7 @@ export function SortableGroupHeader({
       <span className="text-lg">{bt.emoji}</span>
       {groupType === "superset" ? (
         <>
-          <span className="text-sm font-semibold text-foreground">{blockLabel}</span>
+          <span className="text-sm font-semibold text-muted-foreground">{blockLabel}</span>
           <span className="text-sm text-muted-foreground">·</span>
         </>
       ) : (
