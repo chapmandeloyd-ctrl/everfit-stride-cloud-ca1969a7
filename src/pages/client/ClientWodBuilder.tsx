@@ -77,7 +77,7 @@ interface ExerciseGroup {
   selected: boolean;
 }
 
-const isGroupedWorkoutType = (type: string) => type === "circuit" || type === "superset" || type === "interval";
+const isGroupedWorkoutType = (type: string) => type === "circuit" || type === "superset";
 
 export default function ClientWodBuilder() {
   const navigate = useNavigate();
