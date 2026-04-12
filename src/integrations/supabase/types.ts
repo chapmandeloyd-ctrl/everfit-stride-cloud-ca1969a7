@@ -6308,6 +6308,35 @@ export type Database = {
           },
         ]
       }
+      saved_workouts: {
+        Row: {
+          client_id: string
+          id: string
+          saved_at: string
+          workout_plan_id: string
+        }
+        Insert: {
+          client_id: string
+          id?: string
+          saved_at?: string
+          workout_plan_id: string
+        }
+        Update: {
+          client_id?: string
+          id?: string
+          saved_at?: string
+          workout_plan_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_workouts_workout_plan_id_fkey"
+            columns: ["workout_plan_id"]
+            isOneToOne: false
+            referencedRelation: "workout_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       section_resources: {
         Row: {
           id: string
