@@ -268,97 +268,124 @@ export default function ClientWodBuilder() {
               </div>
             )}
 
-            {/* Exercise cards */}
-            {exercises.map((ex, index) => (
-              <div
-                key={ex.id}
-                ref={(el) => { itemRefs.current[index] = el; }}
-                draggable
-                onDragStart={() => handleDragStart(index)}
-                onDragOver={(e) => { e.preventDefault(); handleDragOver(index); }}
-                onDragEnd={handleDragEnd}
-                onTouchStart={(e) => handleTouchStart(e, index)}
-                onTouchMove={handleTouchMove}
-                onTouchEnd={handleTouchEnd}
-                className={`border-b border-border py-3 transition-all ${
-                  ex.selected ? "bg-primary/5" : ""
-                } ${dragIndex === index ? "opacity-50 scale-95" : ""} ${
-                  overIndex === index && dragIndex !== null && dragIndex !== index
-                    ? "border-t-2 border-t-primary"
-                    : ""
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  {/* Checkbox */}
-                  <button
-                    onClick={() => toggleSelect(ex.id)}
-                    className="shrink-0"
-                  >
-                    <div
-                      className={`w-5 h-5 rounded border-[1.5px] flex items-center justify-center transition-colors ${
-                        ex.selected
-                          ? "bg-primary border-primary"
-                          : "border-muted-foreground/30 bg-transparent"
-                      }`}
-                    >
-                      {ex.selected && (
-                        <svg className="h-3 w-3 text-primary-foreground" viewBox="0 0 14 14" fill="none">
-                          <path d="M2 7l3.5 3.5L12 4" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      )}
+            {/* Render items */}
+            {renderItems.map((item) => {
+              if (item.type === "exercise") {
+                const ex = item.exercise;
+                return (
+                  <div key={ex.id} className={`border-b border-border py-3 ${ex.selected ? "bg-primary/5" : ""}`}>
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => toggleSelect(ex.id)} className="shrink-0">
+                        <div className={`w-5 h-5 rounded border-[1.5px] flex items-center justify-center transition-colors ${ex.selected ? "bg-primary border-primary" : "border-muted-foreground/30 bg-transparent"}`}>
+                          {ex.selected && (
+                            <svg className="h-3 w-3 text-primary-foreground" viewBox="0 0 14 14" fill="none">
+                              <path d="M2 7l3.5 3.5L12 4" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          )}
+                        </div>
+                      </button>
+                      <div className="w-14 h-14 rounded-lg overflow-hidden bg-muted shrink-0 flex items-center justify-center">
+                        {ex.exercise_id === "rest" ? (
+                          <Timer className="h-6 w-6 text-muted-foreground/40" />
+                        ) : ex.image_url ? (
+                          <img src={ex.image_url} alt={ex.exercise_name} className="w-full h-full object-cover" />
+                        ) : (
+                          <Dumbbell className="h-6 w-6 text-muted-foreground/40" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-foreground truncate">{ex.exercise_name}</p>
+                      </div>
+                      <div className="shrink-0 text-muted-foreground/30 cursor-grab">
+                        <GripVertical className="h-5 w-5" />
+                      </div>
                     </div>
-                  </button>
-
-                  {/* Thumbnail */}
-                  <div className="w-14 h-14 rounded-lg overflow-hidden bg-muted shrink-0 flex items-center justify-center">
-                    {ex.exercise_id === "rest" ? (
-                      <Timer className="h-6 w-6 text-muted-foreground/40" />
-                    ) : ex.image_url ? (
-                      <img src={ex.image_url} alt={ex.exercise_name} className="w-full h-full object-cover" />
-                    ) : (
-                      <Dumbbell className="h-6 w-6 text-muted-foreground/40" />
+                    {ex.exercise_id !== "rest" && (
+                      <div className="flex items-center gap-2 mt-2 ml-7 pl-1">
+                        <button onClick={() => setEditingSetsId(ex.id)} className="px-3 py-1 rounded-full border border-border text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors">
+                          {ex.sets} sets
+                        </button>
+                        <button onClick={() => setEditingTargetId(ex.id)} className="px-3 py-1 rounded-full border border-border text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors">
+                          {ex.reps === "10" ? "Set Target" : ex.reps}
+                        </button>
+                        <button onClick={() => setEditingRestId(ex.id)} className="px-3 py-1 rounded-full border border-border text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors flex items-center gap-1">
+                          <Hand className="h-3 w-3" />
+                          {ex.rest_seconds > 0 ? (ex.rest_seconds >= 60 ? `${Math.floor(ex.rest_seconds / 60)}m${ex.rest_seconds % 60 > 0 ? ` ${ex.rest_seconds % 60}s` : ""}` : `${ex.rest_seconds}s`) : "None"}
+                        </button>
+                      </div>
                     )}
                   </div>
+                );
+              }
 
-                  {/* Name */}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-foreground truncate">
-                      {ex.exercise_name}
-                    </p>
+              // Group (circuit or superset)
+              const { group, exercises: groupExercises } = item;
+              return (
+                <div key={group.id} className="border-b border-border bg-muted/30 rounded-lg my-1 overflow-hidden">
+                  {/* Group header */}
+                  <div className="flex items-center gap-2 px-3 py-3 bg-muted/50">
+                    <button onClick={() => toggleGroupSelect(group.id)} className="shrink-0">
+                      <div className={`w-5 h-5 rounded border-[1.5px] flex items-center justify-center transition-colors ${group.selected ? "bg-primary border-primary" : "border-muted-foreground/30 bg-transparent"}`}>
+                        {group.selected && (
+                          <svg className="h-3 w-3 text-primary-foreground" viewBox="0 0 14 14" fill="none">
+                            <path d="M2 7l3.5 3.5L12 4" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        )}
+                      </div>
+                    </button>
+                    <div className="flex-1 min-w-0">
+                      <span className="text-sm text-foreground">
+                        {group.type === "circuit" ? "Circuit" : "Superset"} of{" "}
+                        <button
+                          onClick={() => setEditingCircuitRoundsId(group.id)}
+                          className="text-primary font-semibold"
+                        >
+                          {group.rounds} rounds
+                        </button>
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => handleUngroup(group.id)}
+                      className="text-xs font-semibold text-primary mr-1"
+                    >
+                      Ungroup
+                    </button>
+                    <div className="shrink-0 text-muted-foreground/30 cursor-grab">
+                      <GripVertical className="h-5 w-5" />
+                    </div>
                   </div>
 
-                  {/* Drag handle */}
-                  <div className="shrink-0 text-muted-foreground/30 cursor-grab">
-                    <GripVertical className="h-5 w-5" />
-                  </div>
+                  {/* Group exercises - no checkbox, no sets pill */}
+                  {groupExercises.map((ex) => (
+                    <div key={ex.id} className="py-3 px-3 border-t border-border/50">
+                      <div className="flex items-center gap-2">
+                        <div className="w-14 h-14 rounded-lg overflow-hidden bg-muted shrink-0 flex items-center justify-center">
+                          {ex.image_url ? (
+                            <img src={ex.image_url} alt={ex.exercise_name} className="w-full h-full object-cover" />
+                          ) : (
+                            <Dumbbell className="h-6 w-6 text-muted-foreground/40" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-foreground truncate">{ex.exercise_name}</p>
+                        </div>
+                      </div>
+                      {ex.exercise_id !== "rest" && (
+                        <div className="flex items-center gap-2 mt-2 ml-1">
+                          <button onClick={() => setEditingTargetId(ex.id)} className="px-3 py-1 rounded-full border border-border text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors">
+                            {ex.reps === "10" ? "Set Target" : ex.reps}
+                          </button>
+                          <button onClick={() => setEditingRestId(ex.id)} className="px-3 py-1 rounded-full border border-border text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors flex items-center gap-1">
+                            <Hand className="h-3 w-3" />
+                            {ex.rest_seconds > 0 ? (ex.rest_seconds >= 60 ? `${Math.floor(ex.rest_seconds / 60)}m${ex.rest_seconds % 60 > 0 ? ` ${ex.rest_seconds % 60}s` : ""}` : `${ex.rest_seconds}s`) : "None"}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
-
-                {/* Pill buttons row */}
-                {ex.exercise_id !== "rest" && (
-                  <div className="flex items-center gap-2 mt-2 ml-7 pl-1">
-                    <button
-                      onClick={() => setEditingSetsId(ex.id)}
-                      className="px-3 py-1 rounded-full border border-border text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors"
-                    >
-                      {ex.sets} sets
-                    </button>
-                    <button
-                      onClick={() => setEditingTargetId(ex.id)}
-                      className="px-3 py-1 rounded-full border border-border text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors"
-                    >
-                      {ex.reps === "10" ? "Set Target" : ex.reps}
-                    </button>
-                    <button
-                      onClick={() => setEditingRestId(ex.id)}
-                      className="px-3 py-1 rounded-full border border-border text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors flex items-center gap-1"
-                    >
-                      <Hand className="h-3 w-3" />
-                      {ex.rest_seconds > 0 ? (ex.rest_seconds >= 60 ? `${Math.floor(ex.rest_seconds / 60)}m${ex.rest_seconds % 60 > 0 ? ` ${ex.rest_seconds % 60}s` : ""}` : `${ex.rest_seconds}s`) : "None"}
-                    </button>
-                  </div>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
