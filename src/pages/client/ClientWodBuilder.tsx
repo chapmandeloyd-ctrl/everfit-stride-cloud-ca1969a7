@@ -717,11 +717,11 @@ export default function ClientWodBuilder() {
           <span className="text-[10px] font-medium">Rest</span>
         </button>
         <button
-          onClick={() => handleInsertExercise()}
+          onClick={() => workoutType === "superset" ? handleAddBlock() : handleInsertExercise()}
           className="flex flex-col items-center gap-1 text-primary hover:text-primary/80 transition-colors"
         >
-          <Dumbbell className="h-5 w-5" />
-          <span className="text-[10px] font-medium">Insert</span>
+          {workoutType === "superset" ? <Layers className="h-5 w-5" /> : <Dumbbell className="h-5 w-5" />}
+          <span className="text-[10px] font-medium">{workoutType === "superset" ? "Add Block" : "Insert"}</span>
         </button>
       </div>
 
