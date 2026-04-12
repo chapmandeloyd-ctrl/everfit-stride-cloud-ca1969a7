@@ -403,7 +403,7 @@ export default function ClientWodBuilder() {
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-background">
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate("/client/dashboard")}
           className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
         >
           Cancel
