@@ -311,8 +311,13 @@ export default function ClientWodBuilder() {
                           <Dumbbell className="h-6 w-6 text-muted-foreground/40" />
                         )}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-foreground truncate">{ex.exercise_name}</p>
+                      <div
+                        className="flex-1 min-w-0 cursor-pointer"
+                        onClick={() => { if (ex.exercise_id === "rest") setEditingRestId(ex.id); }}
+                      >
+                        <p className="text-sm font-semibold text-foreground truncate">
+                          {ex.exercise_name}{ex.exercise_id === "rest" && ex.rest_seconds > 0 ? ` · ${ex.rest_seconds >= 60 ? `${Math.floor(ex.rest_seconds / 60)}m${ex.rest_seconds % 60 > 0 ? ` ${ex.rest_seconds % 60}s` : ""}` : `${ex.rest_seconds}s`}` : ""}
+                        </p>
                       </div>
                       <div className="shrink-0 text-muted-foreground/30 cursor-grab">
                         <GripVertical className="h-5 w-5" />
