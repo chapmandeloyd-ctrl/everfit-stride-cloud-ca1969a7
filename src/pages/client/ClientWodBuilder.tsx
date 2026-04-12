@@ -258,6 +258,7 @@ export default function ClientWodBuilder() {
       image_url: null,
       sets: 1,
       reps: "60s",
+      target_type: "time",
       rest_seconds: 60,
       selected: false,
       group_id: null,
@@ -607,13 +608,14 @@ export default function ClientWodBuilder() {
         open={showExerciseLibrary}
         onClose={() => setShowExerciseLibrary(false)}
         onAdd={(selectedExercises) => {
-          const newItems: WodExercise[] = selectedExercises.map((ex) => ({
+           const newItems: WodExercise[] = selectedExercises.map((ex) => ({
             id: crypto.randomUUID(),
             exercise_id: ex.id,
             exercise_name: ex.name,
             image_url: ex.image_url,
             sets: 3,
             reps: "10",
+            target_type: "text" as const,
             rest_seconds: 90,
             selected: false,
             group_id: null,
@@ -645,7 +647,10 @@ export default function ClientWodBuilder() {
           <SetTargetSheet
             open
             value={ex.reps}
-            onSave={(v) => updateExerciseField(editingTargetId, "reps", v)}
+            initialTargetType={ex.target_type}
+            onSave={(v, type) => {
+              setExercises((prev) => prev.map((e) => e.id === editingTargetId ? { ...e, reps: v, target_type: type } : e));
+            }}
             onClose={() => setEditingTargetId(null)}
           />
         );
