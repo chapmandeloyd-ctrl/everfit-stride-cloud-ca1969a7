@@ -625,7 +625,7 @@ export default function EditWorkout() {
 
         if (group) {
           rendered.push(
-            <div key={`group-${item.group_id}`} className={`border-2 rounded-lg mx-2 my-2 overflow-hidden ${getBlockType(group.block_type || "custom").borderColor}`}>
+            <div key={`group-${item.group_id}`} className={`border-2 rounded-lg mx-2 my-8 overflow-hidden ${getBlockType(group.block_type || "custom").borderColor}`}>
               <SortableGroupHeader
                 groupId={group.id}
                 groupType={group.type}
