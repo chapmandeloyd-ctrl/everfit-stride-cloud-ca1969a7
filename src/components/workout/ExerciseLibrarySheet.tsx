@@ -142,10 +142,10 @@ export function ExerciseLibrarySheet({ open, onClose, onAdd }: ExerciseLibrarySh
                 <button
                   key={ex.id}
                   onClick={() => toggleSelect(ex.id)}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-muted/30 active:bg-muted/50 transition-colors"
+                  className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-muted/30 active:bg-muted/50 transition-colors min-w-0"
                 >
                   {/* Thumbnail */}
-                  <div className="w-16 h-16 rounded-lg overflow-hidden bg-muted flex-shrink-0 flex items-center justify-center">
+                  <div className="w-14 h-14 rounded-lg overflow-hidden bg-muted shrink-0 flex items-center justify-center">
                     {thumb ? (
                       <img src={thumb} alt={ex.name} className="w-full h-full object-cover" />
                     ) : (
@@ -154,7 +154,7 @@ export function ExerciseLibrarySheet({ open, onClose, onAdd }: ExerciseLibrarySh
                   </div>
 
                   {/* Name */}
-                  <span className="flex-1 text-sm font-medium text-foreground truncate">
+                  <span className="flex-1 text-sm font-medium text-foreground truncate min-w-0">
                     {ex.name}
                   </span>
 
