@@ -659,8 +659,20 @@ export default function ClientWodBuilder() {
 
               // Group (circuit or superset)
               const { group, exercises: groupExercises } = item;
+              const blockIdx = groups.indexOf(group);
               return (
-                <div key={group.id} className="border-b border-border bg-muted/30 rounded-lg my-1 overflow-hidden">
+                <div
+                  key={group.id}
+                  ref={(el) => setBlockRef(group.id, el)}
+                  draggable={workoutType === "superset"}
+                  onDragStart={() => workoutType === "superset" && handleBlockDragStart(blockIdx)}
+                  onDragOver={(e) => { if (workoutType === "superset") { e.preventDefault(); setBlockOverIndex(blockIdx); } }}
+                  onDragEnd={() => workoutType === "superset" && handleBlockDragEnd()}
+                  onTouchStart={(e) => workoutType === "superset" && handleBlockTouchStart(e, blockIdx)}
+                  onTouchMove={workoutType === "superset" ? handleBlockTouchMove : undefined}
+                  onTouchEnd={workoutType === "superset" ? handleBlockTouchEnd : undefined}
+                  className={`border-b border-border bg-muted/30 rounded-lg my-1 overflow-hidden transition-all ${blockDragIndex === blockIdx ? "opacity-50 scale-95" : ""} ${blockOverIndex === blockIdx && blockDragIndex !== null && blockDragIndex !== blockIdx ? "border-t-2 border-t-primary" : ""}`}
+                >
                   {/* Group header */}
                   <div className="flex items-center gap-2 px-3 py-3 bg-muted/50">
                     <button onClick={() => toggleGroupSelect(group.id)} className="shrink-0">
