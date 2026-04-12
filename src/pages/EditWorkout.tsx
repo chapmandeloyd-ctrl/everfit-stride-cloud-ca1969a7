@@ -34,6 +34,8 @@ interface ExerciseGroup {
   id: string;
   type: "superset" | "circuit";
   sets: number;
+  block_type?: string;
+  custom_name?: string;
 }
 
 const REST_OPTIONS = [

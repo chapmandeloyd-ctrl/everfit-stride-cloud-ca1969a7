@@ -78,6 +78,8 @@ interface ExerciseGroup {
   type: "circuit" | "superset";
   rounds: number;
   selected: boolean;
+  block_type?: string;
+  custom_name?: string;
 }
 
 const isGroupedWorkoutType = (type: string) => type === "circuit" || type === "superset";
