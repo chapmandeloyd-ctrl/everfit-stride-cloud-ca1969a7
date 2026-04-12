@@ -475,7 +475,7 @@ export default function ClientWodBuilder() {
                           {ex.sets} sets
                         </button>
                         <button onClick={() => setEditingTargetId(ex.id)} className="px-3 py-1 rounded-full border border-border text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors">
-                          {ex.reps === "10" ? "Set Target" : ex.reps}
+                          {ex.reps === "10" && ex.target_type === "text" ? "Set Target" : ex.target_type === "time" ? `⏱ ${ex.reps}` : ex.reps}
                         </button>
                         <button onClick={() => setEditingRestId(ex.id)} className="px-3 py-1 rounded-full border border-border text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors flex items-center gap-1">
                           <Hand className="h-3 w-3" />
@@ -542,7 +542,7 @@ export default function ClientWodBuilder() {
                       {ex.exercise_id !== "rest" && (
                         <div className="flex items-center gap-2 mt-2 ml-1">
                           <button onClick={() => setEditingTargetId(ex.id)} className="px-3 py-1 rounded-full border border-border text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors">
-                            {ex.reps === "10" ? "Set Target" : ex.reps}
+                            {ex.reps === "10" && ex.target_type === "text" ? "Set Target" : ex.target_type === "time" ? `⏱ ${ex.reps}` : ex.reps}
                           </button>
                           <button onClick={() => setEditingRestId(ex.id)} className="px-3 py-1 rounded-full border border-border text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors flex items-center gap-1">
                             <Hand className="h-3 w-3" />
