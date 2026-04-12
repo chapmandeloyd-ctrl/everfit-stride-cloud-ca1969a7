@@ -91,6 +91,7 @@ const isGroupedWorkoutType = (type: string) => type === "circuit" || type === "s
 export default function ClientWodBuilder() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const effectiveClientId = useEffectiveClientId();
   
   const workoutType = "superset"; // All blocks mode - always supports multiple blocks
   const defaultGroupType: ExerciseGroup["type"] = "superset";
