@@ -763,7 +763,7 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-2.5 text-center border border-white/10">
                   {activeKetoType ? (
                     <>
-                      <p className="text-[10px] font-bold leading-tight" style={{ color: activeKetoType.color || '#ef4444' }}>{activeKetoType.abbreviation}</p>
+                      <p className="text-xs font-black leading-tight drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]" style={{ color: activeKetoType.color || '#ef4444', textShadow: `0 0 8px ${activeKetoType.color || '#ef4444'}80` }}>{activeKetoType.abbreviation}</p>
                       <p className="text-sm font-black text-white leading-tight mt-0.5">{activeKetoType.fat_pct}/{activeKetoType.protein_pct}/{activeKetoType.carbs_pct}</p>
                       <p className="text-[9px] text-white/50 uppercase tracking-wider font-medium mt-0.5">F / P / C</p>
                     </>
