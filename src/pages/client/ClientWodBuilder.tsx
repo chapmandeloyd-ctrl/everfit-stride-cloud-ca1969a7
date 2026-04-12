@@ -106,6 +106,19 @@ export default function ClientWodBuilder() {
   const dragStartY = useRef(0);
   const itemRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
+  // Block-level drag state
+  const [blockDragIndex, setBlockDragIndex] = useState<number | null>(null);
+  const [blockOverIndex, setBlockOverIndex] = useState<number | null>(null);
+  const isBlockDragging = useRef(false);
+  const blockDragStartY = useRef(0);
+  const blockLongPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const blockRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+
+  const setBlockRef = useCallback((id: string, el: HTMLDivElement | null) => {
+    if (el) blockRefs.current.set(id, el);
+    else blockRefs.current.delete(id);
+  }, []);
+
   const setItemRef = useCallback((id: string, el: HTMLDivElement | null) => {
     if (el) itemRefs.current.set(id, el);
     else itemRefs.current.delete(id);
