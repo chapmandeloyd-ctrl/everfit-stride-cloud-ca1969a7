@@ -712,10 +712,10 @@ export default function ClientWodBuilder() {
                     onTouchStart={(e) => workoutType === "superset" && handleBlockTouchStart(e, blockIdx)}
                     onTouchMove={workoutType === "superset" ? handleBlockTouchMove : undefined}
                     onTouchEnd={workoutType === "superset" ? handleBlockTouchEnd : undefined}
-                    className={`border rounded-lg overflow-hidden transition-all ${bt.borderColor} ${bt.color} ${blockDragIndex === blockIdx ? "opacity-50 scale-95" : ""} ${blockOverIndex === blockIdx && blockDragIndex !== null && blockDragIndex !== blockIdx ? "border-t-2 border-t-primary" : ""}`}
-                  >
-                    {/* Group header */}
-                    <div className={`flex items-center gap-2 px-3 py-3 ${bt.color}`}>
+                     className={`border rounded-lg overflow-hidden transition-all border-border ${blockDragIndex === blockIdx ? "opacity-50 scale-95" : ""} ${blockOverIndex === blockIdx && blockDragIndex !== null && blockDragIndex !== blockIdx ? "border-t-2 border-t-primary" : ""}`}
+                   >
+                     {/* Group header */}
+                     <div className="flex items-center gap-2 px-3 py-3 bg-muted/50">
                       <button onClick={() => toggleGroupSelect(group.id)} className="shrink-0">
                         <div className={`w-5 h-5 rounded border-[1.5px] flex items-center justify-center transition-colors ${group.selected ? "bg-primary border-primary" : "border-muted-foreground/30 bg-transparent"}`}>
                           {group.selected && (
@@ -728,7 +728,7 @@ export default function ClientWodBuilder() {
                       <span className="text-lg">{bt.emoji}</span>
                       <div className="flex-1 min-w-0">
                         <span className="text-sm text-foreground">
-                          <span className={`font-semibold ${bt.textColor}`}>{blockLabel}</span>
+                          <span className="font-semibold text-foreground">{blockLabel}</span>
                           {" · "}
                           <button
                             onClick={() => setEditingCircuitRoundsId(group.id)}
