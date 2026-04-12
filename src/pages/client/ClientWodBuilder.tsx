@@ -281,7 +281,7 @@ export default function ClientWodBuilder() {
     setIntraBlockDragOver(null);
   }, [intraBlockDragFrom, intraBlockDragOver]);
 
-
+  const handleSave = async () => {
     if (exercises.length === 0) {
       toast.error("Add at least one exercise");
       return;
