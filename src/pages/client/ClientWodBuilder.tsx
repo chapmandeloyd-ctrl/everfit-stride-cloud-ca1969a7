@@ -16,6 +16,7 @@ interface WodExercise {
   image_url: string | null;
   sets: number;
   reps: string;
+  target_type: "text" | "time";
   rest_seconds: number;
   selected: boolean;
   group_id: string | null;
