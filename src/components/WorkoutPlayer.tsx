@@ -1277,34 +1277,29 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
                 {/* Rep + weight logging for rep-based */}
                 {!currentExercise.duration_seconds && currentStep.setKey && (
                   <div className="px-3 pb-3">
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <p className="text-xs font-semibold text-muted-foreground mb-1.5 uppercase tracking-wide">Previous</p>
-                        <p className="text-sm text-muted-foreground">—</p>
-                      </div>
-                      <div>
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1">
                         <p className="text-xs font-semibold text-muted-foreground mb-1.5 uppercase tracking-wide">Reps</p>
                         <Input
                           type="number"
                           value={setLogs[currentStep.setKey]?.reps || ""}
                           onChange={(e) => updateSetLog(currentStep.setKey!, "reps", e.target.value)}
                           className="h-10 text-center text-lg font-bold border-2 focus:border-primary"
-                          placeholder="0"
+                          placeholder={currentExercise.reps ? String(currentExercise.reps) : "0"}
                           inputMode="numeric"
                         />
                       </div>
-                    </div>
-                    {/* Weight row */}
-                    <div className="mt-2">
-                      <p className="text-xs font-semibold text-muted-foreground mb-1.5 uppercase tracking-wide">Weight (lbs)</p>
-                      <Input
-                        type="number"
-                        value={setLogs[currentStep.setKey]?.weight || ""}
-                        onChange={(e) => updateSetLog(currentStep.setKey!, "weight", e.target.value)}
-                        className="h-10 text-center text-lg font-bold border-2 focus:border-primary"
-                        placeholder="0"
-                        inputMode="decimal"
-                      />
+                      <div className="flex-1">
+                        <p className="text-xs font-semibold text-muted-foreground mb-1.5 uppercase tracking-wide">Weight (lbs)</p>
+                        <Input
+                          type="number"
+                          value={setLogs[currentStep.setKey]?.weight || ""}
+                          onChange={(e) => updateSetLog(currentStep.setKey!, "weight", e.target.value)}
+                          className="h-10 text-center text-lg font-bold border-2 focus:border-primary"
+                          placeholder="BW"
+                          inputMode="decimal"
+                        />
+                      </div>
                     </div>
                   </div>
                 )}
