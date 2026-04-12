@@ -371,7 +371,20 @@ export default function ClientWodBuilder() {
     );
   };
 
-  const handleInsertExercise = () => {
+  const handleInsertExercise = (blockId?: string) => {
+    if (blockId) setActiveBlockId(blockId);
+    else setActiveBlockId(null);
+    setShowExerciseLibrary(true);
+  };
+
+  const handleAddBlock = () => {
+    const blockId = crypto.randomUUID();
+    const blockNumber = groups.length + 1;
+    const newGroup: ExerciseGroup = { id: blockId, type: "superset", rounds: 3, selected: false };
+    setGroups((prev) => [...prev, newGroup]);
+    toast.success(`Block ${blockNumber} added`);
+    // Open exercise library for this block
+    setActiveBlockId(blockId);
     setShowExerciseLibrary(true);
   };
 
