@@ -128,10 +128,11 @@ export default function ClientMealSelect() {
               title="Can't Decide"
               description="Let KSOM360 pick the best meals for you."
               onClick={() => {
-                // Auto-filter: select break-my-fast + high-protein goals
                 if (!mealGoal.selected.has("Break My Fast")) mealGoal.toggle("Break My Fast");
                 if (!mealGoal.selected.has("High Protein")) mealGoal.toggle("High Protein");
-                navigate("/client/meal-plan");
+                const params = new URLSearchParams();
+                params.set("goals", "Break My Fast,High Protein");
+                navigate(`/client/meal-results?${params.toString()}`);
               }}
             />
             <QuickActionCard
@@ -162,8 +163,12 @@ export default function ClientMealSelect() {
           className="w-full h-14 text-base font-bold rounded-2xl shadow-lg shadow-primary/20"
           disabled={!hasSelection}
           onClick={() => {
-            // TODO: pass filters to meal results page
-            navigate("/client/meal-plan");
+            const params = new URLSearchParams();
+            if (mealType.selected.size > 0) params.set("types", [...mealType.selected].join(","));
+            if (mealGoal.selected.size > 0) params.set("goals", [...mealGoal.selected].join(","));
+            if (hunger) params.set("hunger", hunger);
+            if (prepStyle.selected.size > 0) params.set("prep", [...prepStyle.selected].join(","));
+            navigate(`/client/meal-results?${params.toString()}`);
           }}
         >
           Show My Meals
