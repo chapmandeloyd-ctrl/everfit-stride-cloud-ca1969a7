@@ -125,8 +125,128 @@ export default function ClientWodBuilder() {
       toast.error("Add at least one exercise");
       return;
     }
-    toast.success("Workout saved!");
-    navigate(-1);
+    if (!user?.id) {
+      toast.error("Not authenticated");
+      return;
+    }
+    setSaving(true);
+    try {
+      // Build sections from groups + ungrouped exercises
+      const realExercises = exercises.filter((e) => e.exercise_id !== "rest");
+      const restItems = exercises.filter((e) => e.exercise_id === "rest");
+
+      // Calculate estimated duration
+      let estSeconds = 0;
+      exercises.forEach((ex) => {
+        if (ex.exercise_id === "rest") {
+          estSeconds += ex.rest_seconds || 0;
+        } else {
+          const repsVal = parseInt(ex.reps) || 0;
+          const isTime = ex.reps.includes("s") || ex.reps.includes("m");
+          const durationSec = isTime ? (parseInt(ex.reps) || 30) : (repsVal * 3);
+          estSeconds += (durationSec + (ex.rest_seconds || 0)) * (ex.sets || 1);
+        }
+      });
+      const estMinutes = Math.max(1, Math.ceil(estSeconds / 60));
+
+      // Create workout plan
+      const { data: plan, error: planError } = await supabase
+        .from("workout_plans")
+        .insert({
+          name: "Workout of the Day",
+          trainer_id: user.id,
+          category: workoutType,
+          difficulty: "intermediate" as any,
+          duration_minutes: estMinutes,
+        })
+        .select("id")
+        .single();
+      if (planError) throw planError;
+
+      const planId = plan.id;
+
+      // Organize exercises into sections
+      const usedGroupIds = [...new Set(exercises.filter((e) => e.group_id).map((e) => e.group_id!))];
+      const sections: { name: string; type: string; rounds: number; exerciseItems: WodExercise[] }[] = [];
+      let currentUngrouped: WodExercise[] = [];
+
+      exercises.forEach((ex) => {
+        if (ex.group_id) {
+          // Flush ungrouped
+          if (currentUngrouped.length > 0) {
+            sections.push({ name: "Main", type: "regular", rounds: 1, exerciseItems: currentUngrouped });
+            currentUngrouped = [];
+          }
+          // Check if group section already added
+          const existingGroupSection = sections.find((s) => s.name === ex.group_id);
+          if (!existingGroupSection) {
+            const group = groups.find((g) => g.id === ex.group_id);
+            const groupExercises = exercises.filter((e) => e.group_id === ex.group_id);
+            sections.push({
+              name: ex.group_id!,
+              type: group?.type || "circuit",
+              rounds: group?.rounds || 3,
+              exerciseItems: groupExercises,
+            });
+          }
+        } else {
+          currentUngrouped.push(ex);
+        }
+      });
+      if (currentUngrouped.length > 0) {
+        sections.push({ name: "Main", type: "regular", rounds: 1, exerciseItems: currentUngrouped });
+      }
+
+      // Insert sections + exercises
+      for (let sIdx = 0; sIdx < sections.length; sIdx++) {
+        const sec = sections[sIdx];
+        const sectionName = sec.type === "circuit" ? "Circuit" : sec.type === "superset" ? "Superset" : `Section ${sIdx + 1}`;
+
+        const { data: sectionRow, error: secError } = await supabase
+          .from("workout_sections")
+          .insert({
+            workout_plan_id: planId,
+            name: sectionName,
+            section_type: sec.type,
+            rounds: sec.rounds,
+            order_index: sIdx,
+          })
+          .select("id")
+          .single();
+        if (secError) throw secError;
+
+        const exInserts = sec.exerciseItems
+          .filter((ex) => ex.exercise_id !== "rest")
+          .map((ex, eIdx) => {
+            const isTime = ex.reps.includes("s") || ex.reps.includes("m");
+            return {
+              workout_plan_id: planId,
+              section_id: sectionRow.id,
+              exercise_id: ex.exercise_id,
+              order_index: eIdx,
+              sets: ex.sets || 1,
+              reps: isTime ? null : (parseInt(ex.reps) || null),
+              duration_seconds: isTime ? (parseInt(ex.reps) || null) : null,
+              rest_seconds: ex.rest_seconds || null,
+            };
+          });
+
+        if (exInserts.length > 0) {
+          const { error: exError } = await supabase
+            .from("workout_plan_exercises")
+            .insert(exInserts);
+          if (exError) throw exError;
+        }
+      }
+
+      toast.success("Workout saved!");
+      navigate(`/client/workouts/${planId}`);
+    } catch (err) {
+      console.error("Failed to save WOD:", err);
+      toast.error("Failed to save workout");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleAddRest = () => {
