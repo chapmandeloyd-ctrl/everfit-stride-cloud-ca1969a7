@@ -19,9 +19,10 @@ interface ExerciseLibrarySheetProps {
   open: boolean;
   onClose: () => void;
   onAdd: (exercises: Exercise[]) => void;
+  title?: string;
 }
 
-export function ExerciseLibrarySheet({ open, onClose, onAdd }: ExerciseLibrarySheetProps) {
+export function ExerciseLibrarySheet({ open, onClose, onAdd, title }: ExerciseLibrarySheetProps) {
   const clientId = useEffectiveClientId();
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -99,7 +100,7 @@ export function ExerciseLibrarySheet({ open, onClose, onAdd }: ExerciseLibrarySh
         >
           Cancel
         </button>
-        <span className="text-sm font-semibold">Add Exercises</span>
+        <span className="text-sm font-semibold">{title || "Add Exercises"}</span>
         <button
           onClick={handleAdd}
           disabled={selected.size === 0}
