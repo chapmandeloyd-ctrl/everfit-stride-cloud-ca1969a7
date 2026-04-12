@@ -77,11 +77,14 @@ interface ExerciseGroup {
   selected: boolean;
 }
 
+const isGroupedWorkoutType = (type: string) => type === "circuit" || type === "superset" || type === "interval";
+
 export default function ClientWodBuilder() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const workoutType = searchParams.get("type") || "regular";
+  const defaultGroupType: ExerciseGroup["type"] = workoutType === "superset" || workoutType === "interval" ? "superset" : "circuit";
 
   const [exercises, setExercises] = useState<WodExercise[]>([]);
   const [showExerciseLibrary, setShowExerciseLibrary] = useState(false);
@@ -663,7 +666,7 @@ export default function ClientWodBuilder() {
         open={showExerciseLibrary}
         onClose={() => setShowExerciseLibrary(false)}
         onAdd={(selectedExercises) => {
-           const newItems: WodExercise[] = selectedExercises.map((ex) => ({
+          const newItems: WodExercise[] = selectedExercises.map((ex) => ({
             id: crypto.randomUUID(),
             exercise_id: ex.id,
             exercise_name: ex.name,
@@ -676,28 +679,32 @@ export default function ClientWodBuilder() {
             group_id: null,
           }));
 
-          // Auto-group for circuit/interval workout types
-          if ((workoutType === "circuit" || workoutType === "interval") && newItems.length >= 2) {
-            const groupType = workoutType === "circuit" ? "circuit" : "superset";
-            const groupId = crypto.randomUUID();
-            const newGroup: ExerciseGroup = { id: groupId, type: groupType, rounds: 3, selected: false };
-            const groupedItems = newItems.map((item) => ({ ...item, group_id: groupId }));
-            setGroups((prev) => [...prev, newGroup]);
-            setExercises((prev) => [...prev, ...groupedItems]);
-          } else if ((workoutType === "circuit" || workoutType === "interval") && newItems.length === 1) {
-            // If only 1 exercise added, check if there's an existing auto-group to add to
-            const autoGroupType = workoutType === "circuit" ? "circuit" : "superset";
-            const existingGroup = groups.find((g) => g.type === autoGroupType);
-            if (existingGroup) {
-              const groupedItems = newItems.map((item) => ({ ...item, group_id: existingGroup.id }));
-              setExercises((prev) => [...prev, ...groupedItems]);
-            } else {
-              // Just add ungrouped for now, will auto-group when 2+
-              setExercises((prev) => [...prev, ...newItems]);
+          if (isGroupedWorkoutType(workoutType)) {
+            const existingUngrouped = exercises.filter((exercise) => !exercise.group_id && exercise.exercise_id !== "rest");
+            const shouldCreateGroup = groups.length === 0 && existingUngrouped.length + newItems.length >= 2;
+
+            if (shouldCreateGroup) {
+              const groupId = crypto.randomUUID();
+              const newGroup: ExerciseGroup = { id: groupId, type: defaultGroupType, rounds: 3, selected: false };
+              setGroups((prev) => [...prev, newGroup]);
+              setExercises((prev) => prev.map((exercise) => (
+                !exercise.group_id && exercise.exercise_id !== "rest"
+                  ? { ...exercise, group_id: groupId }
+                  : exercise
+              )).concat(newItems.map((item) => ({ ...item, group_id: groupId }))));
+              toast.success(`Added ${selectedExercises.length} exercise(s)`);
+              return;
             }
-          } else {
-            setExercises((prev) => [...prev, ...newItems]);
+
+            const existingPrimaryGroup = groups[0];
+            if (existingPrimaryGroup) {
+              setExercises((prev) => [...prev, ...newItems.map((item) => ({ ...item, group_id: existingPrimaryGroup.id }))]);
+              toast.success(`Added ${selectedExercises.length} exercise(s)`);
+              return;
+            }
           }
+
+          setExercises((prev) => [...prev, ...newItems]);
           toast.success(`Added ${selectedExercises.length} exercise(s)`);
         }}
       />
