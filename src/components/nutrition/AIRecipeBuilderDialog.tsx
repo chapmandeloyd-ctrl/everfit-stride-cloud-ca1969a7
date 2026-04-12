@@ -1,4 +1,5 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
+import { parseStructuredRecipeText } from "./recipeTextParser";
 import { useAuth } from "@/hooks/useAuth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,7 +24,7 @@ interface AIRecipeBuilderDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-interface ExtractedRecipe {
+export interface ExtractedRecipe {
   name: string;
   description?: string;
   instructions?: string;
@@ -304,7 +305,24 @@ export function AIRecipeBuilderDialog({ open, onOpenChange }: AIRecipeBuilderDia
             ) : (
               <div className="space-y-2">
                 <Label>Recipe Text</Label>
-                <Textarea placeholder="Paste the full recipe with NAME, MACROS, IF_ROLES, KETO_TYPES, INSTRUCTIONS, etc." value={textInput} onChange={(e) => setTextInput(e.target.value)} className="min-h-[200px]" />
+              <Textarea
+                placeholder="Paste the full recipe with NAME, MACROS, IF_ROLES, KETO_TYPES, INSTRUCTIONS, etc."
+                value={textInput}
+                onChange={(e) => setTextInput(e.target.value)}
+                onPaste={(e) => {
+                  const pasted = e.clipboardData.getData("text");
+                  if (pasted) {
+                    const parsed = parseStructuredRecipeText(pasted);
+                    if (parsed) {
+                      e.preventDefault();
+                      setTextInput(pasted);
+                      setExtractedRecipe(parsed);
+                      toast.success("Recipe auto-filled from structured text!");
+                    }
+                  }
+                }}
+                className="min-h-[200px]"
+              />
               </div>
             )}
 
