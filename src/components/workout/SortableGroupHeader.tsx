@@ -4,6 +4,7 @@ import { GripVertical } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { getBlockType } from "@/lib/workoutBlockTypes";
 
 interface SortableGroupHeaderProps {
   groupId: string;
@@ -14,6 +15,8 @@ interface SortableGroupHeaderProps {
   onToggleSelectAll: () => void;
   onUpdateSets: (sets: number) => void;
   onUngroup: () => void;
+  blockTypeId?: string;
+  customName?: string;
 }
 
 export function SortableGroupHeader({
@@ -25,10 +28,15 @@ export function SortableGroupHeader({
   onToggleSelectAll,
   onUpdateSets,
   onUngroup,
+  blockTypeId,
+  customName,
 }: SortableGroupHeaderProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: `group-${groupId}`,
   });
+
+  const bt = getBlockType(blockTypeId || "custom");
+  const blockLabel = blockTypeId === "custom" && customName ? customName : bt.label;
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -37,11 +45,12 @@ export function SortableGroupHeader({
   };
 
   return (
-    <div ref={setNodeRef} style={style} className="flex items-center gap-3 px-4 py-2 bg-primary/5 border-b">
+    <div ref={setNodeRef} style={style} className={`flex items-center gap-3 px-4 py-2 border-b ${bt.color}`}>
       <Checkbox checked={allSelected} onCheckedChange={onToggleSelectAll} />
+      <span className="text-lg">{bt.emoji}</span>
       {groupType === "superset" ? (
         <>
-          <span className="text-sm font-medium text-foreground">Block {blockNumber}</span>
+          <span className={`text-sm font-semibold ${bt.textColor}`}>{blockLabel}</span>
           <span className="text-sm text-muted-foreground">·</span>
         </>
       ) : (
