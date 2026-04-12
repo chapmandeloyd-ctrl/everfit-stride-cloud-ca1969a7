@@ -60,6 +60,7 @@ export default function ClientMealResults() {
   const [ketoType, setKetoType] = useState<string | null>(null);
   const [usedFallback, setUsedFallback] = useState(false);
   const [hasAiSuggestions, setHasAiSuggestions] = useState(false);
+  const [activeNudge, setActiveNudge] = useState<CoachNudge | null>(null);
 
   // Parse filters from URL
   const filters = {
