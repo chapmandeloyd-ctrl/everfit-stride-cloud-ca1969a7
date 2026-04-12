@@ -472,23 +472,8 @@ export default function WorkoutDetail() {
           onStartFresh={async () => { unlockAudioForMobile(); await createActiveSession(); setIsPlaying(true); }}
           onBack={() => navigate(-1)}
         />
-          {inProgressSession && isClient ? (
-            <div className="flex flex-col gap-2">
-              <Button size="lg" onClick={() => { unlockAudioForMobile(); handleResume(); }} className="gap-2">
-                <Play className="h-5 w-5" />
-                Resume ({(inProgressSession as any).completion_percentage || 0}%)
-              </Button>
-              <Button size="sm" variant="outline" onClick={async () => { unlockAudioForMobile(); await createActiveSession(); setIsPlaying(true); }}>
-                Start Fresh
-              </Button>
-            </div>
-          ) : (
-            <Button size="lg" onClick={async () => { unlockAudioForMobile(); await createActiveSession(); setIsPlaying(true); }} className="gap-2">
-              <Play className="h-5 w-5" />
-              Start Workout
-            </Button>
-          )}
-        </div>
+
+
 
         {/* Workout Info */}
         <Card className="mb-6">
