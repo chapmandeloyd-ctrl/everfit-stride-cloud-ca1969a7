@@ -1,40 +1,35 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Trash2, Timer, Dumbbell, Hand, Layers, Repeat } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Trash2, Dumbbell, Hand, Layers, Repeat, GripVertical, Timer, X } from "lucide-react";
 import { ExerciseLibrarySheet } from "@/components/workout/ExerciseLibrarySheet";
 
 interface WodExercise {
   id: string;
   exercise_id: string;
   exercise_name: string;
+  image_url: string | null;
   sets: number;
   reps: string;
   rest_seconds: number;
+  selected: boolean;
 }
 
 export default function ClientWodBuilder() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const workoutType = searchParams.get("type") || "regular";
-  const { user } = useAuth();
 
   const [exercises, setExercises] = useState<WodExercise[]>([]);
   const [showExerciseLibrary, setShowExerciseLibrary] = useState(false);
   const [saving, setSaving] = useState(false);
-
-  const typeLabel =
-    workoutType === "circuit" ? "Circuit" : workoutType === "interval" ? "Interval" : "Regular";
+  const [showDragHint, setShowDragHint] = useState(true);
 
   const handleSave = async () => {
     if (exercises.length === 0) {
       toast.error("Add at least one exercise");
       return;
     }
-    // TODO: Save WOD to database
     toast.success("Workout saved!");
     navigate(-1);
   };
@@ -44,23 +39,41 @@ export default function ClientWodBuilder() {
       id: crypto.randomUUID(),
       exercise_id: "rest",
       exercise_name: "Rest",
+      image_url: null,
       sets: 1,
       reps: "60s",
       rest_seconds: 60,
+      selected: false,
     };
     setExercises((prev) => [...prev, restItem]);
   };
 
   const handleDeleteSelected = () => {
-    // For now just remove last exercise
-    if (exercises.length > 0) {
-      setExercises((prev) => prev.slice(0, -1));
+    const hasSelected = exercises.some((e) => e.selected);
+    if (hasSelected) {
+      setExercises((prev) => prev.filter((e) => !e.selected));
+    } else if (exercises.length > 0) {
+      toast.error("Select exercises to delete first");
     }
+  };
+
+  const toggleSelect = (id: string) => {
+    setExercises((prev) =>
+      prev.map((e) => (e.id === id ? { ...e, selected: !e.selected } : e))
+    );
+  };
+
+  const updateExerciseField = (id: string, field: keyof WodExercise, value: any) => {
+    setExercises((prev) =>
+      prev.map((e) => (e.id === id ? { ...e, [field]: value } : e))
+    );
   };
 
   const handleInsertExercise = () => {
     setShowExerciseLibrary(true);
   };
+
+  const selectedCount = exercises.filter((e) => e.selected).length;
 
   return (
     <div className="flex flex-col h-screen bg-background">
@@ -85,9 +98,11 @@ export default function ClientWodBuilder() {
       {/* Content area */}
       <div className="flex-1 overflow-auto">
         {exercises.length === 0 ? (
-          /* Empty state */
-          <div className="flex flex-col items-center justify-center h-full px-6">
+          <div className="flex flex-col items-center justify-center h-full px-6 gap-4">
             <Dumbbell className="w-20 h-20 text-muted-foreground/25" strokeWidth={1.2} />
+            <p className="text-base font-medium text-muted-foreground">
+              No exercises added yet
+            </p>
             <button
               onClick={handleInsertExercise}
               className="text-sm font-semibold text-primary uppercase tracking-wide"
@@ -96,26 +111,111 @@ export default function ClientWodBuilder() {
             </button>
           </div>
         ) : (
-          /* Exercise list */
-          <div className="p-4 space-y-3">
-            {exercises.map((ex, i) => (
+          <div className="px-3 pt-3 pb-4 space-y-0">
+            {/* Drag hint tooltip */}
+            {showDragHint && (
+              <div className="relative mb-3 bg-primary text-primary-foreground rounded-xl px-4 py-3 flex items-start gap-3 shadow-lg">
+                <GripVertical className="h-5 w-5 shrink-0 mt-0.5" />
+                <p className="text-xs font-medium flex-1">
+                  Tap and hold to unlock, then drag to rearrange exercises
+                </p>
+                <button
+                  onClick={() => setShowDragHint(false)}
+                  className="text-xs font-bold shrink-0 opacity-80 hover:opacity-100"
+                >
+                  Got it!
+                </button>
+                {/* Arrow pointing down */}
+                <div className="absolute -bottom-2 right-8 w-4 h-4 bg-primary rotate-45" />
+              </div>
+            )}
+
+            {/* Exercise cards */}
+            {exercises.map((ex) => (
               <div
                 key={ex.id}
-                className="bg-card border border-border rounded-lg p-3 flex items-center gap-3"
+                className={`border-b border-border py-3 ${
+                  ex.selected ? "bg-primary/5" : ""
+                }`}
               >
-                <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
-                  {ex.exercise_id === "rest" ? (
-                    <Timer className="h-4 w-4" />
-                  ) : (
-                    <Dumbbell className="h-4 w-4" />
-                  )}
+                <div className="flex items-center gap-2">
+                  {/* Checkbox */}
+                  <button
+                    onClick={() => toggleSelect(ex.id)}
+                    className="shrink-0"
+                  >
+                    <div
+                      className={`w-5 h-5 rounded border-[1.5px] flex items-center justify-center transition-colors ${
+                        ex.selected
+                          ? "bg-primary border-primary"
+                          : "border-muted-foreground/30 bg-transparent"
+                      }`}
+                    >
+                      {ex.selected && (
+                        <svg className="h-3 w-3 text-primary-foreground" viewBox="0 0 14 14" fill="none">
+                          <path d="M2 7l3.5 3.5L12 4" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      )}
+                    </div>
+                  </button>
+
+                  {/* Thumbnail */}
+                  <div className="w-14 h-14 rounded-lg overflow-hidden bg-muted shrink-0 flex items-center justify-center">
+                    {ex.exercise_id === "rest" ? (
+                      <Timer className="h-6 w-6 text-muted-foreground/40" />
+                    ) : ex.image_url ? (
+                      <img src={ex.image_url} alt={ex.exercise_name} className="w-full h-full object-cover" />
+                    ) : (
+                      <Dumbbell className="h-6 w-6 text-muted-foreground/40" />
+                    )}
+                  </div>
+
+                  {/* Name */}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-foreground truncate">
+                      {ex.exercise_name}
+                    </p>
+                  </div>
+
+                  {/* Drag handle */}
+                  <div className="shrink-0 text-muted-foreground/30 cursor-grab">
+                    <GripVertical className="h-5 w-5" />
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{ex.exercise_name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {ex.sets} × {ex.reps}
-                  </p>
-                </div>
+
+                {/* Pill buttons row */}
+                {ex.exercise_id !== "rest" && (
+                  <div className="flex items-center gap-2 mt-2 ml-7 pl-1">
+                    <button
+                      onClick={() => {
+                        const val = prompt("Number of sets:", String(ex.sets));
+                        if (val) updateExerciseField(ex.id, "sets", parseInt(val) || 3);
+                      }}
+                      className="px-3 py-1 rounded-full border border-border text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+                    >
+                      {ex.sets} sets
+                    </button>
+                    <button
+                      onClick={() => {
+                        const val = prompt("Target (e.g. 10, 12-15, 30s):", ex.reps);
+                        if (val) updateExerciseField(ex.id, "reps", val);
+                      }}
+                      className="px-3 py-1 rounded-full border border-border text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+                    >
+                      {ex.reps === "10" ? "Set Target" : ex.reps}
+                    </button>
+                    <button
+                      onClick={() => {
+                        const val = prompt("Rest seconds:", String(ex.rest_seconds));
+                        if (val) updateExerciseField(ex.id, "rest_seconds", parseInt(val) || 60);
+                      }}
+                      className="px-3 py-1 rounded-full border border-border text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors flex items-center gap-1"
+                    >
+                      <Hand className="h-3 w-3" />
+                      {ex.rest_seconds}s
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -169,9 +269,11 @@ export default function ClientWodBuilder() {
             id: crypto.randomUUID(),
             exercise_id: ex.id,
             exercise_name: ex.name,
+            image_url: ex.image_url,
             sets: 3,
             reps: "10",
-            rest_seconds: 60,
+            rest_seconds: 90,
+            selected: false,
           }));
           setExercises((prev) => [...prev, ...newItems]);
           toast.success(`Added ${selectedExercises.length} exercise(s)`);
