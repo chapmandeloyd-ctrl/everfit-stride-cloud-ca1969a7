@@ -2,6 +2,45 @@ import { useState, useRef, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Trash2, Dumbbell, Hand, Layers, Repeat, GripVertical, Timer, X } from "lucide-react";
+
+// Swipe-to-delete hook
+function useSwipeToDelete(onDelete: () => void) {
+  const ref = useRef<HTMLDivElement>(null);
+  const startX = useRef(0);
+  const currentX = useRef(0);
+  const swiping = useRef(false);
+
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
+    startX.current = e.touches[0].clientX;
+    currentX.current = 0;
+    swiping.current = true;
+  }, []);
+
+  const onTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!swiping.current || !ref.current) return;
+    const dx = e.touches[0].clientX - startX.current;
+    // Only allow left swipe
+    if (dx > 0) { currentX.current = 0; ref.current.style.transform = ''; return; }
+    currentX.current = dx;
+    ref.current.style.transform = `translateX(${Math.max(dx, -100)}px)`;
+    ref.current.style.transition = 'none';
+  }, []);
+
+  const onTouchEnd = useCallback(() => {
+    swiping.current = false;
+    if (!ref.current) return;
+    ref.current.style.transition = 'transform 0.2s ease';
+    if (currentX.current < -70) {
+      ref.current.style.transform = 'translateX(-100%)';
+      setTimeout(onDelete, 200);
+    } else {
+      ref.current.style.transform = '';
+    }
+    currentX.current = 0;
+  }, [onDelete]);
+
+  return { ref, onTouchStart, onTouchMove, onTouchEnd };
+}
 import { ExerciseLibrarySheet } from "@/components/workout/ExerciseLibrarySheet";
 import { SetsSliderSheet } from "@/components/workout/SetsSliderSheet";
 import { SetTargetSheet } from "@/components/workout/SetTargetSheet";
