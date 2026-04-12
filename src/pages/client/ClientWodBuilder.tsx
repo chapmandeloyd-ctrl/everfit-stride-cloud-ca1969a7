@@ -711,7 +711,7 @@ export default function ClientWodBuilder() {
                   onTouchStart={(e) => workoutType === "superset" && handleBlockTouchStart(e, blockIdx)}
                   onTouchMove={workoutType === "superset" ? handleBlockTouchMove : undefined}
                   onTouchEnd={workoutType === "superset" ? handleBlockTouchEnd : undefined}
-                  className={`border rounded-lg my-8 overflow-hidden transition-all ${bt.borderColor} ${bt.color} ${blockDragIndex === blockIdx ? "opacity-50 scale-95" : ""} ${blockOverIndex === blockIdx && blockDragIndex !== null && blockDragIndex !== blockIdx ? "border-t-2 border-t-primary" : ""}`}
+                  className={`border rounded-lg my-12 overflow-hidden transition-all ${bt.borderColor} ${bt.color} ${blockDragIndex === blockIdx ? "opacity-50 scale-95" : ""} ${blockOverIndex === blockIdx && blockDragIndex !== null && blockDragIndex !== blockIdx ? "border-t-2 border-t-primary" : ""}`}
                 >
                   {/* Group header */}
                   <div className={`flex items-center gap-2 px-3 py-3 ${bt.color}`}>
