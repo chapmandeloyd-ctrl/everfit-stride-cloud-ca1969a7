@@ -48,6 +48,52 @@ import { RestTimePickerSheet } from "@/components/workout/RestTimePickerSheet";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
+function SwipeToDeleteCard({ children, onDelete }: { children: React.ReactNode; onDelete: () => void }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const startXRef = useRef(0);
+  const currentXRef = useRef(0);
+  const swipingRef = useRef(false);
+
+  const onTS = (e: React.TouchEvent) => {
+    startXRef.current = e.touches[0].clientX;
+    currentXRef.current = 0;
+    swipingRef.current = true;
+  };
+
+  const onTM = (e: React.TouchEvent) => {
+    if (!swipingRef.current || !containerRef.current) return;
+    const dx = e.touches[0].clientX - startXRef.current;
+    if (dx > 0) { currentXRef.current = 0; containerRef.current.style.transform = ''; return; }
+    currentXRef.current = dx;
+    containerRef.current.style.transform = `translateX(${Math.max(dx, -120)}px)`;
+    containerRef.current.style.transition = 'none';
+  };
+
+  const onTE = () => {
+    swipingRef.current = false;
+    if (!containerRef.current) return;
+    containerRef.current.style.transition = 'transform 0.25s ease';
+    if (currentXRef.current < -70) {
+      containerRef.current.style.transform = 'translateX(-100%)';
+      setTimeout(onDelete, 250);
+    } else {
+      containerRef.current.style.transform = '';
+    }
+    currentXRef.current = 0;
+  };
+
+  return (
+    <div className="relative overflow-hidden">
+      <div className="absolute inset-0 flex items-center justify-end bg-destructive pr-5">
+        <Trash2 className="h-5 w-5 text-destructive-foreground" />
+      </div>
+      <div ref={containerRef} onTouchStart={onTS} onTouchMove={onTM} onTouchEnd={onTE} className="relative z-10">
+        {children}
+      </div>
+    </div>
+  );
+}
+
 interface WodExercise {
   id: string;
   exercise_id: string;
