@@ -66,6 +66,7 @@ import ClientProfile from "./pages/client/ClientProfile";
 import ClientSportsProfile from "./pages/client/ClientSportsProfile";
 import ClientBooking from "./pages/client/ClientBooking";
 import ClientCardioPlayer from "./pages/client/ClientCardioPlayer";
+import ClientWodBuilder from "./pages/client/ClientWodBuilder";
 import ClientAppointments from "./pages/client/ClientAppointments";
 import ClientRecipeDetail from "./pages/client/ClientRecipeDetail";
 import ClientPrograms from "./pages/client/ClientPrograms";
