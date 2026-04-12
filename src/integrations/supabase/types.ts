@@ -7578,7 +7578,7 @@ export type Database = {
       workout_sessions: {
         Row: {
           client_id: string
-          client_workout_id: string
+          client_workout_id: string | null
           completed_at: string | null
           completion_percentage: number | null
           created_at: string | null
@@ -7598,7 +7598,7 @@ export type Database = {
         }
         Insert: {
           client_id: string
-          client_workout_id: string
+          client_workout_id?: string | null
           completed_at?: string | null
           completion_percentage?: number | null
           created_at?: string | null
@@ -7618,7 +7618,7 @@ export type Database = {
         }
         Update: {
           client_id?: string
-          client_workout_id?: string
+          client_workout_id?: string | null
           completed_at?: string | null
           completion_percentage?: number | null
           created_at?: string | null
