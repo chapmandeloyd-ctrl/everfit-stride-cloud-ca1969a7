@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Trash2, Dumbbell, Hand, Layers, Repeat, GripVertical, Timer, X } from "lucide-react";
 import { getBlockType, WORKOUT_BLOCK_TYPES, WorkoutBlockType } from "@/lib/workoutBlockTypes";
@@ -881,7 +881,7 @@ export default function ClientWodBuilder() {
       <ExerciseLibrarySheet
         open={showExerciseLibrary}
         onClose={() => setShowExerciseLibrary(false)}
-        title={`Add Exercises · ${workoutType.charAt(0).toUpperCase() + workoutType.slice(1)}`}
+        title="Add Exercises"
         onAdd={(selectedExercises) => {
           const newItems: WodExercise[] = selectedExercises.map((ex) => ({
             id: crypto.randomUUID(),
