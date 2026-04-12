@@ -294,7 +294,7 @@ export default function ClientCompletePlan() {
               )}
 
               {/* Inline stats row */}
-              <div className="flex items-end gap-6 mt-6 pt-4 border-t border-border/40">
+              <div className="flex items-end gap-4 mt-6 pt-4 border-t border-border/40">
                 <div>
                   <p className="text-2xl font-black">{protocol.fast_target_hours}h</p>
                   <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">Fast</p>
@@ -305,10 +305,30 @@ export default function ClientCompletePlan() {
                   </p>
                   <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">Duration</p>
                 </div>
-                <div className="ml-auto">
-                  <p className="text-2xl font-black capitalize">{getDifficultyLabel(protocol.difficulty_level)}</p>
+                <div className="ml-auto text-right">
+                  <p className="text-xl font-black capitalize">{getDifficultyLabel(protocol.difficulty_level)}</p>
                   <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">Level</p>
                 </div>
+              </div>
+
+              {/* How This Protocol Works — inside the card */}
+              <div className="mt-6 pt-4 border-t border-border/40">
+                <div className="flex items-center gap-2 mb-2">
+                  <Lightbulb className="h-4 w-4 text-blue-400" />
+                  <h3 className="text-sm font-bold">How This Protocol Works</h3>
+                </div>
+                {customCopy ? (
+                  <div className="space-y-3">
+                    {customCopy.howItWorks.map((p, i) => (
+                      <p key={i} className="text-sm text-muted-foreground leading-relaxed">{p}</p>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {protocol.name} is a {protocol.duration_days === 0 ? "flexible ongoing" : `${protocol.duration_days}-day`} fasting
+                    program designed to help your body transition from sugar-burning to fat-burning safely and sustainably.
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -316,20 +336,6 @@ export default function ClientCompletePlan() {
 
         {/* Protocol Sections */}
         <div className="px-5 mt-6 space-y-6">
-          <Section title="How This Protocol Works" icon={<Lightbulb className="h-5 w-5 text-blue-400" />}>
-            {customCopy ? (
-              <div className="space-y-3">
-                {customCopy.howItWorks.map((p, i) => (
-                  <p key={i} className="text-sm text-muted-foreground leading-relaxed">{p}</p>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {protocol.name} is a {protocol.duration_days === 0 ? "flexible ongoing" : `${protocol.duration_days}-day`} fasting
-                program designed to help your body transition from sugar-burning to fat-burning safely and sustainably.
-              </p>
-            )}
-          </Section>
 
           {(customCopy?.progression || autoProgression) && (
             <Section title="Weekly Progression" icon={<TrendingUp className="h-5 w-5 text-blue-400" />}>
