@@ -128,6 +128,7 @@ export default function ClientWodBuilder() {
       reps: "60s",
       rest_seconds: 60,
       selected: false,
+      group_id: null,
     };
     setExercises((prev) => [...prev, restItem]);
   };
@@ -375,6 +376,7 @@ export default function ClientWodBuilder() {
             reps: "10",
             rest_seconds: 90,
             selected: false,
+            group_id: null,
           }));
           setExercises((prev) => [...prev, ...newItems]);
           toast.success(`Added ${selectedExercises.length} exercise(s)`);
