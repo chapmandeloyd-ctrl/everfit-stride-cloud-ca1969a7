@@ -189,7 +189,77 @@ export default function ClientWodBuilder() {
     handleDragEnd();
   }, [handleDragEnd]);
 
-  const handleSave = async () => {
+  // Block-level drag handlers
+  const handleBlockDragStart = useCallback((index: number) => {
+    setBlockDragIndex(index);
+    setBlockOverIndex(index);
+    isBlockDragging.current = true;
+  }, []);
+
+  const handleBlockDragEnd = useCallback(() => {
+    if (blockDragIndex !== null && blockOverIndex !== null && blockDragIndex !== blockOverIndex) {
+      setGroups((prev) => {
+        const updated = [...prev];
+        const [moved] = updated.splice(blockDragIndex, 1);
+        updated.splice(blockOverIndex, 0, moved);
+        return updated;
+      });
+      // Also reorder exercises to match new group order
+      setExercises((prev) => {
+        const ungrouped = prev.filter((e) => !e.group_id);
+        const reorderedGroups = (() => {
+          const g = [...groups];
+          const [moved] = g.splice(blockDragIndex, 1);
+          g.splice(blockOverIndex, 0, moved);
+          return g;
+        })();
+        const grouped = reorderedGroups.flatMap((g) => prev.filter((e) => e.group_id === g.id));
+        return [...ungrouped, ...grouped];
+      });
+    }
+    setBlockDragIndex(null);
+    setBlockOverIndex(null);
+    isBlockDragging.current = false;
+  }, [blockDragIndex, blockOverIndex, groups]);
+
+  const handleBlockTouchStart = useCallback((e: React.TouchEvent, index: number) => {
+    blockDragStartY.current = e.touches[0].clientY;
+    blockLongPressTimer.current = setTimeout(() => {
+      handleBlockDragStart(index);
+    }, 400);
+  }, [handleBlockDragStart]);
+
+  const handleBlockTouchMove = useCallback((e: React.TouchEvent) => {
+    if (blockLongPressTimer.current && !isBlockDragging.current) {
+      const dy = Math.abs(e.touches[0].clientY - blockDragStartY.current);
+      if (dy > 10) {
+        clearTimeout(blockLongPressTimer.current);
+        blockLongPressTimer.current = null;
+      }
+    }
+    if (!isBlockDragging.current) return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    for (let i = 0; i < groups.length; i++) {
+      const el = blockRefs.current.get(groups[i].id);
+      if (!el) continue;
+      const rect = el.getBoundingClientRect();
+      if (touch.clientY >= rect.top && touch.clientY <= rect.bottom) {
+        setBlockOverIndex(i);
+        break;
+      }
+    }
+  }, [groups]);
+
+  const handleBlockTouchEnd = useCallback(() => {
+    if (blockLongPressTimer.current) {
+      clearTimeout(blockLongPressTimer.current);
+      blockLongPressTimer.current = null;
+    }
+    handleBlockDragEnd();
+  }, [handleBlockDragEnd]);
+
+
     if (exercises.length === 0) {
       toast.error("Add at least one exercise");
       return;
