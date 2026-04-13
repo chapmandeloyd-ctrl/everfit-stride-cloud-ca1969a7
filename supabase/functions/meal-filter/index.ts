@@ -84,115 +84,133 @@ serve(async (req) => {
       );
     }
 
-    // 3. Score and filter recipes based on engine state
+    // 3. Score every meal on a 0–100 scale
     const scored = allRecipes.map((recipe: any) => {
-      let score = 0;
-      let matches = { phase: false, keto: false, training: false, goal: false, tags: false };
+      let phaseScore = 0;
+      let ketoScore = 0;
+      let trainingScore = 0;
+      let goalScore = 0;
+      let satietyScore = 0;
+      let excluded = false;
 
       const recipeIfRoles: string[] = (recipe.if_roles || []).map((r: string) => r.toLowerCase());
       const recipeKetoTypes: string[] = (recipe.keto_types || []).map((k: string) => k.toUpperCase());
       const recipeTriggers: string[] = (recipe.trigger_conditions || []).map((t: string) => t.toLowerCase());
       const recipeTags: string[] = (recipe.tags || []).map((t: string) => t.toLowerCase());
       const recipeMealRole = (recipe.meal_role || "").toLowerCase();
+      const cal = recipe.calories || 0;
+      const prot = recipe.protein || 0;
+      const carb = recipe.carbs || 0;
+      const fat = recipe.fats || 0;
+      const prepMin = recipe.prep_time_minutes || 999;
 
-      // --- Phase match (highest priority: 30 points) ---
+      // ── 1. Phase Match (0–30 pts) ──
       if (eating_phase) {
         if (recipeIfRoles.includes(eating_phase)) {
-          score += 30;
-          matches.phase = true;
-        } else if (recipeIfRoles.length === 0) {
-          // No roles specified = generic, slight penalty
-          score += 5;
-        } else {
-          // Wrong phase = heavy penalty
-          score -= 20;
+          phaseScore = 30;
+        } else if (recipeIfRoles.length > 0) {
+          // Has roles but wrong phase → exclude
+          excluded = true;
         }
+        // No roles set = generic meal, gets 0 phase pts but not excluded
       }
 
-      // --- Keto type match (25 points) ---
-      if (clientKetoAbbrev) {
+      // ── 2. Keto Type Match (0–25 pts) ──
+      if (clientKetoAbbrev && recipeKetoTypes.length > 0) {
         if (recipeKetoTypes.includes(clientKetoAbbrev.toUpperCase())) {
-          score += 25;
-          matches.keto = true;
-        } else if (recipeKetoTypes.length === 0) {
-          // Generic recipe, small bonus
-          score += 5;
+          ketoScore = 25;
         } else {
-          score -= 10;
+          // Wrong keto type → exclude completely
+          excluded = true;
         }
+      } else if (clientKetoAbbrev && recipeKetoTypes.length === 0) {
+        // Generic recipe, compatible but lower score
+        ketoScore = 10;
       }
 
-      // --- Training state match (20 points) ---
+      // ── 3. Training Match (0–20 pts) ──
       if (training_state === "post_workout") {
-        // Post-workout: heavy bonus for performance/TKD meals
-        if (recipeTriggers.includes("post_workout") || recipeTriggers.includes("muscle_preservation")) {
-          score += 20;
-          matches.training = true;
-        }
-        if (recipeKetoTypes.includes("TKD") || recipeMealRole.includes("performance_fuel")) {
-          score += 15;
-          matches.training = true;
+        if (recipeMealRole.includes("performance_fuel") || recipeTriggers.includes("post_workout")) {
+          trainingScore = 20;
+        } else if (recipeKetoTypes.includes("TKD")) {
+          trainingScore = 15;
+        } else {
+          trainingScore = 5;
         }
       } else if (training_state === "training_today") {
-        // Training today: moderate bonus, TKD allowed
-        if (recipeTriggers.includes("post_workout") || recipeTriggers.includes("muscle_preservation")) {
-          score += 10;
-          matches.training = true;
+        if (recipeKetoTypes.includes("TKD") || recipeTriggers.includes("muscle_preservation")) {
+          trainingScore = 15;
+        } else {
+          trainingScore = 5;
         }
       } else {
-        // No training: penalize TKD-only meals
+        // no_training → control meals get bonus, TKD-only excluded
         if (recipeKetoTypes.length > 0 && recipeKetoTypes.every((k: string) => k === "TKD")) {
-          score -= 15;
+          excluded = true; // TKD-only meals hidden when not training
+        } else if (recipeMealRole.includes("control") || recipeTags.includes("low carb") || recipeTags.includes("keto")) {
+          trainingScore = 15;
+        } else {
+          trainingScore = 5;
         }
       }
 
-      // --- Goal match (15 points) ---
+      // ── 4. Goal Alignment (0–15 pts) ──
       if (goal) {
-        if (goal === "fat_loss" && (recipeTags.includes("low carb") || recipeTags.includes("low calorie") || recipeTags.includes("keto"))) {
-          score += 15;
-          matches.goal = true;
-        } else if (goal === "performance" && (recipeTags.includes("high protein") || recipeTriggers.includes("muscle_preservation"))) {
-          score += 15;
-          matches.goal = true;
-        } else if (goal === "recovery" && (recipeTriggers.includes("post_workout") || recipeTags.includes("anti-inflammatory"))) {
-          score += 15;
-          matches.goal = true;
+        if (goal === "fat_loss") {
+          // Lean meals (low cal, high protein-to-cal ratio) = 15
+          if (cal <= 500 && prot >= 25) {
+            goalScore = 15;
+          } else if (cal <= 600) {
+            goalScore = 10;
+          } else {
+            goalScore = 5; // Heavy meals still get something
+          }
+        } else if (goal === "performance") {
+          if (recipeKetoTypes.includes("TKD") || recipeTriggers.includes("muscle_preservation")) {
+            goalScore = 15;
+          } else if (prot >= 30) {
+            goalScore = 10;
+          } else {
+            goalScore = 5;
+          }
+        } else if (goal === "recomposition" || goal === "recovery") {
+          // Balanced: moderate cal, good protein
+          const protRatio = cal > 0 ? (prot * 4) / cal : 0;
+          if (protRatio >= 0.3 && cal >= 400 && cal <= 700) {
+            goalScore = 15;
+          } else if (prot >= 30) {
+            goalScore = 10;
+          } else {
+            goalScore = 5;
+          }
         }
       }
 
-      // --- Tag/filter matching (10 points each) ---
-      // Map meal types
-      for (const mt of meal_types) {
-        const lower = mt.toLowerCase();
-        if (lower === "breakfast" && recipeTags.includes("breakfast")) { score += 10; matches.tags = true; }
-        if (lower === "lunch" && recipeTags.includes("lunch")) { score += 10; matches.tags = true; }
-        if (lower === "dinner" && (recipeTags.includes("dinner") || recipeTags.includes("main course"))) { score += 10; matches.tags = true; }
-        if (lower === "snack" && recipeTags.includes("snack")) { score += 10; matches.tags = true; }
+      // ── 5. Satiety Match (0–10 pts) ──
+      if (hunger_level) {
+        const isHighSatiety = prot >= 35 || (prot >= 25 && fat >= 20) || cal >= 500;
+        const isLight = cal <= 350 || (prot <= 20 && fat <= 15);
+
+        if (hunger_level === "High" && isHighSatiety) {
+          satietyScore = 10;
+        } else if (hunger_level === "Light" && isLight) {
+          satietyScore = 10;
+        } else if (hunger_level === "Moderate") {
+          satietyScore = 7; // Moderate matches most meals
+        } else {
+          satietyScore = 3; // Mismatch
+        }
       }
 
-      // Map meal goals
-      for (const mg of meal_goals) {
-        const lower = mg.toLowerCase();
-        if (lower.includes("break my fast") && recipeIfRoles.includes("break_fast")) { score += 15; matches.tags = true; }
-        if (lower.includes("high protein") && (recipe.protein || 0) >= 30) { score += 10; matches.tags = true; }
-        if (lower.includes("light") && (recipe.calories || 0) <= 400) { score += 10; matches.tags = true; }
-        if (lower.includes("performance") && recipeTriggers.includes("muscle_preservation")) { score += 10; matches.tags = true; }
-        if (lower.includes("quick") && (recipe.prep_time_minutes || 999) <= 15) { score += 10; matches.tags = true; }
-      }
+      const totalScore = excluded ? -1 : phaseScore + ketoScore + trainingScore + goalScore + satietyScore;
 
-      // Map prep styles
-      for (const ps of prep_styles) {
-        const lower = ps.toLowerCase();
-        if (lower === "quick" && (recipe.prep_time_minutes || 999) <= 15) score += 5;
-        if ((lower === "grab & go" || lower === "no prep") && (recipe.prep_time_minutes || 999) <= 5) score += 5;
-      }
-
-      // Base keto bonus for all keto-tagged recipes
-      if (recipeTags.includes("keto") || recipeTags.includes("keto diet") || recipeTags.includes("low carb")) {
-        score += 3;
-      }
-
-      return { ...recipe, _score: score, _matches: matches };
+      return {
+        ...recipe,
+        _score: totalScore,
+        _excluded: excluded,
+        _breakdown: { phase: phaseScore, keto: ketoScore, training: trainingScore, goal: goalScore, satiety: satietyScore },
+        _prepTime: prepMin,
+      };
     });
 
     // 4. Apply strict filtering for engine-driven states
