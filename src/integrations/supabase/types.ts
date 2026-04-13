@@ -843,6 +843,51 @@ export type Database = {
           },
         ]
       }
+      client_consistency_streaks: {
+        Row: {
+          client_id: string
+          created_at: string
+          current_streak: number
+          id: string
+          last_score_label: string | null
+          last_scored_date: string | null
+          longest_streak: number
+          milestone_14: boolean
+          milestone_3: boolean
+          milestone_30: boolean
+          milestone_7: boolean
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          current_streak?: number
+          id?: string
+          last_score_label?: string | null
+          last_scored_date?: string | null
+          longest_streak?: number
+          milestone_14?: boolean
+          milestone_3?: boolean
+          milestone_30?: boolean
+          milestone_7?: boolean
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          current_streak?: number
+          id?: string
+          last_score_label?: string | null
+          last_scored_date?: string | null
+          longest_streak?: number
+          milestone_14?: boolean
+          milestone_3?: boolean
+          milestone_30?: boolean
+          milestone_7?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       client_feature_settings: {
         Row: {
           active_fast_start_at: string | null
