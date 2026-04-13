@@ -706,6 +706,68 @@ export type Database = {
           },
         ]
       }
+      client_adaptive_profile: {
+        Row: {
+          avg_hunger_break_fast: number | null
+          avg_hunger_last_meal: number | null
+          avg_hunger_mid_window: number | null
+          carb_compliance_rate: number | null
+          client_id: string
+          consistency_score: number | null
+          created_at: string
+          fasting_adherence_rate: number | null
+          id: string
+          preferred_meal_pattern: string | null
+          profile_type: string
+          protein_compliance_rate: number | null
+          scoring_precision: string
+          updated_at: string
+          week_start: string
+        }
+        Insert: {
+          avg_hunger_break_fast?: number | null
+          avg_hunger_last_meal?: number | null
+          avg_hunger_mid_window?: number | null
+          carb_compliance_rate?: number | null
+          client_id: string
+          consistency_score?: number | null
+          created_at?: string
+          fasting_adherence_rate?: number | null
+          id?: string
+          preferred_meal_pattern?: string | null
+          profile_type?: string
+          protein_compliance_rate?: number | null
+          scoring_precision?: string
+          updated_at?: string
+          week_start: string
+        }
+        Update: {
+          avg_hunger_break_fast?: number | null
+          avg_hunger_last_meal?: number | null
+          avg_hunger_mid_window?: number | null
+          carb_compliance_rate?: number | null
+          client_id?: string
+          consistency_score?: number | null
+          created_at?: string
+          fasting_adherence_rate?: number | null
+          id?: string
+          preferred_meal_pattern?: string | null
+          profile_type?: string
+          protein_compliance_rate?: number | null
+          scoring_precision?: string
+          updated_at?: string
+          week_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_adaptive_profile_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_badges: {
         Row: {
           badge_id: string
@@ -1377,6 +1439,146 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      client_meal_adaptive_scores: {
+        Row: {
+          adjustment_reason: string | null
+          client_id: string
+          created_at: string
+          id: string
+          last_selected_at: string | null
+          last_shown_at: string | null
+          recipe_id: string
+          score_adjustment: number
+          times_ignored: number
+          times_selected: number
+          times_shown: number
+          updated_at: string
+        }
+        Insert: {
+          adjustment_reason?: string | null
+          client_id: string
+          created_at?: string
+          id?: string
+          last_selected_at?: string | null
+          last_shown_at?: string | null
+          recipe_id: string
+          score_adjustment?: number
+          times_ignored?: number
+          times_selected?: number
+          times_shown?: number
+          updated_at?: string
+        }
+        Update: {
+          adjustment_reason?: string | null
+          client_id?: string
+          created_at?: string
+          id?: string
+          last_selected_at?: string | null
+          last_shown_at?: string | null
+          recipe_id?: string
+          score_adjustment?: number
+          times_ignored?: number
+          times_selected?: number
+          times_shown?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_meal_adaptive_scores_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_meal_adaptive_scores_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_meal_behavior: {
+        Row: {
+          ai_photo_logs: number
+          barcode_scans: number
+          carbs_exceeded: boolean | null
+          client_id: string
+          coach_picks_used: number
+          created_at: string
+          fast_broken_early: boolean | null
+          fast_completed: boolean | null
+          fasting_window_adherence: number | null
+          fat_deviation: number | null
+          hunger_break_fast: number | null
+          hunger_last_meal: number | null
+          hunger_mid_window: number | null
+          id: string
+          manual_meal_entries: number
+          meals_completed: number
+          meals_selected: number
+          meals_shown: number
+          protein_target_hit: boolean | null
+          tracked_date: string
+          updated_at: string
+        }
+        Insert: {
+          ai_photo_logs?: number
+          barcode_scans?: number
+          carbs_exceeded?: boolean | null
+          client_id: string
+          coach_picks_used?: number
+          created_at?: string
+          fast_broken_early?: boolean | null
+          fast_completed?: boolean | null
+          fasting_window_adherence?: number | null
+          fat_deviation?: number | null
+          hunger_break_fast?: number | null
+          hunger_last_meal?: number | null
+          hunger_mid_window?: number | null
+          id?: string
+          manual_meal_entries?: number
+          meals_completed?: number
+          meals_selected?: number
+          meals_shown?: number
+          protein_target_hit?: boolean | null
+          tracked_date?: string
+          updated_at?: string
+        }
+        Update: {
+          ai_photo_logs?: number
+          barcode_scans?: number
+          carbs_exceeded?: boolean | null
+          client_id?: string
+          coach_picks_used?: number
+          created_at?: string
+          fast_broken_early?: boolean | null
+          fast_completed?: boolean | null
+          fasting_window_adherence?: number | null
+          fat_deviation?: number | null
+          hunger_break_fast?: number | null
+          hunger_last_meal?: number | null
+          hunger_mid_window?: number | null
+          id?: string
+          manual_meal_entries?: number
+          meals_completed?: number
+          meals_selected?: number
+          meals_shown?: number
+          protein_target_hit?: boolean | null
+          tracked_date?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_meal_behavior_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       client_meal_plan_assignments: {
         Row: {
