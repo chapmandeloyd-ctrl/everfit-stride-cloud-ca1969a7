@@ -363,6 +363,68 @@ export default function ClientRecipeDetail() {
             </Card>
           </div>
         )}
+
+        {/* WHY IT WORKS */}
+        <div className="px-4 mt-4">
+          <Card className="border-primary/20 bg-primary/5">
+            <CardContent className="p-4">
+              <h3 className="font-bold text-base mb-2 flex items-center gap-2">
+                <span>💡</span> Why It Works
+              </h3>
+              <div className="space-y-1.5 text-sm text-muted-foreground">
+                {recipe.protein && Number(recipe.protein) >= 25 && (
+                  <p>✅ High protein ({Number(recipe.protein)}g) supports muscle recovery & satiety</p>
+                )}
+                {recipe.carbs && Number(recipe.carbs) <= 10 && (
+                  <p>✅ Ultra-low carb ({Number(recipe.carbs)}g) keeps you in ketosis</p>
+                )}
+                {recipe.carbs && Number(recipe.carbs) > 10 && Number(recipe.carbs) <= 20 && (
+                  <p>✅ Low carb ({Number(recipe.carbs)}g) supports your keto plan</p>
+                )}
+                {recipe.fats && Number(recipe.fats) >= 15 && (
+                  <p>✅ Healthy fats ({Number(recipe.fats)}g) for sustained energy</p>
+                )}
+                {recipe.prep_time_minutes && recipe.prep_time_minutes <= 10 && (
+                  <p>✅ Quick prep ({recipe.prep_time_minutes} min) — easy to stay consistent</p>
+                )}
+                {recipe.calories && recipe.calories <= 400 && (
+                  <p>✅ Light meal keeps you on track without overeating</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Best For / Avoid If */}
+        <div className="px-4 mt-4">
+          <Card>
+            <CardContent className="p-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-500 mb-2">Best For</h4>
+                  <ul className="space-y-1 text-xs text-muted-foreground">
+                    {recipe.tags?.includes("break_fast") && <li>🌅 Breaking a fast</li>}
+                    {recipe.tags?.includes("breakfast") && <li>🌅 Morning meals</li>}
+                    {Number(recipe.protein || 0) >= 30 && <li>💪 Post-workout recovery</li>}
+                    {Number(recipe.carbs || 0) <= 10 && <li>🔥 Deep ketosis days</li>}
+                    {(recipe.prep_time_minutes || 0) <= 10 && <li>⚡ Busy schedules</li>}
+                    {Number(recipe.calories || 0) >= 500 && <li>🍖 High-energy needs</li>}
+                    {Number(recipe.calories || 0) <= 350 && <li>🥗 Light eating windows</li>}
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-amber-500 mb-2">Avoid If</h4>
+                  <ul className="space-y-1 text-xs text-muted-foreground">
+                    {Number(recipe.carbs || 0) > 20 && <li>⚠️ Strict keto (SKD)</li>}
+                    {Number(recipe.calories || 0) > 600 && <li>⚠️ Calorie deficit goal</li>}
+                    {Number(recipe.fats || 0) > 40 && <li>⚠️ Low-fat targets</li>}
+                    {Number(recipe.protein || 0) < 15 && <li>⚠️ Need high protein</li>}
+                  </ul>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {/* Log Meal Drawer */}
