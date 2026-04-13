@@ -335,6 +335,32 @@ export function ActiveFastingTimer({
         {/* Stage description */}
         <p className="text-sm text-white/60 text-center mt-3">{stage.description}</p>
 
+        {/* Day Milestone Banner */}
+        <AnimatePresence>
+          {milestoneBanner && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-center"
+            >
+              <p className="text-lg font-black text-white">
+                {milestoneBanner.emoji} {milestoneBanner.title}
+              </p>
+              <p className="text-xs text-white/70 mt-1 font-medium">
+                {milestoneBanner.body}
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Next Milestone Preview */}
+        {nextMilestone && !milestoneBanner && elapsedHours >= 12 && (
+          <p className="text-xs text-white/40 text-center mt-2 italic">
+            Next milestone: Day {nextMilestone.day} at {nextMilestone.hours}h
+          </p>
+        )}
+
         {/* Hold to End */}
         <div className="mt-4 relative">
           <Button

@@ -1,5 +1,6 @@
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { getMilestoneBanner, getNextMilestone } from "@/lib/fastingMilestones";
 
 // Fasting stages with hour thresholds, icons, and arc colors
 const FASTING_STAGES = [
