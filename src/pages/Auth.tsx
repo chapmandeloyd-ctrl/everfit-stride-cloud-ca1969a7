@@ -16,6 +16,9 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
+    // Always clear stale impersonation when landing on the auth page
+    localStorage.removeItem("impersonatedClientId");
+
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {

@@ -10,9 +10,9 @@ export function useEffectiveClientId() {
 
   const impersonatedId = localStorage.getItem("impersonatedClientId");
 
-  // Allow impersonation when trainer role is confirmed OR still loading (null)
-  // to avoid race conditions where role has not resolved yet.
-  if (impersonatedId && (userRole === "trainer" || userRole === null)) {
+  // Only honor impersonation when trainer role is fully confirmed
+  // (not while role is still null/loading) to prevent stale preview after session restart
+  if (impersonatedId && userRole === "trainer") {
     return impersonatedId;
   }
 
