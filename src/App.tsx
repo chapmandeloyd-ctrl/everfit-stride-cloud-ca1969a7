@@ -99,6 +99,7 @@ import StudioProgramDetail from "./pages/StudioProgramDetail";
 import KetoTypesManager from "./pages/KetoTypesManager";
 import ClientKetoTypes from "./pages/client/ClientKetoTypes";
 import ClientKetoTypeDetail from "./pages/client/ClientKetoTypeDetail";
+import ClientGroceryList from "./pages/client/ClientGroceryList";
 import CardStylesPreview from "./pages/client/CardStylesPreview";
 import NotificationCenter from "./pages/NotificationCenter";
 
@@ -168,6 +169,7 @@ const App = () => (
           <Route path="/client/meal-plan" element={<ProtectedRoute allowedRoles={["client"]}><ClientMealPlan /></ProtectedRoute>} />
           <Route path="/client/meal-select" element={<ProtectedRoute allowedRoles={["client"]}><ClientMealSelect /></ProtectedRoute>} />
           <Route path="/client/meal-results" element={<ProtectedRoute allowedRoles={["client"]}><ClientMealResults /></ProtectedRoute>} />
+          <Route path="/client/grocery" element={<ProtectedRoute allowedRoles={["client"]}><ClientGroceryList /></ProtectedRoute>} />
           <Route path="/client/nutrition" element={<ProtectedRoute allowedRoles={["client"]}><ClientNutrition /></ProtectedRoute>} />
           <Route path="/client/nutrition-dashboard" element={<ProtectedRoute allowedRoles={["client"]}><ClientNutritionDashboard /></ProtectedRoute>} />
           <Route path="/client/calendar" element={<ProtectedRoute allowedRoles={["client"]}><ClientCalendar /></ProtectedRoute>} />

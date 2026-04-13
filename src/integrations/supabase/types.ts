@@ -3831,6 +3831,80 @@ export type Database = {
           },
         ]
       }
+      grocery_list_items: {
+        Row: {
+          amount: string | null
+          category: string
+          created_at: string
+          id: string
+          ingredient_name: string
+          is_manual: boolean
+          is_purchased: boolean
+          list_id: string
+          meal_sources: string[] | null
+          unit: string | null
+        }
+        Insert: {
+          amount?: string | null
+          category?: string
+          created_at?: string
+          id?: string
+          ingredient_name: string
+          is_manual?: boolean
+          is_purchased?: boolean
+          list_id: string
+          meal_sources?: string[] | null
+          unit?: string | null
+        }
+        Update: {
+          amount?: string | null
+          category?: string
+          created_at?: string
+          id?: string
+          ingredient_name?: string
+          is_manual?: boolean
+          is_purchased?: boolean
+          list_id?: string
+          meal_sources?: string[] | null
+          unit?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grocery_list_items_list_id_fkey"
+            columns: ["list_id"]
+            isOneToOne: false
+            referencedRelation: "grocery_lists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      grocery_lists: {
+        Row: {
+          client_id: string
+          created_at: string
+          id: string
+          list_date: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          id?: string
+          list_date?: string
+          name?: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          id?: string
+          list_date?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       group_class_bookings: {
         Row: {
           booked_at: string

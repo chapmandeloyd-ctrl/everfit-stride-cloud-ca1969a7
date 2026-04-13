@@ -16,6 +16,7 @@ import { useMealEngineState } from "@/hooks/useMealEngineState";
 import { MealContextHeader } from "@/components/meals/MealContextHeader";
 import { SmartFilterBar, type SmartFilter } from "@/components/meals/SmartFilterBar";
 import { RecommendedMealCard } from "@/components/meals/RecommendedMealCard";
+import { GenerateGroceryButton } from "@/components/meals/GenerateGroceryButton";
 
 interface CoachingSuggestion {
   type: string;
@@ -403,7 +404,7 @@ export default function ClientMealResults() {
 
         {/* SECTION 4: Customize CTA */}
         {!loading && (
-          <div className="px-5 pt-5 pb-2">
+          <div className="px-5 pt-5 pb-2 space-y-2">
             <Button
               variant="outline"
               className="w-full h-12 rounded-2xl text-sm font-bold border-dashed"
@@ -412,6 +413,11 @@ export default function ClientMealResults() {
               <SlidersHorizontal className="h-4 w-4 mr-2" />
               Customize Your Selection
             </Button>
+            <GenerateGroceryButton
+              recipeIds={[...coachPicks, ...displayMeals].map((m) => m.id)}
+              listName="Smart Meals List"
+              className="w-full h-12 rounded-2xl text-sm font-bold border-dashed"
+            />
           </div>
         )}
       </div>
