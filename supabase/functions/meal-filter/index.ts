@@ -17,6 +17,13 @@ serve(async (req) => {
       meal_goals = [],
       hunger_level,
       prep_styles = [],
+      // New engine state inputs
+      fasting_state,
+      eating_phase,
+      training_state,
+      keto_type,
+      goal,
+      auto_mode = false,
     } = await req.json();
 
     if (!client_id) {
@@ -24,6 +31,20 @@ serve(async (req) => {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // Block meals during active fasting
+    if (fasting_state === "fasting_active") {
+      return new Response(
+        JSON.stringify({
+          meals: [],
+          total: 0,
+          blocked: true,
+          blocked_reason: "fasting_active",
+          message: "You're currently fasting. Meals will be available when your fast ends.",
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -46,96 +67,217 @@ serve(async (req) => {
         .maybeSingle(),
     ]);
 
-    const ketoType = ketoRes.data?.keto_types;
+    const ketoTypeData = ketoRes.data?.keto_types;
     const macros = macroRes.data;
+    const clientKetoAbbrev = keto_type || ketoTypeData?.abbreviation || null;
 
-    // 2. Build tag filters from user selections
-    const tagFilters: string[] = [];
-
-    // Map meal types to tags
-    for (const mt of meal_types) {
-      const lower = mt.toLowerCase();
-      if (lower === "breakfast") tagFilters.push("Breakfast");
-      else if (lower === "lunch") tagFilters.push("Lunch");
-      else if (lower === "dinner") tagFilters.push("Dinner", "Main Course", "Main Dish");
-      else if (lower === "snack") tagFilters.push("Snack");
-    }
-
-    // Map meal goals to tags
-    for (const mg of meal_goals) {
-      const lower = mg.toLowerCase();
-      if (lower.includes("break my fast")) tagFilters.push("break fast right", "fasting support");
-      if (lower.includes("high protein")) tagFilters.push("High Protein", "High protein", "High-Protein", "High Protein stacks", "lean protein");
-      if (lower.includes("light")) tagFilters.push("Low Calorie", "Low calorie", "Low Fat");
-      if (lower.includes("performance")) tagFilters.push("Post-workout", "Iron Bowl");
-      if (lower.includes("quick")) tagFilters.push("Quick & Easy", "quick prep", "Simple Meals", "Simple meals");
-    }
-
-    // Map prep styles to tags
-    for (const ps of prep_styles) {
-      const lower = ps.toLowerCase();
-      if (lower === "quick") tagFilters.push("Quick & Easy", "quick prep");
-      if (lower === "grab & go" || lower === "no prep") tagFilters.push("No Cook", "No-Cook", "No cooking");
-    }
-
-    // Always include keto tags
-    tagFilters.push("Keto", "Keto Diet", "Low Carb", "Low-Carb", "low carb", "Low carb");
-
-    const uniqueTags = [...new Set(tagFilters)];
-
-    // 3. Fetch recipes matching tags
+    // 2. Fetch all recipes
     const { data: allRecipes } = await supabase
       .from("recipes")
       .select("*")
       .order("protein", { ascending: false });
 
-    let filtered = (allRecipes || []).filter((r: any) => {
-      if (!r.tags || r.tags.length === 0) return false;
-      const rTags = r.tags.map((t: string) => t.toLowerCase());
-      return uniqueTags.some((t) => rTags.includes(t.toLowerCase()));
+    if (!allRecipes || allRecipes.length === 0) {
+      return new Response(
+        JSON.stringify({ meals: [], total: 0, keto_type: clientKetoAbbrev, macro_targets: null }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // 3. Score and filter recipes based on engine state
+    const scored = allRecipes.map((recipe: any) => {
+      let score = 0;
+      let matches = { phase: false, keto: false, training: false, goal: false, tags: false };
+
+      const recipeIfRoles: string[] = (recipe.if_roles || []).map((r: string) => r.toLowerCase());
+      const recipeKetoTypes: string[] = (recipe.keto_types || []).map((k: string) => k.toUpperCase());
+      const recipeTriggers: string[] = (recipe.trigger_conditions || []).map((t: string) => t.toLowerCase());
+      const recipeTags: string[] = (recipe.tags || []).map((t: string) => t.toLowerCase());
+      const recipeMealRole = (recipe.meal_role || "").toLowerCase();
+
+      // --- Phase match (highest priority: 30 points) ---
+      if (eating_phase) {
+        if (recipeIfRoles.includes(eating_phase)) {
+          score += 30;
+          matches.phase = true;
+        } else if (recipeIfRoles.length === 0) {
+          // No roles specified = generic, slight penalty
+          score += 5;
+        } else {
+          // Wrong phase = heavy penalty
+          score -= 20;
+        }
+      }
+
+      // --- Keto type match (25 points) ---
+      if (clientKetoAbbrev) {
+        if (recipeKetoTypes.includes(clientKetoAbbrev.toUpperCase())) {
+          score += 25;
+          matches.keto = true;
+        } else if (recipeKetoTypes.length === 0) {
+          // Generic recipe, small bonus
+          score += 5;
+        } else {
+          score -= 10;
+        }
+      }
+
+      // --- Training state match (20 points) ---
+      if (training_state === "post_workout" || training_state === "training_today") {
+        if (recipeTriggers.includes("post_workout") || recipeTriggers.includes("muscle_preservation")) {
+          score += 20;
+          matches.training = true;
+        }
+        // TKD meals get priority when training
+        if (clientKetoAbbrev === "TKD" && recipeKetoTypes.includes("TKD")) {
+          score += 15;
+        }
+      }
+
+      // --- Goal match (15 points) ---
+      if (goal) {
+        if (goal === "fat_loss" && (recipeTags.includes("low carb") || recipeTags.includes("low calorie") || recipeTags.includes("keto"))) {
+          score += 15;
+          matches.goal = true;
+        } else if (goal === "performance" && (recipeTags.includes("high protein") || recipeTriggers.includes("muscle_preservation"))) {
+          score += 15;
+          matches.goal = true;
+        } else if (goal === "recovery" && (recipeTriggers.includes("post_workout") || recipeTags.includes("anti-inflammatory"))) {
+          score += 15;
+          matches.goal = true;
+        }
+      }
+
+      // --- Tag/filter matching (10 points each) ---
+      // Map meal types
+      for (const mt of meal_types) {
+        const lower = mt.toLowerCase();
+        if (lower === "breakfast" && recipeTags.includes("breakfast")) { score += 10; matches.tags = true; }
+        if (lower === "lunch" && recipeTags.includes("lunch")) { score += 10; matches.tags = true; }
+        if (lower === "dinner" && (recipeTags.includes("dinner") || recipeTags.includes("main course"))) { score += 10; matches.tags = true; }
+        if (lower === "snack" && recipeTags.includes("snack")) { score += 10; matches.tags = true; }
+      }
+
+      // Map meal goals
+      for (const mg of meal_goals) {
+        const lower = mg.toLowerCase();
+        if (lower.includes("break my fast") && recipeIfRoles.includes("break_fast")) { score += 15; matches.tags = true; }
+        if (lower.includes("high protein") && (recipe.protein || 0) >= 30) { score += 10; matches.tags = true; }
+        if (lower.includes("light") && (recipe.calories || 0) <= 400) { score += 10; matches.tags = true; }
+        if (lower.includes("performance") && recipeTriggers.includes("muscle_preservation")) { score += 10; matches.tags = true; }
+        if (lower.includes("quick") && (recipe.prep_time_minutes || 999) <= 15) { score += 10; matches.tags = true; }
+      }
+
+      // Map prep styles
+      for (const ps of prep_styles) {
+        const lower = ps.toLowerCase();
+        if (lower === "quick" && (recipe.prep_time_minutes || 999) <= 15) score += 5;
+        if ((lower === "grab & go" || lower === "no prep") && (recipe.prep_time_minutes || 999) <= 5) score += 5;
+      }
+
+      // Base keto bonus for all keto-tagged recipes
+      if (recipeTags.includes("keto") || recipeTags.includes("keto diet") || recipeTags.includes("low carb")) {
+        score += 3;
+      }
+
+      return { ...recipe, _score: score, _matches: matches };
     });
 
-    // 4. Apply hunger level sizing
+    // 4. Apply strict filtering for engine-driven states
+    let filtered = scored;
+
+    // Break fast: ONLY show break_fast meals
+    if (fasting_state === "break_fast_triggered" || eating_phase === "break_fast") {
+      const breakFastOnly = filtered.filter((r: any) => {
+        const roles = (r.if_roles || []).map((x: string) => x.toLowerCase());
+        return roles.includes("break_fast");
+      });
+      if (breakFastOnly.length > 0) filtered = breakFastOnly;
+    }
+
+    // Eating window closing: ONLY show last_meal meals
+    if (fasting_state === "eating_window_closing" || eating_phase === "last_meal") {
+      const lastMealOnly = filtered.filter((r: any) => {
+        const roles = (r.if_roles || []).map((x: string) => x.toLowerCase());
+        return roles.includes("last_meal");
+      });
+      if (lastMealOnly.length > 0) filtered = lastMealOnly;
+    }
+
+    // Training priority: boost TKD when training
+    if ((training_state === "training_today" || training_state === "post_workout") && clientKetoAbbrev === "TKD") {
+      const tkdMeals = filtered.filter((r: any) => {
+        const kt = (r.keto_types || []).map((x: string) => x.toUpperCase());
+        return kt.includes("TKD");
+      });
+      if (tkdMeals.length > 0) {
+        // Put TKD meals first, then others
+        const nonTkd = filtered.filter((r: any) => {
+          const kt = (r.keto_types || []).map((x: string) => x.toUpperCase());
+          return !kt.includes("TKD");
+        });
+        filtered = [...tkdMeals, ...nonTkd];
+      }
+    }
+
+    // Keto type strict filter: if recipe has keto_types set, it must include client's type
+    if (clientKetoAbbrev) {
+      filtered = filtered.filter((r: any) => {
+        const kt = (r.keto_types || []).map((x: string) => x.toUpperCase());
+        return kt.length === 0 || kt.includes(clientKetoAbbrev.toUpperCase());
+      });
+    }
+
+    // 5. Apply hunger level
     if (hunger_level === "Light") {
       filtered = filtered.filter((r: any) => !r.calories || r.calories <= 400);
     } else if (hunger_level === "High") {
       filtered = filtered.filter((r: any) => !r.calories || r.calories >= 400);
     }
 
-    // 5. Sort: highest protein, lowest carbs, fastest prep
+    // 6. Sort by score descending, then protein, then lowest carbs
     filtered.sort((a: any, b: any) => {
+      const scoreDiff = (b._score || 0) - (a._score || 0);
+      if (scoreDiff !== 0) return scoreDiff;
       const protDiff = (b.protein || 0) - (a.protein || 0);
       if (protDiff !== 0) return protDiff;
-      const carbDiff = (a.carbs || 0) - (b.carbs || 0);
-      if (carbDiff !== 0) return carbDiff;
-      return (a.prep_time_minutes || 999) - (b.prep_time_minutes || 999);
+      return (a.carbs || 0) - (b.carbs || 0);
     });
 
-    // 6. If no results, fallback to best keto meals overall
+    // 7. Fallback if no results
     let usedFallback = false;
     if (filtered.length === 0) {
       usedFallback = true;
+      filtered = scored
+        .filter((r: any) => r._score > 0)
+        .sort((a: any, b: any) => (b._score || 0) - (a._score || 0))
+        .slice(0, 20);
+    }
+
+    // 8. If STILL no results, try basic keto fallback
+    if (filtered.length === 0) {
       filtered = (allRecipes || [])
         .filter((r: any) => {
           if (!r.tags) return false;
           const rTags = r.tags.map((t: string) => t.toLowerCase());
           return rTags.some((t: string) =>
-            ["keto", "keto diet", "low carb", "low-carb", "high protein", "high-protein"].includes(t)
+            ["keto", "keto diet", "low carb", "low-carb", "high protein"].includes(t)
           );
         })
         .sort((a: any, b: any) => (b.protein || 0) - (a.protein || 0))
         .slice(0, 20);
     }
 
-    // 7. If STILL no results, AI generates suggestions
+    // 9. AI fallback if absolutely nothing
     let aiSuggestions: any[] = [];
     if (filtered.length === 0) {
       const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
       if (LOVABLE_API_KEY) {
-        const prompt = `Generate 5 keto-friendly meal suggestions for someone on a ${ketoType?.name || "Standard Ketogenic Diet"}.
+        const prompt = `Generate 5 keto-friendly meal suggestions for someone on a ${ketoTypeData?.name || "Standard Ketogenic Diet"}.
+Phase: ${eating_phase || "general eating"}.
+Training: ${training_state || "none"}.
+Goal: ${goal || "balanced"}.
 Requirements: ${meal_goals.join(", ") || "balanced keto meals"}.
-Hunger level: ${hunger_level || "moderate"}.
-Prep style: ${prep_styles.join(", ") || "any"}.
 Daily targets: ${macros?.target_calories || 2000} cal, ${macros?.target_protein || 120}g protein, ${macros?.target_carbs || 25}g carbs, ${macros?.target_fats || 150}g fat.
 
 Return JSON array with objects: { name, description, calories, protein, carbs, fats, prep_time_minutes, tags }`;
@@ -207,15 +349,27 @@ Return JSON array with objects: { name, description, calories, protein, carbs, f
       }
     }
 
-    const results = filtered.length > 0 ? filtered.slice(0, 30) : aiSuggestions;
+    // Auto mode: return top 3
+    const limit = auto_mode ? 3 : 30;
+    const results = filtered.length > 0 ? filtered.slice(0, limit) : aiSuggestions;
+
+    // Clean internal scoring fields from response
+    const cleanResults = results.map((r: any) => {
+      const { _score, _matches, ...clean } = r;
+      return clean;
+    });
 
     return new Response(
       JSON.stringify({
-        meals: results,
-        total: results.length,
+        meals: cleanResults,
+        total: cleanResults.length,
         used_fallback: usedFallback,
         has_ai_suggestions: aiSuggestions.length > 0,
-        keto_type: ketoType?.name || null,
+        keto_type: ketoTypeData?.name || clientKetoAbbrev || null,
+        keto_abbreviation: clientKetoAbbrev,
+        eating_phase,
+        fasting_state,
+        training_state,
         macro_targets: macros
           ? {
               calories: macros.target_calories,
