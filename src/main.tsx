@@ -8,15 +8,10 @@ const isLovablePreviewHost =
   window.location.hostname.includes("lovableproject.com") ||
   window.location.hostname.startsWith("id-preview--");
 
-// Native + preview should never use service workers (prevents stale UI flashes).
 if (isNativeApp() || isLovablePreviewHost) {
   (isNativeApp() ? disableServiceWorkersInNative() : clearServiceWorkersAndCaches("[Preview]")).catch(() => {});
-} else if (import.meta.env.PROD && "serviceWorker" in navigator) {
-  clearServiceWorkersAndCaches("[Web]")
-    .catch(() => {})
-    .finally(() => {
-      navigator.serviceWorker.register(`/sw.js?v=${Date.now()}`).catch(() => {});
-    });
+} else {
+  clearServiceWorkersAndCaches("[Web]").catch(() => {});
 }
 
 createRoot(document.getElementById("root")!).render(
