@@ -54,7 +54,7 @@ const DEFAULT_SETTINGS: ClientFeatureSettings = {
   meal_plan_allow_recipe_replacement: false,
   meal_plan_add_recipe_books: false,
   meal_plan_header_label: "Meal Plan",
-  calendar_days_ahead: 0,
+  calendar_days_ahead: 7,
   fasting_enabled: false,
   fasting_strict_mode: false,
   eating_window_hours: 8,
