@@ -354,6 +354,10 @@ export function SynergyPreviewPanel({ clientId, trainerId }: SynergyPreviewPanel
             color={ketoType.color}
             abbreviation={ketoType.abbreviation}
             clientId={clientId}
+            macro_mode={ketoType.macro_mode}
+            protein_grams={ketoType.protein_grams}
+            fat_grams={ketoType.fat_grams}
+            carb_grams={ketoType.carb_grams}
           />
         )}
 
