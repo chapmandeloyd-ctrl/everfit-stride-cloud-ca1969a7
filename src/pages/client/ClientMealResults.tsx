@@ -121,6 +121,7 @@ export default function ClientMealResults() {
       if (error) throw error;
 
       setMeals(data.meals || []);
+      setCoachPicks(data.coach_picks || []);
       setMacroTargets(data.macro_targets);
       setKetoType(data.keto_type);
       setUsedFallback(data.used_fallback);
