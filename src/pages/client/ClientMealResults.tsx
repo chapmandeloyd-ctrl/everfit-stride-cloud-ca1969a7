@@ -378,7 +378,71 @@ function MacroMini({ label, value, unit, color }: { label: string; value: number
   );
 }
 
-function MealCard({ meal, onLog, isLogging }: { meal: MealResult; onLog: () => void; isLogging: boolean }) {
+const PICK_ICONS: Record<number, string> = { 1: "🏆", 2: "🔄", 3: "⚡" };
+const PICK_COLORS: Record<number, string> = {
+  1: "border-primary/40 bg-primary/5",
+  2: "border-border bg-card",
+  3: "border-border bg-card",
+};
+
+function CoachPickCard({ meal, rank, onLog, isLogging }: { meal: MealResult; rank: number; onLog: () => void; isLogging: boolean }) {
+  const icon = PICK_ICONS[rank] || "🍽️";
+  const colorClass = PICK_COLORS[rank] || "";
+  return (
+    <Card className={`rounded-2xl overflow-hidden transition-colors ${colorClass}`}>
+      <CardContent className="p-4">
+        <div className="flex items-start gap-3">
+          <div className="text-2xl mt-0.5">{icon}</div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-0.5">
+              <Badge variant={rank === 1 ? "default" : "secondary"} className="text-[10px] shrink-0">
+                {meal.pick_label || `Pick #${rank}`}
+              </Badge>
+              {meal.score != null && (
+                <span className="text-[10px] text-muted-foreground font-mono">{meal.score}/100</span>
+              )}
+            </div>
+            <h3 className="font-bold text-sm mb-0.5">{meal.name}</h3>
+            {meal.description && (
+              <p className="text-xs text-muted-foreground line-clamp-2 mb-2">{meal.description}</p>
+            )}
+            <div className="flex items-center gap-3 text-xs">
+              {meal.calories != null && (
+                <span className="flex items-center gap-1 text-orange-500 font-medium">
+                  <Flame className="h-3 w-3" /> {meal.calories}
+                </span>
+              )}
+              {meal.protein != null && (
+                <span className="text-blue-500 font-medium">P: {meal.protein}g</span>
+              )}
+              {meal.carbs != null && (
+                <span className="text-green-500 font-medium">C: {meal.carbs}g</span>
+              )}
+              {meal.fats != null && (
+                <span className="text-yellow-500 font-medium">F: {meal.fats}g</span>
+              )}
+              {meal.prep_time_minutes != null && (
+                <span className="flex items-center gap-0.5 text-muted-foreground">
+                  <Clock className="h-3 w-3" /> {meal.prep_time_minutes}m
+                </span>
+              )}
+            </div>
+          </div>
+          <Button
+            size="icon"
+            variant="outline"
+            className="shrink-0 h-10 w-10 rounded-xl"
+            onClick={onLog}
+            disabled={isLogging}
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
   return (
     <Card className="rounded-2xl overflow-hidden border-border hover:border-primary/40 transition-colors">
       <CardContent className="p-4">
