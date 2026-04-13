@@ -51,8 +51,8 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // 1. Get client keto assignment + macro targets
-    const [ketoRes, macroRes] = await Promise.all([
+    // 1. Get client keto assignment + macro targets + adaptive scores + profile
+    const [ketoRes, macroRes, adaptiveRes, profileRes] = await Promise.all([
       supabase
         .from("client_keto_assignments")
         .select("*, keto_types (*)")
@@ -65,7 +65,31 @@ serve(async (req) => {
         .eq("client_id", client_id)
         .eq("is_active", true)
         .maybeSingle(),
+      supabase
+        .from("client_meal_adaptive_scores")
+        .select("recipe_id, score_adjustment, times_shown, times_selected, times_ignored")
+        .eq("client_id", client_id),
+      supabase
+        .from("client_adaptive_profile")
+        .select("*")
+        .eq("client_id", client_id)
+        .order("week_start", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
     ]);
+
+    // Build adaptive score map: recipe_id → score_adjustment
+    const adaptiveScoreMap = new Map<string, number>();
+    const interactionMap = new Map<string, { shown: number; selected: number; ignored: number }>();
+    for (const s of (adaptiveRes.data || [])) {
+      adaptiveScoreMap.set(s.recipe_id, s.score_adjustment || 0);
+      interactionMap.set(s.recipe_id, {
+        shown: s.times_shown || 0,
+        selected: s.times_selected || 0,
+        ignored: s.times_ignored || 0,
+      });
+    }
+    const clientProfile = profileRes.data;
 
     const ketoTypeData = ketoRes.data?.keto_types;
     const macros = macroRes.data;
@@ -202,13 +226,36 @@ serve(async (req) => {
         }
       }
 
-      const totalScore = excluded ? -1 : phaseScore + ketoScore + trainingScore + goalScore + satietyScore;
+      // ── 6. Adaptive Score (from learning layer) ──
+      const adaptiveBoost = adaptiveScoreMap.get(recipe.id) || 0;
+
+      // Profile-based adjustments
+      let profileBoost = 0;
+      if (clientProfile) {
+        // Struggling users → boost easy, high-satiety meals
+        if (clientProfile.profile_type === "struggling") {
+          const isEasyHighSatiety = prepMin <= 15 && (prot >= 30 || cal >= 450);
+          if (isEasyHighSatiety) profileBoost += 10;
+        }
+        // Inconsistent users → slight variety boost for unseen meals
+        if (clientProfile.profile_type === "inconsistent") {
+          const interaction = interactionMap.get(recipe.id);
+          if (!interaction || interaction.shown === 0) profileBoost += 5;
+        }
+        // Consistent users with high precision → trust adaptive scores more
+        if (clientProfile.scoring_precision === "high") {
+          // Amplify adaptive boost for consistent users
+          if (adaptiveBoost > 0) profileBoost += Math.round(adaptiveBoost * 0.3);
+        }
+      }
+
+      const totalScore = excluded ? -1 : phaseScore + ketoScore + trainingScore + goalScore + satietyScore + adaptiveBoost + profileBoost;
 
       return {
         ...recipe,
         _score: totalScore,
         _excluded: excluded,
-        _breakdown: { phase: phaseScore, keto: ketoScore, training: trainingScore, goal: goalScore, satiety: satietyScore },
+        _breakdown: { phase: phaseScore, keto: ketoScore, training: trainingScore, goal: goalScore, satiety: satietyScore, adaptive: adaptiveBoost, profile: profileBoost },
         _prepTime: prepMin,
       };
     });
