@@ -1,10 +1,12 @@
-import { useState, useRef, useEffect } from "react";
-import { format, addDays, startOfMonth, isToday, isSameDay, isBefore, startOfDay } from "date-fns";
+import { useState, useRef, useEffect, useMemo } from "react";
+import { format, addDays, isToday, isSameDay, isBefore, startOfDay, startOfMonth, endOfMonth, eachDayOfInterval } from "date-fns";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { Dumbbell, Swords, Trophy, CheckSquare, Droplets, MapPin } from "lucide-react";
+import { Dumbbell, Swords, Trophy, CheckSquare, Droplets, MapPin, History, ArrowLeft } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { DayStripPastSnapshot } from "@/components/DayStripPastSnapshot";
 
 interface DayStripCalendarProps {
@@ -24,10 +26,16 @@ interface DayData {
 
 export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEnabled, onDateChange }: DayStripCalendarProps) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyDate, setHistoryDate] = useState<Date | null>(null);
 
-  // Always reset to today when the component re-mounts or the client changes
+  const today = useMemo(() => new Date(), []);
+
+  // Reset to today on mount / client change
   useEffect(() => {
     setSelectedDate(null);
+    setHistoryDate(null);
+    setHistoryOpen(false);
     onDateChange?.(null);
   }, [clientId]);
 
@@ -35,31 +43,23 @@ export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEn
     setSelectedDate(date);
     onDateChange?.(date);
   };
-  const today = new Date();
+
+  // Only today + future days in the strip
+  const days: Date[] = useMemo(() => {
+    const result: Date[] = [];
+    for (let i = 0; i <= daysAhead; i++) {
+      result.push(addDays(today, i));
+    }
+    return result;
+  }, [today, daysAhead]);
+
+  // Data range covers the full month (for history) + future days
   const monthStart = startOfMonth(today);
   const endDay = addDays(today, daysAhead);
-  // Build days from 1st of month through today + daysAhead
-  const days: Date[] = [];
-  let cursor = monthStart;
-  while (!isBefore(endDay, cursor)) {
-    days.push(cursor);
-    cursor = addDays(cursor, 1);
-  }
   const startDate = format(monthStart, "yyyy-MM-dd");
   const endDate = format(endDay, "yyyy-MM-dd");
 
   const scrollRef = useRef<HTMLDivElement>(null);
-  const todayRef = useRef<HTMLButtonElement>(null);
-
-  // Scroll so today is at the left edge on mount / client change
-  useEffect(() => {
-    if (todayRef.current && scrollRef.current) {
-      const container = scrollRef.current;
-      const el = todayRef.current;
-      // Align today to the left edge with a small padding
-      container.scrollTo({ left: el.offsetLeft - 4, behavior: "auto" });
-    }
-  }, [clientId]);
 
   // Fetch workouts, sport events, tasks, habits
   const { data: workouts } = useQuery({
@@ -123,7 +123,7 @@ export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEn
     enabled: !!clientId && tasksEnabled,
   });
 
-  // Fetch custom cards for preview
+  // Fetch custom cards
   const { data: restDayCard } = useQuery({
     queryKey: ["day-strip-rest-card", clientId],
     queryFn: async () => {
@@ -179,6 +179,11 @@ export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEn
     };
   }
 
+  function hasAnyActivity(date: Date) {
+    const dots = hasDots(date);
+    return dots.hasWorkout || dots.hasSport || dots.hasTask;
+  }
+
   function formatEventTime(isoString: string): string {
     const match = isoString.match(/T(\d{2}):(\d{2})/);
     if (!match) return "";
@@ -188,80 +193,128 @@ export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEn
     return `${displayHour}:${match[2]} ${ampm}`;
   }
 
+  // Viewing state
+  const isViewingHistory = historyDate !== null;
   const viewDate = selectedDate || today;
   const viewData = getDayData(viewDate);
   const isViewingToday = isToday(viewDate);
   const isRestDay = viewData.workouts.length === 0 && viewData.sportEvents.length === 0;
   const hasAnything = viewData.workouts.length > 0 || viewData.sportEvents.length > 0 || viewData.tasks.length > 0 || viewData.habits.length > 0;
 
+  // Month calendar days for history sheet
+  const monthDays = useMemo(() => {
+    const ms = startOfMonth(today);
+    const me = endOfMonth(today);
+    return eachDayOfInterval({ start: ms, end: me });
+  }, [today]);
+
+  const firstDayOfWeek = monthDays[0].getDay(); // 0=Sun
+
+  const handleHistoryDateSelect = (date: Date) => {
+    setHistoryDate(date);
+    setHistoryOpen(false);
+    handleDateSelect(date);
+  };
+
+  const handleBackToToday = () => {
+    setHistoryDate(null);
+    handleDateSelect(null);
+  };
+
   return (
     <div className="space-y-3">
-      {/* Day Strip — scrollable */}
-      <div ref={scrollRef} className="flex gap-1 overflow-x-auto scrollbar-hide pb-1 -mx-1 px-1">
-        {days.map((day) => {
-          const isSelected = selectedDate ? isSameDay(day, selectedDate) : isToday(day);
-          const isTodayDay = isToday(day);
-          const isPast = isBefore(startOfDay(day), startOfDay(today)) && !isTodayDay;
-          const dots = hasDots(day);
-          const hasAny = dots.hasWorkout || dots.hasSport || dots.hasTask;
+      {/* History banner when viewing a past day */}
+      {isViewingHistory && (
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-xs gap-1.5"
+            onClick={handleBackToToday}
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            Back to Today
+          </Button>
+          <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            {format(historyDate!, "EEEE, MMM d")}
+          </span>
+        </div>
+      )}
 
-          return (
-            <button
-              key={day.toISOString()}
-              ref={isTodayDay ? todayRef : undefined}
-              onClick={() => handleDateSelect(isTodayDay && !selectedDate ? null : day)}
-              className={cn(
-                "flex flex-col items-center gap-1 py-2 px-2 rounded-xl transition-all shrink-0 w-12",
-                isSelected
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : isPast
-                    ? "hover:bg-muted opacity-60"
-                    : "hover:bg-muted"
-              )}
-            >
-              <span className={cn(
-                "text-[10px] font-semibold uppercase tracking-wide",
-                isSelected ? "text-primary-foreground/80" : "text-muted-foreground"
-              )}>
-                {format(day, "EEE")}
-              </span>
-              <span className={cn(
-                "text-lg font-bold leading-none",
-                isSelected ? "text-primary-foreground" : "text-foreground"
-              )}>
-                {format(day, "d")}
-              </span>
-              <div className="flex gap-0.5 h-2 items-center">
-                {dots.hasWorkout && (
-                  <div className={cn(
-                    "w-1.5 h-1.5 rounded-full",
-                    isSelected ? "bg-primary-foreground/70" : "bg-primary"
-                  )} />
-                )}
-                {dots.hasSport && (
-                  <div className={cn(
-                    "w-1.5 h-1.5 rounded-full",
-                    isSelected ? "bg-primary-foreground/70" : "bg-rose-500"
-                  )} />
-                )}
-                {dots.hasTask && (
-                  <div className={cn(
-                    "w-1.5 h-1.5 rounded-full",
-                    isSelected ? "bg-primary-foreground/70" : "bg-amber-500"
-                  )} />
-                )}
-                {!hasAny && <div className="w-1.5 h-1.5" />}
-              </div>
-            </button>
-          );
-        })}
-      </div>
+      {/* Day Strip — today + future only (hidden when viewing history) */}
+      {!isViewingHistory && (
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="shrink-0 h-10 w-10 rounded-xl"
+            onClick={() => setHistoryOpen(true)}
+          >
+            <History className="h-4 w-4 text-muted-foreground" />
+          </Button>
+          <div ref={scrollRef} className="flex gap-1 overflow-x-auto scrollbar-hide pb-1 flex-1">
+            {days.map((day) => {
+              const isSelected = selectedDate ? isSameDay(day, selectedDate) : isToday(day);
+              const isTodayDay = isToday(day);
+              const dots = hasDots(day);
+              const hasAny = dots.hasWorkout || dots.hasSport || dots.hasTask;
 
-      {/* Selected day preview — past days get full snapshot, future days get schedule preview */}
-      {selectedDate && !isToday(selectedDate) && isBefore(startOfDay(selectedDate), startOfDay(today)) && (
+              return (
+                <button
+                  key={day.toISOString()}
+                  onClick={() => handleDateSelect(isTodayDay && !selectedDate ? null : day)}
+                  className={cn(
+                    "flex flex-col items-center gap-1 py-2 px-2 rounded-xl transition-all shrink-0 w-12",
+                    isSelected
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "hover:bg-muted"
+                  )}
+                >
+                  <span className={cn(
+                    "text-[10px] font-semibold uppercase tracking-wide",
+                    isSelected ? "text-primary-foreground/80" : "text-muted-foreground"
+                  )}>
+                    {format(day, "EEE")}
+                  </span>
+                  <span className={cn(
+                    "text-lg font-bold leading-none",
+                    isSelected ? "text-primary-foreground" : "text-foreground"
+                  )}>
+                    {format(day, "d")}
+                  </span>
+                  <div className="flex gap-0.5 h-2 items-center">
+                    {dots.hasWorkout && (
+                      <div className={cn(
+                        "w-1.5 h-1.5 rounded-full",
+                        isSelected ? "bg-primary-foreground/70" : "bg-primary"
+                      )} />
+                    )}
+                    {dots.hasSport && (
+                      <div className={cn(
+                        "w-1.5 h-1.5 rounded-full",
+                        isSelected ? "bg-primary-foreground/70" : "bg-destructive"
+                      )} />
+                    )}
+                    {dots.hasTask && (
+                      <div className={cn(
+                        "w-1.5 h-1.5 rounded-full",
+                        isSelected ? "bg-primary-foreground/70" : "bg-accent"
+                      )} />
+                    )}
+                    {!hasAny && <div className="w-1.5 h-1.5" />}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Past day snapshot */}
+      {isViewingHistory && historyDate && isBefore(startOfDay(historyDate), startOfDay(today)) && (
         <DayStripPastSnapshot
           clientId={clientId}
-          date={selectedDate}
+          date={historyDate}
           trainingEnabled={trainingEnabled}
           tasksEnabled={tasksEnabled}
           restDayCard={restDayCard}
@@ -269,7 +322,8 @@ export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEn
         />
       )}
 
-      {selectedDate && !isToday(selectedDate) && !isBefore(startOfDay(selectedDate), startOfDay(today)) && (
+      {/* Future day preview (from strip selection) */}
+      {selectedDate && !isToday(selectedDate) && !isBefore(startOfDay(selectedDate), startOfDay(today)) && !isViewingHistory && (
         <div className="space-y-3">
           <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
             {format(viewDate, "EEEE, MMM d")}
@@ -288,13 +342,13 @@ export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEn
               <Card key={event.id} className="overflow-hidden">
                 <div className={cn(
                   "relative h-56",
-                  isGame ? "bg-gradient-to-br from-rose-500/20 to-rose-500/5" : "bg-gradient-to-br from-sky-500/20 to-sky-500/5"
+                  isGame ? "bg-gradient-to-br from-destructive/20 to-destructive/5" : "bg-gradient-to-br from-primary/20 to-primary/5"
                 )}>
                   {customCard?.image_url ? (
                     <img src={customCard.image_url} alt={label} className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <EventIcon className={cn("h-16 w-16", isGame ? "text-rose-400/30" : "text-sky-400/30")} />
+                      <EventIcon className={cn("h-16 w-16", isGame ? "text-destructive/30" : "text-primary/30")} />
                     </div>
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
@@ -366,9 +420,9 @@ export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEn
           )}
 
           {viewData.tasks.map((t: any) => (
-            <div key={t.id} className="flex items-center gap-3 rounded-lg p-3 bg-amber-500/5 border border-amber-500/10">
-              <div className="p-2 rounded-lg bg-amber-500/10">
-                <CheckSquare className="h-4 w-4 text-amber-500" />
+            <div key={t.id} className="flex items-center gap-3 rounded-lg p-3 bg-accent/10 border border-accent/20">
+              <div className="p-2 rounded-lg bg-accent/10">
+                <CheckSquare className="h-4 w-4 text-accent" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold truncate">{t.name}</p>
@@ -378,9 +432,9 @@ export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEn
           ))}
 
           {viewData.habits.length > 0 && (
-            <div className="flex items-center gap-3 rounded-lg p-3 bg-emerald-500/5 border border-emerald-500/10">
-              <div className="p-2 rounded-lg bg-emerald-500/10">
-                <Droplets className="h-4 w-4 text-emerald-500" />
+            <div className="flex items-center gap-3 rounded-lg p-3 bg-primary/5 border border-primary/10">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Droplets className="h-4 w-4 text-primary" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold">
@@ -398,6 +452,64 @@ export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEn
           )}
         </div>
       )}
+
+      {/* History Sheet — Month Calendar */}
+      <Sheet open={historyOpen} onOpenChange={setHistoryOpen}>
+        <SheetContent side="bottom" className="rounded-t-2xl max-h-[70vh]">
+          <SheetHeader>
+            <SheetTitle className="text-center">{format(today, "MMMM yyyy")}</SheetTitle>
+          </SheetHeader>
+          <div className="pt-4 pb-6">
+            {/* Weekday headers */}
+            <div className="grid grid-cols-7 gap-1 mb-2">
+              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
+                <div key={d} className="text-center text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {d}
+                </div>
+              ))}
+            </div>
+            {/* Calendar grid */}
+            <div className="grid grid-cols-7 gap-1">
+              {/* Empty cells for offset */}
+              {Array.from({ length: firstDayOfWeek }).map((_, i) => (
+                <div key={`empty-${i}`} />
+              ))}
+              {monthDays.map((day) => {
+                const isTodayDay = isToday(day);
+                const isPast = isBefore(startOfDay(day), startOfDay(today));
+                const isFuture = !isPast && !isTodayDay;
+                const hasActivity = hasAnyActivity(day);
+
+                return (
+                  <button
+                    key={day.toISOString()}
+                    disabled={isFuture || isTodayDay}
+                    onClick={() => isPast ? handleHistoryDateSelect(day) : undefined}
+                    className={cn(
+                      "relative flex flex-col items-center justify-center py-2.5 rounded-xl transition-all",
+                      isTodayDay && "bg-primary text-primary-foreground font-bold",
+                      isPast && "hover:bg-muted cursor-pointer",
+                      isFuture && "opacity-30 cursor-default",
+                    )}
+                  >
+                    <span className={cn(
+                      "text-sm font-semibold",
+                      isTodayDay ? "text-primary-foreground" : isPast ? "text-foreground" : "text-muted-foreground"
+                    )}>
+                      {format(day, "d")}
+                    </span>
+                    {hasActivity && isPast && (
+                      <div className="absolute bottom-1 flex gap-0.5">
+                        <div className="w-1 h-1 rounded-full bg-primary" />
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
