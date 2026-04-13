@@ -177,24 +177,23 @@ async function trackMealInteraction(supabase: any, clientId: string, data: any) 
   });
 }
 
-// Internal versions (no Response return) for batch processing
+// ─── DAILY LOOP: Analyze previous day, adjust scoring ───
+// Internal version for batch processing (doesn't return Response)
 async function runDailyLoopInternal(supabase: any, clientId: string) {
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
   const yesterdayStr = yesterday.toISOString().split("T")[0];
   const { data: behavior } = await supabase
     .from("client_meal_behavior").select("*").eq("client_id", clientId).eq("tracked_date", yesterdayStr).maybeSingle();
-  if (!behavior) return;
-  // Delegate to shared logic
-  await _processDailyScoring(supabase, clientId, behavior);
+  if (!behavior) return { success: true, message: "No data" };
+  return await _runDailyScoring(supabase, clientId, behavior);
 }
 
 async function runWeeklyLoopInternal(supabase: any, clientId: string) {
-  await _processWeeklyProfile(supabase, clientId);
+  return await _runWeeklyScoring(supabase, clientId);
 }
 
-// ─── DAILY LOOP: Analyze previous day, adjust scoring ───
-async function runDailyLoop(supabase: any, clientId: string) {
+async function _runDailyScoring(supabase: any, clientId: string, behavior: any) {
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
   const yesterdayStr = yesterday.toISOString().split("T")[0];
