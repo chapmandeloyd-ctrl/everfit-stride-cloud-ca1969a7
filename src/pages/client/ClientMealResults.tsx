@@ -497,9 +497,17 @@ function CoachPickCard({ meal, rank, onLog, isLogging }: { meal: MealResult; ran
   );
 }
 
-function MealCard({ meal, onLog, isLogging }: { meal: MealResult; onLog: () => void; isLogging: boolean }) {
+function MealCard({ meal, onLog, isLogging, locked, unlockAt }: { meal: MealResult; onLog: () => void; isLogging: boolean; locked?: boolean; unlockAt?: number | null }) {
   return (
-    <Card className="rounded-2xl overflow-hidden border-border hover:border-primary/40 transition-colors">
+    <Card className={`rounded-2xl overflow-hidden border-border transition-colors relative ${locked ? "opacity-60" : "hover:border-primary/40"}`}>
+      {locked && (
+        <div className="absolute inset-0 z-10 backdrop-blur-[2px] bg-background/40 flex flex-col items-center justify-center gap-1.5 rounded-2xl">
+          <Lock className="h-5 w-5 text-muted-foreground" />
+          <span className="text-xs font-semibold text-muted-foreground">
+            Unlock at {unlockAt}-day streak
+          </span>
+        </div>
+      )}
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
@@ -547,15 +555,17 @@ function MealCard({ meal, onLog, isLogging }: { meal: MealResult; onLog: () => v
             </div>
             <MacroFeedback feedback={meal.macro_feedback} />
           </div>
-          <Button
-            size="icon"
-            variant="outline"
-            className="shrink-0 h-10 w-10 rounded-xl"
-            onClick={onLog}
-            disabled={isLogging}
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
+          {!locked && (
+            <Button
+              size="icon"
+              variant="outline"
+              className="shrink-0 h-10 w-10 rounded-xl"
+              onClick={onLog}
+              disabled={isLogging}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>
