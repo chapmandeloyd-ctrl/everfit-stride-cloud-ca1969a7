@@ -1,5 +1,6 @@
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { getMilestoneBanner, getNextMilestone } from "@/lib/fastingMilestones";
 
 // Fasting stages with hour thresholds, icons, and arc colors
 const FASTING_STAGES = [
@@ -51,6 +52,10 @@ export function FastingTimer({ fastStartAt, targetHours, now, demoProgress }: Fa
   const remainS = Math.floor((remainingMs % 60000) / 1000);
   const timeStr = `${String(remainH).padStart(2, "0")}:${String(remainM).padStart(2, "0")}:${String(remainS).padStart(2, "0")}`;
   const elapsedPct = Math.round(progress * 100);
+
+  // Milestone data
+  const milestoneBanner = getMilestoneBanner(elapsedHours, targetHours);
+  const nextMilestone = getNextMilestone(elapsedHours);
 
   // Filter stages relevant to this fast duration
   const relevantStages = FASTING_STAGES.filter(s => s.hour <= targetHours);
@@ -233,6 +238,25 @@ export function FastingTimer({ fastStartAt, targetHours, now, demoProgress }: Fa
         {currentStage.description}
         {remainingMs <= 0 && " — Fast complete! 🎉"}
       </p>
+
+      {/* Day Milestone Banner */}
+      {milestoneBanner && (
+        <div className="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-center">
+          <p className="text-sm font-black text-white">
+            {milestoneBanner.emoji} {milestoneBanner.title}
+          </p>
+          <p className="text-[11px] text-white/70 mt-1 font-medium">
+            {milestoneBanner.body}
+          </p>
+        </div>
+      )}
+
+      {/* Next Milestone Preview */}
+      {nextMilestone && !milestoneBanner && elapsedHours >= 12 && (
+        <p className="text-[11px] text-white/40 text-center mt-2 italic">
+          Next milestone: Day {nextMilestone.day} at {nextMilestone.hours}h
+        </p>
+      )}
     </div>
   );
 }
