@@ -297,7 +297,38 @@ export default function ClientMealResults() {
           </div>
         )}
 
-        {/* Results */}
+        {/* Coach Picks */}
+        {!loading && coachPicks.length > 0 && (
+          <div className="px-5 mb-6">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                <Sparkles className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <h2 className="text-sm font-bold">Coach Picks For You</h2>
+                <p className="text-[10px] text-muted-foreground">Scored and ranked by your coach engine</p>
+              </div>
+            </div>
+            <div className="space-y-3">
+              {coachPicks.map((pick, idx) => (
+                <CoachPickCard
+                  key={pick.id}
+                  meal={pick}
+                  rank={idx + 1}
+                  onLog={() => logMealMutation.mutate(pick)}
+                  isLogging={logMealMutation.isPending}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* All Results */}
+        {!loading && meals.length > coachPicks.length && (
+          <div className="px-5 mb-2">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">All Matching Meals</h2>
+          </div>
+        )}
         <div className="px-5 space-y-3">
           {loading ? (
             Array.from({ length: 4 }).map((_, i) => (
@@ -311,14 +342,16 @@ export default function ClientMealResults() {
               </Button>
             </div>
           ) : (
-            meals.map((meal) => (
-              <MealCard
-                key={meal.id}
-                meal={meal}
-                onLog={() => logMealMutation.mutate(meal)}
-                isLogging={logMealMutation.isPending}
-              />
-            ))
+            meals
+              .filter((m) => !coachPicks.some((p) => p.id === m.id))
+              .map((meal) => (
+                <MealCard
+                  key={meal.id}
+                  meal={meal}
+                  onLog={() => logMealMutation.mutate(meal)}
+                  isLogging={logMealMutation.isPending}
+                />
+              ))
           )}
         </div>
       </div>
