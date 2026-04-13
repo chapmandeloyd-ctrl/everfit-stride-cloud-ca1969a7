@@ -443,6 +443,7 @@ function CoachPickCard({ meal, rank, onLog, isLogging }: { meal: MealResult; ran
   );
 }
 
+function MealCard({ meal, onLog, isLogging }: { meal: MealResult; onLog: () => void; isLogging: boolean }) {
   return (
     <Card className="rounded-2xl overflow-hidden border-border hover:border-primary/40 transition-colors">
       <CardContent className="p-4">
@@ -459,8 +460,6 @@ function CoachPickCard({ meal, rank, onLog, isLogging }: { meal: MealResult; ran
             {meal.description && (
               <p className="text-xs text-muted-foreground line-clamp-2 mb-2">{meal.description}</p>
             )}
-
-            {/* Macros row */}
             <div className="flex items-center gap-3 text-xs">
               {meal.calories != null && (
                 <span className="flex items-center gap-1 text-orange-500 font-medium">
@@ -483,8 +482,6 @@ function CoachPickCard({ meal, rank, onLog, isLogging }: { meal: MealResult; ran
               )}
             </div>
           </div>
-
-          {/* Log button */}
           <Button
             size="icon"
             variant="outline"
