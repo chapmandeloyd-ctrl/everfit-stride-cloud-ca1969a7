@@ -389,6 +389,19 @@ export default function ClientMealResults() {
   );
 }
 
+/** Infer meal role from tags/goals for unlock gating */
+function inferMealRole(meal: MealResult): MealRole | null {
+  const tags = meal.tags || [];
+  const name = (meal.name || "").toLowerCase();
+  
+  if (tags.includes("break_fast") || tags.includes("breakfast") || name.includes("break fast")) return "break_fast";
+  if (tags.includes("last_meal") || tags.includes("dinner") || name.includes("last meal")) return "last_meal";
+  if (tags.includes("mid_window") || tags.includes("lunch") || tags.includes("snack") || name.includes("mid window")) return "mid_window";
+  
+  // Default: meals without a clear role are treated as mid_window
+  return "mid_window";
+}
+
 function getNudgeTitle(type: string): string {
   switch (type) {
     case "exceeded": return "⚠️ Macro Alert";
