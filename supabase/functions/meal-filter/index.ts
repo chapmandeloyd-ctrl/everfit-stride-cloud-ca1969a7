@@ -123,14 +123,26 @@ serve(async (req) => {
       }
 
       // --- Training state match (20 points) ---
-      if (training_state === "post_workout" || training_state === "training_today") {
+      if (training_state === "post_workout") {
+        // Post-workout: heavy bonus for performance/TKD meals
         if (recipeTriggers.includes("post_workout") || recipeTriggers.includes("muscle_preservation")) {
           score += 20;
           matches.training = true;
         }
-        // TKD meals get priority when training
-        if (clientKetoAbbrev === "TKD" && recipeKetoTypes.includes("TKD")) {
+        if (recipeKetoTypes.includes("TKD") || recipeMealRole.includes("performance_fuel")) {
           score += 15;
+          matches.training = true;
+        }
+      } else if (training_state === "training_today") {
+        // Training today: moderate bonus, TKD allowed
+        if (recipeTriggers.includes("post_workout") || recipeTriggers.includes("muscle_preservation")) {
+          score += 10;
+          matches.training = true;
+        }
+      } else {
+        // No training: penalize TKD-only meals
+        if (recipeKetoTypes.length > 0 && recipeKetoTypes.every((k: string) => k === "TKD")) {
+          score -= 15;
         }
       }
 
@@ -204,21 +216,34 @@ serve(async (req) => {
       if (lastMealOnly.length > 0) filtered = lastMealOnly;
     }
 
-    // Training priority: boost TKD when training
-    if ((training_state === "training_today" || training_state === "post_workout") && clientKetoAbbrev === "TKD") {
-      const tkdMeals = filtered.filter((r: any) => {
+    // Training-based TKD logic (Rule #3):
+    // - post_workout → prioritize TKD / performance_fuel meals first
+    // - training_today → allow TKD alongside others (no filtering)
+    // - no_training → HIDE TKD-only meals, show SKD/HPKD only
+    if (training_state === "post_workout") {
+      // Prioritize: TKD / performance_fuel meals go first
+      const tkdFirst = filtered.filter((r: any) => {
         const kt = (r.keto_types || []).map((x: string) => x.toUpperCase());
-        return kt.includes("TKD");
+        const role = (r.meal_role || "").toLowerCase();
+        return kt.includes("TKD") || role.includes("performance_fuel");
       });
-      if (tkdMeals.length > 0) {
-        // Put TKD meals first, then others
-        const nonTkd = filtered.filter((r: any) => {
-          const kt = (r.keto_types || []).map((x: string) => x.toUpperCase());
-          return !kt.includes("TKD");
-        });
-        filtered = [...tkdMeals, ...nonTkd];
-      }
+      const rest = filtered.filter((r: any) => {
+        const kt = (r.keto_types || []).map((x: string) => x.toUpperCase());
+        const role = (r.meal_role || "").toLowerCase();
+        return !kt.includes("TKD") && !role.includes("performance_fuel");
+      });
+      filtered = [...tkdFirst, ...rest];
+    } else if (training_state === "no_training" || !training_state) {
+      // Hide TKD-exclusive meals when not training
+      filtered = filtered.filter((r: any) => {
+        const kt = (r.keto_types || []).map((x: string) => x.toUpperCase());
+        // Keep if: no keto_types set, OR includes non-TKD types (SKD, HPKD, CKD)
+        if (kt.length === 0) return true;
+        const nonTkdTypes = kt.filter((k: string) => k !== "TKD");
+        return nonTkdTypes.length > 0; // Has at least one non-TKD type
+      });
     }
+    // training_today → no filtering, TKD allowed alongside others
 
     // Keto type strict filter: if recipe has keto_types set, it must include client's type
     if (clientKetoAbbrev) {
