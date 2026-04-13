@@ -26,8 +26,10 @@ export function ClientBottomNav() {
             to={item.to}
             className={({ isActive }) =>
               cn(
-                "flex flex-col items-center justify-center gap-1 flex-1 h-full text-muted-foreground transition-colors",
-                isActive && "text-primary"
+                "flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors",
+                isActive
+                  ? "text-primary-foreground bg-primary"
+                  : "text-foreground hover:text-primary-foreground hover:bg-primary/90"
               )
             }
           >
