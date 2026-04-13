@@ -132,12 +132,9 @@ serve(async (req) => {
       }
     }
 
-    // Delete existing demo data for this client first
-    await supabase
-      .from("health_data")
-      .delete()
-      .eq("client_id", clientId)
-      .eq("source", "apple_health");
+    // NOTE: We no longer delete old health data.
+    // Historical records are permanent snapshots and must never be wiped.
+    // Only insert new data going forward.
 
     // Insert all health data
     const { error: insertError } = await supabase
