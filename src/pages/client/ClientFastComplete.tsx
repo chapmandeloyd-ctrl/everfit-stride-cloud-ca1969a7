@@ -147,7 +147,7 @@ export default function ClientFastComplete() {
         <div className="mt-8 space-y-3 pb-4">
           <Button
             className="w-full h-14 text-base font-bold rounded-2xl shadow-lg shadow-primary/20"
-            onClick={() => navigate("/client/meal-select")}
+            onClick={() => navigate("/client/meal-select?from=fast_complete")}
           >
             <UtensilsCrossed className="h-5 w-5 mr-2" />
             View My Meals
