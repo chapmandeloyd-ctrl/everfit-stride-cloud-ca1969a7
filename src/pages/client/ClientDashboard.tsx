@@ -44,6 +44,7 @@ import { useDashboardLayoutClient } from "@/hooks/useDashboardLayoutClient";
 import { SportHeroBanner } from "@/components/SportHeroBanner";
 import { AssignedPlanCard } from "@/components/dashboard/AssignedPlanCard";
 import { AskKsomAI } from "@/components/client/AskKsomAI";
+import { MetabolicControlDashboard } from "@/components/dashboard/MetabolicControlDashboard";
 
 // Fasting Program Card sub-component
 function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; navigate: (path: string) => void }) {
@@ -2220,10 +2221,21 @@ export default function ClientDashboard() {
             case "cardio":
               return null;
 
+            case "metabolic_control":
+              return settings.macros_enabled && settings.fasting_enabled && !engineConfig.fastingDisabled && !isViewingOtherDay ? (
+                <MetabolicControlDashboard key="metabolic_control" />
+              ) : null;
+
             default:
               return null;
           }
         })}
+
+        {/* Metabolic Control Dashboard — auto-render if not in layout */}
+        {settings.macros_enabled && settings.fasting_enabled && !engineConfig.fastingDisabled && !isViewingOtherDay &&
+          !layoutCards.some(c => c.key === "metabolic_control" && c.visible) && (
+          <MetabolicControlDashboard />
+        )}
 
         {/* Install App Banner (always at bottom, not layout-driven) */}
         {showInstallBanner && (
