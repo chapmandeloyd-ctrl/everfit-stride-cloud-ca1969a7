@@ -43,7 +43,7 @@ export function SynergyPreviewPanel({ clientId, trainerId }: SynergyPreviewPanel
     queryFn: async () => {
       const { data } = await supabase
         .from("client_keto_assignments")
-        .select("id, keto_type_id, keto_types(id, abbreviation, name, color, fat_pct, protein_pct, carbs_pct, carb_limit_grams)")
+        .select("id, keto_type_id, keto_types(id, abbreviation, name, color, fat_pct, protein_pct, carbs_pct, carb_limit_grams, macro_mode, protein_grams, fat_grams, carb_grams)")
         .eq("client_id", clientId)
         .eq("is_active", true)
         .maybeSingle();
@@ -113,7 +113,7 @@ export function SynergyPreviewPanel({ clientId, trainerId }: SynergyPreviewPanel
   });
 
   const ketoTypeId = ketoAssignment?.keto_type_id || null;
-  const ketoType = ketoAssignment?.keto_types as { id: string; abbreviation: string; name: string; color: string; fat_pct: number; protein_pct: number; carbs_pct: number; carb_limit_grams: number | null } | null;
+  const ketoType = ketoAssignment?.keto_types as { id: string; abbreviation: string; name: string; color: string; fat_pct: number; protein_pct: number; carbs_pct: number; carb_limit_grams: number | null; macro_mode: string; protein_grams: number | null; fat_grams: number | null; carb_grams: number | null } | null;
 
   const { data: synergy, isLoading: synergyLoading } = usePlanSynergy(
     protocolType,
@@ -354,6 +354,10 @@ export function SynergyPreviewPanel({ clientId, trainerId }: SynergyPreviewPanel
             color={ketoType.color}
             abbreviation={ketoType.abbreviation}
             clientId={clientId}
+            macro_mode={ketoType.macro_mode}
+            protein_grams={ketoType.protein_grams}
+            fat_grams={ketoType.fat_grams}
+            carb_grams={ketoType.carb_grams}
           />
         )}
 
