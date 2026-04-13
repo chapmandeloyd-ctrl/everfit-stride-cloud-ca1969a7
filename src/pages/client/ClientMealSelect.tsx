@@ -1,18 +1,19 @@
 import { ClientLayout } from "@/components/ClientLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, UtensilsCrossed, Brain, Lock, Flame, Zap, Clock, AlertTriangle } from "lucide-react";
+import { ArrowLeft, ArrowRight, UtensilsCrossed, Brain, Lock, Flame, Zap, Clock, Camera, Barcode, Keyboard, Sparkles, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useCallback } from "react";
 import { useMealEngineState } from "@/hooks/useMealEngineState";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const MEAL_TYPES = ["Breakfast", "Lunch", "Dinner", "Snack"] as const;
-const MEAL_GOALS = ["Break My Fast", "High Protein", "Light & Clean", "Performance Fuel", "Quick & Easy"] as const;
-const HUNGER_LEVELS = ["Light", "Moderate", "High"] as const;
-const PREP_STYLES = ["Quick", "Cooked", "Grab & Go", "No Prep"] as const;
+const MOOD_OPTIONS = ["Breakfast", "Lunch", "Dinner"] as const;
+const MEAL_TYPE_OPTIONS = ["Quick & Simple", "High Protein", "Light Meal", "Heavy Meal"] as const;
 
-function useMultiSelect<T extends string>(options: readonly T[]) {
+type MoodOption = (typeof MOOD_OPTIONS)[number];
+type MealTypeOption = (typeof MEAL_TYPE_OPTIONS)[number];
+
+function useMultiSelect<T extends string>() {
   const [selected, setSelected] = useState<Set<T>>(new Set());
   const toggle = useCallback((item: T) => {
     setSelected((prev) => {
@@ -21,31 +22,20 @@ function useMultiSelect<T extends string>(options: readonly T[]) {
       return next;
     });
   }, []);
-  const setItems = useCallback((items: T[]) => {
-    setSelected(new Set(items));
-  }, []);
-  return { selected, toggle, setItems };
+  return { selected, toggle };
 }
 
 export default function ClientMealSelect() {
   const navigate = useNavigate();
   const engine = useMealEngineState();
-  const mealType = useMultiSelect(MEAL_TYPES);
-  const mealGoal = useMultiSelect(MEAL_GOALS);
-  const prepStyle = useMultiSelect(PREP_STYLES);
-  const [hunger, setHunger] = useState<string | null>(null);
+  const [step, setStep] = useState(1);
+  const mood = useMultiSelect<MoodOption>();
+  const mealType = useMultiSelect<MealTypeOption>();
 
-  const hasSelection = mealType.selected.size > 0 || mealGoal.selected.size > 0 || hunger || prepStyle.selected.size > 0;
-
-  // Build URL params including engine state
-  const buildParams = (overrides?: { goals?: string }) => {
+  const buildParams = () => {
     const params = new URLSearchParams();
-    if (mealType.selected.size > 0) params.set("types", [...mealType.selected].join(","));
-    const goals = overrides?.goals || (mealGoal.selected.size > 0 ? [...mealGoal.selected].join(",") : "");
-    if (goals) params.set("goals", goals);
-    if (hunger) params.set("hunger", hunger);
-    if (prepStyle.selected.size > 0) params.set("prep", [...prepStyle.selected].join(","));
-    // Engine state params
+    if (mood.selected.size > 0) params.set("types", [...mood.selected].join(","));
+    if (mealType.selected.size > 0) params.set("goals", [...mealType.selected].join(","));
     if (engine.fasting_state) params.set("fasting_state", engine.fasting_state);
     if (engine.eating_phase) params.set("eating_phase", engine.eating_phase);
     if (engine.training_state) params.set("training_state", engine.training_state);
@@ -54,7 +44,7 @@ export default function ClientMealSelect() {
     return params;
   };
 
-  // --- Fasting Active: Block all meals ---
+  // --- Fasting Active: Block ---
   if (!engine.isLoading && engine.fasting_state === "fasting_active") {
     return (
       <ClientLayout>
@@ -69,15 +59,12 @@ export default function ClientMealSelect() {
           <p className="text-sm text-muted-foreground max-w-xs leading-relaxed mb-6">
             Meals are locked while you're fasting. Complete your fast to unlock your eating window.
           </p>
-          <Button variant="outline" onClick={() => navigate("/client/dashboard")}>
-            Back to Dashboard
-          </Button>
+          <Button variant="outline" onClick={() => navigate("/client/dashboard")}>Back to Dashboard</Button>
         </div>
       </ClientLayout>
     );
   }
 
-  // Loading state
   if (engine.isLoading) {
     return (
       <ClientLayout>
@@ -85,321 +72,282 @@ export default function ClientMealSelect() {
           <Skeleton className="h-10 w-48" />
           <Skeleton className="h-6 w-full" />
           <div className="grid grid-cols-2 gap-3">
-            {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-12 rounded-xl" />)}
+            {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-14 rounded-xl" />)}
           </div>
         </div>
       </ClientLayout>
     );
   }
 
-  // Phase-aware header info
-  const phaseInfo = getPhaseInfo(engine.fasting_state, engine.eating_phase, engine.training_state);
-
   return (
     <ClientLayout>
-      <div className="pb-28 w-full">
+      <div className="min-h-[calc(100dvh-80px)] flex flex-col">
         {/* Header */}
-        <div className="px-4 pt-4 pb-2">
-          <Button variant="ghost" size="icon" className="min-h-[44px] min-w-[44px]" onClick={() => navigate(-1)}>
+        <div className="px-4 pt-4 pb-2 flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="min-h-[44px] min-w-[44px]"
+            onClick={() => step > 1 ? setStep(step - 1) : navigate(-1)}
+          >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-        </div>
-
-        <div className="px-5 space-y-2 mb-4">
-          <div className="flex items-center gap-2.5">
-            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-              <UtensilsCrossed className="h-5 w-5 text-primary" />
-            </div>
-            <h1 className="text-xl font-extrabold tracking-tight">KSOM360 Meals</h1>
+          <div className="flex-1" />
+          {/* Step indicator */}
+          <div className="flex items-center gap-1.5">
+            {[1, 2, 3].map((s) => (
+              <div
+                key={s}
+                className={`h-1.5 rounded-full transition-all duration-300 ${
+                  s === step ? "w-6 bg-primary" : s < step ? "w-3 bg-primary/50" : "w-3 bg-muted"
+                }`}
+              />
+            ))}
           </div>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            Meals filtered based on your current state — select preferences below.
-          </p>
         </div>
 
-        {/* Engine State Banner */}
-        {phaseInfo && (
-          <div className="mx-5 mb-4">
-            <div className={`rounded-2xl p-4 border ${phaseInfo.borderColor} ${phaseInfo.bgColor}`}>
-              <div className="flex items-center gap-2 mb-1">
-                {phaseInfo.icon}
-                <span className="text-sm font-bold">{phaseInfo.title}</span>
-              </div>
-              <p className="text-xs text-muted-foreground">{phaseInfo.description}</p>
-              <div className="flex gap-2 mt-2">
-                {engine.keto_type && (
-                  <Badge variant="secondary" className="text-xs">{engine.keto_type}</Badge>
-                )}
-                {engine.eating_phase && (
-                  <Badge variant="outline" className="text-xs capitalize">{engine.eating_phase.replace("_", " ")}</Badge>
-                )}
-                {engine.training_state !== "no_training" && (
-                  <Badge variant="outline" className="text-xs capitalize">{engine.training_state.replace("_", " ")}</Badge>
-                )}
-              </div>
-            </div>
+        {/* Step Content */}
+        <div className="flex-1 px-5 py-4">
+          {step === 1 && <StepOne mood={mood} />}
+          {step === 2 && <StepTwo mealType={mealType} />}
+          {step === 3 && (
+            <StepThree
+              navigate={navigate}
+              buildParams={buildParams}
+            />
+          )}
+        </div>
+
+        {/* Bottom CTA */}
+        {step < 3 && (
+          <div className="px-5 pb-6 pt-2 safe-area-bottom">
+            <Button
+              className="w-full h-14 text-base font-bold rounded-2xl shadow-lg shadow-primary/20"
+              disabled={step === 1 && mood.selected.size === 0}
+              onClick={() => setStep(step + 1)}
+            >
+              Continue
+              <ArrowRight className="h-5 w-5 ml-2" />
+            </Button>
+            {step === 1 && (
+              <button
+                type="button"
+                className="w-full text-sm text-muted-foreground mt-3 py-2"
+                onClick={() => setStep(3)}
+              >
+                Skip — show me other options
+              </button>
+            )}
           </div>
         )}
-
-        {/* Auto Mode: Top 3 */}
-        <div className="px-5 mb-4">
-          <Button
-            className="w-full h-14 text-base font-bold rounded-2xl shadow-lg shadow-primary/20"
-            onClick={() => {
-              const params = buildParams();
-              params.set("auto_mode", "true");
-              navigate(`/client/meal-results?${params.toString()}`);
-            }}
-          >
-            <Brain className="h-5 w-5 mr-2" />
-            🔥 Auto Pick — Top 3 Meals
-          </Button>
-          <p className="text-xs text-muted-foreground text-center mt-1.5">
-            Best matches for your phase, keto type & goals
-          </p>
-        </div>
-
-        <div className="px-5">
-          <div className="h-px bg-border my-2" />
-        </div>
-
-        <div className="px-5 space-y-6 mt-4">
-          {/* Meal Type */}
-          <FilterSection title="Meal Type">
-            <div className="grid grid-cols-2 gap-2.5">
-              {MEAL_TYPES.map((item) => (
-                <CheckboxChip
-                  key={item}
-                  label={item}
-                  checked={mealType.selected.has(item)}
-                  onChange={() => mealType.toggle(item)}
-                />
-              ))}
-            </div>
-          </FilterSection>
-
-          {/* Meal Goal */}
-          <FilterSection title="Meal Goal">
-            <div className="grid grid-cols-2 gap-2.5">
-              {MEAL_GOALS.map((item) => (
-                <CheckboxChip
-                  key={item}
-                  label={item}
-                  checked={mealGoal.selected.has(item)}
-                  onChange={() => mealGoal.toggle(item)}
-                  highlight={engine.eating_phase === "break_fast" && item === "Break My Fast"}
-                />
-              ))}
-            </div>
-          </FilterSection>
-
-          {/* Hunger Level */}
-          <FilterSection title="Hunger Level">
-            <div className="grid grid-cols-3 gap-2.5">
-              {HUNGER_LEVELS.map((level) => (
-                <RadioChip
-                  key={level}
-                  label={level}
-                  selected={hunger === level}
-                  onSelect={() => setHunger(hunger === level ? null : level)}
-                />
-              ))}
-            </div>
-          </FilterSection>
-
-          {/* Prep Style */}
-          <FilterSection title="Prep Style">
-            <div className="grid grid-cols-2 gap-2.5">
-              {PREP_STYLES.map((item) => (
-                <CheckboxChip
-                  key={item}
-                  label={item}
-                  checked={prepStyle.selected.has(item)}
-                  onChange={() => prepStyle.toggle(item)}
-                />
-              ))}
-            </div>
-          </FilterSection>
-
-          {/* Divider */}
-          <div className="pt-4 pb-1">
-            <div className="h-px bg-border" />
-          </div>
-
-          {/* Quick Actions */}
-          <div className="space-y-2.5">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Not Sure What You Want?</h2>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 pb-4">
-            <QuickActionCard
-              emoji="🧠"
-              title="Can't Decide"
-              description="Let KSOM360 pick based on your state."
-              onClick={() => {
-                const params = buildParams({ goals: "Break My Fast,High Protein" });
-                params.set("auto_mode", "true");
-                navigate(`/client/meal-results?${params.toString()}`);
-              }}
-            />
-            <QuickActionCard
-              emoji="📦"
-              title="Scan Your Food"
-              description="Scan a barcode to instantly track."
-              onClick={() => navigate("/client/log-meal?tab=scan")}
-            />
-            <QuickActionCard
-              emoji="📸"
-              title="Snap Your Meal"
-              description="Photo → AI macro estimate."
-              onClick={() => navigate("/client/log-meal?tab=photo")}
-            />
-            <QuickActionCard
-              emoji="⌨️"
-              title="Type Your Meal"
-              description="Manual entry for full control."
-              onClick={() => navigate("/client/log-meal?tab=manual")}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Fixed CTA */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-t p-4 safe-area-bottom">
-        <Button
-          className="w-full h-14 text-base font-bold rounded-2xl shadow-lg shadow-primary/20"
-          disabled={!hasSelection}
-          onClick={() => {
-            const params = buildParams();
-            navigate(`/client/meal-results?${params.toString()}`);
-          }}
-        >
-          Show My Meals
-        </Button>
       </div>
     </ClientLayout>
   );
 }
 
-/* ─── Phase Info Helper ─── */
+/* ─── Step 1: Mood ─── */
 
-function getPhaseInfo(fastingState: string, eatingPhase: string | null, trainingState: string) {
-  if (fastingState === "break_fast_triggered") {
-    return {
-      title: "Break-Fast Phase",
-      description: "Your fast just ended. Showing meals optimized for breaking your fast safely.",
-      icon: <Flame className="h-4 w-4 text-amber-500" />,
-      bgColor: "bg-amber-500/10",
-      borderColor: "border-amber-500/30",
-    };
-  }
-  if (fastingState === "eating_window_closing") {
-    return {
-      title: "Window Closing",
-      description: "Your eating window is ending soon. Showing last-meal options.",
-      icon: <Clock className="h-4 w-4 text-orange-500" />,
-      bgColor: "bg-orange-500/10",
-      borderColor: "border-orange-500/30",
-    };
-  }
-  if (fastingState === "eating_window_open") {
-    const isTraining = trainingState !== "no_training";
-    return {
-      title: isTraining ? "Eating Window · Training Day" : "Eating Window Open",
-      description: isTraining
-        ? "Training detected — prioritizing performance and recovery meals."
-        : "Mid-window phase. Showing meals matched to your keto type.",
-      icon: <Zap className="h-4 w-4 text-primary" />,
-      bgColor: "bg-primary/10",
-      borderColor: "border-primary/30",
-    };
-  }
-  if (trainingState !== "no_training") {
-    return {
-      title: trainingState === "post_workout" ? "Post-Workout" : "Training Day",
-      description: "Meals prioritized for recovery and performance.",
-      icon: <Zap className="h-4 w-4 text-primary" />,
-      bgColor: "bg-primary/10",
-      borderColor: "border-primary/30",
-    };
-  }
-  return null;
-}
-
-/* ─── Sub-components ─── */
-
-function FilterSection({ title, children }: { title: string; children: React.ReactNode }) {
+function StepOne({ mood }: { mood: { selected: Set<MoodOption>; toggle: (item: MoodOption) => void } }) {
   return (
-    <div className="space-y-2.5">
-      <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{title}</h2>
-      {children}
+    <div className="space-y-6 animate-fade-in">
+      <div className="space-y-2">
+        <div className="flex items-center gap-2.5">
+          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+            <UtensilsCrossed className="h-5 w-5 text-primary" />
+          </div>
+          <h1 className="text-xl font-extrabold tracking-tight">Welcome to KSOM360 Meals</h1>
+        </div>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          Check what you're in the mood for
+        </p>
+      </div>
+
+      <div className="space-y-3">
+        {MOOD_OPTIONS.map((item) => (
+          <SelectableCard
+            key={item}
+            label={item}
+            emoji={item === "Breakfast" ? "🌅" : item === "Lunch" ? "☀️" : "🌙"}
+            subtitle={
+              item === "Breakfast" ? "Start your day right" :
+              item === "Lunch" ? "Midday fuel" :
+              "End your day strong"
+            }
+            selected={mood.selected.has(item)}
+            onToggle={() => mood.toggle(item)}
+          />
+        ))}
+      </div>
     </div>
   );
 }
 
-function CheckboxChip({ label, checked, onChange, highlight }: { label: string; checked: boolean; onChange: () => void; highlight?: boolean }) {
+/* ─── Step 2: Meal Type ─── */
+
+function StepTwo({ mealType }: { mealType: { selected: Set<MealTypeOption>; toggle: (item: MealTypeOption) => void } }) {
   return (
-    <button
-      type="button"
-      onClick={onChange}
-      className={`flex items-center gap-2.5 rounded-xl border px-4 py-3.5 text-sm font-medium transition-all active:scale-[0.97] ${
-        checked
-          ? "border-primary bg-primary/10 text-foreground"
-          : highlight
-          ? "border-amber-500/50 bg-amber-500/5 text-foreground ring-1 ring-amber-500/30"
-          : "border-border bg-card text-muted-foreground hover:border-muted-foreground/30"
-      }`}
-    >
-      <span
-        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-colors ${
-          checked ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground/40"
-        }`}
-      >
-        {checked && (
-          <svg className="h-3 w-3" viewBox="0 0 12 12" fill="none">
-            <path d="M2.5 6L5 8.5L9.5 3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        )}
-      </span>
-      {label}
-      {highlight && !checked && (
-        <span className="text-[10px] text-amber-500 font-bold ml-auto">Suggested</span>
-      )}
-    </button>
+    <div className="space-y-6 animate-fade-in">
+      <div className="space-y-2">
+        <h1 className="text-xl font-extrabold tracking-tight">Meal Type</h1>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          What kind of meal are you looking for?
+        </p>
+      </div>
+
+      <div className="space-y-3">
+        {MEAL_TYPE_OPTIONS.map((item) => (
+          <SelectableCard
+            key={item}
+            label={item}
+            emoji={
+              item === "Quick & Simple" ? "⚡" :
+              item === "High Protein" ? "💪" :
+              item === "Light Meal" ? "🥗" : "🍖"
+            }
+            subtitle={
+              item === "Quick & Simple" ? "Ready in minutes" :
+              item === "High Protein" ? "Maximize recovery" :
+              item === "Light Meal" ? "Stay lean and clean" :
+              "Fuel up for performance"
+            }
+            selected={mealType.selected.has(item)}
+            onToggle={() => mealType.toggle(item)}
+          />
+        ))}
+      </div>
+    </div>
   );
 }
 
-function RadioChip({ label, selected, onSelect }: { label: string; selected: boolean; onSelect: () => void }) {
+/* ─── Step 3: Alternative Options ─── */
+
+function StepThree({
+  navigate,
+  buildParams,
+}: {
+  navigate: ReturnType<typeof useNavigate>;
+  buildParams: () => URLSearchParams;
+}) {
+  return (
+    <div className="space-y-6 animate-fade-in">
+      <div className="space-y-2">
+        <h1 className="text-xl font-extrabold tracking-tight">Or choose another option</h1>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          Not sure? Let us help you decide.
+        </p>
+      </div>
+
+      {/* Show My Meals CTA */}
+      <Button
+        className="w-full h-14 text-base font-bold rounded-2xl shadow-lg shadow-primary/20"
+        onClick={() => {
+          const params = buildParams();
+          navigate(`/client/meal-results?${params.toString()}`);
+        }}
+      >
+        <UtensilsCrossed className="h-5 w-5 mr-2" />
+        Show My Meals
+      </Button>
+
+      <div className="flex items-center gap-3">
+        <div className="h-px flex-1 bg-border" />
+        <span className="text-xs font-medium text-muted-foreground">or try these</span>
+        <div className="h-px flex-1 bg-border" />
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <QuickActionCard
+          icon={<Brain className="h-6 w-6 text-primary" />}
+          title="Can't Decide"
+          description="AI suggests the best meal for you"
+          onClick={() => {
+            const params = buildParams();
+            params.set("auto_mode", "true");
+            navigate(`/client/meal-results?${params.toString()}`);
+          }}
+        />
+        <QuickActionCard
+          icon={<Barcode className="h-6 w-6 text-primary" />}
+          title="Scan Food"
+          description="Barcode scanner for instant tracking"
+          onClick={() => navigate("/client/log-meal?tab=scan")}
+        />
+        <QuickActionCard
+          icon={<Camera className="h-6 w-6 text-primary" />}
+          title="Snap Photo"
+          description="Photo → AI macro detection"
+          onClick={() => navigate("/client/log-meal?tab=photo")}
+        />
+        <QuickActionCard
+          icon={<Keyboard className="h-6 w-6 text-primary" />}
+          title="Type Meal"
+          description="Manual entry for full control"
+          onClick={() => navigate("/client/log-meal?tab=manual")}
+        />
+      </div>
+    </div>
+  );
+}
+
+/* ─── Shared Components ─── */
+
+function SelectableCard({
+  label,
+  emoji,
+  subtitle,
+  selected,
+  onToggle,
+}: {
+  label: string;
+  emoji: string;
+  subtitle: string;
+  selected: boolean;
+  onToggle: () => void;
+}) {
   return (
     <button
       type="button"
-      onClick={onSelect}
-      className={`flex items-center justify-center gap-2 rounded-xl border px-3 py-3.5 text-sm font-medium transition-all active:scale-[0.97] ${
+      onClick={onToggle}
+      className={`w-full flex items-center gap-4 rounded-2xl border p-4 text-left transition-all active:scale-[0.98] ${
         selected
-          ? "border-primary bg-primary/10 text-foreground"
-          : "border-border bg-card text-muted-foreground hover:border-muted-foreground/30"
+          ? "border-primary bg-primary/10 shadow-sm shadow-primary/10"
+          : "border-border bg-card hover:border-muted-foreground/30"
       }`}
     >
-      <span
-        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
-          selected ? "border-primary" : "border-muted-foreground/40"
+      <span className="text-2xl">{emoji}</span>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-bold text-foreground">{label}</p>
+        <p className="text-xs text-muted-foreground">{subtitle}</p>
+      </div>
+      <div
+        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
+          selected ? "border-primary bg-primary" : "border-muted-foreground/30"
         }`}
       >
-        {selected && <span className="h-2.5 w-2.5 rounded-full bg-primary" />}
-      </span>
-      {label}
+        {selected && <Check className="h-3.5 w-3.5 text-primary-foreground" />}
+      </div>
     </button>
   );
 }
 
-function QuickActionCard({ emoji, title, description, onClick }: { emoji: string; title: string; description: string; onClick: () => void }) {
+function QuickActionCard({
+  icon,
+  title,
+  description,
+  onClick,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  onClick: () => void;
+}) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="flex flex-col items-start gap-2 rounded-2xl border bg-card p-4 text-left transition-all active:scale-[0.97] hover:border-primary/40 hover:shadow-md min-h-[44px]"
+      className="flex flex-col items-start gap-2.5 rounded-2xl border bg-card p-4 text-left transition-all active:scale-[0.97] hover:border-primary/40 hover:shadow-md"
     >
-      <span className="text-2xl">{emoji}</span>
+      {icon}
       <span className="text-sm font-bold text-foreground">{title}</span>
       <span className="text-xs text-muted-foreground leading-relaxed">{description}</span>
     </button>
