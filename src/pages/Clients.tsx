@@ -148,6 +148,7 @@ export default function Clients() {
               variant="ghost" 
               className="h-9 w-9 text-muted-foreground hover:bg-primary hover:text-primary-foreground focus-visible:bg-primary focus-visible:text-primary-foreground"
               title="Message"
+              onClick={() => navigate(`/messages?client=${client.client_id}`)}
             >
               <MessageSquare className="h-4 w-4" />
             </Button>
