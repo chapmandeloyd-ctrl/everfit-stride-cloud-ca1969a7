@@ -25,6 +25,12 @@ interface DayData {
 export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEnabled, onDateChange }: DayStripCalendarProps) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
+  // Always reset to today when the component re-mounts or the client changes
+  useEffect(() => {
+    setSelectedDate(null);
+    onDateChange?.(null);
+  }, [clientId]);
+
   const handleDateSelect = (date: Date | null) => {
     setSelectedDate(date);
     onDateChange?.(date);
