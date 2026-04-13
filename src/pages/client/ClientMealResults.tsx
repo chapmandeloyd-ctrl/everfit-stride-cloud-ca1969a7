@@ -41,6 +41,9 @@ interface MealResult {
   score?: number;
   pick_label?: string | null;
   pick_slot?: number | null;
+  macro_feedback?: string | null;
+  suggested_multiplier?: number;
+  macro_profile?: string;
 }
 
 interface MacroTargets {
