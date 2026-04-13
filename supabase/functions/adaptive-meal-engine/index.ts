@@ -194,24 +194,6 @@ async function runWeeklyLoopInternal(supabase: any, clientId: string) {
 }
 
 async function _runDailyScoring(supabase: any, clientId: string, behavior: any) {
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayStr = yesterday.toISOString().split("T")[0];
-
-  // Get yesterday's behavior
-  const { data: behavior } = await supabase
-    .from("client_meal_behavior")
-    .select("*")
-    .eq("client_id", clientId)
-    .eq("tracked_date", yesterdayStr)
-    .maybeSingle();
-
-  if (!behavior) {
-    return new Response(JSON.stringify({ success: true, message: "No data for yesterday" }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
-
   // Get all adaptive scores for this client
   const { data: scores } = await supabase
     .from("client_meal_adaptive_scores")
@@ -226,12 +208,10 @@ async function _runDailyScoring(supabase: any, clientId: string, behavior: any) 
     let timesIgnored = score.times_ignored || 0;
 
     // ── Rule 1: Preference Boost ──
-    // Frequently selected → boost
     if (score.times_selected >= 3) {
       newAdjustment = Math.min(newAdjustment + 10, 50);
       reason = "preference";
     }
-    // Shown 3+ times but never selected → penalize
     if (score.times_shown >= 3 && score.times_selected === 0) {
       timesIgnored = score.times_shown;
       newAdjustment = Math.max(newAdjustment - 10, -50);
@@ -240,32 +220,19 @@ async function _runDailyScoring(supabase: any, clientId: string, behavior: any) 
 
     // ── Rule 2: Compliance Adjustment ──
     if (!behavior.protein_target_hit) {
-      // Get recipe protein info
       const { data: recipe } = await supabase
-        .from("recipes")
-        .select("protein, carbs, calories, tags")
-        .eq("id", score.recipe_id)
-        .maybeSingle();
-
-      if (recipe) {
-        // Low protein compliance → boost high protein meals
-        if (recipe.protein >= 30) {
-          newAdjustment = Math.min(newAdjustment + 15, 50);
-          reason = "compliance";
-        }
+        .from("recipes").select("protein").eq("id", score.recipe_id).maybeSingle();
+      if (recipe && recipe.protein >= 30) {
+        newAdjustment = Math.min(newAdjustment + 15, 50);
+        reason = "compliance";
       }
     }
 
     if (behavior.carbs_exceeded) {
       const { data: recipe } = await supabase
-        .from("recipes")
-        .select("keto_types")
-        .eq("id", score.recipe_id)
-        .maybeSingle();
-
+        .from("recipes").select("keto_types").eq("id", score.recipe_id).maybeSingle();
       if (recipe) {
         const ketoTypes = (recipe.keto_types || []).map((k: string) => k.toUpperCase());
-        // Carbs exceeded → suppress TKD meals
         if (ketoTypes.includes("TKD")) {
           newAdjustment = Math.max(newAdjustment - 15, -50);
           reason = "compliance";
@@ -279,15 +246,10 @@ async function _runDailyScoring(supabase: any, clientId: string, behavior: any) 
     if (avgHunger.length > 0) {
       const avg = avgHunger.reduce((a: number, b: number) => a + b, 0) / avgHunger.length;
       const { data: recipe } = await supabase
-        .from("recipes")
-        .select("protein, fats, calories")
-        .eq("id", score.recipe_id)
-        .maybeSingle();
-
+        .from("recipes").select("protein, fats, calories").eq("id", score.recipe_id).maybeSingle();
       if (recipe) {
         const isHighSatiety = recipe.protein >= 35 || (recipe.protein >= 25 && recipe.fats >= 20) || recipe.calories >= 500;
         const isLight = recipe.calories <= 350 || (recipe.protein <= 20 && recipe.fats <= 15);
-
         if (avg >= 7 && isHighSatiety) {
           newAdjustment = Math.min(newAdjustment + 5, 50);
           reason = "hunger";
@@ -299,49 +261,48 @@ async function _runDailyScoring(supabase: any, clientId: string, behavior: any) 
     }
 
     // ── Rule 4: Behavior Adaptation ──
-    // User repeats same meals → reinforce but cap
     if (score.times_selected >= 5) {
-      newAdjustment = Math.min(newAdjustment, 30); // Cap high-repeat meals
+      newAdjustment = Math.min(newAdjustment, 30);
     }
 
     if (newAdjustment !== score.score_adjustment || timesIgnored !== score.times_ignored) {
-      adjustments.push({
-        id: score.id,
-        score_adjustment: newAdjustment,
-        adjustment_reason: reason,
-        times_ignored: timesIgnored,
-      });
+      adjustments.push({ id: score.id, score_adjustment: newAdjustment, adjustment_reason: reason, times_ignored: timesIgnored });
     }
   }
 
-  // Batch update adjustments
   for (const adj of adjustments) {
-    await supabase
-      .from("client_meal_adaptive_scores")
-      .update({
-        score_adjustment: adj.score_adjustment,
-        adjustment_reason: adj.adjustment_reason,
-        times_ignored: adj.times_ignored,
-      })
+    await supabase.from("client_meal_adaptive_scores")
+      .update({ score_adjustment: adj.score_adjustment, adjustment_reason: adj.adjustment_reason, times_ignored: adj.times_ignored })
       .eq("id", adj.id);
   }
 
-  // ── Variety injection for ignored recommendations ──
-  // If user ignores coach picks often, increase variety (reset some negative scores)
+  // Variety injection
   if (behavior.meals_shown > 0 && behavior.meals_selected === 0) {
-    // User saw meals but selected none → reset mild negatives to give variety
-    await supabase
-      .from("client_meal_adaptive_scores")
+    await supabase.from("client_meal_adaptive_scores")
       .update({ score_adjustment: 0, adjustment_reason: "variety" })
       .eq("client_id", clientId)
       .gte("score_adjustment", -15)
       .lte("score_adjustment", -1);
   }
 
-  return new Response(
-    JSON.stringify({ success: true, adjustments_made: adjustments.length }),
-    { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-  );
+  return { success: true, adjustments_made: adjustments.length };
+}
+
+async function runDailyLoop(supabase: any, clientId: string) {
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = yesterday.toISOString().split("T")[0];
+  const { data: behavior } = await supabase
+    .from("client_meal_behavior").select("*").eq("client_id", clientId).eq("tracked_date", yesterdayStr).maybeSingle();
+  if (!behavior) {
+    return new Response(JSON.stringify({ success: true, message: "No data for yesterday" }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+  const result = await _runDailyScoring(supabase, clientId, behavior);
+  return new Response(JSON.stringify(result), {
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
 }
 
 // ─── WEEKLY LOOP: Build adaptive profile ───
