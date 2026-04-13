@@ -2,6 +2,7 @@ import { ClientLayout } from "@/components/ClientLayout";
 import { NotificationSettings } from "@/components/NotificationSettings";
 import { NudgeSettings } from "@/components/NudgeSettings";
 import { ClientRemindersSection } from "@/components/ClientRemindersSection";
+import { HabitLoopSettings } from "@/components/notifications/HabitLoopSettings";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
