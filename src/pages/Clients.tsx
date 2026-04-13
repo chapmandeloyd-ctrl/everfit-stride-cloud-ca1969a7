@@ -146,7 +146,7 @@ export default function Clients() {
             <Button 
               size="icon" 
               variant="ghost" 
-              className="h-9 w-9 text-muted-foreground hover:text-primary"
+              className="h-9 w-9 text-muted-foreground hover:bg-primary hover:text-primary-foreground focus-visible:bg-primary focus-visible:text-primary-foreground"
               title="Message"
             >
               <MessageSquare className="h-4 w-4" />
@@ -154,7 +154,7 @@ export default function Clients() {
             <Button 
               size="icon" 
               variant="ghost" 
-              className="h-9 w-9 text-muted-foreground hover:text-primary"
+              className="h-9 w-9 text-muted-foreground hover:bg-primary hover:text-primary-foreground focus-visible:bg-primary focus-visible:text-primary-foreground"
               title="Assign Task"
               onClick={() => {
                 setSelectedClientForTask(client.client_id);
@@ -166,7 +166,7 @@ export default function Clients() {
             <Button 
               size="icon" 
               variant="ghost" 
-              className="h-9 w-9 text-muted-foreground hover:text-primary"
+              className="h-9 w-9 text-muted-foreground hover:bg-primary hover:text-primary-foreground focus-visible:bg-primary focus-visible:text-primary-foreground"
               title="Workout History"
               onClick={() => navigate(`/clients/${client.client_id}/workout-history`)}
             >
@@ -175,7 +175,7 @@ export default function Clients() {
             <Button 
               size="icon" 
               variant="ghost" 
-              className="h-9 w-9 text-muted-foreground hover:text-primary"
+              className="h-9 w-9 text-muted-foreground hover:bg-primary hover:text-primary-foreground focus-visible:bg-primary focus-visible:text-primary-foreground"
               title="Health"
               onClick={() => navigate(`/clients/${client.client_id}/health`)}
             >
@@ -185,7 +185,7 @@ export default function Clients() {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button size="icon" variant="ghost" className="h-9 w-9 text-muted-foreground hover:text-foreground">
+              <Button size="icon" variant="ghost" className="h-9 w-9 text-muted-foreground hover:bg-primary hover:text-primary-foreground focus-visible:bg-primary focus-visible:text-primary-foreground">
                 <Settings className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
