@@ -123,14 +123,26 @@ serve(async (req) => {
       }
 
       // --- Training state match (20 points) ---
-      if (training_state === "post_workout" || training_state === "training_today") {
+      if (training_state === "post_workout") {
+        // Post-workout: heavy bonus for performance/TKD meals
         if (recipeTriggers.includes("post_workout") || recipeTriggers.includes("muscle_preservation")) {
           score += 20;
           matches.training = true;
         }
-        // TKD meals get priority when training
-        if (clientKetoAbbrev === "TKD" && recipeKetoTypes.includes("TKD")) {
+        if (recipeKetoTypes.includes("TKD") || recipeMealRole.includes("performance_fuel")) {
           score += 15;
+          matches.training = true;
+        }
+      } else if (training_state === "training_today") {
+        // Training today: moderate bonus, TKD allowed
+        if (recipeTriggers.includes("post_workout") || recipeTriggers.includes("muscle_preservation")) {
+          score += 10;
+          matches.training = true;
+        }
+      } else {
+        // No training: penalize TKD-only meals
+        if (recipeKetoTypes.length > 0 && recipeKetoTypes.every((k: string) => k === "TKD")) {
+          score -= 15;
         }
       }
 
