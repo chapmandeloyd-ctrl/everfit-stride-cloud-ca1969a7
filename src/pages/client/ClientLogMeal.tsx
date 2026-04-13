@@ -5,16 +5,18 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
-import { ArrowLeft, ScanBarcode, Search, Plus, Check, Loader2, Camera } from "lucide-react";
+import { ArrowLeft, ScanBarcode, Search, Plus, Check, Loader2, Camera, Type, Send } from "lucide-react";
 import { useState, useCallback, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { BarcodeScannerDialog } from "@/components/BarcodeScannerDialog";
 import { FoodPhotoAnalyzerDialog } from "@/components/FoodPhotoAnalyzerDialog";
+import { MealConfirmationDrawer, type PendingMeal } from "@/components/meals/MealConfirmationDrawer";
+import { CoachFeedbackBanner } from "@/components/meals/CoachFeedbackBanner";
 
 interface FoodItem {
   fdcId: number;
@@ -38,7 +40,9 @@ export default function ClientLogMeal() {
   // Handle deep-link query params
   const tabParam = searchParams.get("tab");
   const [initialTabHandled, setInitialTabHandled] = useState(false);
-  const [activeTab, setActiveTab] = useState<string>(tabParam === "manual" ? "manual" : "search");
+  const [activeTab, setActiveTab] = useState<string>(
+    tabParam === "manual" ? "manual" : tabParam === "type" ? "type" : "search"
+  );
 
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<FoodItem[]>([]);
@@ -57,6 +61,17 @@ export default function ClientLogMeal() {
   const [manualCarbs, setManualCarbs] = useState("");
   const [manualFats, setManualFats] = useState("");
 
+  // Type meal (AI) state
+  const [typedMeal, setTypedMeal] = useState("");
+  const [isParsing, setIsParsing] = useState(false);
+
+  // Confirmation drawer
+  const [pendingMeal, setPendingMeal] = useState<PendingMeal | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  // Coach feedback
+  const [showFeedback, setShowFeedback] = useState(false);
+
   // Handle deep-link tab param
   useEffect(() => {
     if (initialTabHandled || !tabParam) return;
@@ -64,6 +79,49 @@ export default function ClientLogMeal() {
     if (tabParam === "scan") setScannerOpen(true);
     else if (tabParam === "photo") setPhotoAnalyzerOpen(true);
   }, [tabParam, initialTabHandled]);
+
+  // Fetch today's totals for coach feedback
+  const { data: todayTotals } = useQuery({
+    queryKey: ["nutrition-today", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("nutrition_logs")
+        .select("calories, protein, carbs, fats")
+        .eq("client_id", user?.id!)
+        .eq("log_date", format(new Date(), "yyyy-MM-dd"));
+      const totals = { calories: 0, protein: 0, carbs: 0, fats: 0 };
+      for (const l of data || []) {
+        totals.calories += l.calories || 0;
+        totals.protein += Number(l.protein) || 0;
+        totals.carbs += Number(l.carbs) || 0;
+        totals.fats += Number(l.fats) || 0;
+      }
+      return totals;
+    },
+    enabled: !!user?.id,
+  });
+
+  // Fetch macro targets for coach feedback
+  const { data: macroTargets } = useQuery({
+    queryKey: ["client-macro-targets", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("client_macro_targets")
+        .select("*")
+        .eq("client_id", user?.id!)
+        .eq("is_active", true)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
+  const feedbackTargets = {
+    calories: macroTargets?.target_calories || 2000,
+    protein: Number(macroTargets?.target_protein) || 150,
+    carbs: Number(macroTargets?.target_carbs) || 200,
+    fats: Number(macroTargets?.target_fats) || 65,
+  };
 
   const searchFoods = useCallback(async (query: string) => {
     if (!query.trim()) { setSearchResults([]); return; }
@@ -142,55 +200,121 @@ export default function ClientLogMeal() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["nutrition-logs"] });
       queryClient.invalidateQueries({ queryKey: ["nutrition-today"] });
-      toast.success("Successfully logged meal to Macros");
+      toast.success("Meal logged successfully!");
+      setShowFeedback(true);
+      setConfirmOpen(false);
+      setPendingMeal(null);
     },
     onError: () => toast.error("Failed to log meal"),
   });
+
+  // Open confirmation drawer with pending meal
+  const openConfirmation = (meal: PendingMeal) => {
+    setPendingMeal(meal);
+    setConfirmOpen(true);
+  };
+
+  // Handle final confirmation from drawer
+  const handleConfirmMeal = (meal: PendingMeal) => {
+    logMutation.mutate(meal);
+  };
 
   // Quick add (+ button)
   const handleQuickAdd = (food: FoodItem) => {
     const portion = food.portions[0];
     const scale = portion ? portion.gramWeight / 100 : 1;
-    logMutation.mutate({
+    openConfirmation({
       name: food.name,
       calories: Math.round(food.calories * scale),
       protein: Math.round(food.protein * scale * 10) / 10,
       carbs: Math.round(food.carbs * scale * 10) / 10,
       fats: Math.round(food.fats * scale * 10) / 10,
+      source: "usda",
+      confidence: "high",
     });
-    setLoggedIds(prev => new Set(prev).add(food.fdcId));
   };
 
   // Log from detail sheet
   const handleLogFromSheet = () => {
     if (!selectedFood) return;
     const macros = getScaledMacros();
-    logMutation.mutate({ name: selectedFood.name, ...macros });
-    setLoggedIds(prev => new Set(prev).add(selectedFood.fdcId));
+    openConfirmation({
+      name: selectedFood.name,
+      ...macros,
+      source: "usda",
+      confidence: "high",
+    });
     setSelectedFood(null);
   };
 
   // Manual add submit
   const handleManualAdd = () => {
     if (!manualName.trim()) { toast.error("Please enter a food name"); return; }
-    logMutation.mutate({
+    openConfirmation({
       name: manualName.trim(),
       calories: parseInt(manualCalories) || 0,
       protein: parseFloat(manualProtein) || 0,
       carbs: parseFloat(manualCarbs) || 0,
       fats: parseFloat(manualFats) || 0,
+      source: "manual",
+      confidence: "high",
     });
     setManualName(""); setManualCalories(""); setManualProtein(""); setManualCarbs(""); setManualFats("");
   };
 
+  // Barcode scan → confirmation
   const handleProductScanned = (productData: { name: string; calories: number; protein: number; carbs: number; fats: number }) => {
-    logMutation.mutate(productData);
     setScannerOpen(false);
+    openConfirmation({
+      ...productData,
+      source: "barcode",
+      confidence: "high",
+    });
   };
 
+  // Photo analysis → confirmation
   const handlePhotoAnalyzed = (data: { name: string; calories: number; protein: number; carbs: number; fats: number }) => {
-    logMutation.mutate(data);
     setPhotoAnalyzerOpen(false);
+    openConfirmation({
+      ...data,
+      source: "ai",
+      confidence: "medium",
+    });
+  };
+
+  // Type meal → AI parse → confirmation
+  const handleTypeMeal = async () => {
+    if (!typedMeal.trim()) { toast.error("Type what you ate"); return; }
+    setIsParsing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("parse-meal-text", {
+        body: { text: typedMeal.trim() },
+      });
+      if (error) throw error;
+      if (data?.nutrition) {
+        openConfirmation({
+          name: data.nutrition.name,
+          calories: data.nutrition.calories,
+          protein: data.nutrition.protein,
+          carbs: data.nutrition.carbs,
+          fats: data.nutrition.fats,
+          source: data.nutrition.source || "ai",
+          confidence: data.nutrition.confidence || "medium",
+          if_role: data.nutrition.if_role,
+          meal_role: data.nutrition.meal_role,
+          macro_profile: data.nutrition.macro_profile,
+          ingredients: data.nutrition.ingredients,
+        });
+        setTypedMeal("");
+      } else {
+        toast.error("Could not parse meal. Try being more specific.");
+      }
+    } catch (err) {
+      console.error("Parse error:", err);
+      toast.error("Failed to analyze meal. Try again.");
+    } finally {
+      setIsParsing(false);
+    }
   };
 
   const scaledMacros = getScaledMacros();
@@ -208,42 +332,58 @@ export default function ClientLogMeal() {
           </div>
         </div>
 
-        {/* Feature Cards */}
-        <div className="grid grid-cols-2 gap-3 px-4 pt-3">
-          <button
-            onClick={() => setPhotoAnalyzerOpen(true)}
-            className="flex flex-col items-center gap-2 rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 p-4 transition-colors hover:bg-primary/10 hover:border-primary/50 active:scale-[0.98]"
-          >
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/15">
-              <Camera className="h-5 w-5 text-primary" />
-            </div>
-            <div className="text-center">
-              <p className="text-sm font-semibold">Snap & Track</p>
-              <p className="text-[10px] text-muted-foreground leading-tight">AI-powered photo analysis</p>
-            </div>
-          </button>
+        {/* Coach Feedback Banner */}
+        {todayTotals && (
+          <CoachFeedbackBanner
+            totals={todayTotals}
+            targets={feedbackTargets}
+            show={showFeedback}
+            onDismiss={() => setShowFeedback(false)}
+          />
+        )}
+
+        {/* SECTION 8: Quick Access Cards — Large Tappable */}
+        <div className="grid grid-cols-3 gap-2 px-4 pt-3">
           <button
             onClick={() => setScannerOpen(true)}
-            className="flex flex-col items-center gap-2 rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 p-4 transition-colors hover:bg-primary/10 hover:border-primary/50 active:scale-[0.98]"
+            className="flex flex-col items-center gap-1.5 rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 p-3 transition-colors hover:bg-primary/10 hover:border-primary/50 active:scale-[0.97]"
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/15">
               <ScanBarcode className="h-5 w-5 text-primary" />
             </div>
-            <div className="text-center">
-              <p className="text-sm font-semibold">Scan Barcode</p>
-              <p className="text-[10px] text-muted-foreground leading-tight">Instant product lookup</p>
+            <p className="text-xs font-semibold">📦 Scan</p>
+          </button>
+          <button
+            onClick={() => setPhotoAnalyzerOpen(true)}
+            className="flex flex-col items-center gap-1.5 rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 p-3 transition-colors hover:bg-primary/10 hover:border-primary/50 active:scale-[0.97]"
+          >
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/15">
+              <Camera className="h-5 w-5 text-primary" />
             </div>
+            <p className="text-xs font-semibold">📸 Snap</p>
+          </button>
+          <button
+            onClick={() => setActiveTab("type")}
+            className="flex flex-col items-center gap-1.5 rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 p-3 transition-colors hover:bg-primary/10 hover:border-primary/50 active:scale-[0.97]"
+          >
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/15">
+              <Type className="h-5 w-5 text-primary" />
+            </div>
+            <p className="text-xs font-semibold">⌨️ Type</p>
           </button>
         </div>
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-          <TabsList className="mx-4 mt-3 grid grid-cols-2 w-auto">
-            <TabsTrigger value="search" className="gap-1.5">
+          <TabsList className="mx-4 mt-3 grid grid-cols-3 w-auto">
+            <TabsTrigger value="search" className="gap-1.5 text-xs">
               <Search className="h-3.5 w-3.5" /> Search
             </TabsTrigger>
-            <TabsTrigger value="manual" className="gap-1.5">
-              <Plus className="h-3.5 w-3.5" /> Manual Add
+            <TabsTrigger value="type" className="gap-1.5 text-xs">
+              <Type className="h-3.5 w-3.5" /> Type Meal
+            </TabsTrigger>
+            <TabsTrigger value="manual" className="gap-1.5 text-xs">
+              <Plus className="h-3.5 w-3.5" /> Manual
             </TabsTrigger>
           </TabsList>
 
@@ -302,6 +442,54 @@ export default function ClientLogMeal() {
             )}
           </TabsContent>
 
+          {/* Type Meal Tab (AI Parser) */}
+          <TabsContent value="type" className="px-4 mt-3 space-y-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold">Describe what you ate</Label>
+              <div className="relative">
+                <Input
+                  placeholder='e.g. "Steak with eggs and avocado"'
+                  value={typedMeal}
+                  onChange={(e) => setTypedMeal(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter" && !isParsing) handleTypeMeal(); }}
+                  className="pr-12"
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+                  onClick={handleTypeMeal}
+                  disabled={isParsing || !typedMeal.trim()}
+                >
+                  {isParsing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                </Button>
+              </div>
+              <p className="text-[10px] text-muted-foreground">
+                AI will parse ingredients, estimate portions, and calculate macros automatically.
+              </p>
+            </div>
+
+            {isParsing && (
+              <div className="flex flex-col items-center justify-center py-12 gap-3">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="text-sm text-muted-foreground">Analyzing your meal...</p>
+              </div>
+            )}
+
+            <div className="rounded-xl bg-muted/30 border border-border p-4 space-y-2">
+              <p className="text-xs font-semibold text-muted-foreground">Try typing:</p>
+              {["Grilled chicken with rice and broccoli", "2 eggs with bacon and avocado", "Salmon salad with olive oil"].map((example) => (
+                <button
+                  key={example}
+                  className="block w-full text-left text-xs text-primary/80 hover:text-primary py-1"
+                  onClick={() => setTypedMeal(example)}
+                >
+                  "{example}"
+                </button>
+              ))}
+            </div>
+          </TabsContent>
+
           {/* Manual Add Tab */}
           <TabsContent value="manual" className="px-4 mt-3 space-y-4">
             <div className="space-y-2">
@@ -327,13 +515,13 @@ export default function ClientLogMeal() {
               </div>
             </div>
             <Button className="w-full" onClick={handleManualAdd} disabled={logMutation.isPending}>
-              {logMutation.isPending ? "Logging..." : "Log"}
+              {logMutation.isPending ? "Logging..." : "Review & Log"}
             </Button>
           </TabsContent>
         </Tabs>
       </div>
 
-      {/* Food Detail Drawer */}
+      {/* Food Detail Drawer (USDA search) */}
       <Drawer open={!!selectedFood} onOpenChange={(open) => { if (!open) setSelectedFood(null); }}>
         <DrawerContent className="max-h-[85vh]">
           {selectedFood && (
@@ -394,12 +582,21 @@ export default function ClientLogMeal() {
               </div>
 
               <Button className="w-full h-12 text-base" onClick={handleLogFromSheet} disabled={logMutation.isPending}>
-                {logMutation.isPending ? "Logging..." : "Log"}
+                {logMutation.isPending ? "Logging..." : "Review & Log"}
               </Button>
             </div>
           )}
         </DrawerContent>
       </Drawer>
+
+      {/* Unified Confirmation Drawer */}
+      <MealConfirmationDrawer
+        meal={pendingMeal}
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        onConfirm={handleConfirmMeal}
+        isLogging={logMutation.isPending}
+      />
 
       <BarcodeScannerDialog open={scannerOpen} onOpenChange={setScannerOpen} onProductScanned={handleProductScanned} />
       <FoodPhotoAnalyzerDialog open={photoAnalyzerOpen} onOpenChange={setPhotoAnalyzerOpen} onAnalysisComplete={handlePhotoAnalyzed} />
