@@ -2231,6 +2231,12 @@ export default function ClientDashboard() {
           }
         })}
 
+        {/* Metabolic Control Dashboard — auto-render if not in layout */}
+        {settings.macros_enabled && settings.fasting_enabled && !engineConfig.fastingDisabled && !isViewingOtherDay &&
+          !layoutCards.some(c => c.key === "metabolic_control" && c.visible) && (
+          <MetabolicControlDashboard />
+        )}
+
         {/* Install App Banner (always at bottom, not layout-driven) */}
         {showInstallBanner && (
           <Card className="border-primary/30 bg-primary/5 overflow-hidden">
