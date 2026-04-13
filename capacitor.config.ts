@@ -5,12 +5,9 @@ const config: CapacitorConfig = {
   appName: 'KSOM360',
   webDir: 'dist',
   ios: {
-    // Prevent stale WebView cache — always load fresh bundled assets
     allowsLinkPreview: false,
   },
-  // Load the app from the current live production URL
   server: {
-    url: 'https://everfit-stride-cloud.lovable.app',
     androidScheme: 'https',
     iosScheme: 'capacitor',
     cleartext: false,
