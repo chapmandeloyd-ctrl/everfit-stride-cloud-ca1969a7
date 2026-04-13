@@ -1,8 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useDailyScore } from "@/hooks/useDailyScore";
 import { useConsistencyStreak } from "@/hooks/useConsistencyStreak";
+import { useKsomLevelProgression } from "@/hooks/useKsomLevelProgression";
 import { cn } from "@/lib/utils";
-import { Flame, Trophy } from "lucide-react";
+import { Flame, Trophy, Zap } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 
 const RING_SIZE = 140;
 const STROKE_WIDTH = 10;
@@ -12,17 +14,21 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 export function DailyScoreRing() {
   const { data: score, isLoading: scoreLoading } = useDailyScore();
   const { data: streak, isLoading: streakLoading, recordScore } = useConsistencyStreak();
+  const { data: levelData, isLoading: levelLoading, addProgress } = useKsomLevelProgression();
+  const hasRecordedRef = useRef(false);
 
-  // Auto-record daily score to streak system
+  // Auto-record daily score to streak + level systems (once per render cycle)
   useEffect(() => {
-    if (!score || !streak) return;
+    if (!score || !streak || hasRecordedRef.current) return;
     const today = new Date().toISOString().split("T")[0];
     if (streak.lastScoredDate !== today && score.total > 0) {
+      hasRecordedRef.current = true;
       recordScore.mutate(score.label);
+      addProgress.mutate({ scoreLabel: score.label, streak: streak.currentStreak });
     }
   }, [score, streak]);
 
-  if (scoreLoading || streakLoading || !score) {
+  if (scoreLoading || streakLoading || levelLoading || !score) {
     return (
       <div className="flex flex-col items-center gap-2 py-4 animate-pulse">
         <div className="w-[140px] h-[140px] rounded-full bg-white/[0.04]" />
@@ -36,9 +42,19 @@ export function DailyScoreRing() {
   const currentStreak = streak?.currentStreak ?? 0;
   const longestStreak = streak?.longestStreak ?? 0;
   const nextMilestone = streak?.nextMilestone;
+  const level = levelData?.level ?? 1;
+  const tierInfo = levelData?.tierInfo;
 
   return (
     <div className="flex flex-col items-center gap-3 py-2">
+      {/* Level badge */}
+      {tierInfo && (
+        <div className={cn("flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold", tierInfo.bgColor, tierInfo.color)}>
+          <Zap className="h-3 w-3" />
+          Level {level} · {tierInfo.tier}
+        </div>
+      )}
+
       {/* Score Ring */}
       <div className="relative">
         <svg width={RING_SIZE} height={RING_SIZE} className="-rotate-90">
@@ -78,7 +94,7 @@ export function DailyScoreRing() {
         {score.label}
       </span>
 
-      {/* Streak display */}
+      {/* Streak + Longest */}
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-1.5">
           <Flame className="h-4 w-4 text-amber-400" />
@@ -94,7 +110,23 @@ export function DailyScoreRing() {
         </div>
       </div>
 
-      {/* Next milestone */}
+      {/* Level progress bar */}
+      {levelData && (
+        <div className="w-full max-w-[260px] space-y-1">
+          <div className="flex items-center justify-between text-[10px]">
+            <span className="text-muted-foreground">Level {level}</span>
+            <span className="text-muted-foreground">{levelData.completionPct}% → Level {level + 1}</span>
+          </div>
+          <Progress value={levelData.completionPct} className="h-1.5" />
+          {levelData.nextUnlock && (
+            <p className="text-[10px] text-muted-foreground text-center mt-0.5">
+              Next: <span className="font-medium text-foreground">{levelData.nextUnlock}</span>
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Next streak milestone */}
       {nextMilestone && currentStreak < nextMilestone.days && (
         <div className="text-[11px] text-muted-foreground">
           <span className="text-amber-400 font-semibold">{nextMilestone.days - currentStreak}</span>
