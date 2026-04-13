@@ -10,18 +10,49 @@
 
 import { Capacitor } from "@capacitor/core";
 
-// Lazy-load the plugin only on native
-let Health: any = null;
+const HEALTH_READ_TYPES = [
+  "steps",
+  "calories",
+  "heartRate",
+  "weight",
+  "sleep",
+  "basalCalories",
+  "exerciseTime",
+  "workouts",
+] as const;
 
-async function getHealth() {
+type NativeHealthPlugin = {
+  isAvailable?: () => Promise<boolean | { available?: boolean }>;
+  requestAuthorization: (options: { read: string[]; write: string[] }) => Promise<unknown>;
+  checkAuthorization?: (options: { read: string[]; write: string[] }) => Promise<{
+    readAuthorized?: string[];
+  }>;
+  queryAggregated: (options: {
+    dataType: string;
+    startDate: string;
+    endDate: string;
+    bucket: string;
+    aggregation: string;
+  }) => Promise<any>;
+  readSamples: (options: {
+    dataType: string;
+    startDate: string;
+    endDate: string;
+    limit: number;
+  }) => Promise<any>;
+};
+
+let Health: NativeHealthPlugin | null = null;
+
+async function getHealth(): Promise<NativeHealthPlugin | null> {
   if (Health) return Health;
   if (!Capacitor.isNativePlatform()) return null;
   try {
     const mod = await import("@capgo/capacitor-health");
-    Health = mod.Health;
+    Health = mod.Health as NativeHealthPlugin;
     return Health;
-  } catch {
-    console.warn("[HealthKit] Plugin not available");
+  } catch (err) {
+    console.warn("[HealthKit] Plugin not available", err);
     return null;
   }
 }
@@ -42,9 +73,27 @@ export async function isNativeHealthAvailable(): Promise<boolean> {
   const h = await getHealth();
   if (!h) return false;
   try {
-    const result = await h.isAvailable();
-    return result.available === true;
-  } catch {
+    const result = typeof h.isAvailable === "function" ? await h.isAvailable() : true;
+    if (typeof result === "boolean") return result;
+    if (typeof result?.available === "boolean") return result.available;
+    return true;
+  } catch (err) {
+    console.warn("[HealthKit] Availability check failed, treating plugin as present", err);
+    return true;
+  }
+}
+
+export async function checkNativeHealthPermissions(): Promise<boolean> {
+  const h = await getHealth();
+  if (!h || typeof h.checkAuthorization !== "function") return false;
+  try {
+    const result = await h.checkAuthorization({
+      read: [...HEALTH_READ_TYPES],
+      write: [],
+    });
+    return Array.isArray(result?.readAuthorized) && result.readAuthorized.length > 0;
+  } catch (err) {
+    console.warn("[HealthKit] Permission status check failed", err);
     return false;
   }
 }
@@ -57,7 +106,7 @@ export async function requestHealthPermissions(): Promise<boolean> {
   if (!h) return false;
   try {
     await h.requestAuthorization({
-      read: ["steps", "calories", "heartRate", "weight", "sleep", "basalCalories", "exerciseTime", "workouts"],
+      read: [...HEALTH_READ_TYPES],
       write: [],
     });
     return true;

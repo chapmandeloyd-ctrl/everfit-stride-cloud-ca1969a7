@@ -7,15 +7,13 @@ import { Badge } from '@/components/ui/badge';
 import { useNativeHealth } from '@/hooks/useNativeHealth';
 
 export default function ClientHealthConnect() {
-  const { isNative, available, permissionGranted, requestPermissions } = useNativeHealth();
+  const { isNative, permissionGranted, requestPermissions } = useNativeHealth();
 
   const statusLabel = !isNative
     ? 'Mobile App Required'
     : permissionGranted
       ? 'Connected'
-      : available
-        ? 'Not Connected'
-        : 'Unavailable';
+      : 'Not Connected';
 
   return (
     <ClientLayout>
@@ -82,8 +80,8 @@ export default function ClientHealthConnect() {
                 </Button>
               </div>
             ) : (
-              <Button className="w-full" onClick={requestPermissions} disabled={!available}>
-                {available ? 'Connect Apple Health' : 'Apple Health Unavailable'}
+              <Button className="w-full" onClick={requestPermissions}>
+                Connect Apple Health
               </Button>
             )}
           </CardContent>
