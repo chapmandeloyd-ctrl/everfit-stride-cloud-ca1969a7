@@ -1,11 +1,10 @@
-import { Sparkles, RefreshCw, Settings } from "lucide-react";
+import { RefreshCw, Settings } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export function ActionRow() {
   const navigate = useNavigate();
 
   const actions = [
-    { label: "AI Snapshot", icon: Sparkles, onClick: () => {} },
     { label: "Sync", icon: RefreshCw, onClick: () => {} },
     { label: "Settings", icon: Settings, onClick: () => navigate("/settings") },
   ];
