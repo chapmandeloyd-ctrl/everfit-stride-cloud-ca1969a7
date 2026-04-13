@@ -13,16 +13,41 @@ serve(async (req) => {
   try {
     const { action, client_id, data } = await req.json();
 
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Batch actions for cron (no client_id needed)
+    if (action === "run_all_daily" || action === "run_all_weekly") {
+      const { data: clients } = await supabase
+        .from("trainer_clients")
+        .select("client_id")
+        .eq("status", "active");
+
+      const results: any[] = [];
+      for (const c of (clients || [])) {
+        try {
+          if (action === "run_all_daily") {
+            await runDailyLoopInternal(supabase, c.client_id);
+          } else {
+            await runWeeklyLoopInternal(supabase, c.client_id);
+          }
+          results.push({ client_id: c.client_id, success: true });
+        } catch (e) {
+          results.push({ client_id: c.client_id, success: false, error: e.message });
+        }
+      }
+      return new Response(JSON.stringify({ success: true, processed: results.length, results }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     if (!client_id) {
       return new Response(JSON.stringify({ error: "client_id required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
 
     switch (action) {
       case "track_behavior":
