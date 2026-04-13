@@ -57,7 +57,7 @@ export async function requestHealthPermissions(): Promise<boolean> {
   if (!h) return false;
   try {
     await h.requestAuthorization({
-      read: ["steps", "calories", "heartRate", "weight", "sleep"],
+      read: ["steps", "calories", "heartRate", "weight", "sleep", "basalCalories", "exerciseTime", "workouts"],
       write: [],
     });
     return true;
@@ -82,58 +82,31 @@ export async function readTodayHealthData(): Promise<NativeHealthData | null> {
   try {
     const [stepsRes, caloriesRes, hrRes, weightRes, sleepRes] =
       await Promise.allSettled([
-        h.queryAggregated({
-          dataType: "steps",
-          startDate,
-          endDate,
-        }),
-        h.queryAggregated({
-          dataType: "calories",
-          startDate,
-          endDate,
-        }),
-        h.query({
-          dataType: "heartRate",
-          startDate,
-          endDate,
-          limit: 1,
-        }),
-        h.query({
-          dataType: "weight",
-          startDate: new Date(
-            now.getTime() - 30 * 24 * 60 * 60 * 1000
-          ).toISOString(),
-          endDate,
-          limit: 1,
-        }),
-        h.query({
-          dataType: "sleep",
-          startDate: new Date(
-            now.getTime() - 24 * 60 * 60 * 1000
-          ).toISOString(),
-          endDate,
-          limit: 1,
-        }),
+        h.queryAggregated({ dataType: "steps", startDate, endDate, bucket: "day", aggregation: "sum" }),
+        h.queryAggregated({ dataType: "calories", startDate, endDate, bucket: "day", aggregation: "sum" }),
+        h.readSamples({ dataType: "heartRate", startDate, endDate, limit: 1 }),
+        h.readSamples({ dataType: "weight", startDate: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString(), endDate, limit: 1 }),
+        h.readSamples({ dataType: "sleep", startDate: new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString(), endDate, limit: 1 }),
       ]);
 
     const steps =
-      stepsRes.status === "fulfilled" ? stepsRes.value?.value ?? null : null;
+      stepsRes.status === "fulfilled" ? stepsRes.value?.samples?.[0]?.value ?? null : null;
     const activeCalories =
       caloriesRes.status === "fulfilled"
-        ? caloriesRes.value?.value ?? null
+        ? caloriesRes.value?.samples?.[0]?.value ?? null
         : null;
     const heartRate =
       hrRes.status === "fulfilled"
-        ? hrRes.value?.results?.[0]?.value ?? null
+        ? hrRes.value?.samples?.[0]?.value ?? null
         : null;
     const weight =
       weightRes.status === "fulfilled"
-        ? weightRes.value?.results?.[0]?.value ?? null
+        ? weightRes.value?.samples?.[0]?.value ?? null
         : null;
 
     let sleepMinutes: number | null = null;
-    if (sleepRes.status === "fulfilled" && sleepRes.value?.results?.[0]) {
-      const s = sleepRes.value.results[0];
+    if (sleepRes.status === "fulfilled" && sleepRes.value?.samples?.[0]) {
+      const s = sleepRes.value.samples[0];
       if (s.startDate && s.endDate) {
         sleepMinutes = Math.round(
           (new Date(s.endDate).getTime() - new Date(s.startDate).getTime()) /
