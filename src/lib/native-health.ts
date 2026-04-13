@@ -1,0 +1,253 @@
+/**
+ * KSOM360 Native HealthKit Bridge
+ * 
+ * Uses @capgo/capacitor-health to read real device health data
+ * (steps, calories, heart rate, weight, sleep) from Apple HealthKit.
+ * 
+ * Falls back gracefully on web — all methods return null when
+ * the native plugin is unavailable.
+ */
+
+import { Capacitor } from "@capacitor/core";
+
+// Lazy-load the plugin only on native
+let Health: any = null;
+
+async function getHealth() {
+  if (Health) return Health;
+  if (!Capacitor.isNativePlatform()) return null;
+  try {
+    const mod = await import("@capgo/capacitor-health");
+    Health = mod.Health;
+    return Health;
+  } catch {
+    console.warn("[HealthKit] Plugin not available");
+    return null;
+  }
+}
+
+export interface NativeHealthData {
+  steps: number | null;
+  activeCalories: number | null;
+  restingCalories: number | null;
+  heartRate: number | null;
+  weight: number | null;
+  sleepMinutes: number | null;
+}
+
+/**
+ * Check if native health is available on this device
+ */
+export async function isNativeHealthAvailable(): Promise<boolean> {
+  const h = await getHealth();
+  if (!h) return false;
+  try {
+    const result = await h.isAvailable();
+    return result.available === true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Request HealthKit permissions for all metrics we need
+ */
+export async function requestHealthPermissions(): Promise<boolean> {
+  const h = await getHealth();
+  if (!h) return false;
+  try {
+    await h.requestAuthorization({
+      read: ["steps", "calories", "heartRate", "weight", "sleep"],
+      write: [],
+    });
+    return true;
+  } catch (err) {
+    console.error("[HealthKit] Permission request failed:", err);
+    return false;
+  }
+}
+
+/**
+ * Read today's health data from HealthKit
+ */
+export async function readTodayHealthData(): Promise<NativeHealthData | null> {
+  const h = await getHealth();
+  if (!h) return null;
+
+  const now = new Date();
+  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startDate = startOfDay.toISOString();
+  const endDate = now.toISOString();
+
+  try {
+    const [stepsRes, caloriesRes, hrRes, weightRes, sleepRes] =
+      await Promise.allSettled([
+        h.queryAggregated({
+          dataType: "steps",
+          startDate,
+          endDate,
+        }),
+        h.queryAggregated({
+          dataType: "calories",
+          startDate,
+          endDate,
+        }),
+        h.query({
+          dataType: "heartRate",
+          startDate,
+          endDate,
+          limit: 1,
+        }),
+        h.query({
+          dataType: "weight",
+          startDate: new Date(
+            now.getTime() - 30 * 24 * 60 * 60 * 1000
+          ).toISOString(),
+          endDate,
+          limit: 1,
+        }),
+        h.query({
+          dataType: "sleep",
+          startDate: new Date(
+            now.getTime() - 24 * 60 * 60 * 1000
+          ).toISOString(),
+          endDate,
+          limit: 1,
+        }),
+      ]);
+
+    const steps =
+      stepsRes.status === "fulfilled" ? stepsRes.value?.value ?? null : null;
+    const activeCalories =
+      caloriesRes.status === "fulfilled"
+        ? caloriesRes.value?.value ?? null
+        : null;
+    const heartRate =
+      hrRes.status === "fulfilled"
+        ? hrRes.value?.results?.[0]?.value ?? null
+        : null;
+    const weight =
+      weightRes.status === "fulfilled"
+        ? weightRes.value?.results?.[0]?.value ?? null
+        : null;
+
+    let sleepMinutes: number | null = null;
+    if (sleepRes.status === "fulfilled" && sleepRes.value?.results?.[0]) {
+      const s = sleepRes.value.results[0];
+      if (s.startDate && s.endDate) {
+        sleepMinutes = Math.round(
+          (new Date(s.endDate).getTime() - new Date(s.startDate).getTime()) /
+            60000
+        );
+      } else if (s.value) {
+        sleepMinutes = Math.round(s.value);
+      }
+    }
+
+    return {
+      steps: steps != null ? Math.round(steps) : null,
+      activeCalories: activeCalories != null ? Math.round(activeCalories) : null,
+      restingCalories: null, // Requires separate basal energy query
+      heartRate: heartRate != null ? Math.round(heartRate) : null,
+      weight: weight != null ? Math.round(weight * 10) / 10 : null, // kg, 1 decimal
+      sleepMinutes,
+    };
+  } catch (err) {
+    console.error("[HealthKit] Failed to read data:", err);
+    return null;
+  }
+}
+
+/**
+ * Sync native HealthKit data to the backend (health_data table)
+ * so the dashboard and trainer view stay updated.
+ */
+export async function syncHealthDataToBackend(
+  clientId: string,
+  supabase: any
+): Promise<boolean> {
+  const data = await readTodayHealthData();
+  if (!data) return false;
+
+  const now = new Date().toISOString();
+  const entries: Array<{
+    client_id: string;
+    data_type: string;
+    value: number;
+    unit: string;
+    recorded_at: string;
+    source: string;
+  }> = [];
+
+  if (data.steps != null) {
+    entries.push({
+      client_id: clientId,
+      data_type: "steps",
+      value: data.steps,
+      unit: "count",
+      recorded_at: now,
+      source: "apple_health",
+    });
+  }
+  if (data.activeCalories != null) {
+    entries.push({
+      client_id: clientId,
+      data_type: "active_energy",
+      value: data.activeCalories,
+      unit: "kcal",
+      recorded_at: now,
+      source: "apple_health",
+    });
+  }
+  if (data.heartRate != null) {
+    entries.push({
+      client_id: clientId,
+      data_type: "heart_rate",
+      value: data.heartRate,
+      unit: "bpm",
+      recorded_at: now,
+      source: "apple_health",
+    });
+  }
+  if (data.weight != null) {
+    // Convert kg to lbs for consistency with existing system
+    const lbs = Math.round(data.weight * 2.20462 * 10) / 10;
+    entries.push({
+      client_id: clientId,
+      data_type: "weight",
+      value: lbs,
+      unit: "lbs",
+      recorded_at: now,
+      source: "apple_health",
+    });
+  }
+  if (data.sleepMinutes != null) {
+    const hours = Math.round((data.sleepMinutes / 60) * 10) / 10;
+    entries.push({
+      client_id: clientId,
+      data_type: "sleep",
+      value: hours,
+      unit: "hrs",
+      recorded_at: now,
+      source: "apple_health",
+    });
+  }
+
+  if (entries.length === 0) return false;
+
+  try {
+    const { error } = await supabase.from("health_data").upsert(entries, {
+      onConflict: "client_id,data_type,recorded_at",
+      ignoreDuplicates: false,
+    });
+    if (error) {
+      console.error("[HealthKit] Sync failed:", error);
+      return false;
+    }
+    console.log(`[HealthKit] Synced ${entries.length} metrics to backend`);
+    return true;
+  } catch (err) {
+    console.error("[HealthKit] Sync error:", err);
+    return false;
+  }
+}
