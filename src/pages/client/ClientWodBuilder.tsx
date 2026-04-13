@@ -555,10 +555,10 @@ export default function ClientWodBuilder() {
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-background">
         <button
-          onClick={() => navigate("/client/dashboard")}
-          className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+          onClick={() => navigate(-1)}
+          className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors min-h-[44px] min-w-[44px] px-2 flex items-center gap-1"
         >
-          Cancel
+          ← Cancel
         </button>
         <span className="text-sm font-semibold text-foreground">Build Workout</span>
         <button

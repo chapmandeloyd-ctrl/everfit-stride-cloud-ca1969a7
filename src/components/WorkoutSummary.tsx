@@ -220,11 +220,12 @@ export function WorkoutSummary({
       {/* Header */}
       <div className="bg-foreground text-background p-6 pb-8">
         <div className="flex items-center justify-between mb-4">
-          <Button variant="ghost" size="icon" onClick={onClose} className="text-background hover:bg-background/10">
+          <Button variant="ghost" onClick={onClose} className="text-background hover:bg-background/10 min-h-[44px] min-w-[44px] px-3 gap-1.5">
             <X className="h-5 w-5" />
+            <span className="text-sm font-medium">Close</span>
           </Button>
           <span className="text-sm opacity-70">{isPartial ? "Partial Workout" : "Workout Complete"}</span>
-          <div className="w-10" />
+          <div className="w-[70px]" />
         </div>
         <p className="text-xs uppercase opacity-60">
           {format(new Date(startedAt), "EEEE, MMM d")}
