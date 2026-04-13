@@ -46,40 +46,29 @@ export function BulkActionsSheet({ open, onOpenChange, selectedClientIds, traine
 
   const bulkMutation = useMutation({
     mutationFn: async () => {
-      const promises: Promise<any>[] = [];
-
       if (bulkAction === "assign_keto" && bulkKetoId) {
         for (const clientId of selectedClientIds) {
-          promises.push(
-            supabase.from("client_keto_assignments").update({ is_active: false }).eq("client_id", clientId).then(() =>
-              supabase.from("client_keto_assignments").insert({
-                client_id: clientId,
-                keto_type_id: bulkKetoId,
-                assigned_by: trainerId,
-                is_active: true,
-              })
-            )
-          );
+          await supabase.from("client_keto_assignments").update({ is_active: false }).eq("client_id", clientId);
+          await supabase.from("client_keto_assignments").insert({
+            client_id: clientId,
+            keto_type_id: bulkKetoId,
+            assigned_by: trainerId,
+            is_active: true,
+          });
         }
       }
 
       if (bulkAction === "assign_protocol" && bulkProtocolId) {
-        promises.push(
-          supabase.from("client_feature_settings")
-            .update({ selected_protocol_id: bulkProtocolId, protocol_start_date: new Date().toISOString().split("T")[0] })
-            .in("client_id", selectedClientIds)
-        );
+        await supabase.from("client_feature_settings")
+          .update({ selected_protocol_id: bulkProtocolId, protocol_start_date: new Date().toISOString().split("T")[0] })
+          .in("client_id", selectedClientIds);
       }
 
       if (bulkAction === "toggle_feature" && bulkToggle) {
-        promises.push(
-          supabase.from("client_feature_settings")
-            .update({ [bulkToggle.key]: bulkToggle.value })
-            .in("client_id", selectedClientIds)
-        );
+        await supabase.from("client_feature_settings")
+          .update({ [bulkToggle.key]: bulkToggle.value } as any)
+          .in("client_id", selectedClientIds);
       }
-
-      await Promise.all(promises);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["client-health-scores"] });
