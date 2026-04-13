@@ -69,6 +69,7 @@ export default function ClientMealResults() {
   const [usedFallback, setUsedFallback] = useState(false);
   const [hasAiSuggestions, setHasAiSuggestions] = useState(false);
   const [activeNudge, setActiveNudge] = useState<CoachNudge | null>(null);
+  const unlockState = useMealUnlockState();
 
   // Parse filters from URL
   const filters = {
