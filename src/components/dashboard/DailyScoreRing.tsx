@@ -47,13 +47,34 @@ export function DailyScoreRing() {
 
   return (
     <div className="flex flex-col items-center gap-3 py-2">
-      {/* Level badge */}
-      {tierInfo && (
-        <div className={cn("flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold", tierInfo.bgColor, tierInfo.color)}>
-          <Zap className="h-3 w-3" />
-          Level {level} · {tierInfo.tier}
+      {/* Top row: Level (left) — Streak (right) */}
+      <div className="w-full flex items-center justify-between px-1">
+        {/* Level badge — top left */}
+        {tierInfo ? (
+          <div className={cn("flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold", tierInfo.bgColor, tierInfo.color)}>
+            <Zap className="h-3 w-3" />
+            Lvl {level}
+          </div>
+        ) : (
+          <div />
+        )}
+
+        {/* Streak — top right */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5">
+            <Flame className="h-4 w-4 text-amber-400" />
+            <span className="text-sm font-bold text-foreground">
+              {currentStreak}d
+            </span>
+          </div>
+          <div className="flex items-center gap-1 opacity-60">
+            <Trophy className="h-3 w-3 text-muted-foreground" />
+            <span className="text-[10px] text-muted-foreground">
+              Best: {longestStreak}
+            </span>
+          </div>
         </div>
-      )}
+      </div>
 
       {/* Score Ring */}
       <div className="relative">
@@ -94,21 +115,10 @@ export function DailyScoreRing() {
         {score.label}
       </span>
 
-      {/* Streak + Longest */}
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-1.5">
-          <Flame className="h-4 w-4 text-amber-400" />
-          <span className="text-sm font-bold text-foreground">
-            Streak: {currentStreak} Day{currentStreak !== 1 ? "s" : ""}
-          </span>
-        </div>
-        <div className="flex items-center gap-1">
-          <Trophy className="h-3.5 w-3.5 text-muted-foreground" />
-          <span className="text-xs text-muted-foreground">
-            Longest: {longestStreak}
-          </span>
-        </div>
-      </div>
+      {/* Coach message */}
+      <p className="text-xs text-muted-foreground text-center max-w-[260px] leading-relaxed">
+        {score.coachMessage}
+      </p>
 
       {/* Level progress bar */}
       {levelData && (
@@ -135,25 +145,30 @@ export function DailyScoreRing() {
         </div>
       )}
 
-      {/* Coach message */}
-      <p className="text-xs text-muted-foreground text-center max-w-[260px] leading-relaxed">
-        {score.coachMessage}
-      </p>
-
-      {/* Category breakdown */}
-      <div className="flex gap-4 mt-1">
+      {/* Daily Summary — horizontal bars */}
+      <div className="w-full max-w-[280px] space-y-2 mt-1">
         {score.categories.map((cat) => (
-          <div key={cat.key} className="flex flex-col items-center gap-0.5">
-            <span className={cn(
-              "text-sm font-bold tabular-nums",
-              cat.score >= 80 ? "text-emerald-400" :
-              cat.score >= 50 ? "text-amber-400" : "text-red-400"
-            )}>
-              {cat.score}
-            </span>
-            <span className="text-[9px] text-muted-foreground uppercase tracking-wider">
-              {cat.label}
-            </span>
+          <div key={cat.key} className="space-y-0.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] text-muted-foreground uppercase tracking-wider">{cat.label}</span>
+              <span className={cn(
+                "text-[10px] font-bold tabular-nums",
+                cat.score >= 80 ? "text-emerald-400" :
+                cat.score >= 50 ? "text-amber-400" : "text-red-400"
+              )}>
+                {cat.score}%
+              </span>
+            </div>
+            <div className="h-1.5 w-full rounded-full bg-muted/30 overflow-hidden">
+              <div
+                className={cn(
+                  "h-full rounded-full transition-all duration-500",
+                  cat.score >= 80 ? "bg-emerald-500" :
+                  cat.score >= 50 ? "bg-amber-500" : "bg-red-500"
+                )}
+                style={{ width: `${cat.score}%` }}
+              />
+            </div>
           </div>
         ))}
       </div>
