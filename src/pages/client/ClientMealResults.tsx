@@ -559,8 +559,6 @@ function MealCard({ meal, onLog, isLogging }: { meal: MealResult; onLog: () => v
     </Card>
   );
 }
-            </div>
-            <h3 className="font-bold text-sm mb-0.5">{meal.name}</h3>
             {meal.description && (
               <p className="text-xs text-muted-foreground line-clamp-2 mb-2">{meal.description}</p>
             )}
