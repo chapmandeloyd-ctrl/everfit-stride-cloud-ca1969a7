@@ -1,17 +1,21 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ClientLayout } from "@/components/ClientLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Flame, Zap, Clock, Sparkles, Plus, AlertTriangle, X, Lock } from "lucide-react";
+import { ArrowLeft, Flame, Zap, Clock, Sparkles, Plus, AlertTriangle, X, Lock, SlidersHorizontal } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { useMealUnlockState, type MealRole, roleLabel } from "@/hooks/useMealUnlockState";
+import { useMealEngineState } from "@/hooks/useMealEngineState";
+import { MealContextHeader } from "@/components/meals/MealContextHeader";
+import { SmartFilterBar, type SmartFilter } from "@/components/meals/SmartFilterBar";
+import { RecommendedMealCard } from "@/components/meals/RecommendedMealCard";
 
 interface CoachingSuggestion {
   type: string;
@@ -60,6 +64,7 @@ export default function ClientMealResults() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
+  const engine = useMealEngineState();
 
   const [meals, setMeals] = useState<MealResult[]>([]);
   const [coachPicks, setCoachPicks] = useState<MealResult[]>([]);
@@ -69,6 +74,7 @@ export default function ClientMealResults() {
   const [usedFallback, setUsedFallback] = useState(false);
   const [hasAiSuggestions, setHasAiSuggestions] = useState(false);
   const [activeNudge, setActiveNudge] = useState<CoachNudge | null>(null);
+  const [activeFilter, setActiveFilter] = useState<SmartFilter | null>(null);
   const unlockState = useMealUnlockState();
 
   // Parse filters from URL
@@ -77,7 +83,6 @@ export default function ClientMealResults() {
     meal_goals: searchParams.get("goals")?.split(",").filter(Boolean) || [],
     hunger_level: searchParams.get("hunger") || null,
     prep_styles: searchParams.get("prep")?.split(",").filter(Boolean) || [],
-    // Engine state
     fasting_state: searchParams.get("fasting_state") || undefined,
     eating_phase: searchParams.get("eating_phase") || undefined,
     training_state: searchParams.get("training_state") || undefined,
@@ -104,7 +109,6 @@ export default function ClientMealResults() {
     if (goal) params.set("goals", goal);
     if (prep) params.set("prep", prep);
     navigate(`/client/meal-results?${params.toString()}`);
-    // Re-fetch with new filters
     setTimeout(() => window.location.reload(), 100);
   };
 
@@ -143,6 +147,34 @@ export default function ClientMealResults() {
     }
   };
 
+  // Smart filter logic — client-side re-filter
+  const filteredMeals = useMemo(() => {
+    if (!activeFilter) return meals;
+    return meals.filter((m) => {
+      switch (activeFilter) {
+        case "high_protein": return (m.protein || 0) >= 25;
+        case "quick": return (m.prep_time_minutes || 999) <= 15;
+        case "light": return (m.calories || 999) <= 400;
+        case "heavy": return (m.calories || 0) >= 500;
+        case "break_fast_safe": return m.tags?.includes("break_fast") || m.tags?.includes("breakfast");
+        case "last_meal_control": return m.tags?.includes("last_meal") || m.tags?.includes("dinner");
+        default: return true;
+      }
+    });
+  }, [meals, activeFilter]);
+
+  // Fallback: always guarantee 3 meals
+  const fallbackMeals = useMemo(() => {
+    if (filteredMeals.length > 0 || loading) return [];
+    const sorted = [...meals];
+    const byProtein = [...sorted].sort((a, b) => (b.protein || 0) - (a.protein || 0))[0];
+    const byCarbs = [...sorted].sort((a, b) => (a.carbs || 999) - (b.carbs || 999))[0];
+    const byPrep = [...sorted].sort((a, b) => (a.prep_time_minutes || 999) - (b.prep_time_minutes || 999))[0];
+    const unique = new Map<string, MealResult>();
+    [byProtein, byCarbs, byPrep].filter(Boolean).forEach((m) => unique.set(m.id, m));
+    return Array.from(unique.values());
+  }, [filteredMeals, meals, loading]);
+
   const logMealMutation = useMutation({
     mutationFn: async (meal: MealResult) => {
       const { error } = await supabase.from("nutrition_logs").insert({
@@ -157,7 +189,6 @@ export default function ClientMealResults() {
       });
       if (error) throw error;
 
-      // Check for coaching nudge
       const { data: nudgeData } = await supabase.functions.invoke("meal-coach-nudge", {
         body: {
           client_id: user?.id,
@@ -182,7 +213,6 @@ export default function ClientMealResults() {
         description: "Added to your daily nutrition log.",
       });
 
-      // Show coaching nudge with suggestions
       if (nudgeData?.nudge) {
         setActiveNudge(nudgeData.nudge);
         setTimeout(() => {
@@ -204,54 +234,89 @@ export default function ClientMealResults() {
     },
   });
 
+  const displayMeals = filteredMeals.length > 0 ? filteredMeals : fallbackMeals;
+  const showingFallback = filteredMeals.length === 0 && fallbackMeals.length > 0;
+
   return (
     <ClientLayout>
       <div className="pb-6 w-full">
         {/* Header */}
-        <div className="px-4 pt-4 pb-2 flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+        <div className="px-4 pt-4 pb-1 flex items-center gap-3">
+          <Button variant="ghost" size="icon" className="min-h-[44px] min-w-[44px]" onClick={() => navigate(-1)}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div>
-            <h1 className="text-lg font-bold">Your Meals</h1>
-            {ketoType && (
-              <p className="text-xs text-muted-foreground">{ketoType} · Sorted by protein</p>
-            )}
+          <div className="flex-1">
+            <h1 className="text-lg font-extrabold">Smart Meals</h1>
           </div>
         </div>
 
-        {/* Active Filters */}
-        {(filters.meal_types.length > 0 || filters.meal_goals.length > 0 || filters.hunger_level || filters.prep_styles.length > 0) && (
-          <div className="px-5 pb-3 flex flex-wrap gap-1.5">
-            {filters.meal_types.map((t) => (
-              <Badge key={t} variant="secondary" className="text-xs">{t}</Badge>
-            ))}
-            {filters.meal_goals.map((g) => (
-              <Badge key={g} variant="secondary" className="text-xs">{g}</Badge>
-            ))}
-            {filters.hunger_level && (
-              <Badge variant="secondary" className="text-xs">{filters.hunger_level} hunger</Badge>
-            )}
-            {filters.prep_styles.map((p) => (
-              <Badge key={p} variant="secondary" className="text-xs">{p}</Badge>
-            ))}
-          </div>
+        {/* SECTION 1: Context Header */}
+        {!loading && (
+          <MealContextHeader
+            eatingPhase={engine.eating_phase}
+            ketoType={ketoType || engine.keto_type}
+            macroTargets={macroTargets || engine.macroTargets}
+          />
         )}
 
-        {/* Macro Targets Bar */}
-        {macroTargets && (
-          <div className="px-5 pb-4">
-            <div className="grid grid-cols-4 gap-2">
-              <MacroMini label="Cal" value={macroTargets.calories} color="text-orange-500" />
-              <MacroMini label="Protein" value={macroTargets.protein} unit="g" color="text-blue-500" />
-              <MacroMini label="Carbs" value={macroTargets.carbs} unit="g" color="text-green-500" />
-              <MacroMini label="Fat" value={macroTargets.fats} unit="g" color="text-yellow-500" />
+        {/* SECTION 3: Smart Filter Bar */}
+        {!loading && <SmartFilterBar active={activeFilter} onSelect={setActiveFilter} />}
+
+        {/* Coaching Nudge */}
+        {activeNudge && (
+          <div className="mx-5 mb-3">
+            <div className={`rounded-2xl p-4 border ${
+              activeNudge.type === "exceeded" ? "bg-destructive/10 border-destructive/30" :
+              activeNudge.type === "warning" ? "bg-amber-500/10 border-amber-500/30" :
+              "bg-primary/10 border-primary/30"
+            }`}>
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <p className="text-sm font-medium flex-1">{activeNudge.message}</p>
+                <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => setActiveNudge(null)}>
+                  <X className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+              {activeNudge.suggestions && activeNudge.suggestions.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {activeNudge.suggestions.map((s) => (
+                    <Button key={s.type} variant="secondary" size="sm" className="rounded-xl text-xs h-8" onClick={() => handleSuggestionTap(s)}>
+                      {s.label}
+                    </Button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
 
-        {/* Fallback Notice */}
-        {usedFallback && (
+        {/* Unlock Progress */}
+        {!loading && !unlockState.isFullyUnlocked && (
+          <div className="mx-5 mb-3 rounded-xl bg-amber-500/10 border border-amber-500/20 p-3 flex items-start gap-2">
+            <Lock className="h-4 w-4 text-amber-400 mt-0.5 shrink-0" />
+            <div>
+              <p className="text-xs font-medium text-amber-400">
+                🔥 {unlockState.streak}-day streak — {unlockState.unlockedRoles.length}/3 phases unlocked
+              </p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">
+                {unlockState.streak < 3
+                  ? `${3 - unlockState.streak} more days to unlock Mid Window meals`
+                  : `${7 - unlockState.streak} more days to unlock full meal library`}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* SECTION 6: Fallback Notice */}
+        {!loading && showingFallback && (
+          <div className="mx-5 mb-3 rounded-xl bg-muted/50 border border-border p-3 flex items-start gap-2">
+            <Sparkles className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+            <p className="text-xs text-muted-foreground">
+              We've got you — here's your best option based on protein, carbs, and prep time.
+            </p>
+          </div>
+        )}
+
+        {usedFallback && !showingFallback && (
           <div className="mx-5 mb-3 rounded-xl bg-muted/50 border border-border p-3 flex items-start gap-2">
             <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
             <p className="text-xs text-muted-foreground">
@@ -269,75 +334,23 @@ export default function ClientMealResults() {
           </div>
         )}
 
-        {/* Smart Coaching Banner */}
-        {activeNudge && (
-          <div className="mx-5 mb-3">
-            <div className={`rounded-2xl p-4 border ${
-              activeNudge.type === "exceeded" ? "bg-destructive/10 border-destructive/30" :
-              activeNudge.type === "warning" ? "bg-amber-500/10 border-amber-500/30" :
-              "bg-primary/10 border-primary/30"
-            }`}>
-              <div className="flex items-start justify-between gap-2 mb-2">
-                <p className="text-sm font-medium flex-1">{activeNudge.message}</p>
-                <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => setActiveNudge(null)}>
-                  <X className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-              {activeNudge.suggestions && activeNudge.suggestions.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-3">
-                  {activeNudge.suggestions.map((s) => (
-                    <Button
-                      key={s.type}
-                      variant="secondary"
-                      size="sm"
-                      className="rounded-xl text-xs h-8"
-                      onClick={() => handleSuggestionTap(s)}
-                    >
-                      {s.label}
-                    </Button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Meal Unlock Progress */}
-        {!loading && !unlockState.isFullyUnlocked && (
-          <div className="mx-5 mb-3 rounded-xl bg-amber-500/10 border border-amber-500/20 p-3 flex items-start gap-2">
-            <Lock className="h-4 w-4 text-amber-400 mt-0.5 shrink-0" />
-            <div>
-              <p className="text-xs font-medium text-amber-400">
-                🔥 {unlockState.streak}-day streak — {unlockState.unlockedRoles.length}/3 meal phases unlocked
-              </p>
-              <p className="text-[10px] text-muted-foreground mt-0.5">
-                {unlockState.streak < 3
-                  ? `${3 - unlockState.streak} more days to unlock Mid Window meals`
-                  : `${7 - unlockState.streak} more days to unlock full meal library`}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Coach Picks */}
+        {/* SECTION 2: Recommended For You (Coach Picks) */}
         {!loading && coachPicks.length > 0 && (
-          <div className="px-5 mb-6">
+          <div className="px-5 mb-5">
             <div className="flex items-center gap-2 mb-3">
-              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <Sparkles className="h-4 w-4 text-primary" />
+              <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center">
+                <Sparkles className="h-3.5 w-3.5 text-primary" />
               </div>
-              <div>
-                <h2 className="text-sm font-bold">Coach Picks For You</h2>
-                <p className="text-[10px] text-muted-foreground">Scored and ranked by your coach engine</p>
-              </div>
+              <h2 className="text-sm font-extrabold">Recommended For You</h2>
             </div>
-            <div className="space-y-3">
-              {coachPicks.map((pick, idx) => (
-                <CoachPickCard
+            <div className="space-y-2.5">
+              {coachPicks.slice(0, 5).map((pick, idx) => (
+                <RecommendedMealCard
                   key={pick.id}
                   meal={pick}
                   rank={idx + 1}
-                  onLog={() => logMealMutation.mutate(pick)}
+                  onSelect={() => logMealMutation.mutate(pick)}
+                  onViewDetail={() => navigate(`/client/recipe/${pick.id}`)}
                   isLogging={logMealMutation.isPending}
                 />
               ))}
@@ -345,37 +358,40 @@ export default function ClientMealResults() {
           </div>
         )}
 
-        {/* All Results */}
-        {!loading && meals.length > coachPicks.length && (
+        {/* All Filtered Meals */}
+        {!loading && displayMeals.length > 0 && (
           <div className="px-5 mb-2">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">All Matching Meals</h2>
+            <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              {showingFallback ? "Best Options" : coachPicks.length > 0 ? "More Meals" : "Your Meals"}
+            </h2>
           </div>
         )}
-        <div className="px-5 space-y-3">
+        <div className="px-5 space-y-2.5">
           {loading ? (
             Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-32 w-full rounded-2xl" />
+              <Skeleton key={i} className="h-24 w-full rounded-2xl" />
             ))
-          ) : meals.length === 0 ? (
+          ) : displayMeals.length === 0 && coachPicks.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">No meals available. Try adjusting your filters.</p>
+              <p className="text-muted-foreground text-sm">No meals available.</p>
               <Button variant="outline" className="mt-4" onClick={() => navigate(-1)}>
                 Change Filters
               </Button>
             </div>
           ) : (
-            meals
+            displayMeals
               .filter((m) => !coachPicks.some((p) => p.id === m.id))
+              .slice(0, 5)
               .map((meal) => {
-                // Determine meal role from tags or goals
                 const mealRole = inferMealRole(meal);
                 const isLocked = mealRole ? unlockState.isRoleLocked(mealRole) : false;
                 const unlockAt = mealRole ? unlockState.unlockAtForRole(mealRole) : null;
                 return (
-                  <MealCard
+                  <RecommendedMealCard
                     key={meal.id}
                     meal={meal}
-                    onLog={() => logMealMutation.mutate(meal)}
+                    onSelect={() => logMealMutation.mutate(meal)}
+                    onViewDetail={() => navigate(`/client/recipe/${meal.id}`)}
                     isLogging={logMealMutation.isPending}
                     locked={isLocked}
                     unlockAt={unlockAt}
@@ -384,21 +400,31 @@ export default function ClientMealResults() {
               })
           )}
         </div>
+
+        {/* SECTION 4: Customize CTA */}
+        {!loading && (
+          <div className="px-5 pt-5 pb-2">
+            <Button
+              variant="outline"
+              className="w-full h-12 rounded-2xl text-sm font-bold border-dashed"
+              onClick={() => navigate("/client/meal-select")}
+            >
+              <SlidersHorizontal className="h-4 w-4 mr-2" />
+              Customize Your Selection
+            </Button>
+          </div>
+        )}
       </div>
     </ClientLayout>
   );
 }
 
-/** Infer meal role from tags/goals for unlock gating */
 function inferMealRole(meal: MealResult): MealRole | null {
   const tags = meal.tags || [];
   const name = (meal.name || "").toLowerCase();
-  
   if (tags.includes("break_fast") || tags.includes("breakfast") || name.includes("break fast")) return "break_fast";
   if (tags.includes("last_meal") || tags.includes("dinner") || name.includes("last meal")) return "last_meal";
   if (tags.includes("mid_window") || tags.includes("lunch") || tags.includes("snack") || name.includes("mid window")) return "mid_window";
-  
-  // Default: meals without a clear role are treated as mid_window
   return "mid_window";
 }
 
@@ -410,202 +436,4 @@ function getNudgeTitle(type: string): string {
     case "prompt": return "🍽️ Time to Eat!";
     default: return "💡 Coach Says";
   }
-}
-
-function MacroMini({ label, value, unit, color }: { label: string; value: number | null; unit?: string; color: string }) {
-  return (
-    <div className="rounded-xl bg-card border border-border p-2 text-center">
-      <p className={`text-sm font-bold ${color}`}>{value ?? "—"}{unit}</p>
-      <p className="text-[10px] text-muted-foreground">{label}</p>
-    </div>
-  );
-}
-
-const PICK_ICONS: Record<number, string> = { 1: "🏆", 2: "🔄", 3: "⚡" };
-const PICK_COLORS: Record<number, string> = {
-  1: "border-primary/40 bg-primary/5",
-  2: "border-border bg-card",
-  3: "border-border bg-card",
-};
-
-const PROFILE_LABELS: Record<string, { label: string; emoji: string; className: string }> = {
-  high_protein: { label: "High Protein", emoji: "🥩", className: "bg-blue-500/15 text-blue-400 border-blue-500/30" },
-  high_fat: { label: "High Fat", emoji: "🥑", className: "bg-yellow-500/15 text-yellow-400 border-yellow-500/30" },
-  balanced: { label: "Balanced", emoji: "⚖️", className: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" },
-  performance_carb: { label: "Performance", emoji: "⚡", className: "bg-purple-500/15 text-purple-400 border-purple-500/30" },
-};
-
-function MacroProfileBadge({ profile }: { profile?: string }) {
-  const info = PROFILE_LABELS[profile || "balanced"] || PROFILE_LABELS.balanced;
-  return (
-    <Badge variant="outline" className={`text-[10px] shrink-0 ${info.className}`}>
-      {info.emoji} {info.label}
-    </Badge>
-  );
-}
-
-function PortionBadge({ multiplier }: { multiplier?: number }) {
-  if (!multiplier || multiplier === 1.0) return null;
-  return (
-    <Badge variant="outline" className="text-[10px] bg-amber-500/10 text-amber-400 border-amber-500/30 shrink-0">
-      {multiplier}x portion
-    </Badge>
-  );
-}
-
-function MacroFeedback({ feedback }: { feedback?: string | null }) {
-  if (!feedback) return null;
-  const isPositive = feedback.includes("Perfect") || feedback.includes("Good fit");
-  const isWarning = feedback.includes("low") || feedback.includes("high") || feedback.includes("High");
-  return (
-    <p className={`text-[11px] mt-1.5 font-medium ${
-      isPositive ? "text-emerald-400" : isWarning ? "text-amber-400" : "text-muted-foreground"
-    }`}>
-      {isPositive ? "✅ " : isWarning ? "⚠️ " : "💡 "}{feedback}
-    </p>
-  );
-}
-
-function CoachPickCard({ meal, rank, onLog, isLogging }: { meal: MealResult; rank: number; onLog: () => void; isLogging: boolean }) {
-  const icon = PICK_ICONS[rank] || "🍽️";
-  const colorClass = PICK_COLORS[rank] || "";
-  return (
-    <Card className={`rounded-2xl overflow-hidden transition-colors ${colorClass}`}>
-      <CardContent className="p-4">
-        <div className="flex items-start gap-3">
-          <div className="text-2xl mt-0.5">{icon}</div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-              <Badge variant={rank === 1 ? "default" : "secondary"} className="text-[10px] shrink-0">
-                {meal.pick_label || `Pick #${rank}`}
-              </Badge>
-              <MacroProfileBadge profile={meal.macro_profile} />
-              <PortionBadge multiplier={meal.suggested_multiplier} />
-              {meal.score != null && (
-                <span className="text-[10px] text-muted-foreground font-mono">{meal.score}/120</span>
-              )}
-            </div>
-            <h3 className="font-bold text-sm mb-0.5">{meal.name}</h3>
-            {meal.description && (
-              <p className="text-xs text-muted-foreground line-clamp-2 mb-1">{meal.description}</p>
-            )}
-            <div className="flex items-center gap-3 text-xs">
-              {meal.calories != null && (
-                <span className="flex items-center gap-1 text-orange-500 font-medium">
-                  <Flame className="h-3 w-3" /> {meal.suggested_multiplier && meal.suggested_multiplier !== 1
-                    ? Math.round(meal.calories * meal.suggested_multiplier)
-                    : meal.calories}
-                </span>
-              )}
-              {meal.protein != null && (
-                <span className="text-blue-500 font-medium">P: {meal.suggested_multiplier && meal.suggested_multiplier !== 1
-                  ? Math.round(meal.protein * meal.suggested_multiplier)
-                  : meal.protein}g</span>
-              )}
-              {meal.carbs != null && (
-                <span className="text-green-500 font-medium">C: {meal.suggested_multiplier && meal.suggested_multiplier !== 1
-                  ? Math.round(meal.carbs * meal.suggested_multiplier)
-                  : meal.carbs}g</span>
-              )}
-              {meal.fats != null && (
-                <span className="text-yellow-500 font-medium">F: {meal.suggested_multiplier && meal.suggested_multiplier !== 1
-                  ? Math.round(meal.fats * meal.suggested_multiplier)
-                  : meal.fats}g</span>
-              )}
-              {meal.prep_time_minutes != null && (
-                <span className="flex items-center gap-0.5 text-muted-foreground">
-                  <Clock className="h-3 w-3" /> {meal.prep_time_minutes}m
-                </span>
-              )}
-            </div>
-            <MacroFeedback feedback={meal.macro_feedback} />
-          </div>
-          <Button
-            size="icon"
-            variant="outline"
-            className="shrink-0 h-10 w-10 rounded-xl"
-            onClick={onLog}
-            disabled={isLogging}
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function MealCard({ meal, onLog, isLogging, locked, unlockAt }: { meal: MealResult; onLog: () => void; isLogging: boolean; locked?: boolean; unlockAt?: number | null }) {
-  return (
-    <Card className={`rounded-2xl overflow-hidden border-border transition-colors relative ${locked ? "opacity-60" : "hover:border-primary/40"}`}>
-      {locked && (
-        <div className="absolute inset-0 z-10 backdrop-blur-[2px] bg-background/40 flex flex-col items-center justify-center gap-1.5 rounded-2xl">
-          <Lock className="h-5 w-5 text-muted-foreground" />
-          <span className="text-xs font-semibold text-muted-foreground">
-            Unlock at {unlockAt}-day streak
-          </span>
-        </div>
-      )}
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1 flex-wrap">
-              <h3 className="font-bold text-sm truncate">{meal.name}</h3>
-              <MacroProfileBadge profile={meal.macro_profile} />
-              {meal.is_ai_generated && (
-                <Badge variant="outline" className="text-[10px] shrink-0">
-                  <Sparkles className="h-2.5 w-2.5 mr-0.5" /> AI
-                </Badge>
-              )}
-              <PortionBadge multiplier={meal.suggested_multiplier} />
-            </div>
-            {meal.description && (
-              <p className="text-xs text-muted-foreground line-clamp-2 mb-1">{meal.description}</p>
-            )}
-            <div className="flex items-center gap-3 text-xs">
-              {meal.calories != null && (
-                <span className="flex items-center gap-1 text-orange-500 font-medium">
-                  <Flame className="h-3 w-3" /> {meal.suggested_multiplier && meal.suggested_multiplier !== 1
-                    ? Math.round(meal.calories * meal.suggested_multiplier)
-                    : meal.calories}
-                </span>
-              )}
-              {meal.protein != null && (
-                <span className="text-blue-500 font-medium">P: {meal.suggested_multiplier && meal.suggested_multiplier !== 1
-                  ? Math.round(meal.protein * meal.suggested_multiplier)
-                  : meal.protein}g</span>
-              )}
-              {meal.carbs != null && (
-                <span className="text-green-500 font-medium">C: {meal.suggested_multiplier && meal.suggested_multiplier !== 1
-                  ? Math.round(meal.carbs * meal.suggested_multiplier)
-                  : meal.carbs}g</span>
-              )}
-              {meal.fats != null && (
-                <span className="text-yellow-500 font-medium">F: {meal.suggested_multiplier && meal.suggested_multiplier !== 1
-                  ? Math.round(meal.fats * meal.suggested_multiplier)
-                  : meal.fats}g</span>
-              )}
-              {meal.prep_time_minutes != null && (
-                <span className="flex items-center gap-0.5 text-muted-foreground">
-                  <Clock className="h-3 w-3" /> {meal.prep_time_minutes}m
-                </span>
-              )}
-            </div>
-            <MacroFeedback feedback={meal.macro_feedback} />
-          </div>
-          {!locked && (
-            <Button
-              size="icon"
-              variant="outline"
-              className="shrink-0 h-10 w-10 rounded-xl"
-              onClick={onLog}
-              disabled={isLogging}
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  );
 }
