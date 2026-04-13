@@ -226,38 +226,17 @@ export function QuickSendTab() {
           .in("id", recipientIds);
 
         if (clientProfiles) {
-          // Templates with dedicated transactional email templates
-          const dedicatedTemplates = [
-            'welcome-getting-started', 'welcome-meet-coach', 'welcome-what-to-expect',
-          ];
-          const useDedicated = selectedTemplate && dedicatedTemplates.includes(selectedTemplate.id);
-
           for (const client of clientProfiles) {
             if (!client.email) continue;
             try {
-              if (useDedicated) {
-                await supabase.functions.invoke("send-transactional-email", {
-                  body: {
-                    templateName: selectedTemplate!.id,
-                    recipientEmail: client.email,
-                    idempotencyKey: `quick-${send.id}-${client.id}`,
-                    templateData: {
-                      name: client.email.split("@")[0],
-                      coachName: user?.user_metadata?.full_name || "Your Coach",
-                      loginUrl: "https://ksom-360.app/auth",
-                    },
-                  },
-                });
-              } else {
-                await supabase.functions.invoke("send-transactional-email", {
-                  body: {
-                    templateName: "admin-notification",
-                    recipientEmail: client.email,
-                    idempotencyKey: `quick-${send.id}-${client.id}`,
-                    templateData: { subject, bodyHtml },
-                  },
-                });
-              }
+              await supabase.functions.invoke("send-transactional-email", {
+                body: {
+                  templateName: "admin-notification",
+                  recipientEmail: client.email,
+                  idempotencyKey: `quick-${send.id}-${client.id}`,
+                  templateData: { subject, bodyHtml },
+                },
+              });
             } catch (err) {
               console.error(`Failed to send email to ${client.email}:`, err);
             }
