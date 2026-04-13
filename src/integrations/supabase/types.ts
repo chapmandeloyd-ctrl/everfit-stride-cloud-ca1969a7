@@ -4190,6 +4190,106 @@ export type Database = {
           },
         ]
       }
+      habit_loop_notifications: {
+        Row: {
+          client_id: string
+          created_at: string
+          engaged: boolean | null
+          id: string
+          message: string
+          notification_type: string
+          scheduled_for: string
+          sent_at: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          engaged?: boolean | null
+          id?: string
+          message: string
+          notification_type: string
+          scheduled_for: string
+          sent_at?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          engaged?: boolean | null
+          id?: string
+          message?: string
+          notification_type?: string
+          scheduled_for?: string
+          sent_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "habit_loop_notifications_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      habit_loop_preferences: {
+        Row: {
+          break_fast_enabled: boolean
+          client_id: string
+          created_at: string
+          daily_score_enabled: boolean
+          id: string
+          last_meal_enabled: boolean
+          max_daily_notifications: number
+          mid_window_enabled: boolean
+          pre_window_enabled: boolean
+          quiet_hours_end: string | null
+          quiet_hours_start: string | null
+          reduce_if_ignored: boolean
+          streak_protection_enabled: boolean
+          updated_at: string
+        }
+        Insert: {
+          break_fast_enabled?: boolean
+          client_id: string
+          created_at?: string
+          daily_score_enabled?: boolean
+          id?: string
+          last_meal_enabled?: boolean
+          max_daily_notifications?: number
+          mid_window_enabled?: boolean
+          pre_window_enabled?: boolean
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          reduce_if_ignored?: boolean
+          streak_protection_enabled?: boolean
+          updated_at?: string
+        }
+        Update: {
+          break_fast_enabled?: boolean
+          client_id?: string
+          created_at?: string
+          daily_score_enabled?: boolean
+          id?: string
+          last_meal_enabled?: boolean
+          max_daily_notifications?: number
+          mid_window_enabled?: boolean
+          pre_window_enabled?: boolean
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          reduce_if_ignored?: boolean
+          streak_protection_enabled?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "habit_loop_preferences_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       handle_sessions: {
         Row: {
           client_id: string
