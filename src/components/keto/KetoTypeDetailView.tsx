@@ -18,6 +18,10 @@ interface KetoTypeData {
   built_for: string[];
   coach_notes: string[];
   color: string;
+  macro_mode?: string;
+  protein_grams?: number | null;
+  fat_grams?: number | null;
+  carb_grams?: number | null;
 }
 
 interface ComparisonType {
@@ -107,7 +111,7 @@ export function KetoTypeDetailView({ ketoType: kt, allTypes, isActive = false }:
         {[
           { label: "Level", value: getDifficultyLabel(kt.difficulty) },
           { label: "System", value: "KSOM-360" },
-          { label: "Protein", value: `${kt.protein_pct}%` },
+          { label: "Protein", value: kt.macro_mode === "gram_based" && kt.protein_grams ? `${kt.protein_grams}g` : `${kt.protein_pct}%` },
         ].map((stat) => (
           <Card key={stat.label}>
             <CardContent className="p-3 text-center overflow-hidden">
@@ -122,27 +126,59 @@ export function KetoTypeDetailView({ ketoType: kt, allTypes, isActive = false }:
       <Card>
         <CardContent className="p-5">
           <h3 className="text-sm font-bold uppercase tracking-wider mb-4">Macro Breakdown</h3>
-          {[
-            { label: "Fat", pct: kt.fat_pct, barColor: kt.color },
-            { label: "Protein", pct: kt.protein_pct, barColor: "#94a3b8" },
-            { label: "Carbs", pct: kt.carbs_pct, barColor: "#475569" },
-          ].map((m) => (
-            <div key={m.label} className="flex items-center gap-3 mb-3 last:mb-0">
-              <span className="text-sm w-14 text-muted-foreground">{m.label}</span>
-              <div className="flex-1 h-3 bg-muted rounded-full overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all"
-                  style={{
-                    width: `${(m.pct / maxPct) * 100}%`,
-                    backgroundColor: m.barColor,
-                  }}
-                />
+          {kt.macro_mode === "gram_based" ? (
+            // Gram-based display
+            (() => {
+              const fG = kt.fat_grams ?? 0;
+              const pG = kt.protein_grams ?? 0;
+              const cG = kt.carb_grams ?? 0;
+              const maxG = Math.max(fG, pG, cG, 1);
+              return [
+                { label: "Fat", val: fG, unit: "g", barColor: kt.color },
+                { label: "Protein", val: pG, unit: "g", barColor: "#94a3b8" },
+                { label: "Carbs", val: cG, unit: "g", barColor: "#475569" },
+              ].map((m) => (
+                <div key={m.label} className="flex items-center gap-3 mb-3 last:mb-0">
+                  <span className="text-sm w-14 text-muted-foreground">{m.label}</span>
+                  <div className="flex-1 h-3 bg-muted rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all"
+                      style={{
+                        width: `${(m.val / maxG) * 100}%`,
+                        backgroundColor: m.barColor,
+                      }}
+                    />
+                  </div>
+                  <span className="text-sm font-bold w-12 text-right" style={{ color: kt.color }}>
+                    {m.val}{m.unit}
+                  </span>
+                </div>
+              ));
+            })()
+          ) : (
+            // Percentage-based display
+            [
+              { label: "Fat", pct: kt.fat_pct, barColor: kt.color },
+              { label: "Protein", pct: kt.protein_pct, barColor: "#94a3b8" },
+              { label: "Carbs", pct: kt.carbs_pct, barColor: "#475569" },
+            ].map((m) => (
+              <div key={m.label} className="flex items-center gap-3 mb-3 last:mb-0">
+                <span className="text-sm w-14 text-muted-foreground">{m.label}</span>
+                <div className="flex-1 h-3 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all"
+                    style={{
+                      width: `${(m.pct / maxPct) * 100}%`,
+                      backgroundColor: m.barColor,
+                    }}
+                  />
+                </div>
+                <span className="text-sm font-bold w-10 text-right" style={{ color: kt.color }}>
+                  {m.pct}%
+                </span>
               </div>
-              <span className="text-sm font-bold w-10 text-right" style={{ color: kt.color }}>
-                {m.pct}%
-              </span>
-            </div>
-          ))}
+            ))
+          )}
           {kt.carb_limit_grams && (
             <div className="mt-3 pt-3 border-t flex items-start gap-2">
               <Info className="h-3.5 w-3.5 mt-0.5 text-muted-foreground shrink-0" />
