@@ -1,14 +1,22 @@
 import { ClientLayout } from '@/components/ClientLayout';
-import { HealthConnectionCard } from '@/components/health/HealthConnectionCard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Activity, Shield, Info } from 'lucide-react';
-import { getPlatform, isNativePlatform } from '@/hooks/useHealthData';
+import { Activity, Heart, Info, Shield, Smartphone, CheckCircle2, XCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { useNativeHealth } from '@/hooks/useNativeHealth';
 
 export default function ClientHealthConnect() {
-  const platform = getPlatform();
-  const isNative = isNativePlatform();
-  
+  const { isNative, available, permissionGranted, requestPermissions } = useNativeHealth();
+
+  const statusLabel = !isNative
+    ? 'Mobile App Required'
+    : permissionGranted
+      ? 'Connected'
+      : available
+        ? 'Not Connected'
+        : 'Unavailable';
+
   return (
     <ClientLayout>
       <div className="space-y-6">
@@ -18,22 +26,69 @@ export default function ClientHealthConnect() {
             Sync your wearable device data to track your progress automatically
           </p>
         </div>
-        
+
         {!isNative && (
           <Alert>
             <Info className="h-4 w-4" />
             <AlertTitle>Mobile App Required</AlertTitle>
             <AlertDescription>
-              Health sync requires the mobile app. Download the app on your phone to connect your Apple Watch, Samsung Galaxy Watch, or other fitness devices.
+              Health sync requires the mobile app. Open this page inside your iPhone app to connect Apple Health.
             </AlertDescription>
           </Alert>
         )}
-        
-        <div className="grid gap-6 md:grid-cols-2">
-          <HealthConnectionCard provider="apple_health" />
-          <HealthConnectionCard provider="health_connect" />
-        </div>
-        
+
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="rounded-2xl bg-primary/10 p-3">
+                  <Heart className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl">Apple Health</CardTitle>
+                  <CardDescription>
+                    Sync heart rate, calories, steps, sleep, and workouts from your Apple Watch or iPhone.
+                  </CardDescription>
+                </div>
+              </div>
+              <Badge variant={permissionGranted ? 'default' : 'secondary'}>
+                {permissionGranted ? (
+                  <>
+                    <CheckCircle2 className="mr-1 h-3 w-3" />
+                    {statusLabel}
+                  </>
+                ) : (
+                  <>
+                    <XCircle className="mr-1 h-3 w-3" />
+                    {statusLabel}
+                  </>
+                )}
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {!isNative ? (
+              <p className="text-sm text-muted-foreground">
+                Apple Health connection only works inside the native iPhone app.
+              </p>
+            ) : permissionGranted ? (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Smartphone className="h-4 w-4 text-primary" />
+                  Apple Health access is active and your data can sync automatically.
+                </div>
+                <Button className="w-full" disabled>
+                  Apple Health Connected
+                </Button>
+              </div>
+            ) : (
+              <Button className="w-full" onClick={requestPermissions} disabled={!available}>
+                {available ? 'Connect Apple Health' : 'Apple Health Unavailable'}
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <div className="flex items-center gap-2">
@@ -47,25 +102,25 @@ export default function ClientHealthConnect() {
           <CardContent className="space-y-4">
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li className="flex items-start gap-2">
-                <Activity className="h-4 w-4 mt-0.5 text-primary" />
+                <Activity className="mt-0.5 h-4 w-4 text-primary" />
                 <span>Your trainer can view your health metrics to optimize your training program</span>
               </li>
               <li className="flex items-start gap-2">
-                <Activity className="h-4 w-4 mt-0.5 text-primary" />
+                <Activity className="mt-0.5 h-4 w-4 text-primary" />
                 <span>Data is synced securely and encrypted during transfer</span>
               </li>
               <li className="flex items-start gap-2">
-                <Activity className="h-4 w-4 mt-0.5 text-primary" />
+                <Activity className="mt-0.5 h-4 w-4 text-primary" />
                 <span>You can disconnect at any time to stop sharing data</span>
               </li>
               <li className="flex items-start gap-2">
-                <Activity className="h-4 w-4 mt-0.5 text-primary" />
+                <Activity className="mt-0.5 h-4 w-4 text-primary" />
                 <span>We only access the specific health metrics you approve</span>
               </li>
             </ul>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader>
             <CardTitle>What Data Gets Synced?</CardTitle>
@@ -77,21 +132,20 @@ export default function ClientHealthConnect() {
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <h4 className="font-medium">Activity Data</h4>
-                <ul className="text-sm text-muted-foreground space-y-1">
+                <ul className="space-y-1 text-sm text-muted-foreground">
                   <li>• Daily step count</li>
                   <li>• Active energy burned</li>
                   <li>• Resting energy (basal metabolic)</li>
-                  <li>• Active minutes</li>
                   <li>• Workouts from your watch</li>
                 </ul>
               </div>
               <div className="space-y-2">
                 <h4 className="font-medium">Health Metrics</h4>
-                <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>• Heart rate (average, resting, max)</li>
-                  <li>• Sleep duration &amp; stages</li>
-                  <li>• Weight (body mass)</li>
-                  <li>• Workout heart rate zones</li>
+                <ul className="space-y-1 text-sm text-muted-foreground">
+                  <li>• Heart rate</li>
+                  <li>• Sleep duration</li>
+                  <li>• Weight</li>
+                  <li>• Calories burned</li>
                 </ul>
               </div>
             </div>
