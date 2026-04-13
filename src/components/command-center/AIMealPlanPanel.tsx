@@ -32,17 +32,22 @@ export function AIMealPlanPanel({ clientId, trainerId }: AIMealPlanPanelProps) {
       // Get active keto assignment
       const { data: ketoAssignment } = await supabase
         .from("client_keto_assignments")
-        .select("keto_type_id, keto_types(name, fat_pct, protein_pct, carb_pct)")
+        .select("keto_type_id, keto_types(name, fat_pct, protein_pct, carbs_pct, macro_mode, protein_grams, fat_grams, carb_grams)")
         .eq("client_id", clientId)
         .eq("is_active", true)
         .maybeSingle();
 
       const keto = (ketoAssignment as any)?.keto_types;
+      const isGramBased = keto?.macro_mode === "gram_based";
       return {
         keto_type_name: keto?.name || null,
         keto_fat_pct: keto?.fat_pct || null,
         keto_protein_pct: keto?.protein_pct || null,
-        keto_carb_pct: keto?.carb_pct || null,
+        keto_carb_pct: keto?.carbs_pct || null,
+        keto_macro_mode: keto?.macro_mode || "percentage_based",
+        keto_fat_grams: isGramBased ? keto?.fat_grams : null,
+        keto_protein_grams: isGramBased ? keto?.protein_grams : null,
+        keto_carb_grams: isGramBased ? keto?.carb_grams : null,
       };
     },
   });
