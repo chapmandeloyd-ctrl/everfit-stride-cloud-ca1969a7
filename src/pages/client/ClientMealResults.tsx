@@ -38,6 +38,9 @@ interface MealResult {
   image_url?: string;
   tags?: string[];
   is_ai_generated?: boolean;
+  score?: number;
+  pick_label?: string | null;
+  pick_slot?: number | null;
 }
 
 interface MacroTargets {
