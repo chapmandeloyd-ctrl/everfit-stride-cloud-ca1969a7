@@ -1633,6 +1633,7 @@ export type Database = {
           meal_date: string
           meal_type: Database["public"]["Enums"]["meal_type"]
           recipe_id: string
+          serving_multiplier: number
           servings: number | null
         }
         Insert: {
@@ -1643,6 +1644,7 @@ export type Database = {
           meal_date: string
           meal_type: Database["public"]["Enums"]["meal_type"]
           recipe_id: string
+          serving_multiplier?: number
           servings?: number | null
         }
         Update: {
@@ -1653,6 +1655,7 @@ export type Database = {
           meal_date?: string
           meal_type?: Database["public"]["Enums"]["meal_type"]
           recipe_id?: string
+          serving_multiplier?: number
           servings?: number | null
         }
         Relationships: [
@@ -6038,6 +6041,7 @@ export type Database = {
           ingredients_list: string | null
           instructions: string | null
           keto_types: string[] | null
+          macro_profile: string
           meal_role: string | null
           meal_timing: string | null
           name: string
@@ -6068,6 +6072,7 @@ export type Database = {
           ingredients_list?: string | null
           instructions?: string | null
           keto_types?: string[] | null
+          macro_profile?: string
           meal_role?: string | null
           meal_timing?: string | null
           name: string
@@ -6098,6 +6103,7 @@ export type Database = {
           ingredients_list?: string | null
           instructions?: string | null
           keto_types?: string[] | null
+          macro_profile?: string
           meal_role?: string | null
           meal_timing?: string | null
           name?: string

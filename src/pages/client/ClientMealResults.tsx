@@ -41,6 +41,9 @@ interface MealResult {
   score?: number;
   pick_label?: string | null;
   pick_slot?: number | null;
+  macro_feedback?: string | null;
+  suggested_multiplier?: number;
+  macro_profile?: string;
 }
 
 interface MacroTargets {
@@ -385,6 +388,44 @@ const PICK_COLORS: Record<number, string> = {
   3: "border-border bg-card",
 };
 
+const PROFILE_LABELS: Record<string, { label: string; emoji: string; className: string }> = {
+  high_protein: { label: "High Protein", emoji: "🥩", className: "bg-blue-500/15 text-blue-400 border-blue-500/30" },
+  high_fat: { label: "High Fat", emoji: "🥑", className: "bg-yellow-500/15 text-yellow-400 border-yellow-500/30" },
+  balanced: { label: "Balanced", emoji: "⚖️", className: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" },
+  performance_carb: { label: "Performance", emoji: "⚡", className: "bg-purple-500/15 text-purple-400 border-purple-500/30" },
+};
+
+function MacroProfileBadge({ profile }: { profile?: string }) {
+  const info = PROFILE_LABELS[profile || "balanced"] || PROFILE_LABELS.balanced;
+  return (
+    <Badge variant="outline" className={`text-[10px] shrink-0 ${info.className}`}>
+      {info.emoji} {info.label}
+    </Badge>
+  );
+}
+
+function PortionBadge({ multiplier }: { multiplier?: number }) {
+  if (!multiplier || multiplier === 1.0) return null;
+  return (
+    <Badge variant="outline" className="text-[10px] bg-amber-500/10 text-amber-400 border-amber-500/30 shrink-0">
+      {multiplier}x portion
+    </Badge>
+  );
+}
+
+function MacroFeedback({ feedback }: { feedback?: string | null }) {
+  if (!feedback) return null;
+  const isPositive = feedback.includes("Perfect") || feedback.includes("Good fit");
+  const isWarning = feedback.includes("low") || feedback.includes("high") || feedback.includes("High");
+  return (
+    <p className={`text-[11px] mt-1.5 font-medium ${
+      isPositive ? "text-emerald-400" : isWarning ? "text-amber-400" : "text-muted-foreground"
+    }`}>
+      {isPositive ? "✅ " : isWarning ? "⚠️ " : "💡 "}{feedback}
+    </p>
+  );
+}
+
 function CoachPickCard({ meal, rank, onLog, isLogging }: { meal: MealResult; rank: number; onLog: () => void; isLogging: boolean }) {
   const icon = PICK_ICONS[rank] || "🍽️";
   const colorClass = PICK_COLORS[rank] || "";
@@ -394,32 +435,42 @@ function CoachPickCard({ meal, rank, onLog, isLogging }: { meal: MealResult; ran
         <div className="flex items-start gap-3">
           <div className="text-2xl mt-0.5">{icon}</div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-0.5">
+            <div className="flex items-center gap-2 mb-0.5 flex-wrap">
               <Badge variant={rank === 1 ? "default" : "secondary"} className="text-[10px] shrink-0">
                 {meal.pick_label || `Pick #${rank}`}
               </Badge>
+              <MacroProfileBadge profile={meal.macro_profile} />
+              <PortionBadge multiplier={meal.suggested_multiplier} />
               {meal.score != null && (
-                <span className="text-[10px] text-muted-foreground font-mono">{meal.score}/100</span>
+                <span className="text-[10px] text-muted-foreground font-mono">{meal.score}/120</span>
               )}
             </div>
             <h3 className="font-bold text-sm mb-0.5">{meal.name}</h3>
             {meal.description && (
-              <p className="text-xs text-muted-foreground line-clamp-2 mb-2">{meal.description}</p>
+              <p className="text-xs text-muted-foreground line-clamp-2 mb-1">{meal.description}</p>
             )}
             <div className="flex items-center gap-3 text-xs">
               {meal.calories != null && (
                 <span className="flex items-center gap-1 text-orange-500 font-medium">
-                  <Flame className="h-3 w-3" /> {meal.calories}
+                  <Flame className="h-3 w-3" /> {meal.suggested_multiplier && meal.suggested_multiplier !== 1
+                    ? Math.round(meal.calories * meal.suggested_multiplier)
+                    : meal.calories}
                 </span>
               )}
               {meal.protein != null && (
-                <span className="text-blue-500 font-medium">P: {meal.protein}g</span>
+                <span className="text-blue-500 font-medium">P: {meal.suggested_multiplier && meal.suggested_multiplier !== 1
+                  ? Math.round(meal.protein * meal.suggested_multiplier)
+                  : meal.protein}g</span>
               )}
               {meal.carbs != null && (
-                <span className="text-green-500 font-medium">C: {meal.carbs}g</span>
+                <span className="text-green-500 font-medium">C: {meal.suggested_multiplier && meal.suggested_multiplier !== 1
+                  ? Math.round(meal.carbs * meal.suggested_multiplier)
+                  : meal.carbs}g</span>
               )}
               {meal.fats != null && (
-                <span className="text-yellow-500 font-medium">F: {meal.fats}g</span>
+                <span className="text-yellow-500 font-medium">F: {meal.suggested_multiplier && meal.suggested_multiplier !== 1
+                  ? Math.round(meal.fats * meal.suggested_multiplier)
+                  : meal.fats}g</span>
               )}
               {meal.prep_time_minutes != null && (
                 <span className="flex items-center gap-0.5 text-muted-foreground">
@@ -427,6 +478,7 @@ function CoachPickCard({ meal, rank, onLog, isLogging }: { meal: MealResult; ran
                 </span>
               )}
             </div>
+            <MacroFeedback feedback={meal.macro_feedback} />
           </div>
           <Button
             size="icon"
@@ -449,31 +501,41 @@ function MealCard({ meal, onLog, isLogging }: { meal: MealResult; onLog: () => v
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
               <h3 className="font-bold text-sm truncate">{meal.name}</h3>
+              <MacroProfileBadge profile={meal.macro_profile} />
               {meal.is_ai_generated && (
                 <Badge variant="outline" className="text-[10px] shrink-0">
                   <Sparkles className="h-2.5 w-2.5 mr-0.5" /> AI
                 </Badge>
               )}
+              <PortionBadge multiplier={meal.suggested_multiplier} />
             </div>
             {meal.description && (
-              <p className="text-xs text-muted-foreground line-clamp-2 mb-2">{meal.description}</p>
+              <p className="text-xs text-muted-foreground line-clamp-2 mb-1">{meal.description}</p>
             )}
             <div className="flex items-center gap-3 text-xs">
               {meal.calories != null && (
                 <span className="flex items-center gap-1 text-orange-500 font-medium">
-                  <Flame className="h-3 w-3" /> {meal.calories}
+                  <Flame className="h-3 w-3" /> {meal.suggested_multiplier && meal.suggested_multiplier !== 1
+                    ? Math.round(meal.calories * meal.suggested_multiplier)
+                    : meal.calories}
                 </span>
               )}
               {meal.protein != null && (
-                <span className="text-blue-500 font-medium">P: {meal.protein}g</span>
+                <span className="text-blue-500 font-medium">P: {meal.suggested_multiplier && meal.suggested_multiplier !== 1
+                  ? Math.round(meal.protein * meal.suggested_multiplier)
+                  : meal.protein}g</span>
               )}
               {meal.carbs != null && (
-                <span className="text-green-500 font-medium">C: {meal.carbs}g</span>
+                <span className="text-green-500 font-medium">C: {meal.suggested_multiplier && meal.suggested_multiplier !== 1
+                  ? Math.round(meal.carbs * meal.suggested_multiplier)
+                  : meal.carbs}g</span>
               )}
               {meal.fats != null && (
-                <span className="text-yellow-500 font-medium">F: {meal.fats}g</span>
+                <span className="text-yellow-500 font-medium">F: {meal.suggested_multiplier && meal.suggested_multiplier !== 1
+                  ? Math.round(meal.fats * meal.suggested_multiplier)
+                  : meal.fats}g</span>
               )}
               {meal.prep_time_minutes != null && (
                 <span className="flex items-center gap-0.5 text-muted-foreground">
@@ -481,6 +543,7 @@ function MealCard({ meal, onLog, isLogging }: { meal: MealResult; onLog: () => v
                 </span>
               )}
             </div>
+            <MacroFeedback feedback={meal.macro_feedback} />
           </div>
           <Button
             size="icon"
