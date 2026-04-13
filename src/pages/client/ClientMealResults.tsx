@@ -5,12 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Flame, Zap, Clock, Sparkles, Plus, AlertTriangle, X } from "lucide-react";
+import { ArrowLeft, Flame, Zap, Clock, Sparkles, Plus, AlertTriangle, X, Lock } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { useMealUnlockState, type MealRole, roleLabel } from "@/hooks/useMealUnlockState";
 
 interface CoachingSuggestion {
   type: string;
@@ -68,6 +69,7 @@ export default function ClientMealResults() {
   const [usedFallback, setUsedFallback] = useState(false);
   const [hasAiSuggestions, setHasAiSuggestions] = useState(false);
   const [activeNudge, setActiveNudge] = useState<CoachNudge | null>(null);
+  const unlockState = useMealUnlockState();
 
   // Parse filters from URL
   const filters = {
@@ -300,6 +302,23 @@ export default function ClientMealResults() {
           </div>
         )}
 
+        {/* Meal Unlock Progress */}
+        {!loading && !unlockState.isFullyUnlocked && (
+          <div className="mx-5 mb-3 rounded-xl bg-amber-500/10 border border-amber-500/20 p-3 flex items-start gap-2">
+            <Lock className="h-4 w-4 text-amber-400 mt-0.5 shrink-0" />
+            <div>
+              <p className="text-xs font-medium text-amber-400">
+                🔥 {unlockState.streak}-day streak — {unlockState.unlockedRoles.length}/3 meal phases unlocked
+              </p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">
+                {unlockState.streak < 3
+                  ? `${3 - unlockState.streak} more days to unlock Mid Window meals`
+                  : `${7 - unlockState.streak} more days to unlock full meal library`}
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Coach Picks */}
         {!loading && coachPicks.length > 0 && (
           <div className="px-5 mb-6">
@@ -347,19 +366,40 @@ export default function ClientMealResults() {
           ) : (
             meals
               .filter((m) => !coachPicks.some((p) => p.id === m.id))
-              .map((meal) => (
-                <MealCard
-                  key={meal.id}
-                  meal={meal}
-                  onLog={() => logMealMutation.mutate(meal)}
-                  isLogging={logMealMutation.isPending}
-                />
-              ))
+              .map((meal) => {
+                // Determine meal role from tags or goals
+                const mealRole = inferMealRole(meal);
+                const isLocked = mealRole ? unlockState.isRoleLocked(mealRole) : false;
+                const unlockAt = mealRole ? unlockState.unlockAtForRole(mealRole) : null;
+                return (
+                  <MealCard
+                    key={meal.id}
+                    meal={meal}
+                    onLog={() => logMealMutation.mutate(meal)}
+                    isLogging={logMealMutation.isPending}
+                    locked={isLocked}
+                    unlockAt={unlockAt}
+                  />
+                );
+              })
           )}
         </div>
       </div>
     </ClientLayout>
   );
+}
+
+/** Infer meal role from tags/goals for unlock gating */
+function inferMealRole(meal: MealResult): MealRole | null {
+  const tags = meal.tags || [];
+  const name = (meal.name || "").toLowerCase();
+  
+  if (tags.includes("break_fast") || tags.includes("breakfast") || name.includes("break fast")) return "break_fast";
+  if (tags.includes("last_meal") || tags.includes("dinner") || name.includes("last meal")) return "last_meal";
+  if (tags.includes("mid_window") || tags.includes("lunch") || tags.includes("snack") || name.includes("mid window")) return "mid_window";
+  
+  // Default: meals without a clear role are treated as mid_window
+  return "mid_window";
 }
 
 function getNudgeTitle(type: string): string {
@@ -495,9 +535,17 @@ function CoachPickCard({ meal, rank, onLog, isLogging }: { meal: MealResult; ran
   );
 }
 
-function MealCard({ meal, onLog, isLogging }: { meal: MealResult; onLog: () => void; isLogging: boolean }) {
+function MealCard({ meal, onLog, isLogging, locked, unlockAt }: { meal: MealResult; onLog: () => void; isLogging: boolean; locked?: boolean; unlockAt?: number | null }) {
   return (
-    <Card className="rounded-2xl overflow-hidden border-border hover:border-primary/40 transition-colors">
+    <Card className={`rounded-2xl overflow-hidden border-border transition-colors relative ${locked ? "opacity-60" : "hover:border-primary/40"}`}>
+      {locked && (
+        <div className="absolute inset-0 z-10 backdrop-blur-[2px] bg-background/40 flex flex-col items-center justify-center gap-1.5 rounded-2xl">
+          <Lock className="h-5 w-5 text-muted-foreground" />
+          <span className="text-xs font-semibold text-muted-foreground">
+            Unlock at {unlockAt}-day streak
+          </span>
+        </div>
+      )}
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
@@ -545,15 +593,17 @@ function MealCard({ meal, onLog, isLogging }: { meal: MealResult; onLog: () => v
             </div>
             <MacroFeedback feedback={meal.macro_feedback} />
           </div>
-          <Button
-            size="icon"
-            variant="outline"
-            className="shrink-0 h-10 w-10 rounded-xl"
-            onClick={onLog}
-            disabled={isLogging}
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
+          {!locked && (
+            <Button
+              size="icon"
+              variant="outline"
+              className="shrink-0 h-10 w-10 rounded-xl"
+              onClick={onLog}
+              disabled={isLogging}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>
