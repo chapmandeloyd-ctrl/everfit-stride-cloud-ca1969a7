@@ -11,7 +11,7 @@ interface Props {
 
 export function MyProgressSection({ clientId }: Props) {
   const navigate = useNavigate();
-  const { isNative, available, permissionGranted, requestPermissions } = useNativeHealth();
+  const { isNative, permissionGranted, requestPermissions } = useNativeHealth();
 
   return (
     <div className="space-y-4">
@@ -23,7 +23,7 @@ export function MyProgressSection({ clientId }: Props) {
               Track your weight, steps, sleep, calories, and workouts in one place.
             </p>
           </div>
-          {isNative && available && permissionGranted && (
+          {isNative && permissionGranted && (
             <Badge variant="outline" className="mt-1 gap-1 text-xs border-green-500 text-green-600">
               <Smartphone className="h-3 w-3" />
               Live
@@ -32,7 +32,7 @@ export function MyProgressSection({ clientId }: Props) {
         </div>
 
         <div>
-          {isNative && available && !permissionGranted ? (
+          {isNative && !permissionGranted ? (
             <Button
               variant="default"
               className="h-14 w-full justify-start rounded-2xl text-base font-semibold"

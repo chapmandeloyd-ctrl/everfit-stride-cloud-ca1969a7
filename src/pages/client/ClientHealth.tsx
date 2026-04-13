@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 
 export default function ClientHealth() {
   const effectiveClientId = useEffectiveClientId();
-  const { isNative, available, permissionGranted, requestPermissions } = useNativeHealth();
+  const { isNative, permissionGranted, requestPermissions } = useNativeHealth();
 
   return (
     <ClientLayout>
@@ -22,7 +22,7 @@ export default function ClientHealth() {
                 Track your health metrics and activity
               </p>
             </div>
-            {isNative && available && permissionGranted && (
+            {isNative && permissionGranted && (
               <Badge variant="outline" className="mt-1 gap-1 text-xs border-green-500 text-green-600">
                 <Smartphone className="h-3 w-3" />
                 Live
@@ -30,7 +30,7 @@ export default function ClientHealth() {
             )}
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            {isNative && available && !permissionGranted ? (
+            {isNative && !permissionGranted ? (
               <Button variant="default" onClick={requestPermissions}>
                 <Smartphone className="h-4 w-4 mr-2" />
                 Connect Apple Health

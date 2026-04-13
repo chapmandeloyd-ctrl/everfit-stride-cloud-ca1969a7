@@ -1,33 +1,37 @@
-import { useState, useEffect, useCallback } from "react";
+import { useEffect, useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Capacitor } from "@capacitor/core";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { supabase } from "@/integrations/supabase/client";
 import {
   isNativeHealthAvailable,
+  checkNativeHealthPermissions,
   requestHealthPermissions,
   readTodayHealthData,
   syncHealthDataToBackend,
-  NativeHealthData,
 } from "@/lib/native-health";
 import { toast } from "sonner";
 
 export function useNativeHealth() {
   const clientId = useEffectiveClientId();
   const queryClient = useQueryClient();
-  const [permissionGranted, setPermissionGranted] = useState(false);
-
   const isNative = Capacitor.isNativePlatform();
 
-  // Check availability
   const { data: available = false } = useQuery({
     queryKey: ["native-health-available"],
     queryFn: isNativeHealthAvailable,
     enabled: isNative,
-    staleTime: Infinity,
+    staleTime: 30_000,
+    retry: 2,
   });
 
-  // Read today's data
+  const { data: permissionGranted = false } = useQuery({
+    queryKey: ["native-health-permissions"],
+    queryFn: checkNativeHealthPermissions,
+    enabled: isNative && available,
+    staleTime: 10_000,
+  });
+
   const {
     data: healthData,
     isLoading,
@@ -35,38 +39,37 @@ export function useNativeHealth() {
   } = useQuery({
     queryKey: ["native-health-data", clientId],
     queryFn: readTodayHealthData,
-    enabled: isNative && available && permissionGranted,
-    refetchInterval: 5 * 60 * 1000, // every 5 min
+    enabled: isNative && permissionGranted,
+    refetchInterval: 5 * 60 * 1000,
   });
 
-  // Request permissions
   const requestPermissions = useCallback(async () => {
     const granted = await requestHealthPermissions();
-    setPermissionGranted(granted);
-    if (granted) {
+    const [latestAvailable, latestPermissionGranted] = await Promise.all([
+      isNativeHealthAvailable(),
+      checkNativeHealthPermissions(),
+    ]);
+
+    queryClient.setQueryData(["native-health-available"], latestAvailable);
+    queryClient.setQueryData(
+      ["native-health-permissions"],
+      latestPermissionGranted || granted,
+    );
+
+    if (granted || latestPermissionGranted) {
       toast.success("Health data access granted");
       refetch();
-    } else {
-      toast.error("Health permissions denied");
+      return true;
     }
-    return granted;
-  }, [refetch]);
 
-  // Auto-request on mount if native
-  useEffect(() => {
-    if (isNative && available && !permissionGranted) {
-      requestHealthPermissions().then((granted) => {
-        setPermissionGranted(granted);
-      });
-    }
-  }, [isNative, available, permissionGranted]);
+    toast.error("Health permissions denied");
+    return false;
+  }, [queryClient, refetch]);
 
-  // Sync to backend whenever we get fresh data
   useEffect(() => {
     if (healthData && clientId) {
       syncHealthDataToBackend(clientId, supabase).then((synced) => {
         if (synced) {
-          // Invalidate dashboard health stats so they refresh
           queryClient.invalidateQueries({ queryKey: ["health-stats"] });
         }
       });
@@ -75,7 +78,7 @@ export function useNativeHealth() {
 
   return {
     isNative,
-    available,
+    available: available || permissionGranted,
     permissionGranted,
     healthData,
     isLoading,
