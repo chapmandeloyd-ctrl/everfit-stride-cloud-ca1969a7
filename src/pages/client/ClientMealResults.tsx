@@ -58,6 +58,7 @@ export default function ClientMealResults() {
   const [searchParams] = useSearchParams();
 
   const [meals, setMeals] = useState<MealResult[]>([]);
+  const [coachPicks, setCoachPicks] = useState<MealResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [macroTargets, setMacroTargets] = useState<MacroTargets | null>(null);
   const [ketoType, setKetoType] = useState<string | null>(null);
