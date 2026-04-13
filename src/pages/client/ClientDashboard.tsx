@@ -1557,6 +1557,12 @@ export default function ClientDashboard() {
         {/* Daily Score Ring */}
         <DailyScoreRing />
 
+        {/* Meal Decision Card — eating window only */}
+        <MealDecisionCard />
+
+        {/* Progression / Unlocks Card */}
+        <ProgressionUnlocksCard />
+
         {/* Layout-driven card rendering */}
         {layoutCards.filter(c => c.visible).map((card) => {
           switch (card.key) {
