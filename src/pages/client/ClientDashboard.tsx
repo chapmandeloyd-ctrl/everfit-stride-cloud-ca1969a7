@@ -45,6 +45,7 @@ import { SportHeroBanner } from "@/components/SportHeroBanner";
 import { AssignedPlanCard } from "@/components/dashboard/AssignedPlanCard";
 import { AskKsomAI } from "@/components/client/AskKsomAI";
 import { MetabolicControlDashboard } from "@/components/dashboard/MetabolicControlDashboard";
+import { DailyScoreRing } from "@/components/dashboard/DailyScoreRing";
 
 // Fasting Program Card sub-component
 function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; navigate: (path: string) => void }) {
@@ -1550,6 +1551,9 @@ export default function ClientDashboard() {
 
         {/* In-App Notifications */}
         <InAppNotifications />
+
+        {/* Daily Score Ring */}
+        <DailyScoreRing />
 
         {/* Layout-driven card rendering */}
         {layoutCards.filter(c => c.visible).map((card) => {
