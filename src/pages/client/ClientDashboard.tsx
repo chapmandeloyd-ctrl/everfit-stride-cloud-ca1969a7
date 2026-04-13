@@ -1552,6 +1552,9 @@ export default function ClientDashboard() {
         {/* In-App Notifications */}
         <InAppNotifications />
 
+        {/* Daily Score Ring */}
+        <DailyScoreRing />
+
         {/* Layout-driven card rendering */}
         {layoutCards.filter(c => c.visible).map((card) => {
           switch (card.key) {
