@@ -104,41 +104,7 @@ const QUICK_TEMPLATES: QuickTemplate[] = [
       { id: "3", type: "button", content: "Reply to Coach", url: "https://everfit-stride-cloud.lovable.app/client/messages", alignment: "center" },
     ],
   },
-  {
-    id: "welcome-getting-started",
-    name: "Welcome — Getting Started",
-    subject: "Here's How to Get Started with KSOM-360 🚀",
-    channel: "email",
-    blocks: [
-      { id: "1", type: "heading", content: "Let's Get Started! 🚀", level: 1, alignment: "center" },
-      { id: "2", type: "text", content: "Welcome to KSOM-360! Here's a quick guide: 1) Log in and explore your dashboard. 2) Check out your workouts and meal plans. 3) Log your first check-in. 4) Message your coach with any questions!", alignment: "left" },
-      { id: "3", type: "button", content: "Open Your Dashboard", url: "https://ksom-360.app/auth", alignment: "center" },
-    ],
-  },
-  {
-    id: "welcome-meet-coach",
-    name: "Welcome — Meet Your Coach",
-    subject: "Your Coach Welcomes You to KSOM-360! 🤝",
-    channel: "email",
-    blocks: [
-      { id: "1", type: "heading", content: "Meet Your Coach 🤝", level: 1, alignment: "center" },
-      { id: "2", type: "text", content: "I'm excited to work with you! Together we'll build a plan that fits your life, push through plateaus, and celebrate every win along the way. Have a question? Message me anytime through the app!", alignment: "left" },
-      { id: "3", type: "button", content: "Say Hello 👋", url: "https://ksom-360.app/auth", alignment: "center" },
-    ],
-  },
-  {
-    id: "welcome-what-to-expect",
-    name: "Welcome — What to Expect",
-    subject: "Here's What to Expect with KSOM-360 🎯",
-    channel: "email",
-    blocks: [
-      { id: "1", type: "heading", content: "What to Expect 🎯", level: 1, alignment: "center" },
-      { id: "2", type: "text", content: "Here's what you get: 🏋️ Custom Workouts, 🥗 Meal Plans & Nutrition, 📊 Progress Tracking, 💬 Coach Messaging, 📸 Progress Photos, 🏆 Goals & Badges. Everything is designed to keep you motivated and on track!", alignment: "left" },
-      { id: "3", type: "button", content: "Explore KSOM-360", url: "https://ksom-360.app/auth", alignment: "center" },
-    ],
-  },
 ];
-
 export function QuickSendTab() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
