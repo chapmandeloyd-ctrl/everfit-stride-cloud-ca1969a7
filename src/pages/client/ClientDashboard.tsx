@@ -46,6 +46,8 @@ import { AssignedPlanCard } from "@/components/dashboard/AssignedPlanCard";
 import { AskKsomAI } from "@/components/client/AskKsomAI";
 import { MetabolicControlDashboard } from "@/components/dashboard/MetabolicControlDashboard";
 import { DailyScoreRing } from "@/components/dashboard/DailyScoreRing";
+import { MealDecisionCard } from "@/components/dashboard/MealDecisionCard";
+import { ProgressionUnlocksCard } from "@/components/dashboard/ProgressionUnlocksCard";
 
 // Fasting Program Card sub-component
 function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; navigate: (path: string) => void }) {
@@ -1554,6 +1556,12 @@ export default function ClientDashboard() {
 
         {/* Daily Score Ring */}
         <DailyScoreRing />
+
+        {/* Meal Decision Card — eating window only */}
+        <MealDecisionCard />
+
+        {/* Progression / Unlocks Card */}
+        <ProgressionUnlocksCard />
 
         {/* Layout-driven card rendering */}
         {layoutCards.filter(c => c.visible).map((card) => {
