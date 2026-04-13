@@ -302,6 +302,23 @@ export default function ClientMealResults() {
           </div>
         )}
 
+        {/* Meal Unlock Progress */}
+        {!loading && !unlockState.isFullyUnlocked && (
+          <div className="mx-5 mb-3 rounded-xl bg-amber-500/10 border border-amber-500/20 p-3 flex items-start gap-2">
+            <Lock className="h-4 w-4 text-amber-400 mt-0.5 shrink-0" />
+            <div>
+              <p className="text-xs font-medium text-amber-400">
+                🔥 {unlockState.streak}-day streak — {unlockState.unlockedRoles.length}/3 meal phases unlocked
+              </p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">
+                {unlockState.streak < 3
+                  ? `${3 - unlockState.streak} more days to unlock Mid Window meals`
+                  : `${7 - unlockState.streak} more days to unlock full meal library`}
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Coach Picks */}
         {!loading && coachPicks.length > 0 && (
           <div className="px-5 mb-6">
@@ -349,14 +366,22 @@ export default function ClientMealResults() {
           ) : (
             meals
               .filter((m) => !coachPicks.some((p) => p.id === m.id))
-              .map((meal) => (
-                <MealCard
-                  key={meal.id}
-                  meal={meal}
-                  onLog={() => logMealMutation.mutate(meal)}
-                  isLogging={logMealMutation.isPending}
-                />
-              ))
+              .map((meal) => {
+                // Determine meal role from tags or goals
+                const mealRole = inferMealRole(meal);
+                const isLocked = mealRole ? unlockState.isRoleLocked(mealRole) : false;
+                const unlockAt = mealRole ? unlockState.unlockAtForRole(mealRole) : null;
+                return (
+                  <MealCard
+                    key={meal.id}
+                    meal={meal}
+                    onLog={() => logMealMutation.mutate(meal)}
+                    isLogging={logMealMutation.isPending}
+                    locked={isLocked}
+                    unlockAt={unlockAt}
+                  />
+                );
+              })
           )}
         </div>
       </div>
