@@ -305,100 +305,61 @@ async function runDailyLoop(supabase: any, clientId: string) {
   });
 }
 
-// ─── WEEKLY LOOP: Build adaptive profile ───
-async function runWeeklyLoop(supabase: any, clientId: string) {
+// ─── WEEKLY LOOP ───
+async function _runWeeklyScoring(supabase: any, clientId: string) {
   const now = new Date();
   const weekStart = new Date(now);
-  weekStart.setDate(now.getDate() - now.getDay()); // Sunday
+  weekStart.setDate(now.getDate() - now.getDay());
   const weekStartStr = weekStart.toISOString().split("T")[0];
 
-  // Get last 7 days of behavior
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
   const { data: behaviors } = await supabase
-    .from("client_meal_behavior")
-    .select("*")
-    .eq("client_id", clientId)
+    .from("client_meal_behavior").select("*").eq("client_id", clientId)
     .gte("tracked_date", sevenDaysAgo.toISOString().split("T")[0])
     .order("tracked_date", { ascending: true });
 
   const days = behaviors || [];
   const daysWithData = days.length;
+  if (daysWithData === 0) return { success: true, message: "No weekly data" };
 
-  if (daysWithData === 0) {
-    return new Response(JSON.stringify({ success: true, message: "No weekly data" }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
-
-  // Calculate consistency (days tracked / 7)
   const consistencyScore = Math.round((daysWithData / 7) * 100);
-
-  // Protein compliance rate
   const proteinHits = days.filter((d: any) => d.protein_target_hit).length;
-  const proteinCompliance = daysWithData > 0 ? Math.round((proteinHits / daysWithData) * 100) : 0;
-
-  // Carb compliance rate (days NOT exceeding)
+  const proteinCompliance = Math.round((proteinHits / daysWithData) * 100);
   const carbCompliant = days.filter((d: any) => !d.carbs_exceeded).length;
-  const carbCompliance = daysWithData > 0 ? Math.round((carbCompliant / daysWithData) * 100) : 0;
-
-  // Fasting adherence
+  const carbCompliance = Math.round((carbCompliant / daysWithData) * 100);
   const fastCompleted = days.filter((d: any) => d.fast_completed).length;
-  const fastingAdherence = daysWithData > 0 ? Math.round((fastCompleted / daysWithData) * 100) : 0;
+  const fastingAdherence = Math.round((fastCompleted / daysWithData) * 100);
 
-  // Average hunger levels
-  const hungerBF = days.map((d: any) => d.hunger_break_fast).filter((h: any) => h !== null);
-  const hungerMW = days.map((d: any) => d.hunger_mid_window).filter((h: any) => h !== null);
-  const hungerLM = days.map((d: any) => d.hunger_last_meal).filter((h: any) => h !== null);
+  const avg = (arr: number[]) => arr.length > 0 ? arr.reduce((a, b) => a + b, 0) / arr.length : null;
+  const avgHungerBF = avg(days.map((d: any) => d.hunger_break_fast).filter((h: any) => h !== null));
+  const avgHungerMW = avg(days.map((d: any) => d.hunger_mid_window).filter((h: any) => h !== null));
+  const avgHungerLM = avg(days.map((d: any) => d.hunger_last_meal).filter((h: any) => h !== null));
 
-  const avgHungerBF = hungerBF.length > 0 ? hungerBF.reduce((a: number, b: number) => a + b, 0) / hungerBF.length : null;
-  const avgHungerMW = hungerMW.length > 0 ? hungerMW.reduce((a: number, b: number) => a + b, 0) / hungerMW.length : null;
-  const avgHungerLM = hungerLM.length > 0 ? hungerLM.reduce((a: number, b: number) => a + b, 0) / hungerLM.length : null;
-
-  // Determine profile type
   let profileType = "inconsistent";
-  if (consistencyScore >= 70 && proteinCompliance >= 60) {
-    profileType = "consistent";
-  } else if (consistencyScore < 40 || (proteinCompliance < 40 && carbCompliance < 40)) {
-    profileType = "struggling";
-  }
+  if (consistencyScore >= 70 && proteinCompliance >= 60) profileType = "consistent";
+  else if (consistencyScore < 40 || (proteinCompliance < 40 && carbCompliance < 40)) profileType = "struggling";
 
-  // Determine meal pattern
   const { data: scores } = await supabase
-    .from("client_meal_adaptive_scores")
-    .select("times_selected")
-    .eq("client_id", clientId)
-    .gt("times_selected", 0)
-    .order("times_selected", { ascending: false });
+    .from("client_meal_adaptive_scores").select("times_selected").eq("client_id", clientId)
+    .gt("times_selected", 0).order("times_selected", { ascending: false });
 
   let mealPattern = "mixed";
   if (scores && scores.length > 0) {
-    const topCount = scores[0]?.times_selected || 0;
-    const totalSelections = scores.reduce((a: number, s: any) => a + (s.times_selected || 0), 0);
     const uniqueMeals = scores.length;
-
-    if (uniqueMeals <= 3 && totalSelections >= 5) {
-      mealPattern = "repetitive";
-    } else if (uniqueMeals >= 7) {
-      mealPattern = "varied";
-    }
+    const totalSelections = scores.reduce((a: number, s: any) => a + (s.times_selected || 0), 0);
+    if (uniqueMeals <= 3 && totalSelections >= 5) mealPattern = "repetitive";
+    else if (uniqueMeals >= 7) mealPattern = "varied";
   }
 
-  // Scoring precision based on profile
   let precision = "low";
-  if (profileType === "consistent" && daysWithData >= 5) {
-    precision = "high";
-  } else if (profileType === "consistent" || daysWithData >= 3) {
-    precision = "medium";
-  }
+  if (profileType === "consistent" && daysWithData >= 5) precision = "high";
+  else if (profileType === "consistent" || daysWithData >= 3) precision = "medium";
 
-  // Upsert weekly profile
   const profileData = {
-    client_id: clientId,
-    week_start: weekStartStr,
-    consistency_score: consistencyScore,
-    profile_type: profileType,
+    client_id: clientId, week_start: weekStartStr,
+    consistency_score: consistencyScore, profile_type: profileType,
     preferred_meal_pattern: mealPattern,
     avg_hunger_break_fast: avgHungerBF ? Math.round(avgHungerBF * 10) / 10 : null,
     avg_hunger_mid_window: avgHungerMW ? Math.round(avgHungerMW * 10) / 10 : null,
@@ -410,76 +371,45 @@ async function runWeeklyLoop(supabase: any, clientId: string) {
   };
 
   const { data: existingProfile } = await supabase
-    .from("client_adaptive_profile")
-    .select("id")
-    .eq("client_id", clientId)
-    .eq("week_start", weekStartStr)
-    .maybeSingle();
+    .from("client_adaptive_profile").select("id").eq("client_id", clientId).eq("week_start", weekStartStr).maybeSingle();
 
   if (existingProfile) {
-    await supabase
-      .from("client_adaptive_profile")
-      .update(profileData)
-      .eq("id", existingProfile.id);
+    await supabase.from("client_adaptive_profile").update(profileData).eq("id", existingProfile.id);
   } else {
     await supabase.from("client_adaptive_profile").insert(profileData);
   }
 
-  // ── Weekly adaptive rules ──
+  // Weekly adaptive rules
   if (profileType === "struggling") {
-    // Boost easy, high-satiety meals for struggling users
     const { data: recipes } = await supabase
-      .from("recipes")
-      .select("id, protein, fats, calories, prep_time_minutes")
-      .or("protein.gte.30,calories.gte.450")
-      .lte("prep_time_minutes", 15);
-
-    if (recipes) {
-      for (const recipe of recipes) {
-        const { data: existing } = await supabase
-          .from("client_meal_adaptive_scores")
-          .select("id, score_adjustment")
-          .eq("client_id", clientId)
-          .eq("recipe_id", recipe.id)
-          .maybeSingle();
-
-        if (existing) {
-          await supabase
-            .from("client_meal_adaptive_scores")
-            .update({
-              score_adjustment: Math.min((existing.score_adjustment || 0) + 10, 50),
-              adjustment_reason: "struggling_support",
-            })
-            .eq("id", existing.id);
-        } else {
-          await supabase.from("client_meal_adaptive_scores").insert({
-            client_id: clientId,
-            recipe_id: recipe.id,
-            score_adjustment: 10,
-            adjustment_reason: "struggling_support",
-          });
-        }
+      .from("recipes").select("id, protein, fats, calories, prep_time_minutes")
+      .or("protein.gte.30,calories.gte.450").lte("prep_time_minutes", 15);
+    for (const recipe of (recipes || [])) {
+      const { data: existing } = await supabase
+        .from("client_meal_adaptive_scores").select("id, score_adjustment")
+        .eq("client_id", clientId).eq("recipe_id", recipe.id).maybeSingle();
+      if (existing) {
+        await supabase.from("client_meal_adaptive_scores")
+          .update({ score_adjustment: Math.min((existing.score_adjustment || 0) + 10, 50), adjustment_reason: "struggling_support" })
+          .eq("id", existing.id);
+      } else {
+        await supabase.from("client_meal_adaptive_scores").insert({
+          client_id: clientId, recipe_id: recipe.id, score_adjustment: 10, adjustment_reason: "struggling_support",
+        });
       }
     }
   } else if (profileType === "inconsistent") {
-    // Simplify: reduce extreme scores
-    await supabase
-      .from("client_meal_adaptive_scores")
+    await supabase.from("client_meal_adaptive_scores")
       .update({ score_adjustment: 0, adjustment_reason: "simplify" })
-      .eq("client_id", clientId)
-      .or("score_adjustment.gt.30,score_adjustment.lt.-30");
+      .eq("client_id", clientId).or("score_adjustment.gt.30,score_adjustment.lt.-30");
   }
 
-  return new Response(
-    JSON.stringify({
-      success: true,
-      profile: {
-        consistency_score: consistencyScore,
-        profile_type: profileType,
-        scoring_precision: precision,
-        meal_pattern: mealPattern,
-      },
-    }),
-    { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-  );
+  return { success: true, profile: { consistency_score: consistencyScore, profile_type: profileType, scoring_precision: precision, meal_pattern: mealPattern } };
+}
+
+async function runWeeklyLoop(supabase: any, clientId: string) {
+  const result = await _runWeeklyScoring(supabase, clientId);
+  return new Response(JSON.stringify(result), {
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
 }
