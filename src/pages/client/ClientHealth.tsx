@@ -6,10 +6,31 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useNativeHealth } from '@/hooks/useNativeHealth';
 import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
+import { useState } from 'react';
 
 export default function ClientHealth() {
   const effectiveClientId = useEffectiveClientId();
   const { isNative, permissionGranted, requestPermissions } = useNativeHealth();
+  const [connecting, setConnecting] = useState(false);
+
+  const handleConnect = async () => {
+    setConnecting(true);
+    toast.info("Requesting Apple Health access...");
+    try {
+      const result = await requestPermissions();
+      if (result) {
+        toast.success("Apple Health connected!");
+      } else {
+        toast.error("Permission denied — open Settings > Privacy > Health to enable");
+      }
+    } catch (err: any) {
+      console.error("[HealthConnect] Error:", err);
+      toast.error(`Connection failed: ${err?.message || "Unknown error"}`);
+    } finally {
+      setConnecting(false);
+    }
+  };
 
   return (
     <ClientLayout>
@@ -31,9 +52,9 @@ export default function ClientHealth() {
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             {isNative && !permissionGranted ? (
-              <Button variant="default" onClick={requestPermissions}>
+              <Button variant="default" onClick={handleConnect} disabled={connecting}>
                 <Smartphone className="h-4 w-4 mr-2" />
-                Connect Apple Health
+                {connecting ? "Connecting..." : "Connect Apple Health"}
               </Button>
             ) : (
               <Button variant="outline" asChild>
