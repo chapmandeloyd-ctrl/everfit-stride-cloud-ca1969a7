@@ -4393,6 +4393,7 @@ export type Database = {
         Row: {
           abbreviation: string
           built_for: string[] | null
+          carb_grams: number | null
           carb_limit_grams: number | null
           carbs_pct: number
           category_id: string
@@ -4402,12 +4403,15 @@ export type Database = {
           description: string | null
           difficulty: string
           engine_compatibility: string
+          fat_grams: number | null
           fat_pct: number
           how_it_works: string | null
           id: string
           is_active: boolean
+          macro_mode: string
           name: string
           order_index: number
+          protein_grams: number | null
           protein_pct: number
           subtitle: string | null
           trainer_id: string
@@ -4416,6 +4420,7 @@ export type Database = {
         Insert: {
           abbreviation: string
           built_for?: string[] | null
+          carb_grams?: number | null
           carb_limit_grams?: number | null
           carbs_pct?: number
           category_id: string
@@ -4425,12 +4430,15 @@ export type Database = {
           description?: string | null
           difficulty?: string
           engine_compatibility?: string
+          fat_grams?: number | null
           fat_pct?: number
           how_it_works?: string | null
           id?: string
           is_active?: boolean
+          macro_mode?: string
           name: string
           order_index?: number
+          protein_grams?: number | null
           protein_pct?: number
           subtitle?: string | null
           trainer_id: string
@@ -4439,6 +4447,7 @@ export type Database = {
         Update: {
           abbreviation?: string
           built_for?: string[] | null
+          carb_grams?: number | null
           carb_limit_grams?: number | null
           carbs_pct?: number
           category_id?: string
@@ -4448,12 +4457,15 @@ export type Database = {
           description?: string | null
           difficulty?: string
           engine_compatibility?: string
+          fat_grams?: number | null
           fat_pct?: number
           how_it_works?: string | null
           id?: string
           is_active?: boolean
+          macro_mode?: string
           name?: string
           order_index?: number
+          protein_grams?: number | null
           protein_pct?: number
           subtitle?: string | null
           trainer_id?: string
