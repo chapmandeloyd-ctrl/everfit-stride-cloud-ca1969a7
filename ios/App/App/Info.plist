@@ -51,5 +51,7 @@
 	<string>This app needs access to your health data to share your fitness progress with your trainer.</string>
 	<key>NSHealthUpdateUsageDescription</key>
 	<string>This app needs permission to save workout data to Apple Health.</string>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
 </dict>
 </plist>
