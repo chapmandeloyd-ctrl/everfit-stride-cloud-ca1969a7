@@ -198,6 +198,8 @@ export default function ClientSettings() {
 
           <NotificationSettings />
 
+          <HabitLoopSettings />
+
           <NudgeSettings />
 
           <ClientRemindersSection />
