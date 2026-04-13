@@ -44,6 +44,15 @@ export function MyProgressSection({ clientId }: Props) {
               <Smartphone className="mr-2 h-5 w-5" />
               Connect Apple Health
             </Button>
+          ) : isNative && available && permissionGranted ? (
+            <Button
+              variant="outline"
+              className="h-14 justify-start rounded-2xl text-base font-semibold col-span-2"
+              onClick={() => navigate("/client/health-connect")}
+            >
+              <Settings className="mr-2 h-5 w-5" />
+              Health Settings
+            </Button>
           ) : (
             <>
               <Button
