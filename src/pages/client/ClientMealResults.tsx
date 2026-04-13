@@ -38,6 +38,9 @@ interface MealResult {
   image_url?: string;
   tags?: string[];
   is_ai_generated?: boolean;
+  score?: number;
+  pick_label?: string | null;
+  pick_slot?: number | null;
 }
 
 interface MacroTargets {
@@ -55,6 +58,7 @@ export default function ClientMealResults() {
   const [searchParams] = useSearchParams();
 
   const [meals, setMeals] = useState<MealResult[]>([]);
+  const [coachPicks, setCoachPicks] = useState<MealResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [macroTargets, setMacroTargets] = useState<MacroTargets | null>(null);
   const [ketoType, setKetoType] = useState<string | null>(null);
@@ -117,6 +121,7 @@ export default function ClientMealResults() {
       if (error) throw error;
 
       setMeals(data.meals || []);
+      setCoachPicks(data.coach_picks || []);
       setMacroTargets(data.macro_targets);
       setKetoType(data.keto_type);
       setUsedFallback(data.used_fallback);
@@ -292,7 +297,38 @@ export default function ClientMealResults() {
           </div>
         )}
 
-        {/* Results */}
+        {/* Coach Picks */}
+        {!loading && coachPicks.length > 0 && (
+          <div className="px-5 mb-6">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                <Sparkles className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <h2 className="text-sm font-bold">Coach Picks For You</h2>
+                <p className="text-[10px] text-muted-foreground">Scored and ranked by your coach engine</p>
+              </div>
+            </div>
+            <div className="space-y-3">
+              {coachPicks.map((pick, idx) => (
+                <CoachPickCard
+                  key={pick.id}
+                  meal={pick}
+                  rank={idx + 1}
+                  onLog={() => logMealMutation.mutate(pick)}
+                  isLogging={logMealMutation.isPending}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* All Results */}
+        {!loading && meals.length > coachPicks.length && (
+          <div className="px-5 mb-2">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">All Matching Meals</h2>
+          </div>
+        )}
         <div className="px-5 space-y-3">
           {loading ? (
             Array.from({ length: 4 }).map((_, i) => (
@@ -306,14 +342,16 @@ export default function ClientMealResults() {
               </Button>
             </div>
           ) : (
-            meals.map((meal) => (
-              <MealCard
-                key={meal.id}
-                meal={meal}
-                onLog={() => logMealMutation.mutate(meal)}
-                isLogging={logMealMutation.isPending}
-              />
-            ))
+            meals
+              .filter((m) => !coachPicks.some((p) => p.id === m.id))
+              .map((meal) => (
+                <MealCard
+                  key={meal.id}
+                  meal={meal}
+                  onLog={() => logMealMutation.mutate(meal)}
+                  isLogging={logMealMutation.isPending}
+                />
+              ))
           )}
         </div>
       </div>
@@ -340,25 +378,34 @@ function MacroMini({ label, value, unit, color }: { label: string; value: number
   );
 }
 
-function MealCard({ meal, onLog, isLogging }: { meal: MealResult; onLog: () => void; isLogging: boolean }) {
+const PICK_ICONS: Record<number, string> = { 1: "🏆", 2: "🔄", 3: "⚡" };
+const PICK_COLORS: Record<number, string> = {
+  1: "border-primary/40 bg-primary/5",
+  2: "border-border bg-card",
+  3: "border-border bg-card",
+};
+
+function CoachPickCard({ meal, rank, onLog, isLogging }: { meal: MealResult; rank: number; onLog: () => void; isLogging: boolean }) {
+  const icon = PICK_ICONS[rank] || "🍽️";
+  const colorClass = PICK_COLORS[rank] || "";
   return (
-    <Card className="rounded-2xl overflow-hidden border-border hover:border-primary/40 transition-colors">
+    <Card className={`rounded-2xl overflow-hidden transition-colors ${colorClass}`}>
       <CardContent className="p-4">
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start gap-3">
+          <div className="text-2xl mt-0.5">{icon}</div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <h3 className="font-bold text-sm truncate">{meal.name}</h3>
-              {meal.is_ai_generated && (
-                <Badge variant="outline" className="text-[10px] shrink-0">
-                  <Sparkles className="h-2.5 w-2.5 mr-0.5" /> AI
-                </Badge>
+            <div className="flex items-center gap-2 mb-0.5">
+              <Badge variant={rank === 1 ? "default" : "secondary"} className="text-[10px] shrink-0">
+                {meal.pick_label || `Pick #${rank}`}
+              </Badge>
+              {meal.score != null && (
+                <span className="text-[10px] text-muted-foreground font-mono">{meal.score}/100</span>
               )}
             </div>
+            <h3 className="font-bold text-sm mb-0.5">{meal.name}</h3>
             {meal.description && (
               <p className="text-xs text-muted-foreground line-clamp-2 mb-2">{meal.description}</p>
             )}
-
-            {/* Macros row */}
             <div className="flex items-center gap-3 text-xs">
               {meal.calories != null && (
                 <span className="flex items-center gap-1 text-orange-500 font-medium">
@@ -381,8 +428,60 @@ function MealCard({ meal, onLog, isLogging }: { meal: MealResult; onLog: () => v
               )}
             </div>
           </div>
+          <Button
+            size="icon"
+            variant="outline"
+            className="shrink-0 h-10 w-10 rounded-xl"
+            onClick={onLog}
+            disabled={isLogging}
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
-          {/* Log button */}
+function MealCard({ meal, onLog, isLogging }: { meal: MealResult; onLog: () => void; isLogging: boolean }) {
+  return (
+    <Card className="rounded-2xl overflow-hidden border-border hover:border-primary/40 transition-colors">
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="font-bold text-sm truncate">{meal.name}</h3>
+              {meal.is_ai_generated && (
+                <Badge variant="outline" className="text-[10px] shrink-0">
+                  <Sparkles className="h-2.5 w-2.5 mr-0.5" /> AI
+                </Badge>
+              )}
+            </div>
+            {meal.description && (
+              <p className="text-xs text-muted-foreground line-clamp-2 mb-2">{meal.description}</p>
+            )}
+            <div className="flex items-center gap-3 text-xs">
+              {meal.calories != null && (
+                <span className="flex items-center gap-1 text-orange-500 font-medium">
+                  <Flame className="h-3 w-3" /> {meal.calories}
+                </span>
+              )}
+              {meal.protein != null && (
+                <span className="text-blue-500 font-medium">P: {meal.protein}g</span>
+              )}
+              {meal.carbs != null && (
+                <span className="text-green-500 font-medium">C: {meal.carbs}g</span>
+              )}
+              {meal.fats != null && (
+                <span className="text-yellow-500 font-medium">F: {meal.fats}g</span>
+              )}
+              {meal.prep_time_minutes != null && (
+                <span className="flex items-center gap-0.5 text-muted-foreground">
+                  <Clock className="h-3 w-3" /> {meal.prep_time_minutes}m
+                </span>
+              )}
+            </div>
+          </div>
           <Button
             size="icon"
             variant="outline"
