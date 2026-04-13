@@ -13,22 +13,28 @@ export function useAuth() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // onAuthStateChange fires INITIAL_SESSION on mount with the current session,
-    // so we don't need a separate getSession() call — that causes a race condition
-    // where loading can flip to false before the real session arrives.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
 
+        // Clear stale impersonation on sign-out or session loss
+        if (event === "SIGNED_OUT" || !session) {
+          localStorage.removeItem("impersonatedClientId");
+          setUserRole(null);
+          setLoading(false);
+          return;
+        }
+
+        // Clear impersonation on fresh sign-in so trainer lands on admin dashboard
+        if (event === "SIGNED_IN") {
+          localStorage.removeItem("impersonatedClientId");
+        }
+
         if (session?.user) {
-          // Use setTimeout to avoid Supabase deadlock on nested calls
           setTimeout(() => {
             fetchUserRole(session.user.id);
           }, 0);
-        } else {
-          setUserRole(null);
-          setLoading(false);
         }
       }
     );
