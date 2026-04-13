@@ -68,6 +68,13 @@ export default function ClientMealResults() {
     meal_goals: searchParams.get("goals")?.split(",").filter(Boolean) || [],
     hunger_level: searchParams.get("hunger") || null,
     prep_styles: searchParams.get("prep")?.split(",").filter(Boolean) || [],
+    // Engine state
+    fasting_state: searchParams.get("fasting_state") || undefined,
+    eating_phase: searchParams.get("eating_phase") || undefined,
+    training_state: searchParams.get("training_state") || undefined,
+    keto_type: searchParams.get("keto_type") || undefined,
+    goal: searchParams.get("goal") || undefined,
+    auto_mode: searchParams.get("auto_mode") === "true",
   };
 
   const handleSuggestionTap = (suggestion: CoachingSuggestion) => {
