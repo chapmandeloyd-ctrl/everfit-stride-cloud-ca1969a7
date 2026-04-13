@@ -559,23 +559,6 @@ function MealCard({ meal, onLog, isLogging }: { meal: MealResult; onLog: () => v
     </Card>
   );
 }
-
-function CoachPickCard({ meal, rank, onLog, isLogging }: { meal: MealResult; rank: number; onLog: () => void; isLogging: boolean }) {
-  const icon = PICK_ICONS[rank] || "🍽️";
-  const colorClass = PICK_COLORS[rank] || "";
-  return (
-    <Card className={`rounded-2xl overflow-hidden transition-colors ${colorClass}`}>
-      <CardContent className="p-4">
-        <div className="flex items-start gap-3">
-          <div className="text-2xl mt-0.5">{icon}</div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-0.5">
-              <Badge variant={rank === 1 ? "default" : "secondary"} className="text-[10px] shrink-0">
-                {meal.pick_label || `Pick #${rank}`}
-              </Badge>
-              {meal.score != null && (
-                <span className="text-[10px] text-muted-foreground font-mono">{meal.score}/100</span>
-              )}
             </div>
             <h3 className="font-bold text-sm mb-0.5">{meal.name}</h3>
             {meal.description && (
