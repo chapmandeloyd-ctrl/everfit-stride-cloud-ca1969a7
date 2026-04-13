@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Lock, BookOpen, ChevronDown, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getCurrentStage, FASTING_STAGES } from "@/lib/fastingStages";
+import { getMilestoneBanner, getNextMilestone, daysRemainingInFast } from "@/lib/fastingMilestones";
+import { toast } from "sonner";
 import { format } from "date-fns";
 import fastingTimerBg from "@/assets/fasting-timer-bg.png";
 
@@ -59,6 +61,7 @@ export function ActiveFastingTimer({
   const [showStages, setShowStages] = useState(false);
   const [pinInput, setPinInput] = useState("");
   const [showPinDialog, setShowPinDialog] = useState(false);
+  const shownMilestonesRef = useRef<Set<number>>(new Set());
 
   const startTime = new Date(startedAt).getTime();
   const totalMs = targetHours * 3_600_000;
@@ -70,11 +73,28 @@ export function ActiveFastingTimer({
   const percentElapsed = Math.round(progress * 100);
   const goalTime = startTime + totalMs;
 
+  // Milestone banner data
+  const milestoneBanner = getMilestoneBanner(elapsedHours, targetHours);
+  const nextMilestone = getNextMilestone(elapsedHours);
+
   // Live tick
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(interval);
   }, []);
+
+  // Fire toast when a new day milestone is crossed
+  useEffect(() => {
+    if (!milestoneBanner) return;
+    const key = Math.floor(elapsedHours / 24);
+    if (key > 0 && !shownMilestonesRef.current.has(key)) {
+      shownMilestonesRef.current.add(key);
+      toast.success(`${milestoneBanner.emoji} ${milestoneBanner.title}`, {
+        description: milestoneBanner.body,
+        duration: 8000,
+      });
+    }
+  }, [elapsedHours, milestoneBanner]);
 
   // Multi-colored arc segments
   const arcSegments = useMemo(() => {
