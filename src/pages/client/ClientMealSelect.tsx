@@ -1,8 +1,11 @@
 import { ClientLayout } from "@/components/ClientLayout";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, UtensilsCrossed, Brain, ScanBarcode, Camera, Keyboard } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, UtensilsCrossed, Brain, Lock, Flame, Zap, Clock, AlertTriangle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useCallback } from "react";
+import { useMealEngineState } from "@/hooks/useMealEngineState";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const MEAL_TYPES = ["Breakfast", "Lunch", "Dinner", "Snack"] as const;
 const MEAL_GOALS = ["Break My Fast", "High Protein", "Light & Clean", "Performance Fuel", "Quick & Easy"] as const;
@@ -18,11 +21,15 @@ function useMultiSelect<T extends string>(options: readonly T[]) {
       return next;
     });
   }, []);
-  return { selected, toggle };
+  const setItems = useCallback((items: T[]) => {
+    setSelected(new Set(items));
+  }, []);
+  return { selected, toggle, setItems };
 }
 
 export default function ClientMealSelect() {
   const navigate = useNavigate();
+  const engine = useMealEngineState();
   const mealType = useMultiSelect(MEAL_TYPES);
   const mealGoal = useMultiSelect(MEAL_GOALS);
   const prepStyle = useMultiSelect(PREP_STYLES);
@@ -30,29 +37,133 @@ export default function ClientMealSelect() {
 
   const hasSelection = mealType.selected.size > 0 || mealGoal.selected.size > 0 || hunger || prepStyle.selected.size > 0;
 
+  // Build URL params including engine state
+  const buildParams = (overrides?: { goals?: string }) => {
+    const params = new URLSearchParams();
+    if (mealType.selected.size > 0) params.set("types", [...mealType.selected].join(","));
+    const goals = overrides?.goals || (mealGoal.selected.size > 0 ? [...mealGoal.selected].join(",") : "");
+    if (goals) params.set("goals", goals);
+    if (hunger) params.set("hunger", hunger);
+    if (prepStyle.selected.size > 0) params.set("prep", [...prepStyle.selected].join(","));
+    // Engine state params
+    if (engine.fasting_state) params.set("fasting_state", engine.fasting_state);
+    if (engine.eating_phase) params.set("eating_phase", engine.eating_phase);
+    if (engine.training_state) params.set("training_state", engine.training_state);
+    if (engine.keto_type) params.set("keto_type", engine.keto_type);
+    if (engine.goal) params.set("goal", engine.goal);
+    return params;
+  };
+
+  // --- Fasting Active: Block all meals ---
+  if (!engine.isLoading && engine.fasting_state === "fasting_active") {
+    return (
+      <ClientLayout>
+        <div className="min-h-[calc(100dvh-80px)] flex flex-col items-center justify-center px-5 text-center">
+          <div className="relative mb-6">
+            <div className="absolute inset-0 rounded-full bg-destructive/20 blur-2xl animate-pulse" />
+            <div className="relative h-20 w-20 rounded-full bg-gradient-to-br from-destructive to-destructive/60 flex items-center justify-center">
+              <Lock className="h-10 w-10 text-destructive-foreground" />
+            </div>
+          </div>
+          <h1 className="text-xl font-extrabold mb-2">Fasting In Progress</h1>
+          <p className="text-sm text-muted-foreground max-w-xs leading-relaxed mb-6">
+            Meals are locked while you're fasting. Complete your fast to unlock your eating window.
+          </p>
+          <Button variant="outline" onClick={() => navigate("/client/dashboard")}>
+            Back to Dashboard
+          </Button>
+        </div>
+      </ClientLayout>
+    );
+  }
+
+  // Loading state
+  if (engine.isLoading) {
+    return (
+      <ClientLayout>
+        <div className="px-5 py-6 space-y-4">
+          <Skeleton className="h-10 w-48" />
+          <Skeleton className="h-6 w-full" />
+          <div className="grid grid-cols-2 gap-3">
+            {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-12 rounded-xl" />)}
+          </div>
+        </div>
+      </ClientLayout>
+    );
+  }
+
+  // Phase-aware header info
+  const phaseInfo = getPhaseInfo(engine.fasting_state, engine.eating_phase, engine.training_state);
+
   return (
     <ClientLayout>
       <div className="pb-28 w-full">
         {/* Header */}
         <div className="px-4 pt-4 pb-2">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+          <Button variant="ghost" size="icon" className="min-h-[44px] min-w-[44px]" onClick={() => navigate(-1)}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
         </div>
 
-        <div className="px-5 space-y-2 mb-6">
+        <div className="px-5 space-y-2 mb-4">
           <div className="flex items-center gap-2.5">
             <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
               <UtensilsCrossed className="h-5 w-5 text-primary" />
             </div>
-            <h1 className="text-xl font-extrabold tracking-tight">Welcome to KSOM360 Meals</h1>
+            <h1 className="text-xl font-extrabold tracking-tight">KSOM360 Meals</h1>
           </div>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Select what you're in the mood for — we'll show meals that match your plan.
+            Meals filtered based on your current state — select preferences below.
           </p>
         </div>
 
-        <div className="px-5 space-y-6">
+        {/* Engine State Banner */}
+        {phaseInfo && (
+          <div className="mx-5 mb-4">
+            <div className={`rounded-2xl p-4 border ${phaseInfo.borderColor} ${phaseInfo.bgColor}`}>
+              <div className="flex items-center gap-2 mb-1">
+                {phaseInfo.icon}
+                <span className="text-sm font-bold">{phaseInfo.title}</span>
+              </div>
+              <p className="text-xs text-muted-foreground">{phaseInfo.description}</p>
+              <div className="flex gap-2 mt-2">
+                {engine.keto_type && (
+                  <Badge variant="secondary" className="text-xs">{engine.keto_type}</Badge>
+                )}
+                {engine.eating_phase && (
+                  <Badge variant="outline" className="text-xs capitalize">{engine.eating_phase.replace("_", " ")}</Badge>
+                )}
+                {engine.training_state !== "no_training" && (
+                  <Badge variant="outline" className="text-xs capitalize">{engine.training_state.replace("_", " ")}</Badge>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Auto Mode: Top 3 */}
+        <div className="px-5 mb-4">
+          <Button
+            className="w-full h-14 text-base font-bold rounded-2xl shadow-lg shadow-primary/20"
+            onClick={() => {
+              const params = buildParams();
+              params.set("auto_mode", "true");
+              navigate(`/client/meal-results?${params.toString()}`);
+            }}
+          >
+            <Brain className="h-5 w-5 mr-2" />
+            🔥 Auto Pick — Top 3 Meals
+          </Button>
+          <p className="text-xs text-muted-foreground text-center mt-1.5">
+            Best matches for your phase, keto type & goals
+          </p>
+        </div>
+
+        <div className="px-5">
+          <div className="h-px bg-border my-2" />
+        </div>
+
+        <div className="px-5 space-y-6 mt-4">
           {/* Meal Type */}
           <FilterSection title="Meal Type">
             <div className="grid grid-cols-2 gap-2.5">
@@ -76,6 +187,7 @@ export default function ClientMealSelect() {
                   label={item}
                   checked={mealGoal.selected.has(item)}
                   onChange={() => mealGoal.toggle(item)}
+                  highlight={engine.eating_phase === "break_fast" && item === "Break My Fast"}
                 />
               ))}
             </div>
@@ -114,43 +226,38 @@ export default function ClientMealSelect() {
             <div className="h-px bg-border" />
           </div>
 
-          {/* Alternative Options */}
+          {/* Quick Actions */}
           <div className="space-y-2.5">
             <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Not Sure What You Want?</h2>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              You can follow your plan — or track your own meal.
-            </p>
           </div>
 
           <div className="grid grid-cols-2 gap-3 pb-4">
             <QuickActionCard
               emoji="🧠"
               title="Can't Decide"
-              description="Let KSOM360 pick the best meals for you."
+              description="Let KSOM360 pick based on your state."
               onClick={() => {
-                if (!mealGoal.selected.has("Break My Fast")) mealGoal.toggle("Break My Fast");
-                if (!mealGoal.selected.has("High Protein")) mealGoal.toggle("High Protein");
-                const params = new URLSearchParams();
-                params.set("goals", "Break My Fast,High Protein");
+                const params = buildParams({ goals: "Break My Fast,High Protein" });
+                params.set("auto_mode", "true");
                 navigate(`/client/meal-results?${params.toString()}`);
               }}
             />
             <QuickActionCard
               emoji="📦"
               title="Scan Your Food"
-              description="Scan a barcode to instantly track your food."
+              description="Scan a barcode to instantly track."
               onClick={() => navigate("/client/log-meal?tab=scan")}
             />
             <QuickActionCard
               emoji="📸"
               title="Snap Your Meal"
-              description="Take a photo and let AI estimate your macros."
+              description="Photo → AI macro estimate."
               onClick={() => navigate("/client/log-meal?tab=photo")}
             />
             <QuickActionCard
               emoji="⌨️"
               title="Type Your Meal"
-              description="Enter your meal manually for full macro breakdown."
+              description="Manual entry for full control."
               onClick={() => navigate("/client/log-meal?tab=manual")}
             />
           </div>
@@ -163,11 +270,7 @@ export default function ClientMealSelect() {
           className="w-full h-14 text-base font-bold rounded-2xl shadow-lg shadow-primary/20"
           disabled={!hasSelection}
           onClick={() => {
-            const params = new URLSearchParams();
-            if (mealType.selected.size > 0) params.set("types", [...mealType.selected].join(","));
-            if (mealGoal.selected.size > 0) params.set("goals", [...mealGoal.selected].join(","));
-            if (hunger) params.set("hunger", hunger);
-            if (prepStyle.selected.size > 0) params.set("prep", [...prepStyle.selected].join(","));
+            const params = buildParams();
             navigate(`/client/meal-results?${params.toString()}`);
           }}
         >
@@ -176,6 +279,51 @@ export default function ClientMealSelect() {
       </div>
     </ClientLayout>
   );
+}
+
+/* ─── Phase Info Helper ─── */
+
+function getPhaseInfo(fastingState: string, eatingPhase: string | null, trainingState: string) {
+  if (fastingState === "break_fast_triggered") {
+    return {
+      title: "Break-Fast Phase",
+      description: "Your fast just ended. Showing meals optimized for breaking your fast safely.",
+      icon: <Flame className="h-4 w-4 text-amber-500" />,
+      bgColor: "bg-amber-500/10",
+      borderColor: "border-amber-500/30",
+    };
+  }
+  if (fastingState === "eating_window_closing") {
+    return {
+      title: "Window Closing",
+      description: "Your eating window is ending soon. Showing last-meal options.",
+      icon: <Clock className="h-4 w-4 text-orange-500" />,
+      bgColor: "bg-orange-500/10",
+      borderColor: "border-orange-500/30",
+    };
+  }
+  if (fastingState === "eating_window_open") {
+    const isTraining = trainingState !== "no_training";
+    return {
+      title: isTraining ? "Eating Window · Training Day" : "Eating Window Open",
+      description: isTraining
+        ? "Training detected — prioritizing performance and recovery meals."
+        : "Mid-window phase. Showing meals matched to your keto type.",
+      icon: <Zap className="h-4 w-4 text-primary" />,
+      bgColor: "bg-primary/10",
+      borderColor: "border-primary/30",
+    };
+  }
+  if (trainingState !== "no_training") {
+    return {
+      title: trainingState === "post_workout" ? "Post-Workout" : "Training Day",
+      description: "Meals prioritized for recovery and performance.",
+      icon: <Zap className="h-4 w-4 text-primary" />,
+      bgColor: "bg-primary/10",
+      borderColor: "border-primary/30",
+    };
+  }
+  return null;
 }
 
 /* ─── Sub-components ─── */
@@ -189,7 +337,7 @@ function FilterSection({ title, children }: { title: string; children: React.Rea
   );
 }
 
-function CheckboxChip({ label, checked, onChange }: { label: string; checked: boolean; onChange: () => void }) {
+function CheckboxChip({ label, checked, onChange, highlight }: { label: string; checked: boolean; onChange: () => void; highlight?: boolean }) {
   return (
     <button
       type="button"
@@ -197,6 +345,8 @@ function CheckboxChip({ label, checked, onChange }: { label: string; checked: bo
       className={`flex items-center gap-2.5 rounded-xl border px-4 py-3.5 text-sm font-medium transition-all active:scale-[0.97] ${
         checked
           ? "border-primary bg-primary/10 text-foreground"
+          : highlight
+          ? "border-amber-500/50 bg-amber-500/5 text-foreground ring-1 ring-amber-500/30"
           : "border-border bg-card text-muted-foreground hover:border-muted-foreground/30"
       }`}
     >
@@ -212,6 +362,9 @@ function CheckboxChip({ label, checked, onChange }: { label: string; checked: bo
         )}
       </span>
       {label}
+      {highlight && !checked && (
+        <span className="text-[10px] text-amber-500 font-bold ml-auto">Suggested</span>
+      )}
     </button>
   );
 }
@@ -244,7 +397,7 @@ function QuickActionCard({ emoji, title, description, onClick }: { emoji: string
     <button
       type="button"
       onClick={onClick}
-      className="flex flex-col items-start gap-2 rounded-2xl border bg-card p-4 text-left transition-all active:scale-[0.97] hover:border-primary/40 hover:shadow-md"
+      className="flex flex-col items-start gap-2 rounded-2xl border bg-card p-4 text-left transition-all active:scale-[0.97] hover:border-primary/40 hover:shadow-md min-h-[44px]"
     >
       <span className="text-2xl">{emoji}</span>
       <span className="text-sm font-bold text-foreground">{title}</span>
