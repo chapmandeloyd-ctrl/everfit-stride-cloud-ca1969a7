@@ -51,15 +51,15 @@ export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEn
   const scrollRef = useRef<HTMLDivElement>(null);
   const todayRef = useRef<HTMLButtonElement>(null);
 
-  // Scroll to today on mount
+  // Scroll so today is at the left edge on mount / client change
   useEffect(() => {
     if (todayRef.current && scrollRef.current) {
       const container = scrollRef.current;
       const el = todayRef.current;
-      const scrollLeft = el.offsetLeft - container.offsetWidth / 2 + el.offsetWidth / 2;
-      container.scrollTo({ left: scrollLeft, behavior: "auto" });
+      // Align today to the left edge with a small padding
+      container.scrollTo({ left: el.offsetLeft - 4, behavior: "auto" });
     }
-  }, []);
+  }, [clientId]);
 
   // Fetch workouts, sport events, tasks, habits
   const { data: workouts } = useQuery({
