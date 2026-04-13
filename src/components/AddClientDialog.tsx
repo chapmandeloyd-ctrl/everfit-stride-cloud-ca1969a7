@@ -56,33 +56,54 @@ export function AddClientDialog({ open, onOpenChange }: AddClientDialogProps) {
       const creds = { email: email.trim(), password: password.trim(), name: fullName.trim() };
       setCreatedCredentials(creds);
 
-      // Send client invitation + welcome emails
+      // Send new client email sequence: invitation + getting started + meet coach + what to expect
+      const coachName = user?.user_metadata?.full_name || "Your Coach";
+      const loginUrl = "https://ksom-360.app/auth";
+      const ts = Date.now();
       try {
-        await Promise.all([
-          supabase.functions.invoke("send-transactional-email", {
-            body: {
-              templateName: "client-invitation",
-              recipientEmail: creds.email,
-              idempotencyKey: `invite-${creds.email}-${Date.now()}`,
-              templateData: {
-                name: creds.name,
-                trainerName: user?.user_metadata?.full_name || "Your Coach",
-                loginUrl: "https://ksom-360.app/auth",
-                tempPassword: creds.password,
-              },
+        // 1) Invitation with credentials (immediate)
+        await supabase.functions.invoke("send-transactional-email", {
+          body: {
+            templateName: "client-invitation",
+            recipientEmail: creds.email,
+            idempotencyKey: `invite-${creds.email}-${ts}`,
+            templateData: {
+              name: creds.name,
+              trainerName: coachName,
+              loginUrl,
+              tempPassword: creds.password,
             },
-          }),
-          supabase.functions.invoke("send-transactional-email", {
-            body: {
-              templateName: "welcome",
-              recipientEmail: creds.email,
-              idempotencyKey: `welcome-${creds.email}-${Date.now()}`,
-              templateData: { name: creds.name },
-            },
-          }),
-        ]);
+          },
+        });
+        // 2) Getting Started guide
+        await supabase.functions.invoke("send-transactional-email", {
+          body: {
+            templateName: "welcome-getting-started",
+            recipientEmail: creds.email,
+            idempotencyKey: `getting-started-${creds.email}-${ts}`,
+            templateData: { name: creds.name, loginUrl },
+          },
+        });
+        // 3) Meet Your Coach
+        await supabase.functions.invoke("send-transactional-email", {
+          body: {
+            templateName: "welcome-meet-coach",
+            recipientEmail: creds.email,
+            idempotencyKey: `meet-coach-${creds.email}-${ts}`,
+            templateData: { name: creds.name, coachName, loginUrl },
+          },
+        });
+        // 4) What to Expect
+        await supabase.functions.invoke("send-transactional-email", {
+          body: {
+            templateName: "welcome-what-to-expect",
+            recipientEmail: creds.email,
+            idempotencyKey: `what-to-expect-${creds.email}-${ts}`,
+            templateData: { name: creds.name, loginUrl },
+          },
+        });
       } catch (e) {
-        console.error("Failed to send invitation/welcome emails", e);
+        console.error("Failed to send welcome email sequence", e);
       }
     },
     onError: (error: Error) => {
