@@ -43,7 +43,7 @@ export function SynergyPreviewPanel({ clientId, trainerId }: SynergyPreviewPanel
     queryFn: async () => {
       const { data } = await supabase
         .from("client_keto_assignments")
-        .select("id, keto_type_id, keto_types(id, abbreviation, name, color, fat_pct, protein_pct, carbs_pct, carb_limit_grams)")
+        .select("id, keto_type_id, keto_types(id, abbreviation, name, color, fat_pct, protein_pct, carbs_pct, carb_limit_grams, macro_mode, protein_grams, fat_grams, carb_grams)")
         .eq("client_id", clientId)
         .eq("is_active", true)
         .maybeSingle();
