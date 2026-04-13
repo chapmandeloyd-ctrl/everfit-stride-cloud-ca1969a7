@@ -28,8 +28,8 @@ export function ClientBottomNav() {
               cn(
                 "flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors",
                 isActive
-                  ? "text-primary-foreground bg-primary"
-                  : "text-foreground hover:text-primary-foreground hover:bg-primary/90"
+                  ? "bg-primary text-white"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
               )
             }
           >
