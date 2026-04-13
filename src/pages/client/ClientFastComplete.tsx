@@ -1,15 +1,70 @@
 import { ClientLayout } from "@/components/ClientLayout";
 import { Button } from "@/components/ui/button";
-import { Flame, Zap, BarChart3, UtensilsCrossed } from "lucide-react";
+import { Flame, Zap, BarChart3, UtensilsCrossed, PenLine } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
+import { useEffect, useState, useRef } from "react";
+
+// Confetti particle component
+function ConfettiParticle({ delay, x }: { delay: number; x: number }) {
+  const colors = ["bg-amber-400", "bg-emerald-400", "bg-sky-400", "bg-purple-400", "bg-pink-400", "bg-primary"];
+  const color = colors[Math.floor(Math.random() * colors.length)];
+  const size = 4 + Math.random() * 6;
+  const rotation = Math.random() * 360;
+  const duration = 1.5 + Math.random() * 1.5;
+
+  return (
+    <div
+      className={`absolute rounded-sm ${color} pointer-events-none`}
+      style={{
+        width: size,
+        height: size * 0.6,
+        left: `${x}%`,
+        top: -10,
+        transform: `rotate(${rotation}deg)`,
+        animation: `confetti-fall ${duration}s ease-out ${delay}s forwards`,
+        opacity: 0,
+      }}
+    />
+  );
+}
+
+function ConfettiOverlay() {
+  const particles = useRef(
+    Array.from({ length: 40 }, (_, i) => ({
+      id: i,
+      delay: Math.random() * 0.8,
+      x: 5 + Math.random() * 90,
+    }))
+  ).current;
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-20">
+      <style>{`
+        @keyframes confetti-fall {
+          0% { opacity: 1; transform: translateY(0) rotate(0deg); }
+          100% { opacity: 0; transform: translateY(70vh) rotate(720deg); }
+        }
+      `}</style>
+      {particles.map((p) => (
+        <ConfettiParticle key={p.id} delay={p.delay} x={p.x} />
+      ))}
+    </div>
+  );
+}
 
 export default function ClientFastComplete() {
   const clientId = useEffectiveClientId();
   const navigate = useNavigate();
+  const [showConfetti, setShowConfetti] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShowConfetti(false), 4000);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Feature settings for eating window
   const { data: settings } = useQuery({
@@ -65,50 +120,58 @@ export default function ClientFastComplete() {
 
   return (
     <ClientLayout>
-      <div className="min-h-[calc(100dvh-80px)] flex flex-col px-5 py-8">
+      <div className="min-h-[calc(100dvh-80px)] flex flex-col px-5 py-8 relative">
+        {/* Confetti */}
+        {showConfetti && <ConfettiOverlay />}
+
         {/* Hero */}
-        <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6">
-          {/* Animated glow ring */}
+        <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6 animate-fade-in">
+          {/* Animated success ring */}
           <div className="relative">
-            <div className="absolute inset-0 rounded-full bg-primary/20 blur-2xl animate-pulse" />
-            <div className="relative h-24 w-24 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-lg shadow-primary/30">
-              <Flame className="h-12 w-12 text-primary-foreground" />
+            <div className="absolute -inset-4 rounded-full bg-primary/15 blur-2xl animate-pulse" />
+            <div className="absolute -inset-2 rounded-full border-2 border-primary/20 animate-[spin_8s_linear_infinite]" />
+            <div className="relative h-28 w-28 rounded-full bg-gradient-to-br from-amber-400 via-primary to-primary/60 flex items-center justify-center shadow-2xl shadow-primary/30">
+              <Flame className="h-14 w-14 text-primary-foreground drop-shadow-lg" />
             </div>
           </div>
 
           <div className="space-y-3 max-w-sm">
-            <h1 className="text-2xl font-extrabold tracking-tight">🔥 Fast Complete</h1>
+            <h1 className="text-3xl font-extrabold tracking-tight">🔥 Fast Complete</h1>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Great job — you've successfully completed <strong className="text-foreground">Part 1</strong> of your fasting protocol.
+              Great job — you completed <strong className="text-foreground">Part 1</strong> of your protocol.
             </p>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Your body is now in a <strong className="text-foreground">peak fat-burning</strong> and <strong className="text-foreground">insulin-sensitive</strong> state.
-            </p>
-            <p className="text-sm font-semibold text-foreground mt-2">
-              Now we shift into Part 2 — <span className="text-primary">Fueling</span>.
+              Your body is now <strong className="text-foreground">insulin-sensitive</strong> and primed for fuel.
             </p>
           </div>
         </div>
 
+        {/* Part 2 Header */}
+        <div className="flex items-center gap-3 mt-6 mb-4 animate-fade-in" style={{ animationDelay: "0.3s" }}>
+          <div className="h-px flex-1 bg-border" />
+          <span className="text-xs font-bold uppercase tracking-widest text-primary">Part 2: Fuel Phase</span>
+          <div className="h-px flex-1 bg-border" />
+        </div>
+
         {/* Info Cards */}
-        <div className="space-y-4 mt-6">
+        <div className="space-y-4 animate-fade-in" style={{ animationDelay: "0.4s" }}>
           {/* Next Phase */}
           <div className="rounded-2xl border bg-card p-5 space-y-3">
             <div className="flex items-center gap-2">
               <Zap className="h-5 w-5 text-primary" />
-              <h2 className="text-sm font-bold uppercase tracking-wide">Your Next Phase</h2>
+              <h2 className="text-sm font-bold uppercase tracking-wide">Your Fuel Window</h2>
             </div>
             <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-xl bg-muted/50 p-3 space-y-1">
+                <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Eating Window</p>
+                <p className="text-base font-bold">
+                  {eatingEnd ? `${eatingStart} – ${eatingEnd}` : `${settings?.eating_window_hours || 8}h window`}
+                </p>
+              </div>
               <div className="rounded-xl bg-muted/50 p-3 space-y-1">
                 <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Keto Type</p>
                 <p className="text-base font-bold">
                   {ketoType?.abbreviation || ketoType?.name || "Standard"}
-                </p>
-              </div>
-              <div className="rounded-xl bg-muted/50 p-3 space-y-1">
-                <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Eating Window</p>
-                <p className="text-base font-bold">
-                  {eatingEnd ? `${eatingStart} – ${eatingEnd}` : `${settings?.eating_window_hours || 8}h`}
                 </p>
               </div>
             </div>
@@ -144,13 +207,21 @@ export default function ClientFastComplete() {
         </div>
 
         {/* CTA */}
-        <div className="mt-8 space-y-3 pb-4">
+        <div className="mt-8 space-y-3 pb-4 animate-fade-in" style={{ animationDelay: "0.6s" }}>
           <Button
             className="w-full h-14 text-base font-bold rounded-2xl shadow-lg shadow-primary/20"
             onClick={() => navigate("/client/meal-select?from=fast_complete")}
           >
             <UtensilsCrossed className="h-5 w-5 mr-2" />
-            View My Meals
+            Choose Your Meal
+          </Button>
+          <Button
+            variant="outline"
+            className="w-full h-12 text-sm font-medium rounded-2xl"
+            onClick={() => navigate("/client/log-meal")}
+          >
+            <PenLine className="h-4 w-4 mr-2" />
+            Track Your Own Meal
           </Button>
           <Button
             variant="ghost"
