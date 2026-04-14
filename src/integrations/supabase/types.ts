@@ -6251,8 +6251,10 @@ export type Database = {
           carb_limit_note: string | null
           carbs: number | null
           cook_time_minutes: number | null
+          craving_replacement: string | null
           created_at: string
           description: string | null
+          digestion_load: string | null
           fats: number | null
           id: string
           if_roles: string[] | null
@@ -6261,12 +6263,14 @@ export type Database = {
           instructions: string | null
           keto_types: string[] | null
           macro_profile: string
+          meal_intensity: string | null
           meal_role: string | null
           meal_timing: string | null
           name: string
           prep_time_minutes: number | null
           protein: number | null
           protein_target_note: string | null
+          satiety_score: number | null
           servings: number | null
           subtype: string | null
           tags: string[] | null
@@ -6282,8 +6286,10 @@ export type Database = {
           carb_limit_note?: string | null
           carbs?: number | null
           cook_time_minutes?: number | null
+          craving_replacement?: string | null
           created_at?: string
           description?: string | null
+          digestion_load?: string | null
           fats?: number | null
           id?: string
           if_roles?: string[] | null
@@ -6292,12 +6298,14 @@ export type Database = {
           instructions?: string | null
           keto_types?: string[] | null
           macro_profile?: string
+          meal_intensity?: string | null
           meal_role?: string | null
           meal_timing?: string | null
           name: string
           prep_time_minutes?: number | null
           protein?: number | null
           protein_target_note?: string | null
+          satiety_score?: number | null
           servings?: number | null
           subtype?: string | null
           tags?: string[] | null
@@ -6313,8 +6321,10 @@ export type Database = {
           carb_limit_note?: string | null
           carbs?: number | null
           cook_time_minutes?: number | null
+          craving_replacement?: string | null
           created_at?: string
           description?: string | null
+          digestion_load?: string | null
           fats?: number | null
           id?: string
           if_roles?: string[] | null
@@ -6323,12 +6333,14 @@ export type Database = {
           instructions?: string | null
           keto_types?: string[] | null
           macro_profile?: string
+          meal_intensity?: string | null
           meal_role?: string | null
           meal_timing?: string | null
           name?: string
           prep_time_minutes?: number | null
           protein?: number | null
           protein_target_note?: string | null
+          satiety_score?: number | null
           servings?: number | null
           subtype?: string | null
           tags?: string[] | null
