@@ -189,6 +189,44 @@ export default function RecipeDetail() {
           </CardContent>
         </Card>
 
+        {/* KSOM360 Meal Intelligence */}
+        {(recipe.meal_intensity || recipe.satiety_score || recipe.digestion_load || recipe.craving_replacement) && (
+          <Card>
+            <CardContent className="p-4">
+              <h3 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wide">Meal Intelligence</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {recipe.meal_intensity && (
+                  <div className="text-center space-y-1">
+                    <div className="text-2xl">{recipe.meal_intensity === 'heavy' ? '🔴' : recipe.meal_intensity === 'moderate' ? '🟡' : recipe.meal_intensity === 'light' ? '🟢' : '💙'}</div>
+                    <p className="text-sm font-bold capitalize">{recipe.meal_intensity}</p>
+                    <p className="text-xs text-muted-foreground">Intensity</p>
+                  </div>
+                )}
+                {recipe.satiety_score != null && (
+                  <div className="text-center space-y-1">
+                    <div className="text-2xl font-bold">{recipe.satiety_score}<span className="text-sm font-normal text-muted-foreground">/10</span></div>
+                    <p className="text-xs text-muted-foreground">Satiety Score</p>
+                  </div>
+                )}
+                {recipe.digestion_load && (
+                  <div className="text-center space-y-1">
+                    <div className="text-2xl">{recipe.digestion_load === 'high' ? '🔥' : recipe.digestion_load === 'medium' ? '⚡' : '🍃'}</div>
+                    <p className="text-sm font-bold capitalize">{recipe.digestion_load}</p>
+                    <p className="text-xs text-muted-foreground">Digestion Load</p>
+                  </div>
+                )}
+                {recipe.craving_replacement && (
+                  <div className="text-center space-y-1">
+                    <div className="text-2xl">🎯</div>
+                    <p className="text-sm font-bold capitalize">{recipe.craving_replacement}</p>
+                    <p className="text-xs text-muted-foreground">Craving Target</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Tabs: Ingredients / Instructions / Nutrition Info */}
         <Card>
           <CardContent className="p-0">
