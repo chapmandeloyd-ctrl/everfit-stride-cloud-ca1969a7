@@ -74,6 +74,17 @@ export default function ClientLogMeal() {
   // Coach feedback
   const [showFeedback, setShowFeedback] = useState(false);
 
+  // Macro correction
+  const {
+    correctionData,
+    showCorrection,
+    isChecking,
+    checkAndCorrect,
+    recordCorrection,
+    closeCorrection,
+    setShowCorrection,
+  } = useMacroCorrection();
+
   // Handle deep-link tab param
   useEffect(() => {
     if (initialTabHandled || !tabParam) return;
