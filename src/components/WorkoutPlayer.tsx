@@ -580,6 +580,18 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
     if (phase !== "playing") return;
     wallStartRef.current = Date.now();
     persistWorkoutTimer(wallStartRef.current, elapsedAccRef.current, false);
+
+    // Start Live Activity for lock screen / Dynamic Island
+    liveActivity.start({
+      activityType: 'workout',
+      title: workoutName || 'Workout',
+      subtitle: currentStep?.exercise?.exercise_name || '',
+      mode: 'countUp',
+      seconds: elapsedAccRef.current,
+      accentColor: '#7C3AED',
+      icon: 'figure.strengthtraining.traditional',
+    });
+
     elapsedRef.current = setInterval(() => {
       if (!isPausedRef.current) {
         const elapsed = Math.floor((Date.now() - wallStartRef.current) / 1000);
@@ -588,6 +600,19 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
     }, 500);
     return () => { if (elapsedRef.current) clearInterval(elapsedRef.current); };
   }, [phase]);
+
+  // Update Live Activity every 5 seconds with elapsed time
+  useEffect(() => {
+    if (phase !== "playing") return;
+    const interval = setInterval(() => {
+      liveActivity.update({
+        seconds: elapsedSeconds,
+        subtitle: currentStep?.exercise?.exercise_name || 'Rest',
+        isPaused: isPaused,
+      });
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [phase, elapsedSeconds, isPaused, currentStep]);
 
   // Recover on visibility change
   useEffect(() => {
