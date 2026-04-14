@@ -17,6 +17,21 @@ export function useNativeHealth() {
   const queryClient = useQueryClient();
   const isNative = Capacitor.isNativePlatform();
 
+  const refreshNativeHealthState = useCallback(async () => {
+    const [latestAvailable, latestPermission] = await Promise.all([
+      isNativeHealthAvailable(),
+      checkNativeHealthPermissions(),
+    ]);
+
+    queryClient.setQueryData(["native-health-available"], latestAvailable);
+    queryClient.setQueryData(["native-health-permissions"], latestPermission);
+
+    return {
+      latestAvailable,
+      latestPermission,
+    };
+  }, [queryClient]);
+
   const { data: available = false } = useQuery({
     queryKey: ["native-health-available"],
     queryFn: isNativeHealthAvailable,
@@ -45,20 +60,28 @@ export function useNativeHealth() {
 
   const requestPermissions = useCallback(async () => {
     const granted = await requestHealthPermissions();
-    const latestAvailable = await isNativeHealthAvailable();
-
-    queryClient.setQueryData(["native-health-available"], latestAvailable);
-    queryClient.setQueryData(["native-health-permissions"], granted);
 
     if (granted) {
+      queryClient.setQueryData(["native-health-available"], true);
+      queryClient.setQueryData(["native-health-permissions"], true);
+
+      setTimeout(() => {
+        void refreshNativeHealthState().then(({ latestPermission }) => {
+          if (latestPermission) {
+            void refetch();
+          }
+        });
+      }, 1500);
+
       toast.success("Health data access granted");
-      refetch();
       return true;
     }
 
+    queryClient.setQueryData(["native-health-permissions"], false);
+
     toast.error("Health permissions denied");
     return false;
-  }, [queryClient, refetch]);
+  }, [queryClient, refetch, refreshNativeHealthState]);
 
   useEffect(() => {
     if (healthData && clientId) {
