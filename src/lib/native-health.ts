@@ -18,9 +18,9 @@ const HEALTH_READ_TYPES = [
   "sleep",
 ] as const;
 
-const HEALTH_REQUEST_TIMEOUT_MS = 8_000;
+// Give iOS up to 60 seconds to show and complete the HealthKit permission sheet
+const HEALTH_REQUEST_TIMEOUT_MS = 60_000;
 const HEALTH_CHECK_TIMEOUT_MS = 6_000;
-const HEALTH_IOS_BRIDGE_GRACE_MS = 1_200;
 const HEALTH_PROBE_INTERVAL_MS = 1_500;
 const HEALTH_PROBE_TIMEOUT_MS = 15_000;
 
@@ -164,66 +164,37 @@ async function resolveAuthorizationResult(
 }
 
 /**
- * Request HealthKit permissions for all metrics we need
+ * Request HealthKit permissions for all metrics we need.
+ * On iOS, we wait for the FULL native authorization flow (up to 60s)
+ * so that the iOS HealthKit permission sheet can actually appear.
  */
 export async function requestHealthPermissions(): Promise<boolean> {
   const h = await getHealth();
-  if (!h) return false;
+  if (!h) {
+    console.warn("[HealthKit] Plugin not available");
+    return false;
+  }
 
-  const authorizationRequest = h.requestAuthorization({
-    read: [...HEALTH_READ_TYPES],
-    write: [],
-  });
+  console.log("[HealthKit] Calling native requestAuthorization...");
 
   try {
-    if (Capacitor.getPlatform() === "ios") {
-      void authorizationRequest
-        .then((result) => {
-          const { readAuthorized, readDenied } = getAuthorizationArrays(result);
-          console.log(
-            `[HealthKit] Native authorization callback returned (authorized=${readAuthorized.length}, denied=${readDenied.length})`,
-          );
-        })
-        .catch((error) => {
-          console.warn("[HealthKit] Native authorization callback rejected", error);
-        });
-
-      const result = await withTimeout(authorizationRequest, HEALTH_IOS_BRIDGE_GRACE_MS);
-
-      if (result === TIMEOUT_RESULT) {
-        console.warn(
-          "[HealthKit] Native authorization callback is still pending on iOS; unblocking UI and verifying access in the background",
-        );
-
-        void waitForNativeHealthAccess(h)
-          .then((granted) => {
-            console.log(`[HealthKit] Background authorization verification ${granted ? "succeeded" : "failed"}`);
-          })
-          .catch((error) => {
-            console.warn("[HealthKit] Background authorization verification failed", error);
-          });
-
-        return true;
-      }
-
-      return await resolveAuthorizationResult(result, h);
-    }
-
-    const result = await withTimeout(authorizationRequest, HEALTH_REQUEST_TIMEOUT_MS);
+    const result = await withTimeout(
+      h.requestAuthorization({
+        read: [...HEALTH_READ_TYPES],
+        write: [],
+      }),
+      HEALTH_REQUEST_TIMEOUT_MS,
+    );
 
     if (result === TIMEOUT_RESULT) {
-      console.warn("[HealthKit] Authorization request timed out while waiting for native status confirmation; continuing with background verification");
-
-      void waitForNativeHealthAccess(h)
-        .then((granted) => {
-          console.log(`[HealthKit] Background authorization verification ${granted ? "succeeded" : "failed"}`);
-        })
-        .catch((error) => {
-          console.warn("[HealthKit] Background authorization verification failed", error);
-        });
-
-      return true;
+      console.warn("[HealthKit] Authorization request timed out after 60s");
+      return false;
     }
+
+    const { readAuthorized, readDenied } = getAuthorizationArrays(result);
+    console.log(
+      `[HealthKit] Native authorization returned (authorized=${readAuthorized.length}, denied=${readDenied.length})`,
+    );
 
     return await resolveAuthorizationResult(result, h);
   } catch (err) {

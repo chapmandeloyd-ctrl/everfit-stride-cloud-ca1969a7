@@ -12,8 +12,7 @@ import {
 } from "@/lib/native-health";
 import { toast } from "sonner";
 
-const HEALTH_PERMISSION_REQUEST_GUARD_MS = 3_500;
-let permissionRequestInFlight: Promise<boolean> | null = null;
+// No aggressive timeout — let native iOS flow complete naturally
 
 function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -99,37 +98,18 @@ export function useNativeHealth() {
   }, [confirmNativePermission, queryClient]);
 
   const requestPermissions = useCallback(async () => {
-    if (permissionRequestInFlight) {
-      return permissionRequestInFlight;
+    console.log("[HealthKit] requestPermissions called");
+
+    const granted = await requestHealthPermissions();
+
+    if (granted) {
+      startPermissionVerification();
+      return true;
     }
 
-    permissionRequestInFlight = (async () => {
-      const granted = await Promise.race<Awaited<ReturnType<typeof requestHealthPermissions>> | "timeout">([
-        requestHealthPermissions(),
-        wait(HEALTH_PERMISSION_REQUEST_GUARD_MS).then(() => "timeout" as const),
-      ]);
-
-      if (granted === "timeout") {
-        console.warn("[HealthKit] Hook-level permission guard elapsed; continuing with background verification");
-        startPermissionVerification();
-        return true;
-      }
-
-      if (granted) {
-        startPermissionVerification();
-        return true;
-      }
-
-      queryClient.setQueryData(["native-health-permissions"], false);
-      toast.error("Health permissions denied", { id: "apple-health-status" });
-      return false;
-    })();
-
-    try {
-      return await permissionRequestInFlight;
-    } finally {
-      permissionRequestInFlight = null;
-    }
+    queryClient.setQueryData(["native-health-permissions"], false);
+    toast.error("Health permissions denied", { id: "apple-health-status" });
+    return false;
   }, [queryClient, startPermissionVerification]);
 
   useEffect(() => {
