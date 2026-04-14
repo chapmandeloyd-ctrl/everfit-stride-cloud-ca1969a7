@@ -674,6 +674,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
     if (elapsedRef.current) clearInterval(elapsedRef.current);
     if (stepTimerRef.current) clearInterval(stepTimerRef.current);
     try { localStorage.removeItem(WORKOUT_TIMER_KEY); } catch {}
+    liveActivity.stop();
     onDiscard();
   };
 
