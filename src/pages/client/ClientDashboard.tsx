@@ -1680,7 +1680,7 @@ export default function ClientDashboard() {
               {completedCustomSessions.length > 0 && (
                 <div className="space-y-2">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                    Completed Custom Workouts by {firstName || "You"}
+                    Custom Workouts by {firstName || "You"}
                   </h3>
                   <Card>
                     <CardContent className="p-0 divide-y divide-border">
