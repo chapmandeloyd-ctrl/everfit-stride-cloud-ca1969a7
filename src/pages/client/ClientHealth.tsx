@@ -7,15 +7,17 @@ import { Button } from '@/components/ui/button';
 import { useNativeHealth } from '@/hooks/useNativeHealth';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { useState } from 'react';
+import { useCallback, useRef, useState, type MouseEvent, type TouchEvent } from 'react';
 
 export default function ClientHealth() {
   const effectiveClientId = useEffectiveClientId();
   const { isNative, permissionGranted, requestPermissions } = useNativeHealth();
   const [connecting, setConnecting] = useState(false);
+  const lastTapRef = useRef(0);
 
-  const handleConnect = async () => {
+  const handleConnect = useCallback(async () => {
     setConnecting(true);
+    console.log('[HealthConnect] Tap received');
     toast.info("Requesting Apple Health access...");
     try {
       const result = await requestPermissions();
@@ -30,7 +32,20 @@ export default function ClientHealth() {
     } finally {
       setConnecting(false);
     }
-  };
+  }, [requestPermissions]);
+
+  const handleConnectTap = useCallback(
+    (event: MouseEvent<HTMLButtonElement> | TouchEvent<HTMLButtonElement>) => {
+      event.preventDefault();
+
+      const now = Date.now();
+      if (connecting || now - lastTapRef.current < 700) return;
+
+      lastTapRef.current = now;
+      void handleConnect();
+    },
+    [connecting, handleConnect],
+  );
 
   return (
     <ClientLayout>
@@ -52,7 +67,14 @@ export default function ClientHealth() {
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             {isNative && !permissionGranted ? (
-              <Button variant="default" onClick={handleConnect} disabled={connecting}>
+              <Button
+                type="button"
+                variant="default"
+                onClick={handleConnectTap}
+                onTouchEnd={handleConnectTap}
+                disabled={connecting}
+                className="min-h-12 touch-manipulation select-none relative z-10"
+              >
                 <Smartphone className="h-4 w-4 mr-2" />
                 {connecting ? "Connecting..." : "Connect Apple Health"}
               </Button>
