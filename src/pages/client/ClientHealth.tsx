@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { useNativeHealth } from '@/hooks/useNativeHealth';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { useCallback, useRef, useState, type MouseEvent, type TouchEvent } from 'react';
+import { useCallback, useRef, useState, type MouseEvent } from 'react';
 
 const HEALTH_CONNECT_UI_GUARD_MS = 4_500;
 
@@ -16,11 +16,16 @@ export default function ClientHealth() {
   const { isNative, permissionGranted, requestPermissions } = useNativeHealth();
   const [connecting, setConnecting] = useState(false);
   const lastTapRef = useRef(0);
+  const connectInFlightRef = useRef(false);
 
   const handleConnect = useCallback(async () => {
+    if (connectInFlightRef.current) return;
+
+    connectInFlightRef.current = true;
     setConnecting(true);
     console.log('[HealthConnect] Tap received');
-    toast.info("Requesting Apple Health access...");
+    toast.info('Requesting Apple Health access...', { id: 'apple-health-request' });
+
     try {
       const result = await Promise.race<boolean | 'timeout'>([
         requestPermissions(),
@@ -31,27 +36,34 @@ export default function ClientHealth() {
 
       if (result === 'timeout') {
         console.warn('[HealthConnect] UI guard elapsed while waiting for Apple Health; releasing button state');
-        toast.info('Apple Health is still finishing on iPhone — checking access in the background.');
+        toast.info('Apple Health is still finishing on iPhone — checking access in the background.', {
+          id: 'apple-health-request',
+        });
         return;
       }
 
       if (!result) {
-        toast.error("Permission denied — open Settings > Privacy > Health to enable");
+        toast.error('Permission denied — open Settings > Privacy > Health to enable', {
+          id: 'apple-health-request',
+        });
       }
     } catch (err: any) {
-      console.error("[HealthConnect] Error:", err);
-      toast.error(`Connection failed: ${err?.message || "Unknown error"}`);
+      console.error('[HealthConnect] Error:', err);
+      toast.error(`Connection failed: ${err?.message || 'Unknown error'}`, {
+        id: 'apple-health-request',
+      });
     } finally {
+      connectInFlightRef.current = false;
       setConnecting(false);
     }
   }, [requestPermissions]);
 
   const handleConnectTap = useCallback(
-    (event: MouseEvent<HTMLButtonElement> | TouchEvent<HTMLButtonElement>) => {
+    (event: MouseEvent<HTMLButtonElement>) => {
       event.preventDefault();
 
       const now = Date.now();
-      if (connecting || now - lastTapRef.current < 700) return;
+      if (connecting || connectInFlightRef.current || now - lastTapRef.current < 700) return;
 
       lastTapRef.current = now;
       void handleConnect();
@@ -83,12 +95,11 @@ export default function ClientHealth() {
                 type="button"
                 variant="default"
                 onClick={handleConnectTap}
-                onTouchEnd={handleConnectTap}
                 disabled={connecting}
                 className="min-h-12 touch-manipulation select-none relative z-10"
               >
                 <Smartphone className="h-4 w-4 mr-2" />
-                {connecting ? "Connecting..." : "Connect Apple Health"}
+                {connecting ? 'Connecting...' : 'Connect Apple Health'}
               </Button>
             ) : (
               <Button variant="outline" asChild>
