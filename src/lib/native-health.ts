@@ -53,9 +53,13 @@ function delay(ms: number) {
 }
 
 async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T | typeof TIMEOUT_RESULT> {
-  return Promise.race([
+  const timeoutPromise: Promise<typeof TIMEOUT_RESULT> = delay(timeoutMs).then(
+    (): typeof TIMEOUT_RESULT => TIMEOUT_RESULT,
+  );
+
+  return Promise.race<T | typeof TIMEOUT_RESULT>([
     promise,
-    delay(timeoutMs).then(() => TIMEOUT_RESULT),
+    timeoutPromise,
   ]);
 }
 
