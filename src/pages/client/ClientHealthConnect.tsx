@@ -8,8 +8,6 @@ import { useNativeHealth } from '@/hooks/useNativeHealth';
 import { useCallback, useRef, useState, type MouseEvent } from 'react';
 import { toast } from 'sonner';
 
-const HEALTH_CONNECT_UI_GUARD_MS = 4_500;
-
 export default function ClientHealthConnect() {
   const { isNative, permissionGranted, requestPermissions } = useNativeHealth();
   const [connecting, setConnecting] = useState(false);
@@ -21,27 +19,18 @@ export default function ClientHealthConnect() {
 
     connectInFlightRef.current = true;
     setConnecting(true);
-    toast.info('Requesting Apple Health access...', { id: 'apple-health-request' });
+    toast.info('Requesting Apple Health access — please allow on the popup...', { id: 'apple-health-request' });
 
     try {
-      const result = await Promise.race<boolean | 'timeout'>([
-        requestPermissions(),
-        new Promise((resolve) => {
-          window.setTimeout(() => resolve('timeout'), HEALTH_CONNECT_UI_GUARD_MS);
-        }),
-      ]);
-
-      if (result === 'timeout') {
-        toast.info('Apple Health is still finishing on iPhone — checking access in the background.', {
-          id: 'apple-health-request',
-        });
-        return;
-      }
+      // No timeout race — let native iOS complete naturally (up to 60s)
+      const result = await requestPermissions();
 
       if (!result) {
         toast.error('Permission denied — open Settings > Privacy > Health to enable', {
           id: 'apple-health-request',
         });
+      } else {
+        toast.success('Apple Health connected!', { id: 'apple-health-request' });
       }
     } catch (err: any) {
       console.error('[HealthConnect] Error:', err);

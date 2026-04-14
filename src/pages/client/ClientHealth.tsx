@@ -9,8 +9,6 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { useCallback, useRef, useState, type MouseEvent } from 'react';
 
-const HEALTH_CONNECT_UI_GUARD_MS = 4_500;
-
 export default function ClientHealth() {
   const effectiveClientId = useEffectiveClientId();
   const { isNative, permissionGranted, requestPermissions } = useNativeHealth();
@@ -23,29 +21,19 @@ export default function ClientHealth() {
 
     connectInFlightRef.current = true;
     setConnecting(true);
-    console.log('[HealthConnect] Tap received');
-    toast.info('Requesting Apple Health access...', { id: 'apple-health-request' });
+    console.log('[HealthConnect] Tap received — waiting for iOS permission sheet...');
+    toast.info('Requesting Apple Health access — please allow on the popup...', { id: 'apple-health-request' });
 
     try {
-      const result = await Promise.race<boolean | 'timeout'>([
-        requestPermissions(),
-        new Promise((resolve) => {
-          window.setTimeout(() => resolve('timeout'), HEALTH_CONNECT_UI_GUARD_MS);
-        }),
-      ]);
-
-      if (result === 'timeout') {
-        console.warn('[HealthConnect] UI guard elapsed while waiting for Apple Health; releasing button state');
-        toast.info('Apple Health is still finishing on iPhone — checking access in the background.', {
-          id: 'apple-health-request',
-        });
-        return;
-      }
+      // No timeout race — let native iOS complete naturally (up to 60s)
+      const result = await requestPermissions();
 
       if (!result) {
         toast.error('Permission denied — open Settings > Privacy > Health to enable', {
           id: 'apple-health-request',
         });
+      } else {
+        toast.success('Apple Health connected!', { id: 'apple-health-request' });
       }
     } catch (err: any) {
       console.error('[HealthConnect] Error:', err);
