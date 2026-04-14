@@ -5,6 +5,7 @@ import { useKsomLevelProgression } from "@/hooks/useKsomLevelProgression";
 import { cn } from "@/lib/utils";
 import { ChevronLeft, Flame, Trophy, Zap } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { ProgressionUnlocksCard } from "@/components/dashboard/ProgressionUnlocksCard";
 
 const RING_SIZE = 200;
 const STROKE_WIDTH = 14;
@@ -144,6 +145,11 @@ export default function ClientDailyScore() {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Next Unlock / Meal Progression */}
+        <div className="w-full">
+          <ProgressionUnlocksCard />
         </div>
       </div>
     </div>
