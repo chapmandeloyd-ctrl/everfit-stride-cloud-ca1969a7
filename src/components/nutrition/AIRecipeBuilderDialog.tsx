@@ -182,6 +182,15 @@ export function AIRecipeBuilderDialog({ open, onOpenChange }: AIRecipeBuilderDia
     mutationFn: async () => {
       if (!extractedRecipe || !user?.id) throw new Error("Missing data");
 
+      // Validate meal completeness — flag incomplete but allow save with warning
+      const validation = validateMealCompleteness(extractedRecipe);
+      if (!validation.valid) {
+        console.warn("Incomplete meal data — missing:", validation.missingFields);
+        toast.warning(`Meal saved with ${validation.missingFields.length} incomplete fields`, {
+          description: validation.missingFields.slice(0, 5).join(", ") + (validation.missingFields.length > 5 ? "..." : ""),
+        });
+      }
+
       const imageUrl = await uploadImage();
 
       const allTags = [
