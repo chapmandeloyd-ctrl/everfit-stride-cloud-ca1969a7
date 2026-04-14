@@ -649,6 +649,16 @@ export default function ClientLogMeal() {
         isLogging={logMutation.isPending}
       />
 
+      {/* Macro Correction Drawer */}
+      <MacroCorrectionDrawer
+        data={correctionData}
+        open={showCorrection}
+        onOpenChange={setShowCorrection}
+        onAccept={handleCorrectionAccept}
+        onReject={handleCorrectionReject}
+        isLogging={isChecking}
+      />
+
       <BarcodeScannerDialog open={scannerOpen} onOpenChange={setScannerOpen} onProductScanned={handleProductScanned} />
       <FoodPhotoAnalyzerDialog open={photoAnalyzerOpen} onOpenChange={setPhotoAnalyzerOpen} onAnalysisComplete={handlePhotoAnalyzed} />
     </ClientLayout>
