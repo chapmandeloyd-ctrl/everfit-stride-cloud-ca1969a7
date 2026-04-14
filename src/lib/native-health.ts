@@ -16,10 +16,14 @@ const HEALTH_READ_TYPES = [
   "heartRate",
   "weight",
   "sleep",
-  "basalCalories",
-  "exerciseTime",
-  "workouts",
 ] as const;
+
+const HEALTH_REQUEST_TIMEOUT_MS = 20_000;
+const HEALTH_CHECK_TIMEOUT_MS = 6_000;
+const HEALTH_PROBE_INTERVAL_MS = 1_500;
+const HEALTH_PROBE_TIMEOUT_MS = 15_000;
+
+const TIMEOUT_RESULT = Symbol("native-health-timeout");
 
 type NativeHealthPlugin = {
   isAvailable?: () => Promise<boolean | { available?: boolean }>;
@@ -43,6 +47,17 @@ type NativeHealthPlugin = {
 };
 
 let Health: NativeHealthPlugin | null = null;
+
+function delay(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T | typeof TIMEOUT_RESULT> {
+  return Promise.race([
+    promise,
+    delay(timeoutMs).then(() => TIMEOUT_RESULT),
+  ]);
+}
 
 async function getHealth(): Promise<NativeHealthPlugin | null> {
   if (Health) return Health;
@@ -87,14 +102,20 @@ export async function checkNativeHealthPermissions(): Promise<boolean> {
   const h = await getHealth();
   if (!h || typeof h.checkAuthorization !== "function") return false;
   try {
-    const result = await h.checkAuthorization({
+    const result = await withTimeout(h.checkAuthorization({
       read: [...HEALTH_READ_TYPES],
       write: [],
-    });
+    }), HEALTH_CHECK_TIMEOUT_MS);
+
+    if (result === TIMEOUT_RESULT) {
+      console.warn("[HealthKit] Permission status check timed out, probing read access instead");
+      return await probeNativeHealthAccess(h);
+    }
+
     return Array.isArray(result?.readAuthorized) && result.readAuthorized.length > 0;
   } catch (err) {
     console.warn("[HealthKit] Permission status check failed", err);
-    return false;
+    return await probeNativeHealthAccess(h);
   }
 }
 
@@ -105,10 +126,16 @@ export async function requestHealthPermissions(): Promise<boolean> {
   const h = await getHealth();
   if (!h) return false;
   try {
-    const result = await h.requestAuthorization({
+    const result = await withTimeout(h.requestAuthorization({
       read: [...HEALTH_READ_TYPES],
       write: [],
-    });
+    }), HEALTH_REQUEST_TIMEOUT_MS);
+
+    if (result === TIMEOUT_RESULT) {
+      console.warn("[HealthKit] Authorization request timed out, probing for granted access");
+      return await waitForNativeHealthAccess(h);
+    }
+
     const readAuthorized = Array.isArray((result as { readAuthorized?: string[] } | null)?.readAuthorized)
       ? (result as { readAuthorized?: string[] }).readAuthorized
       : [];
@@ -117,11 +144,53 @@ export async function requestHealthPermissions(): Promise<boolean> {
       return true;
     }
 
-    return true;
+    return await probeNativeHealthAccess(h);
   } catch (err) {
     console.error("[HealthKit] Permission request failed:", err);
     return false;
   }
+}
+
+async function probeNativeHealthAccess(h: NativeHealthPlugin): Promise<boolean> {
+  const now = new Date();
+  const startDate = new Date(now.getTime() - 12 * 60 * 60 * 1000).toISOString();
+  const endDate = now.toISOString();
+
+  try {
+    const result = await withTimeout(
+      h.queryAggregated({
+        dataType: "steps",
+        startDate,
+        endDate,
+        bucket: "day",
+        aggregation: "sum",
+      }),
+      HEALTH_CHECK_TIMEOUT_MS,
+    );
+
+    if (result === TIMEOUT_RESULT) {
+      return false;
+    }
+
+    return Array.isArray(result?.samples);
+  } catch (err) {
+    console.warn("[HealthKit] Read-access probe failed", err);
+    return false;
+  }
+}
+
+async function waitForNativeHealthAccess(h: NativeHealthPlugin): Promise<boolean> {
+  const endTime = Date.now() + HEALTH_PROBE_TIMEOUT_MS;
+
+  while (Date.now() < endTime) {
+    if (await probeNativeHealthAccess(h)) {
+      return true;
+    }
+
+    await delay(HEALTH_PROBE_INTERVAL_MS);
+  }
+
+  return false;
 }
 
 /**
