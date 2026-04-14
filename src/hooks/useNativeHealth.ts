@@ -12,6 +12,8 @@ import {
 } from "@/lib/native-health";
 import { toast } from "sonner";
 
+const HEALTH_PERMISSION_REQUEST_GUARD_MS = 3_500;
+
 function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -80,22 +82,34 @@ export function useNativeHealth() {
     return false;
   }, [queryClient, refetch, refreshNativeHealthState]);
 
+  const startPermissionVerification = useCallback(() => {
+    queryClient.setQueryData(["native-health-available"], true);
+    queryClient.setQueryData(["native-health-permissions"], true);
+
+    void confirmNativePermission().then((verified) => {
+      if (verified) {
+        toast.success("Health data access granted");
+        return;
+      }
+
+      toast.error("Apple Health did not finish connecting. Please try again.");
+    });
+  }, [confirmNativePermission, queryClient]);
+
   const requestPermissions = useCallback(async () => {
-    const granted = await requestHealthPermissions();
+    const granted = await Promise.race<Awaited<ReturnType<typeof requestHealthPermissions>> | "timeout">([
+      requestHealthPermissions(),
+      wait(HEALTH_PERMISSION_REQUEST_GUARD_MS).then(() => "timeout" as const),
+    ]);
+
+    if (granted === "timeout") {
+      console.warn("[HealthKit] Hook-level permission guard elapsed; continuing with background verification");
+      startPermissionVerification();
+      return true;
+    }
 
     if (granted) {
-      queryClient.setQueryData(["native-health-available"], true);
-      queryClient.setQueryData(["native-health-permissions"], true);
-
-      void confirmNativePermission().then((verified) => {
-        if (verified) {
-          toast.success("Health data access granted");
-          return;
-        }
-
-        toast.error("Apple Health did not finish connecting. Please try again.");
-      });
-
+      startPermissionVerification();
       return true;
     }
 
@@ -103,7 +117,7 @@ export function useNativeHealth() {
 
     toast.error("Health permissions denied");
     return false;
-  }, [confirmNativePermission, queryClient]);
+  }, [queryClient, startPermissionVerification]);
 
   useEffect(() => {
     if (healthData && clientId) {
