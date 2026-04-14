@@ -16,6 +16,7 @@ export default function ClientCardioPlayer() {
   const clientId = useEffectiveClientId();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const liveActivity = useLiveActivity();
 
   const activity = searchParams.get("activity") || "general";
   const targetType = searchParams.get("targetType") || "none";
