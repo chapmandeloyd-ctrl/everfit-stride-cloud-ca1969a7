@@ -1622,7 +1622,7 @@ export default function ClientDashboard() {
                   {(() => {
                     const completedCardio = todayCardioSessions?.filter((s: any) => s.status === "completed") || [];
                     const completedCustomSessions = (todayTrackedAssignedSessions || []).filter((session: any) =>
-                      !session.client_workout_id && (session.completed_at || session.status === "completed")
+                      !session.client_workout_id && (session.completed_at || session.status === "completed" || session.status === "partial")
                     );
                     const completedAssignedFromRow = clientWorkouts?.filter((w: any) => w.completed_at && w.scheduled_date && isToday(parseISO(w.scheduled_date))) || [];
                     const completedAssignedFromSessions = (todayTrackedAssignedSessions || []).filter((session: any) =>
