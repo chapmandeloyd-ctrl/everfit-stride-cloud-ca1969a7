@@ -18,7 +18,7 @@ const HEALTH_READ_TYPES = [
   "sleep",
 ] as const;
 
-const HEALTH_REQUEST_TIMEOUT_MS = 20_000;
+const HEALTH_REQUEST_TIMEOUT_MS = 8_000;
 const HEALTH_CHECK_TIMEOUT_MS = 6_000;
 const HEALTH_PROBE_INTERVAL_MS = 1_500;
 const HEALTH_PROBE_TIMEOUT_MS = 15_000;
@@ -123,6 +123,28 @@ export async function checkNativeHealthPermissions(): Promise<boolean> {
   }
 }
 
+function getAuthorizationArrays(result: unknown): {
+  readAuthorized: string[];
+  readDenied: string[];
+} {
+  if (!result || typeof result !== "object") {
+    return {
+      readAuthorized: [],
+      readDenied: [],
+    };
+  }
+
+  const payload = result as {
+    readAuthorized?: string[];
+    readDenied?: string[];
+  };
+
+  return {
+    readAuthorized: Array.isArray(payload.readAuthorized) ? payload.readAuthorized : [],
+    readDenied: Array.isArray(payload.readDenied) ? payload.readDenied : [],
+  };
+}
+
 /**
  * Request HealthKit permissions for all metrics we need
  */
@@ -136,16 +158,27 @@ export async function requestHealthPermissions(): Promise<boolean> {
     }), HEALTH_REQUEST_TIMEOUT_MS);
 
     if (result === TIMEOUT_RESULT) {
-      console.warn("[HealthKit] Authorization request timed out, probing for granted access");
-      return await waitForNativeHealthAccess(h);
+      console.warn("[HealthKit] Authorization request timed out while waiting for native status confirmation; continuing with background verification");
+
+      void waitForNativeHealthAccess(h)
+        .then((granted) => {
+          console.log(`[HealthKit] Background authorization verification ${granted ? "succeeded" : "failed"}`);
+        })
+        .catch((error) => {
+          console.warn("[HealthKit] Background authorization verification failed", error);
+        });
+
+      return true;
     }
 
-    const readAuthorized = Array.isArray((result as { readAuthorized?: string[] } | null)?.readAuthorized)
-      ? (result as { readAuthorized?: string[] }).readAuthorized
-      : [];
+    const { readAuthorized, readDenied } = getAuthorizationArrays(result);
 
     if (readAuthorized.length > 0) {
       return true;
+    }
+
+    if (readDenied.length > 0) {
+      return false;
     }
 
     return await probeNativeHealthAccess(h);
