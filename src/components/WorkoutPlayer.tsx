@@ -297,6 +297,7 @@ export { unlockAudioForMobile };
 
 export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, onDiscard, onExit, onSaveForLater, resumeFromStep, resumeSetLogs, resumeElapsed, activeSessionId, dbStartedAt }: WorkoutPlayerProps) {
   const { toast } = useToast();
+  const liveActivity = useLiveActivity();
   const startedAtRef = useRef(new Date().toISOString());
   const [setLogs, setSetLogs] = useState<Record<string, SetLog>>(resumeSetLogs || {});
   const [isLocked, setIsLocked] = useState(false);
