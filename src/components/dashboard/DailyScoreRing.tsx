@@ -3,7 +3,7 @@ import { useDailyScore } from "@/hooks/useDailyScore";
 import { useConsistencyStreak } from "@/hooks/useConsistencyStreak";
 import { useKsomLevelProgression } from "@/hooks/useKsomLevelProgression";
 import { cn } from "@/lib/utils";
-import { Flame, Trophy, Zap } from "lucide-react";
+import { Flame, Trophy, Zap, ChevronDown } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
 const RING_SIZE = 140;
