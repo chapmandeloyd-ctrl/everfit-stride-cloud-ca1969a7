@@ -48,6 +48,7 @@ import { MetabolicControlDashboard } from "@/components/dashboard/MetabolicContr
 import { DailyScoreRing } from "@/components/dashboard/DailyScoreRing";
 import { MealDecisionCard } from "@/components/dashboard/MealDecisionCard";
 import { ProgressionUnlocksCard } from "@/components/dashboard/ProgressionUnlocksCard";
+import { useLiveActivity } from "@/hooks/useLiveActivity";
 
 // Fasting Program Card sub-component
 function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; navigate: (path: string) => void }) {

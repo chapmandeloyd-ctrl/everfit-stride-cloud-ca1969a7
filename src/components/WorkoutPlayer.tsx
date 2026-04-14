@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ExerciseSwapDialog } from "@/components/ExerciseSwapDialog";
 import { cn } from "@/lib/utils";
 import { WorkoutIntro } from "@/components/WorkoutIntro";
+import { useLiveActivity } from "@/hooks/useLiveActivity";
 
 interface Exercise {
   id: string;
