@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ClientLayout } from "@/components/ClientLayout";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { validateMacros } from "@/components/nutrition/macroValidator";
+import { MacroValidationBanner } from "@/components/meals/MacroValidationBanner";
 
 export default function ClientRecipeDetail() {
   const { id } = useParams<{ id: string }>();
@@ -253,6 +255,23 @@ export default function ClientRecipeDetail() {
         <div className="px-4 pt-4 pb-2">
           <h1 className="text-2xl font-bold text-foreground">{recipe.name}</h1>
         </div>
+
+        {/* Macro Validation Banner */}
+        {(() => {
+          const v = validateMacros({
+            calories: recipe.calories,
+            protein: recipe.protein,
+            fats: recipe.fats,
+            carbs: recipe.carbs,
+            keto_types: recipe.keto_types as string[] | undefined,
+            meal_role: recipe.meal_role,
+          });
+          return v.validation_flags.length > 0 ? (
+            <div className="px-4 pb-2">
+              <MacroValidationBanner flags={v.validation_flags} warnings={v.warnings} />
+            </div>
+          ) : null;
+        })()}
 
         {/* Quick Info Row */}
         <div className="px-4 pb-4">
