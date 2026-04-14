@@ -6261,6 +6261,7 @@ export type Database = {
           image_url: string | null
           ingredients_list: string | null
           instructions: string | null
+          is_valid: boolean
           keto_types: string[] | null
           macro_profile: string
           meal_intensity: string | null
@@ -6277,6 +6278,7 @@ export type Database = {
           trainer_id: string
           trigger_conditions: string[] | null
           updated_at: string
+          validation_flags: string[]
           why_it_works: string | null
         }
         Insert: {
@@ -6296,6 +6298,7 @@ export type Database = {
           image_url?: string | null
           ingredients_list?: string | null
           instructions?: string | null
+          is_valid?: boolean
           keto_types?: string[] | null
           macro_profile?: string
           meal_intensity?: string | null
@@ -6312,6 +6315,7 @@ export type Database = {
           trainer_id: string
           trigger_conditions?: string[] | null
           updated_at?: string
+          validation_flags?: string[]
           why_it_works?: string | null
         }
         Update: {
@@ -6331,6 +6335,7 @@ export type Database = {
           image_url?: string | null
           ingredients_list?: string | null
           instructions?: string | null
+          is_valid?: boolean
           keto_types?: string[] | null
           macro_profile?: string
           meal_intensity?: string | null
@@ -6347,6 +6352,7 @@ export type Database = {
           trainer_id?: string
           trigger_conditions?: string[] | null
           updated_at?: string
+          validation_flags?: string[]
           why_it_works?: string | null
         }
         Relationships: []
