@@ -36,24 +36,6 @@ export function useNativeHealth() {
     };
   }, [queryClient]);
 
-  const confirmNativePermission = useCallback(async () => {
-    const deadline = Date.now() + 20_000;
-
-    while (Date.now() < deadline) {
-      const { latestPermission } = await refreshNativeHealthState();
-
-      if (latestPermission) {
-        void refetch();
-        return true;
-      }
-
-      await wait(1_500);
-    }
-
-    queryClient.setQueryData(["native-health-permissions"], false);
-    return false;
-  }, [queryClient, refetch, refreshNativeHealthState]);
-
   const { data: available = false } = useQuery({
     queryKey: ["native-health-available"],
     queryFn: isNativeHealthAvailable,
@@ -79,6 +61,24 @@ export function useNativeHealth() {
     enabled: isNative && permissionGranted,
     refetchInterval: 5 * 60 * 1000,
   });
+
+  const confirmNativePermission = useCallback(async () => {
+    const deadline = Date.now() + 20_000;
+
+    while (Date.now() < deadline) {
+      const { latestPermission } = await refreshNativeHealthState();
+
+      if (latestPermission) {
+        void refetch();
+        return true;
+      }
+
+      await wait(1_500);
+    }
+
+    queryClient.setQueryData(["native-health-permissions"], false);
+    return false;
+  }, [queryClient, refetch, refreshNativeHealthState]);
 
   const requestPermissions = useCallback(async () => {
     const granted = await requestHealthPermissions();
