@@ -12,6 +12,10 @@ import {
 } from "@/lib/native-health";
 import { toast } from "sonner";
 
+function wait(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export function useNativeHealth() {
   const clientId = useEffectiveClientId();
   const queryClient = useQueryClient();
@@ -31,6 +35,24 @@ export function useNativeHealth() {
       latestPermission,
     };
   }, [queryClient]);
+
+  const confirmNativePermission = useCallback(async () => {
+    const deadline = Date.now() + 20_000;
+
+    while (Date.now() < deadline) {
+      const { latestPermission } = await refreshNativeHealthState();
+
+      if (latestPermission) {
+        void refetch();
+        return true;
+      }
+
+      await wait(1_500);
+    }
+
+    queryClient.setQueryData(["native-health-permissions"], false);
+    return false;
+  }, [queryClient, refetch, refreshNativeHealthState]);
 
   const { data: available = false } = useQuery({
     queryKey: ["native-health-available"],
@@ -65,15 +87,15 @@ export function useNativeHealth() {
       queryClient.setQueryData(["native-health-available"], true);
       queryClient.setQueryData(["native-health-permissions"], true);
 
-      setTimeout(() => {
-        void refreshNativeHealthState().then(({ latestPermission }) => {
-          if (latestPermission) {
-            void refetch();
-          }
-        });
-      }, 1500);
+      void confirmNativePermission().then((verified) => {
+        if (verified) {
+          toast.success("Health data access granted");
+          return;
+        }
 
-      toast.success("Health data access granted");
+        toast.error("Apple Health did not finish connecting. Please try again.");
+      });
+
       return true;
     }
 
@@ -81,7 +103,7 @@ export function useNativeHealth() {
 
     toast.error("Health permissions denied");
     return false;
-  }, [queryClient, refetch, refreshNativeHealthState]);
+  }, [confirmNativePermission, queryClient]);
 
   useEffect(() => {
     if (healthData && clientId) {
