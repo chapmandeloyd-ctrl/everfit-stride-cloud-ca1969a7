@@ -1005,7 +1005,7 @@ export default function ClientDashboard() {
         .from("workout_sessions")
         .select("id, client_workout_id, workout_plan_id, completed_at, is_partial, status, completion_percentage, workout_plan:workout_plans(*)")
         .eq("client_id", clientId)
-        .or(`completed_at.gte.${startOfDay.toISOString()},status.eq.in_progress`)
+        .or(`completed_at.gte.${startOfDay.toISOString()},created_at.gte.${startOfDay.toISOString()},status.eq.in_progress`)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
