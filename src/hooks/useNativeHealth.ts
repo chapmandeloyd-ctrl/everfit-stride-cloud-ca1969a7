@@ -13,6 +13,7 @@ import {
 import { toast } from "sonner";
 
 const HEALTH_PERMISSION_REQUEST_GUARD_MS = 3_500;
+let permissionRequestInFlight: Promise<boolean> | null = null;
 
 function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -88,36 +89,47 @@ export function useNativeHealth() {
     void confirmNativePermission().then((verified) => {
       if (verified) {
         queryClient.setQueryData(["native-health-permissions"], true);
-        toast.success("Health data access granted");
+        toast.success("Health data access granted", { id: "apple-health-status" });
         return;
       }
 
       queryClient.setQueryData(["native-health-permissions"], false);
-      toast.error("Apple Health did not finish connecting. Please try again.");
+      toast.error("Apple Health did not finish connecting. Please try again.", { id: "apple-health-status" });
     });
   }, [confirmNativePermission, queryClient]);
 
   const requestPermissions = useCallback(async () => {
-    const granted = await Promise.race<Awaited<ReturnType<typeof requestHealthPermissions>> | "timeout">([
-      requestHealthPermissions(),
-      wait(HEALTH_PERMISSION_REQUEST_GUARD_MS).then(() => "timeout" as const),
-    ]);
-
-    if (granted === "timeout") {
-      console.warn("[HealthKit] Hook-level permission guard elapsed; continuing with background verification");
-      startPermissionVerification();
-      return true;
+    if (permissionRequestInFlight) {
+      return permissionRequestInFlight;
     }
 
-    if (granted) {
-      startPermissionVerification();
-      return true;
+    permissionRequestInFlight = (async () => {
+      const granted = await Promise.race<Awaited<ReturnType<typeof requestHealthPermissions>> | "timeout">([
+        requestHealthPermissions(),
+        wait(HEALTH_PERMISSION_REQUEST_GUARD_MS).then(() => "timeout" as const),
+      ]);
+
+      if (granted === "timeout") {
+        console.warn("[HealthKit] Hook-level permission guard elapsed; continuing with background verification");
+        startPermissionVerification();
+        return true;
+      }
+
+      if (granted) {
+        startPermissionVerification();
+        return true;
+      }
+
+      queryClient.setQueryData(["native-health-permissions"], false);
+      toast.error("Health permissions denied", { id: "apple-health-status" });
+      return false;
+    })();
+
+    try {
+      return await permissionRequestInFlight;
+    } finally {
+      permissionRequestInFlight = null;
     }
-
-    queryClient.setQueryData(["native-health-permissions"], false);
-
-    toast.error("Health permissions denied");
-    return false;
   }, [queryClient, startPermissionVerification]);
 
   useEffect(() => {
