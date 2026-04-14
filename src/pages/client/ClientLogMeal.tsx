@@ -17,6 +17,8 @@ import { BarcodeScannerDialog } from "@/components/BarcodeScannerDialog";
 import { FoodPhotoAnalyzerDialog } from "@/components/FoodPhotoAnalyzerDialog";
 import { MealConfirmationDrawer, type PendingMeal } from "@/components/meals/MealConfirmationDrawer";
 import { CoachFeedbackBanner } from "@/components/meals/CoachFeedbackBanner";
+import { MacroCorrectionDrawer } from "@/components/meals/MacroCorrectionDrawer";
+import { useMacroCorrection } from "@/hooks/useMacroCorrection";
 
 interface FoodItem {
   fdcId: number;
@@ -71,6 +73,17 @@ export default function ClientLogMeal() {
 
   // Coach feedback
   const [showFeedback, setShowFeedback] = useState(false);
+
+  // Macro correction
+  const {
+    correctionData,
+    showCorrection,
+    isChecking,
+    checkAndCorrect,
+    recordCorrection,
+    closeCorrection,
+    setShowCorrection,
+  } = useMacroCorrection();
 
   // Handle deep-link tab param
   useEffect(() => {
@@ -208,15 +221,53 @@ export default function ClientLogMeal() {
     onError: () => toast.error("Failed to log meal"),
   });
 
-  // Open confirmation drawer with pending meal
-  const openConfirmation = (meal: PendingMeal) => {
+  // Open confirmation drawer — run correction check first
+  const openConfirmation = async (meal: PendingMeal) => {
     setPendingMeal(meal);
-    setConfirmOpen(true);
+    const needsCorrection = await checkAndCorrect({
+      name: meal.name,
+      calories: meal.calories,
+      protein: meal.protein,
+      fats: meal.fats,
+      carbs: meal.carbs,
+      source: meal.source,
+      confidence: meal.confidence,
+      meal_role: meal.meal_role,
+    });
+    if (!needsCorrection) {
+      setConfirmOpen(true);
+    }
+    // If correction needed, MacroCorrectionDrawer opens automatically
   };
 
   // Handle final confirmation from drawer
   const handleConfirmMeal = (meal: PendingMeal) => {
     logMutation.mutate(meal);
+  };
+
+  // Handle correction acceptance
+  const handleCorrectionAccept = (finalMacros: { calories: number; protein: number; fats: number; carbs: number }, action: "accepted" | "edited") => {
+    if (correctionData && user?.id) {
+      recordCorrection(user.id, correctionData, action, finalMacros);
+    }
+    closeCorrection();
+    if (pendingMeal) {
+      const correctedMeal: PendingMeal = {
+        ...pendingMeal,
+        ...finalMacros,
+      };
+      setPendingMeal(correctedMeal);
+      setConfirmOpen(true);
+    }
+  };
+
+  // Handle correction rejection — use original values
+  const handleCorrectionReject = () => {
+    if (correctionData && user?.id) {
+      recordCorrection(user.id, correctionData, "rejected", correctionData.original);
+    }
+    closeCorrection();
+    setConfirmOpen(true);
   };
 
   // Quick add (+ button)
@@ -596,6 +647,16 @@ export default function ClientLogMeal() {
         onOpenChange={setConfirmOpen}
         onConfirm={handleConfirmMeal}
         isLogging={logMutation.isPending}
+      />
+
+      {/* Macro Correction Drawer */}
+      <MacroCorrectionDrawer
+        data={correctionData}
+        open={showCorrection}
+        onOpenChange={setShowCorrection}
+        onAccept={handleCorrectionAccept}
+        onReject={handleCorrectionReject}
+        isLogging={isChecking}
       />
 
       <BarcodeScannerDialog open={scannerOpen} onOpenChange={setScannerOpen} onProductScanned={handleProductScanned} />

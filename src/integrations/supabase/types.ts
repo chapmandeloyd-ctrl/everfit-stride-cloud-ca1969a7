@@ -5053,6 +5053,75 @@ export type Database = {
           },
         ]
       }
+      macro_corrections: {
+        Row: {
+          client_id: string
+          corrected_calories: number | null
+          corrected_carbs: number | null
+          corrected_fats: number | null
+          corrected_protein: number | null
+          correction_flags: string[]
+          created_at: string
+          final_calories: number | null
+          final_carbs: number | null
+          final_fats: number | null
+          final_protein: number | null
+          id: string
+          meal_name: string
+          original_calories: number | null
+          original_carbs: number | null
+          original_fats: number | null
+          original_protein: number | null
+          source: string
+          suggestion_text: string | null
+          user_action: string
+        }
+        Insert: {
+          client_id: string
+          corrected_calories?: number | null
+          corrected_carbs?: number | null
+          corrected_fats?: number | null
+          corrected_protein?: number | null
+          correction_flags?: string[]
+          created_at?: string
+          final_calories?: number | null
+          final_carbs?: number | null
+          final_fats?: number | null
+          final_protein?: number | null
+          id?: string
+          meal_name: string
+          original_calories?: number | null
+          original_carbs?: number | null
+          original_fats?: number | null
+          original_protein?: number | null
+          source?: string
+          suggestion_text?: string | null
+          user_action?: string
+        }
+        Update: {
+          client_id?: string
+          corrected_calories?: number | null
+          corrected_carbs?: number | null
+          corrected_fats?: number | null
+          corrected_protein?: number | null
+          correction_flags?: string[]
+          created_at?: string
+          final_calories?: number | null
+          final_carbs?: number | null
+          final_fats?: number | null
+          final_protein?: number | null
+          id?: string
+          meal_name?: string
+          original_calories?: number | null
+          original_carbs?: number | null
+          original_fats?: number | null
+          original_protein?: number | null
+          source?: string
+          suggestion_text?: string | null
+          user_action?: string
+        }
+        Relationships: []
+      }
       meal_plan_categories: {
         Row: {
           id: string
