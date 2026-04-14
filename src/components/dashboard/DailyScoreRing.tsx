@@ -53,7 +53,7 @@ export function DailyScoreRing() {
   const nextMilestone = streak?.nextMilestone;
   const level = levelData?.level ?? 1;
   const tierInfo = levelData?.tierInfo;
-  const emoji = LABEL_EMOJI[score.label] ?? "⚡";
+  
 
   return (
     <div className="mx-2">
@@ -76,8 +76,8 @@ export function DailyScoreRing() {
               className="transition-all duration-700 ease-out"
             />
           </svg>
-          <div className="absolute inset-0 flex items-center justify-center text-lg">
-            {emoji}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className={cn("text-[11px] font-bold tabular-nums", score.color)}>{score.total}</span>
           </div>
         </div>
 
