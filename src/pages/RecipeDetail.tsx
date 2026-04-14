@@ -5,20 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ChevronLeft, Clock, ChefHat, Users, Pencil, Trash2, Flame } from "lucide-react";
+import { ChevronLeft, Clock, ChefHat, Users, Pencil, Trash2, Flame, Zap, Shield, Target } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { EditRecipeDialog } from "@/components/nutrition/EditRecipeDialog";
 import { DeleteRecipeDialog } from "@/components/nutrition/DeleteRecipeDialog";
-
-const DIETARY_OPTIONS = [
-  "Dairy-Free", "Gluten-Free", "High Protein", "Keto Diet", "Low Calorie",
-  "Low Carb", "Low Sodium", "Low Sugar", "Nut-Free", "Pescatarian",
-  "Shellfish-Free", "Vegan", "Vegetarian",
-];
-
-const CATEGORIES = ["Breakfast", "Lunch", "Dinner", "Snack", "Soup", "Salad/Bowl", "Others"];
 
 export default function RecipeDetail() {
   const { id } = useParams<{ id: string }>();
@@ -61,19 +53,23 @@ export default function RecipeDetail() {
     );
   }
 
-  const tags = (recipe.tags || []) as string[];
-  const dishType = tags.find((t) => t === "Main dish" || t === "Side dish");
-  const category = tags.find((t) => CATEGORIES.includes(t));
-  const dietaryTags = tags.filter((t) => DIETARY_OPTIONS.includes(t));
-  const otherTags = tags.filter(
-    (t) => t !== dishType && !CATEGORIES.includes(t) && !DIETARY_OPTIONS.includes(t)
-  );
+  const ketoTypes = (recipe.keto_types as string[] | null) || [];
+  const mealRole = recipe.meal_role as string | null;
+  const mealIntensity = recipe.meal_intensity as string | null;
+  const bestFor = (recipe.best_for as string[] | null) || [];
+  const avoidIf = (recipe.avoid_if as string[] | null) || [];
+  const mealTiming = recipe.meal_timing as string | null;
+  const whyItWorks = recipe.why_it_works as string | null;
+  const carbLimitNote = recipe.carb_limit_note as string | null;
+  const proteinTargetNote = recipe.protein_target_note as string | null;
 
-  // Parse instructions - split by sections
+  // Parse instructions
   const instructionText = recipe.instructions || "";
   const ingredientsFromInstructions = instructionText.match(/## Ingredients\n([\s\S]*?)(?=## |$)/)?.[1]?.trim();
   const directionsFromInstructions = instructionText.match(/## Directions\n([\s\S]*?)$/)?.[1]?.trim();
   const plainInstructions = !instructionText.includes("## ") ? instructionText : null;
+
+  const intensityColor = mealIntensity === 'heavy' ? 'bg-red-500' : mealIntensity === 'moderate' ? 'bg-amber-500' : mealIntensity === 'light' ? 'bg-emerald-500' : 'bg-blue-500';
 
   return (
     <DashboardLayout>
@@ -93,172 +89,159 @@ export default function RecipeDetail() {
           </div>
         </div>
 
-        {/* Hero Section */}
-        <div className="flex flex-col md:flex-row gap-6">
+        {/* Hero Image with Badges */}
+        <div className="relative rounded-xl overflow-hidden">
           {recipe.image_url ? (
-            <img
-              src={recipe.image_url}
-              alt={recipe.name}
-              className="w-full md:w-80 h-64 object-cover rounded-lg"
-            />
+            <img src={recipe.image_url} alt={recipe.name} className="w-full h-72 object-cover" />
           ) : (
-            <div className="w-full md:w-80 h-64 bg-gradient-to-br from-primary/20 to-primary/5 rounded-lg flex items-center justify-center">
+            <div className="w-full h-72 bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
               <ChefHat className="h-16 w-16 text-primary/40" />
             </div>
           )}
-
-          <div className="flex-1 space-y-3">
-            <h1 className="text-3xl font-bold text-foreground">{recipe.name}</h1>
-
-            {/* Dish type + category badges */}
-            <div className="flex flex-wrap gap-2">
-              {dishType && (
-                <Badge variant="outline" className="text-sm">
-                  <ChefHat className="h-3 w-3 mr-1" /> {dishType}
-                </Badge>
-              )}
-              {category && (
-                <Badge variant="outline" className="text-sm">{category}</Badge>
-              )}
-              {otherTags.map((tag) => (
-                <Badge key={tag} variant="outline" className="text-sm">{tag}</Badge>
-              ))}
-            </div>
-
-            {/* Description */}
-            {recipe.description && (
-              <div>
-                <span className="text-2xl text-primary/30 leading-none">"</span>
-                <p className="text-sm text-muted-foreground italic inline">{recipe.description}</p>
-              </div>
+          {/* Image Badges */}
+          <div className="absolute bottom-3 left-3 flex flex-wrap gap-2">
+            {ketoTypes.map((kt) => (
+              <Badge key={kt} className="bg-black/70 text-white border-0 backdrop-blur-sm text-xs font-bold">
+                {kt.replace(/^-\s*/, '')}
+              </Badge>
+            ))}
+            {mealRole && (
+              <Badge className="bg-primary/80 text-primary-foreground border-0 backdrop-blur-sm text-xs font-bold">
+                {mealRole.replace(/_/g, ' ')}
+              </Badge>
             )}
-
-            {/* Prep / Cook / Servings */}
-            <div className="flex items-center gap-6 text-sm text-muted-foreground">
-              <span className="flex items-center gap-1">
-                <Clock className="h-4 w-4" /> Prep: <strong className="text-foreground">{recipe.prep_time_minutes || 0}m</strong>
-              </span>
-              <span className="flex items-center gap-1">
-                <ChefHat className="h-4 w-4" /> Cooking: <strong className="text-foreground">{recipe.cook_time_minutes || 0}m</strong>
-              </span>
-              <span className="flex items-center gap-1">
-                <Users className="h-4 w-4" /> Serving: <strong className="text-foreground">{recipe.servings || 1}</strong>
-              </span>
-            </div>
+            {mealIntensity && (
+              <Badge className={`${intensityColor} text-white border-0 backdrop-blur-sm text-xs font-bold capitalize`}>
+                {mealIntensity}
+              </Badge>
+            )}
           </div>
         </div>
 
-        {/* Dietary Information */}
-        {dietaryTags.length > 0 && (
-          <div className="flex flex-wrap gap-6 justify-center py-4">
-            {dietaryTags.map((tag) => (
-              <div key={tag} className="flex flex-col items-center gap-1.5">
-                <div className="h-14 w-14 rounded-full border-2 border-muted-foreground/20 flex items-center justify-center">
-                  <span className="text-xl">{getDietaryIcon(tag)}</span>
-                </div>
-                <span className="text-xs text-muted-foreground">{tag}</span>
-              </div>
-            ))}
-          </div>
-        )}
+        {/* Title */}
+        <h1 className="text-3xl font-bold text-foreground">{recipe.name}</h1>
 
-        {/* Macros Card */}
-        <Card>
-          <CardContent className="p-4">
-            <div className="grid grid-cols-4 gap-4 text-center">
-              <div>
-                <div className="flex items-center justify-center gap-1">
-                  <span className="font-bold text-xl">{recipe.calories || 0}</span>
-                  <span className="text-sm text-muted-foreground">cal</span>
-                </div>
-                <p className="text-xs text-muted-foreground">Calories</p>
-              </div>
-              <div>
-                <div className="font-bold text-xl">{Number(recipe.protein || 0)} <span className="text-sm font-normal text-muted-foreground">g</span></div>
-                <p className="text-xs text-muted-foreground">Protein</p>
-              </div>
-              <div>
-                <div className="font-bold text-xl">{Number(recipe.carbs || 0)} <span className="text-sm font-normal text-muted-foreground">g</span></div>
-                <p className="text-xs text-muted-foreground">Carbs</p>
-              </div>
-              <div>
-                <div className="font-bold text-xl">{Number(recipe.fats || 0)} <span className="text-sm font-normal text-muted-foreground">g</span></div>
-                <p className="text-xs text-muted-foreground">Fat</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* KSOM360 Meal Intelligence */}
-        {(recipe.meal_intensity || recipe.satiety_score || recipe.digestion_load || recipe.craving_replacement) && (
+        {/* Quick Info Row */}
+        <div className="grid grid-cols-4 gap-3">
           <Card>
-            <CardContent className="p-4">
-              <h3 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wide">Meal Intelligence</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {recipe.meal_intensity && (
-                  <div className="text-center space-y-1">
-                    <div className="text-2xl">{recipe.meal_intensity === 'heavy' ? '🔴' : recipe.meal_intensity === 'moderate' ? '🟡' : recipe.meal_intensity === 'light' ? '🟢' : '💙'}</div>
-                    <p className="text-sm font-bold capitalize">{recipe.meal_intensity}</p>
-                    <p className="text-xs text-muted-foreground">Intensity</p>
-                  </div>
-                )}
-                {recipe.satiety_score != null && (
-                  <div className="text-center space-y-1">
-                    <div className="text-2xl font-bold">{recipe.satiety_score}<span className="text-sm font-normal text-muted-foreground">/10</span></div>
-                    <p className="text-xs text-muted-foreground">Satiety Score</p>
-                  </div>
-                )}
-                {recipe.digestion_load && (
-                  <div className="text-center space-y-1">
-                    <div className="text-2xl">{recipe.digestion_load === 'high' ? '🔥' : recipe.digestion_load === 'medium' ? '⚡' : '🍃'}</div>
-                    <p className="text-sm font-bold capitalize">{recipe.digestion_load}</p>
-                    <p className="text-xs text-muted-foreground">Digestion Load</p>
-                  </div>
-                )}
-                {recipe.craving_replacement && (
-                  <div className="text-center space-y-1">
-                    <div className="text-2xl">🎯</div>
-                    <p className="text-sm font-bold capitalize">{recipe.craving_replacement}</p>
-                    <p className="text-xs text-muted-foreground">Craving Target</p>
-                  </div>
-                )}
-              </div>
+            <CardContent className="p-3 text-center">
+              <Flame className="h-4 w-4 mx-auto text-orange-500 mb-1" />
+              <p className="font-bold text-lg">{recipe.calories || 0}</p>
+              <p className="text-xs text-muted-foreground">Calories</p>
             </CardContent>
           </Card>
-        )}
+          <Card>
+            <CardContent className="p-3 text-center">
+              <Zap className="h-4 w-4 mx-auto text-blue-500 mb-1" />
+              <p className="font-bold text-lg">{Number(recipe.protein || 0)}g</p>
+              <p className="text-xs text-muted-foreground">Protein</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-3 text-center">
+              <Target className="h-4 w-4 mx-auto text-green-500 mb-1" />
+              <p className="font-bold text-lg">{Number(recipe.carbs || 0)}g</p>
+              <p className="text-xs text-muted-foreground">Carbs</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-3 text-center">
+              <Clock className="h-4 w-4 mx-auto text-muted-foreground mb-1" />
+              <p className="font-bold text-lg">{recipe.prep_time_minutes || 0}m</p>
+              <p className="text-xs text-muted-foreground">Prep</p>
+            </CardContent>
+          </Card>
+        </div>
 
-        {/* Tabs: Ingredients / Instructions / Nutrition Info */}
+        {/* Tab System */}
         <Card>
           <CardContent className="p-0">
-            <Tabs defaultValue="ingredients" className="w-full">
+            <Tabs defaultValue="overview" className="w-full">
               <TabsList className="w-full justify-start rounded-none border-b bg-transparent h-auto p-0">
-                <TabsTrigger value="ingredients" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-3">
+                <TabsTrigger value="overview" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-5 py-3 text-sm">
+                  Overview
+                </TabsTrigger>
+                <TabsTrigger value="ingredients" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-5 py-3 text-sm">
                   Ingredients
                 </TabsTrigger>
-                <TabsTrigger value="instructions" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-3">
+                <TabsTrigger value="instructions" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-5 py-3 text-sm">
                   Instructions
                 </TabsTrigger>
-                <TabsTrigger value="nutrition" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 py-3">
-                  Nutrition Info
+                <TabsTrigger value="why" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-5 py-3 text-sm">
+                  Why It Works
                 </TabsTrigger>
               </TabsList>
 
+              {/* OVERVIEW TAB */}
+              <TabsContent value="overview" className="p-6 space-y-6">
+                {/* Description */}
+                {recipe.description && (
+                  <div>
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Description</h4>
+                    <p className="text-sm text-foreground leading-relaxed">{recipe.description}</p>
+                  </div>
+                )}
+
+                {/* Best For */}
+                {bestFor.length > 0 && (
+                  <div>
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-500 mb-2">Best For</h4>
+                    <div className="space-y-1.5">
+                      {bestFor.map((item, i) => (
+                        <div key={i} className="flex items-start gap-2">
+                          <span className="text-emerald-500 mt-0.5">✓</span>
+                          <span className="text-sm text-foreground">{item.replace(/^-\s*/, '')}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Avoid If */}
+                {avoidIf.length > 0 && (
+                  <div>
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-amber-500 mb-2">Avoid If</h4>
+                    <div className="space-y-1.5">
+                      {avoidIf.map((item, i) => (
+                        <div key={i} className="flex items-start gap-2">
+                          <span className="text-amber-500 mt-0.5">⚠</span>
+                          <span className="text-sm text-foreground">{item.replace(/^-\s*/, '')}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Meal Timing */}
+                {mealTiming && (
+                  <div>
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Meal Timing</h4>
+                    <div className="flex items-center gap-2 bg-muted rounded-lg p-3">
+                      <Clock className="h-4 w-4 text-primary shrink-0" />
+                      <span className="text-sm text-foreground">{mealTiming}</span>
+                    </div>
+                  </div>
+                )}
+              </TabsContent>
+
+              {/* INGREDIENTS TAB */}
               <TabsContent value="ingredients" className="p-6">
                 {ingredients && ingredients.length > 0 ? (
                   <div className="divide-y divide-border">
                     {ingredients.map((ing: any) => (
                       <div key={ing.id} className="flex items-center justify-between py-3">
                         <span className="text-sm font-medium">{ing.name}</span>
-                        <span className="text-sm text-muted-foreground">
-                          {ing.amount} {ing.unit}
-                        </span>
+                        <span className="text-sm text-muted-foreground">{ing.amount} {ing.unit}</span>
                       </div>
                     ))}
                   </div>
                 ) : ingredientsFromInstructions ? (
-                  <div className="space-y-2">
+                  <div className="divide-y divide-border">
                     {ingredientsFromInstructions.split("\n").filter(Boolean).map((line, i) => (
-                      <p key={i} className="text-sm">{line.replace(/^[-•]\s*/, "")}</p>
+                      <div key={i} className="flex items-center gap-3 py-3">
+                        <div className="h-2 w-2 rounded-full bg-primary shrink-0" />
+                        <span className="text-sm">{line.replace(/^[-•]\s*/, "")}</span>
+                      </div>
                     ))}
                   </div>
                 ) : (
@@ -266,14 +249,17 @@ export default function RecipeDetail() {
                 )}
               </TabsContent>
 
+              {/* INSTRUCTIONS TAB */}
               <TabsContent value="instructions" className="p-6">
                 {(directionsFromInstructions || plainInstructions) ? (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {(directionsFromInstructions || plainInstructions || "").split("\n").filter(Boolean).map((line, i) => (
-                      <p key={i} className="text-sm">
-                        <span className="font-bold text-primary mr-2">{i + 1}.</span>
-                        {line.replace(/^\d+\.\s*/, "")}
-                      </p>
+                      <div key={i} className="flex items-start gap-3">
+                        <div className="h-7 w-7 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-bold shrink-0 mt-0.5">
+                          {i + 1}
+                        </div>
+                        <p className="text-sm text-foreground leading-relaxed pt-1">{line.replace(/^\d+\.\s*/, "")}</p>
+                      </div>
                     ))}
                   </div>
                 ) : (
@@ -281,25 +267,42 @@ export default function RecipeDetail() {
                 )}
               </TabsContent>
 
-              <TabsContent value="nutrition" className="p-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex justify-between border-b pb-2">
-                    <span className="text-sm">Calories</span>
-                    <span className="text-sm font-medium">{recipe.calories || 0} cal</span>
+              {/* WHY IT WORKS TAB */}
+              <TabsContent value="why" className="p-6 space-y-6">
+                {whyItWorks && (
+                  <div>
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Why This Meal Works</h4>
+                    <div className="bg-primary/5 border border-primary/10 rounded-lg p-4">
+                      <p className="text-sm text-foreground leading-relaxed">{whyItWorks}</p>
+                    </div>
                   </div>
-                  <div className="flex justify-between border-b pb-2">
-                    <span className="text-sm">Protein</span>
-                    <span className="text-sm font-medium">{Number(recipe.protein || 0)}g</span>
+                )}
+
+                {carbLimitNote && (
+                  <div>
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-amber-500 mb-2 flex items-center gap-1.5">
+                      <Shield className="h-3.5 w-3.5" /> Carb Limit Note
+                    </h4>
+                    <div className="bg-amber-500/5 border border-amber-500/10 rounded-lg p-4">
+                      <p className="text-sm text-foreground">{carbLimitNote}</p>
+                    </div>
                   </div>
-                  <div className="flex justify-between border-b pb-2">
-                    <span className="text-sm">Carbs</span>
-                    <span className="text-sm font-medium">{Number(recipe.carbs || 0)}g</span>
+                )}
+
+                {proteinTargetNote && (
+                  <div>
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-blue-500 mb-2 flex items-center gap-1.5">
+                      <Zap className="h-3.5 w-3.5" /> Protein Target Note
+                    </h4>
+                    <div className="bg-blue-500/5 border border-blue-500/10 rounded-lg p-4">
+                      <p className="text-sm text-foreground">{proteinTargetNote}</p>
+                    </div>
                   </div>
-                  <div className="flex justify-between border-b pb-2">
-                    <span className="text-sm">Fat</span>
-                    <span className="text-sm font-medium">{Number(recipe.fats || 0)}g</span>
-                  </div>
-                </div>
+                )}
+
+                {!whyItWorks && !carbLimitNote && !proteinTargetNote && (
+                  <p className="text-sm text-muted-foreground">No intelligence data available for this meal yet.</p>
+                )}
               </TabsContent>
             </Tabs>
           </CardContent>
@@ -328,23 +331,4 @@ export default function RecipeDetail() {
       )}
     </DashboardLayout>
   );
-}
-
-function getDietaryIcon(tag: string): string {
-  const icons: Record<string, string> = {
-    "Dairy-Free": "🥛",
-    "Gluten-Free": "🌾",
-    "High Protein": "💪",
-    "Keto Diet": "🥑",
-    "Low Calorie": "🔥",
-    "Low Carb": "🍞",
-    "Low Sodium": "🧂",
-    "Low Sugar": "🍬",
-    "Nut-Free": "🥜",
-    "Pescatarian": "🐟",
-    "Shellfish-Free": "🦐",
-    "Vegan": "🌱",
-    "Vegetarian": "🥬",
-  };
-  return icons[tag] || "🏷️";
 }
