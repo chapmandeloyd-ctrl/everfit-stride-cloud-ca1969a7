@@ -1,7 +1,9 @@
-import { Smartphone } from "lucide-react";
+import { Smartphone, Camera, Settings } from "lucide-react";
 import { ActivitySummary } from "@/components/health/ActivitySummary";
 import { useNativeHealth } from "@/hooks/useNativeHealth";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 interface Props {
   clientId: string;
@@ -9,6 +11,7 @@ interface Props {
 
 export function MyProgressSection({ clientId }: Props) {
   const { isNative, permissionGranted } = useNativeHealth();
+  const navigate = useNavigate();
 
   return (
     <div className="space-y-4">
@@ -26,6 +29,25 @@ export function MyProgressSection({ clientId }: Props) {
               Live
             </Badge>
           )}
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <Button
+            variant="outline"
+            className="h-14 text-base font-semibold justify-center gap-2"
+            onClick={() => navigate("/client/health")}
+          >
+            <Camera className="h-5 w-5" />
+            AI Snapshot
+          </Button>
+          <Button
+            variant="outline"
+            className="h-14 text-base font-semibold justify-center gap-2"
+            onClick={() => navigate("/client/settings")}
+          >
+            <Settings className="h-5 w-5" />
+            Settings
+          </Button>
         </div>
       </div>
 
