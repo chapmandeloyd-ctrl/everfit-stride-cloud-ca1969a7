@@ -20,6 +20,7 @@ import TaskLibrary from "./pages/TaskLibrary";
 import Auth from "./pages/Auth";
 import Unsubscribe from "./pages/Unsubscribe";
 import ClientDashboard from "./pages/client/ClientDashboard";
+import ClientDailyScore from "./pages/client/ClientDailyScore";
 import ClientOnboarding from "./pages/client/ClientOnboarding";
 import ClientWorkouts from "./pages/client/ClientWorkouts";
 import ClientProgress from "./pages/client/ClientProgress";
@@ -161,6 +162,7 @@ const App = () => (
           
           {/* Client Routes */}
           <Route path="/client/dashboard" element={<ProtectedRoute allowedRoles={["client"]}><ClientDashboard /></ProtectedRoute>} />
+          <Route path="/client/daily-score" element={<ProtectedRoute allowedRoles={["client"]}><ClientDailyScore /></ProtectedRoute>} />
           <Route path="/client/coaching" element={<ProtectedRoute allowedRoles={["client"]}><ClientCoaching /></ProtectedRoute>} />
           <Route path="/client/profile" element={<ProtectedRoute allowedRoles={["client"]}><ClientProfile /></ProtectedRoute>} />
           <Route path="/client/onboarding" element={<ProtectedRoute allowedRoles={["client"]}><ClientOnboarding /></ProtectedRoute>} />
