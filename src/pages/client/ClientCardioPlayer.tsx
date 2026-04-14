@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { getIconComponent, DEFAULT_ACTIVITIES } from "@/components/cardio/cardioActivities";
 import { CardioCelebration } from "@/components/cardio/CardioCelebration";
+import { useLiveActivity } from "@/hooks/useLiveActivity";
 
 export default function ClientCardioPlayer() {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ export default function ClientCardioPlayer() {
   const clientId = useEffectiveClientId();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const liveActivity = useLiveActivity();
 
   const activity = searchParams.get("activity") || "general";
   const targetType = searchParams.get("targetType") || "none";
@@ -144,6 +146,35 @@ export default function ClientCardioPlayer() {
     };
   }, [isPaused, persistState]);
 
+  // ── Live Activity (iOS Lock Screen / Dynamic Island) ──
+  const liveActivityStarted = useRef(false);
+
+  // Start Live Activity when timer begins
+  useEffect(() => {
+    if (!liveActivityStarted.current && dbLoaded) {
+      liveActivityStarted.current = true;
+      liveActivity.start({
+        activityType: 'cardio',
+        title: defaultMatch?.name || activity.replace(/_/g, " "),
+        subtitle: targetType !== 'none' && targetValue ? `Target: ${targetValue} ${targetType === 'distance' ? 'mi' : 'min'}` : 'Quick Cardio',
+        mode: 'countUp',
+        seconds: seconds,
+        accentColor: '#10B981',
+        icon: 'figure.run',
+      });
+    }
+  }, [dbLoaded]);
+
+  // Update Live Activity every 5 seconds & on pause/resume
+  useEffect(() => {
+    liveActivity.update({ seconds, isPaused });
+    const updateInterval = setInterval(() => {
+      if (!isPaused) liveActivity.update({ seconds });
+    }, 5000);
+    return () => clearInterval(updateInterval);
+  }, [isPaused, seconds]);
+
+
   const formatTime = (totalSeconds: number) => {
     const hrs = Math.floor(totalSeconds / 3600);
     const mins = Math.floor((totalSeconds % 3600) / 60);
@@ -173,6 +204,8 @@ export default function ClientCardioPlayer() {
     setIsSaving(true);
     if (intervalRef.current) clearInterval(intervalRef.current);
     try { localStorage.removeItem(STORAGE_KEY); } catch {}
+    // End the Live Activity on the lock screen
+    liveActivity.stop();
     try {
       if (sessionId) {
         await supabase
@@ -186,7 +219,7 @@ export default function ClientCardioPlayer() {
       toast({ title: "Error saving", variant: "destructive" });
       setIsSaving(false);
     }
-  }, [sessionId, seconds, isSaving]);
+  }, [sessionId, seconds, isSaving, liveActivity]);
 
   const handleCelebrationComplete = useCallback(() => {
     navigate("/client/dashboard");
