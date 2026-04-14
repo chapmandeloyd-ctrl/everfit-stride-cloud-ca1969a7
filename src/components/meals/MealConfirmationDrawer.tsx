@@ -44,16 +44,28 @@ export function MealConfirmationDrawer({
   const [serving, setServing] = useState(initialMultiplier);
   const [editValues, setEditValues] = useState({ calories: 0, protein: 0, carbs: 0, fats: 0 });
 
-  if (!meal) return null;
-
-  const scaled = {
+  const scaled = meal ? {
     calories: Math.round(meal.calories * serving),
     protein: Math.round(meal.protein * serving * 10) / 10,
     carbs: Math.round(meal.carbs * serving * 10) / 10,
     fats: Math.round(meal.fats * serving * 10) / 10,
-  };
+  } : { calories: 0, protein: 0, carbs: 0, fats: 0 };
 
   const displayMacros = isEditing ? editValues : scaled;
+
+  const validation = useMemo(() => {
+    if (!meal) return null;
+    return validateMacros({
+      calories: displayMacros.calories,
+      protein: displayMacros.protein,
+      fats: displayMacros.fats,
+      carbs: displayMacros.carbs,
+      confidence: meal.confidence,
+      meal_role: meal.meal_role,
+    });
+  }, [meal, displayMacros.calories, displayMacros.protein, displayMacros.fats, displayMacros.carbs]);
+
+  if (!meal) return null;
 
   const handleEdit = () => {
     setEditValues({ ...scaled });
