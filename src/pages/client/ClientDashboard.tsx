@@ -57,6 +57,7 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
   const [showCreatePin, setShowCreatePin] = useState(false);
   const [showVerifyPin, setShowVerifyPin] = useState(false);
   const [showCompletion, setShowCompletion] = useState(false);
+  const liveActivity = useLiveActivity();
 
   const { data: featureSettings } = useQuery({
     queryKey: ["my-feature-settings-fasting", clientId],
