@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import { parseStructuredRecipeText } from "./recipeTextParser";
+import { validateMealCompleteness } from "./mealDataSchema";
 import { useAuth } from "@/hooks/useAuth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -52,6 +53,11 @@ export interface ExtractedRecipe {
   best_for?: string[];
   avoid_if?: string[];
   meal_timing?: string;
+  // KSOM360 strict fields
+  meal_intensity?: string;
+  satiety_score?: number;
+  digestion_load?: string;
+  craving_replacement?: string;
 }
 
 const CATEGORIES = ["Breakfast", "Lunch", "Dinner", "Snack", "Soup", "Salad/Bowl", "Others"];
@@ -176,6 +182,15 @@ export function AIRecipeBuilderDialog({ open, onOpenChange }: AIRecipeBuilderDia
     mutationFn: async () => {
       if (!extractedRecipe || !user?.id) throw new Error("Missing data");
 
+      // Validate meal completeness — flag incomplete but allow save with warning
+      const validation = validateMealCompleteness(extractedRecipe);
+      if (!validation.valid) {
+        console.warn("Incomplete meal data — missing:", validation.missingFields);
+        toast.warning(`Meal saved with ${validation.missingFields.length} incomplete fields`, {
+          description: validation.missingFields.slice(0, 5).join(", ") + (validation.missingFields.length > 5 ? "..." : ""),
+        });
+      }
+
       const imageUrl = await uploadImage();
 
       const allTags = [
@@ -220,6 +235,11 @@ export function AIRecipeBuilderDialog({ open, onOpenChange }: AIRecipeBuilderDia
         avoid_if: extractedRecipe.avoid_if?.length ? extractedRecipe.avoid_if : [],
         meal_timing: extractedRecipe.meal_timing || null,
         ingredients_list: extractedRecipe.ingredients || null,
+        // KSOM360 strict fields
+        meal_intensity: extractedRecipe.meal_intensity || null,
+        satiety_score: extractedRecipe.satiety_score || null,
+        digestion_load: extractedRecipe.digestion_load || null,
+        craving_replacement: extractedRecipe.craving_replacement || null,
       } as any);
 
       if (error) throw error;
