@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import { parseStructuredRecipeText } from "./recipeTextParser";
+import { validateMealCompleteness } from "./mealDataSchema";
 import { useAuth } from "@/hooks/useAuth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
