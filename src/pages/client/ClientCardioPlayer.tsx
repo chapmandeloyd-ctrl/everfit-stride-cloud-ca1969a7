@@ -203,6 +203,8 @@ export default function ClientCardioPlayer() {
     setIsSaving(true);
     if (intervalRef.current) clearInterval(intervalRef.current);
     try { localStorage.removeItem(STORAGE_KEY); } catch {}
+    // End the Live Activity on the lock screen
+    liveActivity.stop();
     try {
       if (sessionId) {
         await supabase
@@ -216,7 +218,7 @@ export default function ClientCardioPlayer() {
       toast({ title: "Error saving", variant: "destructive" });
       setIsSaving(false);
     }
-  }, [sessionId, seconds, isSaving]);
+  }, [sessionId, seconds, isSaving, liveActivity]);
 
   const handleCelebrationComplete = useCallback(() => {
     navigate("/client/dashboard");
