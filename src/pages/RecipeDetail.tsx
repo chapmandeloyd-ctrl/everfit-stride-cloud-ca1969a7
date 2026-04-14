@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ChevronLeft, Clock, ChefHat, Users, Pencil, Trash2, Flame, Zap, Shield, Target } from "lucide-react";
+import { ChevronLeft, Clock, ChefHat, Users, Pencil, Trash2, Flame, Zap, Shield, Target, Droplets } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -122,7 +122,7 @@ export default function RecipeDetail() {
         <h1 className="text-3xl font-bold text-foreground">{recipe.name}</h1>
 
         {/* Quick Info Row */}
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-5 gap-2">
           <Card>
             <CardContent className="p-3 text-center">
               <Flame className="h-4 w-4 mx-auto text-orange-500 mb-1" />
@@ -135,6 +135,13 @@ export default function RecipeDetail() {
               <Zap className="h-4 w-4 mx-auto text-blue-500 mb-1" />
               <p className="font-bold text-lg">{Number(recipe.protein || 0)}g</p>
               <p className="text-xs text-muted-foreground">Protein</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-3 text-center">
+              <Droplets className="h-4 w-4 mx-auto text-yellow-500 mb-1" />
+              <p className="font-bold text-lg">{Number(recipe.fats || 0)}g</p>
+              <p className="text-xs text-muted-foreground">Fat</p>
             </CardContent>
           </Card>
           <Card>

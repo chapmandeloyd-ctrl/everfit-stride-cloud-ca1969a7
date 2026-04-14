@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { ChevronLeft, Clock, ChefHat, Users, Bookmark, BookmarkCheck, Plus, Flame, Check, MoreHorizontal, Zap, Shield, Target } from "lucide-react";
+import { ChevronLeft, Clock, ChefHat, Users, Bookmark, BookmarkCheck, Plus, Flame, Check, MoreHorizontal, Zap, Shield, Target, Droplets } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
