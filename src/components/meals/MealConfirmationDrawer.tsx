@@ -117,14 +117,12 @@ export function MealConfirmationDrawer({
             </div>
           </DrawerHeader>
 
-          {/* Confidence warning */}
-          {meal.confidence === "low" && (
-            <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-3 flex items-start gap-2">
-              <AlertTriangle className="h-4 w-4 text-amber-400 mt-0.5 shrink-0" />
-              <p className="text-xs text-muted-foreground">
-                Adjust your meal for accuracy — AI confidence is low on this one.
-              </p>
-            </div>
+          {/* Macro Validation Banner */}
+          {validation && validation.validation_flags.length > 0 && (
+            <MacroValidationBanner
+              flags={validation.validation_flags}
+              warnings={validation.warnings}
+            />
           )}
 
           {/* Smart Tags */}
