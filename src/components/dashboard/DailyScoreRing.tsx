@@ -47,6 +47,7 @@ export function DailyScoreRing() {
 
   return (
     <div className="mx-2">
+      <h2 className="text-base font-bold text-foreground mb-2 px-1">Daily Performance</h2>
       <button
         onClick={() => navigate("/client/daily-score")}
         className="w-full rounded-2xl bg-card border border-border/50 p-3 flex items-center gap-3 focus:outline-none active:scale-[0.99] transition-transform"
