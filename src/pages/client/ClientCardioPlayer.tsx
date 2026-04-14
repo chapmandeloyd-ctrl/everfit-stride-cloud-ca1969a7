@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { getIconComponent, DEFAULT_ACTIVITIES } from "@/components/cardio/cardioActivities";
 import { CardioCelebration } from "@/components/cardio/CardioCelebration";
+import { useLiveActivity } from "@/hooks/useLiveActivity";
 
 export default function ClientCardioPlayer() {
   const navigate = useNavigate();
