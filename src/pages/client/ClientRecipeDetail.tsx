@@ -256,25 +256,30 @@ export default function ClientRecipeDetail() {
 
         {/* Quick Info Row */}
         <div className="px-4 pb-4">
-          <div className="grid grid-cols-4 gap-2">
-            <div className="bg-muted rounded-lg p-2.5 text-center">
+          <div className="grid grid-cols-5 gap-1.5">
+            <div className="bg-muted rounded-lg p-2 text-center">
               <Flame className="h-3.5 w-3.5 mx-auto text-orange-500 mb-0.5" />
-              <p className="font-bold text-base">{recipe.calories || 0}</p>
+              <p className="font-bold text-sm">{recipe.calories || 0}</p>
               <p className="text-[10px] text-muted-foreground">Calories</p>
             </div>
-            <div className="bg-muted rounded-lg p-2.5 text-center">
+            <div className="bg-muted rounded-lg p-2 text-center">
               <Zap className="h-3.5 w-3.5 mx-auto text-blue-500 mb-0.5" />
-              <p className="font-bold text-base">{Number(recipe.protein || 0)}g</p>
+              <p className="font-bold text-sm">{Number(recipe.protein || 0)}g</p>
               <p className="text-[10px] text-muted-foreground">Protein</p>
             </div>
-            <div className="bg-muted rounded-lg p-2.5 text-center">
+            <div className="bg-muted rounded-lg p-2 text-center">
+              <Droplets className="h-3.5 w-3.5 mx-auto text-yellow-500 mb-0.5" />
+              <p className="font-bold text-sm">{Number(recipe.fats || 0)}g</p>
+              <p className="text-[10px] text-muted-foreground">Fat</p>
+            </div>
+            <div className="bg-muted rounded-lg p-2 text-center">
               <Target className="h-3.5 w-3.5 mx-auto text-green-500 mb-0.5" />
-              <p className="font-bold text-base">{Number(recipe.carbs || 0)}g</p>
+              <p className="font-bold text-sm">{Number(recipe.carbs || 0)}g</p>
               <p className="text-[10px] text-muted-foreground">Carbs</p>
             </div>
-            <div className="bg-muted rounded-lg p-2.5 text-center">
+            <div className="bg-muted rounded-lg p-2 text-center">
               <Clock className="h-3.5 w-3.5 mx-auto text-muted-foreground mb-0.5" />
-              <p className="font-bold text-base">{recipe.prep_time_minutes || 0}m</p>
+              <p className="font-bold text-sm">{recipe.prep_time_minutes || 0}m</p>
               <p className="text-[10px] text-muted-foreground">Prep</p>
             </div>
           </div>
