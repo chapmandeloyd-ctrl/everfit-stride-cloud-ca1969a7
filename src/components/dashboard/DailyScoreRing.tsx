@@ -53,7 +53,7 @@ export function DailyScoreRing() {
   const nextMilestone = streak?.nextMilestone;
   const level = levelData?.level ?? 1;
   const tierInfo = levelData?.tierInfo;
-  const emoji = LABEL_EMOJI[score.label] ?? "⚡";
+  
 
   return (
     <div className="mx-2">
