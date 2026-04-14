@@ -168,6 +168,10 @@ Keto type: ${keto_type || "unknown"}`,
       if_role: parsed.if_role || "mid_window",
       meal_role: parsed.meal_role || "balanced",
       macro_profile: parsed.macro_profile || "balanced",
+      meal_intensity: parsed.meal_intensity || "moderate",
+      satiety_score: parsed.satiety_score || 5,
+      digestion_load: parsed.digestion_load || "moderate",
+      craving_replacement: parsed.craving_replacement || "",
       source: "ai" as string,
     };
 
