@@ -20,6 +20,7 @@ import TaskLibrary from "./pages/TaskLibrary";
 import Auth from "./pages/Auth";
 import Unsubscribe from "./pages/Unsubscribe";
 import ClientDashboard from "./pages/client/ClientDashboard";
+import ClientDailyScore from "./pages/client/ClientDailyScore";
 import ClientOnboarding from "./pages/client/ClientOnboarding";
 import ClientWorkouts from "./pages/client/ClientWorkouts";
 import ClientProgress from "./pages/client/ClientProgress";
