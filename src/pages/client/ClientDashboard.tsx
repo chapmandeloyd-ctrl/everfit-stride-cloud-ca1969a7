@@ -207,6 +207,18 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting"] });
       queryClient.invalidateQueries({ queryKey: ["fasting-profile-data"] });
+      // Start Live Activity for lock screen timer
+      const targetHours = activeProtocol?.fast_target_hours || featureSettings?.active_fast_target_hours || 16;
+      const totalSeconds = targetHours * 3600;
+      liveActivity.start({
+        activityType: 'fasting',
+        title: activeProtocol?.name || activeQuickPlan?.name || 'Fasting Timer',
+        subtitle: `${targetHours}h fast`,
+        mode: 'countDown',
+        seconds: totalSeconds,
+        accentColor: '#10B981',
+        icon: 'fork.knife.circle',
+      });
       // Show PIN creation dialog after starting fast
       setShowCreatePin(true);
     },
@@ -261,6 +273,7 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
       }
     },
     onSuccess: () => {
+      liveActivity.stop(); // Dismiss lock screen timer
       queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting"] });
       queryClient.invalidateQueries({ queryKey: ["fasting-gate-state"] });
       queryClient.invalidateQueries({ queryKey: ["today-fasting-log"] });
