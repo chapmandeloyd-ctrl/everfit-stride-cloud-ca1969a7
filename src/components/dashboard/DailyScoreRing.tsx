@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDailyScore } from "@/hooks/useDailyScore";
 import { useConsistencyStreak } from "@/hooks/useConsistencyStreak";
 import { useKsomLevelProgression } from "@/hooks/useKsomLevelProgression";
