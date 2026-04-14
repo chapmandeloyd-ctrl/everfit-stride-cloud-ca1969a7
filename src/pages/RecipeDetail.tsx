@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { EditRecipeDialog } from "@/components/nutrition/EditRecipeDialog";
 import { DeleteRecipeDialog } from "@/components/nutrition/DeleteRecipeDialog";
+import { validateMacros } from "@/components/nutrition/macroValidator";
+import { MacroValidationBanner } from "@/components/meals/MacroValidationBanner";
 
 export default function RecipeDetail() {
   const { id } = useParams<{ id: string }>();
@@ -120,6 +122,21 @@ export default function RecipeDetail() {
 
         {/* Title */}
         <h1 className="text-3xl font-bold text-foreground">{recipe.name}</h1>
+
+        {/* Macro Validation Banner */}
+        {(() => {
+          const v = validateMacros({
+            calories: recipe.calories,
+            protein: recipe.protein,
+            fats: recipe.fats,
+            carbs: recipe.carbs,
+            keto_types: recipe.keto_types as string[] | undefined,
+            meal_role: recipe.meal_role,
+          });
+          return v.validation_flags.length > 0 ? (
+            <MacroValidationBanner flags={v.validation_flags} warnings={v.warnings} />
+          ) : null;
+        })()}
 
         {/* Quick Info Row */}
         <div className="grid grid-cols-5 gap-2">

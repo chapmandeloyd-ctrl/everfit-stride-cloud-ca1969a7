@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,6 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Check, Edit3, AlertTriangle, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { validateMacros } from "@/components/nutrition/macroValidator";
+import { MacroValidationBanner } from "@/components/meals/MacroValidationBanner";
 
 export interface PendingMeal {
   name: string;
@@ -42,16 +44,28 @@ export function MealConfirmationDrawer({
   const [serving, setServing] = useState(initialMultiplier);
   const [editValues, setEditValues] = useState({ calories: 0, protein: 0, carbs: 0, fats: 0 });
 
-  if (!meal) return null;
-
-  const scaled = {
+  const scaled = meal ? {
     calories: Math.round(meal.calories * serving),
     protein: Math.round(meal.protein * serving * 10) / 10,
     carbs: Math.round(meal.carbs * serving * 10) / 10,
     fats: Math.round(meal.fats * serving * 10) / 10,
-  };
+  } : { calories: 0, protein: 0, carbs: 0, fats: 0 };
 
   const displayMacros = isEditing ? editValues : scaled;
+
+  const validation = useMemo(() => {
+    if (!meal) return null;
+    return validateMacros({
+      calories: displayMacros.calories,
+      protein: displayMacros.protein,
+      fats: displayMacros.fats,
+      carbs: displayMacros.carbs,
+      confidence: meal.confidence,
+      meal_role: meal.meal_role,
+    });
+  }, [meal, displayMacros.calories, displayMacros.protein, displayMacros.fats, displayMacros.carbs]);
+
+  if (!meal) return null;
 
   const handleEdit = () => {
     setEditValues({ ...scaled });
@@ -103,14 +117,12 @@ export function MealConfirmationDrawer({
             </div>
           </DrawerHeader>
 
-          {/* Confidence warning */}
-          {meal.confidence === "low" && (
-            <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-3 flex items-start gap-2">
-              <AlertTriangle className="h-4 w-4 text-amber-400 mt-0.5 shrink-0" />
-              <p className="text-xs text-muted-foreground">
-                Adjust your meal for accuracy — AI confidence is low on this one.
-              </p>
-            </div>
+          {/* Macro Validation Banner */}
+          {validation && validation.validation_flags.length > 0 && (
+            <MacroValidationBanner
+              flags={validation.validation_flags}
+              warnings={validation.warnings}
+            />
           )}
 
           {/* Smart Tags */}
