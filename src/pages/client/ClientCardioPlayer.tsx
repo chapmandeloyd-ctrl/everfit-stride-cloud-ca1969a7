@@ -146,7 +146,35 @@ export default function ClientCardioPlayer() {
     };
   }, [isPaused, persistState]);
 
-  const formatTime = (totalSeconds: number) => {
+  // ── Live Activity (iOS Lock Screen / Dynamic Island) ──
+  const liveActivityStarted = useRef(false);
+
+  // Start Live Activity when timer begins
+  useEffect(() => {
+    if (!liveActivityStarted.current && dbLoaded) {
+      liveActivityStarted.current = true;
+      liveActivity.start({
+        activityType: 'cardio',
+        title: defaultMatch?.name || activity.replace(/_/g, " "),
+        subtitle: targetType !== 'none' && targetValue ? `Target: ${targetValue} ${targetType === 'distance' ? 'mi' : 'min'}` : 'Quick Cardio',
+        mode: 'countUp',
+        seconds: seconds,
+        accentColor: '#10B981',
+        icon: 'figure.run',
+      });
+    }
+  }, [dbLoaded]);
+
+  // Update Live Activity every 5 seconds & on pause/resume
+  useEffect(() => {
+    liveActivity.update({ seconds, isPaused });
+    const updateInterval = setInterval(() => {
+      if (!isPaused) liveActivity.update({ seconds });
+    }, 5000);
+    return () => clearInterval(updateInterval);
+  }, [isPaused, seconds]);
+
+
     const hrs = Math.floor(totalSeconds / 3600);
     const mins = Math.floor((totalSeconds % 3600) / 60);
     const secs = totalSeconds % 60;
