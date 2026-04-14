@@ -18,9 +18,9 @@ const HEALTH_READ_TYPES = [
   "sleep",
 ] as const;
 
-const HEALTH_REQUEST_TIMEOUT_MS = 8_000;
+// Give iOS up to 60 seconds to show and complete the HealthKit permission sheet
+const HEALTH_REQUEST_TIMEOUT_MS = 60_000;
 const HEALTH_CHECK_TIMEOUT_MS = 6_000;
-const HEALTH_IOS_BRIDGE_GRACE_MS = 1_200;
 const HEALTH_PROBE_INTERVAL_MS = 1_500;
 const HEALTH_PROBE_TIMEOUT_MS = 15_000;
 
