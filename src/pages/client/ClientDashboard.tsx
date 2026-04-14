@@ -1599,7 +1599,7 @@ export default function ClientDashboard() {
         {/* Daily Score Ring */}
         <DailyScoreRing />
 
-        {/* Workout Tracker — universal for all users */}
+        {/* Workout Tracker — only shows when there are completed sessions */}
         {(() => {
           const completedCardio = todayCardioSessions?.filter((s: any) => s.status === "completed") || [];
           const completedCustomSessions = (todayTrackedAssignedSessions || []).filter((session: any) =>
@@ -1610,117 +1610,88 @@ export default function ClientDashboard() {
             session.client_workout_id && !completedAssignedFromRow.some((workout: any) => workout.id === session.client_workout_id)
           );
           const completedAssigned = [...completedAssignedFromRow, ...completedAssignedFromSessions];
-          const hasCustom = completedCardio.length > 0 || completedCustomSessions.length > 0;
+          const allCompleted = [...completedAssigned, ...completedCardio, ...completedCustomSessions];
+          if (allCompleted.length === 0) return null;
 
           return (
             <div className="space-y-4">
               <h2 className="text-lg font-bold text-foreground">Workout Tracker</h2>
 
-              {/* Assigned Workouts */}
-              <div className="space-y-2">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Assigned Workouts</h3>
-                {completedAssigned.length > 0 ? (
-                  <Card>
-                    <CardContent className="p-0 divide-y divide-border">
-                      {completedAssigned.map((workout: any) => {
-                        const clientWorkoutId = workout.client_workout_id ?? workout.id;
-                        const matchedSession = workout.client_workout_id
-                          ? workout
-                          : (todayTrackedAssignedSessions || []).find((s: any) => s.client_workout_id === workout.id);
-                        const sessionId = matchedSession?.id;
-                        const isInProgressW = workout.status === "in_progress";
-                        return (
-                          <SwipeToDeleteWorkoutRow
-                            key={workout.id}
-                            workout={workout}
-                            onDelete={async () => {
-                              try {
-                                if (sessionId) {
-                                  await supabase.from("workout_sessions").delete().eq("id", sessionId);
-                                }
-                                await supabase.from("client_workouts").update({ completed_at: null }).eq("id", clientWorkoutId);
-                                queryClient.invalidateQueries({ queryKey: ["today-tracked-assigned-sessions", clientId] });
-                                queryClient.invalidateQueries({ queryKey: ["client-workouts"] });
-                                toast({ title: "Workout unmarked" });
-                              } catch (error) {
-                                toast({ title: "Couldn't undo workout", variant: "destructive" });
-                              }
-                            }}
-                            onClick={() => {
-                              if (isInProgressW) {
-                                navigate(`/client/workouts/${workout.workout_plan_id}`);
-                              } else if (sessionId) {
-                                navigate(`/client/workout-session/${sessionId}`);
-                              } else {
-                                navigate(`/client/workouts/${workout.workout_plan_id}`);
-                              }
-                            }}
-                          />
-                        );
-                      })}
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <p className="text-sm text-muted-foreground italic">No completed workouts yet</p>
-                )}
-              </div>
-
-              {/* Quick Workouts */}
+              {/* Quick Workouts — includes all completed sessions */}
               <div className="space-y-2">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Quick Workouts</h3>
-                {completedCardio.length > 0 ? (
-                  <Card>
-                    <CardContent className="p-0 divide-y divide-border">
-                      {completedCardio.map((session: any) => (
-                        <SwipeToDeleteCardioRow
-                          key={session.id}
-                          session={session}
-                          onDelete={async () => {
-                            await supabase.from("cardio_sessions" as any).delete().eq("id", session.id);
-                            queryClient.invalidateQueries({ queryKey: ["cardio-sessions-today"] });
-                            toast({ title: "Activity deleted" });
-                          }}
-                          onClick={() => setSelectedCardioSession(session)}
-                        />
-                      ))}
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <p className="text-sm text-muted-foreground italic">No completed workouts yet</p>
-                )}
-              </div>
-
-              {/* Custom Workouts by User */}
-              <div className="space-y-2">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Custom Workouts by {firstName}</h3>
-                {completedCustomSessions.length > 0 ? (
-                  <Card>
-                    <CardContent className="p-0 divide-y divide-border">
-                      {completedCustomSessions.map((session: any) => (
+                <Card>
+                  <CardContent className="p-0 divide-y divide-border">
+                    {completedAssigned.map((workout: any) => {
+                      const clientWorkoutId = workout.client_workout_id ?? workout.id;
+                      const matchedSession = workout.client_workout_id
+                        ? workout
+                        : (todayTrackedAssignedSessions || []).find((s: any) => s.client_workout_id === workout.id);
+                      const sessionId = matchedSession?.id;
+                      const isInProgressW = workout.status === "in_progress";
+                      return (
                         <SwipeToDeleteWorkoutRow
-                          key={session.id}
-                          workout={{
-                            ...session,
-                            workout_plan_id: session.workout_plan_id,
-                            workout_plan: session.workout_plan,
-                          }}
+                          key={workout.id}
+                          workout={workout}
                           onDelete={async () => {
                             try {
-                              await supabase.from("workout_sessions").delete().eq("id", session.id);
+                              if (sessionId) {
+                                await supabase.from("workout_sessions").delete().eq("id", sessionId);
+                              }
+                              await supabase.from("client_workouts").update({ completed_at: null }).eq("id", clientWorkoutId);
                               queryClient.invalidateQueries({ queryKey: ["today-tracked-assigned-sessions", clientId] });
-                              toast({ title: "Workout deleted" });
+                              queryClient.invalidateQueries({ queryKey: ["client-workouts"] });
+                              toast({ title: "Workout unmarked" });
                             } catch (error) {
-                              toast({ title: "Couldn't delete workout", variant: "destructive" });
+                              toast({ title: "Couldn't undo workout", variant: "destructive" });
                             }
                           }}
-                          onClick={() => navigate(`/client/workout-session/${session.id}`)}
+                          onClick={() => {
+                            if (isInProgressW) {
+                              navigate(`/client/workouts/${workout.workout_plan_id}`);
+                            } else if (sessionId) {
+                              navigate(`/client/workout-session/${sessionId}`);
+                            } else {
+                              navigate(`/client/workouts/${workout.workout_plan_id}`);
+                            }
+                          }}
                         />
-                      ))}
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <p className="text-sm text-muted-foreground italic">No completed custom workouts yet</p>
-                )}
+                      );
+                    })}
+                    {completedCardio.map((session: any) => (
+                      <SwipeToDeleteCardioRow
+                        key={session.id}
+                        session={session}
+                        onDelete={async () => {
+                          await supabase.from("cardio_sessions" as any).delete().eq("id", session.id);
+                          queryClient.invalidateQueries({ queryKey: ["cardio-sessions-today"] });
+                          toast({ title: "Activity deleted" });
+                        }}
+                        onClick={() => setSelectedCardioSession(session)}
+                      />
+                    ))}
+                    {completedCustomSessions.map((session: any) => (
+                      <SwipeToDeleteWorkoutRow
+                        key={session.id}
+                        workout={{
+                          ...session,
+                          workout_plan_id: session.workout_plan_id,
+                          workout_plan: session.workout_plan,
+                        }}
+                        onDelete={async () => {
+                          try {
+                            await supabase.from("workout_sessions").delete().eq("id", session.id);
+                            queryClient.invalidateQueries({ queryKey: ["today-tracked-assigned-sessions", clientId] });
+                            toast({ title: "Workout deleted" });
+                          } catch (error) {
+                            toast({ title: "Couldn't delete workout", variant: "destructive" });
+                          }
+                        }}
+                        onClick={() => navigate(`/client/workout-session/${session.id}`)}
+                      />
+                    ))}
+                  </CardContent>
+                </Card>
               </div>
             </div>
           );
