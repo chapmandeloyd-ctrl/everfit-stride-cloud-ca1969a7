@@ -5,9 +5,56 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useNativeHealth } from '@/hooks/useNativeHealth';
+import { useCallback, useRef, useState, type MouseEvent, type TouchEvent } from 'react';
+import { toast } from 'sonner';
+
+const HEALTH_CONNECT_UI_GUARD_MS = 4_500;
 
 export default function ClientHealthConnect() {
   const { isNative, permissionGranted, requestPermissions } = useNativeHealth();
+  const [connecting, setConnecting] = useState(false);
+  const lastTapRef = useRef(0);
+
+  const handleConnect = useCallback(async () => {
+    setConnecting(true);
+    toast.info('Requesting Apple Health access...');
+
+    try {
+      const result = await Promise.race<boolean | 'timeout'>([
+        requestPermissions(),
+        new Promise((resolve) => {
+          window.setTimeout(() => resolve('timeout'), HEALTH_CONNECT_UI_GUARD_MS);
+        }),
+      ]);
+
+      if (result === 'timeout') {
+        toast.info('Apple Health is still finishing on iPhone — checking access in the background.');
+        return;
+      }
+
+      if (!result) {
+        toast.error('Permission denied — open Settings > Privacy > Health to enable');
+      }
+    } catch (err: any) {
+      console.error('[HealthConnect] Error:', err);
+      toast.error(`Connection failed: ${err?.message || 'Unknown error'}`);
+    } finally {
+      setConnecting(false);
+    }
+  }, [requestPermissions]);
+
+  const handleConnectTap = useCallback(
+    (event: MouseEvent<HTMLButtonElement> | TouchEvent<HTMLButtonElement>) => {
+      event.preventDefault();
+
+      const now = Date.now();
+      if (connecting || now - lastTapRef.current < 700) return;
+
+      lastTapRef.current = now;
+      void handleConnect();
+    },
+    [connecting, handleConnect],
+  );
 
   const statusLabel = !isNative
     ? 'Mobile App Required'
@@ -80,8 +127,14 @@ export default function ClientHealthConnect() {
                 </Button>
               </div>
             ) : (
-              <Button className="w-full" onClick={requestPermissions}>
-                Connect Apple Health
+              <Button
+                type="button"
+                className="w-full"
+                onClick={handleConnectTap}
+                onTouchEnd={handleConnectTap}
+                disabled={connecting}
+              >
+                {connecting ? 'Connecting...' : 'Connect Apple Health'}
               </Button>
             )}
           </CardContent>

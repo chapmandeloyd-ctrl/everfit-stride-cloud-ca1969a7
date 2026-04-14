@@ -7,11 +7,19 @@ import {
   disconnectHealthProvider,
   isNativePlatform,
   getPlatform,
-  queryTodayLiveStats
+  queryTodayLiveStats,
+  setLocalHealthConnected,
+  clearLocalHealthConnection,
 } from '@/services/healthSyncService';
 import { useAuth } from './useAuth';
 import { useEffectiveClientId } from './useEffectiveClientId';
 import { useEffect } from 'react';
+
+const HEALTH_CONNECT_REQUEST_GUARD_MS = 3_500;
+
+function wait(ms: number) {
+  return new Promise((resolve) => globalThis.setTimeout(resolve, ms));
+}
 
 // ── Edge-function fallback reader (bypasses RLS via service role) ────────────
 async function edgeFnRead(body: Record<string, unknown>): Promise<any> {
@@ -404,22 +412,56 @@ export const useConnectHealth = () => {
     mutationFn: async () => {
       const targetId = isNativePlatform() ? (effectiveId || user?.id) : user?.id;
       if (!targetId) throw new Error('Not authenticated');
+
+      const provider = getPlatform() === 'ios' ? 'apple_health' : 'health_connect';
       
       console.log('[useConnectHealth] requesting permissions for clientId:', targetId, 'native:', isNativePlatform());
-      const granted = await requestHealthPermissions();
-      if (!granted) {
+
+      const granted = await Promise.race<boolean | 'timeout'>([
+        requestHealthPermissions(),
+        wait(HEALTH_CONNECT_REQUEST_GUARD_MS).then(() => 'timeout' as const),
+      ]);
+
+      if (granted === false) {
         throw new Error('Health permissions not granted');
       }
-      console.log('[useConnectHealth] permissions granted, syncing data...');
-      
-      // Sync initial data after connecting
-      const result = await syncHealthData(targetId);
-      console.log('[useConnectHealth] sync result:', result);
-      
-      // Immediately invalidate so UI refreshes even before onSuccess
+
+      if (granted === 'timeout') {
+        console.warn('[useConnectHealth] native permission callback timed out; unblocking UI and continuing in background');
+      }
+
+      setLocalHealthConnected(targetId, provider);
       queryClient.invalidateQueries({ queryKey: ['health-connections'] });
       
-      return result;
+      void (async () => {
+        const retryDelays = granted === 'timeout' ? [2_500, 6_000] : [0];
+
+        for (const delayMs of retryDelays) {
+          if (delayMs > 0) {
+            await wait(delayMs);
+          }
+
+          const result = await syncHealthData(targetId);
+          console.log('[useConnectHealth] background sync result:', result);
+
+          queryClient.invalidateQueries({ queryKey: ['health-connections'] });
+          queryClient.invalidateQueries({ queryKey: ['health-data'] });
+          queryClient.invalidateQueries({ queryKey: ['health-stats'] });
+
+          if (result.success) {
+            return;
+          }
+        }
+
+        clearLocalHealthConnection(targetId);
+        queryClient.invalidateQueries({ queryKey: ['health-connections'] });
+      })().catch((error) => {
+        console.error('[useConnectHealth] background sync failed:', error);
+        clearLocalHealthConnection(targetId);
+        queryClient.invalidateQueries({ queryKey: ['health-connections'] });
+      });
+
+      return { success: true, count: 0 };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['health-connections'] });
