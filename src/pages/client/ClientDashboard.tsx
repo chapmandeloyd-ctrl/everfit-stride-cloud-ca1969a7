@@ -48,6 +48,7 @@ import { MetabolicControlDashboard } from "@/components/dashboard/MetabolicContr
 import { DailyScoreRing } from "@/components/dashboard/DailyScoreRing";
 import { MealDecisionCard } from "@/components/dashboard/MealDecisionCard";
 import { ProgressionUnlocksCard } from "@/components/dashboard/ProgressionUnlocksCard";
+import { useLiveActivity } from "@/hooks/useLiveActivity";
 
 // Fasting Program Card sub-component
 function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; navigate: (path: string) => void }) {
@@ -56,6 +57,7 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
   const [showCreatePin, setShowCreatePin] = useState(false);
   const [showVerifyPin, setShowVerifyPin] = useState(false);
   const [showCompletion, setShowCompletion] = useState(false);
+  const liveActivity = useLiveActivity();
 
   const { data: featureSettings } = useQuery({
     queryKey: ["my-feature-settings-fasting", clientId],
@@ -189,6 +191,33 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
     return () => clearInterval(interval);
   }, [mealPhotos.length]);
 
+  // Live Activity: show fasting timer on lock screen & Dynamic Island, update every 10s
+  useEffect(() => {
+    if (!isFasting || !featureSettings?.active_fast_start_at || !featureSettings?.active_fast_target_hours) return;
+    const targetHours = featureSettings.active_fast_target_hours;
+    const startAt = new Date(featureSettings.active_fast_start_at).getTime();
+    const totalSeconds = targetHours * 3600;
+
+    const elapsedSec = Math.floor((Date.now() - startAt) / 1000);
+    const remaining = Math.max(0, totalSeconds - elapsedSec);
+    liveActivity.start({
+      activityType: 'fasting',
+      title: activeProtocol?.name || activeQuickPlan?.name || 'Fasting Timer',
+      subtitle: `${targetHours}h fast`,
+      mode: 'countDown',
+      seconds: remaining,
+      accentColor: '#10B981',
+      icon: 'fork.knife.circle',
+    });
+
+    const interval = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - startAt) / 1000);
+      const rem = Math.max(0, totalSeconds - elapsed);
+      liveActivity.update({ seconds: rem });
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [isFasting, featureSettings?.active_fast_start_at, featureSettings?.active_fast_target_hours]);
+
   const startFastMutation = useMutation({
     mutationFn: async () => {
       const targetHours = activeProtocol?.fast_target_hours || featureSettings?.active_fast_target_hours || 16;
@@ -205,6 +234,18 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting"] });
       queryClient.invalidateQueries({ queryKey: ["fasting-profile-data"] });
+      // Start Live Activity for lock screen timer
+      const targetHours = activeProtocol?.fast_target_hours || featureSettings?.active_fast_target_hours || 16;
+      const totalSeconds = targetHours * 3600;
+      liveActivity.start({
+        activityType: 'fasting',
+        title: activeProtocol?.name || activeQuickPlan?.name || 'Fasting Timer',
+        subtitle: `${targetHours}h fast`,
+        mode: 'countDown',
+        seconds: totalSeconds,
+        accentColor: '#10B981',
+        icon: 'fork.knife.circle',
+      });
       // Show PIN creation dialog after starting fast
       setShowCreatePin(true);
     },
@@ -259,6 +300,7 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
       }
     },
     onSuccess: () => {
+      liveActivity.stop(); // Dismiss lock screen timer
       queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting"] });
       queryClient.invalidateQueries({ queryKey: ["fasting-gate-state"] });
       queryClient.invalidateQueries({ queryKey: ["today-fasting-log"] });
