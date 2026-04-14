@@ -17,6 +17,8 @@ import { BarcodeScannerDialog } from "@/components/BarcodeScannerDialog";
 import { FoodPhotoAnalyzerDialog } from "@/components/FoodPhotoAnalyzerDialog";
 import { MealConfirmationDrawer, type PendingMeal } from "@/components/meals/MealConfirmationDrawer";
 import { CoachFeedbackBanner } from "@/components/meals/CoachFeedbackBanner";
+import { MacroCorrectionDrawer } from "@/components/meals/MacroCorrectionDrawer";
+import { useMacroCorrection } from "@/hooks/useMacroCorrection";
 
 interface FoodItem {
   fdcId: number;
