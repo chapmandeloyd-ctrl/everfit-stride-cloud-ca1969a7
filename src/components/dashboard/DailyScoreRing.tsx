@@ -12,6 +12,7 @@ const RADIUS = (RING_SIZE - STROKE_WIDTH) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
 export function DailyScoreRing() {
+  const [expanded, setExpanded] = useState(false);
   const { data: score, isLoading: scoreLoading } = useDailyScore();
   const { data: streak, isLoading: streakLoading, recordScore } = useConsistencyStreak();
   const { data: levelData, isLoading: levelLoading, addProgress } = useKsomLevelProgression();
