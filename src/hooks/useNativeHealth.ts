@@ -45,18 +45,12 @@ export function useNativeHealth() {
 
   const requestPermissions = useCallback(async () => {
     const granted = await requestHealthPermissions();
-    const [latestAvailable, latestPermissionGranted] = await Promise.all([
-      isNativeHealthAvailable(),
-      checkNativeHealthPermissions(),
-    ]);
+    const latestAvailable = await isNativeHealthAvailable();
 
     queryClient.setQueryData(["native-health-available"], latestAvailable);
-    queryClient.setQueryData(
-      ["native-health-permissions"],
-      latestPermissionGranted || granted,
-    );
+    queryClient.setQueryData(["native-health-permissions"], granted);
 
-    if (granted || latestPermissionGranted) {
+    if (granted) {
       toast.success("Health data access granted");
       refetch();
       return true;
