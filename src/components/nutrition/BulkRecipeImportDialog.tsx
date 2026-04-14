@@ -171,7 +171,25 @@ export function BulkRecipeImportDialog({ open, onOpenChange }: BulkRecipeImportD
         servings: r.servings || 1,
         tags: r.tags || [],
         image_url: null,
-      });
+        // Rich meal metadata
+        if_roles: r.if_roles?.length ? r.if_roles : [],
+        meal_role: r.meal_role || null,
+        subtype: r.subtype || null,
+        keto_types: r.keto_types?.length ? r.keto_types : [],
+        trigger_conditions: r.trigger_conditions?.length ? r.trigger_conditions : [],
+        carb_limit_note: r.carb_limit_note || null,
+        protein_target_note: r.protein_target_note || null,
+        why_it_works: r.why_it_works || null,
+        best_for: r.best_for?.length ? r.best_for : [],
+        avoid_if: r.avoid_if?.length ? r.avoid_if : [],
+        meal_timing: r.meal_timing || null,
+        ingredients_list: r.ingredients || null,
+        // KSOM360 strict fields
+        meal_intensity: r.meal_intensity || null,
+        satiety_score: r.satiety_score || null,
+        digestion_load: r.digestion_load || null,
+        craving_replacement: r.craving_replacement || null,
+      } as any);
 
       if (!error) {
         savedCount++;
