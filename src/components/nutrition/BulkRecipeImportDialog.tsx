@@ -36,6 +36,23 @@ interface ExtractedRecipe {
   cook_time_minutes?: number;
   servings?: number;
   tags?: string[];
+  // Rich meal metadata
+  if_roles?: string[];
+  meal_role?: string;
+  subtype?: string;
+  keto_types?: string[];
+  trigger_conditions?: string[];
+  carb_limit_note?: string;
+  protein_target_note?: string;
+  why_it_works?: string;
+  best_for?: string[];
+  avoid_if?: string[];
+  meal_timing?: string;
+  // KSOM360 strict fields
+  meal_intensity?: string;
+  satiety_score?: number;
+  digestion_load?: string;
+  craving_replacement?: string;
 }
 
 export function BulkRecipeImportDialog({ open, onOpenChange }: BulkRecipeImportDialogProps) {
