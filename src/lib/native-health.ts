@@ -105,10 +105,18 @@ export async function requestHealthPermissions(): Promise<boolean> {
   const h = await getHealth();
   if (!h) return false;
   try {
-    await h.requestAuthorization({
+    const result = await h.requestAuthorization({
       read: [...HEALTH_READ_TYPES],
       write: [],
     });
+    const readAuthorized = Array.isArray((result as { readAuthorized?: string[] } | null)?.readAuthorized)
+      ? (result as { readAuthorized?: string[] }).readAuthorized
+      : [];
+
+    if (readAuthorized.length > 0) {
+      return true;
+    }
+
     return true;
   } catch (err) {
     console.error("[HealthKit] Permission request failed:", err);
