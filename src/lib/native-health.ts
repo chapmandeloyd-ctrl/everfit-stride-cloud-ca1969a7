@@ -20,6 +20,7 @@ const HEALTH_READ_TYPES = [
 
 const HEALTH_REQUEST_TIMEOUT_MS = 8_000;
 const HEALTH_CHECK_TIMEOUT_MS = 6_000;
+const HEALTH_IOS_BRIDGE_GRACE_MS = 1_200;
 const HEALTH_PROBE_INTERVAL_MS = 1_500;
 const HEALTH_PROBE_TIMEOUT_MS = 15_000;
 
@@ -145,17 +146,70 @@ function getAuthorizationArrays(result: unknown): {
   };
 }
 
+async function resolveAuthorizationResult(
+  result: unknown,
+  h: NativeHealthPlugin,
+): Promise<boolean> {
+  const { readAuthorized, readDenied } = getAuthorizationArrays(result);
+
+  if (readAuthorized.length > 0) {
+    return true;
+  }
+
+  if (readDenied.length > 0) {
+    return false;
+  }
+
+  return await probeNativeHealthAccess(h);
+}
+
 /**
  * Request HealthKit permissions for all metrics we need
  */
 export async function requestHealthPermissions(): Promise<boolean> {
   const h = await getHealth();
   if (!h) return false;
+
+  const authorizationRequest = h.requestAuthorization({
+    read: [...HEALTH_READ_TYPES],
+    write: [],
+  });
+
   try {
-    const result = await withTimeout(h.requestAuthorization({
-      read: [...HEALTH_READ_TYPES],
-      write: [],
-    }), HEALTH_REQUEST_TIMEOUT_MS);
+    if (Capacitor.getPlatform() === "ios") {
+      void authorizationRequest
+        .then((result) => {
+          const { readAuthorized, readDenied } = getAuthorizationArrays(result);
+          console.log(
+            `[HealthKit] Native authorization callback returned (authorized=${readAuthorized.length}, denied=${readDenied.length})`,
+          );
+        })
+        .catch((error) => {
+          console.warn("[HealthKit] Native authorization callback rejected", error);
+        });
+
+      const result = await withTimeout(authorizationRequest, HEALTH_IOS_BRIDGE_GRACE_MS);
+
+      if (result === TIMEOUT_RESULT) {
+        console.warn(
+          "[HealthKit] Native authorization callback is still pending on iOS; unblocking UI and verifying access in the background",
+        );
+
+        void waitForNativeHealthAccess(h)
+          .then((granted) => {
+            console.log(`[HealthKit] Background authorization verification ${granted ? "succeeded" : "failed"}`);
+          })
+          .catch((error) => {
+            console.warn("[HealthKit] Background authorization verification failed", error);
+          });
+
+        return true;
+      }
+
+      return await resolveAuthorizationResult(result, h);
+    }
+
+    const result = await withTimeout(authorizationRequest, HEALTH_REQUEST_TIMEOUT_MS);
 
     if (result === TIMEOUT_RESULT) {
       console.warn("[HealthKit] Authorization request timed out while waiting for native status confirmation; continuing with background verification");
@@ -171,17 +225,7 @@ export async function requestHealthPermissions(): Promise<boolean> {
       return true;
     }
 
-    const { readAuthorized, readDenied } = getAuthorizationArrays(result);
-
-    if (readAuthorized.length > 0) {
-      return true;
-    }
-
-    if (readDenied.length > 0) {
-      return false;
-    }
-
-    return await probeNativeHealthAccess(h);
+    return await resolveAuthorizationResult(result, h);
   } catch (err) {
     console.error("[HealthKit] Permission request failed:", err);
     return false;

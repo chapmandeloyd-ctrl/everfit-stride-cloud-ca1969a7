@@ -21,9 +21,7 @@ export default function ClientHealth() {
     toast.info("Requesting Apple Health access...");
     try {
       const result = await requestPermissions();
-      if (result) {
-        toast.success("Apple Health connected!");
-      } else {
+      if (!result) {
         toast.error("Permission denied — open Settings > Privacy > Health to enable");
       }
     } catch (err: any) {
