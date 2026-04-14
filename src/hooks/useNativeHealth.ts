@@ -84,14 +84,15 @@ export function useNativeHealth() {
 
   const startPermissionVerification = useCallback(() => {
     queryClient.setQueryData(["native-health-available"], true);
-    queryClient.setQueryData(["native-health-permissions"], true);
 
     void confirmNativePermission().then((verified) => {
       if (verified) {
+        queryClient.setQueryData(["native-health-permissions"], true);
         toast.success("Health data access granted");
         return;
       }
 
+      queryClient.setQueryData(["native-health-permissions"], false);
       toast.error("Apple Health did not finish connecting. Please try again.");
     });
   }, [confirmNativePermission, queryClient]);
