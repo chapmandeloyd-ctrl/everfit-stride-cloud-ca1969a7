@@ -1397,17 +1397,73 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
                           inputMode="numeric"
                         />
                       </div>
-                      <div className="flex-1">
-                        <p className="text-xs font-semibold text-muted-foreground mb-1.5 uppercase tracking-wide">Weight (lbs)</p>
-                        <Input
-                          type="number"
-                          value={setLogs[currentStep.setKey]?.weight || ""}
-                          onChange={(e) => updateSetLog(currentStep.setKey!, "weight", e.target.value)}
-                          className="h-10 text-center text-lg font-bold border-2 focus:border-primary"
-                          placeholder="BW"
-                          inputMode="decimal"
-                        />
-                      </div>
+                      {currentExercise.weight_lbs ? (
+                        <>
+                          <div className="flex-shrink-0 text-center">
+                            <p className="text-xs font-semibold text-muted-foreground mb-1.5 uppercase tracking-wide">Rx</p>
+                            <div className="h-10 flex items-center justify-center px-3 rounded-md bg-muted text-sm font-bold text-foreground/70">
+                              {currentExercise.weight_lbs} lbs
+                            </div>
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-xs font-semibold text-muted-foreground mb-1.5 uppercase tracking-wide">Actual (lbs)</p>
+                            {setLogs[currentStep.setKey]?.weight === "BW" ? (
+                              <button
+                                onClick={() => updateSetLog(currentStep.setKey!, "weight", "")}
+                                className="h-10 w-full flex items-center justify-center rounded-md bg-primary/15 text-primary text-sm font-bold border-2 border-primary/30"
+                              >
+                                BW
+                              </button>
+                            ) : (
+                              <div className="relative">
+                                <Input
+                                  type="number"
+                                  value={setLogs[currentStep.setKey]?.weight || ""}
+                                  onChange={(e) => updateSetLog(currentStep.setKey!, "weight", e.target.value)}
+                                  className="h-10 text-center text-lg font-bold border-2 focus:border-primary pr-10"
+                                  placeholder={String(currentExercise.weight_lbs)}
+                                  inputMode="decimal"
+                                />
+                                <button
+                                  onClick={() => updateSetLog(currentStep.setKey!, "weight", "BW")}
+                                  className="absolute right-1 top-1/2 -translate-y-1/2 text-[10px] font-bold text-muted-foreground bg-muted rounded px-1.5 py-0.5 hover:bg-muted/80"
+                                >
+                                  BW
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </>
+                      ) : (
+                        <div className="flex-1">
+                          <p className="text-xs font-semibold text-muted-foreground mb-1.5 uppercase tracking-wide">Weight (lbs)</p>
+                          {setLogs[currentStep.setKey]?.weight === "BW" ? (
+                            <button
+                              onClick={() => updateSetLog(currentStep.setKey!, "weight", "")}
+                              className="h-10 w-full flex items-center justify-center rounded-md bg-primary/15 text-primary text-sm font-bold border-2 border-primary/30"
+                            >
+                              BW
+                            </button>
+                          ) : (
+                            <div className="relative">
+                              <Input
+                                type="number"
+                                value={setLogs[currentStep.setKey]?.weight || ""}
+                                onChange={(e) => updateSetLog(currentStep.setKey!, "weight", e.target.value)}
+                                className="h-10 text-center text-lg font-bold border-2 focus:border-primary pr-10"
+                                placeholder="BW"
+                                inputMode="decimal"
+                              />
+                              <button
+                                onClick={() => updateSetLog(currentStep.setKey!, "weight", "BW")}
+                                className="absolute right-1 top-1/2 -translate-y-1/2 text-[10px] font-bold text-muted-foreground bg-muted rounded px-1.5 py-0.5 hover:bg-muted/80"
+                              >
+                                BW
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
