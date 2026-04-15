@@ -50,7 +50,7 @@ export function DailyScoreRing() {
       <h2 className="text-lg font-bold text-foreground mb-2 px-1">Daily Performance</h2>
       <button
         onClick={() => navigate("/client/daily-score")}
-        className="w-full rounded-none bg-black border border-white/10 p-3 flex items-center gap-3 focus:outline-none active:scale-[0.99] transition-transform"
+        className="w-full rounded-xl bg-black border border-white/10 p-3 flex items-center gap-3 focus:outline-none active:scale-[0.99] transition-transform"
       >
         {/* Mini progress ring with score */}
         <div className="relative flex-shrink-0">
