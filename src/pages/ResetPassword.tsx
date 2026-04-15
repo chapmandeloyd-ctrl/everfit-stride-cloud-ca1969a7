@@ -14,18 +14,27 @@ const ResetPassword = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if this is a password recovery session
-    const checkSession = async () => {
+    const checkRecoveryState = async () => {
+      const hash = window.location.hash;
+      if (hash.includes("type=recovery") || hash.includes("access_token")) {
+        setIsRecovery(true);
+      }
+
       const { data } = await supabase.auth.getSession();
       if (data.session) {
-        // Check if it's a recovery session by looking at the URL hash
-        const hash = window.location.hash;
-        if (hash.includes("type=recovery") || hash.includes("access_token")) {
-          setIsRecovery(true);
-        }
+        setIsRecovery(true);
       }
     };
-    checkSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY" || !!session) {
+        setIsRecovery(true);
+      }
+    });
+
+    void checkRecoveryState();
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
@@ -48,7 +57,7 @@ const ResetPassword = () => {
       toast.error(error.message);
     } else {
       toast.success("Password updated successfully!");
-      navigate("/login");
+      navigate("/auth");
     }
     setLoading(false);
   };
@@ -59,7 +68,7 @@ const ResetPassword = () => {
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">KSOM-360</CardTitle>
           <p className="text-sm text-muted-foreground mt-1">
-            Set your new password
+            {isRecovery ? "Set your new password" : "Open your email reset link to continue"}
           </p>
         </CardHeader>
         <CardContent>
@@ -70,6 +79,7 @@ const ResetPassword = () => {
               value={password} 
               onChange={(e) => setPassword(e.target.value)} 
               required 
+              disabled={!isRecovery || loading}
             />
             <Input 
               type="password" 
@@ -77,8 +87,9 @@ const ResetPassword = () => {
               value={confirmPassword} 
               onChange={(e) => setConfirmPassword(e.target.value)} 
               required 
+              disabled={!isRecovery || loading}
             />
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full" disabled={!isRecovery || loading}>
               {loading ? "Updating..." : "Update Password"}
             </Button>
           </form>

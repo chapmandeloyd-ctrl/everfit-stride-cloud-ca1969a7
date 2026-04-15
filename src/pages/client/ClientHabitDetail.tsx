@@ -46,7 +46,8 @@ export default function ClientHabitDetail() {
         .from("habit_completions")
         .select("*")
         .eq("habit_id", id)
-        .eq("completion_date", dateStr);
+        .eq("completion_date", dateStr)
+        .order("completed_at", { ascending: false });
       if (error) throw error;
       return data as any[];
     },
@@ -96,7 +97,6 @@ export default function ClientHabitDetail() {
     mutationFn: async (newValue: number) => {
       const existingRows = dayCompletions ?? [];
       const keepRow = existingRows[0];
-      const duplicateIds = existingRows.slice(1).map((row: any) => row.id);
 
       if (keepRow) {
         const { error: updateError } = await supabase
@@ -105,11 +105,13 @@ export default function ClientHabitDetail() {
           .eq("id", keepRow.id);
         if (updateError) throw updateError;
 
-        if (duplicateIds.length > 0) {
+        if (existingRows.length > 1) {
           const { error: deleteError } = await supabase
             .from("habit_completions")
             .delete()
-            .in("id", duplicateIds);
+            .eq("habit_id", id!)
+            .eq("completion_date", dateStr)
+            .neq("id", keepRow.id);
           if (deleteError) throw deleteError;
         }
       } else if (newValue > 0) {
@@ -125,11 +127,11 @@ export default function ClientHabitDetail() {
   const removeCompletionMutation = useMutation({
     mutationFn: async () => {
       if (!dayCompletions?.length) return;
-      const ids = dayCompletions.map((row: any) => row.id);
       const { error } = await supabase
         .from("habit_completions")
         .delete()
-        .in("id", ids);
+        .eq("habit_id", id!)
+        .eq("completion_date", dateStr);
       if (error) throw error;
     },
     onSuccess: invalidateHabitQueries,
@@ -159,10 +161,9 @@ export default function ClientHabitDetail() {
     );
   }
 
-  const normalizedDayCompletions = isValueBasedUnit
-    ? dayCompletions?.slice(0, 1) ?? []
-    : dayCompletions ?? [];
-  const currentCount = normalizedDayCompletions.reduce((sum: number, c: any) => sum + (c.value ?? 1), 0);
+  const currentCount = isValueBasedUnit
+    ? Math.max(0, ...(dayCompletions?.map((completion: any) => Number(completion.value ?? 1)) ?? [0]))
+    : (dayCompletions ?? []).reduce((sum: number, completion: any) => sum + (completion.value ?? 1), 0);
   const goalValue = habit.goal_value || 1;
   const progressPercent = Math.min((currentCount / goalValue) * 100, 100);
   const icon = habit.icon_url?.startsWith("emoji:") ? habit.icon_url.replace("emoji:", "") : "🎯";
@@ -403,7 +404,7 @@ export default function ClientHabitDetail() {
                       onClick={() => {
                         const val = Number(manualInput);
                         if (val > 0) {
-                          upsertCompletionMutation.mutate(currentCount + val);
+                          upsertCompletionMutation.mutate(val);
                           setManualInput("");
                         }
                       }}
