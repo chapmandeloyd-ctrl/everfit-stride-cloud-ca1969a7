@@ -8137,6 +8137,8 @@ export type Database = {
       }
       workout_plan_exercises: {
         Row: {
+          detail_fields: string[] | null
+          distance: string | null
           duration_seconds: number | null
           exercise_id: string | null
           exercise_type: string | null
@@ -8146,12 +8148,16 @@ export type Database = {
           recommended_band_level: string | null
           reps: number | null
           rest_seconds: number | null
+          rpe: number | null
           section_id: string | null
           sets: number | null
           tempo: string | null
+          weight_lbs: number | null
           workout_plan_id: string
         }
         Insert: {
+          detail_fields?: string[] | null
+          distance?: string | null
           duration_seconds?: number | null
           exercise_id?: string | null
           exercise_type?: string | null
@@ -8161,12 +8167,16 @@ export type Database = {
           recommended_band_level?: string | null
           reps?: number | null
           rest_seconds?: number | null
+          rpe?: number | null
           section_id?: string | null
           sets?: number | null
           tempo?: string | null
+          weight_lbs?: number | null
           workout_plan_id: string
         }
         Update: {
+          detail_fields?: string[] | null
+          distance?: string | null
           duration_seconds?: number | null
           exercise_id?: string | null
           exercise_type?: string | null
@@ -8176,9 +8186,11 @@ export type Database = {
           recommended_band_level?: string | null
           reps?: number | null
           rest_seconds?: number | null
+          rpe?: number | null
           section_id?: string | null
           sets?: number | null
           tempo?: string | null
+          weight_lbs?: number | null
           workout_plan_id?: string
         }
         Relationships: [
