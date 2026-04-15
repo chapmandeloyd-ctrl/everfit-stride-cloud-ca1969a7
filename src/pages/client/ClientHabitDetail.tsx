@@ -147,12 +147,25 @@ export default function ClientHabitDetail() {
     );
   }
 
-  const currentCount = dayCompletions?.length || 0;
+  // For value-based tracking: sum the value column; fall back to row count for legacy data
+  const currentCount = dayCompletions?.reduce((sum: number, c: any) => sum + (c.value ?? 1), 0) || 0;
   const goalValue = habit.goal_value || 1;
   const progressPercent = Math.min((currentCount / goalValue) * 100, 100);
   const icon = habit.icon_url?.startsWith("emoji:") ? habit.icon_url.replace("emoji:", "") : "🎯";
   const isWaterType = habit.goal_unit === "cups" || habit.goal_unit === "glasses";
-
+  const isNumericUnit = ["steps", "miles", "minutes", "hours"].includes(habit.goal_unit);
+  
+  // Determine increment for +/- buttons based on unit
+  const getIncrement = () => {
+    switch (habit.goal_unit) {
+      case "steps": return 1000;
+      case "miles": return 0.5;
+      case "minutes": return 5;
+      case "hours": return 0.5;
+      default: return 1;
+    }
+  };
+  const increment = getIncrement();
   // SVG arc for progress ring
   const radius = 120;
   const strokeWidth = 14;
