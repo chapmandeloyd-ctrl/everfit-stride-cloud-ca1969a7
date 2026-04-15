@@ -460,54 +460,23 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
 
   // (getready/countdown speech removed — intro handles this now)
 
-  // Last-3-seconds tick countdown & motivational milestones
+  // Last-3-seconds tick countdown only (no mid-workout motivational speech)
   useEffect(() => {
     if (phase !== "playing") return;
     const step = steps[stepIdx];
     if (!step) return;
 
-    // ── Exercise-specific cues ──
+    // Last 3-second countdown for exercises (browser TTS for zero latency)
     if (step.type === "exercise") {
-      const totalSteps = steps.filter(s => s.type === "exercise").length;
-      const completedExSteps = steps.slice(0, stepIdx).filter(s => s.type === "exercise").length;
-
-      // Last 3-second countdown (browser TTS for zero latency)
       if (stepTimer > 0 && stepTimer <= 3 && lastCountdownRef.current !== stepTimer) {
         lastCountdownRef.current = stepTimer;
         const countdownWord = stepTimer === 3 ? "Three" : stepTimer === 2 ? "Two" : "One";
         playClip(countdownWord).catch(() => {});
       }
-
-      // Halfway through THIS exercise's timer — Jessica encouragement
-      const duration = stepTimerDurationRef.current;
-      if (duration >= 20) {
-        const halfMark = Math.floor(duration / 2);
-        if (stepTimer === halfMark && lastCountdownRef.current !== -97) {
-          lastCountdownRef.current = -97;
-          elevenLabsSpeakNow("Halfway there, keep going!").catch(() => {});
-        }
-      }
-
-      // Workout-level motivational milestones (well away from countdown ticks)
-      if (stepTimer > 5 && announcedStepRef.current === stepIdx) {
-        if (completedExSteps === Math.floor(totalSteps / 2) && lastCountdownRef.current !== -99) {
-          lastCountdownRef.current = -99;
-          elevenLabsSpeakNow("Halfway through the workout! Keep it up!").catch(() => {});
-        }
-        if (completedExSteps === totalSteps - 1 && lastCountdownRef.current !== -98) {
-          lastCountdownRef.current = -98;
-          elevenLabsSpeakNow("Last one! You've got this!").catch(() => {});
-        }
-      }
     }
 
-    // ── Rest-step cue: 30 seconds remaining ──
+    // Last 3-second countdown during rest too
     if (step.type === "rest") {
-      if (stepTimer === 30 && lastCountdownRef.current !== -96) {
-        lastCountdownRef.current = -96;
-        elevenLabsSpeakNow("30 seconds to go before your next round, get ready!").catch(() => {});
-      }
-      // Last 3-second countdown during rest too
       if (stepTimer > 0 && stepTimer <= 3 && lastCountdownRef.current !== stepTimer) {
         lastCountdownRef.current = stepTimer;
         const countdownWord = stepTimer === 3 ? "Three" : stepTimer === 2 ? "Two" : "One";
@@ -560,19 +529,6 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
     setStepIdx((prev) => {
       const next = prev + 1;
       if (next >= steps.length) return prev;
-
-      // "X down, Y to go" after completing an exercise step
-      const currentStepType = steps[prev]?.type;
-      if (currentStepType === "exercise") {
-        const doneCount = steps.slice(0, next).filter(s => s.type === "exercise").length;
-        const remaining = steps.slice(next).filter(s => s.type === "exercise").length;
-        if (remaining > 0 && doneCount > 0) {
-          const doneWord = doneCount === 1 ? "one" : String(doneCount);
-          const remWord = remaining === 1 ? "one more" : `${remaining} to go`;
-          elevenLabsSpeakNow(`${doneWord} down, ${remWord}`).catch(() => {});
-        }
-      }
-
       return next;
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
