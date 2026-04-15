@@ -89,16 +89,29 @@ export default function ClientHabitDetail() {
     queryClient.invalidateQueries({ queryKey: ["client-habit-completions-today"] });
   };
 
-  // Upsert completion value mutation — uses a single row per day
+  const isValueBasedUnit = ["steps", "miles", "minutes", "hours"].includes(habit?.goal_unit ?? "");
+
+  // Upsert completion value — collapse old duplicate rows into one row for the day
   const upsertCompletionMutation = useMutation({
     mutationFn: async (newValue: number) => {
-      const existing = dayCompletions?.[0];
-      if (existing) {
-        const { error } = await supabase
+      const existingRows = dayCompletions ?? [];
+      const keepRow = existingRows[0];
+      const duplicateIds = existingRows.slice(1).map((row: any) => row.id);
+
+      if (keepRow) {
+        const { error: updateError } = await supabase
           .from("habit_completions")
           .update({ value: newValue } as any)
-          .eq("id", existing.id);
-        if (error) throw error;
+          .eq("id", keepRow.id);
+        if (updateError) throw updateError;
+
+        if (duplicateIds.length > 0) {
+          const { error: deleteError } = await supabase
+            .from("habit_completions")
+            .delete()
+            .in("id", duplicateIds);
+          if (deleteError) throw deleteError;
+        }
       } else if (newValue > 0) {
         const { error } = await supabase
           .from("habit_completions")
@@ -109,15 +122,14 @@ export default function ClientHabitDetail() {
     onSuccess: invalidateHabitQueries,
   });
 
-  // Remove completion (delete entire row)
   const removeCompletionMutation = useMutation({
     mutationFn: async () => {
-      const existing = dayCompletions?.[0];
-      if (!existing) return;
+      if (!dayCompletions?.length) return;
+      const ids = dayCompletions.map((row: any) => row.id);
       const { error } = await supabase
         .from("habit_completions")
         .delete()
-        .eq("id", existing.id);
+        .in("id", ids);
       if (error) throw error;
     },
     onSuccess: invalidateHabitQueries,
@@ -147,15 +159,16 @@ export default function ClientHabitDetail() {
     );
   }
 
-  // For value-based tracking: sum the value column; fall back to row count for legacy data
-  const currentCount = dayCompletions?.reduce((sum: number, c: any) => sum + (c.value ?? 1), 0) || 0;
+  const normalizedDayCompletions = isValueBasedUnit
+    ? dayCompletions?.slice(0, 1) ?? []
+    : dayCompletions ?? [];
+  const currentCount = normalizedDayCompletions.reduce((sum: number, c: any) => sum + (c.value ?? 1), 0);
   const goalValue = habit.goal_value || 1;
   const progressPercent = Math.min((currentCount / goalValue) * 100, 100);
   const icon = habit.icon_url?.startsWith("emoji:") ? habit.icon_url.replace("emoji:", "") : "🎯";
   const isWaterType = habit.goal_unit === "cups" || habit.goal_unit === "glasses";
   const isNumericUnit = ["steps", "miles", "minutes", "hours"].includes(habit.goal_unit);
   
-  // Determine increment for +/- buttons based on unit
   const getIncrement = () => {
     switch (habit.goal_unit) {
       case "steps": return 1000;

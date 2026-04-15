@@ -1991,7 +1991,10 @@ export default function ClientDashboard() {
                   <Card>
                     <CardContent className="p-0 divide-y divide-border">
                       {habits.map((habit: any) => {
-                        const todayCompletionCount = habitCompletions?.filter((c: any) => c.habit_id === habit.id).reduce((sum: number, c: any) => sum + (c.value ?? 1), 0) || 0;
+                        const habitRows = habitCompletions?.filter((c: any) => c.habit_id === habit.id) || [];
+                        const todayCompletionCount = ["steps", "miles", "minutes", "hours"].includes(habit.goal_unit)
+                          ? (habitRows[0]?.value ?? 0)
+                          : habitRows.reduce((sum: number, c: any) => sum + (c.value ?? 1), 0);
                         const icon = habit.icon_url?.startsWith("emoji:") ? habit.icon_url.replace("emoji:", "") : "🎯";
                         return (
                           <div

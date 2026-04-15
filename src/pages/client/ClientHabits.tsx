@@ -55,7 +55,10 @@ export default function ClientHabits() {
 
         <div className="p-4 space-y-2">
           {habits?.map((habit: any) => {
-            const count = todayCompletions?.filter((c: any) => c.habit_id === habit.id).reduce((sum: number, c: any) => sum + (c.value ?? 1), 0) || 0;
+            const habitRows = todayCompletions?.filter((c: any) => c.habit_id === habit.id) || [];
+            const count = ["steps", "miles", "minutes", "hours"].includes(habit.goal_unit)
+              ? (habitRows[0]?.value ?? 0)
+              : habitRows.reduce((sum: number, c: any) => sum + (c.value ?? 1), 0);
             const icon = habit.icon_url?.startsWith("emoji:") ? habit.icon_url.replace("emoji:", "") : "🎯";
             return (
               <Card
