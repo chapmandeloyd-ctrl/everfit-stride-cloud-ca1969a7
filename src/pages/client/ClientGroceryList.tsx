@@ -272,6 +272,8 @@ export default function ClientGroceryList() {
                           className={`flex items-center gap-3 rounded-xl p-3 border transition-all ${
                             item.is_purchased
                               ? "bg-muted/20 border-border/50 opacity-60"
+                              : item.is_low_stock
+                              ? "bg-destructive/5 border-destructive/30"
                               : "bg-card border-border"
                           }`}
                         >
@@ -283,17 +285,27 @@ export default function ClientGroceryList() {
                             className="h-5 w-5"
                           />
                           <div className="flex-1 min-w-0">
-                            <p
-                              className={`text-sm font-medium truncate ${
-                                item.is_purchased ? "line-through text-muted-foreground" : ""
-                              }`}
-                            >
-                              {item.ingredient_name}
-                            </p>
+                            <div className="flex items-center gap-1.5">
+                              <p
+                                className={`text-sm font-medium truncate ${
+                                  item.is_purchased ? "line-through text-muted-foreground" : ""
+                                }`}
+                              >
+                                {item.ingredient_name}
+                              </p>
+                              {item.is_low_stock && !item.is_purchased && (
+                                <Badge variant="destructive" className="text-[9px] px-1 py-0 h-3.5 shrink-0">
+                                  LOW
+                                </Badge>
+                              )}
+                            </div>
                             <div className="flex items-center gap-2 mt-0.5">
                               {item.amount && (
                                 <span className="text-[10px] text-muted-foreground">
                                   {item.amount}{item.unit ? ` ${item.unit}` : ""}
+                                  {item.used_amount && parseFloat(item.used_amount) > 0 && (
+                                    <span className="text-primary/70"> (used {item.used_amount})</span>
+                                  )}
                                 </span>
                               )}
                               {item.meal_sources?.length > 0 && (
