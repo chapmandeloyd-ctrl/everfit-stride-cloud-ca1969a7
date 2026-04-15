@@ -438,6 +438,11 @@ export default function ClientWodBuilder() {
               reps: isTime ? null : (parseInt(ex.reps) || null),
               duration_seconds: isTime ? (parseInt(ex.reps) || null) : null,
               rest_seconds: ex.rest_seconds || null,
+              weight_lbs: ex.weight_lbs ? parseFloat(ex.weight_lbs) : null,
+              tempo: ex.tempo || null,
+              rpe: ex.rpe ? parseInt(ex.rpe) : null,
+              distance: ex.distance || null,
+              detail_fields: ex.detail_fields.length > 0 ? ex.detail_fields : null,
             };
           });
 
