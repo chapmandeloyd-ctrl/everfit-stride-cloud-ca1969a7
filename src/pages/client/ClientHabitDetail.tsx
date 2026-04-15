@@ -183,7 +183,7 @@ export default function ClientHabitDetail() {
   // Count completions per date for daily average
   const completionCountByDate: Record<string, number> = {};
   allCompletions?.forEach((c: any) => {
-    completionCountByDate[c.completion_date] = (completionCountByDate[c.completion_date] || 0) + 1;
+    completionCountByDate[c.completion_date] = (completionCountByDate[c.completion_date] || 0) + (c.value ?? 1);
   });
   const completedDays = Object.keys(completionCountByDate).length;
   const totalCompletionValue = Object.values(completionCountByDate).reduce((a, b) => a + b, 0);
