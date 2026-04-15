@@ -341,7 +341,7 @@ export function MetabolicControlDashboard() {
       )}
 
       {/* ── QUICK ACTION BUTTONS ── */}
-      {engine.fasting_state !== "fasting_active" && (
+      {(engine.fasting_state === "eating_window_open" || engine.fasting_state === "eating_window_closing" || engine.fasting_state === "break_fast_triggered") && (
         <div className="grid grid-cols-5 gap-2">
           {[
             { icon: <Shuffle className="h-4 w-4" />, label: "Can't Decide", onClick: () => navigate("/client/log-meal?auto=1") },
