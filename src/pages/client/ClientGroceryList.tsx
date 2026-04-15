@@ -195,6 +195,18 @@ export default function ClientGroceryList() {
               />
             </div>
           </div>
+          {/* Regenerate button */}
+          <div className="px-5 pb-2">
+            <Button variant="outline" size="sm" className="w-full rounded-xl text-xs" onClick={regenerateList}>
+              <RefreshCw className="h-3.5 w-3.5 mr-2" />
+              Regenerate from Current Meals
+            </Button>
+          </div>
+        )}
+
+        {/* Shortage Alerts */}
+        {!loading && lowStockItems.length > 0 && (
+          <GroceryShortageAlerts lowStockItems={lowStockItems} />
         )}
 
         {/* Loading */}
