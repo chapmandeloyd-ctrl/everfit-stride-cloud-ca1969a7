@@ -1597,6 +1597,9 @@ export default function ClientDashboard() {
         {/* In-App Notifications */}
         <InAppNotifications />
 
+        {/* Today's Coaching */}
+        <CoachingCard />
+
         {/* Daily Score Ring */}
         <DailyScoreRing />
 
