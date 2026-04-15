@@ -1149,6 +1149,41 @@ export default function ClientWodBuilder() {
         onOpenChange={setShowBlockPicker}
         onSelect={handleBlockTypeSelected}
       />
+
+      {/* Exercise Detail Fields sheet */}
+      {editingDetailFieldsId && (() => {
+        const ex = exercises.find((e) => e.id === editingDetailFieldsId);
+        if (!ex) return null;
+        return (
+          <ExerciseDetailSheet
+            open
+            activeFields={ex.detail_fields}
+            onSave={(fields) => {
+              setExercises((prev) => prev.map((e) => e.id === editingDetailFieldsId ? { ...e, detail_fields: fields } : e));
+            }}
+            onClose={() => setEditingDetailFieldsId(null)}
+          />
+        );
+      })()}
+
+      {/* Detail Value sheet */}
+      {editingDetailValue && (() => {
+        const ex = exercises.find((e) => e.id === editingDetailValue.id);
+        if (!ex) return null;
+        const fieldMap: Record<DetailField, keyof WodExercise> = { weight: "weight_lbs", tempo: "tempo", rpe: "rpe", distance: "distance" };
+        const fieldKey = fieldMap[editingDetailValue.field];
+        return (
+          <DetailValueSheet
+            open
+            field={editingDetailValue.field}
+            value={String(ex[fieldKey] || "")}
+            onSave={(v) => {
+              setExercises((prev) => prev.map((e) => e.id === editingDetailValue.id ? { ...e, [fieldKey]: v } : e));
+            }}
+            onClose={() => setEditingDetailValue(null)}
+          />
+        );
+      })()}
     </div>
   );
 }
