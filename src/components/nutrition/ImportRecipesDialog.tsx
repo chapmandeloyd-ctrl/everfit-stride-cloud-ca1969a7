@@ -97,15 +97,22 @@ export function ImportRecipesDialog({ open, onOpenChange }: ImportRecipesDialogP
         throw new Error("No recipes to import");
       }
 
-      const recipesToInsert = previewData.map(recipe => ({
+      const recipesToInsert = previewData.map(recipe => {
+        const normalized = normalizeMacros({
+          calories: recipe.calories,
+          protein: recipe.protein,
+          carbs: recipe.carbs,
+          fats: recipe.fats,
+        });
+        return {
         trainer_id: user?.id!,
         name: recipe.name,
         description: recipe.description,
         instructions: recipe.instructions,
-        calories: recipe.calories,
-        protein: recipe.protein,
-        carbs: recipe.carbs,
-        fats: recipe.fats,
+        calories: normalized.calories,
+        protein: normalized.protein,
+        carbs: normalized.carbs,
+        fats: normalized.fats,
         prep_time_minutes: recipe.prep_time_minutes,
         cook_time_minutes: recipe.cook_time_minutes,
         servings: recipe.servings || 1,
