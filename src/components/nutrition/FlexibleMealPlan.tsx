@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useAdaptiveMacros } from "@/hooks/useAdaptiveMacros";
 import { useGrocerySync } from "@/hooks/useGrocerySync";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -128,11 +129,12 @@ export function FlexibleMealPlan({ assignmentId, mealPlanId }: FlexibleMealPlanP
   };
 
   const totals = calculateDailyTotals();
+  const { effectiveMacros } = useAdaptiveMacros(user?.id);
   const targets = {
-    calories: mealPlan?.target_calories || 2000,
-    protein: mealPlan?.target_protein || 150,
-    carbs: mealPlan?.target_carbs || 200,
-    fats: mealPlan?.target_fats || 60,
+    calories: effectiveMacros?.calories || mealPlan?.target_calories || 2000,
+    protein: effectiveMacros?.protein || mealPlan?.target_protein || 150,
+    carbs: effectiveMacros?.carbs || mealPlan?.target_carbs || 200,
+    fats: effectiveMacros?.fat || mealPlan?.target_fats || 60,
   };
 
   return (

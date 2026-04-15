@@ -14,6 +14,83 @@ export type Database = {
   }
   public: {
     Tables: {
+      adaptive_macro_adjustments: {
+        Row: {
+          adjusted_calories: number
+          adjusted_carbs: number
+          adjusted_fat: number
+          adjusted_protein: number
+          adjustment_reason: string
+          applied_at: string
+          base_calories: number
+          base_carbs: number
+          base_fat: number
+          base_protein: number
+          client_id: string
+          created_at: string
+          daily_score_avg: number | null
+          expires_at: string | null
+          fasting_adherence_pct: number | null
+          id: string
+          is_active: boolean
+          macro_adherence_pct: number | null
+          rule_triggered: string
+          updated_at: string
+        }
+        Insert: {
+          adjusted_calories: number
+          adjusted_carbs: number
+          adjusted_fat: number
+          adjusted_protein: number
+          adjustment_reason: string
+          applied_at?: string
+          base_calories: number
+          base_carbs: number
+          base_fat: number
+          base_protein: number
+          client_id: string
+          created_at?: string
+          daily_score_avg?: number | null
+          expires_at?: string | null
+          fasting_adherence_pct?: number | null
+          id?: string
+          is_active?: boolean
+          macro_adherence_pct?: number | null
+          rule_triggered: string
+          updated_at?: string
+        }
+        Update: {
+          adjusted_calories?: number
+          adjusted_carbs?: number
+          adjusted_fat?: number
+          adjusted_protein?: number
+          adjustment_reason?: string
+          applied_at?: string
+          base_calories?: number
+          base_carbs?: number
+          base_fat?: number
+          base_protein?: number
+          client_id?: string
+          created_at?: string
+          daily_score_avg?: number | null
+          expires_at?: string | null
+          fasting_adherence_pct?: number | null
+          id?: string
+          is_active?: boolean
+          macro_adherence_pct?: number | null
+          rule_triggered?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "adaptive_macro_adjustments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       appointment_types: {
         Row: {
           color: string | null
