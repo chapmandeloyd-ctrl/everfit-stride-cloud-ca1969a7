@@ -420,7 +420,7 @@ Deno.serve(async (req) => {
       // Feature settings (check fasting enabled + active fast)
       supabase
         .from("client_feature_settings")
-        .select("fasting_enabled, active_fast_start_at")
+        .select("fasting_enabled, active_fast_start_at, protocol_start_date, last_fast_completed_at, last_fast_ended_at")
         .eq("client_id", client_id)
         .maybeSingle(),
     ]);
