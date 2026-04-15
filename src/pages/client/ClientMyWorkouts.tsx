@@ -43,7 +43,7 @@ export default function ClientMyWorkouts() {
     <ClientLayout>
       <div className="p-4 space-y-4">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/client/profile")}>
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <h1 className="text-xl font-bold text-foreground">My Workouts</h1>
