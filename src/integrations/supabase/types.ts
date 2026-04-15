@@ -8351,7 +8351,7 @@ export type Database = {
           resume_set_logs: Json | null
           started_at: string
           status: string
-          workout_plan_id: string
+          workout_plan_id: string | null
         }
         Insert: {
           client_id: string
@@ -8371,7 +8371,7 @@ export type Database = {
           resume_set_logs?: Json | null
           started_at: string
           status?: string
-          workout_plan_id: string
+          workout_plan_id?: string | null
         }
         Update: {
           client_id?: string
@@ -8391,7 +8391,7 @@ export type Database = {
           resume_set_logs?: Json | null
           started_at?: string
           status?: string
-          workout_plan_id?: string
+          workout_plan_id?: string | null
         }
         Relationships: [
           {
