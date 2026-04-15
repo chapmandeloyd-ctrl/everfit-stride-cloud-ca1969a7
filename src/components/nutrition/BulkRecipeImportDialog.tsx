@@ -1,3 +1,4 @@
+import { normalizeMacros } from "@/utils/normalizeMacros";
 import { useState, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useQueryClient } from "@tanstack/react-query";
@@ -174,15 +175,22 @@ export function BulkRecipeImportDialog({ open, onOpenChange }: BulkRecipeImportD
         fullInstructions += "## Directions\n" + r.instructions;
       }
 
+      const normalized = normalizeMacros({
+        calories: r.calories,
+        protein: r.protein,
+        carbs: r.carbs,
+        fats: r.fats,
+      });
+
       const { error } = await supabase.from("recipes").insert({
         trainer_id: user.id,
         name: r.name,
         description: r.description || null,
         instructions: fullInstructions || r.instructions || null,
-        calories: r.calories,
-        protein: r.protein,
-        carbs: r.carbs,
-        fats: r.fats,
+        calories: normalized.calories,
+        protein: normalized.protein,
+        carbs: normalized.carbs,
+        fats: normalized.fats,
         prep_time_minutes: r.prep_time_minutes || null,
         cook_time_minutes: r.cook_time_minutes || null,
         servings: r.servings || 1,

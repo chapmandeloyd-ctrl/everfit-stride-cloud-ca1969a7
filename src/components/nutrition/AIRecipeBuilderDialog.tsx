@@ -1,3 +1,4 @@
+import { normalizeMacros } from "@/utils/normalizeMacros";
 import { useState, useRef, useCallback } from "react";
 import { parseStructuredRecipeText } from "./recipeTextParser";
 import { validateMealCompleteness } from "./mealDataSchema";
@@ -208,15 +209,22 @@ export function AIRecipeBuilderDialog({ open, onOpenChange }: AIRecipeBuilderDia
         fullInstructions += "## Directions\n" + extractedRecipe.instructions;
       }
 
+      const normalized = normalizeMacros({
+        calories: extractedRecipe.calories,
+        protein: extractedRecipe.protein,
+        carbs: extractedRecipe.carbs,
+        fats: extractedRecipe.fats,
+      });
+
       const { error } = await supabase.from("recipes").insert({
         trainer_id: user.id,
         name: extractedRecipe.name,
         description: extractedRecipe.description || null,
         instructions: fullInstructions || extractedRecipe.instructions || null,
-        calories: extractedRecipe.calories,
-        protein: extractedRecipe.protein,
-        carbs: extractedRecipe.carbs,
-        fats: extractedRecipe.fats,
+        calories: normalized.calories,
+        protein: normalized.protein,
+        carbs: normalized.carbs,
+        fats: normalized.fats,
         prep_time_minutes: extractedRecipe.prep_time_minutes || null,
         cook_time_minutes: extractedRecipe.cook_time_minutes || null,
         servings: extractedRecipe.servings || 1,

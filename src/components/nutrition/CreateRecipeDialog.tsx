@@ -1,3 +1,4 @@
+import { normalizeMacros } from "@/utils/normalizeMacros";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -152,15 +153,22 @@ export function CreateRecipeDialog({ open, onOpenChange }: CreateRecipeDialogPro
         fullInstructions = `Ingredients:\n${ingredientList}\n\n${fullInstructions}`.trim();
       }
 
+      const normalized = normalizeMacros({
+        calories: parsed.calories,
+        protein: parsed.protein,
+        carbs: parsed.carbs,
+        fats: parsed.fats,
+      });
+
       const { error } = await supabase.from("recipes").insert([{
         trainer_id: user?.id!,
         name: parsed.name,
         description: parsed.description || null,
         instructions: fullInstructions || null,
-        calories: parsed.calories,
-        protein: parsed.protein,
-        carbs: parsed.carbs,
-        fats: parsed.fats,
+        calories: normalized.calories,
+        protein: normalized.protein,
+        carbs: normalized.carbs,
+        fats: normalized.fats,
         prep_time_minutes: parsed.prep_time_minutes || null,
         cook_time_minutes: parsed.cook_time_minutes || null,
         servings: parsed.servings || 1,
