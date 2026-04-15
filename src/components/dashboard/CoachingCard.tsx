@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useCoachingMessage } from "@/hooks/useCoachingMessage";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
