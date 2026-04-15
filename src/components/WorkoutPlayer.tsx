@@ -529,19 +529,6 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
     setStepIdx((prev) => {
       const next = prev + 1;
       if (next >= steps.length) return prev;
-
-      // "X down, Y to go" after completing an exercise step
-      const currentStepType = steps[prev]?.type;
-      if (currentStepType === "exercise") {
-        const doneCount = steps.slice(0, next).filter(s => s.type === "exercise").length;
-        const remaining = steps.slice(next).filter(s => s.type === "exercise").length;
-        if (remaining > 0 && doneCount > 0) {
-          const doneWord = doneCount === 1 ? "one" : String(doneCount);
-          const remWord = remaining === 1 ? "one more" : `${remaining} to go`;
-          elevenLabsSpeakNow(`${doneWord} down, ${remWord}`).catch(() => {});
-        }
-      }
-
       return next;
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
