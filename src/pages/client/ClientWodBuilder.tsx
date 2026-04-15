@@ -475,6 +475,7 @@ export default function ClientWodBuilder() {
       rest_seconds: 60,
       selected: false,
       group_id: null,
+      ...defaultRestExercise(),
     };
     setExercises((prev) => [...prev, restItem]);
   };
