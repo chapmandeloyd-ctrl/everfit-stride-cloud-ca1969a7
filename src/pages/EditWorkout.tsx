@@ -31,6 +31,11 @@ interface WorkoutExercise {
   exercise_type: "normal" | "rest";
   selected: boolean;
   group_id: string | null;
+  detail_fields: DetailField[];
+  weight_lbs: string;
+  tempo: string;
+  rpe: string;
+  distance: string;
 }
 
 interface ExerciseGroup {
@@ -81,11 +86,15 @@ function ExerciseRow({
   exerciseInfo,
   onUpdate,
   onToggleSelect,
+  onEditDetailFields,
+  onEditDetailValue,
 }: {
   item: WorkoutExercise;
   exerciseInfo: any;
   onUpdate: (id: string, updates: Partial<WorkoutExercise>) => void;
   onToggleSelect: (id: string) => void;
+  onEditDetailFields?: (id: string) => void;
+  onEditDetailValue?: (edit: { id: string; field: DetailField }) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
   const style = {
