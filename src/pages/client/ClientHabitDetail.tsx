@@ -83,37 +83,44 @@ export default function ClientHabitDetail() {
     enabled: !!id,
   });
 
-  // Add completion mutation
-  const addCompletionMutation = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase
-        .from("habit_completions")
-        .insert({ habit_id: id!, client_id: clientId!, completion_date: dateStr });
-      if (error) throw error;
+  const invalidateHabitQueries = () => {
+    queryClient.invalidateQueries({ queryKey: ["habit-day-completions", id, dateStr] });
+    queryClient.invalidateQueries({ queryKey: ["habit-all-completions", id] });
+    queryClient.invalidateQueries({ queryKey: ["client-habit-completions-today"] });
+  };
+
+  // Upsert completion value mutation — uses a single row per day
+  const upsertCompletionMutation = useMutation({
+    mutationFn: async (newValue: number) => {
+      const existing = dayCompletions?.[0];
+      if (existing) {
+        const { error } = await supabase
+          .from("habit_completions")
+          .update({ value: newValue } as any)
+          .eq("id", existing.id);
+        if (error) throw error;
+      } else if (newValue > 0) {
+        const { error } = await supabase
+          .from("habit_completions")
+          .insert({ habit_id: id!, client_id: clientId!, completion_date: dateStr, value: newValue } as any);
+        if (error) throw error;
+      }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["habit-day-completions", id, dateStr] });
-      queryClient.invalidateQueries({ queryKey: ["habit-all-completions", id] });
-      queryClient.invalidateQueries({ queryKey: ["client-habit-completions-today"] });
-    },
+    onSuccess: invalidateHabitQueries,
   });
 
-  // Remove completion mutation
+  // Remove completion (delete entire row)
   const removeCompletionMutation = useMutation({
     mutationFn: async () => {
-      const last = dayCompletions?.[dayCompletions.length - 1];
-      if (!last) return;
+      const existing = dayCompletions?.[0];
+      if (!existing) return;
       const { error } = await supabase
         .from("habit_completions")
         .delete()
-        .eq("id", last.id);
+        .eq("id", existing.id);
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["habit-day-completions", id, dateStr] });
-      queryClient.invalidateQueries({ queryKey: ["habit-all-completions", id] });
-      queryClient.invalidateQueries({ queryKey: ["client-habit-completions-today"] });
-    },
+    onSuccess: invalidateHabitQueries,
   });
 
   // Send comment mutation
