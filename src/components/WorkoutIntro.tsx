@@ -68,14 +68,17 @@ export function WorkoutIntro({
     if (!mountedRef.current) return;
     setStatsVisible(true);
 
-    // Announce welcome
+    // Announce welcome — use the section name (block label) instead of raw section_type
     const exerciseWord = totalExercises === 1 ? "exercise" : "exercises";
-    const supersetSections = sections.filter(s => s.section_type === "superset");
-    const blockInfo = supersetSections.length > 1
-      ? ` across ${supersetSections.length} superset blocks`
-      : supersetSections.length === 1
-        ? " in a superset"
-        : "";
+    // Build a descriptive block summary from section names (e.g. "Working Sets 1", "Warm-Up")
+    const sectionNames = sections.map(s => {
+      // Strip trailing "Block X" or trailing numbers to get clean block label
+      return s.name.replace(/\s*Block\s*\d+$/i, "").replace(/\s*\d+$/, "").trim();
+    });
+    const uniqueBlocks = [...new Set(sectionNames)].filter(Boolean);
+    const blockInfo = uniqueBlocks.length > 0
+      ? ` featuring ${uniqueBlocks.join(", ")}`
+      : "";
     const welcomeText = `Welcome to ${workoutName}. Today you'll be doing ${totalExercises} ${exerciseWord}${blockInfo} in about ${totalMinutes} minutes.`;
     await speakFn(welcomeText);
     if (!mountedRef.current) return;
