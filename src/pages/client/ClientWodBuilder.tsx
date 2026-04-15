@@ -728,7 +728,7 @@ export default function ClientWodBuilder() {
                         </div>
                       </div>
                       {ex.exercise_id !== "rest" && (
-                        <div className="flex items-center gap-2 mt-2 ml-7 pl-1">
+                        <div className="flex items-center gap-2 mt-2 ml-7 pl-1 flex-wrap">
                           <button onClick={() => setEditingSetsId(ex.id)} className="px-3 py-1 rounded-full border border-border text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors">
                             {ex.sets} sets
                           </button>
@@ -741,6 +741,30 @@ export default function ClientWodBuilder() {
                               {ex.rest_seconds > 0 ? (ex.rest_seconds >= 60 ? `${Math.floor(ex.rest_seconds / 60)}m${ex.rest_seconds % 60 > 0 ? ` ${ex.rest_seconds % 60}s` : ""}` : `${ex.rest_seconds}s`) : "None"}
                             </button>
                           )}
+                          {/* Detail field chips */}
+                          {ex.detail_fields.includes("weight") && (
+                            <button onClick={() => setEditingDetailValue({ id: ex.id, field: "weight" })} className="px-3 py-1 rounded-full border border-primary/30 bg-primary/5 text-xs font-medium text-primary hover:bg-primary/10 transition-colors">
+                              {ex.weight_lbs ? `${ex.weight_lbs} lbs` : "Weight"}
+                            </button>
+                          )}
+                          {ex.detail_fields.includes("tempo") && (
+                            <button onClick={() => setEditingDetailValue({ id: ex.id, field: "tempo" })} className="px-3 py-1 rounded-full border border-primary/30 bg-primary/5 text-xs font-medium text-primary hover:bg-primary/10 transition-colors">
+                              {ex.tempo || "Tempo"}
+                            </button>
+                          )}
+                          {ex.detail_fields.includes("rpe") && (
+                            <button onClick={() => setEditingDetailValue({ id: ex.id, field: "rpe" })} className="px-3 py-1 rounded-full border border-primary/30 bg-primary/5 text-xs font-medium text-primary hover:bg-primary/10 transition-colors">
+                              {ex.rpe ? `RPE ${ex.rpe}` : "RPE"}
+                            </button>
+                          )}
+                          {ex.detail_fields.includes("distance") && (
+                            <button onClick={() => setEditingDetailValue({ id: ex.id, field: "distance" })} className="px-3 py-1 rounded-full border border-primary/30 bg-primary/5 text-xs font-medium text-primary hover:bg-primary/10 transition-colors">
+                              {ex.distance || "Distance"}
+                            </button>
+                          )}
+                          <button onClick={() => setEditingDetailFieldsId(ex.id)} className="px-2 py-1 rounded-full border border-dashed border-muted-foreground/30 text-xs font-medium text-muted-foreground/60 hover:border-primary hover:text-primary transition-colors flex items-center gap-0.5">
+                            <Plus className="h-3 w-3" /> Detail
+                          </button>
                         </div>
                       )}
                     </div>
