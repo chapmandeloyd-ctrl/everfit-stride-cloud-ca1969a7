@@ -86,7 +86,7 @@ export function InstallPrompt() {
           <Download className="h-6 w-6 text-primary" />
         </div>
         <div className="flex-1">
-          <h3 className="font-semibold text-foreground">Install EverFit</h3>
+          <h3 className="font-semibold text-foreground">Install KSOM-360</h3>
           {isIOS ? (
             <p className="text-sm text-muted-foreground mt-1">
               Tap the share button <span className="inline-block">⬆️</span> then "Add to Home Screen" to install
