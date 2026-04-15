@@ -130,6 +130,8 @@ export default function ClientWodBuilder() {
   const [editingCircuitRoundsId, setEditingCircuitRoundsId] = useState<string | null>(null);
   const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
   const [showBlockPicker, setShowBlockPicker] = useState(true); // Auto-open on mount
+  const [editingDetailFieldsId, setEditingDetailFieldsId] = useState<string | null>(null);
+  const [editingDetailValue, setEditingDetailValue] = useState<{ id: string; field: DetailField } | null>(null);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [overIndex, setOverIndex] = useState<number | null>(null);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
