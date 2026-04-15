@@ -1,3 +1,4 @@
+import { normalizeMacros } from "@/utils/normalizeMacros";
 import { useState, useRef, useCallback } from "react";
 import { parseStructuredRecipeText } from "./recipeTextParser";
 import { validateMealCompleteness } from "./mealDataSchema";
