@@ -1558,11 +1558,12 @@ export default function ClientDashboard() {
   const totalTaskCount = tasks?.length || 0;
 
   // Nutrition stats
-  const todayMealCount = todayNutrition?.length || 0;
-  const todayCalories = todayNutrition?.reduce((sum, log) => sum + (log.calories || 0), 0) || 0;
-  const todayProtein = todayNutrition?.reduce((sum, log) => sum + (log.protein || 0), 0) || 0;
-  const todayCarbs = todayNutrition?.reduce((sum, log) => sum + (log.carbs || 0), 0) || 0;
-  const todayFats = todayNutrition?.reduce((sum, log) => sum + (log.fats || 0), 0) || 0;
+  const nutritionArray = Array.isArray(todayNutrition) ? todayNutrition : [];
+  const todayMealCount = nutritionArray.length;
+  const todayCalories = nutritionArray.reduce((sum, log) => sum + (log.calories || 0), 0);
+  const todayProtein = nutritionArray.reduce((sum, log) => sum + (log.protein || 0), 0);
+  const todayCarbs = nutritionArray.reduce((sum, log) => sum + (log.carbs || 0), 0);
+  const todayFats = nutritionArray.reduce((sum, log) => sum + (log.fats || 0), 0);
 
 
   return (
