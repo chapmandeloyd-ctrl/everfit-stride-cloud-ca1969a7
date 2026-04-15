@@ -137,11 +137,9 @@ export default function ClientTaskDetail() {
   };
 
   if (!task) return (
-    <ClientLayout>
-      <div className="flex items-center justify-center h-64">
-        <p className="text-muted-foreground">Loading...</p>
-      </div>
-    </ClientLayout>
+    <div className="min-h-screen flex items-center justify-center">
+      <p className="text-muted-foreground">Loading...</p>
+    </div>
   );
 
   const isCompleted = !!task.completed_at;
@@ -289,6 +287,5 @@ export default function ClientTaskDetail() {
           </SheetContent>
         </Sheet>
       </div>
-    </ClientLayout>
   );
 }
