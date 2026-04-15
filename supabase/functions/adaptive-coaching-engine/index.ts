@@ -7,6 +7,9 @@ const corsHeaders = {
 };
 
 // ── Scenario definitions (rules decide WHAT to say) ──
+// NOTE: Removed pending/missed task, workout, fasting, and goal reminders
+// because those are handled by the Habit Loop notification system.
+// CoachingCard now focuses exclusively on analytical coaching insights.
 interface ScenarioMatch {
   type: string;
   priority: number;
@@ -25,30 +28,10 @@ interface CoachingContext {
   hasHungerSignal: boolean;
   isStalling: boolean;
   clientName: string;
-  // New: pending/missed item awareness
-  pendingTasks: string[];
-  missedTasks: string[];
-  pendingWorkouts: number;
-  missedWorkouts: number;
-  pendingGoals: string[];
-  fastingNotStarted: boolean;
   fastingEnabled: boolean;
-  hasEverFasted: boolean;
 }
 
 const SCENARIO_RULES: Array<(ctx: CoachingContext) => ScenarioMatch | null> = [
-  // Priority 1 — Missed workouts (yesterday)
-  (ctx) => {
-    if (ctx.missedWorkouts === 0) return null;
-    return {
-      type: "missed_workout",
-      priority: 1,
-      fallbackMessage: `You had ${ctx.missedWorkouts} workout${ctx.missedWorkouts > 1 ? "s" : ""} scheduled yesterday that ${ctx.missedWorkouts > 1 ? "weren't" : "wasn't"} completed. Get back on track — show up today and execute.`,
-      fallbackAction: "Complete your next scheduled workout today",
-      aiPromptContext: `Client missed ${ctx.missedWorkouts} scheduled workout(s) yesterday. ${ctx.streak > 0 ? `They have a ${ctx.streak}-day streak at risk.` : "No active streak."} Goal: motivate them to get back on track without shaming.`,
-    };
-  },
-
   // Priority 1 — Fasting failure (actual data shows failure)
   (ctx) => {
     if (ctx.fastingAdherence >= 70) return null;
@@ -58,19 +41,6 @@ const SCENARIO_RULES: Array<(ctx: CoachingContext) => ScenarioMatch | null> = [
       fallbackMessage: "You broke your fast early — delay your first meal tomorrow by 60–90 minutes. Control the start of your window and the rest of the day follows.",
       fallbackAction: "Delay first meal by 60–90 minutes tomorrow",
       aiPromptContext: `Client broke their fast early (${Math.round(ctx.fastingAdherence)}% fasting adherence). ${ctx.streak > 0 ? `They have a ${ctx.streak}-day streak.` : "No active streak."} Goal: get them to delay their first meal tomorrow and protect their fasting window.`,
-    };
-  },
-
-  // Priority 2 — Missed tasks (overdue)
-  (ctx) => {
-    if (ctx.missedTasks.length === 0) return null;
-    const taskList = ctx.missedTasks.slice(0, 3).join(", ");
-    return {
-      type: "missed_task",
-      priority: 2,
-      fallbackMessage: `You have ${ctx.missedTasks.length} overdue task${ctx.missedTasks.length > 1 ? "s" : ""}: ${taskList}. Knock ${ctx.missedTasks.length > 1 ? "them" : "it"} out today — don't let incomplete items stack up.`,
-      fallbackAction: `Complete your overdue task${ctx.missedTasks.length > 1 ? "s" : ""} today`,
-      aiPromptContext: `Client has ${ctx.missedTasks.length} overdue task(s): ${taskList}. Goal: create urgency to complete them today without being harsh.`,
     };
   },
 
@@ -98,43 +68,6 @@ const SCENARIO_RULES: Array<(ctx: CoachingContext) => ScenarioMatch | null> = [
     };
   },
 
-  // Priority 3 — Pending tasks reminder (due today, not started)
-  (ctx) => {
-    if (ctx.pendingTasks.length === 0) return null;
-    const taskList = ctx.pendingTasks.slice(0, 3).join(", ");
-    return {
-      type: "pending_task",
-      priority: 3,
-      fallbackMessage: `You have ${ctx.pendingTasks.length} task${ctx.pendingTasks.length > 1 ? "s" : ""} due today: ${taskList}. Get after it — check them off before the day ends.`,
-      fallbackAction: `Complete today's task${ctx.pendingTasks.length > 1 ? "s" : ""}`,
-      aiPromptContext: `Client has ${ctx.pendingTasks.length} task(s) due today that haven't been completed: ${taskList}. Goal: remind them to complete their tasks with urgency.`,
-    };
-  },
-
-  // Priority 3 — Fasting not started (enabled, user has engaged before, but no active fast today)
-  (ctx) => {
-    if (!ctx.fastingEnabled || !ctx.fastingNotStarted || !ctx.hasEverFasted) return null;
-    return {
-      type: "pending_fasting",
-      priority: 3,
-      fallbackMessage: "Your fasting program is assigned but you haven't started today's fast. Lock in your window now — every hour of discipline compounds.",
-      fallbackAction: "Start your fast now",
-      aiPromptContext: `Client has a fasting program assigned and has fasted before, but hasn't started today's fast yet. Goal: motivate them to start their fasting window immediately.`,
-    };
-  },
-
-  // Priority 4 — Pending workouts (scheduled today, not started)
-  (ctx) => {
-    if (ctx.pendingWorkouts === 0) return null;
-    return {
-      type: "pending_workout",
-      priority: 4,
-      fallbackMessage: `You have ${ctx.pendingWorkouts} workout${ctx.pendingWorkouts > 1 ? "s" : ""} scheduled today. Show up and execute — the work doesn't do itself.`,
-      fallbackAction: "Start your scheduled workout",
-      aiPromptContext: `Client has ${ctx.pendingWorkouts} workout(s) scheduled for today that haven't been started. Goal: motivate them to get moving.`,
-    };
-  },
-
   // Priority 4 — Stall
   (ctx) => {
     if (!ctx.isStalling || ctx.macroAdherence < 80) return null;
@@ -144,19 +77,6 @@ const SCENARIO_RULES: Array<(ctx: CoachingContext) => ScenarioMatch | null> = [
       fallbackMessage: "You're consistent — now tighten your fat intake slightly. Keep protein high and reduce excess fat to restart fat loss.",
       fallbackAction: "Reduce fat intake by 5-10% this week",
       aiPromptContext: `Client is in a weight stall — high compliance (${Math.round(ctx.macroAdherence)}% macro adherence, score ${Math.round(ctx.dailyScore)}) but no weight change. ${ctx.streak}-day streak. Goal: encourage them that consistency is working and suggest a small fat reduction to break the plateau.`,
-    };
-  },
-
-  // Priority 4 — Pending goals (active goals with no recent progress)
-  (ctx) => {
-    if (ctx.pendingGoals.length === 0) return null;
-    const goalList = ctx.pendingGoals.slice(0, 2).join(", ");
-    return {
-      type: "pending_goal",
-      priority: 4,
-      fallbackMessage: `Your goal${ctx.pendingGoals.length > 1 ? "s" : ""} "${goalList}" ${ctx.pendingGoals.length > 1 ? "are" : "is"} waiting for you. Take one measurable step today — progress happens in the small wins.`,
-      fallbackAction: "Log progress toward your goal today",
-      aiPromptContext: `Client has ${ctx.pendingGoals.length} active goal(s) that haven't seen recent progress: ${goalList}. Goal: remind them to take action toward their goals.`,
     };
   },
 
@@ -320,7 +240,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // ── Gather all behavior data in parallel ──
+    // ── Gather behavior data in parallel ──
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
     const yesterdayStr = yesterday.toISOString().split("T")[0];
@@ -332,21 +252,14 @@ Deno.serve(async (req) => {
       { data: ketoAssignment },
       { count: workoutCount },
       { data: profile },
-      { data: pendingTasksData },
-      { data: missedTasksData },
-      { data: pendingWorkoutsData },
-      { data: missedWorkoutsData },
-      { data: activeGoals },
       { data: featureSettings },
     ] = await Promise.all([
-      // Yesterday's meal behavior
       supabase
         .from("client_meal_behavior")
         .select("*")
         .eq("client_id", client_id)
         .eq("tracked_date", yesterdayStr)
         .maybeSingle(),
-      // Weekly summary
       supabase
         .from("client_weekly_summaries")
         .select("avg_score_7d, completion_7d, bodyweight_delta")
@@ -354,73 +267,31 @@ Deno.serve(async (req) => {
         .order("week_start", { ascending: false })
         .limit(1)
         .maybeSingle(),
-      // Streak
       supabase
         .from("client_consistency_streaks")
         .select("current_streak")
         .eq("client_id", client_id)
         .maybeSingle(),
-      // Keto assignment
       supabase
         .from("client_keto_assignments")
         .select("keto_type_id, keto_types(name)")
         .eq("client_id", client_id)
         .eq("is_active", true)
         .maybeSingle(),
-      // Today's workout sessions (started)
       supabase
         .from("workout_sessions")
         .select("id", { count: "exact", head: true })
         .eq("client_id", client_id)
         .gte("started_at", today)
         .lt("started_at", new Date(new Date(today).getTime() + 86400000).toISOString()),
-      // Profile
       supabase
         .from("profiles")
         .select("full_name")
         .eq("id", client_id)
         .maybeSingle(),
-      // Pending tasks (due today, not completed)
-      supabase
-        .from("client_tasks")
-        .select("name, due_date")
-        .eq("client_id", client_id)
-        .eq("due_date", today)
-        .is("completed_at", null)
-        .limit(10),
-      // Missed tasks (overdue, not completed)
-      supabase
-        .from("client_tasks")
-        .select("name, due_date")
-        .eq("client_id", client_id)
-        .lt("due_date", today)
-        .is("completed_at", null)
-        .limit(10),
-      // Pending workouts (scheduled today, not completed)
-      supabase
-        .from("client_workouts")
-        .select("id")
-        .eq("client_id", client_id)
-        .eq("scheduled_date", today)
-        .is("completed_at", null),
-      // Missed workouts (scheduled yesterday, not completed)
-      supabase
-        .from("client_workouts")
-        .select("id")
-        .eq("client_id", client_id)
-        .eq("scheduled_date", yesterdayStr)
-        .is("completed_at", null),
-      // Active goals
-      supabase
-        .from("fitness_goals")
-        .select("title, target_date, current_value, target_value")
-        .eq("client_id", client_id)
-        .eq("status", "active")
-        .limit(5),
-      // Feature settings (check fasting enabled + active fast)
       supabase
         .from("client_feature_settings")
-        .select("fasting_enabled, active_fast_start_at, protocol_start_date, last_fast_completed_at, last_fast_ended_at")
+        .select("fasting_enabled")
         .eq("client_id", client_id)
         .maybeSingle(),
     ]);
@@ -450,21 +321,7 @@ Deno.serve(async (req) => {
         Math.abs(summary.bodyweight_delta) < 0.3 &&
         (summary?.avg_score_7d || 0) >= 75,
       clientName: profile?.full_name?.split(" ")[0] || "",
-      // Pending/missed items
-      pendingTasks: (pendingTasksData || []).map((t: any) => t.name),
-      missedTasks: (missedTasksData || []).map((t: any) => t.name),
-      pendingWorkouts: (pendingWorkoutsData || []).length,
-      missedWorkouts: (missedWorkoutsData || []).length,
-      pendingGoals: (activeGoals || [])
-        .filter((g: any) => !g.current_value || g.current_value === 0)
-        .map((g: any) => g.title),
       fastingEnabled: featureSettings?.fasting_enabled ?? false,
-      fastingNotStarted: featureSettings?.fasting_enabled === true && !featureSettings?.active_fast_start_at,
-      hasEverFasted: !!(
-        featureSettings?.protocol_start_date ||
-        featureSettings?.last_fast_completed_at ||
-        featureSettings?.last_fast_ended_at
-      ),
     };
 
     // ── Pick scenario (rules decide WHAT) ──
