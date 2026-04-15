@@ -31,7 +31,7 @@ export function useMealEngineState(): MealEngineState {
       const [settingsRes, ketoRes, macroRes, workoutsRes, sessionsRes] = await Promise.all([
         supabase
           .from("client_feature_settings")
-          .select("fasting_enabled, active_fast_start_at, active_fast_target_hours, last_fast_ended_at, eating_window_ends_at, eating_window_hours")
+          .select("fasting_enabled, active_fast_start_at, active_fast_target_hours, last_fast_ended_at, eating_window_ends_at, eating_window_hours, protocol_start_date, last_fast_completed_at")
           .eq("client_id", clientId!)
           .maybeSingle(),
         supabase
@@ -83,6 +83,7 @@ export function useMealEngineState(): MealEngineState {
       macroTargets: null,
       eatingWindowEndsAt: null,
       fastingEnabled: false,
+      hasEverFasted: false,
     };
   }
 
@@ -171,6 +172,14 @@ export function useMealEngineState(): MealEngineState {
     }
   }
 
+  // Determine if user has ever engaged with fasting
+  const hasEverFasted = !!(
+    settings?.protocol_start_date ||
+    settings?.last_fast_completed_at ||
+    settings?.last_fast_ended_at ||
+    settings?.active_fast_start_at
+  );
+
   return {
     fasting_state,
     eating_phase,
@@ -186,5 +195,6 @@ export function useMealEngineState(): MealEngineState {
     } : null,
     eatingWindowEndsAt: settings?.eating_window_ends_at || null,
     fastingEnabled,
+    hasEverFasted,
   };
 }
