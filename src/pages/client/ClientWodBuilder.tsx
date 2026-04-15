@@ -109,6 +109,8 @@ const defaultRestExercise = (): Pick<WodExercise, "detail_fields" | "weight_lbs"
   rpe: "",
   distance: "",
 });
+
+export default function ClientWodBuilder() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const effectiveClientId = useEffectiveClientId();
