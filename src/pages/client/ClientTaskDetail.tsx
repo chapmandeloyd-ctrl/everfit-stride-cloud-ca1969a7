@@ -5,7 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { useToast } from "@/hooks/use-toast";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ArrowLeft, AlarmClock, Check, ChevronDown, Send, Camera, FileText } from "lucide-react";
@@ -14,7 +13,7 @@ export default function ClientTaskDetail() {
   const { taskId } = useParams<{ taskId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const clientId = useEffectiveClientId();
+  useEffectiveClientId();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [commentsOpen, setCommentsOpen] = useState(false);
@@ -22,7 +21,6 @@ export default function ClientTaskDetail() {
   const commentInputRef = useRef<HTMLInputElement>(null);
   const commentsEndRef = useRef<HTMLDivElement>(null);
 
-  // Fetch task
   const { data: task } = useQuery({
     queryKey: ["client-task-detail", taskId],
     queryFn: async () => {
@@ -37,7 +35,6 @@ export default function ClientTaskDetail() {
     enabled: !!taskId,
   });
 
-  // Fetch comments
   const { data: comments } = useQuery({
     queryKey: ["task-comments", taskId],
     queryFn: async () => {
@@ -52,7 +49,6 @@ export default function ClientTaskDetail() {
     enabled: !!taskId,
   });
 
-  // Realtime comments
   useEffect(() => {
     if (!taskId) return;
     const channel = supabase
@@ -66,17 +62,18 @@ export default function ClientTaskDetail() {
         queryClient.invalidateQueries({ queryKey: ["task-comments", taskId] });
       })
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [taskId, queryClient]);
 
-  // Scroll to bottom when comments open or new comment
   useEffect(() => {
     if (commentsOpen) {
       setTimeout(() => commentsEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
     }
   }, [commentsOpen, comments?.length]);
 
-  // Complete task
   const completeMutation = useMutation({
     mutationFn: async () => {
       if (!task) return;
@@ -94,7 +91,6 @@ export default function ClientTaskDetail() {
     },
   });
 
-  // Send comment
   const sendCommentMutation = useMutation({
     mutationFn: async (content: string) => {
       const { error } = await supabase
@@ -108,24 +104,32 @@ export default function ClientTaskDetail() {
     },
   });
 
-  // Upload photo comment
   const photoInputRef = useRef<HTMLInputElement>(null);
+
   const handlePhotoComment = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
+
     const ext = file.name.split(".").pop();
     const path = `${user.id}/${Date.now()}.${ext}`;
     const { error: upErr } = await supabase.storage
       .from("task-attachments")
       .upload(path, file);
-    if (upErr) { toast({ title: "Upload failed", variant: "destructive" }); return; }
+
+    if (upErr) {
+      toast({ title: "Upload failed", variant: "destructive" });
+      return;
+    }
+
     const { data: urlData } = supabase.storage.from("task-attachments").getPublicUrl(path);
+
     await supabase.from("task_comments" as any).insert({
       task_id: taskId,
       user_id: user.id,
       attachment_url: urlData.publicUrl,
       attachment_type: "image",
     });
+
     queryClient.invalidateQueries({ queryKey: ["task-comments", taskId] });
     e.target.value = "";
   };
@@ -135,11 +139,44 @@ export default function ClientTaskDetail() {
     sendCommentMutation.mutate(commentText.trim());
   };
 
-  if (!task) return (
-    <div className="min-h-screen flex items-center justify-center">
-      <p className="text-muted-foreground">Loading...</p>
-    </div>
-  );
+  const handleOpenDocument = async (url: string, fileName?: string) => {
+    const popup = window.open("", "_blank");
+
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Unable to open document");
+
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+
+      if (popup) {
+        popup.location.href = blobUrl;
+      } else {
+        const link = document.createElement("a");
+        link.href = blobUrl;
+        link.target = "_blank";
+        if (fileName) link.download = fileName;
+        link.click();
+      }
+
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+    } catch (error) {
+      popup?.close();
+      toast({
+        title: "Couldn’t open document",
+        description: "This browser is blocking the direct file link.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (!task) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-muted-foreground">Loading...</p>
+      </div>
+    );
+  }
 
   const isCompleted = !!task.completed_at;
   const attachments = task.attachments as any[] | null;
@@ -154,170 +191,166 @@ export default function ClientTaskDetail() {
   };
 
   return (
-      <div className="min-h-screen flex flex-col bg-background">
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3">
-          <button onClick={() => navigate(-1)} className="p-1">
-            <ArrowLeft className="h-5 w-5" />
+    <div className="min-h-screen flex flex-col bg-background">
+      <div className="flex items-center justify-between px-4 py-3">
+        <button onClick={() => navigate(-1)} className="p-1">
+          <ArrowLeft className="h-5 w-5" />
+        </button>
+        {!isCompleted && (
+          <button className="p-1">
+            <AlarmClock className="h-5 w-5 text-primary" />
           </button>
-          {!isCompleted && (
-            <button className="p-1">
-              <AlarmClock className="h-5 w-5 text-primary" />
-            </button>
-          )}
-        </div>
+        )}
+      </div>
 
-        {/* Title */}
-        <h1 className="text-xl font-bold text-center px-4 pb-4">{task.name}</h1>
+      <h1 className="text-xl font-bold text-center px-4 pb-4">{task.name}</h1>
 
-        {/* Content */}
-        <div className="flex-1 px-4 space-y-4">
-          {/* Media image attachment */}
-          {mediaAttachment?.url && !isDocType(mediaAttachment?.fileName) && (
-            <div className="rounded-xl overflow-hidden">
-              <img
-                src={mediaAttachment.url}
-                alt={mediaName || "Task media"}
-                className="w-full object-cover max-h-[400px]"
-              />
+      <div className="flex-1 px-4 space-y-4">
+        {mediaAttachment?.url && !isDocType(mediaAttachment?.fileName) && (
+          <div className="rounded-xl overflow-hidden">
+            <img
+              src={mediaAttachment.url}
+              alt={mediaName || "Task media"}
+              className="w-full object-cover max-h-[400px]"
+            />
+          </div>
+        )}
+
+        {(docAttachment?.url || (mediaAttachment?.url && isDocType(mediaAttachment?.fileName))) && (() => {
+          const att = docAttachment || mediaAttachment;
+          const name = docAttachment ? docName : mediaName;
+
+          return (
+            <div className="rounded-xl bg-muted/50 py-8 px-4 flex flex-col items-center gap-3">
+              <div className="w-20 h-20 flex items-center justify-center">
+                <FileText className="h-16 w-16 text-muted-foreground/50" />
+              </div>
+              {name && <p className="text-sm text-center font-medium">{name}</p>}
+              <button
+                type="button"
+                onClick={() => handleOpenDocument(att.url, name)}
+                className="text-sm font-semibold text-primary"
+              >
+                Open document
+              </button>
             </div>
-          )}
+          );
+        })()}
 
-          {/* Document attachment (PDF, etc.) */}
-          {(docAttachment?.url || (mediaAttachment?.url && isDocType(mediaAttachment?.fileName))) && (() => {
-            const att = docAttachment || mediaAttachment;
-            const name = docAttachment ? docName : mediaName;
-            return (
-              <div className="rounded-xl bg-muted/50 py-8 px-4 flex flex-col items-center gap-3">
-                <div className="w-20 h-20 flex items-center justify-center">
-                  <FileText className="h-16 w-16 text-muted-foreground/50" />
+        {mediaAttachment?.url && !isDocType(mediaAttachment?.fileName) && (
+          <p className="text-xs text-muted-foreground text-center underline">Offer Details</p>
+        )}
+
+        {mediaName && !isDocType(mediaAttachment?.fileName) && (
+          <p className="text-sm text-center font-medium">{mediaName}</p>
+        )}
+
+        {task.description && (
+          <p className="text-sm text-muted-foreground">{task.description}</p>
+        )}
+
+        <button
+          onClick={() => setCommentsOpen(true)}
+          className="text-sm font-medium text-primary mx-auto block"
+        >
+          Add comment
+        </button>
+      </div>
+
+      <div className="flex justify-center pb-8 pt-4">
+        <button
+          onClick={() => completeMutation.mutate()}
+          disabled={completeMutation.isPending}
+          className={`w-16 h-16 rounded-full flex items-center justify-center transition-all ${
+            isCompleted
+              ? "bg-foreground text-background"
+              : "bg-muted text-muted-foreground hover:bg-muted-foreground/20"
+          }`}
+        >
+          <Check className="h-8 w-8" />
+        </button>
+      </div>
+
+      <Sheet open={commentsOpen} onOpenChange={setCommentsOpen}>
+        <SheetContent side="bottom" className="h-[60vh] flex flex-col p-0 rounded-t-2xl">
+          <SheetHeader className="px-4 pt-4 pb-2 border-b">
+            <div className="flex items-center gap-2">
+              <button onClick={() => setCommentsOpen(false)}>
+                <ChevronDown className="h-5 w-5" />
+              </button>
+              <SheetTitle className="flex-1 text-center">Comments</SheetTitle>
+            </div>
+          </SheetHeader>
+
+          <div className="flex-1 overflow-y-auto px-4 py-4">
+            {!comments || comments.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-center gap-3">
+                <div className="w-16 h-16 bg-muted rounded-xl flex items-center justify-center">
+                  <Send className="h-6 w-6 text-muted-foreground" />
                 </div>
-                {name && (
-                  <p className="text-sm text-center font-medium">{name}</p>
-                )}
-                <a
-                  href={att.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm font-semibold text-primary"
-                >
-                  Open document
-                </a>
+                <p className="font-semibold">No comments yet</p>
               </div>
-            );
-          })()}
-
-          {/* Link under image */}
-          {mediaAttachment?.url && !isDocType(mediaAttachment?.fileName) && (
-            <p className="text-xs text-muted-foreground text-center underline">Offer Details</p>
-          )}
-
-          {/* Media name */}
-          {mediaName && !isDocType(mediaAttachment?.fileName) && (
-            <p className="text-sm text-center font-medium">{mediaName}</p>
-          )}
-
-          {/* Description */}
-          {task.description && (
-            <p className="text-sm text-muted-foreground">{task.description}</p>
-          )}
-
-          {/* Add comment link */}
-          <button
-            onClick={() => setCommentsOpen(true)}
-            className="text-sm font-medium text-primary mx-auto block"
-          >
-            Add comment
-          </button>
-        </div>
-
-        {/* Big checkmark button at bottom */}
-        <div className="flex justify-center pb-8 pt-4">
-          <button
-            onClick={() => completeMutation.mutate()}
-            disabled={completeMutation.isPending}
-            className={`w-16 h-16 rounded-full flex items-center justify-center transition-all ${
-              isCompleted
-                ? "bg-foreground text-background"
-                : "bg-muted text-muted-foreground hover:bg-muted-foreground/20"
-            }`}
-          >
-            <Check className="h-8 w-8" />
-          </button>
-        </div>
-
-        {/* Comments Sheet */}
-        <Sheet open={commentsOpen} onOpenChange={setCommentsOpen}>
-          <SheetContent side="bottom" className="h-[60vh] flex flex-col p-0 rounded-t-2xl">
-            <SheetHeader className="px-4 pt-4 pb-2 border-b">
-              <div className="flex items-center gap-2">
-                <button onClick={() => setCommentsOpen(false)}>
-                  <ChevronDown className="h-5 w-5" />
-                </button>
-                <SheetTitle className="flex-1 text-center">Comments</SheetTitle>
-              </div>
-            </SheetHeader>
-
-            {/* Comments list */}
-            <div className="flex-1 overflow-y-auto px-4 py-4">
-              {(!comments || comments.length === 0) ? (
-                <div className="flex flex-col items-center justify-center h-full text-center gap-3">
-                  <div className="w-16 h-16 bg-muted rounded-xl flex items-center justify-center">
-                    <Send className="h-6 w-6 text-muted-foreground" />
-                  </div>
-                  <p className="font-semibold">No comments yet</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {comments.map((c: any) => (
+            ) : (
+              <div className="space-y-3">
+                {comments.map((c: any) => (
+                  <div
+                    key={c.id}
+                    className={`flex ${c.user_id === user?.id ? "justify-end" : "justify-start"}`}
+                  >
                     <div
-                      key={c.id}
-                      className={`flex ${c.user_id === user?.id ? "justify-end" : "justify-start"}`}
-                    >
-                      <div className={`max-w-[75%] rounded-2xl px-4 py-2 ${
+                      className={`max-w-[75%] rounded-2xl px-4 py-2 ${
                         c.user_id === user?.id
                           ? "bg-primary text-primary-foreground"
                           : "bg-muted"
-                      }`}>
-                        {c.attachment_url && (
-                          <img src={c.attachment_url} alt="" className="rounded-lg mb-1 max-h-48" />
-                        )}
-                        {c.content && <p className="text-sm">{c.content}</p>}
-                      </div>
+                      }`}
+                    >
+                      {c.attachment_url && (
+                        <img src={c.attachment_url} alt="" className="rounded-lg mb-1 max-h-48" />
+                      )}
+                      {c.content && <p className="text-sm">{c.content}</p>}
                     </div>
-                  ))}
-                  <div ref={commentsEndRef} />
-                </div>
-              )}
-            </div>
-
-            {/* Input bar */}
-            <div className="flex items-center gap-2 px-4 py-3 border-t bg-background">
-              <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground shrink-0">
-                {user?.email?.substring(0, 2).toUpperCase()}
+                  </div>
+                ))}
+                <div ref={commentsEndRef} />
               </div>
-              <Input
-                ref={commentInputRef}
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSendComment()}
-                placeholder="Type message..."
-                className="flex-1 rounded-full"
-              />
-              <button onClick={() => photoInputRef.current?.click()} className="p-2 text-muted-foreground hover:text-foreground">
-                <Camera className="h-5 w-5" />
-              </button>
-              <button
-                onClick={handleSendComment}
-                disabled={!commentText.trim()}
-                className="w-8 h-8 rounded-full bg-primary flex items-center justify-center disabled:opacity-50"
-              >
-                <Send className="h-4 w-4 text-primary-foreground" />
-              </button>
-              <input ref={photoInputRef} type="file" accept="image/*" onChange={handlePhotoComment} className="hidden" />
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 px-4 py-3 border-t bg-background">
+            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground shrink-0">
+              {user?.email?.substring(0, 2).toUpperCase()}
             </div>
-          </SheetContent>
-        </Sheet>
-      </div>
+            <Input
+              ref={commentInputRef}
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSendComment()}
+              placeholder="Type message..."
+              className="flex-1 rounded-full"
+            />
+            <button
+              onClick={() => photoInputRef.current?.click()}
+              className="p-2 text-muted-foreground hover:text-foreground"
+            >
+              <Camera className="h-5 w-5" />
+            </button>
+            <button
+              onClick={handleSendComment}
+              disabled={!commentText.trim()}
+              className="w-8 h-8 rounded-full bg-primary flex items-center justify-center disabled:opacity-50"
+            >
+              <Send className="h-4 w-4 text-primary-foreground" />
+            </button>
+            <input
+              ref={photoInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handlePhotoComment}
+              className="hidden"
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
+    </div>
   );
 }
