@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Plus, X, GripVertical, Copy, Trash2, Timer, FileText, Clock, Sparkles } from "lucide-react";
+import { ExerciseDetailSheet, type DetailField } from "@/components/workout/ExerciseDetailSheet";
+import { DetailValueSheet } from "@/components/workout/DetailValueSheet";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SortableGroupHeader } from "@/components/workout/SortableGroupHeader";
@@ -29,6 +31,11 @@ interface WorkoutExercise {
   exercise_type: "normal" | "rest";
   selected: boolean;
   group_id: string | null;
+  detail_fields: DetailField[];
+  weight_lbs: string;
+  tempo: string;
+  rpe: string;
+  distance: string;
 }
 
 interface ExerciseGroup {
@@ -79,11 +86,15 @@ function ExerciseRow({
   exerciseInfo,
   onUpdate,
   onToggleSelect,
+  onEditDetailFields,
+  onEditDetailValue,
 }: {
   item: WorkoutExercise;
   exerciseInfo: any;
   onUpdate: (id: string, updates: Partial<WorkoutExercise>) => void;
   onToggleSelect: (id: string) => void;
+  onEditDetailFields?: (id: string) => void;
+  onEditDetailValue?: (edit: { id: string; field: DetailField }) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
   const style = {
@@ -119,6 +130,7 @@ function ExerciseRow({
   const thumbnail = exerciseInfo?.image_url || (exerciseInfo?.video_url?.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/) ? `https://img.youtube.com/vi/${exerciseInfo.video_url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)[1]}/mqdefault.jpg` : null);
 
   return (
+    <>
     <div ref={setNodeRef} style={style} className="flex items-center gap-2 px-3 py-2 border-b hover:bg-muted/30 transition-colors overflow-hidden">
       <Checkbox checked={item.selected} onCheckedChange={() => onToggleSelect(item.id)} className="shrink-0" />
       <div className="w-14 h-10 rounded bg-muted overflow-hidden shrink-0">
@@ -175,6 +187,35 @@ function ExerciseRow({
         <GripVertical className="h-4 w-4 text-muted-foreground" />
       </div>
     </div>
+    {/* Detail field chips row */}
+    {item.exercise_type === "normal" && (
+      <div className="flex items-center gap-1.5 px-3 pb-2 flex-wrap -mt-1">
+        {item.detail_fields.includes("weight") && (
+          <button onClick={() => onEditDetailValue?.({ id: item.id, field: "weight" })} className="px-2.5 py-0.5 rounded-full border border-primary/30 bg-primary/5 text-[11px] font-medium text-primary hover:bg-primary/10 transition-colors">
+            {item.weight_lbs ? `${item.weight_lbs} lbs` : "Weight"}
+          </button>
+        )}
+        {item.detail_fields.includes("tempo") && (
+          <button onClick={() => onEditDetailValue?.({ id: item.id, field: "tempo" })} className="px-2.5 py-0.5 rounded-full border border-primary/30 bg-primary/5 text-[11px] font-medium text-primary hover:bg-primary/10 transition-colors">
+            {item.tempo || "Tempo"}
+          </button>
+        )}
+        {item.detail_fields.includes("rpe") && (
+          <button onClick={() => onEditDetailValue?.({ id: item.id, field: "rpe" })} className="px-2.5 py-0.5 rounded-full border border-primary/30 bg-primary/5 text-[11px] font-medium text-primary hover:bg-primary/10 transition-colors">
+            {item.rpe ? `RPE ${item.rpe}` : "RPE"}
+          </button>
+        )}
+        {item.detail_fields.includes("distance") && (
+          <button onClick={() => onEditDetailValue?.({ id: item.id, field: "distance" })} className="px-2.5 py-0.5 rounded-full border border-primary/30 bg-primary/5 text-[11px] font-medium text-primary hover:bg-primary/10 transition-colors">
+            {item.distance || "Distance"}
+          </button>
+        )}
+        <button onClick={() => onEditDetailFields?.(item.id)} className="px-2 py-0.5 rounded-full border border-dashed border-muted-foreground/30 text-[11px] font-medium text-muted-foreground/60 hover:border-primary hover:text-primary transition-colors flex items-center gap-0.5">
+          <Plus className="h-3 w-3" /> Detail
+        </button>
+      </div>
+    )}
+    </>
   );
 }
 
@@ -231,6 +272,8 @@ export default function EditWorkout() {
   const [videoFilter, setVideoFilter] = useState<"all" | "named" | "unnamed">("all");
   const [aiBuilderOpen, setAiBuilderOpen] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
+  const [editingDetailFieldsId, setEditingDetailFieldsId] = useState<string | null>(null);
+  const [editingDetailValue, setEditingDetailValue] = useState<{ id: string; field: DetailField } | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor));
 
@@ -296,6 +339,11 @@ export default function EditWorkout() {
             exercise_type: (wpe.exercise_type === "rest" ? "rest" : "normal") as "normal" | "rest",
             selected: false,
             group_id: groupId,
+            detail_fields: (wpe.detail_fields || []) as DetailField[],
+            weight_lbs: wpe.weight_lbs ? String(wpe.weight_lbs) : "",
+            tempo: wpe.tempo || "",
+            rpe: wpe.rpe ? String(wpe.rpe) : "",
+            distance: wpe.distance || "",
           });
         }
       }
@@ -382,13 +430,15 @@ export default function EditWorkout() {
 
   const addExercise = (exerciseId: string) => {
     setExerciseItems((prev) => [...prev, {
-      id: crypto.randomUUID(), exercise_id: exerciseId, sets: 3, target_type: "text", target_value: "", time_seconds: 30, rest_seconds: 30, exercise_type: "normal", selected: false, group_id: null,
+      id: crypto.randomUUID(), exercise_id: exerciseId, sets: 3, target_type: "text" as const, target_value: "", time_seconds: 30, rest_seconds: 30, exercise_type: "normal" as const, selected: false, group_id: null,
+      detail_fields: [] as DetailField[], weight_lbs: "", tempo: "", rpe: "", distance: "",
     }]);
   };
 
   const addRest = () => {
     setExerciseItems((prev) => [...prev, {
-      id: crypto.randomUUID(), exercise_id: "", sets: 0, target_type: "text", target_value: "", time_seconds: 0, rest_seconds: 30, exercise_type: "rest", selected: false, group_id: null,
+      id: crypto.randomUUID(), exercise_id: "", sets: 0, target_type: "text" as const, target_value: "", time_seconds: 0, rest_seconds: 30, exercise_type: "rest" as const, selected: false, group_id: null,
+      detail_fields: [] as DetailField[], weight_lbs: "", tempo: "", rpe: "", distance: "",
     }]);
   };
 
@@ -555,7 +605,11 @@ export default function EditWorkout() {
           rest_seconds: item.rest_seconds,
           notes: item.target_value || "",
           exercise_type: item.exercise_type,
-          tempo: "",
+          tempo: item.tempo || "",
+          weight_lbs: item.weight_lbs ? parseFloat(item.weight_lbs) : null,
+          rpe: item.rpe ? parseInt(item.rpe) : null,
+          distance: item.distance || null,
+          detail_fields: item.detail_fields.length > 0 ? item.detail_fields : null,
         }));
 
       if (exercisesToInsert.length > 0) {
@@ -643,7 +697,7 @@ export default function EditWorkout() {
                 customName={group.custom_name}
               />
               {groupItems.map((gi) => (
-                <ExerciseRow key={gi.id} item={gi} exerciseInfo={getExerciseById(gi.exercise_id)} onUpdate={updateItem} onToggleSelect={toggleSelect} />
+                <ExerciseRow key={gi.id} item={gi} exerciseInfo={getExerciseById(gi.exercise_id)} onUpdate={updateItem} onToggleSelect={toggleSelect} onEditDetailFields={setEditingDetailFieldsId} onEditDetailValue={setEditingDetailValue} />
               ))}
             </div>
           );
@@ -654,7 +708,7 @@ export default function EditWorkout() {
       }
 
       if (!item.group_id) {
-        rendered.push(<ExerciseRow key={item.id} item={item} exerciseInfo={getExerciseById(item.exercise_id)} onUpdate={updateItem} onToggleSelect={toggleSelect} />);
+        rendered.push(<ExerciseRow key={item.id} item={item} exerciseInfo={getExerciseById(item.exercise_id)} onUpdate={updateItem} onToggleSelect={toggleSelect} onEditDetailFields={setEditingDetailFieldsId} onEditDetailValue={setEditingDetailValue} />);
       }
     }
 
@@ -859,13 +913,48 @@ export default function EditWorkout() {
           setInstructions(description);
           setCategory(cat);
           setDifficulty(diff as any);
-          setExerciseItems(items);
+          setExerciseItems(items.map(i => ({ ...i, detail_fields: (i as any).detail_fields || [], weight_lbs: (i as any).weight_lbs || "", tempo: (i as any).tempo || "", rpe: (i as any).rpe || "", distance: (i as any).distance || "" })));
           setGroups(newGroups);
         }}
         onAddExercises={(items) => {
-          setExerciseItems((prev) => [...prev, ...items]);
+          setExerciseItems((prev) => [...prev, ...items.map(i => ({ ...i, detail_fields: (i as any).detail_fields || [], weight_lbs: (i as any).weight_lbs || "", tempo: (i as any).tempo || "", rpe: (i as any).rpe || "", distance: (i as any).distance || "" }))]);
         }}
       />
+
+      {/* Detail Fields Sheet */}
+      {editingDetailFieldsId && (() => {
+        const ex = exerciseItems.find((e) => e.id === editingDetailFieldsId);
+        if (!ex) return null;
+        return (
+          <ExerciseDetailSheet
+            open
+            activeFields={ex.detail_fields}
+            onSave={(fields) => {
+              setExerciseItems((prev) => prev.map((e) => e.id === editingDetailFieldsId ? { ...e, detail_fields: fields } : e));
+            }}
+            onClose={() => setEditingDetailFieldsId(null)}
+          />
+        );
+      })()}
+
+      {/* Detail Value Sheet */}
+      {editingDetailValue && (() => {
+        const ex = exerciseItems.find((e) => e.id === editingDetailValue.id);
+        if (!ex) return null;
+        const fieldMap: Record<DetailField, keyof WorkoutExercise> = { weight: "weight_lbs", tempo: "tempo", rpe: "rpe", distance: "distance" };
+        const fieldKey = fieldMap[editingDetailValue.field];
+        return (
+          <DetailValueSheet
+            open
+            field={editingDetailValue.field}
+            value={String(ex[fieldKey] || "")}
+            onSave={(v) => {
+              setExerciseItems((prev) => prev.map((e) => e.id === editingDetailValue.id ? { ...e, [fieldKey]: v } : e));
+            }}
+            onClose={() => setEditingDetailValue(null)}
+          />
+        );
+      })()}
     </div>
   );
 }
