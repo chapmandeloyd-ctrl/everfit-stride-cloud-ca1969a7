@@ -88,11 +88,15 @@ function ExerciseRow({
   exerciseInfo,
   onUpdate,
   onToggleSelect,
+  onEditDetailFields,
+  onEditDetailValue,
 }: {
   item: WorkoutExercise;
   exerciseInfo: any;
   onUpdate: (id: string, updates: Partial<WorkoutExercise>) => void;
   onToggleSelect: (id: string) => void;
+  onEditDetailFields?: (id: string) => void;
+  onEditDetailValue?: (edit: { id: string; field: DetailField }) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
 
@@ -131,7 +135,7 @@ function ExerciseRow({
   const thumbnail = exerciseInfo?.image_url || (exerciseInfo?.video_url?.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/) ? `https://img.youtube.com/vi/${exerciseInfo.video_url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)[1]}/mqdefault.jpg` : null);
 
   return (
-    <div ref={setNodeRef} style={style} className="flex items-center gap-2 px-3 py-2 border-b hover:bg-muted/30 transition-colors overflow-hidden">
+    <>
       <Checkbox checked={item.selected} onCheckedChange={() => onToggleSelect(item.id)} className="shrink-0" />
 
       {/* Thumbnail - show video if available */}
