@@ -31,6 +31,7 @@ const taskTypeLabels = {
 
 export default function ClientTasks() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const clientId = useEffectiveClientId();
   const { toast } = useToast();
   const queryClient = useQueryClient();
