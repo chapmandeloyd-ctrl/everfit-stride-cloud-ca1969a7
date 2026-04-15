@@ -138,6 +138,9 @@ export default function WorkoutDetail() {
           rest_seconds: wpe.rest_seconds,
           tempo: wpe.tempo || "",
           notes: wpe.notes || "",
+          weight_lbs: wpe.weight_lbs,
+          rpe: wpe.rpe,
+          distance: wpe.distance,
         })) || [],
     })) || [];
 
