@@ -33,6 +33,7 @@ interface CoachingContext {
   pendingGoals: string[];
   fastingNotStarted: boolean;
   fastingEnabled: boolean;
+  hasEverFasted: boolean;
 }
 
 const SCENARIO_RULES: Array<(ctx: CoachingContext) => ScenarioMatch | null> = [
@@ -110,15 +111,15 @@ const SCENARIO_RULES: Array<(ctx: CoachingContext) => ScenarioMatch | null> = [
     };
   },
 
-  // Priority 3 — Fasting not started (enabled but no active fast today)
+  // Priority 3 — Fasting not started (enabled, user has engaged before, but no active fast today)
   (ctx) => {
-    if (!ctx.fastingEnabled || !ctx.fastingNotStarted) return null;
+    if (!ctx.fastingEnabled || !ctx.fastingNotStarted || !ctx.hasEverFasted) return null;
     return {
       type: "pending_fasting",
       priority: 3,
       fallbackMessage: "Your fasting program is assigned but you haven't started today's fast. Lock in your window now — every hour of discipline compounds.",
       fallbackAction: "Start your fast now",
-      aiPromptContext: `Client has a fasting program assigned but hasn't started today's fast yet. Goal: motivate them to start their fasting window immediately.`,
+      aiPromptContext: `Client has a fasting program assigned and has fasted before, but hasn't started today's fast yet. Goal: motivate them to start their fasting window immediately.`,
     };
   },
 
@@ -419,7 +420,7 @@ Deno.serve(async (req) => {
       // Feature settings (check fasting enabled + active fast)
       supabase
         .from("client_feature_settings")
-        .select("fasting_enabled, active_fast_start_at")
+        .select("fasting_enabled, active_fast_start_at, protocol_start_date, last_fast_completed_at, last_fast_ended_at")
         .eq("client_id", client_id)
         .maybeSingle(),
     ]);
@@ -459,6 +460,11 @@ Deno.serve(async (req) => {
         .map((g: any) => g.title),
       fastingEnabled: featureSettings?.fasting_enabled ?? false,
       fastingNotStarted: featureSettings?.fasting_enabled === true && !featureSettings?.active_fast_start_at,
+      hasEverFasted: !!(
+        featureSettings?.protocol_start_date ||
+        featureSettings?.last_fast_completed_at ||
+        featureSettings?.last_fast_ended_at
+      ),
     };
 
     // ── Pick scenario (rules decide WHAT) ──

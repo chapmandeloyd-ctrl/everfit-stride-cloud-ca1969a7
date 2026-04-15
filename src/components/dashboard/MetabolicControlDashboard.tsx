@@ -193,33 +193,38 @@ export function MetabolicControlDashboard() {
     { key: "carbs", label: "Carbs", current: current.carbs, target: targets.carbs || 0, unit: "g", emoji: "🍚" },
   ];
 
+  // Hide the fasting phase card if user is idle and has never engaged with fasting
+  const showFastingPhase = !(engine.fasting_state === "idle" && !engine.hasEverFasted);
+
   return (
     <div className="space-y-3">
       {/* ── PRIMARY ACTION CARD ── */}
-      <Card className="border-border/60 overflow-hidden">
-        <CardContent className="p-0">
-          <div className="relative px-4 py-4 bg-gradient-to-r from-card via-card to-muted/30">
-            <div className="flex items-start gap-3">
-              <div className={cn("mt-0.5 p-2 rounded-xl bg-muted/50", phase.color)}>
-                {phase.icon}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-wider">
-                    {phase.label}
-                  </Badge>
-                  {remaining && engine.fasting_state !== "fasting_active" && (
-                    <span className="text-[10px] font-semibold text-muted-foreground">{remaining}</span>
-                  )}
+      {showFastingPhase && (
+        <Card className="border-border/60 overflow-hidden">
+          <CardContent className="p-0">
+            <div className="relative px-4 py-4 bg-gradient-to-r from-card via-card to-muted/30">
+              <div className="flex items-start gap-3">
+                <div className={cn("mt-0.5 p-2 rounded-xl bg-muted/50", phase.color)}>
+                  {phase.icon}
                 </div>
-                <p className="text-sm font-semibold mt-1.5 leading-snug text-foreground">
-                  {phase.message}
-                </p>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-wider">
+                      {phase.label}
+                    </Badge>
+                    {remaining && engine.fasting_state !== "fasting_active" && (
+                      <span className="text-[10px] font-semibold text-muted-foreground">{remaining}</span>
+                    )}
+                  </div>
+                  <p className="text-sm font-semibold mt-1.5 leading-snug text-foreground">
+                    {phase.message}
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       {/* ── MACRO TRACKER ── */}
       {targets.protein !== null && targets.protein !== undefined && (targets.protein > 0 || targets.fats! > 0) && (
