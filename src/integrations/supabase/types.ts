@@ -3838,11 +3838,14 @@ export type Database = {
           created_at: string
           id: string
           ingredient_name: string
+          is_low_stock: boolean
           is_manual: boolean
           is_purchased: boolean
           list_id: string
           meal_sources: string[] | null
+          original_amount: string | null
           unit: string | null
+          used_amount: string | null
         }
         Insert: {
           amount?: string | null
@@ -3850,11 +3853,14 @@ export type Database = {
           created_at?: string
           id?: string
           ingredient_name: string
+          is_low_stock?: boolean
           is_manual?: boolean
           is_purchased?: boolean
           list_id: string
           meal_sources?: string[] | null
+          original_amount?: string | null
           unit?: string | null
+          used_amount?: string | null
         }
         Update: {
           amount?: string | null
@@ -3862,11 +3868,14 @@ export type Database = {
           created_at?: string
           id?: string
           ingredient_name?: string
+          is_low_stock?: boolean
           is_manual?: boolean
           is_purchased?: boolean
           list_id?: string
           meal_sources?: string[] | null
+          original_amount?: string | null
           unit?: string | null
+          used_amount?: string | null
         }
         Relationships: [
           {
@@ -3883,25 +3892,31 @@ export type Database = {
           client_id: string
           created_at: string
           id: string
+          is_active: boolean
           list_date: string
           name: string
           updated_at: string
+          week_start: string | null
         }
         Insert: {
           client_id: string
           created_at?: string
           id?: string
+          is_active?: boolean
           list_date?: string
           name?: string
           updated_at?: string
+          week_start?: string | null
         }
         Update: {
           client_id?: string
           created_at?: string
           id?: string
+          is_active?: boolean
           list_date?: string
           name?: string
           updated_at?: string
+          week_start?: string | null
         }
         Relationships: []
       }

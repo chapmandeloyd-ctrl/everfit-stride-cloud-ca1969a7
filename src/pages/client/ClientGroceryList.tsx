@@ -6,7 +6,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Plus, ShoppingCart, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowLeft, Plus, ShoppingCart, Sparkles, ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
+import { GroceryShortageAlerts } from "@/components/meals/GroceryShortageAlerts";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -22,6 +23,9 @@ interface GroceryItem {
   is_purchased: boolean;
   meal_sources: string[];
   is_manual: boolean;
+  used_amount: string | null;
+  original_amount: string | null;
+  is_low_stock: boolean;
 }
 
 interface GroceryList {
@@ -127,12 +131,29 @@ export default function ClientGroceryList() {
       .map((c) => ({ category: c, items: map.get(c)! }));
   }, [items]);
 
+  const lowStockItems = useMemo(() => items.filter((i) => i.is_low_stock && !i.is_purchased), [items]);
+
   const totalItems = items.length;
   const purchasedCount = items.filter((i) => i.is_purchased).length;
   const progress = totalItems > 0 ? Math.round((purchasedCount / totalItems) * 100) : 0;
 
   const loading = listLoading || itemsLoading;
   const noList = !loading && !groceryList;
+
+  const regenerateList = async () => {
+    if (!clientId) return;
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-grocery-list", {
+        body: { client_id: clientId, recipe_ids: [], list_name: `Week of ${new Date().toLocaleDateString()}`, regenerate: true },
+      });
+      if (error) throw error;
+      toast({ title: "🛒 List regenerated!", description: "Fresh grocery list based on your current meals." });
+      queryClient.invalidateQueries({ queryKey: ["grocery-list"] });
+      queryClient.invalidateQueries({ queryKey: ["grocery-items"] });
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message, variant: "destructive" });
+    }
+  };
 
   const toggleCategory = (cat: string) => {
     setCollapsedCategories((prev) => {
@@ -174,6 +195,21 @@ export default function ClientGroceryList() {
               />
             </div>
           </div>
+        )}
+
+        {/* Regenerate button */}
+        {!loading && groceryList && (
+          <div className="px-5 pb-2">
+            <Button variant="outline" size="sm" className="w-full rounded-xl text-xs" onClick={regenerateList}>
+              <RefreshCw className="h-3.5 w-3.5 mr-2" />
+              Regenerate from Current Meals
+            </Button>
+          </div>
+        )}
+
+        {/* Shortage Alerts */}
+        {!loading && lowStockItems.length > 0 && (
+          <GroceryShortageAlerts lowStockItems={lowStockItems} />
         )}
 
         {/* Loading */}
@@ -236,6 +272,8 @@ export default function ClientGroceryList() {
                           className={`flex items-center gap-3 rounded-xl p-3 border transition-all ${
                             item.is_purchased
                               ? "bg-muted/20 border-border/50 opacity-60"
+                              : item.is_low_stock
+                              ? "bg-destructive/5 border-destructive/30"
                               : "bg-card border-border"
                           }`}
                         >
@@ -247,17 +285,27 @@ export default function ClientGroceryList() {
                             className="h-5 w-5"
                           />
                           <div className="flex-1 min-w-0">
-                            <p
-                              className={`text-sm font-medium truncate ${
-                                item.is_purchased ? "line-through text-muted-foreground" : ""
-                              }`}
-                            >
-                              {item.ingredient_name}
-                            </p>
+                            <div className="flex items-center gap-1.5">
+                              <p
+                                className={`text-sm font-medium truncate ${
+                                  item.is_purchased ? "line-through text-muted-foreground" : ""
+                                }`}
+                              >
+                                {item.ingredient_name}
+                              </p>
+                              {item.is_low_stock && !item.is_purchased && (
+                                <Badge variant="destructive" className="text-[9px] px-1 py-0 h-3.5 shrink-0">
+                                  LOW
+                                </Badge>
+                              )}
+                            </div>
                             <div className="flex items-center gap-2 mt-0.5">
                               {item.amount && (
                                 <span className="text-[10px] text-muted-foreground">
                                   {item.amount}{item.unit ? ` ${item.unit}` : ""}
+                                  {item.used_amount && parseFloat(item.used_amount) > 0 && (
+                                    <span className="text-primary/70"> (used {item.used_amount})</span>
+                                  )}
                                 </span>
                               )}
                               {item.meal_sources?.length > 0 && (
