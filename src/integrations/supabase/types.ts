@@ -4317,6 +4317,7 @@ export type Database = {
           habit_id: string
           id: string
           notes: string | null
+          value: number
         }
         Insert: {
           client_id: string
@@ -4325,6 +4326,7 @@ export type Database = {
           habit_id: string
           id?: string
           notes?: string | null
+          value?: number
         }
         Update: {
           client_id?: string
@@ -4333,6 +4335,7 @@ export type Database = {
           habit_id?: string
           id?: string
           notes?: string | null
+          value?: number
         }
         Relationships: [
           {

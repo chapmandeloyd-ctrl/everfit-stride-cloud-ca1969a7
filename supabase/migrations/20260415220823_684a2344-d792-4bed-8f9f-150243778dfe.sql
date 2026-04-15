@@ -1,0 +1,1 @@
+ALTER TABLE public.habit_completions ADD COLUMN value numeric NOT NULL DEFAULT 1;
