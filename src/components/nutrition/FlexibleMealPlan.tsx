@@ -19,6 +19,7 @@ interface FlexibleMealPlanProps {
 
 export function FlexibleMealPlan({ assignmentId, mealPlanId }: FlexibleMealPlanProps) {
   const { user } = useAuth();
+  const { syncMealLog } = useGrocerySync();
   const queryClient = useQueryClient();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 });
@@ -89,6 +90,11 @@ export function FlexibleMealPlan({ assignmentId, mealPlanId }: FlexibleMealPlanP
         }]);
 
       if (error) throw error;
+
+      // Sync grocery list
+      if (user?.id) {
+        syncMealLog(user.id, recipeId);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["client-meal-selections"] });
