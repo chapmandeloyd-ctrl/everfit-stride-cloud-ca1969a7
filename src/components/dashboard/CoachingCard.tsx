@@ -72,7 +72,10 @@ export function CoachingCard() {
             variant="ghost"
             size="sm"
             className="w-full text-xs text-muted-foreground hover:text-foreground"
-            onClick={() => markAsRead.mutate(message.id)}
+            onClick={() => {
+              markAsRead.mutate(message.id);
+              setDismissed(true);
+            }}
           >
             <Check className="h-3 w-3 mr-1" />
             Got it
