@@ -1,5 +1,4 @@
 import { useState, useRef, useCallback } from "react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +13,7 @@ export interface TaskAttachment {
   url: string;
   fileName?: string;
   fileSize?: number;
+  mediaName?: string;
 }
 
 interface TaskAttachmentUploadProps {
@@ -30,6 +30,7 @@ export function TaskAttachmentUpload({ attachment, onAttachmentChange }: TaskAtt
   const [activeType, setActiveType] = useState<AttachmentType>(attachment?.type || null);
   const [uploading, setUploading] = useState(false);
   const [linkUrl, setLinkUrl] = useState(attachment?.type === "link" ? attachment.url : "");
+  const [mediaName, setMediaName] = useState(attachment?.mediaName || "");
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -38,12 +39,14 @@ export function TaskAttachmentUpload({ attachment, onAttachmentChange }: TaskAtt
     setActiveType(type);
     onAttachmentChange(null);
     setLinkUrl("");
+    setMediaName("");
   };
 
   const handleClear = () => {
     setActiveType(null);
     onAttachmentChange(null);
     setLinkUrl("");
+    setMediaName("");
   };
 
   const uploadFile = useCallback(async (file: File, type: "media" | "document") => {
@@ -67,6 +70,7 @@ export function TaskAttachmentUpload({ attachment, onAttachmentChange }: TaskAtt
         url: urlData.publicUrl,
         fileName: file.name,
         fileSize: file.size,
+        mediaName: mediaName || undefined,
       });
 
       toast({ title: "Uploaded", description: file.name });
@@ -75,7 +79,7 @@ export function TaskAttachmentUpload({ attachment, onAttachmentChange }: TaskAtt
     } finally {
       setUploading(false);
     }
-  }, [user, onAttachmentChange, toast]);
+  }, [user, onAttachmentChange, toast, mediaName]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -97,6 +101,22 @@ export function TaskAttachmentUpload({ attachment, onAttachmentChange }: TaskAtt
   const handleLinkSave = () => {
     if (!linkUrl.trim()) return;
     onAttachmentChange({ type: "link", url: linkUrl.trim() });
+  };
+
+  const handleMediaNameChange = (name: string) => {
+    setMediaName(name);
+    if (attachment) {
+      onAttachmentChange({ ...attachment, mediaName: name || undefined });
+    }
+  };
+
+  const handleRemoveFile = () => {
+    onAttachmentChange(null);
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    return `${Math.round(bytes / 1024)} KB`;
   };
 
   // No type selected — show 3 buttons
@@ -137,11 +157,11 @@ export function TaskAttachmentUpload({ attachment, onAttachmentChange }: TaskAtt
   // Link type
   if (activeType === "link") {
     return (
-      <div className="space-y-1.5 relative">
+      <div className="relative">
         <button
           type="button"
           onClick={handleClear}
-          className="absolute -top-1 -right-1 z-10 bg-foreground text-background rounded-full p-0.5 hover:opacity-80"
+          className="absolute -top-2 -right-2 z-10 bg-foreground text-background rounded-full p-0.5 hover:opacity-80"
         >
           <X className="h-4 w-4" />
         </button>
@@ -160,88 +180,92 @@ export function TaskAttachmentUpload({ attachment, onAttachmentChange }: TaskAtt
     );
   }
 
-  // Media or Document — show upload zone
+  // Media or Document
   const isMedia = activeType === "media";
-  const label = isMedia ? "UPLOAD MEDIA FILE" : "UPLOAD DOCUMENT";
+  const label = isMedia ? "MEDIA FILES" : "UPLOAD DOCUMENT";
   const accept = isMedia ? MEDIA_ACCEPT : DOCUMENT_ACCEPT;
   const hint = isMedia
     ? "Drag and drop your media here,"
     : "Drag and drop a .xls .doc .pdf here";
 
-  // If file already uploaded, show preview
-  if (attachment && attachment.type === activeType) {
-    return (
-      <div className="space-y-1.5 relative">
-        <Label className="text-xs font-semibold uppercase text-muted-foreground tracking-wide">{label}</Label>
-        <button
-          type="button"
-          onClick={handleClear}
-          className="absolute top-0 -right-1 z-10 bg-foreground text-background rounded-full p-0.5 hover:opacity-80"
-        >
-          <X className="h-4 w-4" />
-        </button>
-        <div className="flex items-center gap-3 p-4 rounded-xl border border-border bg-muted/30">
-          {isMedia && attachment.url && (
-            <img src={attachment.url} alt="" className="h-16 w-16 rounded-lg object-cover" />
-          )}
-          {!isMedia && <FileIcon className="h-8 w-8 text-muted-foreground" />}
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">{attachment.fileName}</p>
-            {attachment.fileSize && (
-              <p className="text-xs text-muted-foreground">
-                {(attachment.fileSize / 1024).toFixed(1)} KB
-              </p>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-1.5 relative">
-      <Label className="text-xs font-semibold uppercase text-muted-foreground tracking-wide">{label}</Label>
+    <div className="relative">
       <button
         type="button"
         onClick={handleClear}
-        className="absolute top-0 -right-1 z-10 bg-foreground text-background rounded-full p-0.5 hover:opacity-80"
+        className="absolute -top-2 -right-2 z-10 bg-foreground text-background rounded-full p-0.5 hover:opacity-80"
       >
         <X className="h-4 w-4" />
       </button>
-      <div
-        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-        onDragLeave={() => setDragOver(false)}
-        onDrop={handleDrop}
-        className={`flex flex-col items-center justify-center gap-2 p-8 rounded-xl border-2 border-dashed transition-all cursor-pointer ${
-          dragOver ? "border-primary bg-primary/5" : "border-border bg-muted/20"
-        }`}
-        onClick={() => !uploading && fileInputRef.current?.click()}
-      >
-        {uploading ? (
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        ) : (
-          <>
-            <Upload className="h-8 w-8 text-muted-foreground/60" />
-            <p className="text-sm text-muted-foreground text-center">
-              {hint}{" "}
-              <span className="text-primary underline cursor-pointer">
-                {isMedia ? "Choose a file" : "Choose file"}
-              </span>
-              {isMedia && (
-                <>, or <span className="text-primary underline cursor-pointer">Add video link</span></>
+      <div className="p-4 rounded-xl bg-muted/50 space-y-3">
+        <Label className="text-xs font-semibold uppercase text-muted-foreground tracking-wide">{label}</Label>
+
+        {/* Media name input (only for media type) */}
+        {isMedia && (
+          <Input
+            value={mediaName}
+            onChange={(e) => handleMediaNameChange(e.target.value)}
+            placeholder="Name your media file..."
+          />
+        )}
+
+        {/* File uploaded — show file row */}
+        {attachment && attachment.type === activeType ? (
+          <div className="flex items-center gap-3 p-3 rounded-lg border border-border bg-background">
+            {isMedia && attachment.url && (
+              <img src={attachment.url} alt="" className="h-12 w-12 rounded object-cover flex-shrink-0" />
+            )}
+            {!isMedia && <FileIcon className="h-8 w-8 text-muted-foreground flex-shrink-0" />}
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate">{attachment.fileName}</p>
+              {attachment.fileSize && (
+                <p className="text-xs text-muted-foreground">{formatFileSize(attachment.fileSize)}</p>
               )}
-            </p>
-            <p className="text-xs text-muted-foreground">No file chosen</p>
+            </div>
+            <button type="button" onClick={handleRemoveFile} className="flex-shrink-0 text-muted-foreground hover:text-foreground">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        ) : (
+          /* Upload dropzone */
+          <>
+            <div
+              onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={handleDrop}
+              className={`flex flex-col items-center justify-center gap-2 p-8 rounded-xl border-2 border-dashed transition-all cursor-pointer ${
+                dragOver ? "border-primary bg-primary/5" : "border-border bg-background/50"
+              }`}
+              onClick={() => !uploading && fileInputRef.current?.click()}
+            >
+              {uploading ? (
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              ) : (
+                <>
+                  <Upload className="h-8 w-8 text-muted-foreground/60" />
+                  <p className="text-sm text-muted-foreground text-center">
+                    {hint}{" "}
+                    <span className="text-primary underline cursor-pointer">
+                      {isMedia ? "Choose a file" : "Choose file"}
+                    </span>
+                    {isMedia && (
+                      <>, or <span className="text-primary underline cursor-pointer">Add video link</span></>
+                    )}
+                  </p>
+                  <p className="text-xs text-muted-foreground">No file chosen</p>
+                </>
+              )}
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept={accept}
+              onChange={handleFileChange}
+              className="hidden"
+            />
           </>
         )}
       </div>
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept={accept}
-        onChange={handleFileChange}
-        className="hidden"
-      />
     </div>
   );
 }
