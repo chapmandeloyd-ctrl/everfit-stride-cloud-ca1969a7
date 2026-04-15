@@ -118,7 +118,8 @@ export function ImportRecipesDialog({ open, onOpenChange }: ImportRecipesDialogP
         servings: recipe.servings || 1,
         tags: recipe.tags,
         image_url: null, // Images must be uploaded separately
-      }));
+      };
+      });
 
       const { error } = await supabase
         .from("recipes")
