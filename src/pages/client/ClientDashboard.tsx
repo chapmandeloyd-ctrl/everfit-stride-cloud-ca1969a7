@@ -2251,7 +2251,7 @@ export default function ClientDashboard() {
                             }`}>
                               <Check className={`h-3.5 w-3.5 ${isCompleted ? "text-background" : "text-muted-foreground"}`} />
                             </div>
-                            <span className={`text-sm flex-1 ${isCompleted ? "line-through text-muted-foreground" : "font-medium"}`}>
+                            <span className={`text-sm flex-1 ${isCompleted ? "text-foreground" : "font-medium"}`}>
                               {task.name}
                             </span>
                             <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
