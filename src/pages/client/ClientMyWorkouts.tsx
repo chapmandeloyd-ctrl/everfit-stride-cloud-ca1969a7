@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { ClientLayout } from "@/components/ClientLayout";
 import { useSavedWorkouts } from "@/hooks/useSavedWorkouts";
+import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
@@ -12,8 +13,10 @@ import { format } from "date-fns";
 
 export default function ClientMyWorkouts() {
   const navigate = useNavigate();
+  const { loading: authLoading } = useAuth();
   const { savedWorkouts, isLoading, toggleSave } = useSavedWorkouts();
   const clientId = useEffectiveClientId();
+  const isResolvingClient = authLoading || !clientId;
 
   // Self-built workouts (where trainer_id = client's own id)
   const { data: myBuiltWorkouts = [], isLoading: builtLoading } = useQuery({
@@ -53,7 +56,7 @@ export default function ClientMyWorkouts() {
           </TabsList>
 
           <TabsContent value="built" className="space-y-2">
-            {builtLoading ? (
+            {isResolvingClient || builtLoading ? (
               <div className="flex justify-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
               </div>
@@ -116,7 +119,7 @@ export default function ClientMyWorkouts() {
           </TabsContent>
 
           <TabsContent value="saved" className="space-y-2">
-            {isLoading ? (
+            {isResolvingClient || isLoading ? (
               <div className="flex justify-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
               </div>

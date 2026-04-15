@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useCoachingMessage } from "@/hooks/useCoachingMessage";
+import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Target, Flame, TrendingDown, Zap, Battery, Trophy, Check } from "lucide-react";
@@ -15,8 +16,19 @@ const TYPE_CONFIG: Record<string, { icon: typeof Sparkles; accent: string; label
 };
 
 export function CoachingCard() {
+  const clientId = useEffectiveClientId();
   const { message, isLoading, generateMessage, markAsRead } = useCoachingMessage();
   const [dismissed, setDismissed] = useState(false);
+
+  useEffect(() => {
+    if (!message || !clientId) {
+      setDismissed(false);
+      return;
+    }
+
+    const storageKey = `coaching-dismissed:${clientId}:${message.id}:${message.message_date}`;
+    setDismissed(localStorage.getItem(storageKey) === "true");
+  }, [clientId, message?.id, message?.message_date]);
 
   // Auto-trigger coaching engine if no message exists for today
   useEffect(() => {
@@ -73,6 +85,12 @@ export function CoachingCard() {
             size="sm"
             className="w-full text-xs text-muted-foreground hover:text-foreground"
             onClick={() => {
+              if (clientId) {
+                localStorage.setItem(
+                  `coaching-dismissed:${clientId}:${message.id}:${message.message_date}`,
+                  "true"
+                );
+              }
               markAsRead.mutate(message.id);
               setDismissed(true);
             }}

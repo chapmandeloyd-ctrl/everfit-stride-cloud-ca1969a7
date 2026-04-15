@@ -1,10 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 
 export function useSavedWorkouts() {
-  const { user } = useAuth();
-  const clientId = user?.id;
+  const clientId = useEffectiveClientId();
   const queryClient = useQueryClient();
 
   const { data: savedWorkouts = [], isLoading } = useQuery({
@@ -46,7 +45,7 @@ export function useSavedWorkouts() {
       } else {
         const { error } = await supabase
           .from("saved_workouts")
-          .insert({ client_id: clientId, workout_plan_id: workoutPlanId });
+          .insert({ client_id: clientId!, workout_plan_id: workoutPlanId });
         if (error) throw error;
       }
     },
