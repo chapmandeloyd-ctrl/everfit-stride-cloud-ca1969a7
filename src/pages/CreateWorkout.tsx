@@ -366,6 +366,8 @@ export default function CreateWorkout() {
   const [videoFilter, setVideoFilter] = useState<"all" | "named" | "unnamed">("all");
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
   const [aiBuilderOpen, setAiBuilderOpen] = useState(false);
+  const [editingDetailFieldsId, setEditingDetailFieldsId] = useState<string | null>(null);
+  const [editingDetailValue, setEditingDetailValue] = useState<{ id: string; field: DetailField } | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor));
 
@@ -468,6 +470,11 @@ export default function CreateWorkout() {
       exercise_type: "normal",
       selected: false,
       group_id: null,
+      detail_fields: [],
+      weight_lbs: "",
+      tempo: "",
+      rpe: "",
+      distance: "",
     };
     setExerciseItems((prev) => [...prev, newItem]);
   };
@@ -484,6 +491,11 @@ export default function CreateWorkout() {
       exercise_type: "rest",
       selected: false,
       group_id: null,
+      detail_fields: [],
+      weight_lbs: "",
+      tempo: "",
+      rpe: "",
+      distance: "",
     };
     setExerciseItems((prev) => [...prev, newItem]);
   };
