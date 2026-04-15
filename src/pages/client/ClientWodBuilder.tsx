@@ -1,16 +1,17 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Trash2, Dumbbell, Hand, Layers, Repeat, GripVertical, Timer, X, Bookmark } from "lucide-react";
+import { Trash2, Dumbbell, Hand, Layers, Repeat, GripVertical, Timer, X, Bookmark, Plus } from "lucide-react";
 import { useSavedWorkouts } from "@/hooks/useSavedWorkouts";
 import { getBlockType, WORKOUT_BLOCK_TYPES, WorkoutBlockType } from "@/lib/workoutBlockTypes";
 import { BlockTypePicker } from "@/components/workout/BlockTypePicker";
-
 
 import { ExerciseLibrarySheet } from "@/components/workout/ExerciseLibrarySheet";
 import { SetsSliderSheet } from "@/components/workout/SetsSliderSheet";
 import { SetTargetSheet } from "@/components/workout/SetTargetSheet";
 import { RestTimePickerSheet } from "@/components/workout/RestTimePickerSheet";
+import { ExerciseDetailSheet, DetailField } from "@/components/workout/ExerciseDetailSheet";
+import { DetailValueSheet } from "@/components/workout/DetailValueSheet";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
@@ -75,6 +76,11 @@ interface WodExercise {
   rest_seconds: number;
   selected: boolean;
   group_id: string | null;
+  detail_fields: DetailField[];
+  weight_lbs: string;
+  tempo: string;
+  rpe: string;
+  distance: string;
 }
 
 interface ExerciseGroup {
@@ -87,6 +93,22 @@ interface ExerciseGroup {
 }
 
 const isGroupedWorkoutType = (type: string) => type === "circuit" || type === "superset";
+
+const defaultDetailExercise = (): Pick<WodExercise, "detail_fields" | "weight_lbs" | "tempo" | "rpe" | "distance"> => ({
+  detail_fields: [],
+  weight_lbs: "",
+  tempo: "",
+  rpe: "",
+  distance: "",
+});
+
+const defaultRestExercise = (): Pick<WodExercise, "detail_fields" | "weight_lbs" | "tempo" | "rpe" | "distance"> => ({
+  detail_fields: [],
+  weight_lbs: "",
+  tempo: "",
+  rpe: "",
+  distance: "",
+});
 
 export default function ClientWodBuilder() {
   const navigate = useNavigate();
@@ -108,6 +130,8 @@ export default function ClientWodBuilder() {
   const [editingCircuitRoundsId, setEditingCircuitRoundsId] = useState<string | null>(null);
   const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
   const [showBlockPicker, setShowBlockPicker] = useState(true); // Auto-open on mount
+  const [editingDetailFieldsId, setEditingDetailFieldsId] = useState<string | null>(null);
+  const [editingDetailValue, setEditingDetailValue] = useState<{ id: string; field: DetailField } | null>(null);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [overIndex, setOverIndex] = useState<number | null>(null);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -414,6 +438,11 @@ export default function ClientWodBuilder() {
               reps: isTime ? null : (parseInt(ex.reps) || null),
               duration_seconds: isTime ? (parseInt(ex.reps) || null) : null,
               rest_seconds: ex.rest_seconds || null,
+              weight_lbs: ex.weight_lbs ? parseFloat(ex.weight_lbs) : null,
+              tempo: ex.tempo || null,
+              rpe: ex.rpe ? parseInt(ex.rpe) : null,
+              distance: ex.distance || null,
+              detail_fields: ex.detail_fields.length > 0 ? ex.detail_fields : null,
             };
           });
 
@@ -453,6 +482,7 @@ export default function ClientWodBuilder() {
       rest_seconds: 60,
       selected: false,
       group_id: null,
+      ...defaultRestExercise(),
     };
     setExercises((prev) => [...prev, restItem]);
   };
@@ -703,7 +733,7 @@ export default function ClientWodBuilder() {
                         </div>
                       </div>
                       {ex.exercise_id !== "rest" && (
-                        <div className="flex items-center gap-2 mt-2 ml-7 pl-1">
+                        <div className="flex items-center gap-2 mt-2 ml-7 pl-1 flex-wrap">
                           <button onClick={() => setEditingSetsId(ex.id)} className="px-3 py-1 rounded-full border border-border text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors">
                             {ex.sets} sets
                           </button>
@@ -716,6 +746,30 @@ export default function ClientWodBuilder() {
                               {ex.rest_seconds > 0 ? (ex.rest_seconds >= 60 ? `${Math.floor(ex.rest_seconds / 60)}m${ex.rest_seconds % 60 > 0 ? ` ${ex.rest_seconds % 60}s` : ""}` : `${ex.rest_seconds}s`) : "None"}
                             </button>
                           )}
+                          {/* Detail field chips */}
+                          {ex.detail_fields.includes("weight") && (
+                            <button onClick={() => setEditingDetailValue({ id: ex.id, field: "weight" })} className="px-3 py-1 rounded-full border border-primary/30 bg-primary/5 text-xs font-medium text-primary hover:bg-primary/10 transition-colors">
+                              {ex.weight_lbs ? `${ex.weight_lbs} lbs` : "Weight"}
+                            </button>
+                          )}
+                          {ex.detail_fields.includes("tempo") && (
+                            <button onClick={() => setEditingDetailValue({ id: ex.id, field: "tempo" })} className="px-3 py-1 rounded-full border border-primary/30 bg-primary/5 text-xs font-medium text-primary hover:bg-primary/10 transition-colors">
+                              {ex.tempo || "Tempo"}
+                            </button>
+                          )}
+                          {ex.detail_fields.includes("rpe") && (
+                            <button onClick={() => setEditingDetailValue({ id: ex.id, field: "rpe" })} className="px-3 py-1 rounded-full border border-primary/30 bg-primary/5 text-xs font-medium text-primary hover:bg-primary/10 transition-colors">
+                              {ex.rpe ? `RPE ${ex.rpe}` : "RPE"}
+                            </button>
+                          )}
+                          {ex.detail_fields.includes("distance") && (
+                            <button onClick={() => setEditingDetailValue({ id: ex.id, field: "distance" })} className="px-3 py-1 rounded-full border border-primary/30 bg-primary/5 text-xs font-medium text-primary hover:bg-primary/10 transition-colors">
+                              {ex.distance || "Distance"}
+                            </button>
+                          )}
+                          <button onClick={() => setEditingDetailFieldsId(ex.id)} className="px-2 py-1 rounded-full border border-dashed border-muted-foreground/30 text-xs font-medium text-muted-foreground/60 hover:border-primary hover:text-primary transition-colors flex items-center gap-0.5">
+                            <Plus className="h-3 w-3" /> Detail
+                          </button>
                         </div>
                       )}
                     </div>
@@ -817,13 +871,37 @@ export default function ClientWodBuilder() {
                           </div>
                         </div>
                         {ex.exercise_id !== "rest" && (
-                          <div className="flex items-center gap-2 mt-2 ml-1">
+                          <div className="flex items-center gap-2 mt-2 ml-1 flex-wrap">
                             <button onClick={() => setEditingTargetId(ex.id)} className="px-3 py-1 rounded-full border border-input text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors">
                               {ex.reps === "10" && ex.target_type === "text" ? "Set Target" : ex.target_type === "time" ? `⏱ ${ex.reps}` : ex.reps}
                             </button>
                             <button onClick={() => setEditingRestId(ex.id)} className="px-3 py-1 rounded-full border border-input text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors flex items-center gap-1">
                               <Hand className="h-3 w-3" />
                               {ex.rest_seconds > 0 ? (ex.rest_seconds >= 60 ? `${Math.floor(ex.rest_seconds / 60)}m${ex.rest_seconds % 60 > 0 ? ` ${ex.rest_seconds % 60}s` : ""}` : `${ex.rest_seconds}s`) : "None"}
+                            </button>
+                            {/* Detail field chips */}
+                            {ex.detail_fields.includes("weight") && (
+                              <button onClick={() => setEditingDetailValue({ id: ex.id, field: "weight" })} className="px-3 py-1 rounded-full border border-primary/30 bg-primary/5 text-xs font-medium text-primary hover:bg-primary/10 transition-colors">
+                                {ex.weight_lbs ? `${ex.weight_lbs} lbs` : "Weight"}
+                              </button>
+                            )}
+                            {ex.detail_fields.includes("tempo") && (
+                              <button onClick={() => setEditingDetailValue({ id: ex.id, field: "tempo" })} className="px-3 py-1 rounded-full border border-primary/30 bg-primary/5 text-xs font-medium text-primary hover:bg-primary/10 transition-colors">
+                                {ex.tempo || "Tempo"}
+                              </button>
+                            )}
+                            {ex.detail_fields.includes("rpe") && (
+                              <button onClick={() => setEditingDetailValue({ id: ex.id, field: "rpe" })} className="px-3 py-1 rounded-full border border-primary/30 bg-primary/5 text-xs font-medium text-primary hover:bg-primary/10 transition-colors">
+                                {ex.rpe ? `RPE ${ex.rpe}` : "RPE"}
+                              </button>
+                            )}
+                            {ex.detail_fields.includes("distance") && (
+                              <button onClick={() => setEditingDetailValue({ id: ex.id, field: "distance" })} className="px-3 py-1 rounded-full border border-primary/30 bg-primary/5 text-xs font-medium text-primary hover:bg-primary/10 transition-colors">
+                                {ex.distance || "Distance"}
+                              </button>
+                            )}
+                            <button onClick={() => setEditingDetailFieldsId(ex.id)} className="px-2 py-1 rounded-full border border-dashed border-muted-foreground/30 text-xs font-medium text-muted-foreground/60 hover:border-primary hover:text-primary transition-colors flex items-center gap-0.5">
+                              <Plus className="h-3 w-3" /> Detail
                             </button>
                           </div>
                         )}
@@ -911,7 +989,7 @@ export default function ClientWodBuilder() {
         onClose={() => setShowExerciseLibrary(false)}
         title={activeBlockId ? `Add to ${(() => { const g = groups.find(g => g.id === activeBlockId); return g?.custom_name || (g?.block_type ? getBlockType(g.block_type).label : "Block"); })()}` : "Add Exercises"}
         onAdd={(selectedExercises) => {
-          const newItems: WodExercise[] = selectedExercises.map((ex) => ({
+           const newItems: WodExercise[] = selectedExercises.map((ex) => ({
             id: crypto.randomUUID(),
             exercise_id: ex.id,
             exercise_name: ex.name,
@@ -922,6 +1000,7 @@ export default function ClientWodBuilder() {
             rest_seconds: 90,
             selected: false,
             group_id: null,
+            ...defaultDetailExercise(),
           }));
 
           // Superset mode: add exercises to the active block
@@ -975,6 +1054,7 @@ export default function ClientWodBuilder() {
                   rest_seconds: 30,
                   selected: false,
                   group_id: null,
+                  ...defaultRestExercise(),
                 });
               }
             });
@@ -992,6 +1072,7 @@ export default function ClientWodBuilder() {
                   rest_seconds: 30,
                   selected: false,
                   group_id: null,
+                  ...defaultRestExercise(),
                 }, ...interleaved];
               }
               return [...prev, ...interleaved];
@@ -1068,6 +1149,41 @@ export default function ClientWodBuilder() {
         onOpenChange={setShowBlockPicker}
         onSelect={handleBlockTypeSelected}
       />
+
+      {/* Exercise Detail Fields sheet */}
+      {editingDetailFieldsId && (() => {
+        const ex = exercises.find((e) => e.id === editingDetailFieldsId);
+        if (!ex) return null;
+        return (
+          <ExerciseDetailSheet
+            open
+            activeFields={ex.detail_fields}
+            onSave={(fields) => {
+              setExercises((prev) => prev.map((e) => e.id === editingDetailFieldsId ? { ...e, detail_fields: fields } : e));
+            }}
+            onClose={() => setEditingDetailFieldsId(null)}
+          />
+        );
+      })()}
+
+      {/* Detail Value sheet */}
+      {editingDetailValue && (() => {
+        const ex = exercises.find((e) => e.id === editingDetailValue.id);
+        if (!ex) return null;
+        const fieldMap: Record<DetailField, keyof WodExercise> = { weight: "weight_lbs", tempo: "tempo", rpe: "rpe", distance: "distance" };
+        const fieldKey = fieldMap[editingDetailValue.field];
+        return (
+          <DetailValueSheet
+            open
+            field={editingDetailValue.field}
+            value={String(ex[fieldKey] || "")}
+            onSave={(v) => {
+              setExercises((prev) => prev.map((e) => e.id === editingDetailValue.id ? { ...e, [fieldKey]: v } : e));
+            }}
+            onClose={() => setEditingDetailValue(null)}
+          />
+        );
+      })()}
     </div>
   );
 }

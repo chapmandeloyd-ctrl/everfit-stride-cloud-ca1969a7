@@ -66,6 +66,12 @@ export default function ClientWorkoutSession() {
           sets: wpe.sets,
           reps: wpe.reps,
           duration_seconds: wpe.duration_seconds,
+          rest_seconds: wpe.rest_seconds,
+          tempo: wpe.tempo || "",
+          notes: wpe.notes || "",
+          weight_lbs: wpe.weight_lbs,
+          rpe: wpe.rpe,
+          distance: wpe.distance,
         })) || [],
     })) || [];
 

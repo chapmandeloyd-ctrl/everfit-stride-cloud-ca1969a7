@@ -31,6 +31,9 @@ interface Exercise {
   rest_seconds: number | null;
   tempo: string;
   notes: string;
+  weight_lbs?: number | null;
+  rpe?: number | null;
+  distance?: string | null;
 }
 
 interface Section {
@@ -426,6 +429,27 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
         } else if (ex.reps) {
           msg += `, ${ex.reps} reps`;
         }
+
+        // Announce weight if set
+        if (ex.weight_lbs) {
+          msg += `, at ${ex.weight_lbs} pounds`;
+        }
+
+        // Announce tempo if set
+        if (ex.tempo) {
+          msg += `, tempo ${ex.tempo}`;
+        }
+
+        // Announce RPE if set
+        if (ex.rpe) {
+          msg += `, RPE ${ex.rpe}`;
+        }
+
+        // Announce distance if set
+        if (ex.distance) {
+          msg += `, ${ex.distance}`;
+        }
+
         elevenLabsSpeakNow(msg).catch(() => {});
       }
     }, delayMs);
