@@ -230,8 +230,9 @@ export function CreateHabitDialog({ clientId, initialDate, open, onOpenChange }:
                       <SelectItem value="cups">Cups</SelectItem>
                       <SelectItem value="minutes">Minutes</SelectItem>
                       <SelectItem value="hours">Hours</SelectItem>
-                      <SelectItem value="servings">Servings</SelectItem>
+                      <SelectItem value="miles">Miles</SelectItem>
                       <SelectItem value="steps">Steps</SelectItem>
+                      <SelectItem value="servings">Servings</SelectItem>
                       <SelectItem value="glasses">Glasses</SelectItem>
                     </SelectContent>
                   </Select>
