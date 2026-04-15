@@ -16,6 +16,7 @@ const TYPE_CONFIG: Record<string, { icon: typeof Sparkles; accent: string; label
 
 export function CoachingCard() {
   const { message, isLoading, generateMessage, markAsRead } = useCoachingMessage();
+  const [dismissed, setDismissed] = useState(false);
 
   // Auto-trigger coaching engine if no message exists for today
   useEffect(() => {
@@ -24,7 +25,7 @@ export function CoachingCard() {
     }
   }, [isLoading, message]);
 
-  if (isLoading || !message) return null;
+  if (isLoading || !message || dismissed) return null;
 
   const config = TYPE_CONFIG[message.coach_type] || {
     icon: Sparkles,
