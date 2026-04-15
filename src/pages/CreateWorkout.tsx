@@ -136,6 +136,7 @@ function ExerciseRow({
 
   return (
     <>
+    <div ref={setNodeRef} style={style} className="flex items-center gap-2 px-3 py-2 border-b hover:bg-muted/30 transition-colors overflow-hidden">
       <Checkbox checked={item.selected} onCheckedChange={() => onToggleSelect(item.id)} className="shrink-0" />
 
       {/* Thumbnail - show video if available */}
