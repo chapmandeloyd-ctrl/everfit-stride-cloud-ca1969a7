@@ -691,7 +691,11 @@ export default function CreateWorkout() {
           rest_seconds: item.rest_seconds,
           notes: item.target_value || "",
           exercise_type: item.exercise_type,
-          tempo: "",
+          tempo: item.tempo || "",
+          weight_lbs: item.weight_lbs ? parseFloat(item.weight_lbs) : null,
+          rpe: item.rpe ? parseInt(item.rpe) : null,
+          distance: item.distance || null,
+          detail_fields: item.detail_fields.length > 0 ? item.detail_fields : null,
         }));
 
       if (exercisesToInsert.length > 0) {
@@ -796,6 +800,8 @@ export default function CreateWorkout() {
                   exerciseInfo={getExerciseById(gi.exercise_id)}
                   onUpdate={updateItem}
                   onToggleSelect={toggleSelect}
+                  onEditDetailFields={setEditingDetailFieldsId}
+                  onEditDetailValue={setEditingDetailValue}
                 />
               ))}
             </div>
@@ -815,6 +821,8 @@ export default function CreateWorkout() {
             exerciseInfo={getExerciseById(item.exercise_id)}
             onUpdate={updateItem}
             onToggleSelect={toggleSelect}
+            onEditDetailFields={setEditingDetailFieldsId}
+            onEditDetailValue={setEditingDetailValue}
           />
         );
       }
@@ -1117,13 +1125,48 @@ export default function CreateWorkout() {
           setInstructions(description);
           setCategory(cat);
           setDifficulty(diff as any);
-          setExerciseItems(items);
+          setExerciseItems(items.map(i => ({ ...i, detail_fields: (i as any).detail_fields || [], weight_lbs: (i as any).weight_lbs || "", tempo: (i as any).tempo || "", rpe: (i as any).rpe || "", distance: (i as any).distance || "" })));
           setGroups(newGroups);
         }}
         onAddExercises={(items) => {
-          setExerciseItems((prev) => [...prev, ...items]);
+          setExerciseItems((prev) => [...prev, ...items.map(i => ({ ...i, detail_fields: (i as any).detail_fields || [], weight_lbs: (i as any).weight_lbs || "", tempo: (i as any).tempo || "", rpe: (i as any).rpe || "", distance: (i as any).distance || "" }))]);
         }}
       />
+
+      {/* Detail Fields Sheet */}
+      {editingDetailFieldsId && (() => {
+        const ex = exerciseItems.find((e) => e.id === editingDetailFieldsId);
+        if (!ex) return null;
+        return (
+          <ExerciseDetailSheet
+            open
+            activeFields={ex.detail_fields}
+            onSave={(fields) => {
+              setExerciseItems((prev) => prev.map((e) => e.id === editingDetailFieldsId ? { ...e, detail_fields: fields } : e));
+            }}
+            onClose={() => setEditingDetailFieldsId(null)}
+          />
+        );
+      })()}
+
+      {/* Detail Value Sheet */}
+      {editingDetailValue && (() => {
+        const ex = exerciseItems.find((e) => e.id === editingDetailValue.id);
+        if (!ex) return null;
+        const fieldMap: Record<DetailField, keyof WorkoutExercise> = { weight: "weight_lbs", tempo: "tempo", rpe: "rpe", distance: "distance" };
+        const fieldKey = fieldMap[editingDetailValue.field];
+        return (
+          <DetailValueSheet
+            open
+            field={editingDetailValue.field}
+            value={String(ex[fieldKey] || "")}
+            onSave={(v) => {
+              setExerciseItems((prev) => prev.map((e) => e.id === editingDetailValue.id ? { ...e, [fieldKey]: v } : e));
+            }}
+            onClose={() => setEditingDetailValue(null)}
+          />
+        );
+      })()}
     </div>
   );
 }
