@@ -4683,8 +4683,10 @@ export type Database = {
           created_at: string
           id: string
           read_at: string | null
+          reference_id: string | null
           send_id: string | null
           title: string
+          type: string | null
           user_id: string
         }
         Insert: {
@@ -4693,8 +4695,10 @@ export type Database = {
           created_at?: string
           id?: string
           read_at?: string | null
+          reference_id?: string | null
           send_id?: string | null
           title: string
+          type?: string | null
           user_id: string
         }
         Update: {
@@ -4703,8 +4707,10 @@ export type Database = {
           created_at?: string
           id?: string
           read_at?: string | null
+          reference_id?: string | null
           send_id?: string | null
           title?: string
+          type?: string | null
           user_id?: string
         }
         Relationships: [
