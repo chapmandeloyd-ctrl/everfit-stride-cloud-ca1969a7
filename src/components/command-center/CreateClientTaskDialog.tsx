@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,10 +9,11 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { FileText, Camera, Activity, ClipboardList, Target, ArrowLeft, Calendar } from "lucide-react";
+import { FileText, Camera, Activity, ClipboardList, Target, ArrowLeft, Calendar, Image, FileIcon, Link2, PlusCircle, ChevronDown, Settings, Repeat } from "lucide-react";
 import { format } from "date-fns";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface CreateClientTaskDialogProps {
   clientId: string;
@@ -24,11 +25,11 @@ interface CreateClientTaskDialogProps {
 }
 
 const taskTypes = [
-  { value: "general", label: "General", icon: FileText, color: "text-amber-600", bg: "bg-amber-100" },
-  { value: "progress_photo", label: "Progress Photo", icon: Camera, color: "text-blue-600", bg: "bg-blue-100" },
-  { value: "body_metrics", label: "Body Metrics", icon: Activity, color: "text-purple-600", bg: "bg-purple-100" },
-  { value: "form", label: "Form", icon: ClipboardList, color: "text-green-600", bg: "bg-green-100" },
-  { value: "habit", label: "Habit", icon: Target, color: "text-orange-600", bg: "bg-orange-100" },
+  { value: "general", label: "General", icon: FileText, color: "text-amber-600", bg: "bg-amber-100", emoji: "📋" },
+  { value: "progress_photo", label: "Progress Photo", icon: Camera, color: "text-blue-600", bg: "bg-blue-100", emoji: "📸" },
+  { value: "body_metrics", label: "Body Metrics", icon: Activity, color: "text-purple-600", bg: "bg-purple-100", emoji: "📊" },
+  { value: "form", label: "Form", icon: ClipboardList, color: "text-green-600", bg: "bg-green-100", emoji: "📝" },
+  { value: "habit", label: "Habit", icon: Target, color: "text-orange-600", bg: "bg-orange-100", emoji: "🔄" },
 ];
 
 export function CreateClientTaskDialog({
@@ -49,7 +50,8 @@ export function CreateClientTaskDialog({
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState<Date | undefined>(initialDate);
   const [reminderEnabled, setReminderEnabled] = useState(false);
-  const [notes, setNotes] = useState("");
+  const [noteOpen, setNoteOpen] = useState(false);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
 
   useEffect(() => {
     if (open && initialDate) {
@@ -64,7 +66,8 @@ export function CreateClientTaskDialog({
     setDescription("");
     setDueDate(initialDate);
     setReminderEnabled(false);
-    setNotes("");
+    setNoteOpen(false);
+    setAdvancedOpen(false);
   };
 
   const handleOpenChange = (isOpen: boolean) => {
@@ -92,7 +95,6 @@ export function CreateClientTaskDialog({
         description: description || null,
         due_date: dueDate ? format(dueDate, "yyyy-MM-dd") : null,
         reminder_enabled: reminderEnabled,
-        notes: notes || null,
       }]);
       if (error) throw error;
     },
@@ -110,7 +112,7 @@ export function CreateClientTaskDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-xl">
+      <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
         {step === "type" ? (
           <>
             <DialogHeader>
@@ -150,54 +152,73 @@ export function CreateClientTaskDialog({
           </>
         ) : (
           <>
-            <DialogHeader>
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" onClick={() => setStep("type")}>
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-                <div className="flex items-center gap-2">
-                  {selectedTypeInfo && (
-                    <span className="text-xl">
-                      {selectedTypeInfo.value === "general" && "📋"}
-                      {selectedTypeInfo.value === "progress_photo" && "📸"}
-                      {selectedTypeInfo.value === "body_metrics" && "📊"}
-                      {selectedTypeInfo.value === "form" && "📝"}
-                      {selectedTypeInfo.value === "habit" && "🔄"}
-                    </span>
-                  )}
-                  <DialogTitle>{selectedTypeInfo?.label}</DialogTitle>
-                </div>
-              </div>
-            </DialogHeader>
+            {/* Header with Back + Type label */}
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="icon" onClick={() => setStep("type")} className="h-8 w-8">
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <span className="text-sm text-muted-foreground">Back</span>
+            </div>
 
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label className="text-xs font-semibold uppercase text-muted-foreground">Task Name</Label>
-                <div className="relative">
-                  <Input
-                    value={taskName}
-                    onChange={(e) => setTaskName(e.target.value.slice(0, 90))}
-                    placeholder="Enter task name..."
-                    className="pr-16"
-                  />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
-                    {taskName.length} / 90
-                  </span>
-                </div>
-              </div>
+            <div className="flex items-center gap-2 -mt-2">
+              {selectedTypeInfo && <span className="text-xl">{selectedTypeInfo.emoji}</span>}
+              <h2 className="text-xl font-semibold">{selectedTypeInfo?.label}</h2>
+            </div>
 
-              <div className="space-y-2">
-                <Label className="text-xs font-semibold uppercase text-muted-foreground">Add note</Label>
-                <Textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Add instructions or details..."
-                  rows={3}
+            <div className="space-y-5">
+              {/* Task Name */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-semibold uppercase text-muted-foreground tracking-wide">Task Name</Label>
+                  <span className="text-xs text-muted-foreground">{taskName.length} / 90</span>
+                </div>
+                <Input
+                  value={taskName}
+                  onChange={(e) => setTaskName(e.target.value.slice(0, 90))}
+                  placeholder="Enter task name..."
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-xs font-semibold uppercase text-muted-foreground">Set Date</Label>
+              {/* Attachment Section */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold uppercase text-muted-foreground tracking-wide">Attachment</Label>
+                <div className="grid grid-cols-3 gap-3">
+                  <button className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl border-2 border-dashed border-border hover:border-primary/50 hover:bg-muted/50 transition-all cursor-pointer">
+                    <Image className="h-6 w-6 text-muted-foreground" />
+                    <span className="text-xs font-medium text-muted-foreground">Media</span>
+                  </button>
+                  <button className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl border-2 border-dashed border-border hover:border-primary/50 hover:bg-muted/50 transition-all cursor-pointer">
+                    <FileIcon className="h-6 w-6 text-muted-foreground" />
+                    <span className="text-xs font-medium text-muted-foreground">Document</span>
+                  </button>
+                  <button className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl border-2 border-dashed border-border hover:border-primary/50 hover:bg-muted/50 transition-all cursor-pointer">
+                    <Link2 className="h-6 w-6 text-muted-foreground" />
+                    <span className="text-xs font-medium text-muted-foreground">Link</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Add Note (collapsible) */}
+              <Collapsible open={noteOpen} onOpenChange={setNoteOpen}>
+                <CollapsibleTrigger asChild>
+                  <button className="flex items-center gap-2 text-primary hover:text-primary/80 transition-colors">
+                    <PlusCircle className="h-4 w-4" />
+                    <span className="text-sm font-medium">Add note</span>
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pt-2">
+                  <Textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Add instructions or details..."
+                    rows={3}
+                  />
+                </CollapsibleContent>
+              </Collapsible>
+
+              {/* Set Date + Reminder */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold uppercase text-muted-foreground tracking-wide">Set Date</Label>
                 <div className="flex items-center gap-4">
                   <Popover>
                     <PopoverTrigger asChild>
@@ -223,9 +244,32 @@ export function CreateClientTaskDialog({
                 </div>
               </div>
 
+              {/* Repeat */}
+              <button className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+                <Repeat className="h-4 w-4" />
+                <span className="text-sm font-medium">Repeat</span>
+              </button>
+
+              <div className="border-t" />
+
+              {/* Advanced Settings */}
+              <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
+                <CollapsibleTrigger asChild>
+                  <button className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+                    <Settings className="h-4 w-4" />
+                    <span className="text-xs font-semibold uppercase tracking-wide">Advanced Settings</span>
+                    <ChevronDown className={`h-3 w-3 transition-transform ${advancedOpen ? "rotate-180" : ""}`} />
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pt-3 space-y-3">
+                  <p className="text-sm text-muted-foreground">Advanced options coming soon.</p>
+                </CollapsibleContent>
+              </Collapsible>
+
+              {/* Action Buttons */}
               <div className="flex gap-3 justify-end pt-4 border-t">
-                <Button variant="outline" onClick={() => handleOpenChange(false)}>
-                  Cancel
+                <Button variant="outline" onClick={() => createMutation.mutate()} disabled={!taskName.trim() || createMutation.isPending}>
+                  {createMutation.isPending ? "Saving..." : "Save"}
                 </Button>
                 <Button
                   onClick={() => createMutation.mutate()}
