@@ -1,4 +1,4 @@
-import { Home, CheckSquare, BarChart3, Dumbbell, Settings } from "lucide-react";
+import { Home, CheckSquare, BarChart3, User, Settings } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -11,7 +11,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { label: "Home", to: "/client/dashboard", icon: Home },
   { label: "Progress", to: "/client/progress", icon: BarChart3 },
-  { label: "Workouts", to: "/client/my-workouts", icon: Dumbbell },
+  { label: "You", to: "/client/profile", icon: User },
   { label: "Tasks", to: "/client/tasks", icon: CheckSquare },
   { label: "Settings", to: "/client/settings", icon: Settings },
 ];
