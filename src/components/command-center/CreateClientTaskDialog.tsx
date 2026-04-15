@@ -9,7 +9,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { FileText, Camera, Activity, ClipboardList, Target, ArrowLeft, Calendar, Image, FileIcon, Link2, PlusCircle, ChevronDown, Settings, Repeat } from "lucide-react";
+import { FileText, Camera, Activity, ClipboardList, Target, ArrowLeft, Calendar, PlusCircle, ChevronDown, Settings, Repeat } from "lucide-react";
+import { TaskAttachmentUpload, TaskAttachment } from "./TaskAttachmentUpload";
 import { format } from "date-fns";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -52,6 +53,7 @@ export function CreateClientTaskDialog({
   const [reminderEnabled, setReminderEnabled] = useState(false);
   const [noteOpen, setNoteOpen] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [attachment, setAttachment] = useState<TaskAttachment | null>(null);
 
   useEffect(() => {
     if (open && initialDate) {
@@ -68,6 +70,7 @@ export function CreateClientTaskDialog({
     setReminderEnabled(false);
     setNoteOpen(false);
     setAdvancedOpen(false);
+    setAttachment(null);
   };
 
   const handleOpenChange = (isOpen: boolean) => {
@@ -95,6 +98,7 @@ export function CreateClientTaskDialog({
         description: description || null,
         due_date: dueDate ? format(dueDate, "yyyy-MM-dd") : null,
         reminder_enabled: reminderEnabled,
+        attachments: attachment ? JSON.parse(JSON.stringify([attachment])) : null,
       }]);
       if (error) throw error;
     },
@@ -180,23 +184,10 @@ export function CreateClientTaskDialog({
               </div>
 
               {/* Attachment Section */}
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold uppercase text-muted-foreground tracking-wide">Attachment</Label>
-                <div className="grid grid-cols-3 gap-3">
-                  <button className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl border-2 border-dashed border-border hover:border-primary/50 hover:bg-muted/50 transition-all cursor-pointer">
-                    <Image className="h-6 w-6 text-muted-foreground" />
-                    <span className="text-xs font-medium text-muted-foreground">Media</span>
-                  </button>
-                  <button className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl border-2 border-dashed border-border hover:border-primary/50 hover:bg-muted/50 transition-all cursor-pointer">
-                    <FileIcon className="h-6 w-6 text-muted-foreground" />
-                    <span className="text-xs font-medium text-muted-foreground">Document</span>
-                  </button>
-                  <button className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl border-2 border-dashed border-border hover:border-primary/50 hover:bg-muted/50 transition-all cursor-pointer">
-                    <Link2 className="h-6 w-6 text-muted-foreground" />
-                    <span className="text-xs font-medium text-muted-foreground">Link</span>
-                  </button>
-                </div>
-              </div>
+              <TaskAttachmentUpload
+                attachment={attachment}
+                onAttachmentChange={setAttachment}
+              />
 
               {/* Add Note (collapsible) */}
               <Collapsible open={noteOpen} onOpenChange={setNoteOpen}>
