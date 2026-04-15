@@ -401,9 +401,6 @@ export default function ClientHabitDetail() {
                 </div>
               </div>
             )}
-                </div>
-              </div>
-            )}
           </div>
         )}
 
