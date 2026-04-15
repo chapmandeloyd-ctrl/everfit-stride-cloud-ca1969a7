@@ -6,15 +6,24 @@ import { useAuth } from "@/hooks/useAuth";
  * this returns the impersonated client's ID instead of the logged-in user's ID.
  */
 export function useEffectiveClientId() {
-  const { user, userRole } = useAuth();
+  const { user, userRole, loading } = useAuth();
 
   const impersonatedId = localStorage.getItem("impersonatedClientId");
 
-  // Only honor impersonation when trainer role is fully confirmed
-  // (not while role is still null/loading) to prevent stale preview after session restart
-  if (impersonatedId && userRole === "trainer") {
-    return impersonatedId;
+  if (!user) return undefined;
+
+  // Freeze effective client resolution while auth/profile is still resolving.
+  // This prevents a brief fallback to the trainer's own id, which causes
+  // cross-page flicker and mixed trainer/client data during impersonation.
+  if (impersonatedId) {
+    if (loading || userRole === null) {
+      return undefined;
+    }
+
+    if (userRole === "trainer") {
+      return impersonatedId;
+    }
   }
 
-  return user?.id;
+  return user.id;
 }
