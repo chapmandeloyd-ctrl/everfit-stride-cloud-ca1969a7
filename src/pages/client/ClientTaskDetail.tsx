@@ -150,7 +150,6 @@ export default function ClientTaskDetail() {
   const mediaName = mediaAttachment?.mediaName || mediaAttachment?.fileName;
 
   return (
-    <ClientLayout hideNav>
       <div className="min-h-screen flex flex-col bg-background">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3">
