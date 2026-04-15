@@ -317,14 +317,11 @@ export default function ClientHabitDetail() {
                       <button
                         key={i}
                         onClick={() => {
-                          if (isFilled) {
-                            removeCompletionMutation.mutate();
-                          } else {
-                            addCompletionMutation.mutate();
-                          }
+                          const newVal = isFilled ? currentCount - 1 : currentCount + 1;
+                          upsertCompletionMutation.mutate(Math.max(0, newVal));
                         }}
                         className="w-14 h-14 rounded-xl flex items-center justify-center transition-all active:scale-95"
-                        disabled={addCompletionMutation.isPending || removeCompletionMutation.isPending}
+                        disabled={upsertCompletionMutation.isPending}
                       >
                         <svg width="32" height="32" viewBox="0 0 24 24" className="transition-all">
                           <path d="M12 2C12 2 5 10 5 15a7 7 0 0 0 14 0c0-5-7-13-7-13z" 
@@ -345,8 +342,15 @@ export default function ClientHabitDetail() {
                     variant="default"
                     size="icon"
                     className="h-14 w-14 rounded-full"
-                    onClick={() => removeCompletionMutation.mutate()}
-                    disabled={currentCount === 0 || removeCompletionMutation.isPending}
+                    onClick={() => {
+                      const newVal = Math.max(0, currentCount - increment);
+                      if (newVal === 0) {
+                        removeCompletionMutation.mutate();
+                      } else {
+                        upsertCompletionMutation.mutate(newVal);
+                      }
+                    }}
+                    disabled={currentCount === 0 || upsertCompletionMutation.isPending || removeCompletionMutation.isPending}
                   >
                     <Minus className="h-6 w-6" />
                   </Button>
@@ -354,50 +358,49 @@ export default function ClientHabitDetail() {
                     <p className="text-5xl font-bold">{currentCount}</p>
                     <div className="h-0.5 w-full bg-primary/20 mt-2 mb-1 rounded-full" />
                     <p className="text-sm text-muted-foreground">of {goalValue} {habit.goal_unit}</p>
+                    {isNumericUnit && (
+                      <p className="text-[10px] text-muted-foreground mt-1">+/- {increment} per tap</p>
+                    )}
                   </div>
                   <Button
                     variant="default"
                     size="icon"
                     className="h-14 w-14 rounded-full"
-                    onClick={() => addCompletionMutation.mutate()}
-                    disabled={addCompletionMutation.isPending}
+                    onClick={() => upsertCompletionMutation.mutate(currentCount + increment)}
+                    disabled={upsertCompletionMutation.isPending}
                   >
                     <Plus className="h-6 w-6" />
                   </Button>
                 </div>
-                {/* Manual input */}
+                {/* Manual input — sets value directly */}
                 <div className="bg-background rounded-2xl p-4 shadow-sm">
-                  <p className="text-sm text-muted-foreground mb-3 text-center">Or enter manually</p>
+                  <p className="text-sm text-muted-foreground mb-3 text-center">Or enter {habit.goal_unit} manually</p>
                   <div className="flex items-center gap-2">
                     <Input
                       type="number"
                       min="0"
+                      step={isNumericUnit ? increment : 1}
                       placeholder={`Enter ${habit.goal_unit || 'value'}...`}
                       value={manualInput}
                       onChange={(e) => setManualInput(e.target.value)}
                       className="flex-1 text-center text-lg"
                     />
                     <Button
-                      disabled={!manualInput || Number(manualInput) <= 0 || addCompletionMutation.isPending}
+                      disabled={!manualInput || Number(manualInput) <= 0 || upsertCompletionMutation.isPending}
                       onClick={() => {
                         const val = Number(manualInput);
                         if (val > 0) {
-                          // Add 'val' completions
-                          const promises = Array.from({ length: val }).map(() =>
-                            supabase.from("habit_completions").insert({ habit_id: id!, client_id: clientId!, completion_date: dateStr })
-                          );
-                          Promise.all(promises).then(() => {
-                            setManualInput("");
-                            queryClient.invalidateQueries({ queryKey: ["habit-day-completions", id, dateStr] });
-                            queryClient.invalidateQueries({ queryKey: ["habit-all-completions", id] });
-                            queryClient.invalidateQueries({ queryKey: ["client-habit-completions-today"] });
-                          });
+                          upsertCompletionMutation.mutate(currentCount + val);
+                          setManualInput("");
                         }
                       }}
                     >
                       Add
                     </Button>
                   </div>
+                </div>
+              </div>
+            )}
                 </div>
               </div>
             )}
