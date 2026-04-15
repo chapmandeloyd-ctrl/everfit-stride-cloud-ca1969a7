@@ -6,7 +6,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Plus, ShoppingCart, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowLeft, Plus, ShoppingCart, Sparkles, ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
+import { GroceryShortageAlerts } from "@/components/meals/GroceryShortageAlerts";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -22,6 +23,9 @@ interface GroceryItem {
   is_purchased: boolean;
   meal_sources: string[];
   is_manual: boolean;
+  used_amount: string | null;
+  original_amount: string | null;
+  is_low_stock: boolean;
 }
 
 interface GroceryList {
