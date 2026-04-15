@@ -934,7 +934,7 @@ export default function ClientWodBuilder() {
         onClose={() => setShowExerciseLibrary(false)}
         title={activeBlockId ? `Add to ${(() => { const g = groups.find(g => g.id === activeBlockId); return g?.custom_name || (g?.block_type ? getBlockType(g.block_type).label : "Block"); })()}` : "Add Exercises"}
         onAdd={(selectedExercises) => {
-          const newItems: WodExercise[] = selectedExercises.map((ex) => ({
+           const newItems: WodExercise[] = selectedExercises.map((ex) => ({
             id: crypto.randomUUID(),
             exercise_id: ex.id,
             exercise_name: ex.name,
@@ -945,6 +945,7 @@ export default function ClientWodBuilder() {
             rest_seconds: 90,
             selected: false,
             group_id: null,
+            ...defaultDetailExercise(),
           }));
 
           // Superset mode: add exercises to the active block
