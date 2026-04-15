@@ -1017,6 +1017,7 @@ export default function ClientWodBuilder() {
                   rest_seconds: 30,
                   selected: false,
                   group_id: null,
+                  ...defaultRestExercise(),
                 }, ...interleaved];
               }
               return [...prev, ...interleaved];
