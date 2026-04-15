@@ -1,0 +1,1 @@
+DELETE FROM coaching_messages WHERE message_date = '2026-04-15';
