@@ -18,6 +18,7 @@ import { CoachCommandCenterTab } from "@/components/command-center/CoachCommandC
 import { GroupedTrainingTab } from "@/components/command-center/GroupedTrainingTab";
 import { GroupedNutritionTab } from "@/components/command-center/GroupedNutritionTab";
 import { GroupedProgressTab } from "@/components/command-center/GroupedProgressTab";
+import { ClientWodsTab } from "@/components/command-center/ClientWodsTab";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ClientCommandCenter() {
@@ -201,6 +202,7 @@ export default function ClientCommandCenter() {
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="command">Command Center</TabsTrigger>
             <TabsTrigger value="training">Training</TabsTrigger>
+            <TabsTrigger value="client-wods">Client WODs</TabsTrigger>
             <TabsTrigger value="nutrition">Nutrition</TabsTrigger>
             <TabsTrigger value="progress">Progress</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
@@ -214,6 +216,9 @@ export default function ClientCommandCenter() {
           </TabsContent>
           <TabsContent value="training">
             <GroupedTrainingTab clientId={clientId!} trainerId={user?.id!} />
+          </TabsContent>
+          <TabsContent value="client-wods">
+            <ClientWodsTab clientId={clientId!} trainerId={user?.id!} />
           </TabsContent>
           <TabsContent value="nutrition">
             <GroupedNutritionTab clientId={clientId!} trainerId={user?.id!} />

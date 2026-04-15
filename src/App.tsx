@@ -89,6 +89,7 @@ import ClientWorkoutHistory from "./pages/ClientWorkoutHistory";
 import ClientWorkoutSession from "./pages/client/ClientWorkoutSession";
 import ClientMyWorkouts from "./pages/client/ClientMyWorkouts";
 import VibesAdmin from "./pages/VibesAdmin";
+import AllClientWorkouts from "./pages/AllClientWorkouts";
 import ClientCommandCenter from "./pages/ClientCommandCenter";
 import Scheduling from "./pages/Scheduling";
 import TrainerSettings from "./pages/TrainerSettings";
@@ -155,6 +156,7 @@ const App = () => (
           <Route path="/clients/:clientId/health" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerClientHealth /></ProtectedRoute>} />
           <Route path="/clients/:clientId" element={<ProtectedRoute allowedRoles={["trainer"]}><ClientCommandCenter /></ProtectedRoute>} />
           <Route path="/clients/:clientId/workout-history" element={<ProtectedRoute allowedRoles={["trainer"]}><ClientWorkoutHistory /></ProtectedRoute>} />
+          <Route path="/client-workouts" element={<ProtectedRoute allowedRoles={["trainer"]}><AllClientWorkouts /></ProtectedRoute>} />
           <Route path="/clients-health" element={<ProtectedRoute allowedRoles={["trainer"]}><ClientsHealth /></ProtectedRoute>} />
           <Route path="/scheduling" element={<ProtectedRoute allowedRoles={["trainer"]}><Scheduling /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerSettings /></ProtectedRoute>} />
