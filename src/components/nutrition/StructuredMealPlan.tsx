@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useAdaptiveMacros } from "@/hooks/useAdaptiveMacros";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -89,11 +90,12 @@ export function StructuredMealPlan({ assignmentId, mealPlanId }: StructuredMealP
     );
   };
 
+  const { effectiveMacros } = useAdaptiveMacros(user?.id);
   const targets = {
-    calories: mealPlan?.target_calories || 2000,
-    protein: mealPlan?.target_protein || 150,
-    carbs: mealPlan?.target_carbs || 200,
-    fats: mealPlan?.target_fats || 60,
+    calories: effectiveMacros?.calories || mealPlan?.target_calories || 2000,
+    protein: effectiveMacros?.protein || mealPlan?.target_protein || 150,
+    carbs: effectiveMacros?.carbs || mealPlan?.target_carbs || 200,
+    fats: effectiveMacros?.fat || mealPlan?.target_fats || 60,
   };
 
   const renderDayView = () => {
