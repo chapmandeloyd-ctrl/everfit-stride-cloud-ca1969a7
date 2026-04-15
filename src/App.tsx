@@ -104,6 +104,7 @@ import ClientKetoTypeDetail from "./pages/client/ClientKetoTypeDetail";
 import ClientGroceryList from "./pages/client/ClientGroceryList";
 import CardStylesPreview from "./pages/client/CardStylesPreview";
 import NotificationCenter from "./pages/NotificationCenter";
+import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
 
@@ -116,6 +117,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/auth" element={<Auth />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/guardian/:token" element={<GuardianSummary />} />
           <Route path="/unsubscribe" element={<Unsubscribe />} />
