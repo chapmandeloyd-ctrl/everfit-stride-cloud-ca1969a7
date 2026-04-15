@@ -2004,7 +2004,12 @@ export default function ClientDashboard() {
                             </div>
                             <div className="flex-1 min-w-0">
                               <span className="text-sm font-semibold">{habit.name}</span>
-                              <p className="text-xs text-muted-foreground mt-0.5">{todayCompletionCount} of {habit.goal_value} {habit.goal_unit} today</p>
+                              <p className="text-xs text-muted-foreground mt-0.5">
+                                {todayCompletionCount} of {habit.goal_value} {habit.goal_unit} today
+                                {habit.reminder_enabled && habit.reminder_time && (
+                                  <span className="ml-1.5 text-primary/70">⏰ {habit.reminder_time.slice(0, 5)}</span>
+                                )}
+                              </p>
                             </div>
                             <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />
                           </div>
