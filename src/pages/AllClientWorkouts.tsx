@@ -90,7 +90,7 @@ export default function AllClientWorkouts() {
           .insert({
             workout_plan_id: newPlan.id,
             name: section.name,
-            block_type: section.block_type,
+            block_type: section.section_type,
             order_index: section.order_index || 0,
           })
           .select()
