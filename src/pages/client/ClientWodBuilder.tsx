@@ -1,16 +1,17 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Trash2, Dumbbell, Hand, Layers, Repeat, GripVertical, Timer, X, Bookmark } from "lucide-react";
+import { Trash2, Dumbbell, Hand, Layers, Repeat, GripVertical, Timer, X, Bookmark, Plus } from "lucide-react";
 import { useSavedWorkouts } from "@/hooks/useSavedWorkouts";
 import { getBlockType, WORKOUT_BLOCK_TYPES, WorkoutBlockType } from "@/lib/workoutBlockTypes";
 import { BlockTypePicker } from "@/components/workout/BlockTypePicker";
-
 
 import { ExerciseLibrarySheet } from "@/components/workout/ExerciseLibrarySheet";
 import { SetsSliderSheet } from "@/components/workout/SetsSliderSheet";
 import { SetTargetSheet } from "@/components/workout/SetTargetSheet";
 import { RestTimePickerSheet } from "@/components/workout/RestTimePickerSheet";
+import { ExerciseDetailSheet, DetailField } from "@/components/workout/ExerciseDetailSheet";
+import { DetailValueSheet } from "@/components/workout/DetailValueSheet";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
