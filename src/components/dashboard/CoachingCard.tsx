@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useCoachingMessage } from "@/hooks/useCoachingMessage";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ const TYPE_CONFIG: Record<string, { icon: typeof Sparkles; accent: string; label
 
 export function CoachingCard() {
   const { message, isLoading, generateMessage, markAsRead } = useCoachingMessage();
+  const [dismissed, setDismissed] = useState(false);
 
   // Auto-trigger coaching engine if no message exists for today
   useEffect(() => {
@@ -24,7 +25,7 @@ export function CoachingCard() {
     }
   }, [isLoading, message]);
 
-  if (isLoading || !message) return null;
+  if (isLoading || !message || dismissed) return null;
 
   const config = TYPE_CONFIG[message.coach_type] || {
     icon: Sparkles,
@@ -71,7 +72,10 @@ export function CoachingCard() {
             variant="ghost"
             size="sm"
             className="w-full text-xs text-muted-foreground hover:text-foreground"
-            onClick={() => markAsRead.mutate(message.id)}
+            onClick={() => {
+              markAsRead.mutate(message.id);
+              setDismissed(true);
+            }}
           >
             <Check className="h-3 w-3 mr-1" />
             Got it
