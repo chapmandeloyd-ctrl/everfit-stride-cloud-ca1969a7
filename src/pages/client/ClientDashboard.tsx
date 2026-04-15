@@ -49,6 +49,7 @@ import { DailyScoreRing } from "@/components/dashboard/DailyScoreRing";
 import { MealDecisionCard } from "@/components/dashboard/MealDecisionCard";
 import { ProgressionUnlocksCard } from "@/components/dashboard/ProgressionUnlocksCard";
 import { useLiveActivity } from "@/hooks/useLiveActivity";
+import { CoachingCard } from "@/components/dashboard/CoachingCard";
 
 // Fasting Program Card sub-component
 function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; navigate: (path: string) => void }) {
