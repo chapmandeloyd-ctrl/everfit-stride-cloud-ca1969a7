@@ -131,12 +131,29 @@ export default function ClientGroceryList() {
       .map((c) => ({ category: c, items: map.get(c)! }));
   }, [items]);
 
+  const lowStockItems = useMemo(() => items.filter((i) => i.is_low_stock && !i.is_purchased), [items]);
+
   const totalItems = items.length;
   const purchasedCount = items.filter((i) => i.is_purchased).length;
   const progress = totalItems > 0 ? Math.round((purchasedCount / totalItems) * 100) : 0;
 
   const loading = listLoading || itemsLoading;
   const noList = !loading && !groceryList;
+
+  const regenerateList = async () => {
+    if (!clientId) return;
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-grocery-list", {
+        body: { client_id: clientId, recipe_ids: [], list_name: `Week of ${new Date().toLocaleDateString()}`, regenerate: true },
+      });
+      if (error) throw error;
+      toast({ title: "🛒 List regenerated!", description: "Fresh grocery list based on your current meals." });
+      queryClient.invalidateQueries({ queryKey: ["grocery-list"] });
+      queryClient.invalidateQueries({ queryKey: ["grocery-items"] });
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message, variant: "destructive" });
+    }
+  };
 
   const toggleCategory = (cat: string) => {
     setCollapsedCategories((prev) => {
