@@ -18,6 +18,8 @@ export interface MealEngineState {
   macroTargets: { calories: number | null; protein: number | null; carbs: number | null; fats: number | null } | null;
   eatingWindowEndsAt: string | null;
   fastingEnabled: boolean;
+  /** True if the user has ever started or completed a fast */
+  hasEverFasted: boolean;
 }
 
 export function useMealEngineState(): MealEngineState {
