@@ -32,6 +32,11 @@ interface WorkoutExercise {
   exercise_type: "normal" | "rest";
   selected: boolean;
   group_id: string | null;
+  detail_fields: DetailField[];
+  weight_lbs: string;
+  tempo: string;
+  rpe: string;
+  distance: string;
 }
 
 interface ExerciseGroup {
@@ -231,6 +236,35 @@ function ExerciseRow({
         <GripVertical className="h-4 w-4 text-muted-foreground" />
       </div>
     </div>
+    {/* Detail field chips row */}
+    {item.exercise_type === "normal" && (
+      <div className="flex items-center gap-1.5 px-3 pb-2 flex-wrap -mt-1">
+        {item.detail_fields.includes("weight") && (
+          <button onClick={() => onEditDetailValue?.({ id: item.id, field: "weight" })} className="px-2.5 py-0.5 rounded-full border border-primary/30 bg-primary/5 text-[11px] font-medium text-primary hover:bg-primary/10 transition-colors">
+            {item.weight_lbs ? `${item.weight_lbs} lbs` : "Weight"}
+          </button>
+        )}
+        {item.detail_fields.includes("tempo") && (
+          <button onClick={() => onEditDetailValue?.({ id: item.id, field: "tempo" })} className="px-2.5 py-0.5 rounded-full border border-primary/30 bg-primary/5 text-[11px] font-medium text-primary hover:bg-primary/10 transition-colors">
+            {item.tempo || "Tempo"}
+          </button>
+        )}
+        {item.detail_fields.includes("rpe") && (
+          <button onClick={() => onEditDetailValue?.({ id: item.id, field: "rpe" })} className="px-2.5 py-0.5 rounded-full border border-primary/30 bg-primary/5 text-[11px] font-medium text-primary hover:bg-primary/10 transition-colors">
+            {item.rpe ? `RPE ${item.rpe}` : "RPE"}
+          </button>
+        )}
+        {item.detail_fields.includes("distance") && (
+          <button onClick={() => onEditDetailValue?.({ id: item.id, field: "distance" })} className="px-2.5 py-0.5 rounded-full border border-primary/30 bg-primary/5 text-[11px] font-medium text-primary hover:bg-primary/10 transition-colors">
+            {item.distance || "Distance"}
+          </button>
+        )}
+        <button onClick={() => onEditDetailFields?.(item.id)} className="px-2 py-0.5 rounded-full border border-dashed border-muted-foreground/30 text-[11px] font-medium text-muted-foreground/60 hover:border-primary hover:text-primary transition-colors flex items-center gap-0.5">
+          <Plus className="h-3 w-3" /> Detail
+        </button>
+      </div>
+    )}
+  </>
   );
 }
 
