@@ -19,6 +19,7 @@ import { GroupedTrainingTab } from "@/components/command-center/GroupedTrainingT
 import { GroupedNutritionTab } from "@/components/command-center/GroupedNutritionTab";
 import { GroupedProgressTab } from "@/components/command-center/GroupedProgressTab";
 import { ClientWodsTab } from "@/components/command-center/ClientWodsTab";
+import { ClientTasksTab } from "@/components/command-center/ClientTasksTab";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ClientCommandCenter() {
