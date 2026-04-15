@@ -9,8 +9,9 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { FileText, Camera, Activity, ClipboardList, Target, ArrowLeft, Calendar, PlusCircle, ChevronDown, Settings, Repeat } from "lucide-react";
+import { FileText, Camera, Activity, ClipboardList, Target, ArrowLeft, Calendar, PlusCircle, ChevronDown, Settings } from "lucide-react";
 import { TaskAttachmentUpload, TaskAttachment } from "./TaskAttachmentUpload";
+import { TaskRepeatSection, RepeatConfig } from "./TaskRepeatSection";
 import { format } from "date-fns";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -54,6 +55,7 @@ export function CreateClientTaskDialog({
   const [noteOpen, setNoteOpen] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [attachment, setAttachment] = useState<TaskAttachment | null>(null);
+  const [repeatConfig, setRepeatConfig] = useState<RepeatConfig | null>(null);
 
   useEffect(() => {
     if (open && initialDate) {
@@ -71,6 +73,7 @@ export function CreateClientTaskDialog({
     setNoteOpen(false);
     setAdvancedOpen(false);
     setAttachment(null);
+    setRepeatConfig(null);
   };
 
   const handleOpenChange = (isOpen: boolean) => {
@@ -236,10 +239,11 @@ export function CreateClientTaskDialog({
               </div>
 
               {/* Repeat */}
-              <button className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
-                <Repeat className="h-4 w-4" />
-                <span className="text-sm font-medium">Repeat</span>
-              </button>
+              <TaskRepeatSection
+                config={repeatConfig}
+                onConfigChange={setRepeatConfig}
+                selectedDate={dueDate}
+              />
 
               <div className="border-t" />
 
