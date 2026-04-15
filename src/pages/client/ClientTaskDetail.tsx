@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { ArrowLeft, AlarmClock, Check, ChevronDown, Send, Camera } from "lucide-react";
+import { ArrowLeft, AlarmClock, Check, ChevronDown, Send, Camera, FileText } from "lucide-react";
 
 export default function ClientTaskDetail() {
   const { taskId } = useParams<{ taskId: string }>();
@@ -144,7 +144,14 @@ export default function ClientTaskDetail() {
   const isCompleted = !!task.completed_at;
   const attachments = task.attachments as any[] | null;
   const mediaAttachment = attachments?.find((a: any) => a.type === "media");
+  const docAttachment = attachments?.find((a: any) => a.type === "document");
   const mediaName = mediaAttachment?.mediaName || mediaAttachment?.fileName;
+  const docName = docAttachment?.fileName || docAttachment?.mediaName;
+
+  const isDocType = (name: string | undefined) => {
+    if (!name) return false;
+    return /\.(pdf|doc|docx|xls|xlsx|ppt|pptx|txt|csv)$/i.test(name);
+  };
 
   return (
       <div className="min-h-screen flex flex-col bg-background">
@@ -153,9 +160,11 @@ export default function ClientTaskDetail() {
           <button onClick={() => navigate(-1)} className="p-1">
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <button className="p-1">
-            <AlarmClock className="h-5 w-5 text-primary" />
-          </button>
+          {!isCompleted && (
+            <button className="p-1">
+              <AlarmClock className="h-5 w-5 text-primary" />
+            </button>
+          )}
         </div>
 
         {/* Title */}
@@ -163,8 +172,8 @@ export default function ClientTaskDetail() {
 
         {/* Content */}
         <div className="flex-1 px-4 space-y-4">
-          {/* Media attachment */}
-          {mediaAttachment?.url && (
+          {/* Media image attachment */}
+          {mediaAttachment?.url && !isDocType(mediaAttachment?.fileName) && (
             <div className="rounded-xl overflow-hidden">
               <img
                 src={mediaAttachment.url}
@@ -174,13 +183,37 @@ export default function ClientTaskDetail() {
             </div>
           )}
 
+          {/* Document attachment (PDF, etc.) */}
+          {(docAttachment?.url || (mediaAttachment?.url && isDocType(mediaAttachment?.fileName))) && (() => {
+            const att = docAttachment || mediaAttachment;
+            const name = docAttachment ? docName : mediaName;
+            return (
+              <div className="rounded-xl bg-muted/50 py-8 px-4 flex flex-col items-center gap-3">
+                <div className="w-20 h-20 flex items-center justify-center">
+                  <FileText className="h-16 w-16 text-muted-foreground/50" />
+                </div>
+                {name && (
+                  <p className="text-sm text-center font-medium">{name}</p>
+                )}
+                <a
+                  href={att.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm font-semibold text-primary"
+                >
+                  Open document
+                </a>
+              </div>
+            );
+          })()}
+
           {/* Link under image */}
-          {mediaAttachment?.url && (
+          {mediaAttachment?.url && !isDocType(mediaAttachment?.fileName) && (
             <p className="text-xs text-muted-foreground text-center underline">Offer Details</p>
           )}
 
           {/* Media name */}
-          {mediaName && (
+          {mediaName && !isDocType(mediaAttachment?.fileName) && (
             <p className="text-sm text-center font-medium">{mediaName}</p>
           )}
 

@@ -2246,12 +2246,12 @@ export default function ClientDashboard() {
                             className="flex items-center gap-3 px-4 py-3 hover:bg-muted/30 transition-colors cursor-pointer"
                             onClick={() => navigate(`/client/tasks/${task.id}`)}
                           >
-                            {isCompleted ? (
-                              <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />
-                            ) : (
-                              <Circle className="h-5 w-5 text-muted-foreground shrink-0" />
-                            )}
-                            <span className={`text-sm flex-1 ${isCompleted ? "line-through text-muted-foreground" : "font-medium"}`}>
+                            <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${
+                              isCompleted ? "bg-foreground" : "bg-muted"
+                            }`}>
+                              <Check className={`h-3.5 w-3.5 ${isCompleted ? "text-background" : "text-muted-foreground"}`} />
+                            </div>
+                            <span className={`text-sm flex-1 ${isCompleted ? "text-foreground" : "font-medium"}`}>
                               {task.name}
                             </span>
                             <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
