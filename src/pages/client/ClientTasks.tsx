@@ -194,7 +194,8 @@ export default function ClientTasks() {
             <h2 className="text-lg font-semibold mb-3">Today's Habits</h2>
             <div className="grid gap-3">
               {todaysHabits.map((habit: any) => {
-                const isCompleted = todayCompletions?.some((c: any) => c.habit_id === habit.id);
+                const completionValue = todayCompletions?.filter((c: any) => c.habit_id === habit.id).reduce((sum: number, c: any) => sum + (c.value ?? 1), 0) || 0;
+                const isCompleted = completionValue >= habit.goal_value;
                 const icon = habit.icon_url?.startsWith("emoji:") ? habit.icon_url.replace("emoji:", "") : "🎯";
                 return (
                   <Card
