@@ -94,7 +94,21 @@ interface ExerciseGroup {
 
 const isGroupedWorkoutType = (type: string) => type === "circuit" || type === "superset";
 
-export default function ClientWodBuilder() {
+const defaultDetailExercise = (): Pick<WodExercise, "detail_fields" | "weight_lbs" | "tempo" | "rpe" | "distance"> => ({
+  detail_fields: [],
+  weight_lbs: "",
+  tempo: "",
+  rpe: "",
+  distance: "",
+});
+
+const defaultRestExercise = (): Pick<WodExercise, "detail_fields" | "weight_lbs" | "tempo" | "rpe" | "distance"> => ({
+  detail_fields: [],
+  weight_lbs: "",
+  tempo: "",
+  rpe: "",
+  distance: "",
+});
   const navigate = useNavigate();
   const { user } = useAuth();
   const effectiveClientId = useEffectiveClientId();
