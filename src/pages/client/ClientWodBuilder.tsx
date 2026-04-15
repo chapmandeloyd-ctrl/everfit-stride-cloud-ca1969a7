@@ -76,6 +76,11 @@ interface WodExercise {
   rest_seconds: number;
   selected: boolean;
   group_id: string | null;
+  detail_fields: DetailField[];
+  weight_lbs: string;
+  tempo: string;
+  rpe: string;
+  distance: string;
 }
 
 interface ExerciseGroup {
