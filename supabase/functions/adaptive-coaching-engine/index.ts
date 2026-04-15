@@ -288,17 +288,26 @@ Deno.serve(async (req) => {
     ]);
 
     // ── Build context ──
+    // IMPORTANT: If no behavior data exists for yesterday, use neutral defaults
+    // so the engine doesn't trigger failure scenarios from missing data.
+    const hasBehaviorData = !!behavior;
+
     const ctx: CoachingContext = {
       dailyScore: summary?.avg_score_7d || 50,
-      macroAdherence: behavior?.protein_target_hit ? 85 : (behavior ? 55 : 50),
-      fastingAdherence: behavior?.fasting_window_adherence || 0,
+      macroAdherence: hasBehaviorData
+        ? (behavior.protein_target_hit ? 85 : 55)
+        : 75, // neutral — no data ≠ failure
+      fastingAdherence: hasBehaviorData
+        ? (behavior.fasting_window_adherence ?? 75)
+        : 75, // neutral — no data ≠ failure
       streak: streakData?.current_streak || 0,
       ketoType: (ketoAssignment as any)?.keto_types?.name || "SKD",
       hasTrainingToday: (workoutCount || 0) > 0,
-      hasHungerSignal:
-        (behavior?.hunger_break_fast || 0) >= 4 ||
-        (behavior?.hunger_mid_window || 0) >= 4 ||
-        (behavior?.hunger_last_meal || 0) >= 4,
+      hasHungerSignal: hasBehaviorData && (
+        (behavior.hunger_break_fast || 0) >= 4 ||
+        (behavior.hunger_mid_window || 0) >= 4 ||
+        (behavior.hunger_last_meal || 0) >= 4
+      ),
       isStalling:
         summary?.bodyweight_delta !== null &&
         summary?.bodyweight_delta !== undefined &&
