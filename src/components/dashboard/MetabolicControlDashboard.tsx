@@ -193,8 +193,8 @@ export function MetabolicControlDashboard() {
     { key: "carbs", label: "Carbs", current: current.carbs, target: targets.carbs || 0, unit: "g", emoji: "🍚" },
   ];
 
-  // Hide the fasting phase card if user is idle and has never engaged with fasting
-  const showFastingPhase = !(engine.fasting_state === "idle" && !engine.hasEverFasted);
+  // Hide the fasting phase card when idle (no active fast or eating window)
+  const showFastingPhase = engine.fasting_state !== "idle";
 
   return (
     <div className="space-y-3">
