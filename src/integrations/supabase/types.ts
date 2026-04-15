@@ -2559,6 +2559,68 @@ export type Database = {
         }
         Relationships: []
       }
+      coaching_messages: {
+        Row: {
+          action_text: string | null
+          client_id: string
+          coach_type: string
+          created_at: string
+          daily_score: number | null
+          delivery_slot: string
+          fasting_adherence: number | null
+          id: string
+          is_read: boolean
+          macro_adherence: number | null
+          message: string
+          message_date: string
+          priority: number
+          streak: number | null
+          updated_at: string
+        }
+        Insert: {
+          action_text?: string | null
+          client_id: string
+          coach_type: string
+          created_at?: string
+          daily_score?: number | null
+          delivery_slot?: string
+          fasting_adherence?: number | null
+          id?: string
+          is_read?: boolean
+          macro_adherence?: number | null
+          message: string
+          message_date?: string
+          priority?: number
+          streak?: number | null
+          updated_at?: string
+        }
+        Update: {
+          action_text?: string | null
+          client_id?: string
+          coach_type?: string
+          created_at?: string
+          daily_score?: number | null
+          delivery_slot?: string
+          fasting_adherence?: number | null
+          id?: string
+          is_read?: boolean
+          macro_adherence?: number | null
+          message?: string
+          message_date?: string
+          priority?: number
+          streak?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coaching_messages_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       collection_sections: {
         Row: {
           collection_id: string
