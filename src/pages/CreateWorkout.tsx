@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Plus, X, GripVertical, Copy, Trash2, Timer, FileText, Clock, Sparkles } from "lucide-react";
+import { ExerciseDetailSheet, type DetailField } from "@/components/workout/ExerciseDetailSheet";
+import { DetailValueSheet } from "@/components/workout/DetailValueSheet";
 import { useToast } from "@/hooks/use-toast";
 import { CreateFromTemplateDialog } from "@/components/CreateFromTemplateDialog";
 import { SortableGroupHeader } from "@/components/workout/SortableGroupHeader";
