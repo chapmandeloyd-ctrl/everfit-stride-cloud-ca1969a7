@@ -98,7 +98,7 @@ export function CreateClientTaskDialog({
         description: description || null,
         due_date: dueDate ? format(dueDate, "yyyy-MM-dd") : null,
         reminder_enabled: reminderEnabled,
-        attachments: attachment ? [attachment] : null,
+        attachments: attachment ? JSON.parse(JSON.stringify([attachment])) : null,
       }]);
       if (error) throw error;
     },
