@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,12 +9,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ChevronLeft, ChevronRight, Minus, Plus, Send, Camera, Flame, Trophy, MessageSquare, NotepadText } from "lucide-react";
 import { format, addDays, subDays, isToday, eachDayOfInterval, startOfMonth, endOfMonth, parseISO, differenceInDays, isBefore, isAfter, isSameDay } from "date-fns";
+import { toast } from "sonner";
 
 export default function ClientHabitDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const clientId = useEffectiveClientId();
-  const { user } = useAuth();
+  const { user, userRole } = useAuth();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<"habit" | "insight" | "comment">("habit");
   const [viewDate, setViewDate] = useState(new Date());
@@ -91,12 +92,44 @@ export default function ClientHabitDetail() {
   };
 
   const isValueBasedUnit = ["steps", "miles", "minutes", "hours"].includes(habit?.goal_unit ?? "");
+  const isTrainerPreview = useMemo(
+    () => userRole === "trainer" && !!clientId && !!user?.id && clientId !== user.id,
+    [clientId, user?.id, userRole]
+  );
 
-  // Upsert completion value — collapse old duplicate rows into one row for the day
+  // Upsert completion value — collapse old duplicate rows into one row for the day.
+  // Trainer preview sessions cannot UPDATE habit_completions, only INSERT/DELETE,
+  // so use a delete+insert path there.
   const upsertCompletionMutation = useMutation({
     mutationFn: async (newValue: number) => {
       const existingRows = dayCompletions ?? [];
       const keepRow = existingRows[0];
+
+      if (!clientId) {
+        throw new Error("Client session is still loading. Please try again.");
+      }
+
+      if (isTrainerPreview) {
+        if (existingRows.length > 0) {
+          const { error: deleteError } = await supabase
+            .from("habit_completions")
+            .delete()
+            .eq("habit_id", id!)
+            .eq("completion_date", dateStr);
+
+          if (deleteError) throw deleteError;
+        }
+
+        if (newValue > 0) {
+          const { error: insertError } = await supabase
+            .from("habit_completions")
+            .insert({ habit_id: id!, client_id: clientId, completion_date: dateStr, value: newValue } as any);
+
+          if (insertError) throw insertError;
+        }
+
+        return;
+      }
 
       if (keepRow) {
         const { error: updateError } = await supabase
@@ -122,6 +155,9 @@ export default function ClientHabitDetail() {
       }
     },
     onSuccess: invalidateHabitQueries,
+    onError: (error: any) => {
+      toast.error(error?.message || "Could not update this habit.");
+    },
   });
 
   const removeCompletionMutation = useMutation({
@@ -135,6 +171,9 @@ export default function ClientHabitDetail() {
       if (error) throw error;
     },
     onSuccess: invalidateHabitQueries,
+    onError: (error: any) => {
+      toast.error(error?.message || "Could not remove this habit entry.");
+    },
   });
 
   // Send comment mutation
