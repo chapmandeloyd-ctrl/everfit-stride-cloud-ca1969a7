@@ -31,6 +31,9 @@ interface Exercise {
   rest_seconds: number | null;
   tempo: string;
   notes: string;
+  weight_lbs?: number | null;
+  rpe?: number | null;
+  distance?: string | null;
 }
 
 interface Section {
