@@ -130,6 +130,7 @@ function ExerciseRow({
   const thumbnail = exerciseInfo?.image_url || (exerciseInfo?.video_url?.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/) ? `https://img.youtube.com/vi/${exerciseInfo.video_url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)[1]}/mqdefault.jpg` : null);
 
   return (
+    <>
     <div ref={setNodeRef} style={style} className="flex items-center gap-2 px-3 py-2 border-b hover:bg-muted/30 transition-colors overflow-hidden">
       <Checkbox checked={item.selected} onCheckedChange={() => onToggleSelect(item.id)} className="shrink-0" />
       <div className="w-14 h-10 rounded bg-muted overflow-hidden shrink-0">
@@ -186,6 +187,35 @@ function ExerciseRow({
         <GripVertical className="h-4 w-4 text-muted-foreground" />
       </div>
     </div>
+    {/* Detail field chips row */}
+    {item.exercise_type === "normal" && (
+      <div className="flex items-center gap-1.5 px-3 pb-2 flex-wrap -mt-1">
+        {item.detail_fields.includes("weight") && (
+          <button onClick={() => onEditDetailValue?.({ id: item.id, field: "weight" })} className="px-2.5 py-0.5 rounded-full border border-primary/30 bg-primary/5 text-[11px] font-medium text-primary hover:bg-primary/10 transition-colors">
+            {item.weight_lbs ? `${item.weight_lbs} lbs` : "Weight"}
+          </button>
+        )}
+        {item.detail_fields.includes("tempo") && (
+          <button onClick={() => onEditDetailValue?.({ id: item.id, field: "tempo" })} className="px-2.5 py-0.5 rounded-full border border-primary/30 bg-primary/5 text-[11px] font-medium text-primary hover:bg-primary/10 transition-colors">
+            {item.tempo || "Tempo"}
+          </button>
+        )}
+        {item.detail_fields.includes("rpe") && (
+          <button onClick={() => onEditDetailValue?.({ id: item.id, field: "rpe" })} className="px-2.5 py-0.5 rounded-full border border-primary/30 bg-primary/5 text-[11px] font-medium text-primary hover:bg-primary/10 transition-colors">
+            {item.rpe ? `RPE ${item.rpe}` : "RPE"}
+          </button>
+        )}
+        {item.detail_fields.includes("distance") && (
+          <button onClick={() => onEditDetailValue?.({ id: item.id, field: "distance" })} className="px-2.5 py-0.5 rounded-full border border-primary/30 bg-primary/5 text-[11px] font-medium text-primary hover:bg-primary/10 transition-colors">
+            {item.distance || "Distance"}
+          </button>
+        )}
+        <button onClick={() => onEditDetailFields?.(item.id)} className="px-2 py-0.5 rounded-full border border-dashed border-muted-foreground/30 text-[11px] font-medium text-muted-foreground/60 hover:border-primary hover:text-primary transition-colors flex items-center gap-0.5">
+          <Plus className="h-3 w-3" /> Detail
+        </button>
+      </div>
+    )}
+    </>
   );
 }
 
