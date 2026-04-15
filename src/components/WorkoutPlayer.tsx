@@ -1009,6 +1009,40 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
               </div>
             )}
 
+            {/* Countdown timer bubble — for timed exercises */}
+            {currentExercise?.duration_seconds && stepTimer > 0 && (
+              <div className="absolute top-3 right-3">
+                <div className="relative w-20 h-20">
+                  <svg className="w-full h-full -rotate-90" viewBox="0 0 80 80">
+                    <circle cx="40" cy="40" r="34" fill="rgba(0,0,0,0.55)" stroke="rgba(255,255,255,0.15)" strokeWidth="5" />
+                    <circle
+                      cx="40" cy="40" r="34"
+                      fill="none"
+                      stroke="hsl(var(--primary))"
+                      strokeWidth="5"
+                      strokeLinecap="round"
+                      strokeDasharray={`${2 * Math.PI * 34}`}
+                      strokeDashoffset={`${2 * Math.PI * 34 * (1 - timerPercent / 100)}`}
+                      className="transition-all duration-1000"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-xl font-black text-white tabular-nums leading-none">{stepTimer}</span>
+                    <span className="text-[9px] text-white/60 font-medium">sec</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Pause overlay */}
+            {isPaused && (
+              <div
+                className="absolute inset-0 bg-background/70 flex items-center justify-center cursor-pointer"
+                onClick={togglePause}
+              >
+                <Play className="h-16 w-16 text-foreground opacity-70" />
+              </div>
+            )}
           </div>
 
           {/* Exercise name + reps below video */}
