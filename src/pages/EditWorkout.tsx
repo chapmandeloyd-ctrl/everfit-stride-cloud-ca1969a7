@@ -272,6 +272,8 @@ export default function EditWorkout() {
   const [videoFilter, setVideoFilter] = useState<"all" | "named" | "unnamed">("all");
   const [aiBuilderOpen, setAiBuilderOpen] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
+  const [editingDetailFieldsId, setEditingDetailFieldsId] = useState<string | null>(null);
+  const [editingDetailValue, setEditingDetailValue] = useState<{ id: string; field: DetailField } | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor));
 
@@ -337,6 +339,11 @@ export default function EditWorkout() {
             exercise_type: (wpe.exercise_type === "rest" ? "rest" : "normal") as "normal" | "rest",
             selected: false,
             group_id: groupId,
+            detail_fields: (wpe.detail_fields || []) as DetailField[],
+            weight_lbs: wpe.weight_lbs ? String(wpe.weight_lbs) : "",
+            tempo: wpe.tempo || "",
+            rpe: wpe.rpe ? String(wpe.rpe) : "",
+            distance: wpe.distance || "",
           });
         }
       }
@@ -423,13 +430,15 @@ export default function EditWorkout() {
 
   const addExercise = (exerciseId: string) => {
     setExerciseItems((prev) => [...prev, {
-      id: crypto.randomUUID(), exercise_id: exerciseId, sets: 3, target_type: "text", target_value: "", time_seconds: 30, rest_seconds: 30, exercise_type: "normal", selected: false, group_id: null,
+      id: crypto.randomUUID(), exercise_id: exerciseId, sets: 3, target_type: "text" as const, target_value: "", time_seconds: 30, rest_seconds: 30, exercise_type: "normal" as const, selected: false, group_id: null,
+      detail_fields: [] as DetailField[], weight_lbs: "", tempo: "", rpe: "", distance: "",
     }]);
   };
 
   const addRest = () => {
     setExerciseItems((prev) => [...prev, {
-      id: crypto.randomUUID(), exercise_id: "", sets: 0, target_type: "text", target_value: "", time_seconds: 0, rest_seconds: 30, exercise_type: "rest", selected: false, group_id: null,
+      id: crypto.randomUUID(), exercise_id: "", sets: 0, target_type: "text" as const, target_value: "", time_seconds: 0, rest_seconds: 30, exercise_type: "rest" as const, selected: false, group_id: null,
+      detail_fields: [] as DetailField[], weight_lbs: "", tempo: "", rpe: "", distance: "",
     }]);
   };
 
@@ -596,7 +605,11 @@ export default function EditWorkout() {
           rest_seconds: item.rest_seconds,
           notes: item.target_value || "",
           exercise_type: item.exercise_type,
-          tempo: "",
+          tempo: item.tempo || "",
+          weight_lbs: item.weight_lbs ? parseFloat(item.weight_lbs) : null,
+          rpe: item.rpe ? parseInt(item.rpe) : null,
+          distance: item.distance || null,
+          detail_fields: item.detail_fields.length > 0 ? item.detail_fields : null,
         }));
 
       if (exercisesToInsert.length > 0) {
@@ -684,7 +697,7 @@ export default function EditWorkout() {
                 customName={group.custom_name}
               />
               {groupItems.map((gi) => (
-                <ExerciseRow key={gi.id} item={gi} exerciseInfo={getExerciseById(gi.exercise_id)} onUpdate={updateItem} onToggleSelect={toggleSelect} />
+                <ExerciseRow key={gi.id} item={gi} exerciseInfo={getExerciseById(gi.exercise_id)} onUpdate={updateItem} onToggleSelect={toggleSelect} onEditDetailFields={setEditingDetailFieldsId} onEditDetailValue={setEditingDetailValue} />
               ))}
             </div>
           );
@@ -695,7 +708,7 @@ export default function EditWorkout() {
       }
 
       if (!item.group_id) {
-        rendered.push(<ExerciseRow key={item.id} item={item} exerciseInfo={getExerciseById(item.exercise_id)} onUpdate={updateItem} onToggleSelect={toggleSelect} />);
+        rendered.push(<ExerciseRow key={item.id} item={item} exerciseInfo={getExerciseById(item.exercise_id)} onUpdate={updateItem} onToggleSelect={toggleSelect} onEditDetailFields={setEditingDetailFieldsId} onEditDetailValue={setEditingDetailValue} />);
       }
     }
 
@@ -900,13 +913,48 @@ export default function EditWorkout() {
           setInstructions(description);
           setCategory(cat);
           setDifficulty(diff as any);
-          setExerciseItems(items);
+          setExerciseItems(items.map(i => ({ ...i, detail_fields: (i as any).detail_fields || [], weight_lbs: (i as any).weight_lbs || "", tempo: (i as any).tempo || "", rpe: (i as any).rpe || "", distance: (i as any).distance || "" })));
           setGroups(newGroups);
         }}
         onAddExercises={(items) => {
-          setExerciseItems((prev) => [...prev, ...items]);
+          setExerciseItems((prev) => [...prev, ...items.map(i => ({ ...i, detail_fields: (i as any).detail_fields || [], weight_lbs: (i as any).weight_lbs || "", tempo: (i as any).tempo || "", rpe: (i as any).rpe || "", distance: (i as any).distance || "" }))]);
         }}
       />
+
+      {/* Detail Fields Sheet */}
+      {editingDetailFieldsId && (() => {
+        const ex = exerciseItems.find((e) => e.id === editingDetailFieldsId);
+        if (!ex) return null;
+        return (
+          <ExerciseDetailSheet
+            open
+            activeFields={ex.detail_fields}
+            onSave={(fields) => {
+              setExerciseItems((prev) => prev.map((e) => e.id === editingDetailFieldsId ? { ...e, detail_fields: fields } : e));
+            }}
+            onClose={() => setEditingDetailFieldsId(null)}
+          />
+        );
+      })()}
+
+      {/* Detail Value Sheet */}
+      {editingDetailValue && (() => {
+        const ex = exerciseItems.find((e) => e.id === editingDetailValue.id);
+        if (!ex) return null;
+        const fieldMap: Record<DetailField, keyof WorkoutExercise> = { weight: "weight_lbs", tempo: "tempo", rpe: "rpe", distance: "distance" };
+        const fieldKey = fieldMap[editingDetailValue.field];
+        return (
+          <DetailValueSheet
+            open
+            field={editingDetailValue.field}
+            value={String(ex[fieldKey] || "")}
+            onSave={(v) => {
+              setExerciseItems((prev) => prev.map((e) => e.id === editingDetailValue.id ? { ...e, [fieldKey]: v } : e));
+            }}
+            onClose={() => setEditingDetailValue(null)}
+          />
+        );
+      })()}
     </div>
   );
 }
