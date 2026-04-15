@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useCoachingMessage } from "@/hooks/useCoachingMessage";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Target, Flame, TrendingDown, Zap, Battery, Trophy, Check } from "lucide-react";
+import { Sparkles, Target, Flame, TrendingDown, Zap, Battery, Trophy, Check, Dumbbell, ListChecks, Clock, Goal } from "lucide-react";
 
 const TYPE_CONFIG: Record<string, { icon: typeof Sparkles; accent: string; label: string }> = {
   fasting_failure: { icon: Flame, accent: "text-orange-400", label: "Fasting" },
@@ -12,6 +12,12 @@ const TYPE_CONFIG: Record<string, { icon: typeof Sparkles; accent: string; label
   tkd_training: { icon: Zap, accent: "text-purple-400", label: "Training" },
   low_energy: { icon: Battery, accent: "text-amber-400", label: "Energy" },
   strong_day: { icon: Trophy, accent: "text-emerald-400", label: "Momentum" },
+  missed_workout: { icon: Dumbbell, accent: "text-red-400", label: "Missed Workout" },
+  missed_task: { icon: ListChecks, accent: "text-red-400", label: "Overdue Tasks" },
+  pending_task: { icon: ListChecks, accent: "text-yellow-400", label: "Tasks Due" },
+  pending_workout: { icon: Dumbbell, accent: "text-blue-400", label: "Workout Reminder" },
+  pending_fasting: { icon: Clock, accent: "text-orange-400", label: "Start Fast" },
+  pending_goal: { icon: Goal, accent: "text-purple-400", label: "Goal Reminder" },
 };
 
 export function CoachingCard() {
