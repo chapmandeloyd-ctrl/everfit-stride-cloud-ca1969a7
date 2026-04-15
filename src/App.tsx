@@ -28,6 +28,7 @@ import ClientNutrition from "./pages/client/ClientNutrition";
 import ClientNutritionDashboard from "./pages/client/ClientNutritionDashboard";
 import ClientCalendar from "./pages/client/ClientCalendar";
 import ClientSettings from "./pages/client/ClientSettings";
+import ClientTaskDetail from "./pages/client/ClientTaskDetail";
 import ClientGoals from "./pages/client/ClientGoals";
 import ClientTasks from "./pages/client/ClientTasks";
 import ClientResourceHub from "./pages/client/ClientResourceHub";
@@ -182,6 +183,7 @@ const App = () => (
           <Route path="/client/settings" element={<ProtectedRoute allowedRoles={["client"]}><ClientSettings /></ProtectedRoute>} />
           <Route path="/client/goals" element={<ProtectedRoute allowedRoles={["client"]}><ClientGoals /></ProtectedRoute>} />
           <Route path="/client/tasks" element={<ProtectedRoute allowedRoles={["client"]}><ClientTasks /></ProtectedRoute>} />
+          <Route path="/client/tasks/:taskId" element={<ProtectedRoute allowedRoles={["client"]}><ClientTaskDetail /></ProtectedRoute>} />
           <Route path="/client/resource-hub" element={<ProtectedRoute allowedRoles={["client"]}><ClientResourceHub /></ProtectedRoute>} />
           <Route path="/client/workout-hub" element={<ProtectedRoute allowedRoles={["client"]}><ClientWorkoutHub /></ProtectedRoute>} />
           <Route path="/client/on-demand" element={<ProtectedRoute allowedRoles={["client"]}><ClientOnDemand /></ProtectedRoute>} />

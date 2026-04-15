@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -30,6 +31,7 @@ const taskTypeLabels = {
 
 export default function ClientTasks() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const clientId = useEffectiveClientId();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -139,7 +141,7 @@ export default function ClientTasks() {
     const isOverdue = task.due_date && !isCompleted && isPast(parseISO(task.due_date));
 
     return (
-      <Card>
+      <Card className="cursor-pointer hover:bg-accent/50 transition-colors" onClick={() => navigate(`/client/tasks/${task.id}`)}>
         <CardHeader>
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3 flex-1">
@@ -153,20 +155,14 @@ export default function ClientTasks() {
                 </CardDescription>
               </div>
             </div>
-            {!isCompleted && (
-              <Button size="sm" onClick={() => completeMutation.mutate(task.id)} disabled={completeMutation.isPending}>
-                <CheckCircle2 className="mr-2 h-4 w-4" />
-                Complete
-              </Button>
+            {isCompleted && (
+              <Badge variant="secondary"><CheckCircle2 className="mr-1 h-3 w-3" />Completed</Badge>
             )}
           </div>
         </CardHeader>
         <CardContent>
           {task.description && <p className="text-sm text-muted-foreground mb-4">{task.description}</p>}
           <div className="flex flex-wrap gap-2">
-            {isCompleted && (
-              <Badge variant="secondary"><CheckCircle2 className="mr-1 h-3 w-3" />Completed</Badge>
-            )}
             {task.due_date && (
               <Badge variant={isOverdue ? "destructive" : "outline"}>
                 <Calendar className="mr-1 h-3 w-3" />

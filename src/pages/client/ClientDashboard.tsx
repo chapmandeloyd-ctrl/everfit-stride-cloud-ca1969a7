@@ -2229,9 +2229,13 @@ export default function ClientDashboard() {
             case "tasks":
               return settings.tasks_enabled && tasks && tasks.length > 0 && !isViewingOtherDay ? (
                 <div key="tasks">
-                  <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
-                    Tasks ({completedTaskCount}/{totalTaskCount})
-                  </h2>
+                  {completedTaskCount === totalTaskCount && totalTaskCount > 0 ? (
+                    <h2 className="text-sm font-bold mb-2">All tasks completed 🎉</h2>
+                  ) : (
+                    <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
+                      Tasks ({completedTaskCount}/{totalTaskCount})
+                    </h2>
+                  )}
                   <Card>
                     <CardContent className="p-0 divide-y divide-border">
                       {tasks.slice(0, 5).map((task) => {
@@ -2240,7 +2244,7 @@ export default function ClientDashboard() {
                           <div
                             key={task.id}
                             className="flex items-center gap-3 px-4 py-3 hover:bg-muted/30 transition-colors cursor-pointer"
-                            onClick={() => { if (!isCompleted) completeMutation.mutate(task.id); }}
+                            onClick={() => navigate(`/client/tasks/${task.id}`)}
                           >
                             {isCompleted ? (
                               <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />
