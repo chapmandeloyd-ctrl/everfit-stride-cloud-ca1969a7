@@ -6081,6 +6081,68 @@ export type Database = {
           },
         ]
       }
+      portal_scenes: {
+        Row: {
+          audio_url: string | null
+          audio_volume: number
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          is_premium: boolean
+          loop_video: boolean
+          name: string
+          sort_order: number
+          thumbnail_url: string | null
+          trainer_id: string
+          updated_at: string
+          video_url: string
+        }
+        Insert: {
+          audio_url?: string | null
+          audio_volume?: number
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_premium?: boolean
+          loop_video?: boolean
+          name: string
+          sort_order?: number
+          thumbnail_url?: string | null
+          trainer_id: string
+          updated_at?: string
+          video_url: string
+        }
+        Update: {
+          audio_url?: string | null
+          audio_volume?: number
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_premium?: boolean
+          loop_video?: boolean
+          name?: string
+          sort_order?: number
+          thumbnail_url?: string | null
+          trainer_id?: string
+          updated_at?: string
+          video_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_scenes_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
