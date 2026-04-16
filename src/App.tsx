@@ -90,6 +90,8 @@ import ClientWorkoutHistory from "./pages/ClientWorkoutHistory";
 import ClientWorkoutSession from "./pages/client/ClientWorkoutSession";
 import ClientMyWorkouts from "./pages/client/ClientMyWorkouts";
 import VibesAdmin from "./pages/VibesAdmin";
+import ClientPortal from "./pages/client/ClientPortal";
+import PortalAdmin from "./pages/PortalAdmin";
 import AllClientWorkouts from "./pages/AllClientWorkouts";
 import ClientCommandCenter from "./pages/ClientCommandCenter";
 import Scheduling from "./pages/Scheduling";
@@ -224,6 +226,10 @@ const App = () => (
           
           {/* Trainer: Vibes Admin */}
           <Route path="/vibes-admin" element={<ProtectedRoute allowedRoles={["trainer"]}><VibesAdmin /></ProtectedRoute>} />
+
+          {/* Portal (Beta) — new immersive experience */}
+          <Route path="/client/portal" element={<ProtectedRoute allowedRoles={["client"]}><ClientPortal /></ProtectedRoute>} />
+          <Route path="/portal-admin" element={<ProtectedRoute allowedRoles={["trainer"]}><PortalAdmin /></ProtectedRoute>} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
