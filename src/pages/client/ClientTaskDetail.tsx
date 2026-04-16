@@ -265,6 +265,12 @@ export default function ClientTaskDetail() {
     }
   };
 
+  const isPdfDocument = documentViewerMimeType === "application/pdf" || /\.pdf$/i.test(documentViewerName);
+  const pdfDocumentFile = useMemo(() => {
+    if (!documentViewerData) return null;
+    return { data: documentViewerData.slice() };
+  }, [documentViewerData]);
+
   if (!task) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -284,12 +290,6 @@ export default function ClientTaskDetail() {
     if (!name) return false;
     return /\.(pdf|doc|docx|xls|xlsx|ppt|pptx|txt|csv)$/i.test(name);
   };
-
-  const isPdfDocument = documentViewerMimeType === "application/pdf" || /\.pdf$/i.test(documentViewerName);
-  const pdfDocumentFile = useMemo(() => {
-    if (!documentViewerData) return null;
-    return { data: documentViewerData.slice() };
-  }, [documentViewerData]);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -423,7 +423,7 @@ export default function ClientTaskDetail() {
               documentViewerData ? (
                 pdfLoadFailed ? (
                   <div className="h-full flex flex-col items-center justify-center gap-3 text-sm text-muted-foreground text-center px-6">
-                    <p>We couldn’t render this PDF in-app.</p>
+                    <p>{pdfLoadErrorMessage || "We couldn’t render this PDF in-app."}</p>
                     {documentSourceUrl && (
                       <a
                         href={documentSourceUrl}
@@ -438,11 +438,14 @@ export default function ClientTaskDetail() {
                   </div>
                 ) : (
                   <Document
-                    file={{ data: documentViewerData }}
+                    file={pdfDocumentFile}
                     loading={<div className="py-10 text-center text-sm text-muted-foreground">Rendering PDF...</div>}
                     onLoadSuccess={({ numPages }) => setPdfPageCount(numPages)}
                     onLoadError={(error) => {
                       console.error("PDF render failed", error);
+                      setPdfLoadErrorMessage(error instanceof Error ? error.message : "We couldn’t render this PDF in-app.");
+                      setPdfLoadFailed(true);
+                    }}
                       setPdfLoadFailed(true);
                     }}
                     className="flex flex-col items-center gap-4"
