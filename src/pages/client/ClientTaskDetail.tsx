@@ -446,8 +446,6 @@ export default function ClientTaskDetail() {
                       setPdfLoadErrorMessage(error instanceof Error ? error.message : "We couldn’t render this PDF in-app.");
                       setPdfLoadFailed(true);
                     }}
-                      setPdfLoadFailed(true);
-                    }}
                     className="flex flex-col items-center gap-4"
                   >
                     {Array.from({ length: pdfPageCount }, (_, index) => (
