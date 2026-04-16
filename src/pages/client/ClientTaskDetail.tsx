@@ -392,6 +392,14 @@ export default function ClientTaskDetail() {
                   >
                     <Download className="h-5 w-5" />
                   </a>
+                ) : documentSourceUrl ? (
+                  <a
+                    href={documentSourceUrl}
+                    download={documentViewerName || "document"}
+                    className="p-1 text-muted-foreground hover:text-foreground"
+                  >
+                    <Download className="h-5 w-5" />
+                  </a>
                 ) : (
                   <div className="w-7" />
                 )}
@@ -404,31 +412,33 @@ export default function ClientTaskDetail() {
               <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
                 Loading document...
               </div>
-            ) : documentViewerUrl ? (
-              isPdfDocument ? (
-                pdfLoadFailed ? (
-                  <div className="h-full flex flex-col items-center justify-center gap-3 text-sm text-muted-foreground text-center px-6">
-                    <p>We couldn’t render this PDF in-app.</p>
-                    {documentSourceUrl && (
-                      <a
-                        href={documentSourceUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-2 text-primary font-medium"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                        Open original file
-                      </a>
-                    )}
-                  </div>
-                ) : (
-                  <Document
-                    file={documentViewerUrl}
-                    loading={<div className="py-10 text-center text-sm text-muted-foreground">Rendering PDF...</div>}
-                    onLoadSuccess={({ numPages }) => setPdfPageCount(numPages)}
-                    onLoadError={() => setPdfLoadFailed(true)}
-                    className="flex flex-col items-center gap-4"
-                  >
+            ) : isPdfDocument && documentViewerData ? (
+              pdfLoadFailed ? (
+                <div className="h-full flex flex-col items-center justify-center gap-3 text-sm text-muted-foreground text-center px-6">
+                  <p>We couldn’t render this PDF in-app.</p>
+                  {documentSourceUrl && (
+                    <a
+                      href={documentSourceUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-2 text-primary font-medium"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      Open original file
+                    </a>
+                  )}
+                </div>
+              ) : (
+                <Document
+                  file={{ data: documentViewerData }}
+                  loading={<div className="py-10 text-center text-sm text-muted-foreground">Rendering PDF...</div>}
+                  onLoadSuccess={({ numPages }) => setPdfPageCount(numPages)}
+                  onLoadError={(error) => {
+                    console.error("PDF render failed", error);
+                    setPdfLoadFailed(true);
+                  }}
+                  className="flex flex-col items-center gap-4"
+                >
                     {Array.from({ length: pdfPageCount }, (_, index) => (
                       <Page
                         key={`page_${index + 1}`}
