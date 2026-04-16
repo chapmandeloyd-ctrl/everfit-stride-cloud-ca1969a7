@@ -71,6 +71,21 @@ export function DailyScoreRing() {
     );
   }
 
+  // Zero-activity state — show a clean "get started" card instead of "Reset Needed"
+  if (score.total === 0) {
+    return (
+      <div className="mx-2 space-y-2">
+        <h2 className="text-lg font-bold text-foreground px-1">Daily Performance</h2>
+        <div className="w-full rounded-xl bg-black border border-white/10 p-4 text-center space-y-2">
+          <p className="text-sm font-semibold text-muted-foreground">No activity logged yet today</p>
+          <p className="text-[11px] text-muted-foreground leading-relaxed">
+            {score.coachMessage}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   const progress = score.total / 100;
   const dashOffset = CIRCUMFERENCE * (1 - progress);
   const currentStreak = streak?.currentStreak ?? 0;

@@ -36,6 +36,15 @@ function scoreMacroAlignment(
   let feedback = "";
   let suggestedMultiplier = 1.0;
 
+  // If no macro targets are set at all, give neutral score with no feedback
+  const hasAnyTargets = (ctx.targetProtein && ctx.targetProtein > 0) ||
+    (ctx.targetFats && ctx.targetFats > 0) ||
+    (ctx.targetCarbs && ctx.targetCarbs > 0) ||
+    (ctx.targetCalories && ctx.targetCalories > 0);
+  if (!hasAnyTargets && !ctx.ketoAbbrev) {
+    return { score: 10, feedback: "", suggestedMultiplier: 1.0 };
+  }
+
   const keto = (ctx.ketoAbbrev || "").toUpperCase();
 
   // ── Protein alignment (0-8 pts) ──
