@@ -161,6 +161,37 @@ export default function ClientTaskDetail() {
     setDocumentViewerName("");
   };
 
+  const inferDocumentMimeType = (name?: string, headerType?: string | null) => {
+    const normalizedHeader = headerType?.split(";")[0]?.trim().toLowerCase();
+    if (normalizedHeader && normalizedHeader !== "application/octet-stream") {
+      return normalizedHeader;
+    }
+
+    const extension = name?.split(".").pop()?.toLowerCase();
+    switch (extension) {
+      case "pdf":
+        return "application/pdf";
+      case "doc":
+        return "application/msword";
+      case "docx":
+        return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+      case "xls":
+        return "application/vnd.ms-excel";
+      case "xlsx":
+        return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+      case "ppt":
+        return "application/vnd.ms-powerpoint";
+      case "pptx":
+        return "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+      case "txt":
+        return "text/plain";
+      case "csv":
+        return "text/csv";
+      default:
+        return "application/octet-stream";
+    }
+  };
+
   const handleOpenDocument = async (url: string, fileName?: string) => {
     setDocumentLoading(true);
     setDocumentViewerOpen(true);
@@ -170,7 +201,9 @@ export default function ClientTaskDetail() {
       const response = await fetch(url);
       if (!response.ok) throw new Error("Unable to open document");
 
-      const blob = await response.blob();
+      const mimeType = inferDocumentMimeType(fileName, response.headers.get("content-type"));
+      const fileBuffer = await response.arrayBuffer();
+      const blob = new Blob([fileBuffer], { type: mimeType });
       const nextUrl = URL.createObjectURL(blob);
 
       if (documentViewerUrl) {
@@ -182,7 +215,7 @@ export default function ClientTaskDetail() {
       setDocumentViewerOpen(false);
       toast({
         title: "Couldn’t open document",
-        description: "This browser is blocking the external file tab, so I switched to an in-app viewer.",
+        description: "The file viewer couldn’t load that document.",
         variant: "destructive",
       });
     } finally {
