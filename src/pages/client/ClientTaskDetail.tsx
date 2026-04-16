@@ -33,6 +33,7 @@ export default function ClientTaskDetail() {
   const [pdfPageCount, setPdfPageCount] = useState(0);
   const [pdfRenderWidth, setPdfRenderWidth] = useState(0);
   const [pdfLoadFailed, setPdfLoadFailed] = useState(false);
+  const [pdfLoadErrorMessage, setPdfLoadErrorMessage] = useState<string | null>(null);
   const commentInputRef = useRef<HTMLInputElement>(null);
   const commentsEndRef = useRef<HTMLDivElement>(null);
   const pdfContainerRef = useRef<HTMLDivElement>(null);
@@ -180,6 +181,7 @@ export default function ClientTaskDetail() {
     setDocumentViewerOpen(false);
     setDocumentLoading(false);
     setPdfLoadFailed(false);
+    setPdfLoadErrorMessage(null);
     setPdfPageCount(0);
     if (documentViewerUrl) {
       URL.revokeObjectURL(documentViewerUrl);
@@ -228,6 +230,7 @@ export default function ClientTaskDetail() {
     setDocumentViewerName(fileName || "Document");
     setDocumentSourceUrl(url);
     setPdfLoadFailed(false);
+    setPdfLoadErrorMessage(null);
     setPdfPageCount(0);
 
     try {
@@ -283,6 +286,10 @@ export default function ClientTaskDetail() {
   };
 
   const isPdfDocument = documentViewerMimeType === "application/pdf" || /\.pdf$/i.test(documentViewerName);
+  const pdfDocumentFile = useMemo(() => {
+    if (!documentViewerData) return null;
+    return { data: documentViewerData.slice() };
+  }, [documentViewerData]);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
