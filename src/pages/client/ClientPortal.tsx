@@ -27,12 +27,6 @@ export default function ClientPortal() {
     },
   });
 
-  // Group scenes by category
-  const grouped = scenes.reduce<Record<string, PortalScene[]>>((acc, s) => {
-    (acc[s.category] = acc[s.category] || []).push(s);
-    return acc;
-  }, {});
-
   if (activeScene) {
     return <PortalPlayer scene={activeScene} onBack={() => setActiveScene(null)} />;
   }
