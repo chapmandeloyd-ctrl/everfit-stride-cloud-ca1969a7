@@ -35,7 +35,8 @@ interface Scene {
   sort_order: number;
 }
 
-const CATEGORIES = ["nature", "rain", "fire", "ocean", "forest", "ambient", "space", "urban"];
+// Must match client-side filter buckets in ClientPortal (Focus / Sleep / Escape)
+const CATEGORIES = ["Focus", "Sleep", "Escape"];
 
 export default function PortalAdmin() {
   const { user } = useAuth();
