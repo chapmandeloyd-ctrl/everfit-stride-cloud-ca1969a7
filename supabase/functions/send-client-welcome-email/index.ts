@@ -83,7 +83,7 @@ const handler = async (req: Request): Promise<Response> => {
                 padding: 2px 8px;
                 border-radius: 4px;
                 font-family: 'Courier New', monospace;
-                color: #667eea;
+                color: #e53e3e;
               }
             </style>
           </head>
