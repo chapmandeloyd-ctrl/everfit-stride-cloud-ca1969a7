@@ -25,6 +25,7 @@ export default function ClientTaskDetail() {
   const [commentText, setCommentText] = useState("");
   const [documentViewerOpen, setDocumentViewerOpen] = useState(false);
   const [documentViewerUrl, setDocumentViewerUrl] = useState<string | null>(null);
+  const [documentViewerData, setDocumentViewerData] = useState<Uint8Array | null>(null);
   const [documentViewerName, setDocumentViewerName] = useState<string>("");
   const [documentViewerMimeType, setDocumentViewerMimeType] = useState<string | null>(null);
   const [documentSourceUrl, setDocumentSourceUrl] = useState<string | null>(null);
@@ -108,7 +109,7 @@ export default function ClientTaskDetail() {
     updatePdfWidth();
     window.addEventListener("resize", updatePdfWidth);
     return () => window.removeEventListener("resize", updatePdfWidth);
-  }, [documentViewerOpen, documentViewerUrl]);
+  }, [documentViewerOpen, documentViewerData, documentViewerUrl]);
 
   const completeMutation = useMutation({
     mutationFn: async () => {
@@ -184,6 +185,7 @@ export default function ClientTaskDetail() {
       URL.revokeObjectURL(documentViewerUrl);
       setDocumentViewerUrl(null);
     }
+    setDocumentViewerData(null);
     setDocumentViewerName("");
     setDocumentViewerMimeType(null);
     setDocumentSourceUrl(null);
@@ -234,15 +236,20 @@ export default function ClientTaskDetail() {
 
       const mimeType = inferDocumentMimeType(fileName, response.headers.get("content-type"));
       const fileBuffer = await response.arrayBuffer();
-      const blob = new Blob([fileBuffer], { type: mimeType });
-      const nextUrl = URL.createObjectURL(blob);
+      const fileBytes = new Uint8Array(fileBuffer);
 
       if (documentViewerUrl) {
         URL.revokeObjectURL(documentViewerUrl);
+        setDocumentViewerUrl(null);
       }
 
       setDocumentViewerMimeType(mimeType);
-      setDocumentViewerUrl(nextUrl);
+      setDocumentViewerData(fileBytes);
+
+      if (mimeType !== "application/pdf") {
+        const nextUrl = URL.createObjectURL(new Blob([fileBytes], { type: mimeType }));
+        setDocumentViewerUrl(nextUrl);
+      }
     } catch (error) {
       setDocumentViewerOpen(false);
       toast({
@@ -385,6 +392,14 @@ export default function ClientTaskDetail() {
                   >
                     <Download className="h-5 w-5" />
                   </a>
+                ) : documentSourceUrl ? (
+                  <a
+                    href={documentSourceUrl}
+                    download={documentViewerName || "document"}
+                    className="p-1 text-muted-foreground hover:text-foreground"
+                  >
+                    <Download className="h-5 w-5" />
+                  </a>
                 ) : (
                   <div className="w-7" />
                 )}
@@ -397,8 +412,8 @@ export default function ClientTaskDetail() {
               <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
                 Loading document...
               </div>
-            ) : documentViewerUrl ? (
-              isPdfDocument ? (
+            ) : isPdfDocument ? (
+              documentViewerData ? (
                 pdfLoadFailed ? (
                   <div className="h-full flex flex-col items-center justify-center gap-3 text-sm text-muted-foreground text-center px-6">
                     <p>We couldn’t render this PDF in-app.</p>
@@ -416,10 +431,13 @@ export default function ClientTaskDetail() {
                   </div>
                 ) : (
                   <Document
-                    file={documentViewerUrl}
+                    file={{ data: documentViewerData }}
                     loading={<div className="py-10 text-center text-sm text-muted-foreground">Rendering PDF...</div>}
                     onLoadSuccess={({ numPages }) => setPdfPageCount(numPages)}
-                    onLoadError={() => setPdfLoadFailed(true)}
+                    onLoadError={(error) => {
+                      console.error("PDF render failed", error);
+                      setPdfLoadFailed(true);
+                    }}
                     className="flex flex-col items-center gap-4"
                   >
                     {Array.from({ length: pdfPageCount }, (_, index) => (
@@ -435,12 +453,16 @@ export default function ClientTaskDetail() {
                   </Document>
                 )
               ) : (
-                <iframe
-                  src={documentViewerUrl}
-                  title={documentViewerName || "Document viewer"}
-                  className="h-full w-full border-0 bg-background rounded-lg"
-                />
+                <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
+                  Unable to load document.
+                </div>
               )
+            ) : documentViewerUrl ? (
+              <iframe
+                src={documentViewerUrl}
+                title={documentViewerName || "Document viewer"}
+                className="h-full w-full border-0 bg-background rounded-lg"
+              />
             ) : (
               <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
                 Unable to load document.
