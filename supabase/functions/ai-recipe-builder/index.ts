@@ -118,7 +118,7 @@ serve(async (req) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
+          model: "google/gemini-3-flash-preview",
           messages: [
             { role: "system", content: systemBase + " Extract ALL individual recipes found in the text." },
             { role: "user", content: `Extract ALL recipes from this content:\n\n${content.slice(0, 50000)}` },
