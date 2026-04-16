@@ -1582,7 +1582,9 @@ export default function ClientDashboard() {
   }) || [];
 
   const hasSportEvents = (todaySportEvents?.length || 0) > 0;
+  const hasNoPlanEver = !clientWorkouts || clientWorkouts.length === 0;
   const isRestDay = todaysWorkouts.length === 0 && !hasSportEvents;
+  const showWelcomeCard = hasNoPlanEver && isRestDay && !!welcomeCard;
   const totalCards = todaysWorkouts.length + (todaySportEvents?.length || 0);
   const hasMultiple = totalCards > 1;
 
