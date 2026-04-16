@@ -81,6 +81,9 @@ export default function TrainerSettings() {
         {/* Welcome Card for New Clients */}
         <WelcomeCardEditor />
 
+        {/* Fasting Card for New Clients */}
+        <FastingCardEditor />
+
         {/* Onboarding Flows Preview */}
         <OnboardingPreviewSection />
       </div>
