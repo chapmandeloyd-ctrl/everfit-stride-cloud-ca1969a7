@@ -228,7 +228,7 @@ const App = () => (
           <Route path="/vibes-admin" element={<ProtectedRoute allowedRoles={["trainer"]}><VibesAdmin /></ProtectedRoute>} />
 
           {/* Portal (Beta) — new immersive experience */}
-          <Route path="/client/portal" element={<ProtectedRoute allowedRoles={["client"]}><ClientPortal /></ProtectedRoute>} />
+          <Route path="/client/portal" element={<ProtectedRoute allowedRoles={["client", "trainer"]}><ClientPortal /></ProtectedRoute>} />
           <Route path="/portal-admin" element={<ProtectedRoute allowedRoles={["trainer"]}><PortalAdmin /></ProtectedRoute>} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
