@@ -1385,7 +1385,29 @@ export default function ClientDashboard() {
     enabled: !!clientId && settings.training_enabled,
   });
 
-  // Fetch today's sport schedule events
+  // Fetch trainer's welcome card for new clients with no plan
+  const { data: welcomeCard } = useQuery({
+    queryKey: ["trainer-welcome-card-client", clientId],
+    queryFn: async () => {
+      // Get trainer_id from client_feature_settings
+      const { data: cfs } = await supabase
+        .from("client_feature_settings")
+        .select("trainer_id")
+        .eq("client_id", clientId!)
+        .maybeSingle();
+      if (!cfs?.trainer_id) return null;
+      const { data, error } = await supabase
+        .from("trainer_welcome_cards")
+        .select("*")
+        .eq("trainer_id", cfs.trainer_id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!clientId && settings.training_enabled,
+  });
+
+
   const { data: todaySportEvents } = useQuery({
     queryKey: ["client-sport-events-today", clientId],
     queryFn: async () => {
