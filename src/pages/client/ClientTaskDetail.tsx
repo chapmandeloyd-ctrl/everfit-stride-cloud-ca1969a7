@@ -7,7 +7,7 @@ import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { ArrowLeft, AlarmClock, Check, ChevronDown, Send, Camera, FileText } from "lucide-react";
+import { ArrowLeft, AlarmClock, Check, ChevronDown, Send, Camera, FileText, Download } from "lucide-react";
 
 export default function ClientTaskDetail() {
   const { taskId } = useParams<{ taskId: string }>();
@@ -18,6 +18,10 @@ export default function ClientTaskDetail() {
   const queryClient = useQueryClient();
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [commentText, setCommentText] = useState("");
+  const [documentViewerOpen, setDocumentViewerOpen] = useState(false);
+  const [documentViewerUrl, setDocumentViewerUrl] = useState<string | null>(null);
+  const [documentViewerName, setDocumentViewerName] = useState<string>("");
+  const [documentLoading, setDocumentLoading] = useState(false);
   const commentInputRef = useRef<HTMLInputElement>(null);
   const commentsEndRef = useRef<HTMLDivElement>(null);
 
@@ -73,6 +77,14 @@ export default function ClientTaskDetail() {
       setTimeout(() => commentsEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
     }
   }, [commentsOpen, comments?.length]);
+
+  useEffect(() => {
+    return () => {
+      if (documentViewerUrl) {
+        URL.revokeObjectURL(documentViewerUrl);
+      }
+    };
+  }, [documentViewerUrl]);
 
   const completeMutation = useMutation({
     mutationFn: async () => {
@@ -139,34 +151,42 @@ export default function ClientTaskDetail() {
     sendCommentMutation.mutate(commentText.trim());
   };
 
+  const closeDocumentViewer = () => {
+    setDocumentViewerOpen(false);
+    setDocumentLoading(false);
+    if (documentViewerUrl) {
+      URL.revokeObjectURL(documentViewerUrl);
+      setDocumentViewerUrl(null);
+    }
+    setDocumentViewerName("");
+  };
+
   const handleOpenDocument = async (url: string, fileName?: string) => {
-    const popup = window.open("", "_blank");
+    setDocumentLoading(true);
+    setDocumentViewerOpen(true);
+    setDocumentViewerName(fileName || "Document");
 
     try {
       const response = await fetch(url);
       if (!response.ok) throw new Error("Unable to open document");
 
       const blob = await response.blob();
-      const blobUrl = URL.createObjectURL(blob);
+      const nextUrl = URL.createObjectURL(blob);
 
-      if (popup) {
-        popup.location.href = blobUrl;
-      } else {
-        const link = document.createElement("a");
-        link.href = blobUrl;
-        link.target = "_blank";
-        if (fileName) link.download = fileName;
-        link.click();
+      if (documentViewerUrl) {
+        URL.revokeObjectURL(documentViewerUrl);
       }
 
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+      setDocumentViewerUrl(nextUrl);
     } catch (error) {
-      popup?.close();
+      setDocumentViewerOpen(false);
       toast({
         title: "Couldn’t open document",
-        description: "This browser is blocking the direct file link.",
+        description: "This browser is blocking the external file tab, so I switched to an in-app viewer.",
         variant: "destructive",
       });
+    } finally {
+      setDocumentLoading(false);
     }
   };
 
@@ -270,6 +290,48 @@ export default function ClientTaskDetail() {
           <Check className="h-8 w-8" />
         </button>
       </div>
+
+      <Sheet open={documentViewerOpen} onOpenChange={(open) => (open ? setDocumentViewerOpen(true) : closeDocumentViewer())}>
+        <SheetContent side="bottom" className="h-[92vh] flex flex-col p-0 rounded-t-2xl">
+          <SheetHeader className="px-4 pt-4 pb-3 border-b">
+            <div className="flex items-center gap-2">
+              <button onClick={closeDocumentViewer}>
+                <ChevronDown className="h-5 w-5" />
+              </button>
+              <SheetTitle className="flex-1 text-center truncate px-2">{documentViewerName || "Document"}</SheetTitle>
+              {documentViewerUrl ? (
+                <a
+                  href={documentViewerUrl}
+                  download={documentViewerName || "document"}
+                  className="p-1 text-muted-foreground hover:text-foreground"
+                >
+                  <Download className="h-5 w-5" />
+                </a>
+              ) : (
+                <div className="w-7" />
+              )}
+            </div>
+          </SheetHeader>
+
+          <div className="flex-1 bg-muted/30">
+            {documentLoading ? (
+              <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
+                Loading document...
+              </div>
+            ) : documentViewerUrl ? (
+              <iframe
+                src={documentViewerUrl}
+                title={documentViewerName || "Document viewer"}
+                className="h-full w-full border-0 bg-background"
+              />
+            ) : (
+              <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
+                Unable to load document.
+              </div>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
 
       <Sheet open={commentsOpen} onOpenChange={setCommentsOpen}>
         <SheetContent side="bottom" className="h-[60vh] flex flex-col p-0 rounded-t-2xl">
