@@ -197,6 +197,15 @@ export default function ClientTaskDetail() {
   };
 
   const handleOpenDocument = async (url: string, fileName?: string) => {
+    const mimeType = inferDocumentMimeType(fileName, null);
+
+    // PDFs: open in native browser viewer (new tab) — always works
+    if (mimeType === "application/pdf" || /\.pdf$/i.test(fileName || "")) {
+      window.open(url, "_blank", "noopener,noreferrer");
+      return;
+    }
+
+    // Non-PDF documents: show in the in-app sheet viewer
     setDocumentLoading(true);
     setDocumentViewerOpen(true);
     setDocumentViewerName(fileName || "Document");
@@ -206,22 +215,17 @@ export default function ClientTaskDetail() {
       const response = await fetch(url);
       if (!response.ok) throw new Error("Unable to open document");
 
-      const mimeType = inferDocumentMimeType(fileName, response.headers.get("content-type"));
-      const fileBuffer = await response.arrayBuffer();
-      const fileBytes = new Uint8Array(fileBuffer);
+      const resolvedMime = inferDocumentMimeType(fileName, response.headers.get("content-type"));
+      const fileBytes = new Uint8Array(await response.arrayBuffer());
 
       if (documentViewerUrl) {
         URL.revokeObjectURL(documentViewerUrl);
         setDocumentViewerUrl(null);
       }
 
-      setDocumentViewerMimeType(mimeType);
-      setDocumentViewerData(fileBytes);
-
-      if (mimeType !== "application/pdf") {
-        const nextUrl = URL.createObjectURL(new Blob([fileBytes], { type: mimeType }));
-        setDocumentViewerUrl(nextUrl);
-      }
+      setDocumentViewerMimeType(resolvedMime);
+      const nextUrl = URL.createObjectURL(new Blob([fileBytes], { type: resolvedMime }));
+      setDocumentViewerUrl(nextUrl);
     } catch (error) {
       setDocumentViewerOpen(false);
       toast({
