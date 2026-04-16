@@ -135,16 +135,17 @@ export function PortalPlayer({ scene, onBack }: PortalPlayerProps) {
               </div>
             </div>
 
-            {/* Swipe-up hint */}
-            <motion.div
-              className="absolute bottom-0 left-0 right-0 flex flex-col items-center gap-2 pb-12 text-white/60"
+            {/* Swipe-up hint — tappable */}
+            <motion.button
+              onClick={() => setImmersive(false)}
+              className="absolute bottom-0 left-0 right-0 flex flex-col items-center gap-2 pb-12 text-white/60 hover:text-white/90 transition-colors"
               style={{ paddingBottom: "max(env(safe-area-inset-bottom, 0px), 48px)" }}
               animate={{ y: [0, -8, 0] }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             >
               <ChevronDown className="h-5 w-5 rotate-180" />
-              <span className="text-[11px] uppercase tracking-widest">Swipe up to exit</span>
-            </motion.div>
+              <span className="text-[11px] uppercase tracking-widest">Swipe or tap to exit</span>
+            </motion.button>
           </motion.div>
         ) : (
           <motion.div
