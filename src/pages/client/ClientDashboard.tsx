@@ -96,6 +96,21 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
     enabled: !!clientId,
   });
 
+  // Fetch universal fasting card from trainer
+  const { data: universalFastingCard } = useQuery({
+    queryKey: ["trainer-fasting-card-client", featureSettings?.trainer_id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("trainer_fasting_cards")
+        .select("*")
+        .eq("trainer_id", featureSettings!.trainer_id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!featureSettings?.trainer_id,
+  });
+
   const { data: activeProtocol } = useQuery({
     queryKey: ["active-fasting-protocol", featureSettings?.selected_protocol_id],
     queryFn: async () => {
@@ -439,7 +454,9 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
 
   // No protocol or quick plan selected — empty state (but if actively fasting via quick plan, skip to timer)
   if (!hasProtocol && !hasQuickPlan && !isFasting && !hasEatingWindow) {
-    const fastingCardBg = featureSettings?.fasting_card_image_url;
+    // Use per-client image first, then universal trainer fasting card
+    const fastingCardBg = featureSettings?.fasting_card_image_url || universalFastingCard?.image_url;
+    const fastingCardMsg = fastingSubtitle || universalFastingCard?.message || "Your fasting journey begins soon.";
     return (
       <Card className="overflow-hidden border-primary/20 shadow-lg relative">
         {fastingCardBg ? (
@@ -452,28 +469,18 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
             <CardContent className="relative z-10 min-h-[240px] flex flex-col justify-end p-5 space-y-3">
               <div className="text-left">
                 <p className="text-base font-bold text-white drop-shadow-lg">
-                  {fastingSubtitle}
+                  {fastingCardMsg}
                 </p>
               </div>
-              <Button 
-                className="w-full h-11 text-base bg-white/25 hover:bg-white/35 text-white border border-white/30 backdrop-blur-sm"
-                variant="ghost"
-                onClick={() => navigate("/client/choose-protocol")}
-              >
-                Choose Protocol
-              </Button>
             </CardContent>
           </>
         ) : (
           <CardContent className="px-6 py-8 text-center space-y-4">
             <div>
               <p className="text-base font-bold">
-                {fastingSubtitle}
+                {fastingCardMsg}
               </p>
             </div>
-            <Button className="w-full h-12 text-base" onClick={() => navigate("/client/choose-protocol")}>
-              Choose Protocol
-            </Button>
           </CardContent>
         )}
       </Card>

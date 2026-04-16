@@ -8,6 +8,7 @@ import { EditCardioActivityDialog } from "@/components/cardio/EditCardioActivity
 import { getIconComponent } from "@/components/cardio/cardioActivities";
 import { OnboardingPreviewSection } from "@/components/settings/OnboardingPreviewSection";
 import { WelcomeCardEditor } from "@/components/settings/WelcomeCardEditor";
+import { FastingCardEditor } from "@/components/settings/FastingCardEditor";
 import { useState } from "react";
 
 export default function TrainerSettings() {
@@ -79,6 +80,9 @@ export default function TrainerSettings() {
 
         {/* Welcome Card for New Clients */}
         <WelcomeCardEditor />
+
+        {/* Fasting Card for New Clients */}
+        <FastingCardEditor />
 
         {/* Onboarding Flows Preview */}
         <OnboardingPreviewSection />
