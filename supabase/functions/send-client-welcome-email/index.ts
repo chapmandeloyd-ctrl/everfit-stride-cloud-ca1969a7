@@ -28,7 +28,7 @@ const handler = async (req: Request): Promise<Response> => {
     const emailResponse = await resend.emails.send({
       from: "KSOM-360 <noreply@ksom-360.app>",
       to: [email],
-      subject: "Welcome to FitCoach Pro - Your Account Details",
+      subject: "Welcome to KSOM-360 - Your Account Details",
       html: `
         <!DOCTYPE html>
         <html>
@@ -43,7 +43,7 @@ const handler = async (req: Request): Promise<Response> => {
                 padding: 20px;
               }
               .header {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
                 color: white;
                 padding: 30px;
                 border-radius: 10px 10px 0 0;
@@ -59,11 +59,11 @@ const handler = async (req: Request): Promise<Response> => {
                 padding: 20px;
                 border-radius: 8px;
                 margin: 20px 0;
-                border-left: 4px solid #667eea;
+                border-left: 4px solid #e53e3e;
               }
               .button {
                 display: inline-block;
-                background: #667eea;
+                background: #e53e3e;
                 color: white;
                 padding: 12px 30px;
                 text-decoration: none;
@@ -89,12 +89,12 @@ const handler = async (req: Request): Promise<Response> => {
           </head>
           <body>
             <div class="header">
-              <h1>Welcome to FitCoach Pro!</h1>
+              <h1>Welcome to KSOM-360!</h1>
             </div>
             <div class="content">
               <p>Hi ${fullName},</p>
               
-              <p>Your trainer has created an account for you on FitCoach Pro. You can now access your personalized fitness dashboard, track your progress, and view your workout plans.</p>
+              <p>Your trainer has created an account for you on KSOM-360. You can now access your personalized fitness dashboard, track your progress, and view your workout plans.</p>
               
               <div class="info-box">
                 <h3>Your Account:</h3>
