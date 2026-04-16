@@ -175,19 +175,19 @@ export default function PortalAdmin() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-5xl mx-auto p-4 sm:p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
+      <div className="max-w-6xl mx-auto p-4 sm:p-6 space-y-6">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
             <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="mb-2 -ml-2">
               <ArrowLeft className="h-4 w-4 mr-1" />
               Back
             </Button>
             <h1 className="text-2xl font-bold">Portal Scenes</h1>
             <p className="text-sm text-muted-foreground">
-              Manage immersive video scenes for the Portal experience
+              Organize scenes into Focus, Sleep, and Escape — these are the tabs clients see.
             </p>
           </div>
-          <Button onClick={openNew}>
+          <Button onClick={() => openNew()} className="shrink-0">
             <Plus className="h-4 w-4 mr-2" /> New Scene
           </Button>
         </div>
@@ -199,39 +199,60 @@ export default function PortalAdmin() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {scenes.map((s) => (
-              <Card key={s.id} className="overflow-hidden">
-                <div className="relative aspect-video bg-muted">
-                  {s.thumbnail_url ? (
-                    <img src={s.thumbnail_url} alt={s.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <video src={s.video_url} muted className="w-full h-full object-cover" />
+          <div className="space-y-8">
+            {(() => {
+              const valid = new Set(CATEGORIES);
+              const orphans = scenes.filter((s) => !valid.has(s.category));
+              return (
+                <>
+                  {CATEGORIES.map((cat) => {
+                    const inCat = scenes.filter((s) => s.category === cat);
+                    return (
+                      <section key={cat}>
+                        <div className="flex items-center justify-between mb-3">
+                          <h2 className="text-lg font-semibold">
+                            {cat}{" "}
+                            <span className="text-sm font-normal text-muted-foreground">
+                              ({inCat.length})
+                            </span>
+                          </h2>
+                          <Button variant="outline" size="sm" onClick={() => openNew(cat)}>
+                            <Plus className="h-3.5 w-3.5 mr-1" /> Add to {cat}
+                          </Button>
+                        </div>
+                        {inCat.length === 0 ? (
+                          <Card>
+                            <CardContent className="p-6 text-center text-sm text-muted-foreground">
+                              No {cat} scenes yet.
+                            </CardContent>
+                          </Card>
+                        ) : (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {inCat.map((s) => renderSceneCard(s))}
+                          </div>
+                        )}
+                      </section>
+                    );
+                  })}
+
+                  {orphans.length > 0 && (
+                    <section>
+                      <div className="mb-3">
+                        <h2 className="text-lg font-semibold text-amber-600">
+                          ⚠️ Uncategorized ({orphans.length})
+                        </h2>
+                        <p className="text-xs text-muted-foreground">
+                          These scenes use old categories and won't appear to clients. Move each one to Focus, Sleep, or Escape.
+                        </p>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {orphans.map((s) => renderSceneCard(s, true))}
+                      </div>
+                    </section>
                   )}
-                  {!s.is_active && (
-                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                      <span className="text-white text-xs uppercase tracking-wider">Inactive</span>
-                    </div>
-                  )}
-                </div>
-                <CardContent className="p-3 space-y-2">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <div className="font-medium truncate">{s.name}</div>
-                      <div className="text-xs text-muted-foreground capitalize">{s.category}</div>
-                    </div>
-                    <div className="flex gap-1 shrink-0">
-                      <Button variant="ghost" size="icon" onClick={() => openEdit(s)}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => remove(s.id)}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                </>
+              );
+            })()}
           </div>
         )}
       </div>
