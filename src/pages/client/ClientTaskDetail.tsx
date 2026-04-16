@@ -185,6 +185,7 @@ export default function ClientTaskDetail() {
       URL.revokeObjectURL(documentViewerUrl);
       setDocumentViewerUrl(null);
     }
+    setDocumentViewerData(null);
     setDocumentViewerName("");
     setDocumentViewerMimeType(null);
     setDocumentSourceUrl(null);
@@ -235,15 +236,20 @@ export default function ClientTaskDetail() {
 
       const mimeType = inferDocumentMimeType(fileName, response.headers.get("content-type"));
       const fileBuffer = await response.arrayBuffer();
-      const blob = new Blob([fileBuffer], { type: mimeType });
-      const nextUrl = URL.createObjectURL(blob);
+      const fileBytes = new Uint8Array(fileBuffer);
 
       if (documentViewerUrl) {
         URL.revokeObjectURL(documentViewerUrl);
+        setDocumentViewerUrl(null);
       }
 
       setDocumentViewerMimeType(mimeType);
-      setDocumentViewerUrl(nextUrl);
+      setDocumentViewerData(fileBytes);
+
+      if (mimeType !== "application/pdf") {
+        const nextUrl = URL.createObjectURL(new Blob([fileBytes], { type: mimeType }));
+        setDocumentViewerUrl(nextUrl);
+      }
     } catch (error) {
       setDocumentViewerOpen(false);
       toast({
