@@ -3,12 +3,16 @@ import { ClientLayout } from "@/components/ClientLayout";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PortalPlayer, type PortalScene } from "@/components/portal/PortalPlayer";
-import { Sparkles, Lock } from "lucide-react";
+import { PortalEntry } from "@/components/portal/PortalEntry";
+import { Sparkles, Lock, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+
+type EntryCategory = "Focus" | "Sleep" | "Escape";
 
 export default function ClientPortal() {
   const navigate = useNavigate();
   const [activeScene, setActiveScene] = useState<PortalScene | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<EntryCategory | null>(null);
 
   const { data: scenes = [], isLoading } = useQuery({
     queryKey: ["portal-scenes-client"],
