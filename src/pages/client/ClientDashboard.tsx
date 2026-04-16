@@ -52,6 +52,7 @@ import { ProgressionUnlocksCard } from "@/components/dashboard/ProgressionUnlock
 import { useConsistencyStreak } from "@/hooks/useConsistencyStreak";
 import { useLiveActivity } from "@/hooks/useLiveActivity";
 import { CoachingCard } from "@/components/dashboard/CoachingCard";
+import { WelcomeCard } from "@/components/client/WelcomeCard";
 
 // Fasting Program Card sub-component
 function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; navigate: (path: string) => void }) {
