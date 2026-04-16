@@ -173,6 +173,56 @@ export default function PortalAdmin() {
     qc.invalidateQueries({ queryKey: ["portal-scenes-admin"] });
   };
 
+  const renderSceneCard = (s: Scene, isOrphan = false) => (
+    <Card key={s.id} className={`overflow-hidden ${isOrphan ? "ring-2 ring-amber-500/60" : ""}`}>
+      <div className="relative aspect-video bg-muted">
+        {s.thumbnail_url ? (
+          <img src={s.thumbnail_url} alt={s.name} className="w-full h-full object-cover" />
+        ) : (
+          <video src={s.video_url} muted className="w-full h-full object-cover" />
+        )}
+        {!s.is_active && (
+          <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+            <span className="text-white text-xs uppercase tracking-wider">Inactive</span>
+          </div>
+        )}
+      </div>
+      <CardContent className="p-3 space-y-2">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <div className="font-medium truncate">{s.name}</div>
+            <div className="text-xs text-muted-foreground capitalize">{s.category}</div>
+          </div>
+          <div className="flex gap-1 shrink-0">
+            <Button variant="ghost" size="icon" onClick={() => openEdit(s)}>
+              <Edit className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={() => remove(s.id)}>
+              <Trash2 className="h-4 w-4 text-destructive" />
+            </Button>
+          </div>
+        </div>
+        {isOrphan && (
+          <div className="flex flex-wrap gap-1 pt-1 border-t">
+            <span className="text-xs text-muted-foreground w-full mb-1">Move to:</span>
+            {CATEGORIES.map((c) => (
+              <Button
+                key={c}
+                size="sm"
+                variant="secondary"
+                className="h-6 text-xs px-2"
+                onClick={() => reassignCategory(s, c)}
+              >
+                {c}
+              </Button>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-6xl mx-auto p-4 sm:p-6 space-y-6">
