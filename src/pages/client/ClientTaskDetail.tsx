@@ -381,57 +381,11 @@ export default function ClientTaskDetail() {
             </div>
           </SheetHeader>
 
-          <div ref={pdfContainerRef} className="flex-1 bg-muted/30 overflow-y-auto p-2 sm:p-4">
+          <div className="flex-1 bg-muted/30 overflow-y-auto p-2 sm:p-4">
             {documentLoading ? (
               <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
                 Loading document...
               </div>
-            ) : isPdfDocument ? (
-              documentViewerData ? (
-                pdfLoadFailed ? (
-                  <div className="h-full flex flex-col items-center justify-center gap-3 text-sm text-muted-foreground text-center px-6">
-                    <p>{pdfLoadErrorMessage || "We couldn’t render this PDF in-app."}</p>
-                    {documentSourceUrl && (
-                      <a
-                        href={documentSourceUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-2 text-primary font-medium"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                        Open original file
-                      </a>
-                    )}
-                  </div>
-                ) : (
-                  <Document
-                    file={pdfDocumentFile}
-                    loading={<div className="py-10 text-center text-sm text-muted-foreground">Rendering PDF...</div>}
-                    onLoadSuccess={({ numPages }) => setPdfPageCount(numPages)}
-                    onLoadError={(error) => {
-                      console.error("PDF render failed", error);
-                      setPdfLoadErrorMessage(error instanceof Error ? error.message : "We couldn’t render this PDF in-app.");
-                      setPdfLoadFailed(true);
-                    }}
-                    className="flex flex-col items-center gap-4"
-                  >
-                    {Array.from({ length: pdfPageCount }, (_, index) => (
-                      <Page
-                        key={`page_${index + 1}`}
-                        pageNumber={index + 1}
-                        width={pdfRenderWidth || undefined}
-                        className="shadow-sm"
-                        renderAnnotationLayer
-                        renderTextLayer
-                      />
-                    ))}
-                  </Document>
-                )
-              ) : (
-                <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
-                  Unable to load document.
-                </div>
-              )
             ) : documentViewerUrl ? (
               <iframe
                 src={documentViewerUrl}
