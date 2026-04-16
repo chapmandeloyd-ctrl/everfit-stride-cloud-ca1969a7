@@ -25,6 +25,7 @@ export default function ClientTaskDetail() {
   const [commentText, setCommentText] = useState("");
   const [documentViewerOpen, setDocumentViewerOpen] = useState(false);
   const [documentViewerUrl, setDocumentViewerUrl] = useState<string | null>(null);
+  const [documentViewerData, setDocumentViewerData] = useState<Uint8Array | null>(null);
   const [documentViewerName, setDocumentViewerName] = useState<string>("");
   const [documentViewerMimeType, setDocumentViewerMimeType] = useState<string | null>(null);
   const [documentSourceUrl, setDocumentSourceUrl] = useState<string | null>(null);
