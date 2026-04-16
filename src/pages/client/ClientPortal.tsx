@@ -3,12 +3,16 @@ import { ClientLayout } from "@/components/ClientLayout";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PortalPlayer, type PortalScene } from "@/components/portal/PortalPlayer";
-import { Sparkles, Lock } from "lucide-react";
+import { PortalEntry } from "@/components/portal/PortalEntry";
+import { Sparkles, Lock, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+
+type EntryCategory = "Focus" | "Sleep" | "Escape";
 
 export default function ClientPortal() {
   const navigate = useNavigate();
   const [activeScene, setActiveScene] = useState<PortalScene | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<EntryCategory | null>(null);
 
   const { data: scenes = [], isLoading } = useQuery({
     queryKey: ["portal-scenes-client"],
@@ -23,15 +27,20 @@ export default function ClientPortal() {
     },
   });
 
-  // Group scenes by category
-  const grouped = scenes.reduce<Record<string, PortalScene[]>>((acc, s) => {
-    (acc[s.category] = acc[s.category] || []).push(s);
-    return acc;
-  }, {});
-
   if (activeScene) {
     return <PortalPlayer scene={activeScene} onBack={() => setActiveScene(null)} />;
   }
+
+  // Show KSOM CALM entry screen first
+  if (!selectedCategory) {
+    return <PortalEntry onSelectCategory={setSelectedCategory} />;
+  }
+
+  // Filter scenes by selected category (case-insensitive)
+  const filteredScenes = scenes.filter(
+    (s) => s.category?.toLowerCase() === selectedCategory.toLowerCase()
+  );
+  const grouped = { [selectedCategory]: filteredScenes };
 
   return (
     <ClientLayout>
@@ -40,12 +49,19 @@ export default function ClientPortal() {
         <div className="relative px-5 pt-6 pb-8 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-violet-900/30 via-blue-900/20 to-transparent" />
           <div className="relative">
+            <button
+              onClick={() => setSelectedCategory(null)}
+              className="flex items-center gap-1.5 text-white/50 hover:text-white text-xs mb-3 transition-colors"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              KSOM CALM
+            </button>
             <div className="text-white/40 text-[11px] uppercase tracking-[0.25em] mb-2">
-              Beta · Immersive
+              {selectedCategory}
             </div>
-            <h1 className="text-white text-3xl font-light tracking-tight">Portal</h1>
+            <h1 className="text-white text-3xl font-light tracking-tight">{selectedCategory} Scenes</h1>
             <p className="text-white/50 text-sm mt-2 max-w-xs">
-              Step into cinematic ambient scenes. Swipe down on any scene to enter full immersion.
+              Step into cinematic ambient scenes. Tap any to enter full immersion.
             </p>
           </div>
         </div>
