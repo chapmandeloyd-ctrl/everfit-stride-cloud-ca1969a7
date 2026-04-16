@@ -52,6 +52,7 @@ import { ProgressionUnlocksCard } from "@/components/dashboard/ProgressionUnlock
 import { useConsistencyStreak } from "@/hooks/useConsistencyStreak";
 import { useLiveActivity } from "@/hooks/useLiveActivity";
 import { CoachingCard } from "@/components/dashboard/CoachingCard";
+import { WelcomeCard } from "@/components/client/WelcomeCard";
 
 // Fasting Program Card sub-component
 function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; navigate: (path: string) => void }) {
@@ -1384,7 +1385,29 @@ export default function ClientDashboard() {
     enabled: !!clientId && settings.training_enabled,
   });
 
-  // Fetch today's sport schedule events
+  // Fetch trainer's welcome card for new clients with no plan
+  const { data: welcomeCard } = useQuery({
+    queryKey: ["trainer-welcome-card-client", clientId],
+    queryFn: async () => {
+      // Get trainer_id from client_feature_settings
+      const { data: cfs } = await supabase
+        .from("client_feature_settings")
+        .select("trainer_id")
+        .eq("client_id", clientId!)
+        .maybeSingle();
+      if (!cfs?.trainer_id) return null;
+      const { data, error } = await supabase
+        .from("trainer_welcome_cards")
+        .select("*")
+        .eq("trainer_id", cfs.trainer_id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!clientId && settings.training_enabled,
+  });
+
+
   const { data: todaySportEvents } = useQuery({
     queryKey: ["client-sport-events-today", clientId],
     queryFn: async () => {
@@ -1559,7 +1582,9 @@ export default function ClientDashboard() {
   }) || [];
 
   const hasSportEvents = (todaySportEvents?.length || 0) > 0;
+  const hasNoPlanEver = !clientWorkouts || clientWorkouts.length === 0;
   const isRestDay = todaysWorkouts.length === 0 && !hasSportEvents;
+  const showWelcomeCard = hasNoPlanEver && isRestDay && !!welcomeCard;
   const totalCards = todaysWorkouts.length + (todaySportEvents?.length || 0);
   const hasMultiple = totalCards > 1;
 
@@ -1772,6 +1797,9 @@ export default function ClientDashboard() {
                     {isRestDay ? "Today" : hasSportEvents && todaysWorkouts.length === 0 ? "Today's Schedule" : `Today's Workout${hasMultiple ? "s" : ""}`}
                   </h2>
                   {isRestDay ? (
+                    showWelcomeCard ? (
+                      <WelcomeCard imageUrl={welcomeCard?.image_url} message={welcomeCard?.message} />
+                    ) : (
                     <Card className="overflow-hidden">
                       {restDayCard?.image_url ? (
                         <div className="relative h-56">
@@ -1794,6 +1822,7 @@ export default function ClientDashboard() {
                         </CardContent>
                       )}
                     </Card>
+                    )
                   ) : (
                     <div>
                       <div ref={scrollRef} className={hasMultiple ? "flex overflow-x-auto snap-x snap-mandatory pb-2 scrollbar-hide" : ""}>

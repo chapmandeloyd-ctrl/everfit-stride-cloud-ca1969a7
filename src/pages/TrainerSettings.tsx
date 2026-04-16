@@ -7,6 +7,7 @@ import { AddCardioActivityDialog } from "@/components/cardio/AddCardioActivityDi
 import { EditCardioActivityDialog } from "@/components/cardio/EditCardioActivityDialog";
 import { getIconComponent } from "@/components/cardio/cardioActivities";
 import { OnboardingPreviewSection } from "@/components/settings/OnboardingPreviewSection";
+import { WelcomeCardEditor } from "@/components/settings/WelcomeCardEditor";
 import { useState } from "react";
 
 export default function TrainerSettings() {
@@ -75,6 +76,9 @@ export default function TrainerSettings() {
             </Button>
           </CardContent>
         </Card>
+
+        {/* Welcome Card for New Clients */}
+        <WelcomeCardEditor />
 
         {/* Onboarding Flows Preview */}
         <OnboardingPreviewSection />
