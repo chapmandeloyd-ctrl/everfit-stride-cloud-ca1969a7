@@ -35,10 +35,10 @@ export function PortalEntry({ onSelectCategory }: PortalEntryProps) {
           Beta · Immersive
         </div>
         <h1
-          className="text-white font-extralight text-2xl"
-          style={{ letterSpacing: "0.55em", paddingLeft: "0.55em" }}
+          className="text-white font-extralight text-[15px] whitespace-nowrap text-center"
+          style={{ letterSpacing: "0.45em", paddingLeft: "0.45em" }}
         >
-          K S O M&nbsp;&nbsp;C A L M
+          KSOM&nbsp;&nbsp;&nbsp;CALM
         </h1>
       </motion.div>
 
