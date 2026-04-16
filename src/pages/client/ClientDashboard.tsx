@@ -49,6 +49,7 @@ import { MetabolicControlDashboard } from "@/components/dashboard/MetabolicContr
 import { DailyScoreRing } from "@/components/dashboard/DailyScoreRing";
 import { MealDecisionCard } from "@/components/dashboard/MealDecisionCard";
 import { ProgressionUnlocksCard } from "@/components/dashboard/ProgressionUnlocksCard";
+import { useConsistencyStreak } from "@/hooks/useConsistencyStreak";
 import { useLiveActivity } from "@/hooks/useLiveActivity";
 import { CoachingCard } from "@/components/dashboard/CoachingCard";
 
