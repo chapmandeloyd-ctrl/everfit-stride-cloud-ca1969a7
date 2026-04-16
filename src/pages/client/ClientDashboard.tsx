@@ -96,7 +96,22 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
     enabled: !!clientId,
   });
 
-  const { data: activeProtocol } = useQuery({
+  // Fetch universal fasting card from trainer
+  const { data: universalFastingCard } = useQuery({
+    queryKey: ["trainer-fasting-card-client", featureSettings?.trainer_id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("trainer_fasting_cards")
+        .select("*")
+        .eq("trainer_id", featureSettings!.trainer_id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!featureSettings?.trainer_id,
+  });
+
+
     queryKey: ["active-fasting-protocol", featureSettings?.selected_protocol_id],
     queryFn: async () => {
       const { data, error } = await supabase
