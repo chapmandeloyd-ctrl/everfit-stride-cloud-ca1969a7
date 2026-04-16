@@ -76,9 +76,9 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Sending welcome email to:", clientProfile.email);
 
     const emailResponse = await resend.emails.send({
-      from: "FitCoach Pro <onboarding@resend.dev>",
+      from: "KSOM-360 <onboarding@resend.dev>",
       to: [clientProfile.email],
-      subject: "Welcome to FitCoach Pro - Access Your Account",
+      subject: "Welcome to KSOM-360 - Access Your Account",
       html: `
         <!DOCTYPE html>
         <html>
@@ -93,7 +93,7 @@ const handler = async (req: Request): Promise<Response> => {
                 padding: 20px;
               }
               .header {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
                 color: white;
                 padding: 30px;
                 border-radius: 10px 10px 0 0;
@@ -109,11 +109,11 @@ const handler = async (req: Request): Promise<Response> => {
                 padding: 20px;
                 border-radius: 8px;
                 margin: 20px 0;
-                border-left: 4px solid #667eea;
+                border-left: 4px solid #e53e3e;
               }
               .button {
                 display: inline-block;
-                background: #667eea;
+                background: #e53e3e;
                 color: white;
                 padding: 12px 30px;
                 text-decoration: none;
@@ -133,18 +133,18 @@ const handler = async (req: Request): Promise<Response> => {
                 padding: 2px 8px;
                 border-radius: 4px;
                 font-family: 'Courier New', monospace;
-                color: #667eea;
+                color: #e53e3e;
               }
             </style>
           </head>
           <body>
             <div class="header">
-              <h1>Welcome to FitCoach Pro!</h1>
+              <h1>Welcome to KSOM-360!</h1>
             </div>
             <div class="content">
               <p>Hi ${clientProfile.full_name},</p>
               
-              <p>Your trainer has set up an account for you on FitCoach Pro. You can now access your personalized fitness dashboard, track your progress, and view your workout plans.</p>
+              <p>Your trainer has set up an account for you on KSOM-360. You can now access your personalized fitness dashboard, track your progress, and view your workout plans.</p>
               
               <div class="credentials">
                 <h3>Your Login Email:</h3>
@@ -158,7 +158,7 @@ const handler = async (req: Request): Promise<Response> => {
               
               <div class="footer">
                 <p>If you have any questions or need assistance, please contact your trainer.</p>
-                <p style="margin-top: 10px;">Best regards,<br>The FitCoach Pro Team</p>
+                <p style="margin-top: 10px;">Best regards,<br>The KSOM-360 Team</p>
               </div>
             </div>
           </body>
