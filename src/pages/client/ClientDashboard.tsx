@@ -111,7 +111,7 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
     enabled: !!featureSettings?.trainer_id,
   });
 
-
+  const { data: activeProtocol } = useQuery({
     queryKey: ["active-fasting-protocol", featureSettings?.selected_protocol_id],
     queryFn: async () => {
       const { data, error } = await supabase
