@@ -1,0 +1,1 @@
+DELETE FROM coaching_messages WHERE client_id = '24300d47-76da-4cfb-8db0-6c8af708f8b0' AND message_date = CURRENT_DATE;
