@@ -61,12 +61,12 @@ export default function PortalAdmin() {
     },
   });
 
-  const openNew = () => {
+  const openNew = (preset?: string) => {
     setEditing(null);
     setForm({
       name: "",
       description: "",
-      category: "nature",
+      category: preset ?? "Focus",
       audio_volume: 0.7,
       loop_video: true,
       is_premium: false,
@@ -74,6 +74,17 @@ export default function PortalAdmin() {
       sort_order: scenes.length,
     });
     setOpen(true);
+  };
+
+  const reassignCategory = async (scene: Scene, newCategory: string) => {
+    const { error } = await supabase
+      .from("portal_scenes")
+      .update({ category: newCategory })
+      .eq("id", scene.id);
+    if (error) return toast.error(error.message);
+    toast.success(`Moved "${scene.name}" → ${newCategory}`);
+    qc.invalidateQueries({ queryKey: ["portal-scenes-admin"] });
+    qc.invalidateQueries({ queryKey: ["portal-scenes-client"] });
   };
 
   const openEdit = (s: Scene) => {
