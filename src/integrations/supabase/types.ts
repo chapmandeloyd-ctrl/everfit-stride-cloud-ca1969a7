@@ -7762,6 +7762,41 @@ export type Database = {
           },
         ]
       }
+      trainer_welcome_cards: {
+        Row: {
+          created_at: string
+          id: string
+          image_url: string | null
+          message: string | null
+          trainer_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          message?: string | null
+          trainer_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          message?: string | null
+          trainer_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trainer_welcome_cards_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vibes_categories: {
         Row: {
           created_at: string | null
