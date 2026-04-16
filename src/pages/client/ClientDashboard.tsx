@@ -1594,9 +1594,20 @@ export default function ClientDashboard() {
             <h1 className="text-2xl font-bold mt-0.5">Hello, {firstName}! {settings.greeting_emoji || '👋'}</h1>
             <p className="text-sm text-muted-foreground font-medium mt-0.5">{settings.greeting_subtitle || 'Let\'s do this'}</p>
           </div>
-          <Button variant="ghost" size="icon" className="relative" onClick={() => navigate("/client/settings")}>
-            <Bell className="h-5 w-5" />
-          </Button>
+          <div className="flex items-center gap-2">
+            {streakData && streakData.currentStreak > 0 && (
+              <div
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${streakData.tierInfo.bgColor} ${streakData.tierInfo.color}`}
+                style={{ borderColor: `${streakData.tierInfo.pillColor}30` }}
+              >
+                <span>{streakData.tierInfo.emoji}</span>
+                <span>{streakData.currentStreak}🔥</span>
+              </div>
+            )}
+            <Button variant="ghost" size="icon" className="relative" onClick={() => navigate("/client/settings")}>
+              <Bell className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
 
         {/* Sport Hero Banner — always at top when sport_schedule_enabled */}
