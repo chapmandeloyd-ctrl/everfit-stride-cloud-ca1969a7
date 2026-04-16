@@ -925,6 +925,8 @@ export type Database = {
           client_id: string
           created_at: string
           current_streak: number
+          current_tier: string
+          fasting_completed_today: boolean
           id: string
           last_score_label: string | null
           last_scored_date: string | null
@@ -933,12 +935,16 @@ export type Database = {
           milestone_3: boolean
           milestone_30: boolean
           milestone_7: boolean
+          perfect_days_count: number
           updated_at: string
+          weekly_completion: number
         }
         Insert: {
           client_id: string
           created_at?: string
           current_streak?: number
+          current_tier?: string
+          fasting_completed_today?: boolean
           id?: string
           last_score_label?: string | null
           last_scored_date?: string | null
@@ -947,12 +953,16 @@ export type Database = {
           milestone_3?: boolean
           milestone_30?: boolean
           milestone_7?: boolean
+          perfect_days_count?: number
           updated_at?: string
+          weekly_completion?: number
         }
         Update: {
           client_id?: string
           created_at?: string
           current_streak?: number
+          current_tier?: string
+          fasting_completed_today?: boolean
           id?: string
           last_score_label?: string | null
           last_scored_date?: string | null
@@ -961,7 +971,9 @@ export type Database = {
           milestone_3?: boolean
           milestone_30?: boolean
           milestone_7?: boolean
+          perfect_days_count?: number
           updated_at?: string
+          weekly_completion?: number
         }
         Relationships: []
       }
