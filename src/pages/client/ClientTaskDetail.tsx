@@ -1,7 +1,6 @@
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Document, Page, pdfjs } from "react-pdf";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
@@ -9,10 +8,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ArrowLeft, AlarmClock, Check, ChevronDown, Send, Camera, FileText, Download, ExternalLink } from "lucide-react";
-import "react-pdf/dist/Page/AnnotationLayer.css";
-import "react-pdf/dist/Page/TextLayer.css";
-
-pdfjs.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
 
 export default function ClientTaskDetail() {
   const { taskId } = useParams<{ taskId: string }>();
@@ -25,18 +20,12 @@ export default function ClientTaskDetail() {
   const [commentText, setCommentText] = useState("");
   const [documentViewerOpen, setDocumentViewerOpen] = useState(false);
   const [documentViewerUrl, setDocumentViewerUrl] = useState<string | null>(null);
-  const [documentViewerData, setDocumentViewerData] = useState<Uint8Array | null>(null);
   const [documentViewerName, setDocumentViewerName] = useState<string>("");
   const [documentViewerMimeType, setDocumentViewerMimeType] = useState<string | null>(null);
   const [documentSourceUrl, setDocumentSourceUrl] = useState<string | null>(null);
   const [documentLoading, setDocumentLoading] = useState(false);
-  const [pdfPageCount, setPdfPageCount] = useState(0);
-  const [pdfRenderWidth, setPdfRenderWidth] = useState(0);
-  const [pdfLoadFailed, setPdfLoadFailed] = useState(false);
-  const [pdfLoadErrorMessage, setPdfLoadErrorMessage] = useState<string | null>(null);
   const commentInputRef = useRef<HTMLInputElement>(null);
   const commentsEndRef = useRef<HTMLDivElement>(null);
-  const pdfContainerRef = useRef<HTMLDivElement>(null);
 
   const { data: task } = useQuery({
     queryKey: ["client-task-detail", taskId],
@@ -98,19 +87,6 @@ export default function ClientTaskDetail() {
       }
     };
   }, [documentViewerUrl]);
-
-  useEffect(() => {
-    if (!documentViewerOpen) return;
-
-    const updatePdfWidth = () => {
-      const containerWidth = pdfContainerRef.current?.clientWidth ?? 0;
-      setPdfRenderWidth(containerWidth > 0 ? Math.min(containerWidth - 16, 900) : 0);
-    };
-
-    updatePdfWidth();
-    window.addEventListener("resize", updatePdfWidth);
-    return () => window.removeEventListener("resize", updatePdfWidth);
-  }, [documentViewerOpen, documentViewerData, documentViewerUrl]);
 
   const completeMutation = useMutation({
     mutationFn: async () => {
@@ -180,14 +156,10 @@ export default function ClientTaskDetail() {
   const closeDocumentViewer = () => {
     setDocumentViewerOpen(false);
     setDocumentLoading(false);
-    setPdfLoadFailed(false);
-    setPdfLoadErrorMessage(null);
-    setPdfPageCount(0);
     if (documentViewerUrl) {
       URL.revokeObjectURL(documentViewerUrl);
       setDocumentViewerUrl(null);
     }
-    setDocumentViewerData(null);
     setDocumentViewerName("");
     setDocumentViewerMimeType(null);
     setDocumentSourceUrl(null);
@@ -225,34 +197,35 @@ export default function ClientTaskDetail() {
   };
 
   const handleOpenDocument = async (url: string, fileName?: string) => {
+    const mimeType = inferDocumentMimeType(fileName, null);
+
+    // PDFs: open in native browser viewer (new tab) — always works
+    if (mimeType === "application/pdf" || /\.pdf$/i.test(fileName || "")) {
+      window.open(url, "_blank", "noopener,noreferrer");
+      return;
+    }
+
+    // Non-PDF documents: show in the in-app sheet viewer
     setDocumentLoading(true);
     setDocumentViewerOpen(true);
     setDocumentViewerName(fileName || "Document");
     setDocumentSourceUrl(url);
-    setPdfLoadFailed(false);
-    setPdfLoadErrorMessage(null);
-    setPdfPageCount(0);
 
     try {
       const response = await fetch(url);
       if (!response.ok) throw new Error("Unable to open document");
 
-      const mimeType = inferDocumentMimeType(fileName, response.headers.get("content-type"));
-      const fileBuffer = await response.arrayBuffer();
-      const fileBytes = new Uint8Array(fileBuffer);
+      const resolvedMime = inferDocumentMimeType(fileName, response.headers.get("content-type"));
+      const fileBytes = new Uint8Array(await response.arrayBuffer());
 
       if (documentViewerUrl) {
         URL.revokeObjectURL(documentViewerUrl);
         setDocumentViewerUrl(null);
       }
 
-      setDocumentViewerMimeType(mimeType);
-      setDocumentViewerData(fileBytes);
-
-      if (mimeType !== "application/pdf") {
-        const nextUrl = URL.createObjectURL(new Blob([fileBytes], { type: mimeType }));
-        setDocumentViewerUrl(nextUrl);
-      }
+      setDocumentViewerMimeType(resolvedMime);
+      const nextUrl = URL.createObjectURL(new Blob([fileBytes], { type: resolvedMime }));
+      setDocumentViewerUrl(nextUrl);
     } catch (error) {
       setDocumentViewerOpen(false);
       toast({
@@ -264,12 +237,6 @@ export default function ClientTaskDetail() {
       setDocumentLoading(false);
     }
   };
-
-  const isPdfDocument = documentViewerMimeType === "application/pdf" || /\.pdf$/i.test(documentViewerName);
-  const pdfDocumentFile = useMemo(() => {
-    if (!documentViewerData) return null;
-    return { data: documentViewerData.slice() };
-  }, [documentViewerData]);
 
   if (!task) {
     return (
@@ -414,57 +381,11 @@ export default function ClientTaskDetail() {
             </div>
           </SheetHeader>
 
-          <div ref={pdfContainerRef} className="flex-1 bg-muted/30 overflow-y-auto p-2 sm:p-4">
+          <div className="flex-1 bg-muted/30 overflow-y-auto p-2 sm:p-4">
             {documentLoading ? (
               <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
                 Loading document...
               </div>
-            ) : isPdfDocument ? (
-              documentViewerData ? (
-                pdfLoadFailed ? (
-                  <div className="h-full flex flex-col items-center justify-center gap-3 text-sm text-muted-foreground text-center px-6">
-                    <p>{pdfLoadErrorMessage || "We couldn’t render this PDF in-app."}</p>
-                    {documentSourceUrl && (
-                      <a
-                        href={documentSourceUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-2 text-primary font-medium"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                        Open original file
-                      </a>
-                    )}
-                  </div>
-                ) : (
-                  <Document
-                    file={pdfDocumentFile}
-                    loading={<div className="py-10 text-center text-sm text-muted-foreground">Rendering PDF...</div>}
-                    onLoadSuccess={({ numPages }) => setPdfPageCount(numPages)}
-                    onLoadError={(error) => {
-                      console.error("PDF render failed", error);
-                      setPdfLoadErrorMessage(error instanceof Error ? error.message : "We couldn’t render this PDF in-app.");
-                      setPdfLoadFailed(true);
-                    }}
-                    className="flex flex-col items-center gap-4"
-                  >
-                    {Array.from({ length: pdfPageCount }, (_, index) => (
-                      <Page
-                        key={`page_${index + 1}`}
-                        pageNumber={index + 1}
-                        width={pdfRenderWidth || undefined}
-                        className="shadow-sm"
-                        renderAnnotationLayer
-                        renderTextLayer
-                      />
-                    ))}
-                  </Document>
-                )
-              ) : (
-                <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
-                  Unable to load document.
-                </div>
-              )
             ) : documentViewerUrl ? (
               <iframe
                 src={documentViewerUrl}
