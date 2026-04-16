@@ -299,14 +299,22 @@ Deno.serve(async (req) => {
     // ── Build context ──
     const hasBehaviorData = !!behavior;
 
+    // If no behavior data AND no summary, user is brand new — skip coaching entirely
+    if (!hasBehaviorData && !summary) {
+      return new Response(
+        JSON.stringify({ skipped: true, reason: "New user — no activity data yet" }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const ctx: CoachingContext = {
-      dailyScore: summary?.avg_score_7d || 50,
+      dailyScore: summary?.avg_score_7d ?? 100,
       macroAdherence: hasBehaviorData
         ? (behavior.protein_target_hit ? 85 : 55)
-        : 75,
+        : 100,
       fastingAdherence: hasBehaviorData
-        ? (behavior.fasting_window_adherence ?? 75)
-        : 75,
+        ? (behavior.fasting_window_adherence ?? 100)
+        : 100,
       streak: streakData?.current_streak || 0,
       ketoType: (ketoAssignment as any)?.keto_types?.name || "SKD",
       hasTrainingToday: (workoutCount || 0) > 0,
