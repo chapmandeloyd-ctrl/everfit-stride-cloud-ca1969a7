@@ -144,7 +144,7 @@ export function MetabolicControlDashboard() {
       });
       return (data?.coach_picks || data?.meals?.slice(0, 3) || []) as CoachPick[];
     },
-    enabled: !!clientId && engine.fasting_state !== "fasting_active" && !engine.isLoading,
+    enabled: !!clientId && engine.fasting_state !== "fasting_active" && !engine.isLoading && !!engine.macroTargets,
     staleTime: 60000,
   });
 
