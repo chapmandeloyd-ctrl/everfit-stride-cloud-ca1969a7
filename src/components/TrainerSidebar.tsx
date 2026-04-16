@@ -25,6 +25,7 @@ const mainItems = [
   { title: "Scheduling", url: "/scheduling", icon: CalendarClock },
   { title: "Notifications", url: "/notifications", icon: Bell },
   { title: "Restore", url: "/vibes-admin", icon: Sparkles },
+  { title: "Portal (Beta)", url: "/portal-admin", icon: MonitorPlay },
 ];
 
 const libraryItems = [

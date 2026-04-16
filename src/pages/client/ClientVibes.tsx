@@ -19,9 +19,9 @@ import { RestoreSleepTab } from "@/components/vibes/RestoreSleepTab";
 
 import { BreathingPlayer } from "@/components/vibes/BreathingPlayer";
 import { type BreathingExercise } from "@/lib/breathingExercises";
-import { useSearchParams, Navigate } from "react-router-dom";
+import { useSearchParams, Navigate, useNavigate } from "react-router-dom";
 import { useClientFeatureSettings } from "@/hooks/useClientFeatureSettings";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Sparkles } from "lucide-react";
 
 type ViewState =
   | { type: "home" }
@@ -32,6 +32,7 @@ type ViewState =
 export default function ClientVibes() {
   const { settings, isLoading: settingsLoading } = useClientFeatureSettings();
   const mixer = useAudioMixer();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [mixRefreshKey, setMixRefreshKey] = useState(0);
   const [view, setView] = useState<ViewState>({ type: "home" });
@@ -144,6 +145,28 @@ export default function ClientVibes() {
           {/* HOME VIEW */}
           {view.type === "home" && (
             <div className="space-y-8">
+              {/* Portal Beta tile — for A/B testing the new immersive experience */}
+              <button
+                onClick={() => navigate("/client/portal")}
+                className="group relative w-full overflow-hidden rounded-2xl ring-1 ring-white/10 hover:ring-white/30 transition-all"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-violet-700 via-blue-700 to-indigo-900" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.15),transparent_50%)]" />
+                <div className="relative p-5 flex items-center justify-between">
+                  <div className="text-left">
+                    <div className="flex items-center gap-2 text-white/70 text-[10px] uppercase tracking-[0.25em] mb-1">
+                      <Sparkles className="h-3 w-3" />
+                      Beta
+                    </div>
+                    <div className="text-white text-lg font-light tracking-tight">Try Portal</div>
+                    <div className="text-white/60 text-xs mt-1">
+                      Cinematic immersive scenes
+                    </div>
+                  </div>
+                  <ArrowLeft className="h-5 w-5 text-white/70 rotate-180 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </button>
+
               <RestoreQuickStart
                 onStartBreathing={(ex) =>
                   setView({ type: "breathing-session", exercise: ex })
