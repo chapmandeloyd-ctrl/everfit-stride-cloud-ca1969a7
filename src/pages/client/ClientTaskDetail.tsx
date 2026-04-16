@@ -109,7 +109,7 @@ export default function ClientTaskDetail() {
     updatePdfWidth();
     window.addEventListener("resize", updatePdfWidth);
     return () => window.removeEventListener("resize", updatePdfWidth);
-  }, [documentViewerOpen, documentViewerUrl]);
+  }, [documentViewerOpen, documentViewerData, documentViewerUrl]);
 
   const completeMutation = useMutation({
     mutationFn: async () => {
