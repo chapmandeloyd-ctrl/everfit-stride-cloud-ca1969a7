@@ -27,6 +27,7 @@ import { QuickCardioFlow } from "@/components/cardio/QuickCardioFlow";
 import { CardioDetailSheet } from "@/components/cardio/CardioDetailSheet";
 import { SwipeToDeleteCardioRow } from "@/components/cardio/SwipeToDeleteCardioRow";
 import { SwipeToDeleteWorkoutRow } from "@/components/workout/SwipeToDeleteWorkoutRow";
+import { SwipeToDeleteTaskRow } from "@/components/tasks/SwipeToDeleteTaskRow";
 import { SpeedDialFAB } from "@/components/SpeedDialFAB";
 import { FastingStatusCard } from "@/components/client/FastingStatusCard";
 import { BuildWorkoutSheet } from "@/components/workout/BuildWorkoutSheet";
@@ -1348,6 +1349,21 @@ export default function ClientDashboard() {
     },
   });
 
+  const deleteTaskMutation = useMutation({
+    mutationFn: async (taskId: string) => {
+      const { error } = await supabase
+        .from("client_tasks")
+        .delete()
+        .eq("id", taskId)
+        .eq("client_id", clientId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["client-tasks-today"] });
+      toast({ title: "Task deleted" });
+    },
+  });
+
   const firstName = profile?.full_name?.split(" ")[0] || "there";
   const todayDate = format(new Date(), "EEEE, MMM d").toUpperCase();
 
@@ -2239,23 +2255,13 @@ export default function ClientDashboard() {
                   <Card>
                     <CardContent className="p-0 divide-y divide-border">
                       {tasks.slice(0, 5).map((task) => {
-                        const isCompleted = !!task.completed_at;
                         return (
-                          <div
+                          <SwipeToDeleteTaskRow
                             key={task.id}
-                            className="flex items-center gap-3 px-4 py-3 hover:bg-muted/30 transition-colors cursor-pointer"
+                            task={task}
+                            onDelete={() => deleteTaskMutation.mutate(task.id)}
                             onClick={() => navigate(`/client/tasks/${task.id}`)}
-                          >
-                            <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${
-                              isCompleted ? "bg-foreground" : "bg-muted"
-                            }`}>
-                              <Check className={`h-3.5 w-3.5 ${isCompleted ? "text-background" : "text-muted-foreground"}`} />
-                            </div>
-                            <span className={`text-sm flex-1 ${isCompleted ? "text-foreground" : "font-medium"}`}>
-                              {task.name}
-                            </span>
-                            <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-                          </div>
+                          />
                         );
                       })}
                     </CardContent>
