@@ -75,10 +75,10 @@ export function PortalPlayer({ scene, onBack }: PortalPlayerProps) {
   };
 
   const handleDragEnd = (_: any, info: { offset: { y: number }; velocity: { y: number } }) => {
-    if (!immersive && (info.offset.y > 120 || info.velocity.y > 500)) {
+    if (!immersive && (info.offset.y > 80 || info.velocity.y > 300)) {
       setImmersive(true);
       animate(dragY, 0, { duration: 0.3 });
-    } else if (immersive && (info.offset.y < -120 || info.velocity.y < -500)) {
+    } else if (immersive && (info.offset.y < -80 || info.velocity.y < -300)) {
       setImmersive(false);
       animate(dragY, 0, { duration: 0.3 });
     } else {
