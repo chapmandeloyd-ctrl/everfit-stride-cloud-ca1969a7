@@ -880,6 +880,7 @@ export default function ClientDashboard() {
   const { config: engineConfig } = useEngineMode();
   const { toast } = useToast();
   const { cards: layoutCards } = useDashboardLayoutClient();
+  const { data: streakData } = useConsistencyStreak();
 
   // Unread messages count for floating lion badge
   // Use clientId (effectiveClientId) so it works correctly when trainer is previewing as a client
