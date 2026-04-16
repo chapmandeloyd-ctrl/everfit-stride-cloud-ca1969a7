@@ -25,9 +25,6 @@ export function WelcomeCard({ imageUrl, message }: WelcomeCardProps) {
           <Sparkles className="h-10 w-10 text-white/40" />
         </div>
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-white/70 mb-1">
-            Welcome
-          </p>
           <p className="text-sm font-semibold text-white">
             {message || "Welcome to your fitness journey! Your coach will assign your first plan soon."}
           </p>
