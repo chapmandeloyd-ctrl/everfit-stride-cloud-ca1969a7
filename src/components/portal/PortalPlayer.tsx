@@ -75,10 +75,10 @@ export function PortalPlayer({ scene, onBack }: PortalPlayerProps) {
   };
 
   const handleDragEnd = (_: any, info: { offset: { y: number }; velocity: { y: number } }) => {
-    if (!immersive && (info.offset.y > 120 || info.velocity.y > 500)) {
+    if (!immersive && (info.offset.y > 80 || info.velocity.y > 300)) {
       setImmersive(true);
       animate(dragY, 0, { duration: 0.3 });
-    } else if (immersive && (info.offset.y < -120 || info.velocity.y < -500)) {
+    } else if (immersive && (info.offset.y < -80 || info.velocity.y < -300)) {
       setImmersive(false);
       animate(dragY, 0, { duration: 0.3 });
     } else {
@@ -135,16 +135,17 @@ export function PortalPlayer({ scene, onBack }: PortalPlayerProps) {
               </div>
             </div>
 
-            {/* Swipe-up hint */}
-            <motion.div
-              className="absolute bottom-0 left-0 right-0 flex flex-col items-center gap-2 pb-12 text-white/60"
+            {/* Swipe-up hint — tappable */}
+            <motion.button
+              onClick={() => setImmersive(false)}
+              className="absolute bottom-0 left-0 right-0 flex flex-col items-center gap-2 pb-12 text-white/60 hover:text-white/90 transition-colors"
               style={{ paddingBottom: "max(env(safe-area-inset-bottom, 0px), 48px)" }}
               animate={{ y: [0, -8, 0] }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             >
               <ChevronDown className="h-5 w-5 rotate-180" />
-              <span className="text-[11px] uppercase tracking-widest">Swipe up to exit</span>
-            </motion.div>
+              <span className="text-[11px] uppercase tracking-widest">Swipe or tap to exit</span>
+            </motion.button>
           </motion.div>
         ) : (
           <motion.div
@@ -195,10 +196,10 @@ export function PortalPlayer({ scene, onBack }: PortalPlayerProps) {
               <motion.div
                 drag="y"
                 dragConstraints={{ top: 0, bottom: 0 }}
-                dragElastic={0.5}
+                dragElastic={0.7}
                 onDragEnd={handleDragEnd}
                 style={{ y: dragY, scale: circleScale }}
-                className="relative aspect-square w-full max-w-sm rounded-full overflow-hidden shadow-2xl ring-1 ring-white/10 cursor-grab active:cursor-grabbing"
+                className="relative aspect-square w-full max-w-sm rounded-full overflow-hidden shadow-2xl ring-1 ring-white/10 cursor-grab active:cursor-grabbing touch-none"
               >
                 <video
                   ref={videoRef}
@@ -207,45 +208,57 @@ export function PortalPlayer({ scene, onBack }: PortalPlayerProps) {
                   loop={scene.loop_video}
                   muted
                   playsInline
-                  className="absolute inset-0 w-full h-full object-cover"
+                  className="absolute inset-0 w-full h-full object-cover pointer-events-none"
                 />
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/40 pointer-events-none" />
 
                 {/* Timer overlay */}
-                <div className="absolute top-6 left-1/2 -translate-x-1/2 text-white/90 text-sm font-medium tracking-wider">
+                <div className="absolute top-6 left-1/2 -translate-x-1/2 text-white/90 text-sm font-medium tracking-wider pointer-events-none">
                   {formatTime(elapsed)}
                 </div>
 
-                {/* Play/Pause center */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setPlaying((p) => !p);
-                  }}
-                  className="absolute inset-0 flex items-center justify-center"
-                  aria-label={playing ? "Pause" : "Play"}
-                >
-                  <div className="h-16 w-16 rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center ring-1 ring-white/20">
+                {/* Play/Pause — small centered control */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <button
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setPlaying((p) => !p);
+                    }}
+                    className="pointer-events-auto h-16 w-16 rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center ring-1 ring-white/20 hover:bg-black/40 transition-colors"
+                    aria-label={playing ? "Pause" : "Play"}
+                  >
                     {playing ? (
                       <Pause className="h-7 w-7 text-white" />
                     ) : (
                       <Play className="h-7 w-7 text-white ml-1" />
                     )}
-                  </div>
-                </button>
+                  </button>
+                </div>
               </motion.div>
             </div>
 
-            {/* Swipe-down hint */}
-            <motion.div
-              className="relative z-10 flex flex-col items-center gap-2 pb-2 text-white/50"
+            {/* Swipe-down hint — tappable */}
+            <motion.button
+              onClick={() => setImmersive(true)}
+              className="relative z-10 flex flex-col items-center gap-2 pb-2 text-white/50 hover:text-white/90 transition-colors"
               style={{ opacity: hintOpacity }}
               animate={{ y: [0, 6, 0] }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             >
               <ChevronDown className="h-5 w-5" />
-              <span className="text-[11px] uppercase tracking-widest">Swipe down to enter</span>
-            </motion.div>
+              <span className="text-[11px] uppercase tracking-widest">Swipe or tap to enter</span>
+            </motion.button>
+
+            {/* Explicit Enter Portal CTA */}
+            <div className="relative z-10 flex justify-center pb-2">
+              <button
+                onClick={() => setImmersive(true)}
+                className="px-5 py-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white/90 text-xs uppercase tracking-widest font-medium backdrop-blur-md transition-colors"
+              >
+                Enter Portal
+              </button>
+            </div>
 
             {/* Volume controls */}
             {scene.audio_url && (
