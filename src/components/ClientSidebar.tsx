@@ -68,7 +68,7 @@ export function ClientSidebar() {
             </div>
             {open && (
               <div>
-                <h2 className="font-bold text-sidebar-foreground">FitCoach Pro</h2>
+                <h2 className="font-bold text-sidebar-foreground">KSOM-360</h2>
                 <p className="text-xs text-sidebar-foreground/60">Client Portal</p>
               </div>
             )}
