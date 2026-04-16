@@ -1,7 +1,6 @@
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Document, Page, pdfjs } from "react-pdf";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
@@ -9,10 +8,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ArrowLeft, AlarmClock, Check, ChevronDown, Send, Camera, FileText, Download, ExternalLink } from "lucide-react";
-import "react-pdf/dist/Page/AnnotationLayer.css";
-import "react-pdf/dist/Page/TextLayer.css";
-
-pdfjs.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
 
 export default function ClientTaskDetail() {
   const { taskId } = useParams<{ taskId: string }>();
@@ -25,18 +20,12 @@ export default function ClientTaskDetail() {
   const [commentText, setCommentText] = useState("");
   const [documentViewerOpen, setDocumentViewerOpen] = useState(false);
   const [documentViewerUrl, setDocumentViewerUrl] = useState<string | null>(null);
-  const [documentViewerData, setDocumentViewerData] = useState<Uint8Array | null>(null);
   const [documentViewerName, setDocumentViewerName] = useState<string>("");
   const [documentViewerMimeType, setDocumentViewerMimeType] = useState<string | null>(null);
   const [documentSourceUrl, setDocumentSourceUrl] = useState<string | null>(null);
   const [documentLoading, setDocumentLoading] = useState(false);
-  const [pdfPageCount, setPdfPageCount] = useState(0);
-  const [pdfRenderWidth, setPdfRenderWidth] = useState(0);
-  const [pdfLoadFailed, setPdfLoadFailed] = useState(false);
-  const [pdfLoadErrorMessage, setPdfLoadErrorMessage] = useState<string | null>(null);
   const commentInputRef = useRef<HTMLInputElement>(null);
   const commentsEndRef = useRef<HTMLDivElement>(null);
-  const pdfContainerRef = useRef<HTMLDivElement>(null);
 
   const { data: task } = useQuery({
     queryKey: ["client-task-detail", taskId],
@@ -98,19 +87,6 @@ export default function ClientTaskDetail() {
       }
     };
   }, [documentViewerUrl]);
-
-  useEffect(() => {
-    if (!documentViewerOpen) return;
-
-    const updatePdfWidth = () => {
-      const containerWidth = pdfContainerRef.current?.clientWidth ?? 0;
-      setPdfRenderWidth(containerWidth > 0 ? Math.min(containerWidth - 16, 900) : 0);
-    };
-
-    updatePdfWidth();
-    window.addEventListener("resize", updatePdfWidth);
-    return () => window.removeEventListener("resize", updatePdfWidth);
-  }, [documentViewerOpen, documentViewerData, documentViewerUrl]);
 
   const completeMutation = useMutation({
     mutationFn: async () => {
@@ -180,14 +156,10 @@ export default function ClientTaskDetail() {
   const closeDocumentViewer = () => {
     setDocumentViewerOpen(false);
     setDocumentLoading(false);
-    setPdfLoadFailed(false);
-    setPdfLoadErrorMessage(null);
-    setPdfPageCount(0);
     if (documentViewerUrl) {
       URL.revokeObjectURL(documentViewerUrl);
       setDocumentViewerUrl(null);
     }
-    setDocumentViewerData(null);
     setDocumentViewerName("");
     setDocumentViewerMimeType(null);
     setDocumentSourceUrl(null);
@@ -229,9 +201,6 @@ export default function ClientTaskDetail() {
     setDocumentViewerOpen(true);
     setDocumentViewerName(fileName || "Document");
     setDocumentSourceUrl(url);
-    setPdfLoadFailed(false);
-    setPdfLoadErrorMessage(null);
-    setPdfPageCount(0);
 
     try {
       const response = await fetch(url);
@@ -264,12 +233,6 @@ export default function ClientTaskDetail() {
       setDocumentLoading(false);
     }
   };
-
-  const isPdfDocument = documentViewerMimeType === "application/pdf" || /\.pdf$/i.test(documentViewerName);
-  const pdfDocumentFile = useMemo(() => {
-    if (!documentViewerData) return null;
-    return { data: documentViewerData.slice() };
-  }, [documentViewerData]);
 
   if (!task) {
     return (
