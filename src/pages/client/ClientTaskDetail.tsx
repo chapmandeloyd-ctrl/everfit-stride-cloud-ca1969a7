@@ -199,9 +199,33 @@ export default function ClientTaskDetail() {
   const handleOpenDocument = async (url: string, fileName?: string) => {
     const mimeType = inferDocumentMimeType(fileName, null);
 
-    // PDFs: open in native browser viewer (new tab) — always works
+    // PDFs: fetch first, then open a blob URL so browser extensions/client blockers
+    // don't block navigation to the storage domain.
     if (mimeType === "application/pdf" || /\.pdf$/i.test(fileName || "")) {
-      window.open(url, "_blank", "noopener,noreferrer");
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Unable to open PDF");
+
+        const pdfBlob = await response.blob();
+        const pdfUrl = URL.createObjectURL(pdfBlob);
+        const openedWindow = window.open(pdfUrl, "_blank", "noopener,noreferrer");
+
+        if (!openedWindow) {
+          const anchor = document.createElement("a");
+          anchor.href = pdfUrl;
+          anchor.target = "_blank";
+          anchor.rel = "noopener noreferrer";
+          anchor.click();
+        }
+
+        window.setTimeout(() => URL.revokeObjectURL(pdfUrl), 60_000);
+      } catch (error) {
+        toast({
+          title: "Couldn’t open PDF",
+          description: "The PDF was blocked before opening. Please try download instead.",
+          variant: "destructive",
+        });
+      }
       return;
     }
 
