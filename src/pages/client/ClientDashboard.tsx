@@ -1797,6 +1797,9 @@ export default function ClientDashboard() {
                     {isRestDay ? "Today" : hasSportEvents && todaysWorkouts.length === 0 ? "Today's Schedule" : `Today's Workout${hasMultiple ? "s" : ""}`}
                   </h2>
                   {isRestDay ? (
+                    showWelcomeCard ? (
+                      <WelcomeCard imageUrl={welcomeCard?.image_url} message={welcomeCard?.message} />
+                    ) : (
                     <Card className="overflow-hidden">
                       {restDayCard?.image_url ? (
                         <div className="relative h-56">
@@ -1819,6 +1822,7 @@ export default function ClientDashboard() {
                         </CardContent>
                       )}
                     </Card>
+                    )
                   ) : (
                     <div>
                       <div ref={scrollRef} className={hasMultiple ? "flex overflow-x-auto snap-x snap-mandatory pb-2 scrollbar-hide" : ""}>
