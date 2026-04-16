@@ -101,10 +101,35 @@ export function useDailyScore() {
           .maybeSingle(),
       ]);
 
+      // === CHECK FOR ZERO-ACTIVITY STATE ===
+      // If user has no fasting logs, no meals, and no active fast, they have zero activity → score 0
+      const fastLog = fastingRes.data?.[0];
+      const meals = mealsRes.data || [];
+      const mealsLogged = meals.length;
+      const fastingEnabled = settingsRes.data?.fasting_enabled ?? false;
+      const hasActiveFast = !!settingsRes.data?.active_fast_start_at;
+      const hasAnyActivity = !!fastLog || mealsLogged > 0 || hasActiveFast;
+
+      if (!hasAnyActivity) {
+        // Brand new user or no activity today — return zeroed-out score
+        const zeroCategories: DailyScoreCategory[] = [
+          { key: "fasting", label: "Fasting", score: 0, weight: 0.4, weighted: 0 },
+          { key: "meal_timing", label: "Meal Timing", score: 0, weight: 0.3, weighted: 0 },
+          { key: "macro_quality", label: "Macro Quality", score: 0, weight: 0.3, weighted: 0 },
+        ];
+        return {
+          total: 0,
+          label: getLabel(0),
+          color: getColors(0).color,
+          ringColor: getColors(0).ringColor,
+          categories: zeroCategories,
+          lowestCategory: zeroCategories[0],
+          coachMessage: "Log your first meal or start a fast to begin tracking.",
+        };
+      }
+
       // === 1. FASTING SCORE (40%) ===
       let fastingScore = 0;
-      const fastLog = fastingRes.data?.[0];
-      const fastingEnabled = settingsRes.data?.fasting_enabled ?? false;
 
       if (!fastingEnabled) {
         // If fasting is disabled, give full marks (don't penalize)
@@ -114,26 +139,22 @@ export function useDailyScore() {
           const ratio = Math.min(fastLog.actual_hours / fastLog.target_hours, 1);
           fastingScore = Math.round(ratio * 100);
         } else if (fastLog.status === "in_progress") {
-          // Partial credit based on elapsed time
           const started = new Date(fastLog.started_at).getTime();
           const elapsed = (Date.now() - started) / 3600000;
           const target = fastLog.target_hours || 16;
-          fastingScore = Math.round(Math.min(elapsed / target, 1) * 80); // max 80 while in progress
+          fastingScore = Math.round(Math.min(elapsed / target, 1) * 80);
         } else {
-          fastingScore = 20; // broken early or failed
+          fastingScore = 20;
         }
-      } else if (settingsRes.data?.active_fast_start_at) {
-        // Active fast with no log entry yet — partial credit
-        const started = new Date(settingsRes.data.active_fast_start_at).getTime();
+      } else if (hasActiveFast) {
+        const started = new Date(settingsRes.data!.active_fast_start_at!).getTime();
         const elapsed = (Date.now() - started) / 3600000;
-        const target = settingsRes.data.active_fast_target_hours || 16;
+        const target = settingsRes.data!.active_fast_target_hours || 16;
         fastingScore = Math.round(Math.min(elapsed / target, 1) * 80);
       }
 
       // === 2. MEAL TIMING SCORE (30%) ===
       let mealTimingScore = 0;
-      const meals = mealsRes.data || [];
-      const mealsLogged = meals.length;
 
       if (mealsLogged >= 3) {
         mealTimingScore = 100;
