@@ -176,14 +176,16 @@ export function PortalPlayer({ scene, onBack }: PortalPlayerProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            {/* Background — static thumbnail, lightly blurred so scene stays recognizable */}
+            {/* Background — use the scene thumbnail still, not the video feed */}
             <div className="absolute inset-0 overflow-hidden">
-              <img
-                src={scene.thumbnail_url || scene.video_url}
-                alt=""
-                className="absolute inset-0 w-full h-full object-cover scale-[1.15]"
-                style={{ filter: "blur(14px) saturate(1.2) brightness(0.7)" }}
-              />
+              {scene.thumbnail_url ? (
+                <img
+                  src={scene.thumbnail_url}
+                  alt=""
+                  className="absolute inset-0 w-full h-full object-cover scale-[1.08]"
+                  style={{ filter: "blur(10px) saturate(1.1) brightness(0.9)" }}
+                />
+              ) : null}
             </div>
             {/* Dark wash for legibility */}
             <div className="absolute inset-0 bg-black/40" />
