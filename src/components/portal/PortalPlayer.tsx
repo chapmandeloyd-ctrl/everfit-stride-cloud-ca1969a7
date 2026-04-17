@@ -235,24 +235,7 @@ export function PortalPlayer({ scene, onBack }: PortalPlayerProps) {
                   {formatTime(elapsed)}
                 </div>
 
-                {/* Play/Pause — small centered control */}
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <button
-                    onPointerDown={(e) => e.stopPropagation()}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setPlaying((p) => !p);
-                    }}
-                    className="pointer-events-auto h-16 w-16 rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center ring-1 ring-white/20 hover:bg-black/40 transition-colors"
-                    aria-label={playing ? "Pause" : "Play"}
-                  >
-                    {playing ? (
-                      <Pause className="h-7 w-7 text-white" />
-                    ) : (
-                      <Play className="h-7 w-7 text-white ml-1" />
-                    )}
-                  </button>
-                </div>
+                {/* (Centered play/pause removed — use volume controls below) */}
               </motion.div>
             </div>
 
