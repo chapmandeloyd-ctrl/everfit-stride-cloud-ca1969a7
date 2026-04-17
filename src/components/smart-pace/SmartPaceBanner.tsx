@@ -85,9 +85,9 @@ export function SmartPaceBanner() {
         tone.gradient,
         tone.border,
         tone.glow,
-        !showJournal && "cursor-pointer hover:scale-[1.01]"
+        flipView === "none" && "cursor-pointer hover:scale-[1.01]"
       )}
-      onClick={() => !showJournal && navigate("/client/pace")}
+      onClick={() => flipView === "none" && navigate("/client/pace")}
     >
       {/* Granite noise texture */}
       <div
@@ -107,11 +107,19 @@ export function SmartPaceBanner() {
       {/* Bottom-right radial glow */}
       <div className="pointer-events-none absolute -bottom-12 -right-12 h-40 w-40 rounded-full bg-white/5 blur-3xl" />
 
-      {showJournal ? (
+      {flipView === "journal" ? (
         <div className="relative" onClick={(e) => e.stopPropagation()}>
           <SmartPaceJournalView
             goalId={goal.id}
-            onClose={() => setShowJournal(false)}
+            onClose={() => setFlipView("none")}
+          />
+        </div>
+      ) : flipView === "why" ? (
+        <div className="relative" onClick={(e) => e.stopPropagation()}>
+          <SmartPaceWhyView
+            goalId={goal.id}
+            trainerId={(goal as any).trainer_id ?? null}
+            onClose={() => setFlipView("none")}
           />
         </div>
       ) : (
@@ -187,14 +195,23 @@ export function SmartPaceBanner() {
             />
           </div>
 
-          {/* My Journal button */}
-          <button
-            onClick={(e) => { e.stopPropagation(); setShowJournal(true); }}
-            className="relative w-full mt-3 flex items-center justify-center gap-2 rounded-xl bg-white/10 hover:bg-white/15 ring-1 ring-white/15 backdrop-blur-sm py-2.5 text-xs font-semibold uppercase tracking-wide text-white transition"
-          >
-            <BookHeart className="h-3.5 w-3.5" />
-            My Journal
-          </button>
+          {/* Action buttons */}
+          <div className="relative grid grid-cols-2 gap-2 mt-3">
+            <button
+              onClick={(e) => { e.stopPropagation(); setFlipView("journal"); }}
+              className="flex items-center justify-center gap-2 rounded-xl bg-white/10 hover:bg-white/15 ring-1 ring-white/15 backdrop-blur-sm py-2.5 text-xs font-semibold uppercase tracking-wide text-white transition"
+            >
+              <BookHeart className="h-3.5 w-3.5" />
+              Journal
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); setFlipView("why"); }}
+              className="flex items-center justify-center gap-2 rounded-xl bg-white/10 hover:bg-white/15 ring-1 ring-white/15 backdrop-blur-sm py-2.5 text-xs font-semibold uppercase tracking-wide text-white transition"
+            >
+              <Heart className="h-3.5 w-3.5" />
+              My Why
+            </button>
+          </div>
         </>
       )}
     </Card>
