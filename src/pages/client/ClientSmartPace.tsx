@@ -10,8 +10,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { useAuth } from "@/hooks/useAuth";
 import { SmartPaceAdminPanel } from "@/components/smart-pace/SmartPaceAdminPanel";
+import { LogWeighInDialog } from "@/components/smart-pace/LogWeighInDialog";
 import { cn } from "@/lib/utils";
 import { format, parseISO, subDays } from "date-fns";
+import { useState } from "react";
 
 export default function ClientSmartPace() {
   const navigate = useNavigate();
@@ -19,6 +21,7 @@ export default function ClientSmartPace() {
   const { user, userRole } = useAuth();
   const isImpersonating = userRole === "trainer" && clientId !== user?.id;
   const { data: pace, isLoading } = useSmartPace();
+  const [weighInOpen, setWeighInOpen] = useState(false);
 
   const { data: log } = useQuery({
     queryKey: ["smart-pace-log", clientId, pace?.goal?.id],
@@ -124,6 +127,15 @@ export default function ClientSmartPace() {
           <p className="text-sm text-muted-foreground mt-2">{pace.reason}</p>
         </Card>
 
+        {/* Log weigh-in CTA */}
+        <Button
+          size="lg"
+          className="w-full"
+          onClick={() => setWeighInOpen(true)}
+        >
+          <Scale className="h-4 w-4 mr-2" /> Log a weigh-in
+        </Button>
+
         {/* Stat grid */}
         <div className="grid grid-cols-2 gap-3">
           <StatCard
@@ -207,6 +219,12 @@ export default function ClientSmartPace() {
           </div>
         </Card>
       </div>
+
+      <LogWeighInDialog
+        clientId={clientId!}
+        open={weighInOpen}
+        onOpenChange={setWeighInOpen}
+      />
     </ClientLayout>
   );
 }
