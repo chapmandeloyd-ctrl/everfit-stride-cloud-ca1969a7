@@ -76,7 +76,7 @@ export function PortalLibrary({
           className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex flex-col items-center px-6 text-center"
         >
           <h1 className="text-white text-2xl font-light tracking-[0.3em] uppercase">
-            Portal Library
+            KSOM Calm Library
           </h1>
           <p className="text-white/70 text-sm font-light mt-3 tracking-wide">
             Transform Your Surroundings
