@@ -16,7 +16,7 @@ import {
   User as UserIcon,
   UtensilsCrossed,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -154,12 +154,15 @@ const WIZARD_STEPS: WizardStep[] = [
 
 export default function ClientMacroSetup() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const editMode = searchParams.get("mode") === "edit";
   const { user } = useAuth();
   const clientId = useEffectiveClientId();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const [screen, setScreen] = useState<Screen>("gender");
+  const [editJumped, setEditJumped] = useState(false);
 
   // Wizard state
   const [gender, setGender] = useState<"male" | "female" | "">("");
