@@ -249,15 +249,23 @@ export function PortalPlayer({ scene, onBack }: PortalPlayerProps) {
                       "inset 0 0 0 1.5px rgba(255,255,255,0.95), 0 0 40px 6px rgba(255,255,255,0.18), 0 0 80px 12px rgba(255,255,255,0.08)",
                   }}
                 />
-                <video
-                  ref={videoRef}
-                  src={scene.video_url}
-                  autoPlay
-                  loop={scene.loop_video}
-                  muted
-                  playsInline
-                  className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-                />
+                {scene.thumbnail_url ? (
+                  <img
+                    src={scene.thumbnail_url}
+                    alt={scene.name}
+                    className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                  />
+                ) : (
+                  <video
+                    ref={videoRef}
+                    src={scene.video_url}
+                    autoPlay
+                    loop={scene.loop_video}
+                    muted
+                    playsInline
+                    className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                  />
+                )}
               </motion.div>
 
               {/* Title directly under circle */}
