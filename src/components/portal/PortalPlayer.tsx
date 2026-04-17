@@ -371,6 +371,21 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory }:
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Slide-up control panel (FOCUS tab) */}
+      <PortalControlPanel
+        open={panelOpen}
+        activeCategory={(scene.category?.charAt(0).toUpperCase() + scene.category?.slice(1).toLowerCase()) as "Focus" | "Sleep" | "Escape"}
+        onClose={() => setPanelOpen(false)}
+        onOpenLibrary={() => {
+          setPanelOpen(false);
+          onOpenLibrary?.();
+        }}
+        onSelectCategory={(cat) => {
+          setPanelOpen(false);
+          onSelectCategory?.(cat);
+        }}
+      />
     </div>
   );
 }
