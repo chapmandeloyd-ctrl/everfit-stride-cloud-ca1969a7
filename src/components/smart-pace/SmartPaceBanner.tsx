@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { TrendingDown, TrendingUp, AlertTriangle, Target, ChevronRight, BookHeart, Heart } from "lucide-react";
+import { TrendingDown, TrendingUp, AlertTriangle, Target, BookHeart, Heart } from "lucide-react";
 import { useSmartPace } from "@/hooks/useSmartPace";
 import { cn } from "@/lib/utils";
 import { SmartPaceJournalView } from "./SmartPaceJournalView";
@@ -15,7 +14,6 @@ import { SmartPaceWhyView } from "./SmartPaceWhyView";
  */
 export function SmartPaceBanner() {
   const { data } = useSmartPace();
-  const navigate = useNavigate();
   const [flipView, setFlipView] = useState<"none" | "journal" | "why">("none");
 
   if (!data?.enabled || !data.goal) return null;
@@ -147,7 +145,6 @@ export function SmartPaceBanner() {
                 )}
               </div>
             </div>
-            <ChevronRight className="h-5 w-5 text-white/50 shrink-0" />
           </div>
 
           {/* Start → Goal weight strip */}
