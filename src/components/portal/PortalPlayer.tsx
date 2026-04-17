@@ -328,15 +328,11 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory }:
               </AnimatePresence>
 
               <div className="flex items-center justify-between text-white/85">
-                {/* FOCUS — primary, with label */}
+                {/* FOCUS — opens portal control panel */}
                 <button
-                  onClick={() => {
-                    const a = audioRef.current;
-                    if (a) { a.volume = muted ? 0 : volume; a.play().catch(() => {}); }
-                    setImmersive(true);
-                  }}
+                  onClick={() => setPanelOpen(true)}
                   className="flex items-center gap-2 hover:text-white transition-colors"
-                  aria-label="Enter focus mode"
+                  aria-label="Open portal panel"
                 >
                   <CircleDot className="h-5 w-5" strokeWidth={1.5} />
                   <span className="text-[11px] uppercase tracking-[0.25em] font-medium">Focus</span>
