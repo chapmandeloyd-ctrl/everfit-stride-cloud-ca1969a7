@@ -21,6 +21,7 @@ import Auth from "./pages/Auth";
 import Unsubscribe from "./pages/Unsubscribe";
 import ClientDashboard from "./pages/client/ClientDashboard";
 import ClientSmartPace from "./pages/client/ClientSmartPace";
+import SmartPacePreview from "./pages/SmartPacePreview";
 import ClientDailyScore from "./pages/client/ClientDailyScore";
 import ClientOnboarding from "./pages/client/ClientOnboarding";
 import ClientWorkouts from "./pages/client/ClientWorkouts";
