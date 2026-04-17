@@ -155,7 +155,9 @@ const WIZARD_STEPS: WizardStep[] = [
 export default function ClientMacroSetup() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const editMode = searchParams.get("mode") === "edit";
+  const mode = searchParams.get("mode"); // "edit" → results, "deficit" → adjustment slider
+  const editMode = mode === "edit" || mode === "deficit";
+  const editScreenTarget: "results" | "adjustment" = mode === "deficit" ? "adjustment" : "results";
   const { user } = useAuth();
   const clientId = useEffectiveClientId();
   const { toast } = useToast();
