@@ -24,36 +24,41 @@ export default function ClientPortal() {
     },
   });
 
-  // Active scene → cinematic player. Back returns to Calm entry.
-  if (activeScene) {
-    return <PortalPlayer scene={activeScene} onBack={() => setActiveScene(null)} />;
-  }
+  const findFirstInCategory = (category: EntryCategory) =>
+    scenes.find((s) => s.category?.toLowerCase() === category.toLowerCase()) ?? null;
 
-  // Tap a category on the Calm screen → jump straight into the first scene of that category.
   const handleSelectCategory = (category: EntryCategory) => {
-    const first = scenes.find(
-      (s) => s.category?.toLowerCase() === category.toLowerCase()
-    );
+    const first = findFirstInCategory(category);
     if (first) setActiveScene(first);
   };
 
-  return (
-    <>
-      <PortalEntry
-        onSelectCategory={handleSelectCategory}
-        onOpenLibrary={() => setLibraryOpen(true)}
-      />
-      {libraryOpen && (
-        <PortalLibrary
-          scenes={scenes}
-          isLoading={isLoading}
-          onClose={() => setLibraryOpen(false)}
-          onSelectScene={(scene) => {
-            setLibraryOpen(false);
-            setActiveScene(scene);
+  // Active scene → cinematic player. Library can be opened from inside the player.
+  if (activeScene) {
+    return (
+      <>
+        <PortalPlayer
+          scene={activeScene}
+          onBack={() => setActiveScene(null)}
+          onOpenLibrary={() => setLibraryOpen(true)}
+          onSelectCategory={(cat) => {
+            const next = findFirstInCategory(cat);
+            if (next) setActiveScene(next);
           }}
         />
-      )}
-    </>
-  );
+        {libraryOpen && (
+          <PortalLibrary
+            scenes={scenes}
+            isLoading={isLoading}
+            onClose={() => setLibraryOpen(false)}
+            onSelectScene={(scene) => {
+              setLibraryOpen(false);
+              setActiveScene(scene);
+            }}
+          />
+        )}
+      </>
+    );
+  }
+
+  return <PortalEntry onSelectCategory={handleSelectCategory} />;
 }

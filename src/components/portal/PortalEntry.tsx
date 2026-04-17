@@ -1,12 +1,10 @@
 import { motion } from "framer-motion";
-import { Library } from "lucide-react";
 
 interface PortalEntryProps {
   onSelectCategory: (category: "Focus" | "Sleep" | "Escape") => void;
-  onOpenLibrary?: () => void;
 }
 
-export function PortalEntry({ onSelectCategory, onOpenLibrary }: PortalEntryProps) {
+export function PortalEntry({ onSelectCategory }: PortalEntryProps) {
   const categories: Array<"Focus" | "Sleep" | "Escape"> = ["Focus", "Sleep", "Escape"];
 
   return (
@@ -76,15 +74,7 @@ export function PortalEntry({ onSelectCategory, onOpenLibrary }: PortalEntryProp
         transition={{ duration: 1, delay: 0.4, ease: "easeOut" }}
         className="absolute bottom-[8%] inset-x-0 px-8 space-y-3"
       >
-        {onOpenLibrary && (
-          <button
-            onClick={onOpenLibrary}
-            className="w-full py-3.5 rounded-full bg-white/[0.06] backdrop-blur-xl border border-white/15 text-white/90 text-xs font-light tracking-[0.3em] uppercase hover:bg-white/15 active:scale-[0.98] transition-all flex items-center justify-center gap-3"
-          >
-            <Library className="h-4 w-4" />
-            Open Library
-          </button>
-        )}
+        {/* category buttons only — library lives inside the player */}
         {categories.map((cat) => (
           <button
             key={cat}

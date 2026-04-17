@@ -7,6 +7,7 @@ import nebulaFocus from "@/assets/portal-nebula-focus.jpg";
 import nebulaSleep from "@/assets/portal-nebula-sleep.jpg";
 import nebulaEscape from "@/assets/portal-nebula-escape.jpg";
 import { Starfield } from "./Starfield";
+import { PortalControlPanel } from "./PortalControlPanel";
 
 function nebulaFor(category: string): string {
   const c = category?.toLowerCase();
@@ -31,6 +32,8 @@ export interface PortalScene {
 interface PortalPlayerProps {
   scene: PortalScene;
   onBack: () => void;
+  onOpenLibrary?: () => void;
+  onSelectCategory?: (category: "Focus" | "Sleep" | "Escape") => void;
 }
 
 /**
@@ -39,7 +42,7 @@ interface PortalPlayerProps {
  * Swipe DOWN on circle → expands to full-screen cinematic mode.
  * Swipe UP from full-screen → collapses back to circle.
  */
-export function PortalPlayer({ scene, onBack }: PortalPlayerProps) {
+export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory }: PortalPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const bgVideoRef = useRef<HTMLVideoElement>(null);
@@ -49,6 +52,7 @@ export function PortalPlayer({ scene, onBack }: PortalPlayerProps) {
   const [volume, setVolume] = useState(scene.audio_volume);
   const [elapsed, setElapsed] = useState(0);
   const [volumeOpen, setVolumeOpen] = useState(false);
+  const [panelOpen, setPanelOpen] = useState(false);
 
   const dragY = useMotionValue(0);
   const circleScale = useTransform(dragY, [0, 200], [1, 1.15]);
@@ -324,15 +328,11 @@ export function PortalPlayer({ scene, onBack }: PortalPlayerProps) {
               </AnimatePresence>
 
               <div className="flex items-center justify-between text-white/85">
-                {/* FOCUS — primary, with label */}
+                {/* FOCUS — opens portal control panel */}
                 <button
-                  onClick={() => {
-                    const a = audioRef.current;
-                    if (a) { a.volume = muted ? 0 : volume; a.play().catch(() => {}); }
-                    setImmersive(true);
-                  }}
+                  onClick={() => setPanelOpen(true)}
                   className="flex items-center gap-2 hover:text-white transition-colors"
-                  aria-label="Enter focus mode"
+                  aria-label="Open portal panel"
                 >
                   <CircleDot className="h-5 w-5" strokeWidth={1.5} />
                   <span className="text-[11px] uppercase tracking-[0.25em] font-medium">Focus</span>
@@ -371,6 +371,21 @@ export function PortalPlayer({ scene, onBack }: PortalPlayerProps) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Slide-up control panel (FOCUS tab) */}
+      <PortalControlPanel
+        open={panelOpen}
+        activeCategory={(scene.category?.charAt(0).toUpperCase() + scene.category?.slice(1).toLowerCase()) as "Focus" | "Sleep" | "Escape"}
+        onClose={() => setPanelOpen(false)}
+        onOpenLibrary={() => {
+          setPanelOpen(false);
+          onOpenLibrary?.();
+        }}
+        onSelectCategory={(cat) => {
+          setPanelOpen(false);
+          onSelectCategory?.(cat);
+        }}
+      />
     </div>
   );
 }
