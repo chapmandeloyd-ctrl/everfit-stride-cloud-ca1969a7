@@ -155,7 +155,9 @@ const WIZARD_STEPS: WizardStep[] = [
 export default function ClientMacroSetup() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const editMode = searchParams.get("mode") === "edit";
+  const mode = searchParams.get("mode"); // "edit" → results, "deficit" → adjustment slider
+  const editMode = mode === "edit" || mode === "deficit";
+  const editScreenTarget: "results" | "adjustment" = mode === "deficit" ? "adjustment" : "results";
   const { user } = useAuth();
   const clientId = useEffectiveClientId();
   const { toast } = useToast();
@@ -258,12 +260,21 @@ export default function ClientMacroSetup() {
     const prot = Number(existingTargets.target_protein) || 0;
     const carb = Number(existingTargets.target_carbs) || 0;
     const fat = Number(existingTargets.target_fats) || 0;
-    setBaseTdee(cal); // treat existing calories as baseline so slider starts at 0%
-    setAdjustment(0);
-    setManualOverride(true);
+    const savedTdee = (existingTargets as any).tdee as number | null | undefined;
+    const savedDeficit = (existingTargets as any).deficit_pct as number | null | undefined;
+
+    // Prefer real maintenance baseline from previous wizard run; fall back to saved calories.
+    const tdee = savedTdee && savedTdee > 0 ? savedTdee : cal;
+    const adj = savedTdee && savedTdee > 0
+      ? (typeof savedDeficit === "number" ? Number(savedDeficit) : (cal - tdee) / tdee)
+      : 0;
+
+    setBaseTdee(tdee);
+    setAdjustment(adj);
+    setManualOverride(false); // keep slider/presets live
     setDietStyle(existingTargets.diet_style || "standard");
     setCalcResults({ calories: cal, protein: prot, carbs: carb, fats: fat });
-    setScreen("results");
+    setScreen(editScreenTarget);
     setEditJumped(true);
   }, [editMode, editJumped, existingTargets]);
 
@@ -295,8 +306,10 @@ export default function ClientMacroSetup() {
         target_fats: macros.fats,
         is_active: true,
         diet_style: dietStyle || "custom",
+        tdee: baseTdee || null,
+        deficit_pct: baseTdee ? adjustment : null,
         ...(isImpersonating ? { trainer_id: user?.id } : {}),
-      };
+      } as any;
       if (existingTargets) {
         const { error } = await supabase
           .from("client_macro_targets")
@@ -710,14 +723,26 @@ export default function ClientMacroSetup() {
       <ClientLayout>
         <div className="p-4 pb-32 space-y-5 max-w-lg mx-auto min-h-screen bg-background">
           <div className="flex items-center justify-between">
-            <button onClick={() => setScreen("diet")} className="p-1 -ml-1">
+            <button
+              onClick={() => (editMode ? navigate("/client/nutrition") : setScreen("diet"))}
+              className="p-1 -ml-1"
+            >
               <ChevronLeft className="h-6 w-6" />
             </button>
             <button
-              onClick={() => setScreen("manual")}
+              onClick={() => {
+                if (editMode) {
+                  // Restart the full wizard from scratch
+                  setEditJumped(true);
+                  setManualOverride(false);
+                  setScreen("gender");
+                } else {
+                  setScreen("manual");
+                }
+              }}
               className="text-sm font-semibold text-primary"
             >
-              Set Manually
+              {editMode ? "Recalculate" : "Set Manually"}
             </button>
           </div>
 
