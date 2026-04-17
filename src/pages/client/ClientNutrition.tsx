@@ -155,6 +155,18 @@ export default function ClientNutrition() {
 
           {/* Summary Tab */}
           <TabsContent value="summary" className="px-4 pt-4 space-y-8 pb-8 mt-0">
+            {/* Deficit status pill — pinned at very top */}
+            {macroTargets && deficitPct !== null && savedTdee > 0 && (
+              <div className="flex justify-center">
+                <div className={`inline-flex flex-wrap items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm ${toneClasses[cutMeta.tone]}`}>
+                  <span className="h-3 w-3 rounded-full bg-primary" />
+                  <span className="font-semibold">{cutMeta.label}</span>
+                  <span className="text-muted-foreground">({deficitPct > 0 ? `+${deficitPct}` : deficitPct}% {deficitPct === 0 ? "change" : deficitPct < 0 ? "deficit" : "surplus"})</span>
+                  <span className="text-muted-foreground">· TDEE {savedTdee.toLocaleString()} Cal</span>
+                </div>
+              </div>
+            )}
+
             {/* Date nav */}
             <div className="flex items-center justify-between">
               <Button variant="ghost" size="icon" onClick={() => setViewDate(subDays(viewDate, 1))}>
@@ -168,17 +180,6 @@ export default function ClientNutrition() {
                 <ChevronRight className="h-5 w-5" />
               </Button>
             </div>
-
-            {macroTargets && deficitPct !== null && savedTdee > 0 && (
-              <div className="flex justify-center">
-                <div className={`inline-flex flex-wrap items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm ${toneClasses[cutMeta.tone]}`}>
-                  <span className="h-3 w-3 rounded-full bg-primary" />
-                  <span className="font-semibold">{cutMeta.label}</span>
-                  <span className="text-muted-foreground">({deficitPct > 0 ? `+${deficitPct}` : deficitPct}% {deficitPct === 0 ? "change" : deficitPct < 0 ? "deficit" : "surplus"})</span>
-                  <span className="text-muted-foreground">· TDEE {savedTdee.toLocaleString()} Cal</span>
-                </div>
-              </div>
-            )}
 
             {/* Donut chart */}
             <div className="flex justify-center">
@@ -203,14 +204,14 @@ export default function ClientNutrition() {
                     </Pie>
                   </PieChart>
                 </ResponsiveContainer>
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 px-4">
                   <span className="text-3xl font-bold leading-none">{pctOfGoal}%</span>
-                  <span className="text-xs text-muted-foreground">of daily goals</span>
+                  <span className="text-[10px] text-muted-foreground">of daily goals</span>
                   <button
                     onClick={() => navigate("/client/macro-setup?mode=edit")}
-                    className="mt-1 inline-flex items-center rounded-full border border-border bg-background px-3 py-1 text-xs font-semibold text-primary shadow-sm transition-colors hover:bg-accent"
+                    className="mt-1 inline-flex max-w-full items-center rounded-full border border-border bg-background px-2 py-0.5 text-[10px] font-semibold text-primary shadow-sm transition-colors hover:bg-accent whitespace-nowrap"
                   >
-                    Edit Macro Goals
+                    Edit Macros
                   </button>
                 </div>
               </div>
