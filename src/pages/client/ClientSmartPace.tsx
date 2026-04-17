@@ -219,6 +219,12 @@ export default function ClientSmartPace() {
           </div>
         </Card>
       </div>
+
+      <LogWeighInDialog
+        clientId={clientId!}
+        open={weighInOpen}
+        onOpenChange={setWeighInOpen}
+      />
     </ClientLayout>
   );
 }
