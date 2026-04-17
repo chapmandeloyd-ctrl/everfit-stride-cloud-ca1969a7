@@ -119,21 +119,21 @@ export function SmartPaceBanner() {
       </div>
 
       {/* Progress bar */}
-      <div className="mt-3">
+      <div className="relative mt-3">
         <div className="flex justify-between items-center mb-1">
-          <span className="text-[11px] text-muted-foreground">Goal progress</span>
-          <span className="text-[11px] font-semibold">{Math.round(progressPct)}%</span>
+          <span className="text-[11px] text-white/60">Goal progress</span>
+          <span className="text-[11px] font-semibold text-white">{Math.round(progressPct)}%</span>
         </div>
-        <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+        <div className="h-2 rounded-full bg-black/40 overflow-hidden ring-1 ring-white/10 shadow-inner">
           <div
-            className={cn("h-full transition-all", tone.progress)}
+            className={cn("h-full transition-all shadow-[0_0_12px_rgba(255,255,255,0.4)]", tone.progress)}
             style={{ width: `${progressPct}%` }}
           />
         </div>
       </div>
 
       {/* Mini stats row */}
-      <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-border/50">
+      <div className="relative grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-white/10">
         <Stat label="Debt" value={`${debtLbs.toFixed(1)}`} unit="lb" tone={debtLbs > 0 ? "warn" : "muted"} />
         <Stat label="Credit" value={`${creditLbs.toFixed(1)}`} unit="lb" tone={creditLbs > 0 ? "good" : "muted"} />
         <Stat
@@ -159,13 +159,13 @@ function Stat({
   tone: "good" | "warn" | "muted";
 }) {
   const color =
-    tone === "good" ? "text-emerald-500" : tone === "warn" ? "text-destructive" : "text-foreground";
+    tone === "good" ? "text-emerald-300" : tone === "warn" ? "text-red-300" : "text-white";
   return (
     <div className="text-center">
-      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</p>
-      <p className={cn("font-heading font-bold text-sm mt-0.5", color)}>
+      <p className="text-[10px] uppercase tracking-wide text-white/50">{label}</p>
+      <p className={cn("font-heading font-bold text-sm mt-0.5 drop-shadow", color)}>
         {value}
-        {unit && <span className="text-[10px] font-normal text-muted-foreground ml-0.5">{unit}</span>}
+        {unit && <span className="text-[10px] font-normal text-white/50 ml-0.5">{unit}</span>}
       </p>
     </div>
   );
