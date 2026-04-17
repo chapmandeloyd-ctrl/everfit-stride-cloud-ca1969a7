@@ -40,10 +40,11 @@ export function PortalPlayer({ scene, onBack }: PortalPlayerProps) {
   const circleScale = useTransform(dragY, [0, 200], [1, 1.15]);
   const hintOpacity = useTransform(dragY, [0, 80], [1, 0]);
 
-  // Sync video play state
+  // Sync video play state + try to start audio (browsers may block until user gesture)
   useEffect(() => {
     const v = videoRef.current;
     const a = audioRef.current;
+    if (a) a.volume = muted ? 0 : volume;
     if (!v) return;
     if (playing) {
       v.play().catch(() => {});
@@ -60,6 +61,23 @@ export function PortalPlayer({ scene, onBack }: PortalPlayerProps) {
       audioRef.current.volume = muted ? 0 : volume;
     }
   }, [volume, muted]);
+
+  // Kick off audio on first user interaction (autoplay policy fallback)
+  useEffect(() => {
+    const tryPlayAudio = () => {
+      const a = audioRef.current;
+      if (a && a.paused && playing) {
+        a.volume = muted ? 0 : volume;
+        a.play().catch(() => {});
+      }
+    };
+    window.addEventListener("pointerdown", tryPlayAudio, { once: true });
+    window.addEventListener("touchstart", tryPlayAudio, { once: true });
+    return () => {
+      window.removeEventListener("pointerdown", tryPlayAudio);
+      window.removeEventListener("touchstart", tryPlayAudio);
+    };
+  }, [playing, muted, volume]);
 
   // Timer
   useEffect(() => {
