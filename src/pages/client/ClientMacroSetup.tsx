@@ -3,72 +3,154 @@ import { ClientLayout } from "@/components/ClientLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ChevronLeft, ChevronRight, ArrowRight, Cake, User, Weight, Ruler, Percent, Activity, Target, UtensilsCrossed } from "lucide-react";
+import {
+  ChevronLeft,
+  ArrowRight,
+  ArrowLeft,
+  Minus,
+  Plus,
+  X,
+  Check,
+  AlertTriangle,
+  Bot,
+  User as UserIcon,
+  UtensilsCrossed,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
+import { cn } from "@/lib/utils";
 
-type Step = "form" | "activity" | "goal" | "diet" | "results" | "manual";
+// ─────────────────────────── Constants ───────────────────────────
 
 const ACTIVITY_LEVELS = [
   { value: "sedentary", label: "Sedentary", desc: "Little or no exercise", multiplier: 1.2 },
   { value: "light", label: "Lightly active", desc: "Exercise 1–3 days/week", multiplier: 1.375 },
   { value: "moderate", label: "Moderately active", desc: "Exercise 3–5 days/week", multiplier: 1.55 },
-  { value: "active", label: "Very active", desc: "Intense exercise 6–7 days a week", multiplier: 1.725 },
-  { value: "extreme", label: "Extremely active", desc: "2+ hrs of intense physical activity daily", multiplier: 1.9 },
+  { value: "active", label: "Very active", desc: "Intense exercise 6–7 days/week", multiplier: 1.725 },
+  { value: "extreme", label: "Extremely active", desc: "2+ hrs intense activity daily", multiplier: 1.9 },
 ];
 
 const GOALS = [
-  { value: "lose", label: "Lose weight", icon: "⬇️", factor: 0.8 },
-  { value: "recomp", label: "Improve body composition (build muscle & lose fat)", icon: "💪", factor: 0.9 },
-  { value: "gain", label: "Gain weight and build muscle", icon: "⬆️", factor: 1.15 },
-  { value: "maintain", label: "Maintain weight and body composition", icon: "⚖️", factor: 1.0 },
+  { value: "lose", label: "Lose weight", icon: "⬇️", factor: 0.85 },
+  { value: "recomp", label: "Build muscle & lose fat", icon: "💪", factor: 0.95 },
+  { value: "maintain", label: "Maintain weight", icon: "⚖️", factor: 1.0 },
+  { value: "gain", label: "Gain weight & build muscle", icon: "⬆️", factor: 1.10 },
 ];
 
-const DIET_STYLES = [
+type DietStyle = {
+  value: string;
+  label: string;
+  badge: string;
+  badgeColor: string; // tailwind class for badge bg/text
+  letter: string;
+  letterBg: string;
+  letterText: string;
+  desc: string;
+  splitText: string;
+  splitColor: string;
+  fatPct: number;
+  proteinPct: number;
+  carbsPct: number;
+};
+
+const DIET_STYLES: DietStyle[] = [
+  {
+    value: "standard",
+    label: "Standard",
+    badge: "Balanced macros",
+    badgeColor: "bg-blue-100 text-blue-700",
+    letter: "B",
+    letterBg: "bg-blue-100",
+    letterText: "text-blue-700",
+    desc: "Goal-based protein / carb / fat split",
+    splitText: "P 30–35% · C 30–45% · F 25–35%",
+    splitColor: "text-blue-600",
+    fatPct: 0.30, proteinPct: 0.30, carbsPct: 0.40,
+  },
   {
     value: "standard_keto",
-    label: "Standard Keto",
-    split: "75F / 20P / 5C",
-    icon: "🥑",
-    fatPct: 0.75, proteinPct: 0.20, carbsPct: 0.05,
-    desc: "The classic ketogenic ratio — maximum fat adaptation",
-    bestFor: "Best for: Weight loss, metabolic health, epilepsy management, and those new to keto",
+    label: "Standard Keto (SKD)",
+    badge: "Most popular keto",
+    badgeColor: "bg-orange-100 text-orange-700",
+    letter: "K",
+    letterBg: "bg-orange-100",
+    letterText: "text-orange-700",
+    desc: "High-fat, very-low-carb — great for sustained fat loss and ketosis",
+    splitText: "F 70% · P 25% · C 5%",
+    splitColor: "text-orange-600",
+    fatPct: 0.70, proteinPct: 0.25, carbsPct: 0.05,
+  },
+  {
+    value: "targeted_keto",
+    label: "Targeted Keto (TKD)",
+    badge: "For active people",
+    badgeColor: "bg-green-100 text-green-700",
+    letter: "K",
+    letterBg: "bg-green-100",
+    letterText: "text-green-700",
+    desc: "Extra carbs timed around workouts for quick energy without leaving ketosis",
+    splitText: "F 65% · P 25% · C 10%",
+    splitColor: "text-green-600",
+    fatPct: 0.65, proteinPct: 0.25, carbsPct: 0.10,
+  },
+  {
+    value: "cyclical_keto",
+    label: "Cyclical Keto (CKD)",
+    badge: "For bodybuilders",
+    badgeColor: "bg-purple-100 text-purple-700",
+    letter: "K",
+    letterBg: "bg-purple-100",
+    letterText: "text-purple-700",
+    desc: "5–6 days strict keto then 1–2 days higher-carb refeeds for muscle building",
+    splitText: "F 60% · P 25% · C 15% (avg)",
+    splitColor: "text-purple-600",
+    fatPct: 0.60, proteinPct: 0.25, carbsPct: 0.15,
   },
   {
     value: "high_protein_keto",
-    label: "High Protein Keto",
-    split: "60F / 35P / 5C",
-    icon: "💪",
+    label: "High-Protein Keto",
+    badge: "Muscle-first keto",
+    badgeColor: "bg-red-100 text-red-700",
+    letter: "K",
+    letterBg: "bg-red-100",
+    letterText: "text-red-700",
+    desc: "More protein than traditional keto — great for building muscle while in ketosis",
+    splitText: "F 60% · P 35% · C 5%",
+    splitColor: "text-red-600",
     fatPct: 0.60, proteinPct: 0.35, carbsPct: 0.05,
-    desc: "Higher protein for muscle preservation while staying in ketosis",
-    bestFor: "Best for: Athletes, bodybuilders, those wanting to build/maintain muscle on keto",
-  },
-  {
-    value: "modified_keto",
-    label: "Modified Keto",
-    split: "70F / 25P / 5C",
-    icon: "⚖️",
-    fatPct: 0.70, proteinPct: 0.25, carbsPct: 0.05,
-    desc: "A balanced middle ground — sustainable long-term approach",
-    bestFor: "Best for: Active individuals seeking a sustainable keto lifestyle with moderate protein",
   },
 ];
 
-const FIELD_ICONS = [
-  { icon: Cake, color: "bg-slate-800 text-white" },
-  { icon: User, color: "bg-slate-700 text-white" },
-  { icon: Weight, color: "bg-primary text-primary-foreground" },
-  { icon: Ruler, color: "bg-primary text-primary-foreground" },
-  { icon: Percent, color: "bg-primary text-primary-foreground" },
-  { icon: Activity, color: "bg-orange-500 text-white" },
-  { icon: Target, color: "bg-orange-500 text-white" },
+// 8 wizard steps + adjustment + results + manual
+type WizardStep =
+  | "gender"
+  | "age"
+  | "weight"
+  | "height"
+  | "bodyfat"
+  | "activity"
+  | "goal"
+  | "diet";
+
+type Screen = WizardStep | "adjustment" | "results" | "manual";
+
+const WIZARD_STEPS: WizardStep[] = [
+  "gender",
+  "age",
+  "weight",
+  "height",
+  "bodyfat",
+  "activity",
+  "goal",
+  "diet",
 ];
+
+// ─────────────────────────── Component ───────────────────────────
 
 export default function ClientMacroSetup() {
   const navigate = useNavigate();
@@ -77,36 +159,34 @@ export default function ClientMacroSetup() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const [step, setStep] = useState<Step>("form");
-  const [age, setAge] = useState("");
-  const [gender, setGender] = useState("male");
-  const [weightLbs, setWeightLbs] = useState("");
-  const [heightFt, setHeightFt] = useState("");
-  const [heightIn, setHeightIn] = useState("");
-  const [bodyFat, setBodyFat] = useState("");
-  const [activityLevel, setActivityLevel] = useState("");
-  const [goal, setGoal] = useState("");
-  const [activitySheetOpen, setActivitySheetOpen] = useState(false);
-  const [goalSheetOpen, setGoalSheetOpen] = useState(false);
-  const [dietSheetOpen, setDietSheetOpen] = useState(false);
-  const [dietStyle, setDietStyle] = useState("");
+  const [screen, setScreen] = useState<Screen>("gender");
 
-  // Manual mode
+  // Wizard state
+  const [gender, setGender] = useState<"male" | "female" | "">("");
+  const [age, setAge] = useState<number>(30);
+  const [weightLbs, setWeightLbs] = useState<number>(180);
+  const [heightFt, setHeightFt] = useState<number>(5);
+  const [heightIn, setHeightIn] = useState<number>(10);
+  const [bodyFat, setBodyFat] = useState<number | null>(null);
+  const [activityLevel, setActivityLevel] = useState<string>("");
+  const [goal, setGoal] = useState<string>("");
+  const [dietStyle, setDietStyle] = useState<string>("");
+
+  // Calculation state
+  const [baseTdee, setBaseTdee] = useState<number>(0);
+  const [adjustment, setAdjustment] = useState<number>(0); // -0.80 .. +0.30
+  const [calcResults, setCalcResults] = useState<{
+    calories: number; protein: number; carbs: number; fats: number;
+  } | null>(null);
+  const [manualOverride, setManualOverride] = useState<boolean>(false);
+
+  // Manual mode state
   const [manualCalories, setManualCalories] = useState("");
   const [manualProtein, setManualProtein] = useState("");
   const [manualCarbs, setManualCarbs] = useState("");
   const [manualFats, setManualFats] = useState("");
 
-  // Calculated results
-  const [calcResults, setCalcResults] = useState<{ calories: number; protein: number; carbs: number; fats: number } | null>(null);
-  // Base TDEE (maintenance) — used to compute slider-driven calorie targets
-  const [baseTdee, setBaseTdee] = useState<number>(0);
-  // Cut/surplus adjustment, e.g. -0.15 = 15% deficit, 0 = maintain, +0.10 = 10% surplus
-  const [adjustment, setAdjustment] = useState<number>(0);
-  // Whether the user has manually edited a macro field (frees ratios)
-  const [manualOverride, setManualOverride] = useState<boolean>(false);
-
-  // Fetch existing macro targets
+  // Existing targets
   const { data: existingTargets } = useQuery({
     queryKey: ["client-macro-targets", clientId],
     queryFn: async () => {
@@ -122,37 +202,69 @@ export default function ClientMacroSetup() {
     enabled: !!clientId,
   });
 
-  const handleCalculate = () => {
-    const w = parseFloat(weightLbs) * 0.453592; // lbs to kg
-    const h = (parseFloat(heightFt) * 12 + parseFloat(heightIn || "0")) * 2.54; // ft/in to cm
-    const a = parseInt(age);
+  // ──────── Helpers ────────
 
-    if (!w || !h || !a) return;
+  const stepIndex = WIZARD_STEPS.indexOf(screen as WizardStep);
+  const isWizard = stepIndex >= 0;
 
-    // Mifflin-St Jeor
+  const computeTdee = () => {
+    const w = weightLbs * 0.453592;
+    const h = (heightFt * 12 + heightIn) * 2.54;
     let bmr = gender === "male"
-      ? 10 * w + 6.25 * h - 5 * a + 5
-      : 10 * w + 6.25 * h - 5 * a - 161;
-
-    const actMultiplier = ACTIVITY_LEVELS.find(l => l.value === activityLevel)?.multiplier || 1.55;
-    let tdee = bmr * actMultiplier;
-
-    const goalFactor = GOALS.find(g => g.value === goal)?.factor || 1.0;
-    tdee *= goalFactor;
-
-    const selectedDiet = DIET_STYLES.find(d => d.value === dietStyle) || DIET_STYLES[1];
-    const calories = Math.round(tdee);
-    const protein = Math.round((calories * selectedDiet.proteinPct) / 4);
-    const fats = Math.round((calories * selectedDiet.fatPct) / 9);
-    const carbs = Math.round((calories * selectedDiet.carbsPct) / 4);
-
-    setCalcResults({ calories, protein: Math.max(protein, 0), carbs: Math.max(carbs, 0), fats: Math.max(fats, 0) });
-    setStep("results");
+      ? 10 * w + 6.25 * h - 5 * age + 5
+      : 10 * w + 6.25 * h - 5 * age - 161;
+    const mult = ACTIVITY_LEVELS.find(l => l.value === activityLevel)?.multiplier || 1.55;
+    return Math.round(bmr * mult);
   };
 
+  const goToAdjustment = () => {
+    const tdee = computeTdee();
+    const goalFactor = GOALS.find(g => g.value === goal)?.factor || 1.0;
+    const defaultAdj = goalFactor - 1; // -0.15 / 0 / +0.10 etc.
+    setBaseTdee(tdee);
+    setAdjustment(defaultAdj);
+    setManualOverride(false);
+    setScreen("adjustment");
+  };
+
+  const goToResults = () => {
+    const diet = DIET_STYLES.find(d => d.value === dietStyle) || DIET_STYLES[0];
+    const calories = Math.round(baseTdee * (1 + adjustment));
+    const protein = Math.round((calories * diet.proteinPct) / 4);
+    const fats = Math.round((calories * diet.fatPct) / 9);
+    const carbs = Math.round((calories * diet.carbsPct) / 4);
+    setCalcResults({ calories, protein, carbs, fats });
+    setScreen("results");
+  };
+
+  // Recompute macros on slider/diet change while on results
+  useEffect(() => {
+    if (screen !== "results" || !baseTdee || manualOverride) return;
+    const diet = DIET_STYLES.find(d => d.value === dietStyle) || DIET_STYLES[0];
+    const calories = Math.round(baseTdee * (1 + adjustment));
+    const protein = Math.round((calories * diet.proteinPct) / 4);
+    const fats = Math.round((calories * diet.fatPct) / 9);
+    const carbs = Math.round((calories * diet.carbsPct) / 4);
+    setCalcResults({ calories, protein, carbs, fats });
+  }, [adjustment, baseTdee, dietStyle, screen, manualOverride]);
+
+  const adjustmentLabel = useMemo(() => {
+    const pct = Math.round(adjustment * 100);
+    if (pct <= -75) return { name: "Maximum Cut", sub: `${Math.abs(pct)}% below maintenance`, color: "text-destructive" };
+    if (pct <= -65) return { name: "Extreme Deficit", sub: `${Math.abs(pct)}% below maintenance`, color: "text-destructive" };
+    if (pct <= -45) return { name: "Aggressive Cut", sub: `${Math.abs(pct)}% below maintenance`, color: "text-orange-600" };
+    if (pct <= -25) return { name: "Heavy Cut", sub: `${Math.abs(pct)}% below maintenance`, color: "text-orange-500" };
+    if (pct <= -10) return { name: "Moderate Cut", sub: `${Math.abs(pct)}% below maintenance`, color: "text-green-600" };
+    if (pct < 0) return { name: "Light Cut", sub: `${Math.abs(pct)}% below maintenance`, color: "text-green-500" };
+    if (pct === 0) return { name: "Maintain", sub: "At maintenance", color: "text-foreground" };
+    if (pct <= 10) return { name: "Lean Bulk", sub: `${pct}% above maintenance`, color: "text-blue-500" };
+    if (pct <= 20) return { name: "Surplus", sub: `${pct}% above maintenance`, color: "text-blue-600" };
+    return { name: "Aggressive Bulk", sub: `${pct}% above maintenance`, color: "text-purple-600" };
+  }, [adjustment]);
+
+  // Save mutation
   const saveMutation = useMutation({
     mutationFn: async (macros: { calories: number; protein: number; carbs: number; fats: number }) => {
-      // When a trainer is impersonating, include trainer_id so the trainer's ALL policy matches
       const isImpersonating = clientId !== user?.id;
       const payload = {
         client_id: clientId!,
@@ -165,7 +277,6 @@ export default function ClientMacroSetup() {
         diet_style: dietStyle || "custom",
         ...(isImpersonating ? { trainer_id: user?.id } : {}),
       };
-
       if (existingTargets) {
         const { error } = await supabase
           .from("client_macro_targets")
@@ -189,186 +300,143 @@ export default function ClientMacroSetup() {
     },
   });
 
-  const handleNext = () => {
-    if (!age || !weightLbs || !heightFt) {
-      toast({ title: "Please fill in Age, Weight, and Height", variant: "destructive" });
-      return;
-    }
-    setActivitySheetOpen(true);
-  };
-
-  const handleActivitySelect = (value: string) => {
-    setActivityLevel(value);
-    setActivitySheetOpen(false);
-    setTimeout(() => setGoalSheetOpen(true), 300);
-  };
-
-  const handleGoalSelect = (value: string) => {
-    setGoal(value);
-    setGoalSheetOpen(false);
-    setTimeout(() => setDietSheetOpen(true), 300);
-  };
-
-  const handleDietSelect = (value: string) => {
-    setDietStyle(value);
-    setDietSheetOpen(false);
-    setTimeout(() => handleCalculateWithGoalAndDiet(goal, value), 300);
-  };
-
-  const handleCalculateWithGoalAndDiet = (selectedGoal: string, selectedDietValue: string) => {
-    const w = parseFloat(weightLbs) * 0.453592;
-    const h = (parseFloat(heightFt) * 12 + parseFloat(heightIn || "0")) * 2.54;
-    const a = parseInt(age);
-
-    if (!w || !h || !a) return;
-
-    let bmr = gender === "male"
-      ? 10 * w + 6.25 * h - 5 * a + 5
-      : 10 * w + 6.25 * h - 5 * a - 161;
-
-    const actMultiplier = ACTIVITY_LEVELS.find(l => l.value === activityLevel)?.multiplier || 1.55;
-    const tdeeBase = Math.round(bmr * actMultiplier); // maintenance
-
-    // Map goal -> default adjustment
-    const goalFactor = GOALS.find(g => g.value === selectedGoal)?.factor || 1.0;
-    const defaultAdjustment = goalFactor - 1; // e.g. 0.8 -> -0.20, 1.15 -> +0.15
-    const targetCalories = Math.round(tdeeBase * (1 + defaultAdjustment));
-
-    const selectedDiet = DIET_STYLES.find(d => d.value === selectedDietValue) || DIET_STYLES[1];
-    const protein = Math.round((targetCalories * selectedDiet.proteinPct) / 4);
-    const fats = Math.round((targetCalories * selectedDiet.fatPct) / 9);
-    const carbs = Math.round((targetCalories * selectedDiet.carbsPct) / 4);
-
-    setBaseTdee(tdeeBase);
-    setAdjustment(defaultAdjustment);
-    setManualOverride(false);
-    setCalcResults({ calories: targetCalories, protein: Math.max(protein, 0), carbs: Math.max(carbs, 0), fats: Math.max(fats, 0) });
-    setStep("results");
-  };
-
   const handleSaveManual = () => {
     const c = parseInt(manualCalories);
-    const p = parseInt(manualProtein);
-    const cb = parseInt(manualCarbs);
-    const f = parseInt(manualFats);
     if (!c) {
       toast({ title: "Please enter at least calories", variant: "destructive" });
       return;
     }
-    saveMutation.mutate({ calories: c, protein: p || 0, carbs: cb || 0, fats: f || 0 });
+    saveMutation.mutate({
+      calories: c,
+      protein: parseInt(manualProtein) || 0,
+      carbs: parseInt(manualCarbs) || 0,
+      fats: parseInt(manualFats) || 0,
+    });
   };
 
-  // Recompute calories + macros when adjustment slider changes (unless user manually edited)
-  useEffect(() => {
-    if (step !== "results" || !baseTdee || manualOverride) return;
-    const selectedDiet = DIET_STYLES.find(d => d.value === dietStyle) || DIET_STYLES[1];
-    const calories = Math.round(baseTdee * (1 + adjustment));
-    const protein = Math.round((calories * selectedDiet.proteinPct) / 4);
-    const fats = Math.round((calories * selectedDiet.fatPct) / 9);
-    const carbs = Math.round((calories * selectedDiet.carbsPct) / 4);
-    setCalcResults({ calories, protein: Math.max(protein, 0), carbs: Math.max(carbs, 0), fats: Math.max(fats, 0) });
-  }, [adjustment, baseTdee, dietStyle, step, manualOverride]);
-
-  // Label for current adjustment level
-  const adjustmentLabel = useMemo(() => {
-    const pct = Math.round(adjustment * 100);
-    if (pct <= -50) return { name: "Aggressive Cut", sub: `${Math.abs(pct)}% below maintenance`, color: "text-destructive" };
-    if (pct <= -25) return { name: "Heavy Cut", sub: `${Math.abs(pct)}% below maintenance`, color: "text-orange-600" };
-    if (pct <= -10) return { name: "Moderate Cut", sub: `${Math.abs(pct)}% below maintenance`, color: "text-yellow-600" };
-    if (pct < 0) return { name: "Light Cut", sub: `${Math.abs(pct)}% below maintenance`, color: "text-yellow-500" };
-    if (pct === 0) return { name: "Maintain", sub: "At maintenance", color: "text-green-600" };
-    if (pct <= 10) return { name: "Lean Bulk", sub: `${pct}% above maintenance`, color: "text-blue-500" };
-    if (pct <= 20) return { name: "Surplus", sub: `${pct}% above maintenance`, color: "text-blue-600" };
-    return { name: "Aggressive Bulk", sub: `${pct}% above maintenance`, color: "text-purple-600" };
-  }, [adjustment]);
-
-  const updateMacroField = (field: "calories" | "protein" | "carbs" | "fats", value: string) => {
-    const n = parseInt(value) || 0;
-    setManualOverride(true);
-    setCalcResults(prev => prev ? { ...prev, [field]: n } : prev);
+  // Validity for Next button on each step
+  const canAdvance = (s: WizardStep) => {
+    switch (s) {
+      case "gender": return gender !== "";
+      case "age": return age >= 13 && age <= 100;
+      case "weight": return weightLbs >= 60 && weightLbs <= 600;
+      case "height": return heightFt >= 3 && heightFt <= 8;
+      case "bodyfat": return true; // optional
+      case "activity": return activityLevel !== "";
+      case "goal": return goal !== "";
+      case "diet": return dietStyle !== "";
+    }
   };
 
-  // Donut chart for results
-  const renderDonutChart = (data: { calories: number; protein: number; carbs: number; fats: number }) => {
-    const totalMacroCalories = data.protein * 4 + data.carbs * 4 + data.fats * 9;
-    const proteinPct = totalMacroCalories > 0 ? Math.round((data.protein * 4 / totalMacroCalories) * 100) : 33;
-    const carbsPct = totalMacroCalories > 0 ? Math.round((data.carbs * 4 / totalMacroCalories) * 100) : 33;
-    const fatsPct = totalMacroCalories > 0 ? Math.round((data.fats * 9 / totalMacroCalories) * 100) : 34;
+  const handleNext = () => {
+    if (!isWizard) return;
+    if (!canAdvance(screen as WizardStep)) return;
+    if (screen === "diet") {
+      goToAdjustment();
+      return;
+    }
+    setScreen(WIZARD_STEPS[stepIndex + 1]);
+  };
 
-    const chartData = [
-      { name: "Protein", value: data.protein * 4, color: "hsl(217, 91%, 60%)" },
-      { name: "Carbs", value: data.carbs * 4, color: "hsl(142, 71%, 45%)" },
-      { name: "Fat", value: data.fats * 9, color: "hsl(45, 93%, 58%)" },
-    ];
+  const handleBack = () => {
+    if (screen === "adjustment") {
+      setScreen("diet");
+      return;
+    }
+    if (screen === "results") {
+      setScreen("adjustment");
+      return;
+    }
+    if (stepIndex > 0) {
+      setScreen(WIZARD_STEPS[stepIndex - 1]);
+    } else {
+      navigate("/client/dashboard");
+    }
+  };
 
-    return (
-      <div className="flex flex-col items-center">
-        <div className="relative w-56 h-56">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={chartData}
-                cx="50%"
-                cy="50%"
-                innerRadius={70}
-                outerRadius={100}
-                paddingAngle={3}
-                dataKey="value"
-                strokeWidth={0}
-              >
-                {chartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-4xl font-bold text-foreground">{data.calories.toLocaleString()}</span>
-            <span className="text-sm text-muted-foreground">calories</span>
-          </div>
-        </div>
+  // ─────────────── Wizard chrome ───────────────
 
-        <div className="w-full mt-6 space-y-0 divide-y divide-border">
-          <div className="flex items-center justify-between py-3 px-2">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: "hsl(217, 91%, 60%)" }} />
-              <span className="text-sm font-medium text-foreground">Protein</span>
-              <span className="text-sm text-muted-foreground">{data.protein} g</span>
-            </div>
-            <span className="text-sm font-bold text-foreground">{proteinPct} %</span>
-          </div>
-          <div className="flex items-center justify-between py-3 px-2">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: "hsl(142, 71%, 45%)" }} />
-              <span className="text-sm font-medium text-foreground">Carbs</span>
-              <span className="text-sm text-muted-foreground">{data.carbs} g</span>
-            </div>
-            <span className="text-sm font-bold text-foreground">{carbsPct} %</span>
-          </div>
-          <div className="flex items-center justify-between py-3 px-2">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: "hsl(45, 93%, 58%)" }} />
-              <span className="text-sm font-medium text-foreground">Fat</span>
-              <span className="text-sm text-muted-foreground">{data.fats} g</span>
-            </div>
-            <span className="text-sm font-bold text-foreground">{fatsPct} %</span>
-          </div>
-        </div>
+  const WizardHeader = ({ showBack = false }: { showBack?: boolean }) => (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        {showBack ? (
+          <button onClick={handleBack} className="p-1 -ml-1">
+            <ChevronLeft className="h-6 w-6" />
+          </button>
+        ) : (
+          <button onClick={() => navigate("/client/dashboard")} className="p-1 -ml-1">
+            <X className="h-5 w-5" />
+          </button>
+        )}
+        <button
+          onClick={() => setScreen("manual")}
+          className="text-sm font-semibold text-primary"
+        >
+          Set Manually
+        </button>
       </div>
-    );
-  };
+      <div className="flex gap-1">
+        {WIZARD_STEPS.map((s, i) => (
+          <div
+            key={s}
+            className={cn(
+              "h-1 flex-1 rounded-full transition-colors",
+              i <= stepIndex ? "bg-primary" : "bg-muted"
+            )}
+          />
+        ))}
+      </div>
+    </div>
+  );
 
-  // Manual mode
-  if (step === "manual") {
+  const NextBar = ({ label = "Next →", showBack = true, disabled = false, onClick }: {
+    label?: string; showBack?: boolean; disabled?: boolean; onClick?: () => void;
+  }) => (
+    <div className="fixed bottom-6 left-0 right-0 px-4">
+      <div className="max-w-lg mx-auto flex items-center gap-3">
+        {showBack && (
+          <button
+            onClick={handleBack}
+            className="w-12 h-12 rounded-full border border-border flex items-center justify-center bg-background"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+        )}
+        <Button
+          onClick={onClick || handleNext}
+          disabled={disabled}
+          className={cn(
+            "flex-1 h-12 rounded-full text-base font-semibold gap-2",
+            disabled && "opacity-50 bg-primary/40"
+          )}
+        >
+          {label}
+        </Button>
+      </div>
+    </div>
+  );
+
+  const FloatingBot = () => (
+    <button
+      onClick={() => toast({ title: "AI Coach", description: "Coming soon — let me help you pick values." })}
+      className="fixed bottom-24 right-4 w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center"
+    >
+      <Bot className="h-5 w-5" />
+    </button>
+  );
+
+  // ─────────────── Manual Mode ───────────────
+
+  if (screen === "manual") {
     return (
       <ClientLayout>
-        <div className="p-4 pb-8 space-y-6 max-w-lg mx-auto">
+        <div className="p-4 pb-32 space-y-6 max-w-lg mx-auto min-h-screen bg-background">
           <div className="flex items-center justify-between">
-            <Button variant="ghost" size="icon" onClick={() => setStep("form")}>
-              <ChevronLeft className="h-5 w-5" />
-            </Button>
-            <h1 className="text-lg font-bold">Set Manually</h1>
-            <div className="w-10" />
+            <button onClick={() => setScreen("gender")} className="p-1 -ml-1">
+              <ChevronLeft className="h-6 w-6" />
+            </button>
+            <h1 className="text-base font-bold">Set Manually</h1>
+            <div className="w-6" />
           </div>
 
           <div className="text-center py-4">
@@ -408,156 +476,466 @@ export default function ClientMacroSetup() {
     );
   }
 
-  // Results view
-  if (step === "results" && calcResults) {
-    const deficitPresets = [10, 20, 30, 40, 50, 60, 70];
+  // ─────────────── Wizard Screens ───────────────
+
+  if (isWizard) {
+    return (
+      <ClientLayout>
+        <div className="p-4 pb-32 max-w-lg mx-auto min-h-screen bg-background">
+          <WizardHeader showBack={stepIndex > 0} />
+
+          {screen === "gender" && (
+            <div className="mt-10 space-y-8">
+              <div className="text-center space-y-3">
+                <div className="inline-flex w-16 h-16 rounded-full bg-primary/10 items-center justify-center">
+                  <UserIcon className="h-7 w-7 text-primary" />
+                </div>
+                <h1 className="text-3xl font-bold">Let's build your plan</h1>
+                <p className="text-sm text-muted-foreground">We'll use this to calculate your metabolism accurately</p>
+              </div>
+              <div className="grid grid-cols-2 gap-4 px-2">
+                <button
+                  onClick={() => setGender("male")}
+                  className={cn(
+                    "aspect-square rounded-2xl border-2 flex flex-col items-center justify-center gap-3 transition-all",
+                    gender === "male" ? "border-primary bg-primary/5" : "border-border bg-card"
+                  )}
+                >
+                  <span className="text-4xl text-muted-foreground">♂</span>
+                  <span className="font-bold text-base">Male</span>
+                </button>
+                <button
+                  onClick={() => setGender("female")}
+                  className={cn(
+                    "aspect-square rounded-2xl border-2 flex flex-col items-center justify-center gap-3 transition-all",
+                    gender === "female" ? "border-primary bg-primary/5" : "border-border bg-card"
+                  )}
+                >
+                  <span className="text-4xl text-muted-foreground">♀</span>
+                  <span className="font-bold text-base">Female</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {screen === "age" && (
+            <div className="mt-8 space-y-12">
+              <div className="space-y-2">
+                <h1 className="text-3xl font-bold">How many trips around the sun?</h1>
+                <p className="text-sm text-muted-foreground">Your metabolic rate is tied to your age</p>
+              </div>
+              <Stepper value={age} setValue={setAge} unit="yrs" min={13} max={100} />
+            </div>
+          )}
+
+          {screen === "weight" && (
+            <div className="mt-8 space-y-12">
+              <div className="space-y-2">
+                <h1 className="text-3xl font-bold">What's your weight?</h1>
+                <p className="text-sm text-muted-foreground">We'll calculate your energy needs from this</p>
+              </div>
+              <Stepper value={weightLbs} setValue={setWeightLbs} unit="lb" min={60} max={600} step={1} />
+            </div>
+          )}
+
+          {screen === "height" && (
+            <div className="mt-8 space-y-12">
+              <div className="space-y-2">
+                <h1 className="text-3xl font-bold">How tall are you?</h1>
+                <p className="text-sm text-muted-foreground">Height helps us dial in your baseline burn</p>
+              </div>
+              <div className="flex items-center justify-center gap-6">
+                <Stepper value={heightFt} setValue={setHeightFt} unit="ft" min={3} max={8} compact />
+                <Stepper value={heightIn} setValue={setHeightIn} unit="in" min={0} max={11} compact />
+              </div>
+            </div>
+          )}
+
+          {screen === "bodyfat" && (
+            <div className="mt-8 space-y-12">
+              <div className="space-y-2">
+                <h1 className="text-3xl font-bold">Body fat %</h1>
+                <p className="text-sm text-muted-foreground">Optional — improves accuracy if you know it</p>
+              </div>
+              <Stepper
+                value={bodyFat ?? 0}
+                setValue={(v) => setBodyFat(v)}
+                unit="%"
+                min={0}
+                max={60}
+                placeholder="Skip"
+              />
+              <div className="text-center">
+                <button
+                  onClick={() => { setBodyFat(null); handleNext(); }}
+                  className="text-sm font-semibold text-muted-foreground underline"
+                >
+                  Skip this step
+                </button>
+              </div>
+            </div>
+          )}
+
+          {screen === "activity" && (
+            <div className="mt-8 space-y-6">
+              <div className="space-y-2">
+                <h1 className="text-3xl font-bold">How active are you?</h1>
+                <p className="text-sm text-muted-foreground">Choose what reflects your usual week</p>
+              </div>
+              <div className="space-y-2">
+                {ACTIVITY_LEVELS.map(l => (
+                  <button
+                    key={l.value}
+                    onClick={() => setActivityLevel(l.value)}
+                    className={cn(
+                      "w-full text-left p-4 rounded-2xl border-2 transition-all",
+                      activityLevel === l.value ? "border-primary bg-primary/5" : "border-border bg-card"
+                    )}
+                  >
+                    <p className="font-bold text-sm">{l.label}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{l.desc}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {screen === "goal" && (
+            <div className="mt-8 space-y-6">
+              <div className="space-y-2">
+                <h1 className="text-3xl font-bold">What's your goal?</h1>
+                <p className="text-sm text-muted-foreground">We'll set a smart starting point</p>
+              </div>
+              <div className="space-y-2">
+                {GOALS.map(g => (
+                  <button
+                    key={g.value}
+                    onClick={() => setGoal(g.value)}
+                    className={cn(
+                      "w-full flex items-center gap-3 p-4 rounded-2xl border-2 transition-all",
+                      goal === g.value ? "border-primary bg-primary/5" : "border-border bg-card"
+                    )}
+                  >
+                    <span className="text-2xl">{g.icon}</span>
+                    <span className="font-bold text-sm flex-1 text-left">{g.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {screen === "diet" && (
+            <div className="mt-6 space-y-5">
+              <div className="text-center space-y-2">
+                <h1 className="text-3xl font-bold">Pick your diet style</h1>
+                <p className="text-sm text-muted-foreground px-4">
+                  This sets your macro ratios — choose Standard or a keto variation
+                </p>
+              </div>
+              <div className="space-y-3">
+                {DIET_STYLES.map(d => {
+                  const selected = dietStyle === d.value;
+                  return (
+                    <button
+                      key={d.value}
+                      onClick={() => setDietStyle(d.value)}
+                      className={cn(
+                        "relative w-full text-left p-4 rounded-2xl border-2 transition-all",
+                        selected ? "border-primary bg-primary/5" : "border-border bg-card"
+                      )}
+                    >
+                      {selected && (
+                        <div className="absolute top-3 right-3 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                          <Check className="h-3.5 w-3.5 text-primary-foreground" />
+                        </div>
+                      )}
+                      <div className="flex items-start gap-3">
+                        <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold shrink-0", d.letterBg, d.letterText)}>
+                          {d.letter}
+                        </div>
+                        <div className="flex-1 min-w-0 pr-6">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="font-bold text-base">{d.label}</p>
+                            <span className={cn("text-[10px] font-semibold px-2 py-0.5 rounded-full", d.badgeColor)}>
+                              {d.badge}
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">{d.desc}</p>
+                          <p className={cn("text-xs font-semibold mt-1.5", d.splitColor)}>
+                            {d.splitText}
+                          </p>
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          <FloatingBot />
+          <NextBar
+            label={screen === "diet" ? "Calculate My Macro Goal" : "Next →"}
+            disabled={!canAdvance(screen as WizardStep)}
+          />
+        </div>
+      </ClientLayout>
+    );
+  }
+
+  // ─────────────── Adjustment Screen ───────────────
+
+  if (screen === "adjustment") {
+    const sliderPct = Math.round(adjustment * 100); // -80..+30
+    const sliderPos = ((sliderPct + 80) / 110) * 100;
+    const calories = Math.round(baseTdee * (1 + adjustment));
+    const isExtreme = sliderPct <= -70;
+    const deficitPresets = [10, 20, 30, 40, 50, 60, 70, 80];
     const surplusPresets = [0, 5, 10, 15, 20, 30];
-    const sliderPct = Math.round(adjustment * 100); // -70..+30
-    const sliderPos = ((sliderPct + 70) / 100) * 100;
 
     return (
       <ClientLayout>
-        <div className="p-4 pb-8 space-y-6 max-w-lg mx-auto">
+        <div className="p-4 pb-32 space-y-5 max-w-lg mx-auto min-h-screen bg-background">
           <div className="flex items-center justify-between">
-            <Button variant="ghost" size="icon" onClick={() => setStep("form")}>
-              <ChevronLeft className="h-5 w-5" />
-            </Button>
-            <Button variant="link" className="text-primary font-semibold" onClick={() => setStep("form")}>
-              Recalculate
-            </Button>
+            <button onClick={() => setScreen("diet")} className="p-1 -ml-1">
+              <ChevronLeft className="h-6 w-6" />
+            </button>
+            <button
+              onClick={() => setScreen("manual")}
+              className="text-sm font-semibold text-primary"
+            >
+              Set Manually
+            </button>
           </div>
 
-          <div className="text-center">
-            <h1 className="text-2xl font-bold">Your Macro Goals</h1>
-            <p className="text-sm text-muted-foreground mt-1">TDEE: {baseTdee.toLocaleString()} kcal/day</p>
+          <div className="text-center space-y-1">
+            <h1 className="text-2xl font-bold">Pick your calorie target</h1>
+            <p className="text-xs text-muted-foreground">TDEE: {baseTdee.toLocaleString()} kcal/day</p>
           </div>
 
           <Card>
             <CardContent className="p-4 space-y-4">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className={`font-bold text-lg ${adjustmentLabel.color}`}>{adjustmentLabel.name}</p>
+                  <p className={cn("font-bold text-lg", adjustmentLabel.color)}>
+                    {adjustmentLabel.name}
+                  </p>
                   <p className="text-xs text-muted-foreground mt-0.5">{adjustmentLabel.sub}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-2xl font-bold text-foreground">{calcResults.calories.toLocaleString()}</p>
+                  <p className="text-2xl font-bold text-foreground">{calories.toLocaleString()}</p>
                   <p className="text-xs text-muted-foreground">kcal / day</p>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <div className="relative h-2 rounded-full" style={{ background: "linear-gradient(to right, #ef4444, #f59e0b, #eab308, #22c55e, #3b82f6, #a855f7, #ec4899)" }}>
+              {/* Rainbow slider */}
+              <div className="space-y-2 pt-2">
+                <div
+                  className="relative h-2 rounded-full"
+                  style={{ background: "linear-gradient(to right, #ef4444, #f59e0b, #eab308, #22c55e, #3b82f6, #a855f7, #ec4899)" }}
+                >
                   <input
                     type="range"
-                    min={-70}
+                    min={-80}
                     max={30}
                     step={5}
                     value={sliderPct}
-                    onChange={e => { setManualOverride(false); setAdjustment(parseInt(e.target.value) / 100); }}
+                    onChange={e => setAdjustment(parseInt(e.target.value) / 100)}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   />
                   <div
-                    className="absolute top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-background border-2 border-primary shadow pointer-events-none"
+                    className="absolute top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-blue-500 border-2 border-background shadow pointer-events-none"
                     style={{ left: `calc(${sliderPos}% - 10px)` }}
                   />
                 </div>
                 <div className="flex justify-between text-[10px] text-muted-foreground">
-                  <span>-70% deficit</span>
+                  <span>-80% deficit</span>
                   <span>maintain</span>
                   <span>+30% surplus</span>
                 </div>
               </div>
 
+              {/* Deficit presets */}
               <div>
-                <p className="text-[11px] font-semibold text-muted-foreground tracking-wide mb-2">DEFICIT PRESETS</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
+                  Deficit Presets
+                </p>
                 <div className="flex flex-wrap gap-2">
-                  {deficitPresets.map(p => (
-                    <button
-                      key={p}
-                      onClick={() => { setManualOverride(false); setAdjustment(-p / 100); }}
-                      className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
-                        sliderPct === -p ? "bg-primary text-primary-foreground border-primary" : "bg-background border-border hover:border-primary/50"
-                      }`}
-                    >
-                      {p}%
-                    </button>
-                  ))}
+                  {deficitPresets.map(p => {
+                    const active = sliderPct === -p;
+                    const caution = p >= 70;
+                    return (
+                      <button
+                        key={p}
+                        onClick={() => setAdjustment(-p / 100)}
+                        className={cn(
+                          "px-3 py-1.5 rounded-full text-xs font-semibold border transition-all flex items-center gap-1",
+                          active && caution && "border-destructive bg-destructive/10 text-destructive",
+                          active && !caution && "border-primary bg-primary/10 text-primary",
+                          !active && caution && "border-destructive/40 text-destructive/80",
+                          !active && !caution && "border-border text-muted-foreground hover:border-primary/50",
+                        )}
+                      >
+                        {caution && <AlertTriangle className="h-3 w-3" />}
+                        {p}%
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
+              {/* Surplus presets */}
               <div>
-                <p className="text-[11px] font-semibold text-muted-foreground tracking-wide mb-2">MAINTAIN / SURPLUS</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
+                  Maintain / Surplus
+                </p>
                 <div className="flex flex-wrap gap-2">
-                  {surplusPresets.map(p => (
-                    <button
-                      key={p}
-                      onClick={() => { setManualOverride(false); setAdjustment(p / 100); }}
-                      className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
-                        sliderPct === p ? "bg-primary text-primary-foreground border-primary" : "bg-background border-border hover:border-primary/50"
-                      }`}
-                    >
-                      {p === 0 ? "Maintain" : `+${p}%`}
-                    </button>
-                  ))}
+                  {surplusPresets.map(p => {
+                    const active = sliderPct === p;
+                    return (
+                      <button
+                        key={p}
+                        onClick={() => setAdjustment(p / 100)}
+                        className={cn(
+                          "px-3 py-1.5 rounded-full text-xs font-semibold border transition-all",
+                          active ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:border-primary/50"
+                        )}
+                      >
+                        {p === 0 ? "Maintain" : `+${p}%`}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
+
+              {/* Caution banner for 70%+ */}
+              {isExtreme && (
+                <div className="border-l-4 border-destructive bg-destructive/10 rounded-r-lg p-3 flex gap-2">
+                  <AlertTriangle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
+                  <div className="text-xs text-destructive">
+                    <p className="font-bold mb-0.5">
+                      Be advised: {sliderPct === -80 ? "Maximum cut zone" : "Extreme deficit"}
+                    </p>
+                    <p className="opacity-90">
+                      Cuts above 70% are aggressive and can impact energy, recovery, and muscle retention.
+                      Use only short-term (≤2 weeks) and check in with your coach.
+                    </p>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
-          {renderDonutChart(calcResults)}
-          <p className="text-xs text-muted-foreground text-center -mt-2">Tap any value to fine-tune</p>
+          <FloatingBot />
+          <NextBar label="Save & See Results" onClick={goToResults} />
+        </div>
+      </ClientLayout>
+    );
+  }
 
+  // ─────────────── Results Screen ───────────────
+
+  if (screen === "results" && calcResults) {
+    const totalMacroCalories = calcResults.protein * 4 + calcResults.carbs * 4 + calcResults.fats * 9;
+    const proteinPct = totalMacroCalories > 0 ? Math.round((calcResults.protein * 4 / totalMacroCalories) * 100) : 0;
+    const carbsPct = totalMacroCalories > 0 ? Math.round((calcResults.carbs * 4 / totalMacroCalories) * 100) : 0;
+    const fatsPct = totalMacroCalories > 0 ? Math.round((calcResults.fats * 9 / totalMacroCalories) * 100) : 0;
+
+    const chartData = [
+      { name: "Protein", value: calcResults.protein * 4, color: "hsl(217, 91%, 60%)" },
+      { name: "Carbs", value: calcResults.carbs * 4, color: "hsl(142, 71%, 45%)" },
+      { name: "Fat", value: calcResults.fats * 9, color: "hsl(38, 92%, 50%)" },
+    ];
+
+    const updateMacro = (field: "calories" | "protein" | "carbs" | "fats", value: string) => {
+      const n = parseInt(value) || 0;
+      setManualOverride(true);
+      setCalcResults(prev => prev ? { ...prev, [field]: n } : prev);
+    };
+
+    return (
+      <ClientLayout>
+        <div className="p-4 pb-8 space-y-5 max-w-lg mx-auto min-h-screen bg-background">
+          <div className="flex items-center justify-between">
+            <button onClick={() => setScreen("adjustment")} className="p-1 -ml-1">
+              <ChevronLeft className="h-6 w-6" />
+            </button>
+            <button
+              onClick={() => setScreen("adjustment")}
+              className="text-sm font-semibold text-primary"
+            >
+              Recalculate
+            </button>
+          </div>
+
+          <div className="text-center space-y-1">
+            <h1 className="text-2xl font-bold">Your Macro Goals</h1>
+            <p className="text-xs text-muted-foreground">TDEE: {baseTdee.toLocaleString()} kcal/day</p>
+          </div>
+
+          {/* Donut chart */}
+          <div className="flex flex-col items-center pt-2">
+            <div className="relative w-56 h-56">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={chartData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={75}
+                    outerRadius={105}
+                    paddingAngle={2}
+                    dataKey="value"
+                    strokeWidth={0}
+                  >
+                    {chartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-4xl font-bold text-foreground">{calcResults.calories.toLocaleString()}</span>
+                <span className="text-sm text-muted-foreground">calories</span>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">Tap any value to fine-tune</p>
+          </div>
+
+          {/* Editable macro list */}
           <Card>
             <CardContent className="p-0 divide-y divide-border">
-              <div className="flex items-center justify-between px-4 py-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 rounded-full bg-primary" />
-                  <span className="font-semibold text-sm">Calories</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Input type="number" value={calcResults.calories} onChange={e => updateMacroField("calories", e.target.value)} className="w-20 h-8 text-right text-sm" />
-                  <span className="text-xs text-muted-foreground">kcal</span>
-                </div>
-              </div>
-              <div className="flex items-center justify-between px-4 py-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: "hsl(217, 91%, 60%)" }} />
-                  <span className="font-semibold text-sm">Protein</span>
-                  <span className="text-xs text-muted-foreground">
-                    {calcResults.calories > 0 ? Math.round((calcResults.protein * 4 / calcResults.calories) * 100) : 0}%
-                  </span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Input type="number" value={calcResults.protein} onChange={e => updateMacroField("protein", e.target.value)} className="w-20 h-8 text-right text-sm" />
-                  <span className="text-xs text-muted-foreground">g</span>
-                </div>
-              </div>
-              <div className="flex items-center justify-between px-4 py-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: "hsl(142, 71%, 45%)" }} />
-                  <span className="font-semibold text-sm">Carbs</span>
-                  <span className="text-xs text-muted-foreground">
-                    {calcResults.calories > 0 ? Math.round((calcResults.carbs * 4 / calcResults.calories) * 100) : 0}%
-                  </span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Input type="number" value={calcResults.carbs} onChange={e => updateMacroField("carbs", e.target.value)} className="w-20 h-8 text-right text-sm" />
-                  <span className="text-xs text-muted-foreground">g</span>
-                </div>
-              </div>
-              <div className="flex items-center justify-between px-4 py-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: "hsl(45, 93%, 58%)" }} />
-                  <span className="font-semibold text-sm">Fat</span>
-                  <span className="text-xs text-muted-foreground">
-                    {calcResults.calories > 0 ? Math.round((calcResults.fats * 9 / calcResults.calories) * 100) : 0}%
-                  </span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Input type="number" value={calcResults.fats} onChange={e => updateMacroField("fats", e.target.value)} className="w-20 h-8 text-right text-sm" />
-                  <span className="text-xs text-muted-foreground">g</span>
-                </div>
-              </div>
+              <MacroRow
+                color="hsl(0, 84%, 60%)"
+                label="Calories"
+                value={calcResults.calories}
+                onChange={v => updateMacro("calories", v)}
+                unit="kcal"
+              />
+              <MacroRow
+                color="hsl(217, 91%, 60%)"
+                label="Protein"
+                pct={proteinPct}
+                value={calcResults.protein}
+                onChange={v => updateMacro("protein", v)}
+                unit="g"
+              />
+              <MacroRow
+                color="hsl(142, 71%, 45%)"
+                label="Carbs"
+                pct={carbsPct}
+                value={calcResults.carbs}
+                onChange={v => updateMacro("carbs", v)}
+                unit="g"
+              />
+              <MacroRow
+                color="hsl(38, 92%, 50%)"
+                label="Fat"
+                pct={fatsPct}
+                value={calcResults.fats}
+                onChange={v => updateMacro("fats", v)}
+                unit="g"
+              />
             </CardContent>
           </Card>
 
@@ -573,298 +951,90 @@ export default function ClientMacroSetup() {
     );
   }
 
-  // Main form
-  const selectedActivity = ACTIVITY_LEVELS.find(l => l.value === activityLevel);
-  const selectedGoal = GOALS.find(g => g.value === goal);
+  return null;
+}
+
+// ─────────────────────────── Subcomponents ───────────────────────────
+
+function Stepper({
+  value, setValue, unit, min, max, step = 1, compact = false, placeholder,
+}: {
+  value: number;
+  setValue: (n: number) => void;
+  unit: string;
+  min: number;
+  max: number;
+  step?: number;
+  compact?: boolean;
+  placeholder?: string;
+}) {
+  const dec = () => setValue(Math.max(min, value - step));
+  const inc = () => setValue(Math.min(max, value + step));
+  const isEmpty = placeholder && value === 0;
 
   return (
-    <ClientLayout>
-      <div className="p-4 pb-8 space-y-6 max-w-lg mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/client/dashboard")}>
-            <ChevronLeft className="h-5 w-5" />
-          </Button>
-          <Button variant="link" className="text-primary font-semibold" onClick={() => setStep("manual")}>
-            Set Manually
-          </Button>
-        </div>
-
-        {/* Hero icon */}
-        <div className="text-center py-2">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-b from-muted to-background mb-4">
-            <UtensilsCrossed className="h-10 w-10 text-muted-foreground" />
-          </div>
-          <h1 className="text-2xl font-bold">Calculate Your Macro Goals</h1>
-          <p className="text-sm text-muted-foreground mt-1">Your details help us tailor your macro goals</p>
-        </div>
-
-        {/* Stats form - like the screenshot */}
-        <Card>
-          <CardContent className="p-0 divide-y divide-border">
-            {/* Age */}
-            <div className="flex items-center gap-3 px-4 py-3.5">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${FIELD_ICONS[0].color}`}>
-                <Cake className="h-5 w-5" />
-              </div>
-              <span className="flex-1 text-sm font-medium">Age</span>
-              <Input
-                type="number"
-                value={age}
-                onChange={e => setAge(e.target.value)}
-                placeholder="Required"
-                className="w-20 text-right border-0 bg-transparent p-0 h-auto text-sm font-medium focus-visible:ring-0"
-                min={1}
-                max={120}
-              />
-            </div>
-
-            {/* Gender */}
-            <div className="flex items-center gap-3 px-4 py-3.5">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${FIELD_ICONS[1].color}`}>
-                <User className="h-5 w-5" />
-              </div>
-              <span className="flex-1 text-sm font-medium">Gender</span>
-              <button
-                className="text-sm font-medium text-foreground"
-                onClick={() => setGender(gender === "male" ? "female" : "male")}
-              >
-                {gender === "male" ? "Male" : "Female"}
-              </button>
-            </div>
-
-            {/* Weight */}
-            <div className="flex items-center gap-3 px-4 py-3.5">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${FIELD_ICONS[2].color}`}>
-                <Weight className="h-5 w-5" />
-              </div>
-              <span className="flex-1 text-sm font-medium">Weight</span>
-              <div className="flex items-center gap-1">
-                <Input
-                  type="number"
-                  value={weightLbs}
-                  onChange={e => setWeightLbs(e.target.value)}
-                  placeholder="Required"
-                  className="w-16 text-right border-0 bg-transparent p-0 h-auto text-sm font-medium focus-visible:ring-0"
-                />
-                <span className="text-sm text-muted-foreground">lb</span>
-              </div>
-            </div>
-
-            {/* Height */}
-            <div className="flex items-center gap-3 px-4 py-3.5">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${FIELD_ICONS[3].color}`}>
-                <Ruler className="h-5 w-5" />
-              </div>
-              <span className="flex-1 text-sm font-medium">Height</span>
-              <div className="flex items-center gap-1">
-                <Input
-                  type="number"
-                  value={heightFt}
-                  onChange={e => setHeightFt(e.target.value)}
-                  placeholder="ft"
-                  className="w-10 text-right border-0 bg-transparent p-0 h-auto text-sm font-medium focus-visible:ring-0"
-                />
-                <span className="text-sm text-muted-foreground">ft</span>
-                <Input
-                  type="number"
-                  value={heightIn}
-                  onChange={e => setHeightIn(e.target.value)}
-                  placeholder="in"
-                  className="w-10 text-right border-0 bg-transparent p-0 h-auto text-sm font-medium focus-visible:ring-0"
-                />
-                <span className="text-sm text-muted-foreground">in</span>
-              </div>
-            </div>
-
-            {/* Body Fat */}
-            <div className="flex items-center gap-3 px-4 py-3.5">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${FIELD_ICONS[4].color}`}>
-                <Percent className="h-5 w-5" />
-              </div>
-              <span className="flex-1 text-sm font-medium">Body Fat</span>
-              <div className="flex items-center gap-1">
-                <Input
-                  type="number"
-                  value={bodyFat}
-                  onChange={e => setBodyFat(e.target.value)}
-                  placeholder="Optional"
-                  className="w-16 text-right border-0 bg-transparent p-0 h-auto text-sm font-medium focus-visible:ring-0"
-                />
-                <span className="text-sm text-muted-foreground">%</span>
-              </div>
-            </div>
-
-            {/* Activity Level */}
-            <div
-              className="flex items-center gap-3 px-4 py-3.5 cursor-pointer"
-              onClick={() => setActivitySheetOpen(true)}
-            >
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${FIELD_ICONS[5].color}`}>
-                <Activity className="h-5 w-5" />
-              </div>
-              <span className="flex-1 text-sm font-medium">Activity level</span>
-              <span className="text-sm text-muted-foreground">
-                {selectedActivity?.label || "Required"}
-              </span>
-            </div>
-
-            {/* Goal */}
-            <div
-              className="flex items-center gap-3 px-4 py-3.5 cursor-pointer"
-              onClick={() => setGoalSheetOpen(true)}
-            >
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${FIELD_ICONS[6].color}`}>
-                <Target className="h-5 w-5" />
-              </div>
-              <span className="flex-1 text-sm font-medium">Goal</span>
-              <span className="text-sm text-muted-foreground">
-                {selectedGoal?.label.split(" ").slice(0, 2).join(" ") || "Required"}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Next button */}
-        <Button className="w-full h-12 rounded-xl text-base font-semibold gap-2" onClick={handleNext}>
-          Next <ArrowRight className="h-4 w-4" />
-        </Button>
-
-        {/* Activity Level Sheet */}
-        <Sheet open={activitySheetOpen} onOpenChange={setActivitySheetOpen}>
-          <SheetContent side="bottom" className="rounded-t-2xl max-h-[85vh]">
-            <div className="space-y-1 mb-6">
-              <div className="flex gap-1 mb-4">
-                <div className="h-1 flex-1 rounded-full bg-primary" />
-                <div className="h-1 flex-1 rounded-full bg-muted" />
-                <div className="h-1 flex-1 rounded-full bg-muted" />
-              </div>
-              <h2 className="text-xl font-bold">Activity level</h2>
-              <p className="text-sm text-muted-foreground">Choose the option that reflects your usual activity</p>
-            </div>
-            <div className="space-y-3">
-              {ACTIVITY_LEVELS.map(level => (
-                <button
-                  key={level.value}
-                  className={`w-full text-left p-4 rounded-xl border transition-all ${
-                    activityLevel === level.value
-                      ? "border-primary bg-primary/5"
-                      : "border-border hover:border-primary/50"
-                  }`}
-                  onClick={() => handleActivitySelect(level.value)}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-end gap-0.5 h-6">
-                      {[1, 2, 3, 4].map(bar => (
-                        <div
-                          key={bar}
-                          className={`w-1.5 rounded-sm transition-colors ${
-                            bar <= (ACTIVITY_LEVELS.indexOf(level) + 1) ? "bg-primary" : "bg-muted"
-                          }`}
-                          style={{ height: `${bar * 5 + 4}px` }}
-                        />
-                      ))}
-                    </div>
-                    <div>
-                      <p className="font-semibold text-sm">{level.label}</p>
-                      <p className="text-xs text-muted-foreground">{level.desc}</p>
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </SheetContent>
-        </Sheet>
-
-        {/* Goal Sheet */}
-        <Sheet open={goalSheetOpen} onOpenChange={setGoalSheetOpen}>
-          <SheetContent side="bottom" className="rounded-t-2xl max-h-[85vh]">
-            <div className="space-y-1 mb-6">
-              <div className="flex gap-1 mb-4">
-                <div className="h-1 flex-1 rounded-full bg-muted" />
-                <div className="h-1 flex-1 rounded-full bg-primary" />
-                <div className="h-1 flex-1 rounded-full bg-muted" />
-              </div>
-              <h2 className="text-xl font-bold">Primary goal</h2>
-              <p className="text-sm text-muted-foreground">Share what you want to achieve</p>
-            </div>
-            <div className="space-y-3">
-              {GOALS.map(g => (
-                <button
-                  key={g.value}
-                  className={`w-full text-left p-4 rounded-xl border transition-all ${
-                    goal === g.value
-                      ? "border-primary bg-primary/5"
-                      : "border-border hover:border-primary/50"
-                  }`}
-                  onClick={() => handleGoalSelect(g.value)}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-lg">{g.icon}</span>
-                    <p className="font-semibold text-sm">{g.label}</p>
-                  </div>
-                </button>
-              ))}
-            </div>
-            <div className="flex items-center gap-3 mt-6">
-              <Button variant="outline" size="icon" className="rounded-full" onClick={() => { setGoalSheetOpen(false); setTimeout(() => setActivitySheetOpen(true), 300); }}>
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button className="flex-1 h-12 rounded-xl text-base font-semibold gap-2" onClick={() => { if (goal) { setGoalSheetOpen(false); setTimeout(() => setDietSheetOpen(true), 300); } }}>
-                Next <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </SheetContent>
-        </Sheet>
-
-        {/* Diet Style Sheet */}
-        <Sheet open={dietSheetOpen} onOpenChange={setDietSheetOpen}>
-          <SheetContent side="bottom" className="rounded-t-2xl max-h-[90vh] overflow-y-auto">
-            <div className="space-y-1 mb-6">
-              <div className="flex gap-1 mb-4">
-                <div className="h-1 flex-1 rounded-full bg-muted" />
-                <div className="h-1 flex-1 rounded-full bg-muted" />
-                <div className="h-1 flex-1 rounded-full bg-primary" />
-              </div>
-              <h2 className="text-xl font-bold">Choose Your Keto Style</h2>
-              <p className="text-sm text-muted-foreground">Pick the approach that fits your lifestyle</p>
-            </div>
-            <div className="space-y-3">
-              {DIET_STYLES.map(d => (
-                <button
-                  key={d.value}
-                  className={`w-full text-left p-4 rounded-xl border transition-all ${
-                    dietStyle === d.value
-                      ? "border-primary bg-primary/5"
-                      : "border-border hover:border-primary/50"
-                  }`}
-                  onClick={() => setDietStyle(d.value)}
-                >
-                  <div className="flex items-start gap-3">
-                    <span className="text-2xl mt-0.5">{d.icon}</span>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <p className="font-semibold text-sm">{d.label}</p>
-                        <span className="text-xs font-mono text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{d.split}</span>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">{d.desc}</p>
-                      <p className="text-xs text-primary font-medium mt-1.5">{d.bestFor}</p>
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-            <div className="flex items-center gap-3 mt-6">
-              <Button variant="outline" size="icon" className="rounded-full" onClick={() => { setDietSheetOpen(false); setTimeout(() => setGoalSheetOpen(true), 300); }}>
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button className="flex-1 h-12 rounded-xl text-base font-semibold gap-2" onClick={() => { if (dietStyle) handleDietSelect(dietStyle); }} disabled={!dietStyle}>
-                Calculate your Macro Goal <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </SheetContent>
-        </Sheet>
+    <div className="flex items-center justify-center gap-4">
+      <button
+        onClick={dec}
+        className="w-12 h-12 rounded-full border border-border flex items-center justify-center bg-background"
+      >
+        <Minus className="h-4 w-4" />
+      </button>
+      <div className={cn("flex items-baseline gap-2 min-w-0", compact ? "px-2" : "px-4")}>
+        {isEmpty ? (
+          <span className="text-3xl font-light text-muted-foreground">—</span>
+        ) : (
+          <input
+            type="number"
+            value={value}
+            onChange={e => {
+              const n = parseInt(e.target.value);
+              if (!isNaN(n)) setValue(Math.min(max, Math.max(min, n)));
+            }}
+            className={cn(
+              "bg-transparent border-0 outline-none text-center font-bold tabular-nums",
+              compact ? "text-4xl w-16" : "text-5xl w-24"
+            )}
+          />
+        )}
+        <span className="text-lg text-muted-foreground">{unit}</span>
       </div>
-    </ClientLayout>
+      <button
+        onClick={inc}
+        className="w-12 h-12 rounded-full border border-border flex items-center justify-center bg-background"
+      >
+        <Plus className="h-4 w-4" />
+      </button>
+    </div>
+  );
+}
+
+function MacroRow({
+  color, label, pct, value, onChange, unit,
+}: {
+  color: string;
+  label: string;
+  pct?: number;
+  value: number;
+  onChange: (v: string) => void;
+  unit: string;
+}) {
+  return (
+    <div className="flex items-center justify-between px-4 py-3.5">
+      <div className="flex items-center gap-3">
+        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }} />
+        <span className="font-bold text-sm">{label}</span>
+        {pct !== undefined && <span className="text-xs text-muted-foreground">{pct}%</span>}
+      </div>
+      <div className="flex items-center gap-1.5">
+        <Input
+          type="number"
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          className="w-20 h-9 text-right text-sm font-semibold"
+        />
+        <span className="text-xs text-muted-foreground w-8">{unit}</span>
+      </div>
+    </div>
   );
 }
