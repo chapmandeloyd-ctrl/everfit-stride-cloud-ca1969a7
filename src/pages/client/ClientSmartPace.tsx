@@ -8,6 +8,8 @@ import { useSmartPace } from "@/hooks/useSmartPace";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
+import { useAuth } from "@/hooks/useAuth";
+import { SmartPaceAdminPanel } from "@/components/smart-pace/SmartPaceAdminPanel";
 import { cn } from "@/lib/utils";
 import { format, parseISO, subDays } from "date-fns";
 

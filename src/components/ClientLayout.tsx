@@ -126,6 +126,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
               Previewing: {profile?.full_name || profile?.email || "Client"}
             </Badge>
             <div className="flex items-center gap-1">
+              <MiniPaceRing />
               <NotificationBell />
               <ThemeToggle />
               <Button variant="ghost" size="sm" onClick={handleBackToTrainer}>
