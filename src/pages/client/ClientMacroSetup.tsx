@@ -163,10 +163,10 @@ export default function ClientMacroSetup() {
 
   // Wizard state
   const [gender, setGender] = useState<"male" | "female" | "">("");
-  const [age, setAge] = useState<number>(30);
-  const [weightLbs, setWeightLbs] = useState<number>(180);
-  const [heightFt, setHeightFt] = useState<number>(5);
-  const [heightIn, setHeightIn] = useState<number>(10);
+  const [age, setAge] = useState<number>(0);
+  const [weightLbs, setWeightLbs] = useState<number>(0);
+  const [heightFt, setHeightFt] = useState<number>(0);
+  const [heightIn, setHeightIn] = useState<number>(0);
   const [bodyFat, setBodyFat] = useState<number | null>(null);
   const [activityLevel, setActivityLevel] = useState<string>("");
   const [goal, setGoal] = useState<string>("");
