@@ -263,11 +263,16 @@ export default function ClientMacroSetup() {
     const savedTdee = (existingTargets as any).tdee as number | null | undefined;
     const savedDeficit = (existingTargets as any).deficit_pct as number | null | undefined;
 
-    // Prefer real maintenance baseline from previous wizard run; fall back to saved calories.
-    const tdee = savedTdee && savedTdee > 0 ? savedTdee : cal;
-    const adj = savedTdee && savedTdee > 0
-      ? (typeof savedDeficit === "number" ? Number(savedDeficit) : (cal - tdee) / tdee)
-      : 0;
+    // If we don't have a real TDEE baseline, the slider math breaks (10% of "current cal" is not 10% of maintenance).
+    // Force the user through the full wizard to compute a real TDEE first.
+    if (!savedTdee || savedTdee <= 0) {
+      setEditJumped(true); // prevent loop
+      setScreen("intro");
+      return;
+    }
+
+    const tdee = savedTdee;
+    const adj = typeof savedDeficit === "number" ? Number(savedDeficit) : (cal - tdee) / tdee;
 
     setBaseTdee(tdee);
     setAdjustment(adj);
