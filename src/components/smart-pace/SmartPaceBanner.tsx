@@ -3,10 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { TrendingDown, TrendingUp, AlertTriangle, Target, ChevronRight, BookHeart } from "lucide-react";
+import { TrendingDown, TrendingUp, AlertTriangle, Target, ChevronRight, BookHeart, Heart } from "lucide-react";
 import { useSmartPace } from "@/hooks/useSmartPace";
 import { cn } from "@/lib/utils";
 import { SmartPaceJournalView } from "./SmartPaceJournalView";
+import { SmartPaceWhyView } from "./SmartPaceWhyView";
 
 /**
  * Dashboard banner — replaces the old GoalCard when smart_pace_enabled = true.
