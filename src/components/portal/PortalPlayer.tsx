@@ -245,10 +245,10 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            {/* Galaxy nebula background, by category */}
+            {/* Galaxy nebula background, by category (or scene/category override) */}
             <div className="absolute inset-0 bg-black overflow-hidden">
               <img
-                src={nebulaFor(scene.category)}
+                src={nebulaUrl}
                 alt=""
                 className="absolute inset-0 w-full h-full object-cover opacity-90"
                 style={{ filter: "saturate(1.05)" }}
@@ -265,28 +265,30 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
               <Starfield density={90} />
             </div>
 
-            {/* Earth at the bottom — anchored thin sliver */}
-            <div
-              className="absolute left-1/2 -translate-x-1/2 pointer-events-none"
-              style={{
-                bottom: "-12%",
-                width: "180%",
-                maxWidth: "1200px",
-                aspectRatio: "16 / 9",
-              }}
-            >
-              <img
-                src={portalEarth}
-                alt=""
-                className="w-full h-full object-cover object-top opacity-90"
+            {/* Horizon (Earth or custom) at the bottom — anchored thin sliver */}
+            {showHorizon && (
+              <div
+                className="absolute left-1/2 -translate-x-1/2 pointer-events-none"
                 style={{
-                  maskImage:
-                    "radial-gradient(ellipse 70% 90% at 50% 100%, black 40%, transparent 80%)",
-                  WebkitMaskImage:
-                    "radial-gradient(ellipse 70% 90% at 50% 100%, black 40%, transparent 80%)",
+                  bottom: "-12%",
+                  width: "180%",
+                  maxWidth: "1200px",
+                  aspectRatio: "16 / 9",
                 }}
-              />
-            </div>
+              >
+                <img
+                  src={horizonUrl}
+                  alt=""
+                  className="w-full h-full object-cover object-top opacity-90"
+                  style={{
+                    maskImage:
+                      "radial-gradient(ellipse 70% 90% at 50% 100%, black 40%, transparent 80%)",
+                    WebkitMaskImage:
+                      "radial-gradient(ellipse 70% 90% at 50% 100%, black 40%, transparent 80%)",
+                  }}
+                />
+              </div>
+            )}
             {/* Subtle top vignette */}
             <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-transparent pointer-events-none" />
 
