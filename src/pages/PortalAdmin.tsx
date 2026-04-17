@@ -19,6 +19,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Plus, Edit, Trash2, Upload, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select as UISelect,
+  SelectContent as UISelectContent,
+  SelectItem as UISelectItem,
+  SelectTrigger as UISelectTrigger,
+  SelectValue as UISelectValue,
+} from "@/components/ui/select";
+import { PortalBackgroundsManager } from "@/components/portal/PortalBackgroundsManager";
 
 interface Scene {
   id: string;
