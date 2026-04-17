@@ -21,6 +21,7 @@ export default function ClientSmartPace() {
   const { user, userRole } = useAuth();
   const isImpersonating = userRole === "trainer" && clientId !== user?.id;
   const { data: pace, isLoading } = useSmartPace();
+  const [weighInOpen, setWeighInOpen] = useState(false);
 
   const { data: log } = useQuery({
     queryKey: ["smart-pace-log", clientId, pace?.goal?.id],
