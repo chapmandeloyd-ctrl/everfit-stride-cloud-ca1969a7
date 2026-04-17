@@ -99,6 +99,12 @@ export default function ClientMacroSetup() {
 
   // Calculated results
   const [calcResults, setCalcResults] = useState<{ calories: number; protein: number; carbs: number; fats: number } | null>(null);
+  // Base TDEE (maintenance) — used to compute slider-driven calorie targets
+  const [baseTdee, setBaseTdee] = useState<number>(0);
+  // Cut/surplus adjustment, e.g. -0.15 = 15% deficit, 0 = maintain, +0.10 = 10% surplus
+  const [adjustment, setAdjustment] = useState<number>(0);
+  // Whether the user has manually edited a macro field (frees ratios)
+  const [manualOverride, setManualOverride] = useState<boolean>(false);
 
   // Fetch existing macro targets
   const { data: existingTargets } = useQuery({
