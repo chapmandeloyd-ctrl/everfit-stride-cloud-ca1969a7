@@ -68,17 +68,19 @@ export function SmartPaceCatchUpModal() {
 
       const { data, error } = await supabase
         .from("smart_pace_prescriptions")
-        .insert({
-          goal_id: goal.id,
-          client_id: clientId,
-          prescription_date: new Date().toISOString().slice(0, 10),
-          generated_by: "engine",
-          severity,
-          title,
-          message,
-          actions,
-          target_makeup_lbs: debt,
-        })
+        .insert([
+          {
+            goal_id: goal.id,
+            client_id: clientId,
+            prescription_date: new Date().toISOString().slice(0, 10),
+            generated_by: "engine",
+            severity,
+            title,
+            message,
+            actions: actions as any,
+            target_makeup_lbs: debt,
+          },
+        ])
         .select("*")
         .single();
       if (error) throw error;
@@ -105,11 +107,13 @@ export function SmartPaceCatchUpModal() {
 
   // Auto-trigger generation when conditions are met but no prescription exists yet
   useEffect(() => {
+    if (!pace?.enabled || !pace.goal) return;
+    const consecutiveBehind = pace.goal.consecutive_behind_days ?? 0;
+    const triggerByStreak = consecutiveBehind >= 2;
+    const triggerByDebt = pace.debtLbs >= pace.goal.daily_pace_lbs * 2;
     if (
-      pace?.enabled &&
-      pace.goal &&
       pace.status === "behind" &&
-      (pace.consecutiveBehindDays(pace.goal) >= 2 || pace.debtLbs >= pace.goal.daily_pace_lbs * 2) &&
+      (triggerByStreak || triggerByDebt) &&
       !prescription &&
       !generateMut.isPending &&
       !generateMut.isSuccess &&
@@ -131,7 +135,7 @@ export function SmartPaceCatchUpModal() {
       ? "bg-orange-500/10 border-orange-500/40 text-orange-600 dark:text-orange-400"
       : "bg-amber-500/10 border-amber-500/40 text-amber-600 dark:text-amber-400";
 
-  const actions = (prescription.actions as CatchUpAction[]) ?? [];
+  const actions = ((prescription.actions as unknown) as CatchUpAction[]) ?? [];
 
   return (
     <Dialog open onOpenChange={(o) => !o && setDismissedThisSession(true)}>
