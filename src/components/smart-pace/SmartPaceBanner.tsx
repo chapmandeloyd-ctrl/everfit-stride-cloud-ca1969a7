@@ -16,7 +16,7 @@ import { SmartPaceWhyView } from "./SmartPaceWhyView";
 export function SmartPaceBanner() {
   const { data } = useSmartPace();
   const navigate = useNavigate();
-  const [showJournal, setShowJournal] = useState(false);
+  const [flipView, setFlipView] = useState<"none" | "journal" | "why">("none");
 
   if (!data?.enabled || !data.goal) return null;
 
