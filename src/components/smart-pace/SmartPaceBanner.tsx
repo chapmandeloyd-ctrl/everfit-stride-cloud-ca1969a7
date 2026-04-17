@@ -106,76 +106,96 @@ export function SmartPaceBanner() {
       {/* Bottom-right radial glow */}
       <div className="pointer-events-none absolute -bottom-12 -right-12 h-40 w-40 rounded-full bg-white/5 blur-3xl" />
 
-      <div className="relative flex items-start justify-between gap-3">
-        <div className="flex items-start gap-3 flex-1 min-w-0">
-          <div className={cn("rounded-full p-2 bg-black/30 backdrop-blur-sm ring-1 ring-white/10", tone.iconColor)}>
-            <Icon className="h-5 w-5" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs font-semibold uppercase tracking-wide text-white/60">
-                Smart Pace
-              </span>
-              <Badge className={cn("text-[10px] uppercase shadow-md", tone.badge)}>{headline}</Badge>
-            </div>
-            <h3 className="font-heading font-bold text-2xl mt-1 drop-shadow-sm">
-              {todayTargetLbs.toFixed(1)} <span className="text-base font-medium text-white/60">lb today</span>
-            </h3>
-            <p className="text-xs text-white/70 mt-0.5">{reason}</p>
-            {cappedAt !== null && (
-              <p className="text-[11px] text-amber-300 mt-1">
-                Capped at {cappedAt.toFixed(1)} lb (max safe pace)
-              </p>
-            )}
-          </div>
-        </div>
-        <ChevronRight className="h-5 w-5 text-white/50 shrink-0" />
-      </div>
-
-      {/* Start → Goal weight strip */}
-      <div className="relative mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-2 rounded-xl bg-black/30 ring-1 ring-white/10 p-2.5">
-        <div className="text-left">
-          <p className="text-[10px] uppercase tracking-wide text-white/50">Start</p>
-          <p className="font-heading font-bold text-base text-white leading-tight">
-            {startWeight !== null ? `${startWeight.toFixed(1)} lb` : "—"}
-          </p>
-          <p className="text-[10px] text-white/50">{fmtDate(startDate)}</p>
-        </div>
-        <ChevronRight className="h-4 w-4 text-white/40" />
-        <div className="text-right">
-          <p className="text-[10px] uppercase tracking-wide text-white/50">Goal</p>
-          <p className="font-heading font-bold text-base text-white leading-tight">
-            {goalWeight.toFixed(1)} lb
-          </p>
-          <p className="text-[10px] text-white/50">{fmtDate(targetDate)}</p>
-        </div>
-      </div>
-
-      {/* Progress bar */}
-      <div className="relative mt-3">
-        <div className="flex justify-between items-center mb-1">
-          <span className="text-[11px] text-white/60">Goal progress</span>
-          <span className="text-[11px] font-semibold text-white">{Math.round(progressPct)}%</span>
-        </div>
-        <div className="h-2 rounded-full bg-black/40 overflow-hidden ring-1 ring-white/10 shadow-inner">
-          <div
-            className={cn("h-full transition-all shadow-[0_0_12px_rgba(255,255,255,0.4)]", tone.progress)}
-            style={{ width: `${progressPct}%` }}
+      {showJournal ? (
+        <div className="relative" onClick={(e) => e.stopPropagation()}>
+          <SmartPaceJournalView
+            goalId={goal.id}
+            onClose={() => setShowJournal(false)}
           />
         </div>
-      </div>
+      ) : (
+        <>
+          <div className="relative flex items-start justify-between gap-3">
+            <div className="flex items-start gap-3 flex-1 min-w-0">
+              <div className={cn("rounded-full p-2 bg-black/30 backdrop-blur-sm ring-1 ring-white/10", tone.iconColor)}>
+                <Icon className="h-5 w-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-white/60">
+                    Smart Pace
+                  </span>
+                  <Badge className={cn("text-[10px] uppercase shadow-md", tone.badge)}>{headline}</Badge>
+                </div>
+                <h3 className="font-heading font-bold text-2xl mt-1 drop-shadow-sm">
+                  {todayTargetLbs.toFixed(1)} <span className="text-base font-medium text-white/60">lb today</span>
+                </h3>
+                <p className="text-xs text-white/70 mt-0.5">{reason}</p>
+                {cappedAt !== null && (
+                  <p className="text-[11px] text-amber-300 mt-1">
+                    Capped at {cappedAt.toFixed(1)} lb (max safe pace)
+                  </p>
+                )}
+              </div>
+            </div>
+            <ChevronRight className="h-5 w-5 text-white/50 shrink-0" />
+          </div>
 
-      {/* Mini stats row */}
-      <div className="relative grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-white/10">
-        <Stat label="Debt" value={`${debtLbs.toFixed(1)}`} unit="lb" tone={debtLbs > 0 ? "warn" : "muted"} />
-        <Stat label="Credit" value={`${creditLbs.toFixed(1)}`} unit="lb" tone={creditLbs > 0 ? "good" : "muted"} />
-        <Stat
-          label="Projected"
-          value={projectedDate ? projectedDate.toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "—"}
-          unit=""
-          tone="muted"
-        />
-      </div>
+          {/* Start → Goal weight strip */}
+          <div className="relative mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-2 rounded-xl bg-black/30 ring-1 ring-white/10 p-2.5">
+            <div className="text-left">
+              <p className="text-[10px] uppercase tracking-wide text-white/50">Start</p>
+              <p className="font-heading font-bold text-base text-white leading-tight">
+                {startWeight !== null ? `${startWeight.toFixed(1)} lb` : "—"}
+              </p>
+              <p className="text-[10px] text-white/50">{fmtDate(startDate)}</p>
+            </div>
+            <ChevronRight className="h-4 w-4 text-white/40" />
+            <div className="text-right">
+              <p className="text-[10px] uppercase tracking-wide text-white/50">Goal</p>
+              <p className="font-heading font-bold text-base text-white leading-tight">
+                {goalWeight.toFixed(1)} lb
+              </p>
+              <p className="text-[10px] text-white/50">{fmtDate(targetDate)}</p>
+            </div>
+          </div>
+
+          {/* Progress bar */}
+          <div className="relative mt-3">
+            <div className="flex justify-between items-center mb-1">
+              <span className="text-[11px] text-white/60">Goal progress</span>
+              <span className="text-[11px] font-semibold text-white">{Math.round(progressPct)}%</span>
+            </div>
+            <div className="h-2 rounded-full bg-black/40 overflow-hidden ring-1 ring-white/10 shadow-inner">
+              <div
+                className={cn("h-full transition-all shadow-[0_0_12px_rgba(255,255,255,0.4)]", tone.progress)}
+                style={{ width: `${progressPct}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Mini stats row */}
+          <div className="relative grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-white/10">
+            <Stat label="Debt" value={`${debtLbs.toFixed(1)}`} unit="lb" tone={debtLbs > 0 ? "warn" : "muted"} />
+            <Stat label="Credit" value={`${creditLbs.toFixed(1)}`} unit="lb" tone={creditLbs > 0 ? "good" : "muted"} />
+            <Stat
+              label="Projected"
+              value={projectedDate ? projectedDate.toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "—"}
+              unit=""
+              tone="muted"
+            />
+          </div>
+
+          {/* My Journal button */}
+          <button
+            onClick={(e) => { e.stopPropagation(); setShowJournal(true); }}
+            className="relative w-full mt-3 flex items-center justify-center gap-2 rounded-xl bg-white/10 hover:bg-white/15 ring-1 ring-white/15 backdrop-blur-sm py-2.5 text-xs font-semibold uppercase tracking-wide text-white transition"
+          >
+            <BookHeart className="h-3.5 w-3.5" />
+            My Journal
+          </button>
+        </>
+      )}
     </Card>
   );
 }
