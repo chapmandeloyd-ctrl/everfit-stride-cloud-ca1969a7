@@ -38,7 +38,7 @@ export function PortalLibrary({
   }, [scenes]);
 
   return (
-    <div className="fixed inset-0 z-[95] bg-black overflow-y-auto overflow-x-hidden">
+    <div className="fixed inset-0 z-[200] bg-black overflow-y-auto overflow-x-hidden">
       {/* Hero header */}
       <div className="relative h-[36vh] min-h-[280px] w-full overflow-hidden">
         <img
