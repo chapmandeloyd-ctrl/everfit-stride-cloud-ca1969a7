@@ -2221,12 +2221,15 @@ export default function ClientDashboard() {
                       {/* Stacked macro rows */}
                       <div className="space-y-2.5 mt-4">
                         {[
-                          { label: "Protein", current: Math.round(todayProtein), target: Math.round(Number(macroTargets.target_protein) || 0), color: "#6366f1" },
-                          { label: "Carbs", current: Math.round(todayCarbs), target: Math.round(Number(macroTargets.target_carbs) || 0), color: "#22c55e" },
-                          { label: "Fats", current: Math.round(todayFats), target: Math.round(Number(macroTargets.target_fats) || 0), color: "#eab308" },
+                          { label: "Protein", emoji: "🥩", current: Math.round(todayProtein), target: Math.round(Number(macroTargets.target_protein) || 0), color: "#6366f1" },
+                          { label: "Carbs", emoji: "🍚", current: Math.round(todayCarbs), target: Math.round(Number(macroTargets.target_carbs) || 0), color: "#22c55e" },
+                          { label: "Fats", emoji: "🥑", current: Math.round(todayFats), target: Math.round(Number(macroTargets.target_fats) || 0), color: "#eab308" },
                         ].map((macro) => (
                           <div key={macro.label} className="flex items-center gap-3">
-                            <span className="text-xs font-medium text-muted-foreground w-12 shrink-0">{macro.label}</span>
+                            <span className="text-xs font-semibold text-foreground w-20 shrink-0 flex items-center gap-1.5">
+                              <span className="text-base leading-none">{macro.emoji}</span>
+                              {macro.label}
+                            </span>
                             <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
                               <div
                                 className="h-full rounded-full transition-all"
