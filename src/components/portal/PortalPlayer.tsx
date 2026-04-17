@@ -29,6 +29,9 @@ export interface PortalScene {
   audio_volume: number;
   loop_video: boolean;
   is_premium: boolean;
+  override_nebula_id?: string | null;
+  override_horizon_id?: string | null;
+  override_show_horizon?: boolean | null;
 }
 
 interface PortalPlayerProps {
