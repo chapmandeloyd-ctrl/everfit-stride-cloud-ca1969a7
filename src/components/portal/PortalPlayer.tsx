@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from "framer-motion";
-import { ArrowLeft, Volume2, VolumeX, ChevronDown, Clock } from "lucide-react";
+import { ArrowLeft, Volume2, VolumeX, ChevronDown, CircleDot, Check, TimerReset, Lightbulb } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import portalEarth from "@/assets/portal-earth.jpg";
 
@@ -31,11 +31,13 @@ interface PortalPlayerProps {
 export function PortalPlayer({ scene, onBack }: PortalPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const bgVideoRef = useRef<HTMLVideoElement>(null);
   const [immersive, setImmersive] = useState(false);
   const [playing, setPlaying] = useState(true);
   const [muted, setMuted] = useState(false);
   const [volume, setVolume] = useState(scene.audio_volume);
   const [elapsed, setElapsed] = useState(0);
+  const [volumeOpen, setVolumeOpen] = useState(false);
 
   const dragY = useMotionValue(0);
   const circleScale = useTransform(dragY, [0, 200], [1, 1.15]);
@@ -174,20 +176,23 @@ export function PortalPlayer({ scene, onBack }: PortalPlayerProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            {/* Background — heavily blurred scene thumbnail (matches reference) */}
-            {scene.thumbnail_url && (
-              <div
-                className="absolute inset-0 bg-cover bg-center scale-150"
-                style={{
-                  backgroundImage: `url(${scene.thumbnail_url})`,
-                  filter: "blur(60px) saturate(1.4)",
-                }}
+            {/* Background — LIVE blurred video (matches reference: glow bleeds out) */}
+            <div className="absolute inset-0 overflow-hidden">
+              <video
+                ref={bgVideoRef}
+                src={scene.video_url}
+                autoPlay
+                loop={scene.loop_video}
+                muted
+                playsInline
+                className="absolute inset-0 w-full h-full object-cover scale-[1.4]"
+                style={{ filter: "blur(48px) saturate(1.5) brightness(0.85)" }}
               />
-            )}
-            {/* Dark wash so content stays legible */}
-            <div className="absolute inset-0 bg-black/55" />
+            </div>
+            {/* Dark wash for legibility */}
+            <div className="absolute inset-0 bg-black/40" />
 
-            {/* Earth at the bottom — large, anchored to bottom */}
+            {/* Earth at the bottom — anchored thin sliver */}
             <div
               className="absolute left-1/2 -translate-x-1/2 pointer-events-none"
               style={{
@@ -210,7 +215,7 @@ export function PortalPlayer({ scene, onBack }: PortalPlayerProps) {
               />
             </div>
             {/* Subtle top vignette */}
-            <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-transparent pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-transparent pointer-events-none" />
 
             {/* Top header */}
             <div
@@ -228,27 +233,24 @@ export function PortalPlayer({ scene, onBack }: PortalPlayerProps) {
               <div className="w-10" />
             </div>
 
-            {/* Title block */}
-            <div className="relative z-10 px-6 pt-6 text-center">
-              <div className="text-white/40 text-[11px] uppercase tracking-[0.2em] mb-1.5">
-                {scene.category}
-              </div>
-              <h1 className="text-white text-2xl font-light tracking-tight">{scene.name}</h1>
-              {scene.description && (
-                <p className="text-white/50 text-sm mt-2 max-w-xs mx-auto">{scene.description}</p>
-              )}
-            </div>
-
-            {/* Circular video preview — draggable down */}
-            <div className="relative z-10 flex-1 flex items-center justify-center px-8">
+            {/* Circle + Title block — circle is smaller, title sits below */}
+            <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-8 pb-24">
               <motion.div
                 drag="y"
                 dragConstraints={{ top: 0, bottom: 0 }}
                 dragElastic={0.7}
                 onDragEnd={handleDragEnd}
                 style={{ y: dragY, scale: circleScale }}
-                className="relative aspect-square w-full max-w-sm rounded-full overflow-hidden shadow-2xl ring-1 ring-white/10 cursor-grab active:cursor-grabbing touch-none"
+                className="relative aspect-square w-[58%] max-w-[260px] rounded-full overflow-hidden cursor-grab active:cursor-grabbing touch-none"
               >
+                {/* Crisp white ring with soft outer glow */}
+                <div
+                  className="absolute inset-0 rounded-full pointer-events-none z-10"
+                  style={{
+                    boxShadow:
+                      "inset 0 0 0 1.5px rgba(255,255,255,0.95), 0 0 40px 6px rgba(255,255,255,0.18), 0 0 80px 12px rgba(255,255,255,0.08)",
+                  }}
+                />
                 <video
                   ref={videoRef}
                   src={scene.video_url}
@@ -258,74 +260,99 @@ export function PortalPlayer({ scene, onBack }: PortalPlayerProps) {
                   playsInline
                   className="absolute inset-0 w-full h-full object-cover pointer-events-none"
                 />
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/40 pointer-events-none" />
-
-                {/* Timer overlay */}
-                <div className="absolute top-6 left-1/2 -translate-x-1/2 text-white/90 text-sm font-medium tracking-wider pointer-events-none">
-                  {formatTime(elapsed)}
-                </div>
-
-                {/* (Centered play/pause removed — use volume controls below) */}
               </motion.div>
-            </div>
 
-            {/* Swipe-down hint — tappable */}
-            <motion.button
-              onClick={() => {
-                const a = audioRef.current;
-                if (a) { a.volume = muted ? 0 : volume; a.play().catch(() => {}); }
-                setImmersive(true);
-              }}
-              className="relative z-10 flex flex-col items-center gap-2 pb-2 text-white/50 hover:text-white/90 transition-colors"
-              style={{ opacity: hintOpacity }}
-              animate={{ y: [0, 6, 0] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            >
-              <ChevronDown className="h-5 w-5" />
-              <span className="text-[11px] uppercase tracking-widest">Swipe or tap to enter</span>
-            </motion.button>
-
-            {/* Explicit Enter Portal CTA */}
-            <div className="relative z-10 flex justify-center pb-2">
-              <button
-                onClick={() => {
-                  const a = audioRef.current;
-                  if (a) { a.volume = muted ? 0 : volume; a.play().catch(() => {}); }
-                  setImmersive(true);
-                }}
-                className="px-5 py-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white/90 text-xs uppercase tracking-widest font-medium backdrop-blur-md transition-colors"
-              >
-                Enter Portal
-              </button>
-            </div>
-
-            {/* Volume controls */}
-            {scene.audio_url && (
-              <div
-                className="relative z-10 px-8 pb-8 pt-4"
-                style={{ paddingBottom: "max(env(safe-area-inset-bottom, 0px), 32px)" }}
-              >
-                <div className="flex items-center gap-3 bg-white/[0.06] backdrop-blur-md border border-white/10 rounded-full px-4 py-3">
-                  <button
-                    onClick={() => setMuted((m) => !m)}
-                    className="text-white/70 hover:text-white transition-colors"
-                    aria-label={muted ? "Unmute" : "Mute"}
-                  >
-                    {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-                  </button>
-                  <Slider
-                    value={[muted ? 0 : volume * 100]}
-                    onValueChange={(v) => {
-                      setVolume(v[0] / 100);
-                      if (muted && v[0] > 0) setMuted(false);
-                    }}
-                    max={100}
-                    step={1}
-                    className="flex-1"
-                  />
+              {/* Title directly under circle */}
+              <div className="text-center mt-7">
+                <h1 className="text-white text-[17px] font-semibold tracking-[0.18em] uppercase">
+                  {scene.name}
+                </h1>
+                <div className="text-white/60 text-[11px] uppercase tracking-[0.35em] mt-1.5">
+                  {scene.category}
                 </div>
               </div>
-            )}
+            </div>
+
+            {/* Bottom icon row — flat, minimal */}
+            <div
+              className="relative z-10 px-8"
+              style={{ paddingBottom: "max(env(safe-area-inset-bottom, 0px), 24px)" }}
+            >
+              {/* Volume slider popover (above the row) */}
+              <AnimatePresence>
+                {volumeOpen && scene.audio_url && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 8 }}
+                    className="mb-4 mx-auto max-w-xs flex items-center gap-3 bg-white/[0.08] backdrop-blur-xl border border-white/15 rounded-full px-4 py-3"
+                  >
+                    <button
+                      onClick={() => setMuted((m) => !m)}
+                      className="text-white/80 hover:text-white"
+                      aria-label={muted ? "Unmute" : "Mute"}
+                    >
+                      {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                    </button>
+                    <Slider
+                      value={[muted ? 0 : volume * 100]}
+                      onValueChange={(v) => {
+                        setVolume(v[0] / 100);
+                        if (muted && v[0] > 0) setMuted(false);
+                      }}
+                      max={100}
+                      step={1}
+                      className="flex-1"
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <div className="flex items-center justify-between text-white/85">
+                {/* FOCUS — primary, with label */}
+                <button
+                  onClick={() => {
+                    const a = audioRef.current;
+                    if (a) { a.volume = muted ? 0 : volume; a.play().catch(() => {}); }
+                    setImmersive(true);
+                  }}
+                  className="flex items-center gap-2 hover:text-white transition-colors"
+                  aria-label="Enter focus mode"
+                >
+                  <CircleDot className="h-5 w-5" strokeWidth={1.5} />
+                  <span className="text-[11px] uppercase tracking-[0.25em] font-medium">Focus</span>
+                </button>
+
+                <button className="text-white/70 hover:text-white transition-colors p-2" aria-label="Mark complete">
+                  <Check className="h-5 w-5" strokeWidth={1.5} />
+                </button>
+
+                <button className="text-white/70 hover:text-white transition-colors p-2" aria-label="Set timer">
+                  <TimerReset className="h-5 w-5" strokeWidth={1.5} />
+                </button>
+
+                <button
+                  onClick={() => setVolumeOpen((o) => !o)}
+                  className={`p-2 transition-colors ${volumeOpen ? "text-white" : "text-white/70 hover:text-white"}`}
+                  aria-label="Volume"
+                >
+                  {muted ? <VolumeX className="h-5 w-5" strokeWidth={1.5} /> : <Volume2 className="h-5 w-5" strokeWidth={1.5} />}
+                </button>
+
+                <button className="text-white/70 hover:text-white transition-colors p-2" aria-label="Ambient light">
+                  <Lightbulb className="h-5 w-5" strokeWidth={1.5} />
+                </button>
+              </div>
+
+              {/* Page indicator dot */}
+              <div className="flex justify-center mt-3">
+                <div className="h-1 w-1 rounded-full bg-white/40" />
+              </div>
+            </div>
+
+            {/* Hidden swipe-down hint kept for gesture, but visually removed */}
+            <motion.div style={{ opacity: hintOpacity }} className="hidden" />
+
           </motion.div>
         )}
       </AnimatePresence>
