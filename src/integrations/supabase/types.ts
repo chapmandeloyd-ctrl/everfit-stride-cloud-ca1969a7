@@ -1521,6 +1521,7 @@ export type Database = {
         Row: {
           client_id: string
           created_at: string
+          deficit_pct: number | null
           diet_style: string | null
           id: string
           is_active: boolean | null
@@ -1532,6 +1533,7 @@ export type Database = {
           target_carbs: number | null
           target_fats: number | null
           target_protein: number | null
+          tdee: number | null
           tracking_option: string
           trainer_id: string | null
           updated_at: string
@@ -1539,6 +1541,7 @@ export type Database = {
         Insert: {
           client_id: string
           created_at?: string
+          deficit_pct?: number | null
           diet_style?: string | null
           id?: string
           is_active?: boolean | null
@@ -1550,6 +1553,7 @@ export type Database = {
           target_carbs?: number | null
           target_fats?: number | null
           target_protein?: number | null
+          tdee?: number | null
           tracking_option?: string
           trainer_id?: string | null
           updated_at?: string
@@ -1557,6 +1561,7 @@ export type Database = {
         Update: {
           client_id?: string
           created_at?: string
+          deficit_pct?: number | null
           diet_style?: string | null
           id?: string
           is_active?: boolean | null
@@ -1568,6 +1573,7 @@ export type Database = {
           target_carbs?: number | null
           target_fats?: number | null
           target_protein?: number | null
+          tdee?: number | null
           tracking_option?: string
           trainer_id?: string | null
           updated_at?: string
