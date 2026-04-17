@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { format, subDays, addDays, parseISO } from "date-fns";
 import { useState } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
+import { getDietStylePreset } from "@/lib/dietStyles";
 
 function getCutLevelMeta(adjustment?: number | null) {
   const pct = Math.round((adjustment ?? 0) * 100);
