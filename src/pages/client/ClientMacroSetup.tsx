@@ -258,6 +258,36 @@ export default function ClientMacroSetup() {
     saveMutation.mutate({ calories: c, protein: p || 0, carbs: cb || 0, fats: f || 0 });
   };
 
+  // Recompute calories + macros when adjustment slider changes (unless user manually edited)
+  useEffect(() => {
+    if (step !== "results" || !baseTdee || manualOverride) return;
+    const selectedDiet = DIET_STYLES.find(d => d.value === dietStyle) || DIET_STYLES[1];
+    const calories = Math.round(baseTdee * (1 + adjustment));
+    const protein = Math.round((calories * selectedDiet.proteinPct) / 4);
+    const fats = Math.round((calories * selectedDiet.fatPct) / 9);
+    const carbs = Math.round((calories * selectedDiet.carbsPct) / 4);
+    setCalcResults({ calories, protein: Math.max(protein, 0), carbs: Math.max(carbs, 0), fats: Math.max(fats, 0) });
+  }, [adjustment, baseTdee, dietStyle, step, manualOverride]);
+
+  // Label for current adjustment level
+  const adjustmentLabel = useMemo(() => {
+    const pct = Math.round(adjustment * 100);
+    if (pct <= -50) return { name: "Aggressive Cut", sub: `${Math.abs(pct)}% below maintenance`, color: "text-destructive" };
+    if (pct <= -25) return { name: "Heavy Cut", sub: `${Math.abs(pct)}% below maintenance`, color: "text-orange-600" };
+    if (pct <= -10) return { name: "Moderate Cut", sub: `${Math.abs(pct)}% below maintenance`, color: "text-yellow-600" };
+    if (pct < 0) return { name: "Light Cut", sub: `${Math.abs(pct)}% below maintenance`, color: "text-yellow-500" };
+    if (pct === 0) return { name: "Maintain", sub: "At maintenance", color: "text-green-600" };
+    if (pct <= 10) return { name: "Lean Bulk", sub: `${pct}% above maintenance`, color: "text-blue-500" };
+    if (pct <= 20) return { name: "Surplus", sub: `${pct}% above maintenance`, color: "text-blue-600" };
+    return { name: "Aggressive Bulk", sub: `${pct}% above maintenance`, color: "text-purple-600" };
+  }, [adjustment]);
+
+  const updateMacroField = (field: "calories" | "protein" | "carbs" | "fats", value: string) => {
+    const n = parseInt(value) || 0;
+    setManualOverride(true);
+    setCalcResults(prev => prev ? { ...prev, [field]: n } : prev);
+  };
+
   // Donut chart for results
   const renderDonutChart = (data: { calories: number; protein: number; carbs: number; fats: number }) => {
     const totalMacroCalories = data.protein * 4 + data.carbs * 4 + data.fats * 9;
