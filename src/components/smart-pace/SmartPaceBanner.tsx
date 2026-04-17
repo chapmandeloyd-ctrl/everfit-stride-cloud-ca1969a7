@@ -15,6 +15,7 @@ import { SmartPaceJournalView } from "./SmartPaceJournalView";
 export function SmartPaceBanner() {
   const { data } = useSmartPace();
   const navigate = useNavigate();
+  const [showJournal, setShowJournal] = useState(false);
 
   if (!data?.enabled || !data.goal) return null;
 
