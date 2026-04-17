@@ -160,12 +160,12 @@ export default function ClientNutrition() {
             {/* Deficit status pill — pinned at very top */}
             {macroTargets && deficitPct !== null ? (
               <div className="flex justify-center">
-                <div className={`inline-flex flex-wrap items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm ${toneClasses[cutMeta.tone]}`}>
-                  <span className="h-3 w-3 rounded-full bg-primary" />
-                  <span className="font-semibold">{cutMeta.label}</span>
-                  <span className="text-muted-foreground">({deficitPct > 0 ? `+${deficitPct}` : deficitPct}% {deficitPct === 0 ? "change" : deficitPct < 0 ? "deficit" : "surplus"})</span>
+                <div className={`inline-flex max-w-full flex-nowrap items-center justify-center gap-1.5 rounded-full border px-3 py-1.5 ${toneClasses[cutMeta.tone]}`}>
+                  <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-primary" />
+                  <span className="shrink-0 whitespace-nowrap text-sm font-semibold">{cutMeta.label}</span>
+                  <span className="shrink-0 whitespace-nowrap text-xs text-muted-foreground">({deficitPct > 0 ? `+${deficitPct}` : deficitPct}% {deficitPct === 0 ? "change" : deficitPct < 0 ? "deficit" : "surplus"})</span>
                   {savedTdee > 0 && (
-                    <span className="text-muted-foreground">· TDEE {savedTdee.toLocaleString()} Cal</span>
+                    <span className="shrink-0 whitespace-nowrap text-xs text-muted-foreground">· TDEE {savedTdee.toLocaleString()} Cal</span>
                   )}
                 </div>
               </div>
