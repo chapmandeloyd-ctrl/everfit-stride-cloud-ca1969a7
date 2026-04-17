@@ -248,7 +248,7 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory }:
                 <ArrowLeft className="h-5 w-5" />
                 Back
               </button>
-              <div className="text-white/50 text-xs uppercase tracking-widest">Portal</div>
+              <div className="text-white/50 text-xs uppercase tracking-widest">KSOM Calm</div>
               <div className="w-10" />
             </div>
 
