@@ -158,7 +158,7 @@ export default function ClientNutrition() {
           {/* Summary Tab */}
           <TabsContent value="summary" className="px-4 pt-4 space-y-8 pb-8 mt-0">
             {/* Deficit status pill — pinned at very top */}
-            {macroTargets && deficitPct !== null && (
+            {macroTargets && deficitPct !== null ? (
               <div className="flex justify-center">
                 <div className={`inline-flex flex-wrap items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm ${toneClasses[cutMeta.tone]}`}>
                   <span className="h-3 w-3 rounded-full bg-primary" />
@@ -168,6 +168,16 @@ export default function ClientNutrition() {
                     <span className="text-muted-foreground">· TDEE {savedTdee.toLocaleString()} Cal</span>
                   )}
                 </div>
+              </div>
+            ) : (
+              <div className="flex justify-center">
+                <button
+                  onClick={() => navigate("/client/macro-setup")}
+                  className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10 transition-colors"
+                >
+                  <Plus className="h-4 w-4" />
+                  Complete macro setup to see your deficit
+                </button>
               </div>
             )}
 
