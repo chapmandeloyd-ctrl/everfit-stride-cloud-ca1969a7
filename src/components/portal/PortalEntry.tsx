@@ -1,9 +1,7 @@
 import { motion } from "framer-motion";
-import { Library } from "lucide-react";
 
 interface PortalEntryProps {
   onSelectCategory: (category: "Focus" | "Sleep" | "Escape") => void;
-  onOpenLibrary?: () => void;
 }
 
 export function PortalEntry({ onSelectCategory, onOpenLibrary }: PortalEntryProps) {
