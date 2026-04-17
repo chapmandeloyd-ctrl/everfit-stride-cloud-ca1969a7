@@ -50,10 +50,11 @@ export function useAuth() {
           return;
         }
 
-        // Clear impersonation on fresh sign-in so trainer lands on admin dashboard
-        if (event === "SIGNED_IN") {
-          localStorage.removeItem("impersonatedClientId");
-        }
+        // NOTE: Do NOT clear impersonation on SIGNED_IN — Supabase fires SIGNED_IN
+        // on every session restoration (page load, tab focus, navigation in some cases),
+        // which would wipe an active "Preview as Client" session and bounce trainers
+        // back to the admin dashboard. Impersonation is already cleared on SIGNED_OUT
+        // above, on the /auth page mount, and explicitly via signOut(). That's enough.
 
         // Start/restart proactive refresh whenever we have a valid session
         startTokenRefresh();
