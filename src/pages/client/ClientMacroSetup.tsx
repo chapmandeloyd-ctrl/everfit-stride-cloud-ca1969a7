@@ -410,35 +410,164 @@ export default function ClientMacroSetup() {
 
   // Results view
   if (step === "results" && calcResults) {
+    const deficitPresets = [10, 20, 30, 40, 50, 60, 70];
+    const surplusPresets = [0, 5, 10, 15, 20, 30];
+    const sliderPct = Math.round(adjustment * 100); // -70..+30
+    const sliderPos = ((sliderPct + 70) / 100) * 100;
+
     return (
       <ClientLayout>
         <div className="p-4 pb-8 space-y-6 max-w-lg mx-auto">
-          <div className="flex items-center justify-end">
+          <div className="flex items-center justify-between">
+            <Button variant="ghost" size="icon" onClick={() => setStep("form")}>
+              <ChevronLeft className="h-5 w-5" />
+            </Button>
             <Button variant="link" className="text-primary font-semibold" onClick={() => setStep("form")}>
-              Edit Goals
+              Recalculate
             </Button>
           </div>
 
-          <h1 className="text-2xl font-bold text-center">Your Macro Goals</h1>
+          <div className="text-center">
+            <h1 className="text-2xl font-bold">Your Macro Goals</h1>
+            <p className="text-sm text-muted-foreground mt-1">TDEE: {baseTdee.toLocaleString()} kcal/day</p>
+          </div>
+
+          <Card>
+            <CardContent className="p-4 space-y-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className={`font-bold text-lg ${adjustmentLabel.color}`}>{adjustmentLabel.name}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{adjustmentLabel.sub}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-2xl font-bold text-foreground">{calcResults.calories.toLocaleString()}</p>
+                  <p className="text-xs text-muted-foreground">kcal / day</p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="relative h-2 rounded-full" style={{ background: "linear-gradient(to right, #ef4444, #f59e0b, #eab308, #22c55e, #3b82f6, #a855f7, #ec4899)" }}>
+                  <input
+                    type="range"
+                    min={-70}
+                    max={30}
+                    step={5}
+                    value={sliderPct}
+                    onChange={e => { setManualOverride(false); setAdjustment(parseInt(e.target.value) / 100); }}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                  <div
+                    className="absolute top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-background border-2 border-primary shadow pointer-events-none"
+                    style={{ left: `calc(${sliderPos}% - 10px)` }}
+                  />
+                </div>
+                <div className="flex justify-between text-[10px] text-muted-foreground">
+                  <span>-70% deficit</span>
+                  <span>maintain</span>
+                  <span>+30% surplus</span>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-[11px] font-semibold text-muted-foreground tracking-wide mb-2">DEFICIT PRESETS</p>
+                <div className="flex flex-wrap gap-2">
+                  {deficitPresets.map(p => (
+                    <button
+                      key={p}
+                      onClick={() => { setManualOverride(false); setAdjustment(-p / 100); }}
+                      className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+                        sliderPct === -p ? "bg-primary text-primary-foreground border-primary" : "bg-background border-border hover:border-primary/50"
+                      }`}
+                    >
+                      {p}%
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <p className="text-[11px] font-semibold text-muted-foreground tracking-wide mb-2">MAINTAIN / SURPLUS</p>
+                <div className="flex flex-wrap gap-2">
+                  {surplusPresets.map(p => (
+                    <button
+                      key={p}
+                      onClick={() => { setManualOverride(false); setAdjustment(p / 100); }}
+                      className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+                        sliderPct === p ? "bg-primary text-primary-foreground border-primary" : "bg-background border-border hover:border-primary/50"
+                      }`}
+                    >
+                      {p === 0 ? "Maintain" : `+${p}%`}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {renderDonutChart(calcResults)}
+          <p className="text-xs text-muted-foreground text-center -mt-2">Tap any value to fine-tune</p>
 
-          <div className="pt-4 space-y-3">
-            <Button
-              className="w-full h-12 rounded-xl text-base font-semibold"
-              onClick={() => saveMutation.mutate(calcResults)}
-              disabled={saveMutation.isPending}
-            >
-              {saveMutation.isPending ? "Saving..." : "Save Goals"}
-            </Button>
-            <Button
-              variant="outline"
-              className="w-full h-12 rounded-xl text-base"
-              onClick={() => navigate("/client/dashboard")}
-            >
-              Close
-            </Button>
-          </div>
+          <Card>
+            <CardContent className="p-0 divide-y divide-border">
+              <div className="flex items-center justify-between px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 rounded-full bg-primary" />
+                  <span className="font-semibold text-sm">Calories</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Input type="number" value={calcResults.calories} onChange={e => updateMacroField("calories", e.target.value)} className="w-20 h-8 text-right text-sm" />
+                  <span className="text-xs text-muted-foreground">kcal</span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: "hsl(217, 91%, 60%)" }} />
+                  <span className="font-semibold text-sm">Protein</span>
+                  <span className="text-xs text-muted-foreground">
+                    {calcResults.calories > 0 ? Math.round((calcResults.protein * 4 / calcResults.calories) * 100) : 0}%
+                  </span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Input type="number" value={calcResults.protein} onChange={e => updateMacroField("protein", e.target.value)} className="w-20 h-8 text-right text-sm" />
+                  <span className="text-xs text-muted-foreground">g</span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: "hsl(142, 71%, 45%)" }} />
+                  <span className="font-semibold text-sm">Carbs</span>
+                  <span className="text-xs text-muted-foreground">
+                    {calcResults.calories > 0 ? Math.round((calcResults.carbs * 4 / calcResults.calories) * 100) : 0}%
+                  </span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Input type="number" value={calcResults.carbs} onChange={e => updateMacroField("carbs", e.target.value)} className="w-20 h-8 text-right text-sm" />
+                  <span className="text-xs text-muted-foreground">g</span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: "hsl(45, 93%, 58%)" }} />
+                  <span className="font-semibold text-sm">Fat</span>
+                  <span className="text-xs text-muted-foreground">
+                    {calcResults.calories > 0 ? Math.round((calcResults.fats * 9 / calcResults.calories) * 100) : 0}%
+                  </span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Input type="number" value={calcResults.fats} onChange={e => updateMacroField("fats", e.target.value)} className="w-20 h-8 text-right text-sm" />
+                  <span className="text-xs text-muted-foreground">g</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Button
+            className="w-full h-12 rounded-xl text-base font-semibold"
+            onClick={() => saveMutation.mutate(calcResults)}
+            disabled={saveMutation.isPending}
+          >
+            {saveMutation.isPending ? "Saving..." : "Save Goals"}
+          </Button>
         </div>
       </ClientLayout>
     );
