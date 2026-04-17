@@ -174,6 +174,7 @@ const App = () => (
           {/* Client Routes */}
           <Route path="/client/dashboard" element={<ProtectedRoute allowedRoles={["client"]}><ClientDashboard /></ProtectedRoute>} />
           <Route path="/client/pace" element={<ProtectedRoute allowedRoles={["client"]}><ClientSmartPace /></ProtectedRoute>} />
+          <Route path="/dev/pace-preview" element={<SmartPacePreview />} />
           <Route path="/client/daily-score" element={<ProtectedRoute allowedRoles={["client"]}><ClientDailyScore /></ProtectedRoute>} />
           <Route path="/client/coaching" element={<ProtectedRoute allowedRoles={["client"]}><ClientCoaching /></ProtectedRoute>} />
           <Route path="/client/profile" element={<ProtectedRoute allowedRoles={["client"]}><ClientProfile /></ProtectedRoute>} />
