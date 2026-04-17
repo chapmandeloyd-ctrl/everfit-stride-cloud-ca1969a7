@@ -1,9 +1,7 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { TrendingDown, TrendingUp, AlertTriangle, Target, ChevronRight, BookHeart, Heart } from "lucide-react";
+import { TrendingUp, AlertTriangle, Target, BookHeart, Heart } from "lucide-react";
 import { useSmartPace } from "@/hooks/useSmartPace";
 import { cn } from "@/lib/utils";
 import { SmartPaceJournalView } from "./SmartPaceJournalView";
@@ -15,7 +13,6 @@ import { SmartPaceWhyView } from "./SmartPaceWhyView";
  */
 export function SmartPaceBanner() {
   const { data } = useSmartPace();
-  const navigate = useNavigate();
   const [flipView, setFlipView] = useState<"none" | "journal" | "why">("none");
 
   if (!data?.enabled || !data.goal) return null;
@@ -84,10 +81,8 @@ export function SmartPaceBanner() {
         "relative overflow-hidden border p-4 text-white transition-all",
         tone.gradient,
         tone.border,
-        tone.glow,
-        flipView === "none" && "cursor-pointer hover:scale-[1.01]"
+        tone.glow
       )}
-      onClick={() => flipView === "none" && navigate("/client/pace")}
     >
       {/* Granite noise texture */}
       <div
@@ -147,7 +142,6 @@ export function SmartPaceBanner() {
                 )}
               </div>
             </div>
-            <ChevronRight className="h-5 w-5 text-white/50 shrink-0" />
           </div>
 
           {/* Start → Goal weight strip */}
@@ -159,7 +153,7 @@ export function SmartPaceBanner() {
               </p>
               <p className="text-[10px] text-white/50">{fmtDate(startDate)}</p>
             </div>
-            <ChevronRight className="h-4 w-4 text-white/40" />
+            <div className="h-px w-5 bg-white/20" aria-hidden="true" />
             <div className="text-right">
               <p className="text-[10px] uppercase tracking-wide text-white/50">Goal</p>
               <p className="font-heading font-bold text-base text-white leading-tight">
