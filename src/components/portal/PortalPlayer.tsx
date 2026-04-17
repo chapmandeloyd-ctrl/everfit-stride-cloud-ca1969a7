@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from "framer-motion";
 import { ArrowLeft, Volume2, VolumeX, ChevronDown, Clock } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
+import portalEarth from "@/assets/portal-earth.jpg";
 
 export interface PortalScene {
   id: string;
@@ -173,14 +174,43 @@ export function PortalPlayer({ scene, onBack }: PortalPlayerProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            {/* Background blurred thumbnail */}
+            {/* Background — heavily blurred scene thumbnail (matches reference) */}
             {scene.thumbnail_url && (
               <div
-                className="absolute inset-0 bg-cover bg-center scale-110 blur-3xl opacity-40"
-                style={{ backgroundImage: `url(${scene.thumbnail_url})` }}
+                className="absolute inset-0 bg-cover bg-center scale-150"
+                style={{
+                  backgroundImage: `url(${scene.thumbnail_url})`,
+                  filter: "blur(60px) saturate(1.4)",
+                }}
               />
             )}
-            <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black" />
+            {/* Dark wash so content stays legible */}
+            <div className="absolute inset-0 bg-black/55" />
+
+            {/* Earth at the bottom — large, anchored to bottom */}
+            <div
+              className="absolute left-1/2 -translate-x-1/2 pointer-events-none"
+              style={{
+                bottom: "-12%",
+                width: "180%",
+                maxWidth: "1200px",
+                aspectRatio: "16 / 9",
+              }}
+            >
+              <img
+                src={portalEarth}
+                alt=""
+                className="w-full h-full object-cover object-top opacity-90"
+                style={{
+                  maskImage:
+                    "radial-gradient(ellipse 70% 90% at 50% 100%, black 40%, transparent 80%)",
+                  WebkitMaskImage:
+                    "radial-gradient(ellipse 70% 90% at 50% 100%, black 40%, transparent 80%)",
+                }}
+              />
+            </div>
+            {/* Subtle top vignette */}
+            <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-transparent pointer-events-none" />
 
             {/* Top header */}
             <div
