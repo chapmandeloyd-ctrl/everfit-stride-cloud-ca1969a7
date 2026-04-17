@@ -2147,7 +2147,7 @@ export default function ClientDashboard() {
                           className="h-7 px-2 gap-1 text-xs"
                           onClick={(e) => { e.stopPropagation(); openMacroEdit(); }}
                         >
-                          <Pencil className="h-3 w-3" /> Edit
+                          <Pencil className="h-3 w-3" /> Macro Plan
                         </Button>
                       </div>
 
