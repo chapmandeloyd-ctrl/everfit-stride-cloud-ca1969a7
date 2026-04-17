@@ -293,6 +293,76 @@ export default function ClientNutrition() {
               </CardContent>
             </Card>
 
+            {/* Macro distribution card */}
+            <Card>
+              <CardContent className="p-0">
+                <div className="px-4 py-3 border-b">
+                  <p className="text-sm font-bold">Macro distribution</p>
+                </div>
+                <div className="grid grid-cols-3 gap-0 text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-2 border-b">
+                  <span>Macro</span>
+                  <span className="text-right">Actual</span>
+                  <span className="text-right">Goal</span>
+                </div>
+                {[
+                  { name: "Protein", actual: actualDist.protein, goal: goalDist.protein, color: macroColors.protein },
+                  { name: "Carbs", actual: actualDist.carbs, goal: goalDist.carbs, color: macroColors.carbs },
+                  { name: "Fat", actual: actualDist.fats, goal: goalDist.fats, color: macroColors.fats },
+                ].map((m) => (
+                  <div key={m.name} className="grid grid-cols-3 gap-0 px-4 py-3 border-b last:border-b-0 items-center">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: m.color }} />
+                      <span className="text-sm font-medium">{m.name}</span>
+                    </div>
+                    <span className="text-sm text-right font-bold">{m.actual}%</span>
+                    <span className="text-sm text-right text-muted-foreground">{m.goal}%</span>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* Assigned keto type card */}
+            {ketoType && (
+              <Card>
+                <CardContent className="p-0">
+                  <div className="flex items-start gap-3 px-4 py-3 border-b">
+                    <span
+                      className="shrink-0 inline-flex items-center justify-center rounded-md px-2 py-1 text-[10px] font-bold tracking-wider"
+                      style={{ backgroundColor: `${ketoType.color || "#f59e0b"}20`, color: ketoType.color || "#f59e0b" }}
+                    >
+                      {ketoType.abbreviation}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold">{ketoType.name}</p>
+                      {ketoType.subtitle && (
+                        <p className="text-xs text-muted-foreground mt-0.5">{ketoType.subtitle}</p>
+                      )}
+                    </div>
+                  </div>
+                  {[
+                    { name: "Protein", target: ketoType.protein_pct, today: actualDist.protein, color: macroColors.protein },
+                    { name: "Carbs", target: ketoType.carbs_pct, today: actualDist.carbs, color: macroColors.carbs },
+                    { name: "Fat", target: ketoType.fat_pct, today: actualDist.fats, color: macroColors.fats },
+                  ].map((m) => (
+                    <div key={m.name} className="grid grid-cols-3 gap-0 px-4 py-3 border-b last:border-b-0 items-center">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: m.color }} />
+                        <span className="text-sm font-medium">{m.name}</span>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Target</p>
+                        <p className="text-sm font-bold">{m.target}%</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Today</p>
+                        <p className="text-sm font-bold">{totalMacroCals > 0 ? `${m.today}%` : "—"}</p>
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+
           </TabsContent>
 
           {/* Journal Tab */}
