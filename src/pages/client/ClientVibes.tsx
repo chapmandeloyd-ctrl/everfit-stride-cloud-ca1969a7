@@ -19,7 +19,7 @@ import { RestoreSleepTab } from "@/components/vibes/RestoreSleepTab";
 
 import { BreathingPlayer } from "@/components/vibes/BreathingPlayer";
 import { type BreathingExercise } from "@/lib/breathingExercises";
-import { useSearchParams, Navigate, useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { useClientFeatureSettings } from "@/hooks/useClientFeatureSettings";
 import { ArrowLeft, Sparkles } from "lucide-react";
 
@@ -110,9 +110,11 @@ export default function ClientVibes() {
     );
   }
 
-  if (!settings.restore_enabled) {
-    return <Navigate to="/client/dashboard" replace />;
-  }
+  // Note: we intentionally do NOT redirect when restore_enabled is false.
+  // A redirect from here back to /client/dashboard caused a "screen refresh / bug"
+  // feel for users whose settings row was missing or whose gate flipped briefly.
+  // The Restore card on the dashboard / sidebar already gates entry; if the user
+  // gets here directly, just render the experience.
 
   // Breathing session — full screen
   if (view.type === "breathing-session") {
