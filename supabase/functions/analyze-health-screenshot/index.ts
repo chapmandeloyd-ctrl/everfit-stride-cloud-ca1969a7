@@ -62,7 +62,106 @@ function buildWorkoutHealthRow(
   };
 }
 
-serve(async (req) => {
+/**
+ * Smart Pace pipeline (server-side mirror of src/lib/smartPaceWeighIn.ts).
+ * Looks up the active goal, computes debt/credit deltas, and writes the
+ * daily log + goal totals.
+ */
+async function applySmartPaceFromScaleSource(
+  supabase: any,
+  clientId: string,
+  weightLbs: number,
+  source: 'ai_photo' | 'healthkit' | 'bluetooth' | 'admin_override',
+) {
+  const { data: settings } = await supabase
+    .from('client_feature_settings')
+    .select('smart_pace_enabled')
+    .eq('client_id', clientId)
+    .maybeSingle();
+  if (!settings?.smart_pace_enabled) return;
+
+  const { data: goal } = await supabase
+    .from('smart_pace_goals')
+    .select('*')
+    .eq('client_id', clientId)
+    .eq('status', 'active')
+    .maybeSingle();
+  if (!goal) return;
+
+  const today = new Date().toISOString().slice(0, 10);
+  const base = Number(goal.daily_pace_lbs) || 0;
+  const debt = Number(goal.current_debt_lbs) || 0;
+  const credit = Number(goal.current_credit_lbs) || 0;
+  const cap = base * 3;
+  const rawTarget = base + debt - credit;
+  const targetLoss = Math.round(Math.max(0, Math.min(cap, rawTarget)) * 10) / 10;
+
+  const prev = goal.last_weigh_in_value ?? goal.start_weight ?? weightLbs;
+  const direction = goal.goal_direction === 'gain' ? -1 : 1;
+  const actualLoss = Math.round((prev - weightLbs) * direction * 10) / 10;
+  const diff = actualLoss - targetLoss;
+
+  let status: 'on_pace' | 'ahead' | 'behind' = 'on_pace';
+  let debtDelta = 0;
+  let creditDelta = 0;
+  if (diff >= 0.05) {
+    status = 'ahead';
+    creditDelta = diff;
+  } else if (diff <= -0.05) {
+    status = 'behind';
+    debtDelta = -diff;
+  }
+
+  let newDebt = debt;
+  let newCredit = credit;
+  if (status === 'ahead') {
+    const payDown = Math.min(newDebt, creditDelta);
+    newDebt -= payDown;
+    newCredit += creditDelta - payDown;
+  } else if (status === 'behind') {
+    const burn = Math.min(newCredit, debtDelta);
+    newCredit -= burn;
+    newDebt += debtDelta - burn;
+  }
+  newDebt = Math.round(newDebt * 10) / 10;
+  newCredit = Math.round(newCredit * 10) / 10;
+
+  const consecutiveBehind =
+    status === 'behind' ? (goal.consecutive_behind_days || 0) + 1 : 0;
+
+  await supabase.from('smart_pace_daily_log').upsert(
+    {
+      goal_id: goal.id,
+      client_id: clientId,
+      log_date: today,
+      target_loss_lbs: targetLoss,
+      actual_loss_lbs: actualLoss,
+      weight_recorded: weightLbs,
+      weight_source: source,
+      status,
+      debt_delta: Math.round(debtDelta * 10) / 10,
+      credit_delta: Math.round(creditDelta * 10) / 10,
+      notes: 'AI Snapshot scale photo',
+    },
+    { onConflict: 'goal_id,log_date' },
+  );
+
+  await supabase
+    .from('smart_pace_goals')
+    .update({
+      current_debt_lbs: newDebt,
+      current_credit_lbs: newCredit,
+      last_weigh_in_date: today,
+      last_weigh_in_value: weightLbs,
+      consecutive_behind_days: consecutiveBehind,
+      consecutive_missed_days: 0,
+    })
+    .eq('id', goal.id);
+
+  console.log(`[SmartPace] AI snapshot weigh-in applied: ${actualLoss} lb actual vs ${targetLoss} lb target (status=${status})`);
+}
+
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -349,6 +448,15 @@ Today's date is ${new Date().toISOString().split('T')[0]}.`
         console.error('Error inserting metric_entry:', entryErr);
       } else {
         savedCount++;
+
+        // Smart Pace integration: AI snapshot is a scale-quality source.
+        if (metricName === 'Weight' && value > 50 && value < 800) {
+          try {
+            await applySmartPaceFromScaleSource(supabase, targetClientId, value, 'ai_photo');
+          } catch (e) {
+            console.warn('[SmartPace] AI snapshot weigh-in pipe failed:', e);
+          }
+        }
       }
     }
 
