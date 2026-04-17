@@ -156,13 +156,15 @@ export default function ClientNutrition() {
           {/* Summary Tab */}
           <TabsContent value="summary" className="px-4 pt-4 space-y-8 pb-8 mt-0">
             {/* Deficit status pill — pinned at very top */}
-            {macroTargets && deficitPct !== null && savedTdee > 0 && (
+            {macroTargets && deficitPct !== null && (
               <div className="flex justify-center">
                 <div className={`inline-flex flex-wrap items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm ${toneClasses[cutMeta.tone]}`}>
                   <span className="h-3 w-3 rounded-full bg-primary" />
                   <span className="font-semibold">{cutMeta.label}</span>
                   <span className="text-muted-foreground">({deficitPct > 0 ? `+${deficitPct}` : deficitPct}% {deficitPct === 0 ? "change" : deficitPct < 0 ? "deficit" : "surplus"})</span>
-                  <span className="text-muted-foreground">· TDEE {savedTdee.toLocaleString()} Cal</span>
+                  {savedTdee > 0 && (
+                    <span className="text-muted-foreground">· TDEE {savedTdee.toLocaleString()} Cal</span>
+                  )}
                 </div>
               </div>
             )}
