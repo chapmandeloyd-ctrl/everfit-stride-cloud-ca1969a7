@@ -80,12 +80,13 @@ export function SmartPaceBanner() {
   return (
     <Card
       className={cn(
-        "relative overflow-hidden border p-4 cursor-pointer transition-all hover:scale-[1.01] text-white",
+        "relative overflow-hidden border p-4 text-white transition-all",
         tone.gradient,
         tone.border,
-        tone.glow
+        tone.glow,
+        !showJournal && "cursor-pointer hover:scale-[1.01]"
       )}
-      onClick={() => navigate("/client/pace")}
+      onClick={() => !showJournal && navigate("/client/pace")}
     >
       {/* Granite noise texture */}
       <div
