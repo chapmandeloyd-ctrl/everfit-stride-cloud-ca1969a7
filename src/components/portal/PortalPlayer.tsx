@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from "framer-motion";
-import { ArrowLeft, Pause, Play, Volume2, VolumeX, ChevronDown, Clock } from "lucide-react";
+import { ArrowLeft, Volume2, VolumeX, ChevronDown, Clock } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 
 export interface PortalScene {
