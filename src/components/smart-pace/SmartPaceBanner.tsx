@@ -26,19 +26,22 @@ export function SmartPaceBanner() {
           icon: AlertTriangle,
           iconColor: "text-destructive",
           badge: "bg-destructive text-destructive-foreground",
+          progress: "bg-destructive",
         }
       : status === "ahead"
       ? {
-          bg: "bg-emerald-500/10 border-emerald-500/30",
-          icon: TrendingDown,
-          iconColor: "text-emerald-500",
-          badge: "bg-emerald-500 text-white",
+          bg: "bg-sky-500/10 border-sky-500/30",
+          icon: TrendingUp,
+          iconColor: "text-sky-500",
+          badge: "bg-sky-500 text-white",
+          progress: "bg-sky-500",
         }
       : {
-          bg: "bg-primary/5 border-primary/20",
+          bg: "bg-emerald-500/10 border-emerald-500/30",
           icon: Target,
-          iconColor: "text-primary",
-          badge: "bg-primary text-primary-foreground",
+          iconColor: "text-emerald-500",
+          badge: "bg-emerald-500 text-white",
+          progress: "bg-emerald-500",
         };
 
   const Icon = tone.icon;
@@ -91,10 +94,7 @@ export function SmartPaceBanner() {
         </div>
         <div className="h-1.5 rounded-full bg-muted overflow-hidden">
           <div
-            className={cn(
-              "h-full transition-all",
-              status === "behind" ? "bg-destructive" : status === "ahead" ? "bg-emerald-500" : "bg-primary"
-            )}
+            className={cn("h-full transition-all", tone.progress)}
             style={{ width: `${progressPct}%` }}
           />
         </div>
