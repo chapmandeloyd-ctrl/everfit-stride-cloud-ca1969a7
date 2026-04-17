@@ -194,6 +194,25 @@ function PreviewBanner({
         <ChevronRight className="h-5 w-5 text-white/50 shrink-0" />
       </div>
 
+      {/* Start → Goal weight strip */}
+      <div className="relative mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-2 rounded-xl bg-black/30 ring-1 ring-white/10 p-2.5">
+        <div className="text-left">
+          <p className="text-[10px] uppercase tracking-wide text-white/50">Start</p>
+          <p className="font-heading font-bold text-base text-white leading-tight">
+            {startWeight.toFixed(1)} lb
+          </p>
+          <p className="text-[10px] text-white/50">{startDate}</p>
+        </div>
+        <ChevronRight className="h-4 w-4 text-white/40" />
+        <div className="text-right">
+          <p className="text-[10px] uppercase tracking-wide text-white/50">Goal</p>
+          <p className="font-heading font-bold text-base text-white leading-tight">
+            {goalWeight.toFixed(1)} lb
+          </p>
+          <p className="text-[10px] text-white/50">{targetDate}</p>
+        </div>
+      </div>
+
       <div className="relative mt-3">
         <div className="flex justify-between items-center mb-1">
           <span className="text-[11px] text-white/60">Goal progress</span>
