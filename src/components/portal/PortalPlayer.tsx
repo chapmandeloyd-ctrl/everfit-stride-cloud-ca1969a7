@@ -185,8 +185,8 @@ export function PortalPlayer({ scene, onBack }: PortalPlayerProps) {
                 loop={scene.loop_video}
                 muted
                 playsInline
-                className="absolute inset-0 w-full h-full object-cover scale-[1.4]"
-                style={{ filter: "blur(48px) saturate(1.5) brightness(0.85)" }}
+                className="absolute inset-0 w-full h-full object-cover scale-[1.25]"
+                style={{ filter: "blur(18px) saturate(1.3) brightness(0.7)" }}
               />
             </div>
             {/* Dark wash for legibility */}
