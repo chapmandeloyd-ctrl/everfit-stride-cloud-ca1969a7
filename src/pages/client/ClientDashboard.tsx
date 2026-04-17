@@ -1632,6 +1632,21 @@ export default function ClientDashboard() {
   const todayFats = nutritionArray.reduce((sum, log) => sum + (log.fats || 0), 0);
 
 
+  // Wait for settings + layout before rendering — prevents the dashboard from
+  // briefly flashing default cards (which the saved layout may hide) on refresh.
+  if (settingsLoading || layoutLoading) {
+    return (
+      <ClientLayout>
+        <div className="px-3 pt-4 pb-8 space-y-4 w-full">
+          <div className="h-16 rounded-lg bg-muted animate-pulse" />
+          <div className="h-32 rounded-lg bg-muted animate-pulse" />
+          <div className="h-48 rounded-lg bg-muted animate-pulse" />
+          <div className="h-32 rounded-lg bg-muted animate-pulse" />
+        </div>
+      </ClientLayout>
+    );
+  }
+
   return (
     <ClientLayout>
       <div className="px-3 pt-4 pb-8 space-y-5 w-full">
