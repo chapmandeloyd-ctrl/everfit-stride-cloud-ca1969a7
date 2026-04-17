@@ -325,8 +325,9 @@ export default function ClientMacroSetup() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["client-macro-targets"] });
-      toast({ title: "Macro goals saved!" });
-      navigate("/client/dashboard");
+      queryClient.invalidateQueries({ queryKey: ["client-macro-targets", clientId] });
+      toast({ title: "Client macro goals saved" });
+      navigate("/client/nutrition");
     },
     onError: () => {
       toast({ title: "Error saving goals", variant: "destructive" });
@@ -746,9 +747,9 @@ export default function ClientMacroSetup() {
             </button>
           </div>
 
-          <div className="text-center space-y-1">
-            <h1 className="text-2xl font-bold">Pick your calorie target</h1>
-            <p className="text-xs text-muted-foreground">TDEE: {baseTdee.toLocaleString()} kcal/day</p>
+          <div className="text-center space-y-2">
+            <h1 className="text-4xl font-bold tracking-tight">Pick your calorie target</h1>
+            <p className="text-lg text-muted-foreground">TDEE: {baseTdee.toLocaleString()} kcal/day</p>
           </div>
 
           <Card>
@@ -807,12 +808,13 @@ export default function ClientMacroSetup() {
                         key={p}
                         onClick={() => setAdjustment(-p / 100)}
                         className={cn(
-                          "px-3 py-1.5 rounded-full text-xs font-semibold border transition-all flex items-center gap-1",
-                          active && caution && "border-destructive bg-destructive/10 text-destructive",
+                          "px-5 py-2.5 rounded-full text-base font-semibold border transition-all flex items-center gap-1.5 bg-background",
+                          active && caution && "text-destructive shadow-sm",
                           active && !caution && "border-primary bg-primary/10 text-primary",
                           !active && caution && "border-destructive/40 text-destructive/80",
                           !active && !caution && "border-border text-muted-foreground hover:border-primary/50",
                         )}
+                        style={active && caution ? { borderColor: "hsl(217 91% 60%)" } : undefined}
                       >
                         {caution && <AlertTriangle className="h-3 w-3" />}
                         {p}%
@@ -835,7 +837,7 @@ export default function ClientMacroSetup() {
                         key={p}
                         onClick={() => setAdjustment(p / 100)}
                         className={cn(
-                          "px-3 py-1.5 rounded-full text-xs font-semibold border transition-all",
+                          "px-5 py-2.5 rounded-full text-base font-semibold border transition-all bg-background",
                           active ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:border-primary/50"
                         )}
                       >
