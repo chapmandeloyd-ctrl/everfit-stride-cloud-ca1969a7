@@ -600,20 +600,11 @@ function WorkoutDetailHeader({ workout, id, isClient, inProgressSession, onResum
       </Button>
       <div className="flex-1">
         <h1 className="text-3xl font-bold">{workout.name}</h1>
-        <div className="flex flex-wrap gap-2 mt-2">
-          {workout.difficulty && (
+        {workout.difficulty && (
+          <div className="flex flex-wrap gap-2 mt-2">
             <Badge variant="outline" className="capitalize">{workout.difficulty}</Badge>
-          )}
-          {Array.from(
-            new Set(
-              (workout.workout_sections || [])
-                .map((s: any) => s.section_type)
-                .filter(Boolean)
-            )
-          ).map((type: any) => (
-            <Badge key={type} variant="outline" className="capitalize">{type}</Badge>
-          ))}
-        </div>
+          </div>
+        )}
       </div>
       {isClient && (
         <Button
