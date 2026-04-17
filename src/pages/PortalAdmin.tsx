@@ -524,6 +524,85 @@ export default function PortalAdmin() {
                 onChange={(e) => setForm({ ...form, sort_order: parseInt(e.target.value) || 0 })}
               />
             </div>
+
+            <div className="space-y-3 pt-3 border-t">
+              <div>
+                <Label className="text-sm font-semibold">Background overrides (optional)</Label>
+                <p className="text-[11px] text-muted-foreground">
+                  Leave on "Use category default" to inherit from the Backgrounds tab.
+                </p>
+              </div>
+              <div>
+                <Label className="text-xs">Nebula override</Label>
+                <UISelect
+                  value={form.override_nebula_id ?? "default"}
+                  onValueChange={(v) =>
+                    setForm({ ...form, override_nebula_id: v === "default" ? null : v })
+                  }
+                >
+                  <UISelectTrigger className="mt-1">
+                    <UISelectValue />
+                  </UISelectTrigger>
+                  <UISelectContent>
+                    <UISelectItem value="default">— Use category default —</UISelectItem>
+                    {nebulas.map((n) => (
+                      <UISelectItem key={n.id} value={n.id}>
+                        {n.name}
+                      </UISelectItem>
+                    ))}
+                  </UISelectContent>
+                </UISelect>
+              </div>
+              <div>
+                <Label className="text-xs">Horizon override</Label>
+                <UISelect
+                  value={form.override_horizon_id ?? "default"}
+                  onValueChange={(v) =>
+                    setForm({ ...form, override_horizon_id: v === "default" ? null : v })
+                  }
+                >
+                  <UISelectTrigger className="mt-1">
+                    <UISelectValue />
+                  </UISelectTrigger>
+                  <UISelectContent>
+                    <UISelectItem value="default">— Use category default —</UISelectItem>
+                    {horizons.map((h) => (
+                      <UISelectItem key={h.id} value={h.id}>
+                        {h.name}
+                      </UISelectItem>
+                    ))}
+                  </UISelectContent>
+                </UISelect>
+              </div>
+              <div>
+                <Label className="text-xs">Show horizon override</Label>
+                <UISelect
+                  value={
+                    form.override_show_horizon === null || form.override_show_horizon === undefined
+                      ? "default"
+                      : form.override_show_horizon
+                        ? "show"
+                        : "hide"
+                  }
+                  onValueChange={(v) =>
+                    setForm({
+                      ...form,
+                      override_show_horizon:
+                        v === "default" ? null : v === "show" ? true : false,
+                    })
+                  }
+                >
+                  <UISelectTrigger className="mt-1">
+                    <UISelectValue />
+                  </UISelectTrigger>
+                  <UISelectContent>
+                    <UISelectItem value="default">— Use category default —</UISelectItem>
+                    <UISelectItem value="show">Show horizon</UISelectItem>
+                    <UISelectItem value="hide">Hide horizon</UISelectItem>
+                  </UISelectContent>
+                </UISelect>
+              </div>
+            </div>
           </div>
 
           <DialogFooter>
