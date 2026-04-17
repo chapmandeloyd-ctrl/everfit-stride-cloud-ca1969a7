@@ -274,7 +274,7 @@ export default function ClientMacroSetup() {
     setManualOverride(false); // keep slider/presets live
     setDietStyle(existingTargets.diet_style || "standard");
     setCalcResults({ calories: cal, protein: prot, carbs: carb, fats: fat });
-    setScreen("results");
+    setScreen(editScreenTarget);
     setEditJumped(true);
   }, [editMode, editJumped, existingTargets]);
 
