@@ -16,7 +16,7 @@ import {
   User as UserIcon,
   UtensilsCrossed,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -154,12 +154,15 @@ const WIZARD_STEPS: WizardStep[] = [
 
 export default function ClientMacroSetup() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const editMode = searchParams.get("mode") === "edit";
   const { user } = useAuth();
   const clientId = useEffectiveClientId();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const [screen, setScreen] = useState<Screen>("gender");
+  const [editJumped, setEditJumped] = useState(false);
 
   // Wizard state
   const [gender, setGender] = useState<"male" | "female" | "">("");
@@ -247,6 +250,23 @@ export default function ClientMacroSetup() {
     const carbs = Math.round((calories * diet.carbsPct) / 4);
     setCalcResults({ calories, protein, carbs, fats });
   }, [adjustment, baseTdee, dietStyle, screen, manualOverride]);
+
+  // Edit mode: jump straight to results using existing saved targets (no wizard).
+  useEffect(() => {
+    if (!editMode || editJumped || !existingTargets) return;
+    const cal = existingTargets.target_calories || 2000;
+    const prot = Number(existingTargets.target_protein) || 0;
+    const carb = Number(existingTargets.target_carbs) || 0;
+    const fat = Number(existingTargets.target_fats) || 0;
+    setBaseTdee(cal); // treat existing calories as baseline so slider starts at 0%
+    setAdjustment(0);
+    setManualOverride(true);
+    setDietStyle(existingTargets.diet_style || "standard");
+    setCalcResults({ calories: cal, protein: prot, carbs: carb, fats: fat });
+    setScreen("results");
+    setEditJumped(true);
+  }, [editMode, editJumped, existingTargets]);
+
 
   const adjustmentLabel = useMemo(() => {
     const pct = Math.round(adjustment * 100);
@@ -846,15 +866,25 @@ export default function ClientMacroSetup() {
       setCalcResults(prev => prev ? { ...prev, [field]: n } : prev);
     };
 
+    const startFullWizard = () => {
+      // Clear edit-mode lock so user can step through the wizard fresh
+      setEditJumped(true);
+      setManualOverride(false);
+      setScreen("gender");
+    };
+
     return (
       <ClientLayout>
         <div className="p-4 pb-8 space-y-5 max-w-lg mx-auto min-h-screen bg-background">
           <div className="flex items-center justify-between">
-            <button onClick={() => setScreen("adjustment")} className="p-1 -ml-1">
+            <button
+              onClick={() => (editMode ? navigate("/client/nutrition") : setScreen("adjustment"))}
+              className="p-1 -ml-1"
+            >
               <ChevronLeft className="h-6 w-6" />
             </button>
             <button
-              onClick={() => setScreen("adjustment")}
+              onClick={startFullWizard}
               className="text-sm font-semibold text-primary"
             >
               Recalculate
