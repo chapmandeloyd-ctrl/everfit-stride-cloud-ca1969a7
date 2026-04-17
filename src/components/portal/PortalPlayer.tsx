@@ -176,14 +176,16 @@ export function PortalPlayer({ scene, onBack }: PortalPlayerProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            {/* Background — static thumbnail, lightly blurred so scene stays recognizable */}
+            {/* Background — use the scene thumbnail still, not the video feed */}
             <div className="absolute inset-0 overflow-hidden">
-              <img
-                src={scene.thumbnail_url || scene.video_url}
-                alt=""
-                className="absolute inset-0 w-full h-full object-cover scale-[1.15]"
-                style={{ filter: "blur(14px) saturate(1.2) brightness(0.7)" }}
-              />
+              {scene.thumbnail_url ? (
+                <img
+                  src={scene.thumbnail_url}
+                  alt=""
+                  className="absolute inset-0 w-full h-full object-cover scale-[1.08]"
+                  style={{ filter: "blur(10px) saturate(1.1) brightness(0.9)" }}
+                />
+              ) : null}
             </div>
             {/* Dark wash for legibility */}
             <div className="absolute inset-0 bg-black/40" />
@@ -247,15 +249,23 @@ export function PortalPlayer({ scene, onBack }: PortalPlayerProps) {
                       "inset 0 0 0 1.5px rgba(255,255,255,0.95), 0 0 40px 6px rgba(255,255,255,0.18), 0 0 80px 12px rgba(255,255,255,0.08)",
                   }}
                 />
-                <video
-                  ref={videoRef}
-                  src={scene.video_url}
-                  autoPlay
-                  loop={scene.loop_video}
-                  muted
-                  playsInline
-                  className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-                />
+                {scene.thumbnail_url ? (
+                  <img
+                    src={scene.thumbnail_url}
+                    alt={scene.name}
+                    className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                  />
+                ) : (
+                  <video
+                    ref={videoRef}
+                    src={scene.video_url}
+                    autoPlay
+                    loop={scene.loop_video}
+                    muted
+                    playsInline
+                    className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                  />
+                )}
               </motion.div>
 
               {/* Title directly under circle */}
