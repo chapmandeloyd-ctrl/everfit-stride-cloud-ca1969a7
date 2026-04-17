@@ -258,9 +258,18 @@ export default function ClientMacroSetup() {
     const prot = Number(existingTargets.target_protein) || 0;
     const carb = Number(existingTargets.target_carbs) || 0;
     const fat = Number(existingTargets.target_fats) || 0;
-    setBaseTdee(cal); // treat existing calories as baseline so slider starts at 0%
-    setAdjustment(0);
-    setManualOverride(true);
+    const savedTdee = (existingTargets as any).tdee as number | null | undefined;
+    const savedDeficit = (existingTargets as any).deficit_pct as number | null | undefined;
+
+    // Prefer real maintenance baseline from previous wizard run; fall back to saved calories.
+    const tdee = savedTdee && savedTdee > 0 ? savedTdee : cal;
+    const adj = savedTdee && savedTdee > 0
+      ? (typeof savedDeficit === "number" ? Number(savedDeficit) : (cal - tdee) / tdee)
+      : 0;
+
+    setBaseTdee(tdee);
+    setAdjustment(adj);
+    setManualOverride(false); // keep slider/presets live
     setDietStyle(existingTargets.diet_style || "standard");
     setCalcResults({ calories: cal, protein: prot, carbs: carb, fats: fat });
     setScreen("results");
