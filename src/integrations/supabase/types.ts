@@ -3909,6 +3909,51 @@ export type Database = {
           },
         ]
       }
+      goal_journal_entries: {
+        Row: {
+          client_id: string
+          created_at: string
+          entry_date: string
+          goal_id: string | null
+          id: string
+          long_note: string | null
+          mood_emoji: string | null
+          motivation_level: number | null
+          quick_note: string | null
+          share_with_coach: boolean
+          trainer_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          entry_date?: string
+          goal_id?: string | null
+          id?: string
+          long_note?: string | null
+          mood_emoji?: string | null
+          motivation_level?: number | null
+          quick_note?: string | null
+          share_with_coach?: boolean
+          trainer_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          entry_date?: string
+          goal_id?: string | null
+          id?: string
+          long_note?: string | null
+          mood_emoji?: string | null
+          motivation_level?: number | null
+          quick_note?: string | null
+          share_with_coach?: boolean
+          trainer_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       goal_milestones: {
         Row: {
           achieved_at: string | null
@@ -3943,6 +3988,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      goal_motivations: {
+        Row: {
+          client_id: string
+          created_at: string
+          goal_id: string | null
+          id: string
+          trainer_id: string | null
+          updated_at: string
+          why_audio_url: string | null
+          why_image_url: string | null
+          why_text: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          goal_id?: string | null
+          id?: string
+          trainer_id?: string | null
+          updated_at?: string
+          why_audio_url?: string | null
+          why_image_url?: string | null
+          why_text?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          goal_id?: string | null
+          id?: string
+          trainer_id?: string | null
+          updated_at?: string
+          why_audio_url?: string | null
+          why_image_url?: string | null
+          why_text?: string | null
+        }
+        Relationships: []
       }
       google_calendar_connections: {
         Row: {
