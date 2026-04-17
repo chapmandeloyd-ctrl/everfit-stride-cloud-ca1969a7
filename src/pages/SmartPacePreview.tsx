@@ -216,7 +216,7 @@ function Stat({
   tone: "good" | "warn" | "muted";
 }) {
   const color =
-    tone === "good" ? "text-emerald-300" : tone === "warn" ? "text-red-300" : "text-white";
+    tone === "good" ? "text-white" : tone === "warn" ? "text-white" : "text-white";
   return (
     <div className="text-center">
       <p className="text-[10px] uppercase tracking-wide text-white/50">{label}</p>
