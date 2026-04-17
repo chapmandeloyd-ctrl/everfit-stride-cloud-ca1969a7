@@ -307,28 +307,26 @@ export default function ClientNutrition() {
               </CardContent>
             </Card>
 
-            {/* Assigned keto type card */}
-            {ketoType && (
+            {/* Diet style card (from macro setup wizard) */}
+            {dietPreset && (
               <Card>
                 <CardContent className="p-0">
                   <div className="flex items-start gap-3 px-4 py-3 border-b">
                     <span
                       className="shrink-0 inline-flex items-center justify-center rounded-md px-2 py-1 text-[10px] font-bold tracking-wider"
-                      style={{ backgroundColor: `${ketoType.color || "#f59e0b"}20`, color: ketoType.color || "#f59e0b" }}
+                      style={{ backgroundColor: `${dietPreset.color}20`, color: dietPreset.color }}
                     >
-                      {ketoType.abbreviation}
+                      {dietPreset.abbreviation}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold">{ketoType.name}</p>
-                      {ketoType.subtitle && (
-                        <p className="text-xs text-muted-foreground mt-0.5">{ketoType.subtitle}</p>
-                      )}
+                      <p className="text-sm font-bold">{dietPreset.label}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{dietPreset.description}</p>
                     </div>
                   </div>
                   {[
-                    { name: "Protein", target: ketoType.protein_pct, today: actualDist.protein, color: macroColors.protein },
-                    { name: "Carbs", target: ketoType.carbs_pct, today: actualDist.carbs, color: macroColors.carbs },
-                    { name: "Fat", target: ketoType.fat_pct, today: actualDist.fats, color: macroColors.fats },
+                    { name: "Protein", target: dietPreset.proteinDisplay, today: actualDist.protein, color: macroColors.protein },
+                    { name: "Carbs", target: dietPreset.carbsDisplay, today: actualDist.carbs, color: macroColors.carbs },
+                    { name: "Fat", target: dietPreset.fatDisplay, today: actualDist.fats, color: macroColors.fats },
                   ].map((m) => (
                     <div key={m.name} className="grid grid-cols-3 gap-0 px-4 py-3 border-b last:border-b-0 items-center">
                       <div className="flex items-center gap-2">
@@ -337,7 +335,7 @@ export default function ClientNutrition() {
                       </div>
                       <div className="text-center">
                         <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Target</p>
-                        <p className="text-sm font-bold">{m.target}%</p>
+                        <p className="text-sm font-bold">{m.target}</p>
                       </div>
                       <div className="text-center">
                         <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Today</p>
