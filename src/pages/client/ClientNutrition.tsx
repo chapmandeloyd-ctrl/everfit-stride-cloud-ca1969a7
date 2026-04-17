@@ -208,7 +208,7 @@ export default function ClientNutrition() {
                   <span className="text-xs text-muted-foreground">of daily goals</span>
                   <button
                     onClick={() => navigate("/client/macro-setup?mode=edit")}
-                    className="mt-1 inline-flex items-center rounded-full border border-border bg-background px-5 py-2 text-base font-semibold text-primary shadow-sm transition-colors hover:bg-accent"
+                    className="mt-1 inline-flex items-center rounded-full border border-border bg-background px-3 py-1 text-xs font-semibold text-primary shadow-sm transition-colors hover:bg-accent"
                   >
                     Edit Macro Goals
                   </button>
