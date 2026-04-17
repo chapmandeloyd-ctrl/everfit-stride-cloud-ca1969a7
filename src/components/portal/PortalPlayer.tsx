@@ -34,6 +34,7 @@ interface PortalPlayerProps {
   onBack: () => void;
   onOpenLibrary?: () => void;
   onSelectCategory?: (category: "Focus" | "Sleep" | "Escape") => void;
+  audioPaused?: boolean;
 }
 
 /**
