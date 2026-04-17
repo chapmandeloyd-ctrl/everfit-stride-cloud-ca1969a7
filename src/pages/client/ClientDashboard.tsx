@@ -905,6 +905,7 @@ export default function ClientDashboard() {
   const clientId = useEffectiveClientId();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { data: pace } = useSmartPace();
   const { settings, isLoading: settingsLoading } = useClientFeatureSettings();
   const { config: engineConfig } = useEngineMode();
   const { toast } = useToast();
@@ -1698,6 +1699,14 @@ export default function ClientDashboard() {
           <SmartPaceBanner />
         </div>
         <SmartPaceCatchUpModal />
+
+        {/* My Why + Daily Check-In — only when an active pace goal exists */}
+        {pace?.enabled && pace.goal && (
+          <div className="space-y-3">
+            <MyWhyCard goalId={pace.goal.id} variant="compact" />
+            <DailyCheckInCard goalId={pace.goal.id} />
+          </div>
+        )}
 
         {/* In-App Notifications */}
         <InAppNotifications />
