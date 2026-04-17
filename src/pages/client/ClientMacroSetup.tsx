@@ -729,12 +729,18 @@ export default function ClientMacroSetup() {
       <ClientLayout>
         <div className="p-4 pb-32 space-y-5 max-w-lg mx-auto min-h-screen bg-background">
           <div className="flex items-center justify-between">
-            <button
-              onClick={() => (editMode ? navigate("/client/nutrition") : setScreen("diet"))}
-              className="p-1 -ml-1"
-            >
-              <ChevronLeft className="h-6 w-6" />
-            </button>
+            {editMode ? (
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Editing — tap Save to confirm
+              </span>
+            ) : (
+              <button
+                onClick={() => setScreen("diet")}
+                className="p-1 -ml-1"
+              >
+                <ChevronLeft className="h-6 w-6" />
+              </button>
+            )}
             <button
               onClick={() => {
                 if (editMode) {
