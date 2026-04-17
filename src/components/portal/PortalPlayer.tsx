@@ -34,6 +34,7 @@ interface PortalPlayerProps {
   onBack: () => void;
   onOpenLibrary?: () => void;
   onSelectCategory?: (category: "Focus" | "Sleep" | "Escape") => void;
+  audioPaused?: boolean;
 }
 
 /**
@@ -42,7 +43,7 @@ interface PortalPlayerProps {
  * Swipe DOWN on circle → expands to full-screen cinematic mode.
  * Swipe UP from full-screen → collapses back to circle.
  */
-export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory }: PortalPlayerProps) {
+export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, audioPaused }: PortalPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const bgVideoRef = useRef<HTMLVideoElement>(null);
@@ -62,16 +63,17 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory }:
   useEffect(() => {
     const v = videoRef.current;
     const a = audioRef.current;
+    const shouldPlay = playing && !audioPaused;
     if (a) a.volume = muted ? 0 : volume;
     if (!v) return;
-    if (playing) {
+    if (shouldPlay) {
       v.play().catch(() => {});
       a?.play().catch(() => {});
     } else {
       v.pause();
       a?.pause();
     }
-  }, [playing]);
+  }, [playing, audioPaused]);
 
   // Volume sync
   useEffect(() => {
