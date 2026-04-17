@@ -1,8 +1,19 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from "framer-motion";
 import { ArrowLeft, Volume2, VolumeX, ChevronDown, Clock, CircleDot, Check, TimerReset, Lightbulb } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import portalEarth from "@/assets/portal-earth.jpg";
+import nebulaFocus from "@/assets/portal-nebula-focus.jpg";
+import nebulaSleep from "@/assets/portal-nebula-sleep.jpg";
+import nebulaEscape from "@/assets/portal-nebula-escape.jpg";
+import { Starfield } from "./Starfield";
+
+function nebulaFor(category: string): string {
+  const c = category?.toLowerCase();
+  if (c === "sleep") return nebulaSleep;
+  if (c === "escape") return nebulaEscape;
+  return nebulaFocus; // Focus + fallback
+}
 
 export interface PortalScene {
   id: string;
@@ -176,19 +187,25 @@ export function PortalPlayer({ scene, onBack }: PortalPlayerProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            {/* Background — clear full-screen thumbnail */}
-            <div className="absolute inset-0 overflow-hidden">
-              {scene.thumbnail_url ? (
-                <img
-                  src={scene.thumbnail_url}
-                  alt={scene.name}
-                  className="absolute inset-0 w-full h-full object-cover"
-                  style={{ filter: "saturate(1.02) brightness(1)" }}
-                />
-              ) : null}
+            {/* Galaxy nebula background, by category */}
+            <div className="absolute inset-0 bg-black overflow-hidden">
+              <img
+                src={nebulaFor(scene.category)}
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover opacity-90"
+                style={{ filter: "saturate(1.05)" }}
+              />
+              {/* Soft radial darken at edges so the circle pops */}
+              <div
+                className="absolute inset-0"
+                style={{
+                  background:
+                    "radial-gradient(ellipse 80% 70% at 50% 45%, transparent 0%, rgba(0,0,0,0.55) 75%, rgba(0,0,0,0.85) 100%)",
+                }}
+              />
+              {/* Procedural starfield + shooting stars */}
+              <Starfield density={90} />
             </div>
-            {/* Light wash for legibility while keeping the image visible */}
-            <div className="absolute inset-0 bg-black/15" />
 
             {/* Earth at the bottom — anchored thin sliver */}
             <div
