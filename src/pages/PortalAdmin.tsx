@@ -42,6 +42,16 @@ interface Scene {
   is_premium: boolean;
   is_active: boolean;
   sort_order: number;
+  override_nebula_id: string | null;
+  override_horizon_id: string | null;
+  override_show_horizon: boolean | null;
+}
+
+interface BackgroundLite {
+  id: string;
+  name: string;
+  layer: "nebula" | "horizon";
+  is_active: boolean;
 }
 
 // Must match client-side filter buckets in ClientPortal (Focus / Sleep / Escape)
