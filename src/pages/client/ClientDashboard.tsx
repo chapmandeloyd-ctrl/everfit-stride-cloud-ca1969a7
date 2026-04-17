@@ -21,7 +21,23 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
+import { getDietStylePreset } from "@/lib/dietStyles";
 import { SportEventCompletionDialog } from "@/components/SportEventCompletionDialog";
+
+// Mirror of getCutLevelMeta on ClientNutrition page so dashboard card stays in sync.
+function getCutLevelMeta(adjustment?: number | null) {
+  const pct = Math.round((adjustment ?? 0) * 100);
+  if (pct <= -75) return { label: "Maximum Cut", dot: "bg-red-500", text: "text-red-500" };
+  if (pct <= -65) return { label: "Extreme Deficit", dot: "bg-red-500", text: "text-red-500" };
+  if (pct <= -45) return { label: "Aggressive Cut", dot: "bg-orange-500", text: "text-orange-500" };
+  if (pct <= -25) return { label: "Heavy Cut", dot: "bg-orange-500", text: "text-orange-500" };
+  if (pct <= -10) return { label: "Moderate Cut", dot: "bg-emerald-500", text: "text-emerald-500" };
+  if (pct < 0) return { label: "Light Cut", dot: "bg-emerald-500", text: "text-emerald-500" };
+  if (pct === 0) return { label: "Maintain", dot: "bg-muted-foreground", text: "text-muted-foreground" };
+  if (pct <= 10) return { label: "Lean Bulk", dot: "bg-sky-500", text: "text-sky-500" };
+  if (pct <= 20) return { label: "Surplus", dot: "bg-sky-500", text: "text-sky-500" };
+  return { label: "Aggressive Bulk", dot: "bg-sky-500", text: "text-sky-500" };
+}
 import { DayStripCalendar } from "@/components/DayStripCalendar";
 import { QuickCardioFlow } from "@/components/cardio/QuickCardioFlow";
 import { CardioDetailSheet } from "@/components/cardio/CardioDetailSheet";
@@ -2112,36 +2128,76 @@ export default function ClientDashboard() {
                   </div>
                 );
               }
+              const dietPreset = getDietStylePreset((macroTargets as any)?.diet_style);
+              const cutMeta = getCutLevelMeta((macroTargets as any)?.deficit_pct);
+              const deficitPct = typeof (macroTargets as any)?.deficit_pct === "number"
+                ? Math.round((macroTargets as any).deficit_pct * 100)
+                : null;
+              const calGoal = Number(macroTargets.target_calories) || 0;
               return (
                 <div key="nutrition">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Nutrition</h2>
-                      {getDietLabel() && (
-                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-                          {getDietLabel()}
-                        </span>
-                      )}
-                    </div>
-                    <Button variant="ghost" size="sm" className="h-6 px-2 gap-1 text-xs" onClick={(e) => { e.stopPropagation(); openMacroEdit(); }}>
-                      <Pencil className="h-3 w-3" /> Edit
-                    </Button>
-                  </div>
-                  <Card className="cursor-pointer hover:shadow-sm transition-shadow min-h-[160px]" onClick={() => navigate("/client/nutrition")}>
+                  <Card className="cursor-pointer hover:shadow-sm transition-shadow" onClick={() => navigate("/client/nutrition")}>
                     <CardContent className="p-4">
-                      <div className="flex items-center gap-4">
-                        <div className="relative w-20 h-20 shrink-0">
+                      {/* Header row: title + Edit */}
+                      <div className="flex items-center justify-between mb-3">
+                        <h2 className="text-base font-bold">Nutrition</h2>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 gap-1 text-xs"
+                          onClick={(e) => { e.stopPropagation(); openMacroEdit(); }}
+                        >
+                          <Pencil className="h-3 w-3" /> Edit
+                        </Button>
+                      </div>
+
+                      {/* Top row: stacked info on left, donut on right */}
+                      <div className="flex items-start gap-4">
+                        <div className="flex-1 min-w-0 space-y-2">
+                          <div>
+                            <div className="text-3xl font-bold leading-none">
+                              {todayCalories.toLocaleString()}
+                            </div>
+                            <div className="text-xs text-muted-foreground mt-1">
+                              of {calGoal.toLocaleString()} cal goal
+                            </div>
+                          </div>
+
+                          {dietPreset && (
+                            <div className="flex items-center gap-2 text-xs">
+                              <span
+                                className="h-2 w-2 rounded-full shrink-0"
+                                style={{ backgroundColor: dietPreset.color }}
+                              />
+                              <span className="font-medium text-foreground truncate">
+                                {dietPreset.label}
+                                <span className="text-muted-foreground ml-1">({dietPreset.abbreviation})</span>
+                              </span>
+                            </div>
+                          )}
+
+                          {deficitPct !== null && deficitPct !== 0 && (
+                            <div className="flex items-center gap-2 text-xs">
+                              <span className={`h-2 w-2 rounded-full shrink-0 ${cutMeta.dot}`} />
+                              <span className={`font-medium ${cutMeta.text} truncate`}>
+                                {cutMeta.label} {deficitPct > 0 ? "+" : ""}{deficitPct}%
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="relative w-24 h-24 shrink-0">
                           <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
                               <Pie
                                 data={[
                                   { value: todayCalories, color: "hsl(var(--primary))" },
-                                  { value: Math.max((macroTargets.target_calories || 0) - todayCalories, 0), color: "hsl(var(--muted))" },
+                                  { value: Math.max(calGoal - todayCalories, 0), color: "hsl(var(--muted))" },
                                 ]}
                                 cx="50%"
                                 cy="50%"
-                                innerRadius={28}
-                                outerRadius={38}
+                                innerRadius={32}
+                                outerRadius={46}
                                 startAngle={90}
                                 endAngle={-270}
                                 paddingAngle={0}
@@ -2154,33 +2210,24 @@ export default function ClientDashboard() {
                             </PieChart>
                           </ResponsiveContainer>
                           <div className="absolute inset-0 flex flex-col items-center justify-center">
-                            <span className="text-xs font-bold text-foreground leading-none">{todayCalories}</span>
-                            <span className="text-[9px] text-muted-foreground">cal</span>
+                            <span className="text-sm font-bold text-foreground leading-none">
+                              {calGoal > 0 ? Math.round((todayCalories / calGoal) * 100) : 0}%
+                            </span>
+                            <span className="text-[9px] text-muted-foreground mt-0.5">of goal</span>
                           </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-sm">
-                            {todayCalories} / {macroTargets.target_calories?.toLocaleString()} cal
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-0.5">
-                            {todayMealCount > 0
-                              ? `${todayMealCount} meal${todayMealCount > 1 ? "s" : ""} logged today`
-                              : "No meals logged yet"}
-                          </p>
-                        </div>
                       </div>
-                      <div className="grid grid-cols-3 gap-3 mt-3">
+
+                      {/* Stacked macro rows */}
+                      <div className="space-y-2.5 mt-4">
                         {[
-                          { label: "P", current: Math.round(todayProtein), target: Math.round(Number(macroTargets.target_protein) || 0), color: "#6366f1" },
-                          { label: "C", current: Math.round(todayCarbs), target: Math.round(Number(macroTargets.target_carbs) || 0), color: "#22c55e" },
-                          { label: "F", current: Math.round(todayFats), target: Math.round(Number(macroTargets.target_fats) || 0), color: "#eab308" },
+                          { label: "Protein", current: Math.round(todayProtein), target: Math.round(Number(macroTargets.target_protein) || 0), color: "#6366f1" },
+                          { label: "Carbs", current: Math.round(todayCarbs), target: Math.round(Number(macroTargets.target_carbs) || 0), color: "#22c55e" },
+                          { label: "Fats", current: Math.round(todayFats), target: Math.round(Number(macroTargets.target_fats) || 0), color: "#eab308" },
                         ].map((macro) => (
-                          <div key={macro.label} className="space-y-1">
-                            <div className="flex items-center gap-1.5">
-                              <span className="text-xs font-bold" style={{ color: macro.color }}>{macro.label}</span>
-                              <span className="text-xs text-muted-foreground">{macro.current}/{macro.target}</span>
-                            </div>
-                            <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                          <div key={macro.label} className="flex items-center gap-3">
+                            <span className="text-xs font-medium text-muted-foreground w-12 shrink-0">{macro.label}</span>
+                            <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
                               <div
                                 className="h-full rounded-full transition-all"
                                 style={{
@@ -2189,18 +2236,23 @@ export default function ClientDashboard() {
                                 }}
                               />
                             </div>
+                            <span className="text-xs text-muted-foreground tabular-nums w-16 text-right shrink-0">
+                              {macro.current}/{macro.target}g
+                            </span>
                           </div>
                         ))}
                       </div>
+
+                      {/* Conditional gates / + Log meal footer */}
                       {mealGateStatus === "no_protocol" ? (
-                        <div className="mt-3 p-3 rounded-lg bg-muted/50 text-center space-y-2">
+                        <div className="mt-4 p-3 rounded-lg bg-muted/50 text-center space-y-2">
                           <p className="text-xs text-muted-foreground font-medium">Choose a fasting protocol to log meals.</p>
                           <Button variant="outline" size="sm" className="w-full" onClick={(e) => { e.stopPropagation(); navigate("/client/programs"); }}>
                             Choose Protocol
                           </Button>
                         </div>
                       ) : mealGateStatus === "fasting" ? (
-                        <div className="mt-3 p-3 rounded-lg bg-muted/50 text-center space-y-2">
+                        <div className="mt-4 p-3 rounded-lg bg-muted/50 text-center space-y-2">
                           <p className="text-xs text-muted-foreground font-medium">You're currently fasting. Meals unlock when your fast ends.</p>
                           <p className="text-[10px] text-muted-foreground">Eating window opens at {fastEndTimeStr}</p>
                           <Button variant="outline" size="sm" className="w-full" onClick={async (e) => {
@@ -2227,20 +2279,22 @@ export default function ClientDashboard() {
                           </Button>
                         </div>
                       ) : mealGateStatus === "strict_locked" ? (
-                        <div className="mt-3 p-3 rounded-lg bg-muted/50 text-center space-y-2">
+                        <div className="mt-4 p-3 rounded-lg bg-muted/50 text-center space-y-2">
                           <p className="text-xs text-muted-foreground font-medium">Start a fast to open your eating window.</p>
                           <Button variant="outline" size="sm" className="w-full gap-1" onClick={(e) => { e.stopPropagation(); navigate("/client/programs"); }}>
                             <Clock className="h-3.5 w-3.5" /> Start Fast
                           </Button>
                         </div>
                       ) : (
-                        <Button
-                          variant="outline"
-                          className="w-full mt-3 gap-1"
-                          onClick={(e) => { e.stopPropagation(); navigate("/client/log-meal"); }}
-                        >
-                          <Plus className="h-3.5 w-3.5" /> Log meal
-                        </Button>
+                        <div className="mt-4 pt-3 border-t border-border">
+                          <button
+                            type="button"
+                            className="w-full flex items-center justify-center gap-1.5 text-sm font-semibold text-primary hover:opacity-80 transition-opacity"
+                            onClick={(e) => { e.stopPropagation(); navigate("/client/log-meal"); }}
+                          >
+                            <Plus className="h-4 w-4" /> Log meal
+                          </button>
+                        </div>
                       )}
                     </CardContent>
                   </Card>
