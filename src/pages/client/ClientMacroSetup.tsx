@@ -809,12 +809,11 @@ export default function ClientMacroSetup() {
                         onClick={() => setAdjustment(-p / 100)}
                         className={cn(
                           "px-5 py-2.5 rounded-full text-base font-semibold border transition-all flex items-center gap-1.5 bg-background",
-                          active && caution && "text-destructive shadow-sm",
+                          active && caution && "border-destructive bg-destructive/5 text-destructive shadow-sm",
                           active && !caution && "border-primary bg-primary/10 text-primary",
                           !active && caution && "border-destructive/40 text-destructive/80",
                           !active && !caution && "border-border text-muted-foreground hover:border-primary/50",
                         )}
-                        style={active && caution ? { borderColor: "hsl(217 91% 60%)" } : undefined}
                       >
                         {caution && <AlertTriangle className="h-3 w-3" />}
                         {p}%
