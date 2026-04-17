@@ -1,0 +1,1 @@
+ALTER TABLE public.client_feature_settings ALTER COLUMN calendar_days_ahead SET DEFAULT 7;
