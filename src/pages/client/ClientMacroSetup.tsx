@@ -723,14 +723,26 @@ export default function ClientMacroSetup() {
       <ClientLayout>
         <div className="p-4 pb-32 space-y-5 max-w-lg mx-auto min-h-screen bg-background">
           <div className="flex items-center justify-between">
-            <button onClick={() => setScreen("diet")} className="p-1 -ml-1">
+            <button
+              onClick={() => (editMode ? navigate("/client/nutrition") : setScreen("diet"))}
+              className="p-1 -ml-1"
+            >
               <ChevronLeft className="h-6 w-6" />
             </button>
             <button
-              onClick={() => setScreen("manual")}
+              onClick={() => {
+                if (editMode) {
+                  // Restart the full wizard from scratch
+                  setEditJumped(true);
+                  setManualOverride(false);
+                  setScreen("gender");
+                } else {
+                  setScreen("manual");
+                }
+              }}
               className="text-sm font-semibold text-primary"
             >
-              Set Manually
+              {editMode ? "Recalculate" : "Set Manually"}
             </button>
           </div>
 
