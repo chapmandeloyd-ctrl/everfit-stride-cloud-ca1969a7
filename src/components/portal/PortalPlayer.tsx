@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Volume2, VolumeX, ChevronDown, Clock, CircleDot, Check, TimerReset, Lightbulb } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import portalEarth from "@/assets/portal-earth.jpg";
@@ -9,7 +11,7 @@ import nebulaEscape from "@/assets/portal-nebula-escape.jpg";
 import { Starfield } from "./Starfield";
 import { PortalControlPanel } from "./PortalControlPanel";
 
-function nebulaFor(category: string): string {
+function builtInNebulaFor(category: string): string {
   const c = category?.toLowerCase();
   if (c === "sleep") return nebulaSleep;
   if (c === "escape") return nebulaEscape;
@@ -27,6 +29,9 @@ export interface PortalScene {
   audio_volume: number;
   loop_video: boolean;
   is_premium: boolean;
+  override_nebula_id?: string | null;
+  override_horizon_id?: string | null;
+  override_show_horizon?: boolean | null;
 }
 
 interface PortalPlayerProps {
@@ -58,6 +63,53 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
   const dragY = useMotionValue(0);
   const circleScale = useTransform(dragY, [0, 200], [1, 1.15]);
   const hintOpacity = useTransform(dragY, [0, 80], [1, 0]);
+
+  // Fetch background library + per-category defaults
+  const { data: backgrounds = [] } = useQuery({
+    queryKey: ["portal-backgrounds-client"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("portal_backgrounds" as any)
+        .select("id, image_url, layer, is_active")
+        .eq("is_active", true);
+      return (data || []) as unknown as Array<{ id: string; image_url: string; layer: string; is_active: boolean }>;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const { data: categoryDefaults = [] } = useQuery({
+    queryKey: ["portal-category-backgrounds-client"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("portal_category_backgrounds" as any)
+        .select("category, nebula_id, horizon_id, show_horizon");
+      return (data || []) as unknown as Array<{ category: string; nebula_id: string | null; horizon_id: string | null; show_horizon: boolean }>;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Resolve final nebula + horizon (override → category default → built-in)
+  const { nebulaUrl, horizonUrl, showHorizon } = useMemo(() => {
+    const bgById = (id: string | null | undefined) =>
+      id ? backgrounds.find((b) => b.id === id) : undefined;
+    const catDefault = categoryDefaults.find(
+      (c) => c.category.toLowerCase() === scene.category?.toLowerCase(),
+    );
+
+    const nebulaBg = bgById(scene.override_nebula_id) ?? bgById(catDefault?.nebula_id);
+    const horizonBg = bgById(scene.override_horizon_id) ?? bgById(catDefault?.horizon_id);
+
+    const showH =
+      scene.override_show_horizon !== null && scene.override_show_horizon !== undefined
+        ? scene.override_show_horizon
+        : (catDefault?.show_horizon ?? true);
+
+    return {
+      nebulaUrl: nebulaBg?.image_url ?? builtInNebulaFor(scene.category),
+      horizonUrl: horizonBg?.image_url ?? portalEarth,
+      showHorizon: showH,
+    };
+  }, [scene, backgrounds, categoryDefaults]);
 
   // Sync video play state + try to start audio (browsers may block until user gesture)
   useEffect(() => {
@@ -193,10 +245,10 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            {/* Galaxy nebula background, by category */}
+            {/* Galaxy nebula background, by category (or scene/category override) */}
             <div className="absolute inset-0 bg-black overflow-hidden">
               <img
-                src={nebulaFor(scene.category)}
+                src={nebulaUrl}
                 alt=""
                 className="absolute inset-0 w-full h-full object-cover opacity-90"
                 style={{ filter: "saturate(1.05)" }}
@@ -213,28 +265,30 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
               <Starfield density={90} />
             </div>
 
-            {/* Earth at the bottom — anchored thin sliver */}
-            <div
-              className="absolute left-1/2 -translate-x-1/2 pointer-events-none"
-              style={{
-                bottom: "-12%",
-                width: "180%",
-                maxWidth: "1200px",
-                aspectRatio: "16 / 9",
-              }}
-            >
-              <img
-                src={portalEarth}
-                alt=""
-                className="w-full h-full object-cover object-top opacity-90"
+            {/* Horizon (Earth or custom) at the bottom — anchored thin sliver */}
+            {showHorizon && (
+              <div
+                className="absolute left-1/2 -translate-x-1/2 pointer-events-none"
                 style={{
-                  maskImage:
-                    "radial-gradient(ellipse 70% 90% at 50% 100%, black 40%, transparent 80%)",
-                  WebkitMaskImage:
-                    "radial-gradient(ellipse 70% 90% at 50% 100%, black 40%, transparent 80%)",
+                  bottom: "-12%",
+                  width: "180%",
+                  maxWidth: "1200px",
+                  aspectRatio: "16 / 9",
                 }}
-              />
-            </div>
+              >
+                <img
+                  src={horizonUrl}
+                  alt=""
+                  className="w-full h-full object-cover object-top opacity-90"
+                  style={{
+                    maskImage:
+                      "radial-gradient(ellipse 70% 90% at 50% 100%, black 40%, transparent 80%)",
+                    WebkitMaskImage:
+                      "radial-gradient(ellipse 70% 90% at 50% 100%, black 40%, transparent 80%)",
+                  }}
+                />
+              </div>
+            )}
             {/* Subtle top vignette */}
             <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-transparent pointer-events-none" />
 

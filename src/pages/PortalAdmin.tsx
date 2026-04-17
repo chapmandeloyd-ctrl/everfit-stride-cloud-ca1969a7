@@ -19,6 +19,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Plus, Edit, Trash2, Upload, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select as UISelect,
+  SelectContent as UISelectContent,
+  SelectItem as UISelectItem,
+  SelectTrigger as UISelectTrigger,
+  SelectValue as UISelectValue,
+} from "@/components/ui/select";
+import { PortalBackgroundsManager } from "@/components/portal/PortalBackgroundsManager";
 
 interface Scene {
   id: string;
@@ -33,6 +42,16 @@ interface Scene {
   is_premium: boolean;
   is_active: boolean;
   sort_order: number;
+  override_nebula_id: string | null;
+  override_horizon_id: string | null;
+  override_show_horizon: boolean | null;
+}
+
+interface BackgroundLite {
+  id: string;
+  name: string;
+  layer: "nebula" | "horizon";
+  is_active: boolean;
 }
 
 // Must match client-side filter buckets in ClientPortal (Focus / Sleep / Escape)
@@ -60,6 +79,20 @@ export default function PortalAdmin() {
       return data as Scene[];
     },
   });
+
+  const { data: backgrounds = [] } = useQuery({
+    queryKey: ["portal-backgrounds-for-scene"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("portal_backgrounds" as any)
+        .select("id, name, layer, is_active")
+        .eq("is_active", true);
+      if (error) throw error;
+      return (data || []) as unknown as BackgroundLite[];
+    },
+  });
+  const nebulas = backgrounds.filter((b) => b.layer === "nebula");
+  const horizons = backgrounds.filter((b) => b.layer === "horizon");
 
   const openNew = (preset?: string) => {
     setEditing(null);
@@ -136,7 +169,10 @@ export default function PortalAdmin() {
             is_premium: form.is_premium ?? false,
             is_active: form.is_active ?? true,
             sort_order: form.sort_order ?? 0,
-          })
+            override_nebula_id: form.override_nebula_id ?? null,
+            override_horizon_id: form.override_horizon_id ?? null,
+            override_show_horizon: form.override_show_horizon ?? null,
+          } as any)
           .eq("id", editing.id);
         if (error) throw error;
       } else {
@@ -153,7 +189,10 @@ export default function PortalAdmin() {
           is_premium: form.is_premium ?? false,
           is_active: form.is_active ?? true,
           sort_order: form.sort_order ?? 0,
-        });
+          override_nebula_id: form.override_nebula_id ?? null,
+          override_horizon_id: form.override_horizon_id ?? null,
+          override_show_horizon: form.override_show_horizon ?? null,
+        } as any);
         if (error) throw error;
       }
       toast.success(editing ? "Scene updated" : "Scene created");
@@ -226,85 +265,99 @@ export default function PortalAdmin() {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-6xl mx-auto p-4 sm:p-6 space-y-6">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="min-w-0">
-            <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="mb-2 -ml-2">
-              <ArrowLeft className="h-4 w-4 mr-1" />
-              Back
-            </Button>
-            <h1 className="text-2xl font-bold">Portal Scenes</h1>
-            <p className="text-sm text-muted-foreground">
-              Organize scenes into Focus, Sleep, and Escape — these are the tabs clients see.
-            </p>
-          </div>
-          <Button onClick={() => openNew()} className="shrink-0">
-            <Plus className="h-4 w-4 mr-2" /> New Scene
+        <div className="min-w-0">
+          <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="mb-2 -ml-2">
+            <ArrowLeft className="h-4 w-4 mr-1" />
+            Back
           </Button>
+          <h1 className="text-2xl font-bold">Portal Admin</h1>
+          <p className="text-sm text-muted-foreground">
+            Manage scenes and the cosmic backgrounds clients see in the Portal player.
+          </p>
         </div>
 
-        {scenes.length === 0 ? (
-          <Card>
-            <CardContent className="p-12 text-center text-muted-foreground">
-              <p>No scenes yet. Create your first Portal scene.</p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-8">
-            {(() => {
-              const valid = new Set(CATEGORIES);
-              const orphans = scenes.filter((s) => !valid.has(s.category));
-              return (
-                <>
-                  {CATEGORIES.map((cat) => {
-                    const inCat = scenes.filter((s) => s.category === cat);
-                    return (
-                      <section key={cat}>
-                        <div className="flex items-center justify-between mb-3">
-                          <h2 className="text-lg font-semibold">
-                            {cat}{" "}
-                            <span className="text-sm font-normal text-muted-foreground">
-                              ({inCat.length})
-                            </span>
-                          </h2>
-                          <Button variant="outline" size="sm" onClick={() => openNew(cat)}>
-                            <Plus className="h-3.5 w-3.5 mr-1" /> Add to {cat}
-                          </Button>
-                        </div>
-                        {inCat.length === 0 ? (
-                          <Card>
-                            <CardContent className="p-6 text-center text-sm text-muted-foreground">
-                              No {cat} scenes yet.
-                            </CardContent>
-                          </Card>
-                        ) : (
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {inCat.map((s) => renderSceneCard(s))}
-                          </div>
-                        )}
-                      </section>
-                    );
-                  })}
+        <Tabs defaultValue="scenes" className="w-full">
+          <TabsList>
+            <TabsTrigger value="scenes">Scenes</TabsTrigger>
+            <TabsTrigger value="backgrounds">Backgrounds</TabsTrigger>
+          </TabsList>
 
-                  {orphans.length > 0 && (
-                    <section>
-                      <div className="mb-3">
-                        <h2 className="text-lg font-semibold text-amber-600">
-                          ⚠️ Uncategorized ({orphans.length})
-                        </h2>
-                        <p className="text-xs text-muted-foreground">
-                          These scenes use old categories and won't appear to clients. Move each one to Focus, Sleep, or Escape.
-                        </p>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {orphans.map((s) => renderSceneCard(s, true))}
-                      </div>
-                    </section>
-                  )}
-                </>
-              );
-            })()}
-          </div>
-        )}
+          <TabsContent value="scenes" className="space-y-6 mt-4">
+            <div className="flex justify-end">
+              <Button onClick={() => openNew()}>
+                <Plus className="h-4 w-4 mr-2" /> New Scene
+              </Button>
+            </div>
+
+            {scenes.length === 0 ? (
+              <Card>
+                <CardContent className="p-12 text-center text-muted-foreground">
+                  <p>No scenes yet. Create your first Portal scene.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-8">
+                {(() => {
+                  const valid = new Set(CATEGORIES);
+                  const orphans = scenes.filter((s) => !valid.has(s.category));
+                  return (
+                    <>
+                      {CATEGORIES.map((cat) => {
+                        const inCat = scenes.filter((s) => s.category === cat);
+                        return (
+                          <section key={cat}>
+                            <div className="flex items-center justify-between mb-3">
+                              <h2 className="text-lg font-semibold">
+                                {cat}{" "}
+                                <span className="text-sm font-normal text-muted-foreground">
+                                  ({inCat.length})
+                                </span>
+                              </h2>
+                              <Button variant="outline" size="sm" onClick={() => openNew(cat)}>
+                                <Plus className="h-3.5 w-3.5 mr-1" /> Add to {cat}
+                              </Button>
+                            </div>
+                            {inCat.length === 0 ? (
+                              <Card>
+                                <CardContent className="p-6 text-center text-sm text-muted-foreground">
+                                  No {cat} scenes yet.
+                                </CardContent>
+                              </Card>
+                            ) : (
+                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {inCat.map((s) => renderSceneCard(s))}
+                              </div>
+                            )}
+                          </section>
+                        );
+                      })}
+
+                      {orphans.length > 0 && (
+                        <section>
+                          <div className="mb-3">
+                            <h2 className="text-lg font-semibold text-amber-600">
+                              ⚠️ Uncategorized ({orphans.length})
+                            </h2>
+                            <p className="text-xs text-muted-foreground">
+                              These scenes use old categories and won't appear to clients. Move each one to Focus, Sleep, or Escape.
+                            </p>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {orphans.map((s) => renderSceneCard(s, true))}
+                          </div>
+                        </section>
+                      )}
+                    </>
+                  );
+                })()}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="backgrounds" className="mt-4">
+            <PortalBackgroundsManager />
+          </TabsContent>
+        </Tabs>
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
@@ -470,6 +523,85 @@ export default function PortalAdmin() {
                 value={form.sort_order ?? 0}
                 onChange={(e) => setForm({ ...form, sort_order: parseInt(e.target.value) || 0 })}
               />
+            </div>
+
+            <div className="space-y-3 pt-3 border-t">
+              <div>
+                <Label className="text-sm font-semibold">Background overrides (optional)</Label>
+                <p className="text-[11px] text-muted-foreground">
+                  Leave on "Use category default" to inherit from the Backgrounds tab.
+                </p>
+              </div>
+              <div>
+                <Label className="text-xs">Nebula override</Label>
+                <UISelect
+                  value={form.override_nebula_id ?? "default"}
+                  onValueChange={(v) =>
+                    setForm({ ...form, override_nebula_id: v === "default" ? null : v })
+                  }
+                >
+                  <UISelectTrigger className="mt-1">
+                    <UISelectValue />
+                  </UISelectTrigger>
+                  <UISelectContent>
+                    <UISelectItem value="default">— Use category default —</UISelectItem>
+                    {nebulas.map((n) => (
+                      <UISelectItem key={n.id} value={n.id}>
+                        {n.name}
+                      </UISelectItem>
+                    ))}
+                  </UISelectContent>
+                </UISelect>
+              </div>
+              <div>
+                <Label className="text-xs">Horizon override</Label>
+                <UISelect
+                  value={form.override_horizon_id ?? "default"}
+                  onValueChange={(v) =>
+                    setForm({ ...form, override_horizon_id: v === "default" ? null : v })
+                  }
+                >
+                  <UISelectTrigger className="mt-1">
+                    <UISelectValue />
+                  </UISelectTrigger>
+                  <UISelectContent>
+                    <UISelectItem value="default">— Use category default —</UISelectItem>
+                    {horizons.map((h) => (
+                      <UISelectItem key={h.id} value={h.id}>
+                        {h.name}
+                      </UISelectItem>
+                    ))}
+                  </UISelectContent>
+                </UISelect>
+              </div>
+              <div>
+                <Label className="text-xs">Show horizon override</Label>
+                <UISelect
+                  value={
+                    form.override_show_horizon === null || form.override_show_horizon === undefined
+                      ? "default"
+                      : form.override_show_horizon
+                        ? "show"
+                        : "hide"
+                  }
+                  onValueChange={(v) =>
+                    setForm({
+                      ...form,
+                      override_show_horizon:
+                        v === "default" ? null : v === "show" ? true : false,
+                    })
+                  }
+                >
+                  <UISelectTrigger className="mt-1">
+                    <UISelectValue />
+                  </UISelectTrigger>
+                  <UISelectContent>
+                    <UISelectItem value="default">— Use category default —</UISelectItem>
+                    <UISelectItem value="show">Show horizon</UISelectItem>
+                    <UISelectItem value="hide">Hide horizon</UISelectItem>
+                  </UISelectContent>
+                </UISelect>
+              </div>
             </div>
           </div>
 
