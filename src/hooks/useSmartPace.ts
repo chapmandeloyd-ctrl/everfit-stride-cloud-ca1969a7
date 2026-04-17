@@ -65,8 +65,6 @@ export function useSmartPace() {
         // Hasn't weighed in today yet
         if (target.debtLbs > 0.05) status = "behind";
       }
-      // TEMP PREVIEW
-      status = "ahead";
 
       return {
         goal: typed,
