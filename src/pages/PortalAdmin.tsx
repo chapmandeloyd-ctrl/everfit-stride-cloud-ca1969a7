@@ -80,6 +80,20 @@ export default function PortalAdmin() {
     },
   });
 
+  const { data: backgrounds = [] } = useQuery({
+    queryKey: ["portal-backgrounds-for-scene"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("portal_backgrounds" as any)
+        .select("id, name, layer, is_active")
+        .eq("is_active", true);
+      if (error) throw error;
+      return (data || []) as unknown as BackgroundLite[];
+    },
+  });
+  const nebulas = backgrounds.filter((b) => b.layer === "nebula");
+  const horizons = backgrounds.filter((b) => b.layer === "horizon");
+
   const openNew = (preset?: string) => {
     setEditing(null);
     setForm({
