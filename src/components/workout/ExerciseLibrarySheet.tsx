@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
+import { fetchAllExercises } from "@/lib/fetchAllRows";
 import { Search, SlidersHorizontal, Dumbbell } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -42,17 +43,12 @@ export function ExerciseLibrarySheet({ open, onClose, onAdd, title }: ExerciseLi
     enabled: !!clientId,
   });
 
-  // Fetch exercises from trainer's library
+  // Fetch ALL exercises from trainer's library (paginated past 1000-row default)
   const { data: exercises = [], isLoading } = useQuery({
-    queryKey: ["trainer-exercises", trainerId],
+    queryKey: ["trainer-exercises-all", trainerId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("exercises")
-        .select("id, name, image_url, video_url, category, muscle_group")
-        .eq("trainer_id", trainerId!)
-        .order("name");
-      if (error) throw error;
-      return (data || []) as Exercise[];
+      const all = await fetchAllExercises(trainerId!);
+      return all as Exercise[];
     },
     enabled: !!trainerId,
   });
