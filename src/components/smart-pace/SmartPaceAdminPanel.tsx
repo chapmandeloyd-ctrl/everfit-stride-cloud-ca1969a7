@@ -21,7 +21,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import type { SmartPaceGoal } from "@/lib/smartPaceEngine";
-import { processWeighIn } from "@/lib/smartPaceEngine";
+import { applySmartPaceWeighIn } from "@/lib/smartPaceWeighIn";
 
 interface Props {
   clientId: string;
@@ -68,50 +68,21 @@ export function SmartPaceAdminPanel({ clientId, goal, onChanged }: Props) {
       const w = parseFloat(weight);
       if (!w || w < 50 || w > 800) throw new Error("Enter a valid weight (50–800 lb)");
 
-      const result = processWeighIn({
-        goal,
-        weighInLbs: w,
-        weighInDate: today,
+      const result = await applySmartPaceWeighIn({
+        clientId,
+        weightLbs: w,
         source: "admin_override",
-        previousWeightLbs: goal.last_weigh_in_value,
+        weighInDate: today,
+        notes: reason || "Admin-logged weigh-in",
       });
 
-      // Upsert daily log
-      await supabase.from("smart_pace_daily_log").upsert(
-        {
-          goal_id: goal.id,
-          client_id: clientId,
-          log_date: today,
-          target_loss_lbs: result.targetLossLbs,
-          actual_loss_lbs: result.actualLossLbs,
-          weight_recorded: w,
-          weight_source: "admin_override",
-          status: result.status,
-          debt_delta: result.debtDelta,
-          credit_delta: result.creditDelta,
-          notes: reason || "Admin-logged weigh-in",
-        },
-        { onConflict: "goal_id,log_date" }
-      );
+      if (!result.applied) throw new Error(result.reason || "Could not log weight");
 
-      // Update goal totals
-      await supabase
-        .from("smart_pace_goals")
-        .update({
-          current_debt_lbs: result.newDebtLbs,
-          current_credit_lbs: result.newCreditLbs,
-          last_weigh_in_date: today,
-          last_weigh_in_value: w,
-          consecutive_behind_days: result.consecutiveBehindDays,
-          consecutive_missed_days: 0,
-        })
-        .eq("id", goal.id);
-
-      await logAction("log_weight", { weight: w, status: result.status }, reason);
+      await logAction("log_weight", { weight: w }, reason);
       return result;
     },
     onSuccess: (result) => {
-      toast({ title: "Weight logged", description: result.message });
+      toast({ title: "Weight logged", description: result.message ?? "Updated" });
       qc.invalidateQueries({ queryKey: ["smart-pace"] });
       qc.invalidateQueries({ queryKey: ["smart-pace-log"] });
       setOpenAction(null);

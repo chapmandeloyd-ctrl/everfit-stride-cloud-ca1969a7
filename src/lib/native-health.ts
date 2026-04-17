@@ -396,6 +396,25 @@ export async function syncHealthDataToBackend(
       return false;
     }
     console.log(`[HealthKit] Synced ${entries.length} metrics to backend`);
+
+    // Smart Pace integration: if we synced a weight, push it through the engine.
+    if (data.weight != null) {
+      try {
+        const lbs = Math.round(data.weight * 2.20462 * 10) / 10;
+        const { applySmartPaceWeighIn } = await import("./smartPaceWeighIn");
+        const sp = await applySmartPaceWeighIn({
+          clientId,
+          weightLbs: lbs,
+          source: "healthkit",
+        });
+        if (sp.applied) {
+          console.log("[SmartPace] HealthKit weigh-in processed:", sp.message);
+        }
+      } catch (e) {
+        console.warn("[SmartPace] HealthKit pipe failed:", e);
+      }
+    }
+
     return true;
   } catch (err) {
     console.error("[HealthKit] Sync error:", err);
