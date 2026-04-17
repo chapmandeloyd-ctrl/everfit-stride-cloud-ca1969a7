@@ -866,15 +866,25 @@ export default function ClientMacroSetup() {
       setCalcResults(prev => prev ? { ...prev, [field]: n } : prev);
     };
 
+    const startFullWizard = () => {
+      // Clear edit-mode lock so user can step through the wizard fresh
+      setEditJumped(true);
+      setManualOverride(false);
+      setScreen("gender");
+    };
+
     return (
       <ClientLayout>
         <div className="p-4 pb-8 space-y-5 max-w-lg mx-auto min-h-screen bg-background">
           <div className="flex items-center justify-between">
-            <button onClick={() => setScreen("adjustment")} className="p-1 -ml-1">
+            <button
+              onClick={() => (editMode ? navigate("/client/nutrition") : setScreen("adjustment"))}
+              className="p-1 -ml-1"
+            >
               <ChevronLeft className="h-6 w-6" />
             </button>
             <button
-              onClick={() => setScreen("adjustment")}
+              onClick={startFullWizard}
               className="text-sm font-semibold text-primary"
             >
               Recalculate
