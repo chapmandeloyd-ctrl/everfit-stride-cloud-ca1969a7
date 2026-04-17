@@ -232,16 +232,16 @@ export default function ClientNutrition() {
             </div>
 
             {/* Consumed summary */}
-            <div className="text-center space-y-3">
-              <p className="text-2xl font-semibold">You have consumed</p>
-              <div className="space-y-1">
-                <p className="text-5xl font-bold leading-none text-primary">{totals.calories} <span className="text-4xl font-medium">Cal</span></p>
-                <p className="text-sm text-muted-foreground">/ {goals.calories.toLocaleString()} Cal goal</p>
+            <div className="text-center space-y-2">
+              <p className="text-base font-semibold">You have consumed</p>
+              <div className="space-y-0.5">
+                <p className="text-3xl font-bold leading-none text-primary">{totals.calories} <span className="text-2xl font-medium">Cal</span></p>
+                <p className="text-xs text-muted-foreground">/ {goals.calories.toLocaleString()} Cal goal</p>
               </div>
               <Button
                 variant="outline"
                 size="sm"
-                className="rounded-full border px-4 py-2 h-auto text-sm font-semibold text-primary shadow-none"
+                className="rounded-full border px-4 py-1.5 h-auto text-sm font-semibold text-primary shadow-none"
                 onClick={() => navigate("/client/macro-setup?mode=deficit")}
               >
                 Adjust Cut Level
