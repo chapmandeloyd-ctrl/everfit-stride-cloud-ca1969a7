@@ -241,7 +241,7 @@ export default function ClientNutrition() {
               <Button
                 variant="outline"
                 size="sm"
-                className="rounded-full px-8 py-5 text-lg font-semibold text-primary shadow-sm"
+                className="rounded-full border px-4 py-2 h-auto text-sm font-semibold text-primary shadow-none"
                 onClick={() => navigate("/client/macro-setup?mode=deficit")}
               >
                 Adjust Cut Level
