@@ -513,9 +513,6 @@ export default function WorkoutDetail() {
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-xl">{section.name}</CardTitle>
                   <div className="flex gap-2">
-                    <Badge variant="secondary" className="capitalize">
-                      {section.section_type.replace(/_/g, " ")}
-                    </Badge>
                     {section.rounds > 1 && (
                       <Badge variant="outline">{section.rounds} Rounds</Badge>
                     )}
