@@ -1695,8 +1695,8 @@ export default function ClientDashboard() {
         {/* Today's Coaching */}
         <CoachingCard />
 
-        {/* Daily Score Ring */}
-        <DailyScoreRing />
+        {/* Daily Score Ring — hidden temporarily, looking for new placement */}
+        {/* <DailyScoreRing /> */}
 
         {/* Workout Tracker — only shows when there are completed sessions */}
         {(() => {
@@ -1812,6 +1812,7 @@ export default function ClientDashboard() {
         })()}
 
         {/* Smart Pace Tracker — primary weight goal banner (replaces legacy GoalCard when enabled) */}
+        <h2 className="text-lg font-bold text-foreground px-1">KSOM-360 Smart Weight Tracker</h2>
         <SmartPaceBanner />
         <SmartPaceCatchUpModal />
 
