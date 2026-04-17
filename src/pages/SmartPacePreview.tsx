@@ -18,6 +18,10 @@ interface MockData {
   reason: string;
   projectedDate: string;
   cappedAt: number | null;
+  startWeight: number;
+  startDate: string;
+  goalWeight: number;
+  targetDate: string;
 }
 
 const MOCKS: MockData[] = [
@@ -30,6 +34,10 @@ const MOCKS: MockData[] = [
     reason: "You're 4.0 lb behind. Today's target adjusted to catch up.",
     projectedDate: "Apr 25",
     cappedAt: null,
+    startWeight: 215.0,
+    startDate: "Mar 1",
+    goalWeight: 195.0,
+    targetDate: "Apr 22",
   },
   {
     status: "on_pace",
@@ -40,6 +48,10 @@ const MOCKS: MockData[] = [
     reason: "Right on schedule. Keep your daily target steady.",
     projectedDate: "Apr 22",
     cappedAt: null,
+    startWeight: 210.0,
+    startDate: "Mar 5",
+    goalWeight: 190.0,
+    targetDate: "Apr 22",
   },
   {
     status: "ahead",
@@ -50,6 +62,10 @@ const MOCKS: MockData[] = [
     reason: "You're 2.3 lb ahead. Coast today — light target.",
     projectedDate: "Apr 19",
     cappedAt: null,
+    startWeight: 205.0,
+    startDate: "Feb 20",
+    goalWeight: 185.0,
+    targetDate: "Apr 22",
   },
 ];
 
