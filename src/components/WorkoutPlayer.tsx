@@ -394,9 +394,11 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
     const timer = setTimeout(() => {
       if (step.type === "rest") {
         const nextEx = steps[stepIdx + 1]?.exercise;
+        const restSecs = step.restSeconds || 0;
+        const restPart = restSecs > 0 ? `Rest. ${restSecs} seconds.` : "Rest.";
         const msg = nextEx
-          ? `Rest. Up next: ${nextEx.exercise_name}`
-          : "Rest up, you're almost done!";
+          ? `${restPart} Up next: ${nextEx.exercise_name}`
+          : `${restPart} You're almost done!`;
         elevenLabsSpeakNow(msg).catch(() => {});
       } else if (step.type === "exercise" && step.exercise) {
         const ex = step.exercise;
@@ -553,6 +555,18 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
     }, 1000);
   }, [advanceStep]);
 
+  // Stopwatch for untimed exercises (e.g. regular working sets) — counts UP, never auto-advances
+  const startStepStopwatch = useCallback(() => {
+    if (stepTimerRef.current) clearInterval(stepTimerRef.current);
+    stepTimerDurationRef.current = 0;
+    setStepTimer(0);
+
+    stepTimerRef.current = setInterval(() => {
+      if (isPausedRef.current) return;
+      setStepTimer((prev) => prev + 1);
+    }, 1000);
+  }, []);
+
   // (old getready/countdown phase logic removed — WorkoutIntro handles this now)
 
   // Wall-clock elapsed timer — survives backgrounding & page kills
@@ -626,7 +640,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
     if (currentStep.type === "exercise" && currentStep.exercise) {
       const ex = currentStep.exercise;
       if (ex.duration_seconds) startStepCountdown(ex.duration_seconds);
-      else setStepTimer(-1);
+      else startStepStopwatch();
     } else if (currentStep.type === "rest") {
       const secs = currentStep.restSeconds || 60;
       startStepCountdown(secs);
@@ -986,6 +1000,18 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
                     <span className="text-xl font-black text-white tabular-nums leading-none">{stepTimer}</span>
                     <span className="text-[9px] text-white/60 font-medium">sec</span>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* Stopwatch bubble — for untimed exercises (counts UP until user advances) */}
+            {!currentExercise?.duration_seconds && !isRest && stepTimer >= 0 && (
+              <div className="absolute top-3 right-3">
+                <div className="relative w-20 h-20 rounded-full bg-black/55 border border-white/15 flex flex-col items-center justify-center">
+                  <span className="text-xl font-black text-white tabular-nums leading-none">
+                    {Math.floor(stepTimer / 60)}:{String(stepTimer % 60).padStart(2, "0")}
+                  </span>
+                  <span className="text-[9px] text-white/60 font-medium mt-0.5">elapsed</span>
                 </div>
               </div>
             )}
