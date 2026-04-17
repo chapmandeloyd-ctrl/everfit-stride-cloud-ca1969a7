@@ -19,7 +19,7 @@ import { RestoreSleepTab } from "@/components/vibes/RestoreSleepTab";
 
 import { BreathingPlayer } from "@/components/vibes/BreathingPlayer";
 import { type BreathingExercise } from "@/lib/breathingExercises";
-import { useSearchParams, Navigate, useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { useClientFeatureSettings } from "@/hooks/useClientFeatureSettings";
 import { ArrowLeft, Sparkles } from "lucide-react";
 
