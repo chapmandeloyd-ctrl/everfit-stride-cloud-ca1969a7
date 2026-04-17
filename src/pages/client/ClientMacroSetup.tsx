@@ -267,7 +267,7 @@ export default function ClientMacroSetup() {
     // Force the user through the full wizard to compute a real TDEE first.
     if (!savedTdee || savedTdee <= 0) {
       setEditJumped(true); // prevent loop
-      setScreen("intro");
+      setScreen("gender");
       return;
     }
 
