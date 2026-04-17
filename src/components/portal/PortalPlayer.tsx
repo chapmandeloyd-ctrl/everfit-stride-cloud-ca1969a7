@@ -1,8 +1,19 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from "framer-motion";
 import { ArrowLeft, Volume2, VolumeX, ChevronDown, Clock, CircleDot, Check, TimerReset, Lightbulb } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import portalEarth from "@/assets/portal-earth.jpg";
+import nebulaFocus from "@/assets/portal-nebula-focus.jpg";
+import nebulaSleep from "@/assets/portal-nebula-sleep.jpg";
+import nebulaEscape from "@/assets/portal-nebula-escape.jpg";
+import { Starfield } from "./Starfield";
+
+function nebulaFor(category: string): string {
+  const c = category?.toLowerCase();
+  if (c === "sleep") return nebulaSleep;
+  if (c === "escape") return nebulaEscape;
+  return nebulaFocus; // Focus + fallback
+}
 
 export interface PortalScene {
   id: string;
