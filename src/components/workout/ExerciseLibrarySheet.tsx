@@ -62,7 +62,7 @@ export function ExerciseLibrarySheet({ open, onClose, onAdd, title }: ExerciseLi
         'postgres_changes',
         { event: '*', schema: 'public', table: 'exercises', filter: `trainer_id=eq.${trainerId}` },
         () => {
-          queryClient.invalidateQueries({ queryKey: ["trainer-exercises", trainerId] });
+          queryClient.invalidateQueries({ queryKey: ["trainer-exercises-all", trainerId] });
         }
       )
       .subscribe();
