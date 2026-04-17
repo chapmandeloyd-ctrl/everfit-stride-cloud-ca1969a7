@@ -108,6 +108,7 @@ import ClientGroceryList from "./pages/client/ClientGroceryList";
 import CardStylesPreview from "./pages/client/CardStylesPreview";
 import NotificationCenter from "./pages/NotificationCenter";
 import ResetPassword from "./pages/ResetPassword";
+import CheckoutTest from "./pages/CheckoutTest";
 
 const queryClient = new QueryClient();
 
@@ -124,6 +125,7 @@ const App = () => (
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/guardian/:token" element={<GuardianSummary />} />
           <Route path="/unsubscribe" element={<Unsubscribe />} />
+          <Route path="/checkout-test" element={<CheckoutTest />} />
           
           {/* Trainer Routes */}
           <Route path="/" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerDashboard /></ProtectedRoute>} />
