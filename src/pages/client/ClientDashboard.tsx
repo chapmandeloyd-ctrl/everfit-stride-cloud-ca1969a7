@@ -1700,14 +1700,6 @@ export default function ClientDashboard() {
         </div>
         <SmartPaceCatchUpModal />
 
-        {/* My Why + Daily Check-In — only when an active pace goal exists */}
-        {pace?.enabled && pace.goal && (
-          <div className="space-y-3">
-            <MyWhyCard goalId={pace.goal.id} variant="compact" />
-            <DailyCheckInCard goalId={pace.goal.id} />
-          </div>
-        )}
-
         {/* In-App Notifications */}
         <InAppNotifications />
 
