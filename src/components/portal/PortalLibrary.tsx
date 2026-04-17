@@ -1,102 +1,91 @@
 import { useMemo } from "react";
-import { ArrowLeft, Lock, Sparkles } from "lucide-react";
+import { X, Star, Lock, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import type { PortalScene } from "./PortalPlayer";
+import nebulaFocus from "@/assets/portal-nebula-focus.jpg";
 
 interface PortalLibraryProps {
-  category: "Focus" | "Sleep" | "Escape";
   scenes: PortalScene[];
   isLoading: boolean;
-  onBack: () => void;
+  onClose: () => void;
   onSelectScene: (scene: PortalScene) => void;
 }
 
-const CATEGORY_COPY: Record<string, { tagline: string; heroLabel: string }> = {
-  Focus: { tagline: "Think Somewhere Different", heroLabel: "Focus" },
-  Sleep: { tagline: "Drift Somewhere Quiet", heroLabel: "Sleep" },
-  Escape: { tagline: "Be Somewhere Else", heroLabel: "Escape" },
-};
-
 /**
- * PortalLibrary — scrollable scene browser inspired by Portal app.
- * Sections: Hero header (looping featured video) → Favourites circles row →
- * Curated Collections (large cards) → category-grouped scene rows.
+ * PortalLibrary — Portal-app inspired library browser.
+ * Layout: Hero header (PORTAL LIBRARY) → Featured large cards → grouped circle rows
+ * (large circles + small "Browse More" circles) for a dynamic, varied look.
  */
 export function PortalLibrary({
-  category,
   scenes,
   isLoading,
-  onBack,
+  onClose,
   onSelectScene,
 }: PortalLibraryProps) {
-  const copy = CATEGORY_COPY[category];
-
-  // Hero = first scene; favourites = next 6; collections = scenes flagged premium or all
-  const { hero, favourites, collections, more } = useMemo(() => {
-    const hero = scenes[0] ?? null;
-    const favourites = scenes.slice(0, 8);
-    const collections = scenes.filter((s) => s.is_premium).slice(0, 6);
-    const more = scenes.slice(0, 12);
-    return { hero, favourites, collections, more };
+  const { featured, escapes, focus, sleep, browseMore } = useMemo(() => {
+    const featured = scenes.filter((s) => s.is_premium).slice(0, 6);
+    const focus = scenes.filter((s) => s.category?.toLowerCase() === "focus");
+    const sleep = scenes.filter((s) => s.category?.toLowerCase() === "sleep");
+    const escapes = scenes.filter((s) => s.category?.toLowerCase() === "escape");
+    const browseMore = scenes.slice(0, 16);
+    return {
+      featured: featured.length ? featured : scenes.slice(0, 4),
+      focus,
+      sleep,
+      escapes: escapes.length ? escapes : scenes.slice(0, 8),
+      browseMore,
+    };
   }, [scenes]);
 
   return (
-    <div className="fixed inset-0 z-[90] bg-black overflow-y-auto overflow-x-hidden">
+    <div className="fixed inset-0 z-[95] bg-black overflow-y-auto overflow-x-hidden">
       {/* Hero header */}
-      <div className="relative h-[55vh] min-h-[380px] w-full overflow-hidden">
-        {hero?.video_url ? (
-          <video
-            src={hero.video_url}
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-        ) : hero?.thumbnail_url ? (
-          <img
-            src={hero.thumbnail_url}
-            alt={hero.name}
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-slate-950 to-black" />
-        )}
+      <div className="relative h-[36vh] min-h-[280px] w-full overflow-hidden">
+        <img
+          src={nebulaFocus}
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover opacity-70"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/40 to-black" />
 
-        {/* Gradient overlay for legibility */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black" />
-
-        {/* Back button */}
-        <button
-          onClick={onBack}
-          className="absolute top-0 left-0 p-4 z-10 text-white/80 hover:text-white transition-colors"
+        {/* Top bar */}
+        <div
+          className="absolute top-0 left-0 right-0 flex items-center justify-between px-5 z-10"
           style={{ paddingTop: "max(env(safe-area-inset-top, 0px), 16px)" }}
-          aria-label="Back"
         >
-          <ArrowLeft className="h-6 w-6" />
-        </button>
+          <button
+            className="text-white/80 hover:text-white p-1"
+            aria-label="Favourites"
+          >
+            <Star className="h-5 w-5" fill="currentColor" />
+          </button>
+          <button
+            onClick={onClose}
+            className="text-white/80 hover:text-white p-1"
+            aria-label="Close"
+          >
+            <X className="h-6 w-6" />
+          </button>
+        </div>
 
-        {/* Centered title */}
+        {/* Title */}
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex flex-col items-center px-6"
+          transition={{ duration: 0.7 }}
+          className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex flex-col items-center px-6 text-center"
         >
-          <div className="h-6 w-6 rounded-full border-2 border-white/80 flex items-center justify-center mb-3">
-            <div className="h-1.5 w-1.5 rounded-full bg-white/90" />
-          </div>
-          <h1 className="text-white text-3xl font-light tracking-[0.3em] uppercase">
-            {copy.heroLabel}
+          <h1 className="text-white text-2xl font-light tracking-[0.3em] uppercase">
+            Portal Library
           </h1>
-          <p className="text-white/70 text-sm font-light italic mt-2 tracking-wide">
-            {copy.tagline}
+          <p className="text-white/70 text-sm font-light mt-3 tracking-wide">
+            Transform Your Surroundings
           </p>
         </motion.div>
       </div>
 
       {/* Body */}
-      <div className="relative -mt-8 pb-24 space-y-10">
+      <div className="relative -mt-6 pb-32 space-y-10">
         {isLoading ? (
           <div className="flex justify-center py-16">
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-white/80" />
@@ -109,24 +98,48 @@ export function PortalLibrary({
           </div>
         ) : (
           <>
-            {/* Favourites — circular row */}
-            {favourites.length > 0 && (
-              <Section title={`${category} Favourites`}>
-                <CircleRow scenes={favourites} onSelect={onSelectScene} />
+            {/* Featured — large cards */}
+            <Section
+              title="Featured"
+              subtitle="Be inspired by our team's top picks"
+            >
+              <CardRow scenes={featured} onSelect={onSelectScene} />
+            </Section>
+
+            {/* Our Greatest Escapes — large circles */}
+            {escapes.length > 0 && (
+              <Section
+                title="Our Greatest Escapes"
+                subtitle="Discover hidden havens in remote reaches of the world"
+              >
+                <CircleRow scenes={escapes} onSelect={onSelectScene} size="lg" />
               </Section>
             )}
 
-            {/* Curated Collections — large cards */}
-            {collections.length > 0 && (
-              <Section title="Curated Collections">
-                <CardRow scenes={collections} onSelect={onSelectScene} />
+            {/* Focus collection */}
+            {focus.length > 0 && (
+              <Section
+                title="Find Your Focus"
+                subtitle="Settle in. Tune out. Get to work."
+              >
+                <CircleRow scenes={focus} onSelect={onSelectScene} size="md" />
               </Section>
             )}
 
-            {/* More scenes — circular row */}
-            {more.length > 0 && (
+            {/* Sleep collection */}
+            {sleep.length > 0 && (
+              <Section
+                title="Drift Off"
+                subtitle="Gentle scenes to ease you into sleep"
+              >
+                <CircleRow scenes={sleep} onSelect={onSelectScene} size="md" />
+              </Section>
+            )}
+
+            {/* Browse More — small circles, dense row */}
+            {browseMore.length > 0 && (
               <Section title="Browse More">
-                <CircleRow scenes={more} onSelect={onSelectScene} small />
+                <CircleRow scenes={browseMore} onSelect={onSelectScene} size="sm" />
               </Section>
             )}
           </>
@@ -136,36 +149,58 @@ export function PortalLibrary({
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({
+  title,
+  subtitle,
+  children,
+}: {
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
+}) {
   return (
     <section>
-      <h2 className="text-white text-xl font-semibold px-5 mb-4 tracking-tight">
-        {title}
-      </h2>
+      <div className="px-5 mb-4">
+        <h2 className="text-white text-2xl font-semibold tracking-tight">
+          {title}
+        </h2>
+        {subtitle && (
+          <p className="text-white/55 text-sm font-light mt-1">{subtitle}</p>
+        )}
+      </div>
       {children}
     </section>
   );
 }
 
+const SIZE_MAP = {
+  lg: "w-44",
+  md: "w-36",
+  sm: "w-24",
+} as const;
+
 function CircleRow({
   scenes,
   onSelect,
-  small,
+  size,
 }: {
   scenes: PortalScene[];
   onSelect: (s: PortalScene) => void;
-  small?: boolean;
+  size: keyof typeof SIZE_MAP;
 }) {
-  const size = small ? "w-32" : "w-44";
+  const w = SIZE_MAP[size];
+  const small = size === "sm";
   return (
-    <div className="flex gap-4 overflow-x-auto px-5 pb-2 scrollbar-hide snap-x snap-mandatory">
+    <div className="flex gap-4 overflow-x-auto px-5 pb-2 scrollbar-hide snap-x">
       {scenes.map((scene) => (
         <button
           key={scene.id}
           onClick={() => onSelect(scene)}
-          className={`shrink-0 ${size} snap-start flex flex-col items-start group`}
+          className={`shrink-0 ${w} snap-start flex flex-col items-start group`}
         >
-          <div className={`relative ${size} aspect-square rounded-full overflow-hidden ring-1 ring-white/40 group-hover:ring-white/80 transition-all shadow-[0_0_24px_rgba(255,255,255,0.08)]`}>
+          <div
+            className={`relative ${w} aspect-square rounded-full overflow-hidden ring-1 ring-white/50 group-hover:ring-white/90 transition-all shadow-[0_0_24px_rgba(255,255,255,0.1)]`}
+          >
             {scene.thumbnail_url ? (
               <img
                 src={scene.thumbnail_url}
@@ -188,16 +223,18 @@ function CircleRow({
               </div>
             )}
           </div>
-          <div className="mt-3 text-left w-full">
-            <div className="text-white text-xs font-bold uppercase tracking-wider truncate">
-              {scene.name}
-            </div>
-            {scene.description && (
-              <div className="text-white/40 text-[10px] uppercase tracking-widest mt-0.5 truncate">
-                {scene.description}
+          {!small && (
+            <div className="mt-3 text-left w-full">
+              <div className="text-white text-xs font-bold uppercase tracking-wider truncate">
+                {scene.name}
               </div>
-            )}
-          </div>
+              {scene.description && (
+                <div className="text-white/40 text-[10px] uppercase tracking-widest mt-0.5 truncate">
+                  {scene.description}
+                </div>
+              )}
+            </div>
+          )}
         </button>
       ))}
     </div>
@@ -217,7 +254,7 @@ function CardRow({
         <button
           key={scene.id}
           onClick={() => onSelect(scene)}
-          className="shrink-0 w-[78vw] max-w-md snap-start group"
+          className="shrink-0 w-[82vw] max-w-md snap-start group"
         >
           <div className="relative aspect-[16/10] rounded-2xl overflow-hidden ring-1 ring-white/10 group-hover:ring-white/30 transition-all">
             {scene.thumbnail_url ? (
@@ -236,7 +273,7 @@ function CardRow({
                 className="absolute inset-0 w-full h-full object-cover"
               />
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
             {scene.is_premium && (
               <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm rounded-full p-1.5">
                 <Lock className="h-3.5 w-3.5 text-amber-300" />
