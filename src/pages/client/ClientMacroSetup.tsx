@@ -227,18 +227,22 @@ export default function ClientMacroSetup() {
       : 10 * w + 6.25 * h - 5 * a - 161;
 
     const actMultiplier = ACTIVITY_LEVELS.find(l => l.value === activityLevel)?.multiplier || 1.55;
-    let tdee = bmr * actMultiplier;
+    const tdeeBase = Math.round(bmr * actMultiplier); // maintenance
 
+    // Map goal -> default adjustment
     const goalFactor = GOALS.find(g => g.value === selectedGoal)?.factor || 1.0;
-    tdee *= goalFactor;
+    const defaultAdjustment = goalFactor - 1; // e.g. 0.8 -> -0.20, 1.15 -> +0.15
+    const targetCalories = Math.round(tdeeBase * (1 + defaultAdjustment));
 
     const selectedDiet = DIET_STYLES.find(d => d.value === selectedDietValue) || DIET_STYLES[1];
-    const calories = Math.round(tdee);
-    const protein = Math.round((calories * selectedDiet.proteinPct) / 4);
-    const fats = Math.round((calories * selectedDiet.fatPct) / 9);
-    const carbs = Math.round((calories * selectedDiet.carbsPct) / 4);
+    const protein = Math.round((targetCalories * selectedDiet.proteinPct) / 4);
+    const fats = Math.round((targetCalories * selectedDiet.fatPct) / 9);
+    const carbs = Math.round((targetCalories * selectedDiet.carbsPct) / 4);
 
-    setCalcResults({ calories, protein: Math.max(protein, 0), carbs: Math.max(carbs, 0), fats: Math.max(fats, 0) });
+    setBaseTdee(tdeeBase);
+    setAdjustment(defaultAdjustment);
+    setManualOverride(false);
+    setCalcResults({ calories: targetCalories, protein: Math.max(protein, 0), carbs: Math.max(carbs, 0), fats: Math.max(fats, 0) });
     setStep("results");
   };
 
