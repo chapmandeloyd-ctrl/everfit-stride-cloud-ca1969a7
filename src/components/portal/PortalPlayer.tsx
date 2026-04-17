@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Volume2, VolumeX, ChevronDown, Clock, CircleDot, Check, TimerReset, Lightbulb } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import portalEarth from "@/assets/portal-earth.jpg";
@@ -9,7 +11,7 @@ import nebulaEscape from "@/assets/portal-nebula-escape.jpg";
 import { Starfield } from "./Starfield";
 import { PortalControlPanel } from "./PortalControlPanel";
 
-function nebulaFor(category: string): string {
+function builtInNebulaFor(category: string): string {
   const c = category?.toLowerCase();
   if (c === "sleep") return nebulaSleep;
   if (c === "escape") return nebulaEscape;
