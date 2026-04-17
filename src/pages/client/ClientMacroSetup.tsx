@@ -163,10 +163,10 @@ export default function ClientMacroSetup() {
 
   // Wizard state
   const [gender, setGender] = useState<"male" | "female" | "">("");
-  const [age, setAge] = useState<number>(30);
-  const [weightLbs, setWeightLbs] = useState<number>(180);
-  const [heightFt, setHeightFt] = useState<number>(5);
-  const [heightIn, setHeightIn] = useState<number>(10);
+  const [age, setAge] = useState<number>(0);
+  const [weightLbs, setWeightLbs] = useState<number>(0);
+  const [heightFt, setHeightFt] = useState<number>(0);
+  const [heightIn, setHeightIn] = useState<number>(0);
   const [bodyFat, setBodyFat] = useState<number | null>(null);
   const [activityLevel, setActivityLevel] = useState<string>("");
   const [goal, setGoal] = useState<string>("");
@@ -961,40 +961,40 @@ function Stepper({
   compact?: boolean;
   placeholder?: string;
 }) {
-  const dec = () => setValue(Math.max(min, value - step));
-  const inc = () => setValue(Math.min(max, value + step));
-  const isEmpty = placeholder && value === 0;
+  const dec = () => setValue(Math.max(0, value - step));
+  const inc = () => setValue(Math.min(max, (value || 0) + step));
+  const isEmpty = value === 0;
 
   return (
-    <div className="flex items-center justify-center gap-4">
+    <div className="flex items-center justify-center gap-3 w-full">
       <button
         onClick={dec}
-        className="w-12 h-12 rounded-full border border-border flex items-center justify-center bg-background"
+        className="w-12 h-12 shrink-0 rounded-full border border-border flex items-center justify-center bg-background"
       >
         <Minus className="h-4 w-4" />
       </button>
-      <div className={cn("flex items-baseline gap-2 min-w-0", compact ? "px-2" : "px-4")}>
-        {isEmpty ? (
-          <span className="text-3xl font-light text-muted-foreground">—</span>
-        ) : (
-          <input
-            type="number"
-            value={value}
-            onChange={e => {
-              const n = parseInt(e.target.value);
-              if (!isNaN(n)) setValue(Math.min(max, Math.max(min, n)));
-            }}
-            className={cn(
-              "bg-transparent border-0 outline-none text-center font-bold tabular-nums",
-              compact ? "text-4xl w-16" : "text-5xl w-24"
-            )}
-          />
-        )}
-        <span className="text-lg text-muted-foreground">{unit}</span>
+      <div className={cn("flex items-baseline gap-2 justify-center", compact ? "min-w-[90px]" : "min-w-[140px]")}>
+        <input
+          type="number"
+          inputMode="numeric"
+          value={isEmpty ? "" : value}
+          placeholder="0"
+          onChange={e => {
+            const raw = e.target.value;
+            if (raw === "") { setValue(0); return; }
+            const n = parseInt(raw);
+            if (!isNaN(n)) setValue(Math.min(max, Math.max(0, n)));
+          }}
+          className={cn(
+            "bg-transparent border-0 outline-none text-center font-bold tabular-nums placeholder:text-muted-foreground/40 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
+            compact ? "text-4xl w-20" : "text-5xl w-32"
+          )}
+        />
+        <span className="text-lg text-muted-foreground shrink-0">{unit}</span>
       </div>
       <button
         onClick={inc}
-        className="w-12 h-12 rounded-full border border-border flex items-center justify-center bg-background"
+        className="w-12 h-12 shrink-0 rounded-full border border-border flex items-center justify-center bg-background"
       >
         <Plus className="h-4 w-4" />
       </button>
