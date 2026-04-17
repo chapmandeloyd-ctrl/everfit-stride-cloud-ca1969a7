@@ -1689,6 +1689,13 @@ export default function ClientDashboard() {
           </Card>
         )}
 
+        {/* Smart Pace Tracker — primary weight goal banner (replaces legacy GoalCard when enabled) */}
+        <div className="space-y-2">
+          <h2 className="text-lg font-bold text-foreground px-1">KSOM-360 Smart Weight Tracker</h2>
+          <SmartPaceBanner />
+        </div>
+        <SmartPaceCatchUpModal />
+
         {/* In-App Notifications */}
         <InAppNotifications />
 
