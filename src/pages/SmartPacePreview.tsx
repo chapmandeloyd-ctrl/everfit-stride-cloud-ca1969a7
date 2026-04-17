@@ -90,6 +90,10 @@ function PreviewBanner({
   reason,
   projectedDate,
   cappedAt,
+  startWeight,
+  startDate,
+  goalWeight,
+  targetDate,
 }: MockData) {
   const tone =
     status === "behind"
