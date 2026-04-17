@@ -10,8 +10,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { useAuth } from "@/hooks/useAuth";
 import { SmartPaceAdminPanel } from "@/components/smart-pace/SmartPaceAdminPanel";
+import { LogWeighInDialog } from "@/components/smart-pace/LogWeighInDialog";
 import { cn } from "@/lib/utils";
 import { format, parseISO, subDays } from "date-fns";
+import { useState } from "react";
 
 export default function ClientSmartPace() {
   const navigate = useNavigate();
