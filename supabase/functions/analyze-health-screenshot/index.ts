@@ -349,6 +349,15 @@ Today's date is ${new Date().toISOString().split('T')[0]}.`
         console.error('Error inserting metric_entry:', entryErr);
       } else {
         savedCount++;
+
+        // Smart Pace integration: AI snapshot is a scale-quality source.
+        if (metricName === 'Weight' && value > 50 && value < 800) {
+          try {
+            await applySmartPaceFromScaleSource(supabase, targetClientId, value, 'ai_photo');
+          } catch (e) {
+            console.warn('[SmartPace] AI snapshot weigh-in pipe failed:', e);
+          }
+        }
       }
     }
 
