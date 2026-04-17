@@ -161,7 +161,7 @@ async function applySmartPaceFromScaleSource(
   console.log(`[SmartPace] AI snapshot weigh-in applied: ${actualLoss} lb actual vs ${targetLoss} lb target (status=${status})`);
 }
 
-
+serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
