@@ -127,6 +127,15 @@ export default function ClientSmartPace() {
           <p className="text-sm text-muted-foreground mt-2">{pace.reason}</p>
         </Card>
 
+        {/* Log weigh-in CTA */}
+        <Button
+          size="lg"
+          className="w-full"
+          onClick={() => setWeighInOpen(true)}
+        >
+          <Scale className="h-4 w-4 mr-2" /> Log a weigh-in
+        </Button>
+
         {/* Stat grid */}
         <div className="grid grid-cols-2 gap-3">
           <StatCard
