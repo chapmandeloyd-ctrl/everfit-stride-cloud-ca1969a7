@@ -269,7 +269,7 @@ export function PortalBackgroundsManager() {
                         <SelectValue placeholder="Default" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="none">— Built-in default —</SelectItem>
+                        <SelectItem value="none">↺ Use built-in default</SelectItem>
                         {nebulas
                           .filter((n) => n.is_active)
                           .map((n) => (
@@ -292,7 +292,7 @@ export function PortalBackgroundsManager() {
                         <SelectValue placeholder="Default" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="none">— Built-in Earth —</SelectItem>
+                        <SelectItem value="none">↺ Use built-in Earth</SelectItem>
                         {horizons
                           .filter((h) => h.is_active)
                           .map((h) => (
