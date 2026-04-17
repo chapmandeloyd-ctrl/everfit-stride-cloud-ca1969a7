@@ -139,15 +139,15 @@ export default function ClientNutrition() {
 
             {/* Donut chart */}
             <div className="flex justify-center">
-              <div className="relative w-48 h-48">
+              <div className="relative w-56 h-56">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
                       data={donutData}
                       cx="50%"
                       cy="50%"
-                      innerRadius={60}
-                      outerRadius={85}
+                      innerRadius={72}
+                      outerRadius={100}
                       startAngle={90}
                       endAngle={-270}
                       paddingAngle={2}
@@ -160,20 +160,34 @@ export default function ClientNutrition() {
                     </Pie>
                   </PieChart>
                 </ResponsiveContainer>
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-3xl font-bold">{pctOfGoal}%</span>
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+                  <span className="text-3xl font-bold leading-none">{pctOfGoal}%</span>
                   <span className="text-xs text-muted-foreground">of daily goals</span>
+                  <button
+                    onClick={() => navigate("/client/macro-setup?mode=edit")}
+                    className="mt-1 inline-flex items-center gap-1 rounded-full border border-border px-3 py-1 text-[11px] font-semibold text-foreground hover:bg-accent transition-colors"
+                  >
+                    <Pencil className="h-3 w-3" /> Edit Macro Goals
+                  </button>
                 </div>
               </div>
             </div>
 
             {/* Consumed summary */}
-            <div className="text-center">
+            <div className="text-center space-y-2">
               <p className="font-semibold">You have consumed</p>
               <p className="text-lg">
                 <span className="font-bold text-primary">{totals.calories} Cal</span>
                 <span className="text-muted-foreground"> / {goals.calories.toLocaleString()} Cal</span>
               </p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 rounded-full"
+                onClick={() => navigate("/client/macro-setup?mode=edit")}
+              >
+                <SlidersHorizontal className="h-3.5 w-3.5" /> Adjust Cut Level
+              </Button>
             </div>
 
             {/* Macro table */}
