@@ -8,12 +8,16 @@ import { useSmartPace } from "@/hooks/useSmartPace";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
+import { useAuth } from "@/hooks/useAuth";
+import { SmartPaceAdminPanel } from "@/components/smart-pace/SmartPaceAdminPanel";
 import { cn } from "@/lib/utils";
 import { format, parseISO, subDays } from "date-fns";
 
 export default function ClientSmartPace() {
   const navigate = useNavigate();
   const clientId = useEffectiveClientId();
+  const { user, userRole } = useAuth();
+  const isImpersonating = userRole === "trainer" && clientId !== user?.id;
   const { data: pace, isLoading } = useSmartPace();
 
   const { data: log } = useQuery({
@@ -87,6 +91,11 @@ export default function ClientSmartPace() {
             Pace: {baseLbs.toFixed(1)} lb/day · Started {format(parseISO(goal.start_date), "MMM d")}
           </p>
         </div>
+
+        {/* Admin override panel — only visible when trainer is impersonating */}
+        {isImpersonating && pace.goal && (
+          <SmartPaceAdminPanel clientId={clientId!} goal={pace.goal} />
+        )}
 
         {/* Hero today card */}
         <Card className={cn("border-2 p-5", tone)}>

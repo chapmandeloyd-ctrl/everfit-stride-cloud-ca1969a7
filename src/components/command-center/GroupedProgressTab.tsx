@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronRight, BarChart3, Target, CheckSquare } from "lucide-react";
+import { ChevronDown, ChevronRight, BarChart3, Target, CheckSquare, Activity } from "lucide-react";
 import { ClientMetricsTab } from "./ClientMetricsTab";
 import { AdminGoalsTab } from "./AdminGoalsTab";
 import { ClientTasksTab } from "./ClientTasksTab";
+import { SmartPaceTrainerCard } from "@/components/smart-pace/SmartPaceTrainerCard";
 
 interface GroupedProgressTabProps {
   clientId: string;
@@ -12,14 +13,16 @@ interface GroupedProgressTabProps {
 }
 
 const sections = [
+  { key: "smart_pace", label: "Smart Pace Tracker", icon: Activity },
   { key: "metrics", label: "Body Metrics", icon: BarChart3 },
-  { key: "goals", label: "Goals", icon: Target },
+  { key: "goals", label: "Goals (Legacy)", icon: Target },
   { key: "tasks", label: "Tasks", icon: CheckSquare },
 ] as const;
 
 export function GroupedProgressTab({ clientId, trainerId, clientName }: GroupedProgressTabProps) {
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
-    metrics: true,
+    smart_pace: true,
+    metrics: false,
     goals: false,
     tasks: false,
   });
@@ -41,6 +44,7 @@ export function GroupedProgressTab({ clientId, trainerId, clientName }: GroupedP
             )}
           </CollapsibleTrigger>
           <CollapsibleContent className="pt-3">
+            {key === "smart_pace" && <SmartPaceTrainerCard clientId={clientId} trainerId={trainerId} />}
             {key === "metrics" && <ClientMetricsTab clientId={clientId} trainerId={trainerId} />}
             {key === "goals" && <AdminGoalsTab clientId={clientId} trainerId={trainerId} clientName={clientName} />}
             {key === "tasks" && <ClientTasksTab clientId={clientId} trainerId={trainerId} />}
