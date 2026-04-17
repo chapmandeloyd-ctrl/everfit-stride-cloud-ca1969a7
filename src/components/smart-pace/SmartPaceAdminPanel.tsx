@@ -49,15 +49,17 @@ export function SmartPaceAdminPanel({ clientId, goal, onChanged }: Props) {
     payload: Record<string, unknown>,
     reasonText?: string
   ) => {
-    await supabase.from("smart_pace_admin_actions").insert({
-      goal_id: goal.id,
-      client_id: clientId,
-      admin_id: user!.id,
-      action_type,
-      action_date: today,
-      payload,
-      reason: reasonText || null,
-    });
+    await supabase.from("smart_pace_admin_actions").insert([
+      {
+        goal_id: goal.id,
+        client_id: clientId,
+        admin_id: user!.id,
+        action_type,
+        action_date: today,
+        payload: payload as any,
+        reason: reasonText || null,
+      },
+    ]);
   };
 
   // -------- Log Weight --------
