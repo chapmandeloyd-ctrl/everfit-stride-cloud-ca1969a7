@@ -2155,11 +2155,11 @@ export default function ClientDashboard() {
                       <div className="flex items-start gap-4">
                         <div className="flex-1 min-w-0 space-y-2">
                           <div>
-                            <div className="text-3xl font-bold leading-none">
+                            <div className="text-5xl font-extrabold leading-none text-primary tracking-tight">
                               {todayCalories.toLocaleString()}
                             </div>
-                            <div className="text-xs text-muted-foreground mt-1">
-                              of {calGoal.toLocaleString()} cal goal
+                            <div className="text-xs text-muted-foreground mt-1.5">
+                              of <span className="font-semibold text-foreground">{calGoal.toLocaleString()}</span> cal goal
                             </div>
                           </div>
 

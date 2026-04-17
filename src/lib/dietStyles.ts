@@ -21,7 +21,7 @@ export const DIET_STYLE_PRESETS: DietStylePreset[] = [
     label: "Standard",
     abbreviation: "STD",
     description: "Balanced macros — goal-based protein, carb, and fat split.",
-    color: "#3b82f6",
+    color: "#3b82f6", // blue
     proteinPct: 0.30, fatPct: 0.30, carbsPct: 0.40,
     proteinDisplay: "30%", fatDisplay: "30%", carbsDisplay: "40%",
   },
@@ -30,7 +30,7 @@ export const DIET_STYLE_PRESETS: DietStylePreset[] = [
     label: "Standard Keto",
     abbreviation: "SKD",
     description: "Classic ketogenic ratios — high fat, moderate protein, very low carbs.",
-    color: "#f59e0b",
+    color: "#f59e0b", // amber
     proteinPct: 0.25, fatPct: 0.70, carbsPct: 0.05,
     proteinDisplay: "20–25%", fatDisplay: "70–75%", carbsDisplay: "≤10%",
   },
@@ -39,7 +39,7 @@ export const DIET_STYLE_PRESETS: DietStylePreset[] = [
     label: "Targeted Keto",
     abbreviation: "TKD",
     description: "Extra carbs timed around workouts for energy without leaving ketosis.",
-    color: "#22c55e",
+    color: "#10b981", // emerald green
     proteinPct: 0.25, fatPct: 0.65, carbsPct: 0.10,
     proteinDisplay: "25%", fatDisplay: "60–65%", carbsDisplay: "10–15%",
   },
@@ -48,7 +48,7 @@ export const DIET_STYLE_PRESETS: DietStylePreset[] = [
     label: "Cyclical Keto",
     abbreviation: "CKD",
     description: "5–6 days strict keto then 1–2 higher-carb refeeds for muscle building.",
-    color: "#a855f7",
+    color: "#a855f7", // purple
     proteinPct: 0.25, fatPct: 0.60, carbsPct: 0.15,
     proteinDisplay: "25%", fatDisplay: "55–65%", carbsDisplay: "10–20%",
   },
@@ -57,7 +57,7 @@ export const DIET_STYLE_PRESETS: DietStylePreset[] = [
     label: "High-Protein Keto",
     abbreviation: "HPK",
     description: "More protein than traditional keto — ideal for building muscle in ketosis.",
-    color: "#ef4444",
+    color: "#ec4899", // pink/magenta
     proteinPct: 0.35, fatPct: 0.60, carbsPct: 0.05,
     proteinDisplay: "35%", fatDisplay: "55–60%", carbsDisplay: "≤10%",
   },
