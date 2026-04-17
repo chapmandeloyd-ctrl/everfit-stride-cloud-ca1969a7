@@ -4,6 +4,8 @@ import { useNativeHealth } from "@/hooks/useNativeHealth";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { AiSnapshotSheet } from "@/components/health/AiSnapshotSheet";
 
 interface Props {
   clientId: string;
@@ -12,6 +14,7 @@ interface Props {
 export function MyProgressSection({ clientId }: Props) {
   const { isNative, permissionGranted } = useNativeHealth();
   const navigate = useNavigate();
+  const [snapshotOpen, setSnapshotOpen] = useState(false);
 
   return (
     <div className="space-y-4">
@@ -35,7 +38,7 @@ export function MyProgressSection({ clientId }: Props) {
           <Button
             variant="outline"
             className="h-14 text-base font-semibold justify-center gap-2"
-            onClick={() => navigate("/client/health")}
+            onClick={() => setSnapshotOpen(true)}
           >
             <Camera className="h-5 w-5" />
             AI Snapshot
@@ -52,6 +55,8 @@ export function MyProgressSection({ clientId }: Props) {
       </div>
 
       <ActivitySummary clientId={clientId} />
+
+      <AiSnapshotSheet open={snapshotOpen} onOpenChange={setSnapshotOpen} clientId={clientId} />
     </div>
   );
 }
