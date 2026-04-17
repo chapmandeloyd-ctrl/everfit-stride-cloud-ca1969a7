@@ -110,9 +110,11 @@ export default function ClientVibes() {
     );
   }
 
-  if (!settings.restore_enabled) {
-    return <Navigate to="/client/dashboard" replace />;
-  }
+  // Note: we intentionally do NOT redirect when restore_enabled is false.
+  // A redirect from here back to /client/dashboard caused a "screen refresh / bug"
+  // feel for users whose settings row was missing or whose gate flipped briefly.
+  // The Restore card on the dashboard / sidebar already gates entry; if the user
+  // gets here directly, just render the experience.
 
   // Breathing session — full screen
   if (view.type === "breathing-session") {
