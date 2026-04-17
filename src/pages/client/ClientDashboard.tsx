@@ -900,10 +900,10 @@ export default function ClientDashboard() {
   const clientId = useEffectiveClientId();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { settings } = useClientFeatureSettings();
+  const { settings, isLoading: settingsLoading } = useClientFeatureSettings();
   const { config: engineConfig } = useEngineMode();
   const { toast } = useToast();
-  const { cards: layoutCards } = useDashboardLayoutClient();
+  const { cards: layoutCards, isLoading: layoutLoading } = useDashboardLayoutClient();
   const { data: streakData } = useConsistencyStreak();
 
   // Unread messages count for floating lion badge
