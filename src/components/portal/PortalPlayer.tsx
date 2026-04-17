@@ -241,7 +241,11 @@ export function PortalPlayer({ scene, onBack }: PortalPlayerProps) {
 
             {/* Swipe-down hint — tappable */}
             <motion.button
-              onClick={() => setImmersive(true)}
+              onClick={() => {
+                const a = audioRef.current;
+                if (a) { a.volume = muted ? 0 : volume; a.play().catch(() => {}); }
+                setImmersive(true);
+              }}
               className="relative z-10 flex flex-col items-center gap-2 pb-2 text-white/50 hover:text-white/90 transition-colors"
               style={{ opacity: hintOpacity }}
               animate={{ y: [0, 6, 0] }}
@@ -254,7 +258,11 @@ export function PortalPlayer({ scene, onBack }: PortalPlayerProps) {
             {/* Explicit Enter Portal CTA */}
             <div className="relative z-10 flex justify-center pb-2">
               <button
-                onClick={() => setImmersive(true)}
+                onClick={() => {
+                  const a = audioRef.current;
+                  if (a) { a.volume = muted ? 0 : volume; a.play().catch(() => {}); }
+                  setImmersive(true);
+                }}
                 className="px-5 py-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white/90 text-xs uppercase tracking-widest font-medium backdrop-blur-md transition-colors"
               >
                 Enter Portal
