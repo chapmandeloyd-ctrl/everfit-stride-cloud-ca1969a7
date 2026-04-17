@@ -416,14 +416,7 @@ export default function ClientMacroSetup() {
     </div>
   );
 
-  const FloatingBot = () => (
-    <button
-      onClick={() => toast({ title: "AI Coach", description: "Coming soon — let me help you pick values." })}
-      className="fixed bottom-24 right-4 w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center"
-    >
-      <Bot className="h-5 w-5" />
-    </button>
-  );
+  const FloatingBot = () => null;
 
   // ─────────────── Manual Mode ───────────────
 
