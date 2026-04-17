@@ -394,9 +394,11 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
     const timer = setTimeout(() => {
       if (step.type === "rest") {
         const nextEx = steps[stepIdx + 1]?.exercise;
+        const restSecs = step.restSeconds || 0;
+        const restPart = restSecs > 0 ? `Rest. ${restSecs} seconds.` : "Rest.";
         const msg = nextEx
-          ? `Rest. Up next: ${nextEx.exercise_name}`
-          : "Rest up, you're almost done!";
+          ? `${restPart} Up next: ${nextEx.exercise_name}`
+          : `${restPart} You're almost done!`;
         elevenLabsSpeakNow(msg).catch(() => {});
       } else if (step.type === "exercise" && step.exercise) {
         const ex = step.exercise;
@@ -626,7 +628,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
     if (currentStep.type === "exercise" && currentStep.exercise) {
       const ex = currentStep.exercise;
       if (ex.duration_seconds) startStepCountdown(ex.duration_seconds);
-      else setStepTimer(-1);
+      else startStepStopwatch();
     } else if (currentStep.type === "rest") {
       const secs = currentStep.restSeconds || 60;
       startStepCountdown(secs);
