@@ -251,6 +251,23 @@ export default function ClientMacroSetup() {
     setCalcResults({ calories, protein, carbs, fats });
   }, [adjustment, baseTdee, dietStyle, screen, manualOverride]);
 
+  // Edit mode: jump straight to results using existing saved targets (no wizard).
+  useEffect(() => {
+    if (!editMode || editJumped || !existingTargets) return;
+    const cal = existingTargets.target_calories || 2000;
+    const prot = Number(existingTargets.target_protein) || 0;
+    const carb = Number(existingTargets.target_carbs) || 0;
+    const fat = Number(existingTargets.target_fats) || 0;
+    setBaseTdee(cal); // treat existing calories as baseline so slider starts at 0%
+    setAdjustment(0);
+    setManualOverride(true);
+    setDietStyle(existingTargets.diet_style || "standard");
+    setCalcResults({ calories: cal, protein: prot, carbs: carb, fats: fat });
+    setScreen("results");
+    setEditJumped(true);
+  }, [editMode, editJumped, existingTargets]);
+
+
   const adjustmentLabel = useMemo(() => {
     const pct = Math.round(adjustment * 100);
     if (pct <= -75) return { name: "Maximum Cut", sub: `${Math.abs(pct)}% below maintenance`, color: "text-destructive" };
