@@ -139,6 +139,12 @@ export default function ClientSmartPace() {
           <Scale className="h-4 w-4 mr-2" /> Log a weigh-in
         </Button>
 
+        {/* My Why — personal motivation */}
+        <MyWhyCard goalId={goal.id} variant="full" />
+
+        {/* Daily Check-In */}
+        <DailyCheckInCard goalId={goal.id} />
+
         {/* Stat grid */}
         <div className="grid grid-cols-2 gap-3">
           <StatCard
@@ -221,6 +227,9 @@ export default function ClientSmartPace() {
             </div>
           </div>
         </Card>
+
+        {/* Journal History */}
+        <JournalHistory />
       </div>
 
       <LogWeighInDialog
