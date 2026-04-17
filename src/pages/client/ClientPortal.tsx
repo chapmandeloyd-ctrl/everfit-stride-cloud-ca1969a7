@@ -44,6 +44,7 @@ export default function ClientPortal() {
             const next = findFirstInCategory(cat);
             if (next) setActiveScene(next);
           }}
+          audioPaused={libraryOpen}
         />
         {libraryOpen && (
           <PortalLibrary
