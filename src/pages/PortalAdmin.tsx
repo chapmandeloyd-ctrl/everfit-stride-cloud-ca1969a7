@@ -169,7 +169,10 @@ export default function PortalAdmin() {
             is_premium: form.is_premium ?? false,
             is_active: form.is_active ?? true,
             sort_order: form.sort_order ?? 0,
-          })
+            override_nebula_id: form.override_nebula_id ?? null,
+            override_horizon_id: form.override_horizon_id ?? null,
+            override_show_horizon: form.override_show_horizon ?? null,
+          } as any)
           .eq("id", editing.id);
         if (error) throw error;
       } else {
@@ -186,7 +189,10 @@ export default function PortalAdmin() {
           is_premium: form.is_premium ?? false,
           is_active: form.is_active ?? true,
           sort_order: form.sort_order ?? 0,
-        });
+          override_nebula_id: form.override_nebula_id ?? null,
+          override_horizon_id: form.override_horizon_id ?? null,
+          override_show_horizon: form.override_show_horizon ?? null,
+        } as any);
         if (error) throw error;
       }
       toast.success(editing ? "Scene updated" : "Scene created");
