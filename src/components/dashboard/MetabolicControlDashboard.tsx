@@ -226,60 +226,7 @@ export function MetabolicControlDashboard() {
         </Card>
       )}
 
-      {/* ── MACRO TRACKER ── */}
-      {targets.protein !== null && targets.protein !== undefined && (targets.protein > 0 || targets.fats! > 0) && (
-        <Card className="border-border/60">
-          <CardContent className="p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                Macro Tracker
-              </p>
-              <span className="text-xs font-semibold text-muted-foreground">
-                {current.calories} / {targets.calories || 0} cal
-              </span>
-            </div>
-
-            {macros.map((m) => {
-              const pct = m.target > 0 ? Math.min((m.current / m.target) * 100, 110) : 0;
-              const barColor = getMacroBarColor(m.current, m.target);
-              const status = getMacroStatusLabel(m.current, m.target);
-
-              return (
-                <div key={m.key} className="space-y-1">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-sm">{m.emoji}</span>
-                      <span className="text-xs font-semibold">{m.label}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs tabular-nums text-muted-foreground">
-                        {m.current}{m.unit} / {m.target}{m.unit}
-                      </span>
-                      {status && (
-                        <span className={cn(
-                          "text-[10px] font-bold px-1.5 py-0.5 rounded-full",
-                          pct > 110 ? "bg-destructive/10 text-destructive" :
-                          pct > 85 ? "bg-emerald-500/10 text-emerald-600" :
-                          pct > 60 ? "bg-amber-500/10 text-amber-600" :
-                          "text-muted-foreground"
-                        )}>
-                          {status}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
-                    <div
-                      className={cn("h-full rounded-full transition-all duration-500", barColor)}
-                      style={{ width: `${Math.min(pct, 100)}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </CardContent>
-        </Card>
-      )}
+      {/* Macro Tracker removed — macros now displayed on the main Nutrition card */}
 
       {/* ── COACH PICKS ── */}
       {engine.fasting_state !== "fasting_active" && coachPicks && coachPicks.length > 0 && (
