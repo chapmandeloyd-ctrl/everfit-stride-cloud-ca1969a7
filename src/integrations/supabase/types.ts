@@ -6171,6 +6171,81 @@ export type Database = {
           },
         ]
       }
+      portal_backgrounds: {
+        Row: {
+          category: string | null
+          created_at: string
+          id: string
+          image_url: string
+          is_active: boolean
+          layer: string
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          image_url: string
+          is_active?: boolean
+          layer: string
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string
+          is_active?: boolean
+          layer?: string
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      portal_category_backgrounds: {
+        Row: {
+          category: string
+          horizon_id: string | null
+          nebula_id: string | null
+          show_horizon: boolean
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          horizon_id?: string | null
+          nebula_id?: string | null
+          show_horizon?: boolean
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          horizon_id?: string | null
+          nebula_id?: string | null
+          show_horizon?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_category_backgrounds_horizon_id_fkey"
+            columns: ["horizon_id"]
+            isOneToOne: false
+            referencedRelation: "portal_backgrounds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portal_category_backgrounds_nebula_id_fkey"
+            columns: ["nebula_id"]
+            isOneToOne: false
+            referencedRelation: "portal_backgrounds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       portal_scenes: {
         Row: {
           audio_url: string | null
@@ -6183,6 +6258,9 @@ export type Database = {
           is_premium: boolean
           loop_video: boolean
           name: string
+          override_horizon_id: string | null
+          override_nebula_id: string | null
+          override_show_horizon: boolean | null
           sort_order: number
           thumbnail_url: string | null
           trainer_id: string
@@ -6200,6 +6278,9 @@ export type Database = {
           is_premium?: boolean
           loop_video?: boolean
           name: string
+          override_horizon_id?: string | null
+          override_nebula_id?: string | null
+          override_show_horizon?: boolean | null
           sort_order?: number
           thumbnail_url?: string | null
           trainer_id: string
@@ -6217,6 +6298,9 @@ export type Database = {
           is_premium?: boolean
           loop_video?: boolean
           name?: string
+          override_horizon_id?: string | null
+          override_nebula_id?: string | null
+          override_show_horizon?: boolean | null
           sort_order?: number
           thumbnail_url?: string | null
           trainer_id?: string
@@ -6224,6 +6308,20 @@ export type Database = {
           video_url?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "portal_scenes_override_horizon_id_fkey"
+            columns: ["override_horizon_id"]
+            isOneToOne: false
+            referencedRelation: "portal_backgrounds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portal_scenes_override_nebula_id_fkey"
+            columns: ["override_nebula_id"]
+            isOneToOne: false
+            referencedRelation: "portal_backgrounds"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "portal_scenes_trainer_id_fkey"
             columns: ["trainer_id"]
