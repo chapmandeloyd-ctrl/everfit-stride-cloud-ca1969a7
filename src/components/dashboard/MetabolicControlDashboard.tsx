@@ -144,7 +144,7 @@ export function MetabolicControlDashboard() {
       });
       return (data?.coach_picks || data?.meals?.slice(0, 3) || []) as CoachPick[];
     },
-    enabled: !!clientId && engine.fasting_state !== "fasting_active" && !engine.isLoading && !!engine.macroTargets,
+    enabled: !!clientId && !engine.isLoading && !!engine.macroTargets && (engine.fasting_state === "break_fast_triggered" || engine.fasting_state === "eating_window_open" || engine.fasting_state === "eating_window_closing"),
     staleTime: 60000,
   });
 
@@ -229,7 +229,7 @@ export function MetabolicControlDashboard() {
       {/* Macro Tracker removed — macros now displayed on the main Nutrition card */}
 
       {/* ── COACH PICKS ── */}
-      {engine.fasting_state !== "fasting_active" && coachPicks && coachPicks.length > 0 && (
+      {(engine.fasting_state === "break_fast_triggered" || engine.fasting_state === "eating_window_open" || engine.fasting_state === "eating_window_closing") && coachPicks && coachPicks.length > 0 && (
         <Card className="border-border/60">
           <CardContent className="p-4 space-y-3">
             <div className="flex items-center justify-between">
