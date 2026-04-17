@@ -176,19 +176,19 @@ export function PortalPlayer({ scene, onBack }: PortalPlayerProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            {/* Background — use the scene thumbnail still, not the video feed */}
+            {/* Background — clear full-screen thumbnail */}
             <div className="absolute inset-0 overflow-hidden">
               {scene.thumbnail_url ? (
                 <img
                   src={scene.thumbnail_url}
-                  alt=""
-                  className="absolute inset-0 w-full h-full object-cover scale-[1.08]"
-                  style={{ filter: "blur(10px) saturate(1.1) brightness(0.9)" }}
+                  alt={scene.name}
+                  className="absolute inset-0 w-full h-full object-cover"
+                  style={{ filter: "saturate(1.02) brightness(1)" }}
                 />
               ) : null}
             </div>
-            {/* Dark wash for legibility */}
-            <div className="absolute inset-0 bg-black/40" />
+            {/* Light wash for legibility while keeping the image visible */}
+            <div className="absolute inset-0 bg-black/15" />
 
             {/* Earth at the bottom — anchored thin sliver */}
             <div
@@ -213,7 +213,7 @@ export function PortalPlayer({ scene, onBack }: PortalPlayerProps) {
               />
             </div>
             {/* Subtle top vignette */}
-            <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-transparent pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-transparent pointer-events-none" />
 
             {/* Top header */}
             <div
