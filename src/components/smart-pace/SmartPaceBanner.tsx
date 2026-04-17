@@ -16,8 +16,18 @@ export function SmartPaceBanner() {
 
   if (!data?.enabled || !data.goal) return null;
 
-  const { todayTargetLbs, debtLbs, creditLbs, status, progressPct, reason, projectedDate, cappedAt } =
+  const { goal, todayTargetLbs, debtLbs, creditLbs, status, progressPct, reason, projectedDate, cappedAt } =
     data;
+
+  const fmtDate = (d?: string | Date | null) => {
+    if (!d) return "—";
+    const date = typeof d === "string" ? new Date(d + "T00:00:00") : d;
+    return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  };
+  const startWeight = goal.start_weight;
+  const goalWeight = goal.goal_weight;
+  const startDate = goal.start_date;
+  const targetDate = goal.target_date;
 
   const tone =
     status === "behind"
