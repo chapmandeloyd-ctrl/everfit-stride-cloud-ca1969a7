@@ -392,7 +392,7 @@ export default function ClientMacroSetup() {
   const NextBar = ({ label = "Next →", showBack = true, disabled = false, onClick }: {
     label?: string; showBack?: boolean; disabled?: boolean; onClick?: () => void;
   }) => (
-    <div className="fixed bottom-6 left-0 right-0 px-4">
+    <div className="fixed bottom-20 left-0 right-0 px-4 pb-[env(safe-area-inset-bottom)] z-40">
       <div className="max-w-lg mx-auto flex items-center gap-3">
         {showBack && (
           <button
