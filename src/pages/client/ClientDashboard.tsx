@@ -57,6 +57,9 @@ import { ProtocolCompletionDialog } from "@/components/ProtocolCompletionDialog"
 import { MyProgressSection } from "@/components/MyProgressSection";
 import { SmartPaceBanner } from "@/components/smart-pace/SmartPaceBanner";
 import { SmartPaceCatchUpModal } from "@/components/smart-pace/SmartPaceCatchUpModal";
+import { MyWhyCard } from "@/components/goal-motivation/MyWhyCard";
+import { DailyCheckInCard } from "@/components/goal-motivation/DailyCheckInCard";
+import { useSmartPace } from "@/hooks/useSmartPace";
 
 import { InAppNotifications } from "@/components/InAppNotifications";
 import { useDashboardLayoutClient } from "@/hooks/useDashboardLayoutClient";
@@ -902,6 +905,7 @@ export default function ClientDashboard() {
   const clientId = useEffectiveClientId();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { data: pace } = useSmartPace();
   const { settings, isLoading: settingsLoading } = useClientFeatureSettings();
   const { config: engineConfig } = useEngineMode();
   const { toast } = useToast();
@@ -1695,6 +1699,14 @@ export default function ClientDashboard() {
           <SmartPaceBanner />
         </div>
         <SmartPaceCatchUpModal />
+
+        {/* My Why + Daily Check-In — only when an active pace goal exists */}
+        {pace?.enabled && pace.goal && (
+          <div className="space-y-3">
+            <MyWhyCard goalId={pace.goal.id} variant="compact" />
+            <DailyCheckInCard goalId={pace.goal.id} />
+          </div>
+        )}
 
         {/* In-App Notifications */}
         <InAppNotifications />
