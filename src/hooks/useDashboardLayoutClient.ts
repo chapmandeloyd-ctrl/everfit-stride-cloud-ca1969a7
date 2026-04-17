@@ -55,7 +55,9 @@ export function useDashboardLayoutClient() {
   });
 
   return {
-    cards: layout ?? mergeWithDefaults(null),
+    // While loading, return an empty array so we don't flash the hardcoded
+    // defaults before the saved layout (which may hide cards) arrives.
+    cards: layout ?? (isLoading ? [] : mergeWithDefaults(null)),
     isLoading,
   };
 }

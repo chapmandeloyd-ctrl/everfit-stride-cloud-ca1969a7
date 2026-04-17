@@ -900,10 +900,10 @@ export default function ClientDashboard() {
   const clientId = useEffectiveClientId();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { settings } = useClientFeatureSettings();
+  const { settings, isLoading: settingsLoading } = useClientFeatureSettings();
   const { config: engineConfig } = useEngineMode();
   const { toast } = useToast();
-  const { cards: layoutCards } = useDashboardLayoutClient();
+  const { cards: layoutCards, isLoading: layoutLoading } = useDashboardLayoutClient();
   const { data: streakData } = useConsistencyStreak();
 
   // Unread messages count for floating lion badge
@@ -1631,6 +1631,21 @@ export default function ClientDashboard() {
   const todayCarbs = nutritionArray.reduce((sum, log) => sum + (log.carbs || 0), 0);
   const todayFats = nutritionArray.reduce((sum, log) => sum + (log.fats || 0), 0);
 
+
+  // Wait for settings + layout before rendering — prevents the dashboard from
+  // briefly flashing default cards (which the saved layout may hide) on refresh.
+  if (settingsLoading || layoutLoading) {
+    return (
+      <ClientLayout>
+        <div className="px-3 pt-4 pb-8 space-y-4 w-full">
+          <div className="h-16 rounded-lg bg-muted animate-pulse" />
+          <div className="h-32 rounded-lg bg-muted animate-pulse" />
+          <div className="h-48 rounded-lg bg-muted animate-pulse" />
+          <div className="h-32 rounded-lg bg-muted animate-pulse" />
+        </div>
+      </ClientLayout>
+    );
+  }
 
   return (
     <ClientLayout>
