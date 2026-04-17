@@ -176,17 +176,13 @@ export function PortalPlayer({ scene, onBack }: PortalPlayerProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            {/* Background — LIVE blurred video (matches reference: glow bleeds out) */}
+            {/* Background — static thumbnail, lightly blurred so scene stays recognizable */}
             <div className="absolute inset-0 overflow-hidden">
-              <video
-                ref={bgVideoRef}
-                src={scene.video_url}
-                autoPlay
-                loop={scene.loop_video}
-                muted
-                playsInline
-                className="absolute inset-0 w-full h-full object-cover scale-[1.25]"
-                style={{ filter: "blur(18px) saturate(1.3) brightness(0.7)" }}
+              <img
+                src={scene.thumbnail_url || scene.video_url}
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover scale-[1.15]"
+                style={{ filter: "blur(14px) saturate(1.2) brightness(0.7)" }}
               />
             </div>
             {/* Dark wash for legibility */}
