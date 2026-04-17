@@ -21,7 +21,23 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
+import { getDietStylePreset } from "@/lib/dietStyles";
 import { SportEventCompletionDialog } from "@/components/SportEventCompletionDialog";
+
+// Mirror of getCutLevelMeta on ClientNutrition page so dashboard card stays in sync.
+function getCutLevelMeta(adjustment?: number | null) {
+  const pct = Math.round((adjustment ?? 0) * 100);
+  if (pct <= -75) return { label: "Maximum Cut", dot: "bg-red-500", text: "text-red-500" };
+  if (pct <= -65) return { label: "Extreme Deficit", dot: "bg-red-500", text: "text-red-500" };
+  if (pct <= -45) return { label: "Aggressive Cut", dot: "bg-orange-500", text: "text-orange-500" };
+  if (pct <= -25) return { label: "Heavy Cut", dot: "bg-orange-500", text: "text-orange-500" };
+  if (pct <= -10) return { label: "Moderate Cut", dot: "bg-emerald-500", text: "text-emerald-500" };
+  if (pct < 0) return { label: "Light Cut", dot: "bg-emerald-500", text: "text-emerald-500" };
+  if (pct === 0) return { label: "Maintain", dot: "bg-muted-foreground", text: "text-muted-foreground" };
+  if (pct <= 10) return { label: "Lean Bulk", dot: "bg-sky-500", text: "text-sky-500" };
+  if (pct <= 20) return { label: "Surplus", dot: "bg-sky-500", text: "text-sky-500" };
+  return { label: "Aggressive Bulk", dot: "bg-sky-500", text: "text-sky-500" };
+}
 import { DayStripCalendar } from "@/components/DayStripCalendar";
 import { QuickCardioFlow } from "@/components/cardio/QuickCardioFlow";
 import { CardioDetailSheet } from "@/components/cardio/CardioDetailSheet";
