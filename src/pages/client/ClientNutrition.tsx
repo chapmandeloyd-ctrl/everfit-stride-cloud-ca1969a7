@@ -2,7 +2,7 @@ import { ClientLayout } from "@/components/ClientLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, ChevronLeft, ChevronRight, Plus, UtensilsCrossed, Pencil, SlidersHorizontal } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Plus, UtensilsCrossed } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +10,20 @@ import { useNavigate } from "react-router-dom";
 import { format, subDays, addDays, parseISO } from "date-fns";
 import { useState } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
+
+function getCutLevelMeta(adjustment?: number | null) {
+  const pct = Math.round((adjustment ?? 0) * 100);
+  if (pct <= -75) return { label: "Maximum Cut", tone: "destructive" as const };
+  if (pct <= -65) return { label: "Extreme Deficit", tone: "destructive" as const };
+  if (pct <= -45) return { label: "Aggressive Cut", tone: "warning" as const };
+  if (pct <= -25) return { label: "Heavy Cut", tone: "warning" as const };
+  if (pct <= -10) return { label: "Moderate Cut", tone: "success" as const };
+  if (pct < 0) return { label: "Light Cut", tone: "success" as const };
+  if (pct === 0) return { label: "Maintain", tone: "neutral" as const };
+  if (pct <= 10) return { label: "Lean Bulk", tone: "info" as const };
+  if (pct <= 20) return { label: "Surplus", tone: "info" as const };
+  return { label: "Aggressive Bulk", tone: "info" as const };
+}
 
 export default function ClientNutrition() {
   const { user } = useAuth();
@@ -58,10 +72,10 @@ export default function ClientNutrition() {
   };
 
   const goals = {
-    calories: macroTargets?.target_calories || 2000,
-    protein: Number(macroTargets?.target_protein) || 150,
-    carbs: Number(macroTargets?.target_carbs) || 200,
-    fats: Number(macroTargets?.target_fats) || 65,
+    calories: Number(macroTargets?.target_calories ?? 0),
+    protein: Number(macroTargets?.target_protein ?? 0),
+    carbs: Number(macroTargets?.target_carbs ?? 0),
+    fats: Number(macroTargets?.target_fats ?? 0),
   };
 
   const pctOfGoal = goals.calories > 0 ? Math.round((totals.calories / goals.calories) * 100) : 0;
@@ -80,19 +94,37 @@ export default function ClientNutrition() {
     fats: goalMacroCals > 0 ? Math.round((goals.fats * 9 / goalMacroCals) * 100) : 0,
   };
 
-  const macroColors = { protein: "#6366f1", carbs: "#22c55e", fats: "#eab308" };
+  const macroColors = {
+    protein: "hsl(217 91% 60%)",
+    carbs: "hsl(142 71% 45%)",
+    fats: "hsl(38 92% 50%)",
+  };
 
-  const donutData = [
-    { value: Math.min(totals.protein * 4, goals.protein * 4), color: macroColors.protein },
-    { value: Math.min(totals.carbs * 4, goals.carbs * 4), color: macroColors.carbs },
-    { value: Math.min(totals.fats * 9, goals.fats * 9), color: macroColors.fats },
-    { value: Math.max(goals.calories - totals.calories, 0), color: "hsl(var(--muted))" },
-  ];
+  const cutMeta = getCutLevelMeta((macroTargets as any)?.deficit_pct);
+  const deficitPct = typeof (macroTargets as any)?.deficit_pct === "number"
+    ? Math.round((macroTargets as any).deficit_pct * 100)
+    : null;
+  const savedTdee = Number((macroTargets as any)?.tdee ?? 0);
+  const toneClasses = {
+    destructive: "border-primary/20 text-primary",
+    warning: "border-primary/20 text-primary",
+    success: "border-border text-foreground",
+    info: "border-border text-foreground",
+    neutral: "border-border text-muted-foreground",
+  };
+
+  const donutData = goals.calories > 0
+    ? [
+        { value: Math.min(totals.protein * 4, goals.protein * 4), color: macroColors.protein },
+        { value: Math.min(totals.carbs * 4, goals.carbs * 4), color: macroColors.carbs },
+        { value: Math.min(totals.fats * 9, goals.fats * 9), color: macroColors.fats },
+        { value: Math.max(goals.calories - totals.calories, 0), color: "hsl(var(--muted))" },
+      ]
+    : [{ value: 1, color: "hsl(var(--muted))" }];
 
   return (
     <ClientLayout>
       <div className="flex flex-col min-h-screen">
-        {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b bg-background sticky top-0 z-10">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
@@ -100,42 +132,53 @@ export default function ClientNutrition() {
             </Button>
             <h1 className="text-xl font-bold">Nutrition</h1>
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-primary font-semibold px-2"
-              onClick={() => navigate("/client/macro-setup")}
-            >
-              Recalculate
-            </Button>
-            <Button variant="outline" size="sm" className="gap-1" onClick={() => navigate("/client/log-meal")}>
-              <Plus className="h-3.5 w-3.5" /> Log meal
-            </Button>
-          </div>
+          <Button variant="ghost" size="sm" className="text-primary font-semibold px-2" onClick={() => navigate("/client/log-meal")}>
+            <Plus className="h-4 w-4 mr-1" /> Log meal
+          </Button>
         </div>
 
         <Tabs defaultValue="summary" className="flex-1">
-          <TabsList className="mx-4 mt-3 grid grid-cols-2 w-auto">
-            <TabsTrigger value="summary">📊 Summary</TabsTrigger>
-            <TabsTrigger value="journal">🍴 Journal</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 rounded-none border-b bg-transparent p-0 h-auto">
+            <TabsTrigger
+              value="summary"
+              className="rounded-none border-b-2 border-transparent bg-transparent px-4 py-3 text-lg font-semibold text-muted-foreground shadow-none data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none"
+            >
+              Summary
+            </TabsTrigger>
+            <TabsTrigger
+              value="journal"
+              className="rounded-none border-b-2 border-transparent bg-transparent px-4 py-3 text-lg font-semibold text-muted-foreground shadow-none data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none"
+            >
+              Journal
+            </TabsTrigger>
           </TabsList>
 
           {/* Summary Tab */}
-          <TabsContent value="summary" className="px-4 mt-3 space-y-6 pb-8">
+          <TabsContent value="summary" className="px-4 pt-4 space-y-8 pb-8 mt-0">
             {/* Date nav */}
             <div className="flex items-center justify-between">
               <Button variant="ghost" size="icon" onClick={() => setViewDate(subDays(viewDate, 1))}>
                 <ChevronLeft className="h-5 w-5" />
               </Button>
               <div className="text-center">
-                <p className="font-semibold">Daily View</p>
-                <p className="text-xs text-muted-foreground">{isToday ? "Today" : format(viewDate, "MMM d, yyyy")}</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Daily View</p>
+                <p className="text-2xl font-medium leading-tight">{isToday ? "Today" : format(viewDate, "MMM d, yyyy")}</p>
               </div>
               <Button variant="ghost" size="icon" onClick={() => setViewDate(addDays(viewDate, 1))} disabled={isToday}>
                 <ChevronRight className="h-5 w-5" />
               </Button>
             </div>
+
+            {macroTargets && deficitPct !== null && savedTdee > 0 && (
+              <div className="flex justify-center">
+                <div className={`inline-flex flex-wrap items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm ${toneClasses[cutMeta.tone]}`}>
+                  <span className="h-3 w-3 rounded-full bg-primary" />
+                  <span className="font-semibold">{cutMeta.label}</span>
+                  <span className="text-muted-foreground">({deficitPct > 0 ? `+${deficitPct}` : deficitPct}% {deficitPct === 0 ? "change" : deficitPct < 0 ? "deficit" : "surplus"})</span>
+                  <span className="text-muted-foreground">· TDEE {savedTdee.toLocaleString()} Cal</span>
+                </div>
+              </div>
+            )}
 
             {/* Donut chart */}
             <div className="flex justify-center">
@@ -165,28 +208,28 @@ export default function ClientNutrition() {
                   <span className="text-xs text-muted-foreground">of daily goals</span>
                   <button
                     onClick={() => navigate("/client/macro-setup?mode=edit")}
-                    className="mt-1 inline-flex items-center gap-1 rounded-full border border-border px-3 py-1 text-[11px] font-semibold text-foreground hover:bg-accent transition-colors"
+                    className="mt-1 inline-flex items-center rounded-full border border-border bg-background px-5 py-2 text-base font-semibold text-primary shadow-sm transition-colors hover:bg-accent"
                   >
-                    <Pencil className="h-3 w-3" /> Edit Macro Goals
+                    Edit Macro Goals
                   </button>
                 </div>
               </div>
             </div>
 
             {/* Consumed summary */}
-            <div className="text-center space-y-2">
-              <p className="font-semibold">You have consumed</p>
-              <p className="text-lg">
-                <span className="font-bold text-primary">{totals.calories} Cal</span>
-                <span className="text-muted-foreground"> / {goals.calories.toLocaleString()} Cal</span>
-              </p>
+            <div className="text-center space-y-3">
+              <p className="text-2xl font-semibold">You have consumed</p>
+              <div className="space-y-1">
+                <p className="text-5xl font-bold leading-none text-primary">{totals.calories} <span className="text-4xl font-medium">Cal</span></p>
+                <p className="text-sm text-muted-foreground">/ {goals.calories.toLocaleString()} Cal goal</p>
+              </div>
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-1.5 rounded-full"
+                className="rounded-full px-8 py-5 text-lg font-semibold text-primary shadow-sm"
                 onClick={() => navigate("/client/macro-setup?mode=deficit")}
               >
-                <SlidersHorizontal className="h-3.5 w-3.5" /> Adjust Cut Level
+                Adjust Cut Level
               </Button>
             </div>
 
@@ -217,33 +260,6 @@ export default function ClientNutrition() {
               </CardContent>
             </Card>
 
-            {/* Macro distribution */}
-            <div>
-              <h3 className="font-bold mb-3">Macro distribution</h3>
-              <Card>
-                <CardContent className="p-0">
-                  <div className="grid grid-cols-3 gap-0 text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-2 border-b">
-                    <span>Macro</span>
-                    <span className="text-center">Actual</span>
-                    <span className="text-right">Goal</span>
-                  </div>
-                  {[
-                    { name: "Protein", actual: actualDist.protein, goal: goalDist.protein, color: macroColors.protein },
-                    { name: "Carbs", actual: actualDist.carbs, goal: goalDist.carbs, color: macroColors.carbs },
-                    { name: "Fat", actual: actualDist.fats, goal: goalDist.fats, color: macroColors.fats },
-                  ].map((m) => (
-                    <div key={m.name} className="grid grid-cols-3 gap-0 px-4 py-3 border-b last:border-b-0 items-center">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: m.color }} />
-                        <span className="text-sm font-medium">{m.name}</span>
-                      </div>
-                      <span className="text-sm text-center font-bold">{m.actual}%</span>
-                      <span className="text-sm text-right text-muted-foreground">{m.goal}%</span>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            </div>
           </TabsContent>
 
           {/* Journal Tab */}
