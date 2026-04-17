@@ -295,8 +295,10 @@ export default function ClientMacroSetup() {
         target_fats: macros.fats,
         is_active: true,
         diet_style: dietStyle || "custom",
+        tdee: baseTdee || null,
+        deficit_pct: baseTdee ? adjustment : null,
         ...(isImpersonating ? { trainer_id: user?.id } : {}),
-      };
+      } as any;
       if (existingTargets) {
         const { error } = await supabase
           .from("client_macro_targets")
