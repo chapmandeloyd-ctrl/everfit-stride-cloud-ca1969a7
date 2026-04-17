@@ -18,6 +18,10 @@ interface MockData {
   reason: string;
   projectedDate: string;
   cappedAt: number | null;
+  startWeight: number;
+  startDate: string;
+  goalWeight: number;
+  targetDate: string;
 }
 
 const MOCKS: MockData[] = [
@@ -30,6 +34,10 @@ const MOCKS: MockData[] = [
     reason: "You're 4.0 lb behind. Today's target adjusted to catch up.",
     projectedDate: "Apr 25",
     cappedAt: null,
+    startWeight: 215.0,
+    startDate: "Mar 1",
+    goalWeight: 195.0,
+    targetDate: "Apr 22",
   },
   {
     status: "on_pace",
@@ -40,6 +48,10 @@ const MOCKS: MockData[] = [
     reason: "Right on schedule. Keep your daily target steady.",
     projectedDate: "Apr 22",
     cappedAt: null,
+    startWeight: 210.0,
+    startDate: "Mar 5",
+    goalWeight: 190.0,
+    targetDate: "Apr 22",
   },
   {
     status: "ahead",
@@ -50,6 +62,10 @@ const MOCKS: MockData[] = [
     reason: "You're 2.3 lb ahead. Coast today — light target.",
     projectedDate: "Apr 19",
     cappedAt: null,
+    startWeight: 205.0,
+    startDate: "Feb 20",
+    goalWeight: 185.0,
+    targetDate: "Apr 22",
   },
 ];
 
@@ -74,6 +90,10 @@ function PreviewBanner({
   reason,
   projectedDate,
   cappedAt,
+  startWeight,
+  startDate,
+  goalWeight,
+  targetDate,
 }: MockData) {
   const tone =
     status === "behind"
@@ -172,6 +192,25 @@ function PreviewBanner({
           </div>
         </div>
         <ChevronRight className="h-5 w-5 text-white/50 shrink-0" />
+      </div>
+
+      {/* Start → Goal weight strip */}
+      <div className="relative mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-2 rounded-xl bg-black/30 ring-1 ring-white/10 p-2.5">
+        <div className="text-left">
+          <p className="text-[10px] uppercase tracking-wide text-white/50">Start</p>
+          <p className="font-heading font-bold text-base text-white leading-tight">
+            {startWeight.toFixed(1)} lb
+          </p>
+          <p className="text-[10px] text-white/50">{startDate}</p>
+        </div>
+        <ChevronRight className="h-4 w-4 text-white/40" />
+        <div className="text-right">
+          <p className="text-[10px] uppercase tracking-wide text-white/50">Goal</p>
+          <p className="font-heading font-bold text-base text-white leading-tight">
+            {goalWeight.toFixed(1)} lb
+          </p>
+          <p className="text-[10px] text-white/50">{targetDate}</p>
+        </div>
       </div>
 
       <div className="relative mt-3">

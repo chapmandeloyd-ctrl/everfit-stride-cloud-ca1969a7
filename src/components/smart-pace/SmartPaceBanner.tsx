@@ -16,8 +16,18 @@ export function SmartPaceBanner() {
 
   if (!data?.enabled || !data.goal) return null;
 
-  const { todayTargetLbs, debtLbs, creditLbs, status, progressPct, reason, projectedDate, cappedAt } =
+  const { goal, todayTargetLbs, debtLbs, creditLbs, status, progressPct, reason, projectedDate, cappedAt } =
     data;
+
+  const fmtDate = (d?: string | Date | null) => {
+    if (!d) return "—";
+    const date = typeof d === "string" ? new Date(d + "T00:00:00") : d;
+    return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  };
+  const startWeight = goal.start_weight;
+  const goalWeight = goal.goal_weight;
+  const startDate = goal.start_date;
+  const targetDate = goal.target_date;
 
   const tone =
     status === "behind"
@@ -118,6 +128,25 @@ export function SmartPaceBanner() {
         <ChevronRight className="h-5 w-5 text-white/50 shrink-0" />
       </div>
 
+      {/* Start → Goal weight strip */}
+      <div className="relative mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-2 rounded-xl bg-black/30 ring-1 ring-white/10 p-2.5">
+        <div className="text-left">
+          <p className="text-[10px] uppercase tracking-wide text-white/50">Start</p>
+          <p className="font-heading font-bold text-base text-white leading-tight">
+            {startWeight !== null ? `${startWeight.toFixed(1)} lb` : "—"}
+          </p>
+          <p className="text-[10px] text-white/50">{fmtDate(startDate)}</p>
+        </div>
+        <ChevronRight className="h-4 w-4 text-white/40" />
+        <div className="text-right">
+          <p className="text-[10px] uppercase tracking-wide text-white/50">Goal</p>
+          <p className="font-heading font-bold text-base text-white leading-tight">
+            {goalWeight.toFixed(1)} lb
+          </p>
+          <p className="text-[10px] text-white/50">{fmtDate(targetDate)}</p>
+        </div>
+      </div>
+
       {/* Progress bar */}
       <div className="relative mt-3">
         <div className="flex justify-between items-center mb-1">
@@ -137,7 +166,7 @@ export function SmartPaceBanner() {
         <Stat label="Debt" value={`${debtLbs.toFixed(1)}`} unit="lb" tone={debtLbs > 0 ? "warn" : "muted"} />
         <Stat label="Credit" value={`${creditLbs.toFixed(1)}`} unit="lb" tone={creditLbs > 0 ? "good" : "muted"} />
         <Stat
-          label="Goal by"
+          label="Projected"
           value={projectedDate ? projectedDate.toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "—"}
           unit=""
           tone="muted"
