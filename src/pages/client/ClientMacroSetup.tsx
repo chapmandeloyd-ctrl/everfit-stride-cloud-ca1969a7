@@ -877,7 +877,7 @@ export default function ClientMacroSetup() {
           </Card>
 
           <FloatingBot />
-          <NextBar label="Save & See Results" onClick={goToResults} />
+          <NextBar label="Save & See Results" onClick={goToResults} showBack={!editMode} />
         </div>
       </ClientLayout>
     );
