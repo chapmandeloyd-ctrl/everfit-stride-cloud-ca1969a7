@@ -3,6 +3,7 @@ import { UpdateBanner } from "./UpdateBanner";
 import { LogOut, RefreshCw, MessageCircle } from "lucide-react";
 import { NotificationBell } from "./notifications/NotificationBell";
 import { ThemeToggle } from "./ThemeToggle";
+import { MiniPaceRing } from "./smart-pace/MiniPaceRing";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
@@ -149,6 +150,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
               )}
             </button>
             <div className="flex items-center gap-1">
+              <MiniPaceRing />
               <NotificationBell />
               <ThemeToggle />
             </div>

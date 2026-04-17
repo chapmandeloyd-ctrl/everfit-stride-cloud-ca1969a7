@@ -55,6 +55,7 @@ import { CreatePinDialog, VerifyPinDialog, HoldToEndButton } from "@/components/
 import { FastingCoachTipCard } from "@/components/FastingCoachTipCard";
 import { ProtocolCompletionDialog } from "@/components/ProtocolCompletionDialog";
 import { MyProgressSection } from "@/components/MyProgressSection";
+import { SmartPaceBanner } from "@/components/smart-pace/SmartPaceBanner";
 
 import { InAppNotifications } from "@/components/InAppNotifications";
 import { useDashboardLayoutClient } from "@/hooks/useDashboardLayoutClient";
@@ -1808,6 +1809,9 @@ export default function ClientDashboard() {
             </div>
           );
         })()}
+
+        {/* Smart Pace Tracker — primary weight goal banner (replaces legacy GoalCard when enabled) */}
+        <SmartPaceBanner />
 
         {/* Meal Decision Card — eating window only */}
         <MealDecisionCard />

@@ -1060,6 +1060,7 @@ export type Database = {
           restore_profile_type: string
           selected_protocol_id: string | null
           selected_quick_plan_id: string | null
+          smart_pace_enabled: boolean
           sport_schedule_enabled: boolean
           subscription_tier: Database["public"]["Enums"]["subscription_tier"]
           tasks_enabled: boolean
@@ -1150,6 +1151,7 @@ export type Database = {
           restore_profile_type?: string
           selected_protocol_id?: string | null
           selected_quick_plan_id?: string | null
+          smart_pace_enabled?: boolean
           sport_schedule_enabled?: boolean
           subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
           tasks_enabled?: boolean
@@ -1240,6 +1242,7 @@ export type Database = {
           restore_profile_type?: string
           selected_protocol_id?: string | null
           selected_quick_plan_id?: string | null
+          smart_pace_enabled?: boolean
           sport_schedule_enabled?: boolean
           subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
           tasks_enabled?: boolean
@@ -7279,6 +7282,277 @@ export type Database = {
           zone?: string | null
         }
         Relationships: []
+      }
+      smart_pace_admin_actions: {
+        Row: {
+          action_date: string
+          action_type: string
+          admin_id: string
+          client_id: string
+          created_at: string
+          goal_id: string
+          id: string
+          payload: Json
+          reason: string | null
+        }
+        Insert: {
+          action_date: string
+          action_type: string
+          admin_id: string
+          client_id: string
+          created_at?: string
+          goal_id: string
+          id?: string
+          payload?: Json
+          reason?: string | null
+        }
+        Update: {
+          action_date?: string
+          action_type?: string
+          admin_id?: string
+          client_id?: string
+          created_at?: string
+          goal_id?: string
+          id?: string
+          payload?: Json
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smart_pace_admin_actions_admin_id_fkey"
+            columns: ["admin_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smart_pace_admin_actions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smart_pace_admin_actions_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "smart_pace_goals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      smart_pace_daily_log: {
+        Row: {
+          actual_loss_lbs: number | null
+          client_id: string
+          created_at: string
+          credit_delta: number
+          debt_delta: number
+          goal_id: string
+          id: string
+          log_date: string
+          notes: string | null
+          status: string
+          target_loss_lbs: number
+          updated_at: string
+          weight_recorded: number | null
+          weight_source: string | null
+        }
+        Insert: {
+          actual_loss_lbs?: number | null
+          client_id: string
+          created_at?: string
+          credit_delta?: number
+          debt_delta?: number
+          goal_id: string
+          id?: string
+          log_date: string
+          notes?: string | null
+          status?: string
+          target_loss_lbs: number
+          updated_at?: string
+          weight_recorded?: number | null
+          weight_source?: string | null
+        }
+        Update: {
+          actual_loss_lbs?: number | null
+          client_id?: string
+          created_at?: string
+          credit_delta?: number
+          debt_delta?: number
+          goal_id?: string
+          id?: string
+          log_date?: string
+          notes?: string | null
+          status?: string
+          target_loss_lbs?: number
+          updated_at?: string
+          weight_recorded?: number | null
+          weight_source?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smart_pace_daily_log_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smart_pace_daily_log_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "smart_pace_goals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      smart_pace_goals: {
+        Row: {
+          client_id: string
+          consecutive_behind_days: number
+          consecutive_missed_days: number
+          created_at: string
+          current_credit_lbs: number
+          current_debt_lbs: number
+          daily_pace_lbs: number
+          ended_at: string | null
+          ended_reason: string | null
+          goal_direction: string
+          goal_weight: number
+          id: string
+          last_weigh_in_date: string | null
+          last_weigh_in_value: number | null
+          start_date: string
+          start_weight: number | null
+          status: string
+          target_date: string | null
+          trainer_id: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          consecutive_behind_days?: number
+          consecutive_missed_days?: number
+          created_at?: string
+          current_credit_lbs?: number
+          current_debt_lbs?: number
+          daily_pace_lbs?: number
+          ended_at?: string | null
+          ended_reason?: string | null
+          goal_direction?: string
+          goal_weight: number
+          id?: string
+          last_weigh_in_date?: string | null
+          last_weigh_in_value?: number | null
+          start_date?: string
+          start_weight?: number | null
+          status?: string
+          target_date?: string | null
+          trainer_id: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          consecutive_behind_days?: number
+          consecutive_missed_days?: number
+          created_at?: string
+          current_credit_lbs?: number
+          current_debt_lbs?: number
+          daily_pace_lbs?: number
+          ended_at?: string | null
+          ended_reason?: string | null
+          goal_direction?: string
+          goal_weight?: number
+          id?: string
+          last_weigh_in_date?: string | null
+          last_weigh_in_value?: number | null
+          start_date?: string
+          start_weight?: number | null
+          status?: string
+          target_date?: string | null
+          trainer_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smart_pace_goals_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smart_pace_goals_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      smart_pace_prescriptions: {
+        Row: {
+          acknowledged: boolean
+          acknowledged_at: string | null
+          actions: Json
+          client_id: string
+          created_at: string
+          generated_by: string
+          goal_id: string
+          id: string
+          message: string
+          prescription_date: string
+          severity: string
+          target_makeup_lbs: number | null
+          title: string
+        }
+        Insert: {
+          acknowledged?: boolean
+          acknowledged_at?: string | null
+          actions?: Json
+          client_id: string
+          created_at?: string
+          generated_by?: string
+          goal_id: string
+          id?: string
+          message: string
+          prescription_date: string
+          severity?: string
+          target_makeup_lbs?: number | null
+          title: string
+        }
+        Update: {
+          acknowledged?: boolean
+          acknowledged_at?: string | null
+          actions?: Json
+          client_id?: string
+          created_at?: string
+          generated_by?: string
+          goal_id?: string
+          id?: string
+          message?: string
+          prescription_date?: string
+          severity?: string
+          target_makeup_lbs?: number | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "smart_pace_prescriptions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "smart_pace_prescriptions_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "smart_pace_goals"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       sport_event_completions: {
         Row: {
