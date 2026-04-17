@@ -3,13 +3,15 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PortalPlayer, type PortalScene } from "@/components/portal/PortalPlayer";
 import { PortalEntry } from "@/components/portal/PortalEntry";
+import { PortalLibrary } from "@/components/portal/PortalLibrary";
 
 type EntryCategory = "Focus" | "Sleep" | "Escape";
 
 export default function ClientPortal() {
   const [activeScene, setActiveScene] = useState<PortalScene | null>(null);
+  const [libraryOpen, setLibraryOpen] = useState(false);
 
-  const { data: scenes = [] } = useQuery({
+  const { data: scenes = [], isLoading } = useQuery({
     queryKey: ["portal-scenes-client"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -35,5 +37,23 @@ export default function ClientPortal() {
     if (first) setActiveScene(first);
   };
 
-  return <PortalEntry onSelectCategory={handleSelectCategory} />;
+  return (
+    <>
+      <PortalEntry
+        onSelectCategory={handleSelectCategory}
+        onOpenLibrary={() => setLibraryOpen(true)}
+      />
+      {libraryOpen && (
+        <PortalLibrary
+          scenes={scenes}
+          isLoading={isLoading}
+          onClose={() => setLibraryOpen(false)}
+          onSelectScene={(scene) => {
+            setLibraryOpen(false);
+            setActiveScene(scene);
+          }}
+        />
+      )}
+    </>
+  );
 }
