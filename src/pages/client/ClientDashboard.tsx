@@ -57,6 +57,9 @@ import { ProtocolCompletionDialog } from "@/components/ProtocolCompletionDialog"
 import { MyProgressSection } from "@/components/MyProgressSection";
 import { SmartPaceBanner } from "@/components/smart-pace/SmartPaceBanner";
 import { SmartPaceCatchUpModal } from "@/components/smart-pace/SmartPaceCatchUpModal";
+import { MyWhyCard } from "@/components/goal-motivation/MyWhyCard";
+import { DailyCheckInCard } from "@/components/goal-motivation/DailyCheckInCard";
+import { useSmartPace } from "@/hooks/useSmartPace";
 
 import { InAppNotifications } from "@/components/InAppNotifications";
 import { useDashboardLayoutClient } from "@/hooks/useDashboardLayoutClient";
