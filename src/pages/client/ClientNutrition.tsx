@@ -2,7 +2,7 @@ import { ClientLayout } from "@/components/ClientLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, ChevronLeft, ChevronRight, Plus, UtensilsCrossed } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Plus, UtensilsCrossed, Pencil, SlidersHorizontal } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -100,9 +100,19 @@ export default function ClientNutrition() {
             </Button>
             <h1 className="text-xl font-bold">Nutrition</h1>
           </div>
-          <Button variant="outline" size="sm" className="gap-1" onClick={() => navigate("/client/log-meal")}>
-            <Plus className="h-3.5 w-3.5" /> Log meal
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-primary font-semibold px-2"
+              onClick={() => navigate("/client/macro-setup")}
+            >
+              Recalculate
+            </Button>
+            <Button variant="outline" size="sm" className="gap-1" onClick={() => navigate("/client/log-meal")}>
+              <Plus className="h-3.5 w-3.5" /> Log meal
+            </Button>
+          </div>
         </div>
 
         <Tabs defaultValue="summary" className="flex-1">
