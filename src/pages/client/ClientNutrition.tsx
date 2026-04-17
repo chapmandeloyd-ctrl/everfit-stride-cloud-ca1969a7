@@ -67,23 +67,8 @@ export default function ClientNutrition() {
     enabled: !!clientId,
   });
 
-  // Fetch assigned keto type (if any)
-  const { data: ketoAssignment } = useQuery({
-    queryKey: ["client-keto-assignment", clientId],
-    queryFn: async () => {
-      if (!clientId) return null;
-      const { data, error } = await supabase
-        .from("client_keto_assignments")
-        .select("keto_type:keto_types(*)")
-        .eq("client_id", clientId)
-        .eq("is_active", true)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!clientId,
-  });
-  const ketoType: any = (ketoAssignment as any)?.keto_type ?? null;
+  // Resolve diet style preset (saved by macro-setup wizard)
+  const dietPreset = getDietStylePreset((macroTargets as any)?.diet_style);
 
   const totals = {
     calories: dayLogs?.reduce((s, l) => s + (l.calories || 0), 0) || 0,
