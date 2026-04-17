@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from "framer-motion";
-import { ArrowLeft, Pause, Play, Volume2, VolumeX, ChevronDown, Clock } from "lucide-react";
+import { ArrowLeft, Volume2, VolumeX, ChevronDown, Clock } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 
 export interface PortalScene {
@@ -40,10 +40,11 @@ export function PortalPlayer({ scene, onBack }: PortalPlayerProps) {
   const circleScale = useTransform(dragY, [0, 200], [1, 1.15]);
   const hintOpacity = useTransform(dragY, [0, 80], [1, 0]);
 
-  // Sync video play state
+  // Sync video play state + try to start audio (browsers may block until user gesture)
   useEffect(() => {
     const v = videoRef.current;
     const a = audioRef.current;
+    if (a) a.volume = muted ? 0 : volume;
     if (!v) return;
     if (playing) {
       v.play().catch(() => {});
@@ -60,6 +61,23 @@ export function PortalPlayer({ scene, onBack }: PortalPlayerProps) {
       audioRef.current.volume = muted ? 0 : volume;
     }
   }, [volume, muted]);
+
+  // Kick off audio on first user interaction (autoplay policy fallback)
+  useEffect(() => {
+    const tryPlayAudio = () => {
+      const a = audioRef.current;
+      if (a && a.paused && playing) {
+        a.volume = muted ? 0 : volume;
+        a.play().catch(() => {});
+      }
+    };
+    window.addEventListener("pointerdown", tryPlayAudio, { once: true });
+    window.addEventListener("touchstart", tryPlayAudio, { once: true });
+    return () => {
+      window.removeEventListener("pointerdown", tryPlayAudio);
+      window.removeEventListener("touchstart", tryPlayAudio);
+    };
+  }, [playing, muted, volume]);
 
   // Timer
   useEffect(() => {
@@ -217,24 +235,7 @@ export function PortalPlayer({ scene, onBack }: PortalPlayerProps) {
                   {formatTime(elapsed)}
                 </div>
 
-                {/* Play/Pause — small centered control */}
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <button
-                    onPointerDown={(e) => e.stopPropagation()}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setPlaying((p) => !p);
-                    }}
-                    className="pointer-events-auto h-16 w-16 rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center ring-1 ring-white/20 hover:bg-black/40 transition-colors"
-                    aria-label={playing ? "Pause" : "Play"}
-                  >
-                    {playing ? (
-                      <Pause className="h-7 w-7 text-white" />
-                    ) : (
-                      <Play className="h-7 w-7 text-white ml-1" />
-                    )}
-                  </button>
-                </div>
+                {/* (Centered play/pause removed — use volume controls below) */}
               </motion.div>
             </div>
 
