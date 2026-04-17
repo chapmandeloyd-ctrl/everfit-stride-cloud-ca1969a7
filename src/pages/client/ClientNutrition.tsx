@@ -184,7 +184,7 @@ export default function ClientNutrition() {
                 variant="outline"
                 size="sm"
                 className="gap-1.5 rounded-full"
-                onClick={() => navigate("/client/macro-setup?mode=edit")}
+                onClick={() => navigate("/client/macro-setup?mode=deficit")}
               >
                 <SlidersHorizontal className="h-3.5 w-3.5" /> Adjust Cut Level
               </Button>
