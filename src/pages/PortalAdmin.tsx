@@ -388,11 +388,23 @@ export default function PortalAdmin() {
                 {uploadingThumb && <Upload className="h-4 w-4 animate-pulse" />}
               </div>
               {form.thumbnail_url && (
-                <img
-                  src={form.thumbnail_url}
-                  alt=""
-                  className="mt-2 rounded-md aspect-video w-full object-cover"
-                />
+                <div className="mt-2 relative">
+                  <img
+                    src={form.thumbnail_url}
+                    alt=""
+                    className="rounded-md aspect-video w-full object-cover"
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    className="absolute top-2 right-2"
+                    onClick={() => setForm((f) => ({ ...f, thumbnail_url: null }))}
+                  >
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    Remove
+                  </Button>
+                </div>
               )}
             </div>
 
