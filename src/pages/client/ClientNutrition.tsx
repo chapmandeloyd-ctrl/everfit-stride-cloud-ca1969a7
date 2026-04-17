@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, ChevronLeft, ChevronRight, Plus, UtensilsCrossed } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -26,7 +26,7 @@ function getCutLevelMeta(adjustment?: number | null) {
 }
 
 export default function ClientNutrition() {
-  const { user } = useAuth();
+  const clientId = useEffectiveClientId();
   const navigate = useNavigate();
   const [viewDate, setViewDate] = useState(new Date());
   const dateStr = format(viewDate, "yyyy-MM-dd");
@@ -34,34 +34,36 @@ export default function ClientNutrition() {
 
   // Fetch nutrition logs for the selected date
   const { data: dayLogs } = useQuery({
-    queryKey: ["nutrition-logs-day", user?.id, dateStr],
+    queryKey: ["nutrition-logs-day", clientId, dateStr],
     queryFn: async () => {
+      if (!clientId) return [];
       const { data, error } = await supabase
         .from("nutrition_logs")
         .select("*")
-        .eq("client_id", user?.id)
+        .eq("client_id", clientId)
         .eq("log_date", dateStr)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
     },
-    enabled: !!user?.id,
+    enabled: !!clientId,
   });
 
   // Fetch macro targets
   const { data: macroTargets } = useQuery({
-    queryKey: ["client-macro-targets", user?.id],
+    queryKey: ["client-macro-targets", clientId],
     queryFn: async () => {
+      if (!clientId) return null;
       const { data, error } = await supabase
         .from("client_macro_targets")
         .select("*")
-        .eq("client_id", user?.id!)
+        .eq("client_id", clientId)
         .eq("is_active", true)
         .maybeSingle();
       if (error) throw error;
       return data;
     },
-    enabled: !!user?.id,
+    enabled: !!clientId,
   });
 
   const totals = {
