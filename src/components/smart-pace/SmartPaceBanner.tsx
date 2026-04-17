@@ -22,26 +22,38 @@ export function SmartPaceBanner() {
   const tone =
     status === "behind"
       ? {
-          bg: "bg-destructive/10 border-destructive/30",
+          gradient:
+            "bg-[linear-gradient(135deg,hsl(0_0%_18%)_0%,hsl(0_0%_12%)_45%,hsl(0_60%_22%)_100%)]",
+          border: "border-destructive/40",
+          glow: "shadow-[0_8px_32px_-8px_hsl(var(--destructive)/0.5)]",
           icon: AlertTriangle,
           iconColor: "text-destructive",
           badge: "bg-destructive text-destructive-foreground",
-          progress: "bg-destructive",
+          progress: "bg-gradient-to-r from-destructive via-red-400 to-destructive",
+          accent: "from-destructive/40",
         }
       : status === "ahead"
       ? {
-          bg: "bg-sky-500/10 border-sky-500/30",
+          gradient:
+            "bg-[linear-gradient(135deg,hsl(215_25%_20%)_0%,hsl(215_30%_14%)_45%,hsl(200_70%_28%)_100%)]",
+          border: "border-sky-500/40",
+          glow: "shadow-[0_8px_32px_-8px_hsl(200_85%_50%/0.5)]",
           icon: TrendingUp,
-          iconColor: "text-sky-500",
+          iconColor: "text-sky-300",
           badge: "bg-sky-500 text-white",
-          progress: "bg-sky-500",
+          progress: "bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500",
+          accent: "from-sky-400/40",
         }
       : {
-          bg: "bg-emerald-500/10 border-emerald-500/30",
+          gradient:
+            "bg-[linear-gradient(135deg,hsl(150_15%_18%)_0%,hsl(150_20%_12%)_45%,hsl(150_55%_22%)_100%)]",
+          border: "border-emerald-500/40",
+          glow: "shadow-[0_8px_32px_-8px_hsl(150_75%_45%/0.5)]",
           icon: Target,
-          iconColor: "text-emerald-500",
+          iconColor: "text-emerald-300",
           badge: "bg-emerald-500 text-white",
-          progress: "bg-emerald-500",
+          progress: "bg-gradient-to-r from-emerald-500 via-green-300 to-emerald-500",
+          accent: "from-emerald-400/40",
         };
 
   const Icon = tone.icon;
@@ -55,35 +67,55 @@ export function SmartPaceBanner() {
   return (
     <Card
       className={cn(
-        "border-2 p-4 cursor-pointer hover:shadow-md transition-all",
-        tone.bg
+        "relative overflow-hidden border p-4 cursor-pointer transition-all hover:scale-[1.01] text-white",
+        tone.gradient,
+        tone.border,
+        tone.glow
       )}
       onClick={() => navigate("/client/pace")}
     >
-      <div className="flex items-start justify-between gap-3">
+      {/* Granite noise texture */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.18] mix-blend-overlay"
+        style={{
+          backgroundImage:
+            "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.6 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
+        }}
+      />
+      {/* Diagonal sheen */}
+      <div
+        className={cn(
+          "pointer-events-none absolute -top-1/2 -left-1/4 h-[200%] w-1/2 rotate-12 bg-gradient-to-b to-transparent blur-2xl opacity-60",
+          tone.accent
+        )}
+      />
+      {/* Bottom-right radial glow */}
+      <div className="pointer-events-none absolute -bottom-12 -right-12 h-40 w-40 rounded-full bg-white/5 blur-3xl" />
+
+      <div className="relative flex items-start justify-between gap-3">
         <div className="flex items-start gap-3 flex-1 min-w-0">
-          <div className={cn("rounded-full p-2 bg-background/50", tone.iconColor)}>
+          <div className={cn("rounded-full p-2 bg-black/30 backdrop-blur-sm ring-1 ring-white/10", tone.iconColor)}>
             <Icon className="h-5 w-5" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <span className="text-xs font-semibold uppercase tracking-wide text-white/60">
                 Smart Pace
               </span>
-              <Badge className={cn("text-[10px] uppercase", tone.badge)}>{headline}</Badge>
+              <Badge className={cn("text-[10px] uppercase shadow-md", tone.badge)}>{headline}</Badge>
             </div>
-            <h3 className="font-heading font-bold text-2xl mt-1">
-              {todayTargetLbs.toFixed(1)} <span className="text-base font-medium text-muted-foreground">lb today</span>
+            <h3 className="font-heading font-bold text-2xl mt-1 drop-shadow-sm">
+              {todayTargetLbs.toFixed(1)} <span className="text-base font-medium text-white/60">lb today</span>
             </h3>
-            <p className="text-xs text-muted-foreground mt-0.5">{reason}</p>
+            <p className="text-xs text-white/70 mt-0.5">{reason}</p>
             {cappedAt !== null && (
-              <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1">
+              <p className="text-[11px] text-amber-300 mt-1">
                 Capped at {cappedAt.toFixed(1)} lb (max safe pace)
               </p>
             )}
           </div>
         </div>
-        <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />
+        <ChevronRight className="h-5 w-5 text-white/50 shrink-0" />
       </div>
 
       {/* Progress bar */}
