@@ -64,6 +64,53 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
   const circleScale = useTransform(dragY, [0, 200], [1, 1.15]);
   const hintOpacity = useTransform(dragY, [0, 80], [1, 0]);
 
+  // Fetch background library + per-category defaults
+  const { data: backgrounds = [] } = useQuery({
+    queryKey: ["portal-backgrounds-client"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("portal_backgrounds" as any)
+        .select("id, image_url, layer, is_active")
+        .eq("is_active", true);
+      return (data || []) as unknown as Array<{ id: string; image_url: string; layer: string; is_active: boolean }>;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const { data: categoryDefaults = [] } = useQuery({
+    queryKey: ["portal-category-backgrounds-client"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("portal_category_backgrounds" as any)
+        .select("category, nebula_id, horizon_id, show_horizon");
+      return (data || []) as unknown as Array<{ category: string; nebula_id: string | null; horizon_id: string | null; show_horizon: boolean }>;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Resolve final nebula + horizon (override → category default → built-in)
+  const { nebulaUrl, horizonUrl, showHorizon } = useMemo(() => {
+    const bgById = (id: string | null | undefined) =>
+      id ? backgrounds.find((b) => b.id === id) : undefined;
+    const catDefault = categoryDefaults.find(
+      (c) => c.category.toLowerCase() === scene.category?.toLowerCase(),
+    );
+
+    const nebulaBg = bgById(scene.override_nebula_id) ?? bgById(catDefault?.nebula_id);
+    const horizonBg = bgById(scene.override_horizon_id) ?? bgById(catDefault?.horizon_id);
+
+    const showH =
+      scene.override_show_horizon !== null && scene.override_show_horizon !== undefined
+        ? scene.override_show_horizon
+        : (catDefault?.show_horizon ?? true);
+
+    return {
+      nebulaUrl: nebulaBg?.image_url ?? builtInNebulaFor(scene.category),
+      horizonUrl: horizonBg?.image_url ?? portalEarth,
+      showHorizon: showH,
+    };
+  }, [scene, backgrounds, categoryDefaults]);
+
   // Sync video play state + try to start audio (browsers may block until user gesture)
   useEffect(() => {
     const v = videoRef.current;
