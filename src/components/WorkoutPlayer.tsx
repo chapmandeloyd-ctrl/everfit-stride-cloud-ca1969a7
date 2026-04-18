@@ -648,7 +648,13 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
     if (phase !== "playing" || !currentStep) return;
     if (currentStep.type === "exercise" && currentStep.exercise) {
       const ex = currentStep.exercise;
-      if (ex.duration_seconds) startStepCountdown(ex.duration_seconds);
+      // Only timed block types (Circuit/Tabata/EMOM/AMRAP/For Time) use a countdown.
+      // Rep-based blocks (Regular/Superset/Giant Set) always use the stopwatch,
+      // even if the exercise has a duration_seconds value (treated as a target hint only).
+      const TIMED_BLOCKS = ["circuit", "tabata", "emom", "amrap", "for_time", "fortime"];
+      const section = sections[currentStep.sectionIdx];
+      const isTimedBlock = TIMED_BLOCKS.includes((section?.section_type || "").toLowerCase());
+      if (ex.duration_seconds && isTimedBlock) startStepCountdown(ex.duration_seconds);
       else startStepStopwatch();
     } else if (currentStep.type === "rest") {
       const secs = currentStep.restSeconds || 60;
