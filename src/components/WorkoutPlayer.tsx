@@ -486,14 +486,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
       }
     }
 
-    // Last 3-second countdown during rest too
-    if (step.type === "rest") {
-      if (stepTimer > 0 && stepTimer <= 3 && lastCountdownRef.current !== stepTimer) {
-        lastCountdownRef.current = stepTimer;
-        const countdownWord = stepTimer === 3 ? "Three" : stepTimer === 2 ? "Two" : "One";
-        playClip(countdownWord).catch(() => {});
-      }
-    }
+    // Rest periods no longer get a 3-2-1 voice countdown — visual timer is enough.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stepTimer, stepIdx, phase]);
 
