@@ -342,14 +342,14 @@ export function PortalBreathPreview({
           </AnimatePresence>
 
           <div className="flex items-center justify-between text-white/85">
-            {/* FOCUS — opens portal control panel */}
+            {/* BREATH — opens portal control panel */}
             <button
               onClick={() => setPanelOpen(true)}
               className="flex items-center gap-2 hover:text-white transition-colors"
               aria-label="Open portal panel"
             >
               <CircleDot className="h-5 w-5" strokeWidth={1.5} />
-              <span className="text-[11px] uppercase tracking-[0.25em] font-medium">Focus</span>
+              <span className="text-[11px] uppercase tracking-[0.25em] font-medium">Breath</span>
             </button>
 
             <button
