@@ -522,7 +522,17 @@ export default function PortalMockup() {
                   transition={{ type: "spring", damping: 30, stiffness: 300 }}
                   className="fixed bottom-0 left-0 right-0 z-40 bg-zinc-950 border-t border-white/10 rounded-t-3xl px-5 pt-4 pb-8"
                 >
-                  <div className="w-10 h-1 bg-white/20 rounded-full mx-auto mb-5" />
+                  <div className="w-10 h-1 bg-white/20 rounded-full mx-auto mb-4" />
+                  <button
+                    onClick={() => {
+                      setSheetOpen(false);
+                      navigate(-1);
+                    }}
+                    className="flex items-center gap-1.5 text-white/60 hover:text-white text-xs mb-5 transition-colors"
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                    Back to Library
+                  </button>
                   <div className="text-[10px] uppercase tracking-[0.3em] text-white/50 mb-2">
                     Duration
                   </div>
