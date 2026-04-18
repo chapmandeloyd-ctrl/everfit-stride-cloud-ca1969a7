@@ -4,7 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { PortalPlayer, type PortalScene } from "@/components/portal/PortalPlayer";
 import { PortalEntry } from "@/components/portal/PortalEntry";
 import { PortalLibrary } from "@/components/portal/PortalLibrary";
-import { PortalBreathPlayer } from "@/components/portal/PortalBreathPlayer";
+import { BreathingPlayer } from "@/components/vibes/BreathingPlayer";
+import { BREATHING_EXERCISES } from "@/lib/breathingExercises";
 import { PortalBreathPreview } from "@/components/portal/PortalBreathPreview";
 import type { BreathParticleStyle } from "@/components/portal/BreathParticles";
 
@@ -77,31 +78,10 @@ export default function ClientPortal() {
     }
 
     return (
-      <>
-        <PortalBreathPlayer
-          onBack={() => setBreathStage("preview")}
-          onOpenLibrary={() => setLibraryOpen(true)}
-          onSelectCategory={(cat) => {
-            if (cat === "Breath") return;
-            setBreathOpen(false);
-            const next = findFirstInCategory(cat);
-            if (next) setActiveScene(next);
-          }}
-          particleStyle={breathStyle}
-        />
-        {libraryOpen && (
-          <PortalLibrary
-            scenes={scenes}
-            isLoading={isLoading}
-            onClose={() => setLibraryOpen(false)}
-            onSelectScene={(scene) => {
-              setLibraryOpen(false);
-              setBreathOpen(false);
-              setActiveScene(scene);
-            }}
-          />
-        )}
-      </>
+      <BreathingPlayer
+        exercise={BREATHING_EXERCISES[0]}
+        onBack={() => setBreathStage("preview")}
+      />
     );
   }
 
