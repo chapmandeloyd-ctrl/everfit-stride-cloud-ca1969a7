@@ -404,6 +404,9 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
         const ex = step.exercise;
         const section = sections[step.sectionIdx];
         const isGrouped = ["superset", "circuit"].includes(section?.section_type);
+        // Timed block types use countdown timers; rep-based blocks use stopwatch
+        const TIMED_BLOCKS = ["circuit", "tabata", "emom", "amrap", "for_time", "fortime"];
+        const isTimedBlock = TIMED_BLOCKS.includes((section?.section_type || "").toLowerCase());
         let msg = "";
 
         // Announce block name at the start of each new section
@@ -425,8 +428,9 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
           msg += `, set ${step.round} of ${ex.sets}`;
         }
 
-        // Announce reps or duration based on what the exercise has
-        if (ex.duration_seconds) {
+        // Announce reps or duration based on block type
+        // Only timed blocks (Circuit/Tabata/EMOM/AMRAP/For Time) get the seconds callout
+        if (ex.duration_seconds && isTimedBlock) {
           msg += `, ${ex.duration_seconds} seconds`;
         } else if (ex.reps) {
           msg += `, ${ex.reps} reps`;
@@ -468,8 +472,13 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
     const step = steps[stepIdx];
     if (!step) return;
 
-    // Last 3-second countdown for exercises (browser TTS for zero latency)
-    if (step.type === "exercise") {
+    // Last 3-second countdown ONLY for timed blocks (Circuit/Tabata/EMOM/AMRAP/For Time).
+    // Rep-based exercises (Regular/Superset/Giant Set) use a stopwatch and never count down.
+    const TIMED_BLOCKS = ["circuit", "tabata", "emom", "amrap", "for_time", "fortime"];
+    const section = sections[step.sectionIdx];
+    const isTimedBlock = TIMED_BLOCKS.includes((section?.section_type || "").toLowerCase());
+
+    if (step.type === "exercise" && isTimedBlock && step.exercise?.duration_seconds) {
       if (stepTimer > 0 && stepTimer <= 3 && lastCountdownRef.current !== stepTimer) {
         lastCountdownRef.current = stepTimer;
         const countdownWord = stepTimer === 3 ? "Three" : stepTimer === 2 ? "Two" : "One";
