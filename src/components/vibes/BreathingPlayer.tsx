@@ -305,7 +305,11 @@ export function BreathingPlayer({
   const handleEnd = () => {
     setPlaying(false);
     stopMusic();
-    setStage("summary");
+    if (onComplete) {
+      onComplete();
+    } else {
+      setStage("summary");
+    }
   };
 
   /* ─── Entry screen ─── */
