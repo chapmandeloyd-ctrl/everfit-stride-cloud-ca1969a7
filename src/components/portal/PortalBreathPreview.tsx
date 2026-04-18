@@ -260,22 +260,6 @@ export function PortalBreathPreview({ onBack, onExpand, audioPaused, style: styl
             </div>
           </div>
 
-          {/* Style switcher (DEMO) — lets user compare the 3 styles live */}
-          <div className="mt-6 flex items-center gap-2 bg-white/[0.06] backdrop-blur-md border border-white/15 rounded-full p-1">
-            {STYLES.map((s) => (
-              <button
-                key={s.id}
-                onClick={() => setStyle(s.id)}
-                className={`px-3 py-1.5 rounded-full text-[10px] uppercase tracking-[0.2em] transition-all ${
-                  style === s.id
-                    ? "bg-white/90 text-black"
-                    : "text-white/70 hover:text-white"
-                }`}
-              >
-                {s.label}
-              </button>
-            ))}
-          </div>
 
           {/* Drag-down hint */}
           <motion.div
