@@ -1,11 +1,11 @@
 import { motion } from "framer-motion";
 
 interface PortalEntryProps {
-  onSelectCategory: (category: "Focus" | "Sleep" | "Escape") => void;
+  onSelectCategory: (category: "Focus" | "Sleep" | "Escape" | "Breath") => void;
 }
 
 export function PortalEntry({ onSelectCategory }: PortalEntryProps) {
-  const categories: Array<"Focus" | "Sleep" | "Escape"> = ["Focus", "Sleep", "Escape"];
+  const categories: Array<"Focus" | "Sleep" | "Escape" | "Breath"> = ["Focus", "Sleep", "Escape", "Breath"];
 
   return (
     <div className="fixed inset-0 bg-black overflow-hidden z-50">
