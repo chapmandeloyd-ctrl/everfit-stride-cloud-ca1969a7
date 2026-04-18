@@ -9,7 +9,16 @@ export function PortalEntry({ onSelectCategory }: PortalEntryProps) {
 
   return (
     <div className="fixed inset-0 bg-black overflow-hidden z-50">
-      {/* Earth video — fills screen */}
+      {/* Starfield fallback — visible immediately while video buffers */}
+      <div
+        className="absolute inset-0 bg-black"
+        style={{
+          backgroundImage:
+            "radial-gradient(ellipse at 30% 40%, rgba(40,80,140,0.35) 0%, transparent 50%), radial-gradient(ellipse at 70% 60%, rgba(20,40,80,0.4) 0%, transparent 55%), radial-gradient(circle at 50% 50%, #000 0%, #000 100%)",
+        }}
+      />
+
+      {/* Earth video — fills screen, fades in when ready */}
       <video
         autoPlay
         loop
@@ -19,13 +28,24 @@ export function PortalEntry({ onSelectCategory }: PortalEntryProps) {
         disablePictureInPicture
         disableRemotePlayback
         controls={false}
-        className="absolute inset-0 w-full h-full object-cover"
+        poster="/portal/ksom-calm-earth-poster.jpg"
+        className="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-1000"
         ref={(el) => {
           if (!el) return;
           el.muted = true;
-          const tryPlay = () => el.play().catch(() => {});
-          tryPlay();
+          const reveal = () => {
+            el.style.opacity = "1";
+          };
+          const tryPlay = () =>
+            el
+              .play()
+              .then(reveal)
+              .catch(() => {});
+          // If already buffered enough, play immediately
+          if (el.readyState >= 2) tryPlay();
+          el.addEventListener("loadeddata", tryPlay, { once: true });
           el.addEventListener("canplay", tryPlay, { once: true });
+          el.addEventListener("playing", reveal, { once: true });
         }}
       >
         <source src="/portal/ksom-calm-earth.mp4" type="video/mp4" />
