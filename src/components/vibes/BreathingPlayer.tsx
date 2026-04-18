@@ -198,9 +198,60 @@ export function BreathingPlayer({
     if (stage === "playing" && sessionElapsed >= durationSecs) {
       setPlaying(false);
       stopMusic();
-      setStage("summary");
+      if (onComplete) {
+        onComplete();
+      } else {
+        setStage("summary");
+      }
     }
-  }, [sessionElapsed, durationSecs, stage, stopMusic]);
+  }, [sessionElapsed, durationSecs, stage, stopMusic, onComplete]);
+
+  // Quick-start mode: auto-load default music track on mount
+  useEffect(() => {
+    if (!quickStart) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        // Check for pinned track first
+        const { data: pinned } = await supabase
+          .from("breathing_exercise_music")
+          .select("track_id")
+          .eq("exercise_id", exercise.id)
+          .maybeSingle();
+
+        let trackUrl: string | null = null;
+        if (pinned?.track_id) {
+          const { data: t } = await supabase
+            .from("breathing_music_tracks")
+            .select("file_url")
+            .eq("id", pinned.track_id)
+            .maybeSingle();
+          trackUrl = t?.file_url ?? null;
+        }
+        if (!trackUrl) {
+          const { data: t } = await supabase
+            .from("breathing_music_tracks")
+            .select("file_url")
+            .eq("is_active", true)
+            .order("order_index", { ascending: true })
+            .limit(1)
+            .maybeSingle();
+          trackUrl = t?.file_url ?? null;
+        }
+        if (!cancelled && trackUrl) {
+          initAudioOnGesture();
+          setMusicEnabled(true);
+          await playMusicFromUrl(trackUrl);
+        }
+      } catch (e) {
+        console.log("[BreathingPlayer] quickStart music load failed:", e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [quickStart, exercise.id]);
 
   // Pause/resume music with session
   useEffect(() => {
