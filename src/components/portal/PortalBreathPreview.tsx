@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from "framer-motion";
 import { ArrowLeft, ChevronDown, Clock, Wind } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { BreathParticles, type BreathParticleStyle } from "./BreathParticles";
 import { Starfield } from "./Starfield";
 import nebulaSleep from "@/assets/portal-nebula-sleep.jpg";
@@ -30,8 +32,25 @@ const STYLES: { id: BreathParticleStyle; label: string }[] = [
  */
 export function PortalBreathPreview({ onBack, onExpand, audioPaused }: Props) {
   const audioRef = useRef<HTMLAudioElement>(null);
-  const [style, setStyle] = useState<BreathParticleStyle>("soft");
+  const [style, setStyle] = useState<BreathParticleStyle>("aurora");
   const [elapsed, setElapsed] = useState(0);
+
+  // Pull a real ambient track from the breathing music library
+  const { data: track } = useQuery({
+    queryKey: ["portal-breath-music"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("breathing_music_tracks")
+        .select("id, name, file_url")
+        .eq("is_active", true)
+        .order("order_index", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 
   // Demo breath cycle for "pulse" mode (4s inhale / 2s hold / 6s exhale)
   const [phase, setPhase] = useState<"inhale" | "hold" | "exhale">("inhale");
@@ -83,7 +102,7 @@ export function PortalBreathPreview({ onBack, onExpand, audioPaused }: Props) {
     } else {
       a.play().catch(() => {});
     }
-  }, [audioPaused]);
+  }, [audioPaused, track?.file_url]);
 
   // Kick off audio on first user interaction (autoplay fallback)
   useEffect(() => {
@@ -91,8 +110,8 @@ export function PortalBreathPreview({ onBack, onExpand, audioPaused }: Props) {
       const a = audioRef.current;
       if (a && a.paused && !audioPaused) a.play().catch(() => {});
     };
-    window.addEventListener("pointerdown", tryPlay, { once: true });
-    window.addEventListener("touchstart", tryPlay, { once: true });
+    window.addEventListener("pointerdown", tryPlay);
+    window.addEventListener("touchstart", tryPlay);
     return () => {
       window.removeEventListener("pointerdown", tryPlay);
       window.removeEventListener("touchstart", tryPlay);
@@ -119,13 +138,15 @@ export function PortalBreathPreview({ onBack, onExpand, audioPaused }: Props) {
 
   return (
     <div className="fixed inset-0 z-[100] bg-black overflow-hidden">
-      {/* Ambient music — placeholder calm track. Same behavior as PortalPlayer. */}
-      <audio
-        ref={audioRef}
-        src="https://cdn.pixabay.com/audio/2022/03/15/audio_1bce96f2c5.mp3"
-        loop
-        preload="auto"
-      />
+      {/* Ambient music from the trainer-managed breathing music library */}
+      {track?.file_url && (
+        <audio
+          ref={audioRef}
+          src={track.file_url}
+          loop
+          preload="auto"
+        />
+      )}
 
       <motion.div
         className="absolute inset-0 flex flex-col"
