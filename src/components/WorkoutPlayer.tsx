@@ -413,20 +413,13 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
         if (isGrouped && step.exerciseIdx === 0 && section?.name) {
           const blockName = section.name.replace(/\s*Block\s*\d+$/i, "").replace(/\s*\d+$/, "").trim();
           if (step.round === 1) {
-            // Announce block with its structure info
             const exCount = section.exercises.length;
             const rounds = section.rounds;
             msg += `${blockName}. ${exCount} exercise${exCount > 1 ? "s" : ""}, ${rounds} round${rounds > 1 ? "s" : ""}. `;
           }
-          msg += `Round ${step.round}. `;
         }
 
         msg += ex.exercise_name || "";
-
-        // For non-grouped (regular), announce set info
-        if (!isGrouped && ex.sets && ex.sets >= 1) {
-          msg += `, set ${step.round} of ${ex.sets}`;
-        }
 
         // Announce reps or duration based on block type
         // Only timed blocks (Circuit/Tabata/EMOM/AMRAP/For Time) get the seconds callout
