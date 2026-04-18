@@ -87,6 +87,7 @@ export default function ClientPortal() {
             const next = findFirstInCategory(cat);
             if (next) setActiveScene(next);
           }}
+          particleStyle={breathStyle}
         />
         {libraryOpen && (
           <PortalLibrary
