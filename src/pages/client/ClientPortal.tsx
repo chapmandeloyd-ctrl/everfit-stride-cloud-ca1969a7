@@ -5,7 +5,7 @@ import { PortalPlayer, type PortalScene } from "@/components/portal/PortalPlayer
 import { PortalEntry } from "@/components/portal/PortalEntry";
 import { PortalLibrary } from "@/components/portal/PortalLibrary";
 
-type EntryCategory = "Focus" | "Sleep" | "Escape";
+type EntryCategory = "Focus" | "Sleep" | "Escape" | "Breath";
 
 export default function ClientPortal() {
   const [activeScene, setActiveScene] = useState<PortalScene | null>(null);
