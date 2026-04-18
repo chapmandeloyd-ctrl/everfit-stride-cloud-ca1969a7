@@ -31,7 +31,7 @@ export default function ClientMyWorkouts() {
             workout_plan_exercises(id)
           )
         `)
-        .eq("trainer_id", clientId)
+        .eq("client_owner_id", clientId)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data || [];
