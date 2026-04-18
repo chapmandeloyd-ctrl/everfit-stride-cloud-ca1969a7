@@ -71,6 +71,18 @@ export default function ClientPortal() {
             audioPaused={libraryOpen || breathPromptOpen}
             style={breathStyle}
             onStyleChange={setBreathStyle}
+            onOpenBreathLibrary={() => setBreathPromptOpen(true)}
+            onSelectCategory={(cat) => {
+              if (cat === "Breath") {
+                setBreathPromptOpen(true);
+                return;
+              }
+              const next = findFirstInCategory(cat);
+              if (next) {
+                setBreathOpen(false);
+                setActiveScene(next);
+              }
+            }}
           />
           {libraryOpen && (
             <PortalLibrary
