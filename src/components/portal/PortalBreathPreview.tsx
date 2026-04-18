@@ -51,7 +51,15 @@ const STYLES: { id: BreathParticleStyle; label: string }[] = [
  *
  * Includes a small style switcher so the user can demo Soft / Pulse / Aurora live.
  */
-export function PortalBreathPreview({ onBack, onExpand, audioPaused, style: styleProp, onStyleChange }: Props) {
+export function PortalBreathPreview({
+  onBack,
+  onExpand,
+  audioPaused,
+  style: styleProp,
+  onStyleChange,
+  onSelectCategory,
+  onOpenBreathLibrary,
+}: Props) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [styleLocal, setStyleLocal] = useState<BreathParticleStyle>("aurora");
   const style = styleProp ?? styleLocal;
@@ -60,6 +68,10 @@ export function PortalBreathPreview({ onBack, onExpand, audioPaused, style: styl
     onStyleChange?.(s);
   };
   const [elapsed, setElapsed] = useState(0);
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [muted, setMuted] = useState(false);
+  const [volume, setVolume] = useState(0.35);
+  const [volumeOpen, setVolumeOpen] = useState(false);
 
   // Pull a real ambient track from the breathing music library
   const { data: track } = useQuery({
