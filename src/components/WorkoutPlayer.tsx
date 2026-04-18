@@ -933,16 +933,18 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
         </div>
 
         {/* Stats bar */}
-        <div className="grid grid-cols-4 px-4 py-2 border-b border-border/30 bg-background">
+        <div className={cn("grid px-4 py-2 border-b border-border/30 bg-background", isTimedBlock ? "grid-cols-4" : "grid-cols-3")}>
           <div className="text-center">
             <p className="text-xs font-semibold text-muted-foreground tracking-wider uppercase">TIME</p>
             <p className="text-sm font-bold tabular-nums">{formatTime(elapsedSeconds)}</p>
           </div>
-          <div className="text-center border-x border-border/30">
-            <p className="text-xs font-semibold text-muted-foreground tracking-wider uppercase">Remaining</p>
-            <p className="text-sm font-bold tabular-nums">{formatTime(remainingSeconds)}</p>
-          </div>
-          <div className="text-center border-r border-border/30">
+          {isTimedBlock && (
+            <div className="text-center border-x border-border/30">
+              <p className="text-xs font-semibold text-muted-foreground tracking-wider uppercase">Remaining</p>
+              <p className="text-sm font-bold tabular-nums">{formatTime(remainingSeconds)}</p>
+            </div>
+          )}
+          <div className={cn("text-center", isTimedBlock && "border-r border-border/30")}>
             <p className="text-xs font-semibold text-muted-foreground tracking-wider uppercase">Cal</p>
             <p className="text-sm font-bold">{estimatedCal}</p>
           </div>
@@ -1236,16 +1238,12 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
       </div>
 
       {/* ── Stats Bar ── */}
-      <div className="grid grid-cols-4 px-4 py-3 border-b border-border/40 bg-background">
+      <div className="grid grid-cols-3 px-4 py-3 border-b border-border/40 bg-background">
         <div className="text-center">
           <p className="text-xs font-semibold text-muted-foreground tracking-wider uppercase">TIME</p>
           <p className="text-base font-bold tabular-nums">{formatTime(elapsedSeconds)}</p>
         </div>
         <div className="text-center border-x border-border/40">
-          <p className="text-xs font-semibold text-muted-foreground tracking-wider uppercase">Remaining</p>
-          <p className="text-base font-bold tabular-nums">{formatTime(remainingSeconds)}</p>
-        </div>
-        <div className="text-center border-r border-border/40">
           <p className="text-xs font-semibold text-muted-foreground tracking-wider uppercase">Active</p>
           <p className="text-base font-bold">{estimatedCal} Cal</p>
         </div>
