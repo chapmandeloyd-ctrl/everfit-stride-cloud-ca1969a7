@@ -1,12 +1,26 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from "framer-motion";
-import { ArrowLeft, ChevronDown, Clock, Wind } from "lucide-react";
+import {
+  ArrowLeft,
+  ChevronDown,
+  Clock,
+  CircleDot,
+  Check,
+  TimerReset,
+  Volume2,
+  VolumeX,
+  Lightbulb,
+} from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Slider } from "@/components/ui/slider";
 import { BreathParticles, type BreathParticleStyle } from "./BreathParticles";
 import { Starfield } from "./Starfield";
+import { PortalControlPanel } from "./PortalControlPanel";
 import nebulaSleep from "@/assets/portal-nebula-sleep.jpg";
 import portalEarth from "@/assets/portal-earth.jpg";
+
+type Category = "Focus" | "Sleep" | "Escape" | "Breath";
 
 interface Props {
   onBack: () => void;
@@ -17,6 +31,10 @@ interface Props {
   /** Optional controlled particle style — when provided, switcher updates parent */
   style?: BreathParticleStyle;
   onStyleChange?: (s: BreathParticleStyle) => void;
+  /** Switch to another category from the slide-up panel */
+  onSelectCategory?: (cat: Category) => void;
+  /** Tap the BREATH title or BREATH tab → open the Breath Library prompt */
+  onOpenBreathLibrary?: () => void;
 }
 
 const STYLES: { id: BreathParticleStyle; label: string }[] = [
