@@ -101,6 +101,7 @@ export default function Workouts() {
         `)
         .eq("trainer_id", user?.id)
         .eq("is_template", false)
+        .is("client_owner_id", null)
         .order("created_at", { ascending: false });
 
       if (error) throw error;

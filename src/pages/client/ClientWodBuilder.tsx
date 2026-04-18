@@ -355,6 +355,9 @@ export default function ClientWodBuilder() {
         .insert({
           name: workoutName.trim(),
           trainer_id: user.id,
+          // Mark this workout as belonging to the (effective) client so it
+          // doesn't show up in the trainer's main Workout Library.
+          client_owner_id: effectiveClientId ?? user.id,
           category: workoutType,
           difficulty: "intermediate" as any,
           duration_minutes: estMinutes,
