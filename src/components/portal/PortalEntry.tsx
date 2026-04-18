@@ -1,4 +1,5 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState, useRef, useEffect } from "react";
 
 interface PortalEntryProps {
   onSelectCategory: (category: "Focus" | "Sleep" | "Escape" | "Breath") => void;
@@ -6,6 +7,53 @@ interface PortalEntryProps {
 
 export function PortalEntry({ onSelectCategory }: PortalEntryProps) {
   const categories: Array<"Focus" | "Sleep" | "Escape" | "Breath"> = ["Focus", "Sleep", "Escape", "Breath"];
+  const [videoReady, setVideoReady] = useState(false);
+  const [showButtons, setShowButtons] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el) return;
+
+    el.muted = true;
+
+    const reveal = () => {
+      setVideoReady(true);
+      // Give the user ~1.2s to actually see Earth before buttons fade in
+      setTimeout(() => setShowButtons(true), 1200);
+    };
+
+    const tryPlay = () => {
+      el.play()
+        .then(reveal)
+        .catch(() => {
+          // Autoplay blocked — still reveal so the user can interact
+          reveal();
+        });
+    };
+
+    if (el.readyState >= 3) {
+      tryPlay();
+    } else {
+      el.addEventListener("canplay", tryPlay, { once: true });
+      el.addEventListener("loadeddata", tryPlay, { once: true });
+    }
+
+    // Hard fallback: never leave the user staring at a black screen for >3.5s
+    const fallback = setTimeout(() => {
+      if (!videoReady) {
+        setVideoReady(true);
+        setTimeout(() => setShowButtons(true), 600);
+      }
+    }, 3500);
+
+    return () => {
+      clearTimeout(fallback);
+      el.removeEventListener("canplay", tryPlay);
+      el.removeEventListener("loadeddata", tryPlay);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="fixed inset-0 bg-black overflow-hidden z-50">
@@ -18,8 +66,9 @@ export function PortalEntry({ onSelectCategory }: PortalEntryProps) {
         }}
       />
 
-      {/* Earth video — fills screen, fades in when ready */}
+      {/* Earth video */}
       <video
+        ref={videoRef}
         autoPlay
         loop
         muted
@@ -28,25 +77,9 @@ export function PortalEntry({ onSelectCategory }: PortalEntryProps) {
         disablePictureInPicture
         disableRemotePlayback
         controls={false}
-        poster="/portal/ksom-calm-earth-poster.jpg"
-        className="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-1000"
-        ref={(el) => {
-          if (!el) return;
-          el.muted = true;
-          const reveal = () => {
-            el.style.opacity = "1";
-          };
-          const tryPlay = () =>
-            el
-              .play()
-              .then(reveal)
-              .catch(() => {});
-          // If already buffered enough, play immediately
-          if (el.readyState >= 2) tryPlay();
-          el.addEventListener("loadeddata", tryPlay, { once: true });
-          el.addEventListener("canplay", tryPlay, { once: true });
-          el.addEventListener("playing", reveal, { once: true });
-        }}
+        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[1500ms] ease-out ${
+          videoReady ? "opacity-100" : "opacity-0"
+        }`}
       >
         <source src="/portal/ksom-calm-earth.mp4" type="video/mp4" />
       </video>
@@ -99,24 +132,63 @@ export function PortalEntry({ onSelectCategory }: PortalEntryProps) {
         `}</style>
       </motion.div>
 
-      {/* Frosted glass buttons */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1, delay: 0.4, ease: "easeOut" }}
-        className="absolute bottom-[8%] inset-x-0 px-8 space-y-3"
-      >
-        {/* category buttons only — library lives inside the player */}
-        {categories.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => onSelectCategory(cat)}
-            className="w-full py-4 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 text-white text-sm font-light tracking-[0.3em] uppercase hover:bg-white/20 active:scale-[0.98] transition-all"
+      {/* Loading hint — shows only while video is buffering */}
+      <AnimatePresence>
+        {!videoReady && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+            className="absolute bottom-[14%] inset-x-0 flex flex-col items-center gap-3 pointer-events-none"
           >
-            {cat}
-          </button>
-        ))}
-      </motion.div>
+            <div className="flex gap-1.5">
+              {[0, 1, 2].map((i) => (
+                <motion.div
+                  key={i}
+                  className="w-1.5 h-1.5 rounded-full bg-white/60"
+                  animate={{ opacity: [0.2, 1, 0.2] }}
+                  transition={{
+                    duration: 1.4,
+                    repeat: Infinity,
+                    delay: i * 0.2,
+                    ease: "easeInOut",
+                  }}
+                />
+              ))}
+            </div>
+            <div className="text-white/40 text-[10px] uppercase tracking-[0.4em]">
+              entering orbit
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Frosted glass buttons — appear AFTER Earth is visible */}
+      <AnimatePresence>
+        {showButtons && (
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1.2, ease: "easeOut" }}
+            className="absolute bottom-[8%] inset-x-0 px-8 space-y-3"
+          >
+            {categories.map((cat, i) => (
+              <motion.button
+                key={cat}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: i * 0.1, ease: "easeOut" }}
+                onClick={() => onSelectCategory(cat)}
+                className="w-full py-4 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 text-white text-sm font-light tracking-[0.3em] uppercase hover:bg-white/20 active:scale-[0.98] transition-all"
+              >
+                {cat}
+              </motion.button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
