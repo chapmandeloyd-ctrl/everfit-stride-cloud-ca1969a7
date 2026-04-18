@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Info, Rss, HelpCircle, Settings as SettingsIcon, BookOpen, CircleDot, Moon, Globe } from "lucide-react";
+import { X, Info, Rss, HelpCircle, Settings as SettingsIcon, BookOpen, CircleDot, Moon, Globe, Wind } from "lucide-react";
 
-type Category = "Focus" | "Sleep" | "Escape";
+type Category = "Focus" | "Sleep" | "Escape" | "Breath";
 
 interface PortalControlPanelProps {
   open: boolean;
