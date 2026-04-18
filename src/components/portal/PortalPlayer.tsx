@@ -265,26 +265,25 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
               <Starfield density={90} />
             </div>
 
-            {/* Horizon (Earth or custom) at the bottom — anchored thin sliver */}
+            {/* Horizon (Earth or custom) at the bottom — full image, anchored to bottom */}
             {showHorizon && (
               <div
                 className="absolute left-1/2 -translate-x-1/2 pointer-events-none"
                 style={{
-                  bottom: "-12%",
-                  width: "180%",
-                  maxWidth: "1200px",
-                  aspectRatio: "16 / 9",
+                  bottom: 0,
+                  width: "100%",
+                  maxWidth: "900px",
                 }}
               >
                 <img
                   src={horizonUrl}
                   alt=""
-                  className="w-full h-full object-cover object-top opacity-90"
+                  className="w-full h-auto block opacity-95"
                   style={{
                     maskImage:
-                      "radial-gradient(ellipse 70% 90% at 50% 100%, black 40%, transparent 80%)",
+                      "linear-gradient(to top, black 70%, transparent 100%)",
                     WebkitMaskImage:
-                      "radial-gradient(ellipse 70% 90% at 50% 100%, black 40%, transparent 80%)",
+                      "linear-gradient(to top, black 70%, transparent 100%)",
                   }}
                 />
               </div>
