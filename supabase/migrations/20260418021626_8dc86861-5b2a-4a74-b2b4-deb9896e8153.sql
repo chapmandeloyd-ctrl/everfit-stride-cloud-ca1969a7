@@ -1,0 +1,2 @@
+ALTER TABLE public.workout_plans ADD COLUMN IF NOT EXISTS client_owner_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE;
+CREATE INDEX IF NOT EXISTS idx_workout_plans_client_owner ON public.workout_plans(client_owner_id);

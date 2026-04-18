@@ -8870,6 +8870,7 @@ export type Database = {
       workout_plans: {
         Row: {
           category: string
+          client_owner_id: string | null
           created_at: string
           description: string | null
           difficulty: Database["public"]["Enums"]["workout_difficulty"]
@@ -8888,6 +8889,7 @@ export type Database = {
         }
         Insert: {
           category: string
+          client_owner_id?: string | null
           created_at?: string
           description?: string | null
           difficulty: Database["public"]["Enums"]["workout_difficulty"]
@@ -8906,6 +8908,7 @@ export type Database = {
         }
         Update: {
           category?: string
+          client_owner_id?: string | null
           created_at?: string
           description?: string | null
           difficulty?: Database["public"]["Enums"]["workout_difficulty"]
@@ -8923,6 +8926,13 @@ export type Database = {
           video_url?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "workout_plans_client_owner_id_fkey"
+            columns: ["client_owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "workout_plans_trainer_id_fkey"
             columns: ["trainer_id"]
