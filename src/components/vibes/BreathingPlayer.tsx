@@ -63,7 +63,15 @@ function getArcIntensity(arcMode: RestoreMode, cycleCount: number, totalCycles: 
   return 1.0;
 }
 
-export function BreathingPlayer({ exercise, mode, onBack, contained = false }: Props) {
+export function BreathingPlayer({
+  exercise,
+  mode,
+  onBack,
+  contained = false,
+  quickStart = false,
+  quickDurationSecs = 30,
+  onComplete,
+}: Props) {
   const effectiveMode = mode ?? exercise.motion.arcMode;
   const tone = exercise.tone;
   const motion = exercise.motion;
