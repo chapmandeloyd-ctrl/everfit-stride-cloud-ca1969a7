@@ -281,9 +281,9 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
                   className="w-full h-auto block opacity-95"
                   style={{
                     maskImage:
-                      "linear-gradient(to top, black 70%, transparent 100%)",
+                      "radial-gradient(ellipse 75% 85% at 50% 70%, black 35%, rgba(0,0,0,0.6) 60%, transparent 95%)",
                     WebkitMaskImage:
-                      "linear-gradient(to top, black 70%, transparent 100%)",
+                      "radial-gradient(ellipse 75% 85% at 50% 70%, black 35%, rgba(0,0,0,0.6) 60%, transparent 95%)",
                   }}
                 />
               </div>
