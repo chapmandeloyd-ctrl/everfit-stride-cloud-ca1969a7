@@ -5,12 +5,20 @@ import { BreathingEntryScreen } from "./BreathingEntryScreen";
 import { BreathingSessionSummary } from "./BreathingSessionSummary";
 import { BreathingAnimationLayer } from "./BreathingAnimationLayer";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
   exercise: BreathingExercise;
   mode?: RestoreMode;
   onBack: () => void;
   contained?: boolean;
+  /** When true, skip the entry/setup screen and start immediately
+   * with `quickDurationSecs` and the first available music track. */
+  quickStart?: boolean;
+  /** Default duration when quickStart is true (default 30s). */
+  quickDurationSecs?: number;
+  /** Called when the session finishes naturally (replaces the summary screen). */
+  onComplete?: () => void;
 }
 
 /* ─── Particle system ─── */
@@ -56,7 +64,15 @@ function getArcIntensity(arcMode: RestoreMode, cycleCount: number, totalCycles: 
   return 1.0;
 }
 
-export function BreathingPlayer({ exercise, mode, onBack, contained = false }: Props) {
+export function BreathingPlayer({
+  exercise,
+  mode,
+  onBack,
+  contained = false,
+  quickStart = false,
+  quickDurationSecs = 30,
+  onComplete,
+}: Props) {
   const effectiveMode = mode ?? exercise.motion.arcMode;
   const tone = exercise.tone;
   const motion = exercise.motion;
@@ -64,12 +80,12 @@ export function BreathingPlayer({ exercise, mode, onBack, contained = false }: P
   const ratioStr = phases.map((p) => p.seconds).join("–");
 
   // States
-  const [stage, setStage] = useState<"entry" | "playing" | "summary">("entry");
-  const [playing, setPlaying] = useState(false);
+  const [stage, setStage] = useState<"entry" | "playing" | "summary">(quickStart ? "playing" : "entry");
+  const [playing, setPlaying] = useState(quickStart);
   const [phaseIndex, setPhaseIndex] = useState(0);
   const [phaseElapsed, setPhaseElapsed] = useState(0);
   const [cycleCount, setCycleCount] = useState(0);
-  const [durationSecs, setDurationSecs] = useState(180);
+  const [durationSecs, setDurationSecs] = useState(quickStart ? quickDurationSecs : 180);
   const [sessionElapsed, setSessionElapsed] = useState(0);
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -183,9 +199,60 @@ export function BreathingPlayer({ exercise, mode, onBack, contained = false }: P
     if (stage === "playing" && sessionElapsed >= durationSecs) {
       setPlaying(false);
       stopMusic();
-      setStage("summary");
+      if (onComplete) {
+        onComplete();
+      } else {
+        setStage("summary");
+      }
     }
-  }, [sessionElapsed, durationSecs, stage, stopMusic]);
+  }, [sessionElapsed, durationSecs, stage, stopMusic, onComplete]);
+
+  // Quick-start mode: auto-load default music track on mount
+  useEffect(() => {
+    if (!quickStart) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        // Check for pinned track first
+        const { data: pinned } = await supabase
+          .from("breathing_exercise_music")
+          .select("track_id")
+          .eq("exercise_id", exercise.id)
+          .maybeSingle();
+
+        let trackUrl: string | null = null;
+        if (pinned?.track_id) {
+          const { data: t } = await supabase
+            .from("breathing_music_tracks")
+            .select("file_url")
+            .eq("id", pinned.track_id)
+            .maybeSingle();
+          trackUrl = t?.file_url ?? null;
+        }
+        if (!trackUrl) {
+          const { data: t } = await supabase
+            .from("breathing_music_tracks")
+            .select("file_url")
+            .eq("is_active", true)
+            .order("order_index", { ascending: true })
+            .limit(1)
+            .maybeSingle();
+          trackUrl = t?.file_url ?? null;
+        }
+        if (!cancelled && trackUrl) {
+          initAudioOnGesture();
+          setMusicEnabled(true);
+          await playMusicFromUrl(trackUrl);
+        }
+      } catch (e) {
+        console.log("[BreathingPlayer] quickStart music load failed:", e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [quickStart, exercise.id]);
 
   // Pause/resume music with session
   useEffect(() => {
@@ -238,7 +305,11 @@ export function BreathingPlayer({ exercise, mode, onBack, contained = false }: P
   const handleEnd = () => {
     setPlaying(false);
     stopMusic();
-    setStage("summary");
+    if (onComplete) {
+      onComplete();
+    } else {
+      setStage("summary");
+    }
   };
 
   /* ─── Entry screen ─── */
@@ -473,6 +544,24 @@ export function BreathingPlayer({ exercise, mode, onBack, contained = false }: P
         </div>
         <span className="text-[10px] text-white/20 uppercase tracking-[0.2em] tabular-nums">
           {cycleCount + 1}
+        </span>
+      </div>
+
+      {/* Title + description — top */}
+      <div className="absolute top-14 left-0 right-0 px-6 z-10 pointer-events-none flex flex-col items-center text-center">
+        <h2
+          className="text-base font-light tracking-[0.18em] uppercase"
+          style={{ color: `hsla(${h - 5}, 30%, 92%, 0.85)` }}
+        >
+          {exercise.name}
+        </h2>
+        {exercise.description && (
+          <p className="mt-1.5 text-[11px] text-white/45 font-light max-w-[280px] leading-snug">
+            {exercise.description}
+          </p>
+        )}
+        <span className="mt-1.5 text-[10px] text-white/30 tracking-[0.25em] tabular-nums">
+          {ratioStr}
         </span>
       </div>
 
