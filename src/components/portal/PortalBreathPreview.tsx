@@ -134,13 +134,13 @@ export function PortalBreathPreview({
   useEffect(() => {
     const a = audioRef.current;
     if (!a) return;
-    a.volume = 0.35;
+    a.volume = muted ? 0 : volume;
     if (audioPaused) {
       a.pause();
     } else {
       a.play().catch(() => {});
     }
-  }, [audioPaused, track?.file_url]);
+  }, [audioPaused, track?.file_url, muted, volume]);
 
   // Kick off audio on first user interaction (autoplay fallback)
   useEffect(() => {
