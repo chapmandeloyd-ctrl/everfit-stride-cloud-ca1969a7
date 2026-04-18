@@ -5,6 +5,7 @@ import { BreathingEntryScreen } from "./BreathingEntryScreen";
 import { BreathingSessionSummary } from "./BreathingSessionSummary";
 import { BreathingAnimationLayer } from "./BreathingAnimationLayer";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
   exercise: BreathingExercise;
