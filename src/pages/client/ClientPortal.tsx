@@ -4,7 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { PortalPlayer, type PortalScene } from "@/components/portal/PortalPlayer";
 import { PortalEntry } from "@/components/portal/PortalEntry";
 import { PortalLibrary } from "@/components/portal/PortalLibrary";
-import { PortalBreathPlayer } from "@/components/portal/PortalBreathPlayer";
+import { BreathingPlayer } from "@/components/vibes/BreathingPlayer";
+import { BREATHING_EXERCISES } from "@/lib/breathingExercises";
 import { PortalBreathPreview } from "@/components/portal/PortalBreathPreview";
 import type { BreathParticleStyle } from "@/components/portal/BreathParticles";
 
