@@ -35,6 +35,7 @@ export default function ClientPortal() {
   const handleSelectCategory = (category: EntryCategory) => {
     if (category === "Breath") {
       setActiveScene(null);
+      setBreathStage("preview");
       setBreathOpen(true);
       return;
     }
@@ -45,12 +46,36 @@ export default function ClientPortal() {
     }
   };
 
-  // Breath player — independent immersive surface
+  // Breath flow: circle preview → drag down → full player
   if (breathOpen) {
+    if (breathStage === "preview") {
+      return (
+        <>
+          <PortalBreathPreview
+            onBack={() => setBreathOpen(false)}
+            onExpand={() => setBreathStage("player")}
+            audioPaused={libraryOpen}
+          />
+          {libraryOpen && (
+            <PortalLibrary
+              scenes={scenes}
+              isLoading={isLoading}
+              onClose={() => setLibraryOpen(false)}
+              onSelectScene={(scene) => {
+                setLibraryOpen(false);
+                setBreathOpen(false);
+                setActiveScene(scene);
+              }}
+            />
+          )}
+        </>
+      );
+    }
+
     return (
       <>
         <PortalBreathPlayer
-          onBack={() => setBreathOpen(false)}
+          onBack={() => setBreathStage("preview")}
           onOpenLibrary={() => setLibraryOpen(true)}
           onSelectCategory={(cat) => {
             if (cat === "Breath") return;
