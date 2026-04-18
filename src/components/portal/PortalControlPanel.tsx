@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Info, Rss, HelpCircle, Settings as SettingsIcon, BookOpen, CircleDot, Moon, Globe } from "lucide-react";
+import { X, Info, Rss, HelpCircle, Settings as SettingsIcon, BookOpen, CircleDot, Moon, Globe, Wind } from "lucide-react";
 
-type Category = "Focus" | "Sleep" | "Escape";
+type Category = "Focus" | "Sleep" | "Escape" | "Breath";
 
 interface PortalControlPanelProps {
   open: boolean;
@@ -30,6 +30,7 @@ export function PortalControlPanel({
     { key: "Focus", icon: CircleDot },
     { key: "Sleep", icon: Moon },
     { key: "Escape", icon: Globe },
+    { key: "Breath", icon: Wind },
   ];
 
   const utilityItems = [
@@ -113,7 +114,7 @@ export function PortalControlPanel({
 
             {/* Segmented tabs: FOCUS / SLEEP / ESCAPE */}
             <div className="px-4 pb-4">
-              <div className="grid grid-cols-3 bg-white/[0.04] rounded-xl overflow-hidden border border-white/10">
+              <div className="grid grid-cols-4 bg-white/[0.04] rounded-xl overflow-hidden border border-white/10">
                 {tabs.map(({ key, icon: Icon }) => {
                   const active = activeCategory === key;
                   return (
