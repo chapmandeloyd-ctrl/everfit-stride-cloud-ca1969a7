@@ -108,8 +108,11 @@ export function WorkoutIntro({
       setPhase("firstup");
       const blockName = firstSection?.name?.replace(/\s*Block\s*\d+$/i, "").replace(/\s*\d+$/, "").trim() || "";
       const rounds = firstSection?.rounds || 1;
+      // Only timed block types announce duration. Rep-based blocks use a stopwatch.
+      const TIMED_BLOCKS = ["circuit", "tabata", "emom", "amrap", "for_time", "fortime"];
+      const isTimedBlock = TIMED_BLOCKS.includes((firstSection?.section_type || "").toLowerCase());
       const repsInfo = firstEx.reps ? `, ${firstEx.reps} reps` : "";
-      const durationInfo = firstEx.duration_seconds
+      const durationInfo = firstEx.duration_seconds && isTimedBlock
         ? `, ${firstEx.duration_seconds} seconds`
         : "";
       const blockAnnounce = blockName ? `${blockName}, ${rounds} round${rounds > 1 ? "s" : ""}. ` : "";
