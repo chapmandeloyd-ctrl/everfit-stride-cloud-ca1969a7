@@ -892,6 +892,9 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
   const currentSection = sections[currentStep.sectionIdx];
   const isGrouped = currentSection && ["superset", "circuit"].includes(currentSection.section_type);
   const isCircuitMode = currentStep.isCircuit;
+  // Timed block types use a countdown; rep-based blocks use a stopwatch even if duration_seconds is set
+  const TIMED_BLOCKS_RUNTIME = ["circuit", "tabata", "emom", "amrap", "for_time", "fortime"];
+  const isTimedBlock = TIMED_BLOCKS_RUNTIME.includes((currentSection?.section_type || "").toLowerCase());
 
   const sectionLabel = isGrouped
     ? currentSection.name
@@ -994,8 +997,8 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
               </div>
             )}
 
-            {/* Countdown timer bubble — for timed exercises */}
-            {currentExercise?.duration_seconds && stepTimer > 0 && (
+            {/* Countdown timer bubble — only for timed block types */}
+            {currentExercise?.duration_seconds && isTimedBlock && stepTimer > 0 && (
               <div className="absolute top-3 right-3">
                 <div className="relative w-20 h-20">
                   <svg className="w-full h-full -rotate-90" viewBox="0 0 80 80">
@@ -1019,8 +1022,8 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
               </div>
             )}
 
-            {/* Stopwatch bubble — for untimed exercises (counts UP until user advances) */}
-            {!currentExercise?.duration_seconds && !isRest && stepTimer >= 0 && (
+            {/* Stopwatch bubble — for rep-based exercises (counts UP until user advances) */}
+            {(!currentExercise?.duration_seconds || !isTimedBlock) && !isRest && stepTimer >= 0 && (
               <div className="absolute top-3 right-3">
                 <div className="relative w-20 h-20 rounded-full bg-black/55 border border-white/15 flex flex-col items-center justify-center">
                   <span className="text-xl font-black text-white tabular-nums leading-none">
