@@ -73,7 +73,8 @@ export function PortalEntry({ onSelectCategory }: PortalEntryProps) {
         loop
         muted
         playsInline
-        preload="auto"
+        preload="metadata"
+        poster="/portal/ksom-calm-earth-poster.jpg"
         disablePictureInPicture
         disableRemotePlayback
         controls={false}
@@ -81,7 +82,7 @@ export function PortalEntry({ onSelectCategory }: PortalEntryProps) {
           videoReady ? "opacity-100" : "opacity-0"
         }`}
       >
-        <source src="/portal/ksom-calm-earth.mp4" type="video/mp4" />
+        <source src="/portal/ksom-calm-earth-optimized.mp4" type="video/mp4" />
       </video>
 
       {/* Top vignette to anchor title */}
