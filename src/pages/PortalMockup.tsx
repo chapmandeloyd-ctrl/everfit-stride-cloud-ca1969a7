@@ -1,6 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, X, Layers } from "lucide-react";
+import {
+  ArrowLeft,
+  X,
+  Layers,
+  Pause,
+  Play,
+  Music2,
+  RotateCcw,
+  Timer,
+  ChevronUp,
+  Volume2,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import portalEarth from "@/assets/portal-earth.jpg";
 import { BREATHING_EXERCISES } from "@/lib/breathingExercises";
@@ -8,7 +19,7 @@ import { BREATHING_EXERCISES } from "@/lib/breathingExercises";
 /**
  * VISUAL MOCKUP — Portal scene exploration
  * Route: /portal-mockup
- * Lets you toggle between 3 design scenarios. No DB, no real video, no audio.
+ * Toggle scenarios + bottom-control styles. No DB, no real video, no audio.
  */
 
 type Scene = {
@@ -39,6 +50,7 @@ const BREATHING_SCENES: Scene[] = BREATHING_EXERCISES.map((ex) => ({
 }));
 
 type Variant = "v1" | "v2" | "v3";
+type ControlStyle = "docked" | "sheet" | "pill";
 
 const VARIANTS: { id: Variant; name: string; tagline: string }[] = [
   { id: "v1", name: "Earth + Strip + Ring", tagline: "Gold Earth default · scene strip · breath ring around circle" },
@@ -46,20 +58,37 @@ const VARIANTS: { id: Variant; name: string; tagline: string }[] = [
   { id: "v3", name: "Tap-to-Pick + Phase Text", tagline: "Earth default · tap portal opens picker · video + Inhale/Hold/Exhale text only" },
 ];
 
+const CONTROL_STYLES: { id: ControlStyle; name: string; tagline: string }[] = [
+  { id: "docked", name: "A · Docked tab bar", tagline: "Always-visible row of icons (matches your screenshot #1)" },
+  { id: "sheet", name: "B · Bottom sheet", tagline: "Just pause; tap chevron to slide up music + timer" },
+  { id: "pill", name: "C · Floating pill", tagline: "Compact pill, expands on tap with all options inline" },
+];
+
+const DURATIONS = [30, 60, 120, 180, 300, 600];
+const MUSIC_TRACKS = ["None", "Ocean Drone", "Aurora Pad", "Heartbeat"];
+
 export default function PortalMockup() {
   const navigate = useNavigate();
   const [variant, setVariant] = useState<Variant>("v1");
+  const [controlStyle, setControlStyle] = useState<ControlStyle>("docked");
 
-  // Scene list & default depend on variant
+  // Mock player state
+  const [isPaused, setIsPaused] = useState(false);
+  const [duration, setDuration] = useState<number>(180);
+  const [musicIdx, setMusicIdx] = useState(1);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [pillExpanded, setPillExpanded] = useState(false);
+
   const sceneList = variant === "v2" ? BREATHING_SCENES : [EARTH_SCENE, ...BREATHING_SCENES];
   const defaultId = variant === "v2" ? BREATHING_SCENES[0].id : EARTH_SCENE.id;
   const [activeId, setActiveId] = useState<string>(defaultId);
   const [pickerOpen, setPickerOpen] = useState(false);
 
-  // Reset active scene when variant changes
   useEffect(() => {
     setActiveId(variant === "v2" ? BREATHING_SCENES[0].id : EARTH_SCENE.id);
     setPickerOpen(false);
+    setSheetOpen(false);
+    setPillExpanded(false);
   }, [variant]);
 
   const active = sceneList.find((s) => s.id === activeId) ?? sceneList[0];
@@ -70,7 +99,6 @@ export default function PortalMockup() {
     [active]
   );
 
-  // Phase ticker
   const [phaseIdx, setPhaseIdx] = useState(0);
   const [phaseElapsed, setPhaseElapsed] = useState(0);
   useEffect(() => {
@@ -78,7 +106,7 @@ export default function PortalMockup() {
     setPhaseElapsed(0);
   }, [active.id]);
   useEffect(() => {
-    if (!isBreathing) return;
+    if (!isBreathing || isPaused) return;
     const i = setInterval(() => {
       setPhaseElapsed((prev) => {
         const len = active.pattern[phaseIdx] ?? 4;
@@ -90,7 +118,7 @@ export default function PortalMockup() {
       });
     }, 100);
     return () => clearInterval(i);
-  }, [isBreathing, active, phaseIdx]);
+  }, [isBreathing, active, phaseIdx, isPaused]);
 
   const phaseLabel = useMemo(() => {
     if (!isBreathing) return "";
@@ -98,7 +126,6 @@ export default function PortalMockup() {
     return ex?.phases[phaseIdx]?.label ?? "";
   }, [active, phaseIdx, isBreathing]);
 
-  // Ring keyframes (only used in v1)
   const ringKeyframes = useMemo(() => {
     if (!isBreathing) return { scale: [1, 1], opacity: [0.7, 0.7] };
     const ex = BREATHING_EXERCISES.find((e) => e.id === active.id);
@@ -135,6 +162,12 @@ export default function PortalMockup() {
   const showStrip = variant === "v1" || variant === "v2";
   const showPhaseText = (variant === "v1" || variant === "v3") && isBreathing;
 
+  const fmtTime = (s: number) => {
+    const m = Math.floor(s / 60);
+    const r = s % 60;
+    return r === 0 ? `${m} min` : m === 0 ? `${s}s` : `${m}:${String(r).padStart(2, "0")}`;
+  };
+
   return (
     <div className="min-h-screen w-full bg-background text-foreground overflow-hidden relative">
       {/* Backdrop */}
@@ -157,13 +190,16 @@ export default function PortalMockup() {
           Back
         </button>
         <div className="text-xs uppercase tracking-widest text-muted-foreground">
-          Portal Mockup · {variant.toUpperCase()}
+          {variant.toUpperCase()} · {controlStyle.toUpperCase()}
         </div>
         <div className="w-12" />
       </div>
 
       {/* Variant switcher */}
-      <div className="relative z-10 px-3 pb-3">
+      <div className="relative z-10 px-3 pb-2">
+        <div className="text-[10px] uppercase tracking-widest text-muted-foreground/60 mb-1.5 px-1">
+          Layout
+        </div>
         <div className="flex gap-2 overflow-x-auto scrollbar-none">
           {VARIANTS.map((v) => {
             const isOn = variant === v.id;
@@ -171,7 +207,7 @@ export default function PortalMockup() {
               <button
                 key={v.id}
                 onClick={() => setVariant(v.id)}
-                className={`flex-shrink-0 px-3 py-2 rounded-full text-xs transition-all border ${
+                className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs transition-all border ${
                   isOn
                     ? "bg-foreground text-background border-foreground"
                     : "bg-transparent text-muted-foreground border-border hover:border-foreground/40"
@@ -182,8 +218,37 @@ export default function PortalMockup() {
             );
           })}
         </div>
+      </div>
+
+      {/* Control style switcher */}
+      <div className="relative z-10 px-3 pb-3">
+        <div className="text-[10px] uppercase tracking-widest text-muted-foreground/60 mb-1.5 px-1">
+          Bottom Controls Style
+        </div>
+        <div className="flex gap-2 overflow-x-auto scrollbar-none">
+          {CONTROL_STYLES.map((c) => {
+            const isOn = controlStyle === c.id;
+            return (
+              <button
+                key={c.id}
+                onClick={() => {
+                  setControlStyle(c.id);
+                  setSheetOpen(false);
+                  setPillExpanded(false);
+                }}
+                className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs transition-all border ${
+                  isOn
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-transparent text-muted-foreground border-border hover:border-foreground/40"
+                }`}
+              >
+                {c.name}
+              </button>
+            );
+          })}
+        </div>
         <div className="text-[11px] text-muted-foreground/80 mt-2 px-1 italic">
-          {VARIANTS.find((v) => v.id === variant)?.tagline}
+          {CONTROL_STYLES.find((c) => c.id === controlStyle)?.tagline}
         </div>
       </div>
 
@@ -191,7 +256,7 @@ export default function PortalMockup() {
       <div className="relative z-10 flex flex-col items-center justify-center px-4 pt-2 pb-4">
         <div
           className="relative"
-          style={{ width: 320, height: 320 }}
+          style={{ width: 280, height: 280 }}
           onClick={() => {
             if (variant === "v3") setPickerOpen(true);
           }}
@@ -212,12 +277,12 @@ export default function PortalMockup() {
                   style={{
                     boxShadow: `0 0 60px 8px hsl(${active.hueBase} 90% 60% / 0.35), inset 0 0 0 2px hsl(${active.hueBase} 90% 70% / 0.6)`,
                   }}
-                  animate={ringKeyframes}
+                  animate={isPaused ? { scale: 1, opacity: 0.7 } : ringKeyframes}
                   transition={{
                     duration: cycleSeconds,
-                    repeat: Infinity,
+                    repeat: isPaused ? 0 : Infinity,
                     ease: "easeInOut",
-                    times: ringTimes,
+                    times: isPaused ? undefined : ringTimes,
                   }}
                 />
               </motion.div>
@@ -281,7 +346,6 @@ export default function PortalMockup() {
               )}
             </AnimatePresence>
 
-            {/* v3 — tap hint overlay on the circle */}
             {variant === "v3" && (
               <div className="absolute bottom-3 left-0 right-0 flex justify-center pointer-events-none">
                 <div className="px-2 py-1 rounded-full bg-black/40 backdrop-blur-sm text-[10px] uppercase tracking-widest text-white/70 flex items-center gap-1">
@@ -294,7 +358,7 @@ export default function PortalMockup() {
         </div>
 
         {/* Title + phase */}
-        <div className="mt-6 text-center min-h-[60px]">
+        <div className="mt-4 text-center min-h-[60px]">
           <div className="text-lg font-medium tracking-wide">{active.name}</div>
           <AnimatePresence mode="wait">
             {showPhaseText && (
@@ -333,7 +397,7 @@ export default function PortalMockup() {
 
       {/* Scene Strip (v1 + v2) */}
       {showStrip && (
-        <div className="relative z-10 px-2 pb-8">
+        <div className="relative z-10 px-2 pb-32">
           <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground text-center mb-3">
             Scenes
           </div>
@@ -378,8 +442,214 @@ export default function PortalMockup() {
               );
             })}
           </div>
-          <div className="text-[10px] text-muted-foreground text-center mt-3 opacity-70">
-            Tap a scene · Visual mockup only · No real video / audio
+        </div>
+      )}
+
+      {!showStrip && <div className="h-32" />}
+
+      {/* ============== BOTTOM CONTROLS — 3 STYLES ============== */}
+
+      {/* A — DOCKED TAB BAR (always visible icons) */}
+      {controlStyle === "docked" && (
+        <div className="fixed bottom-0 left-0 right-0 z-20 px-4 pb-6 pt-3 bg-gradient-to-t from-black/90 via-black/60 to-transparent backdrop-blur-md">
+          <div className="text-center text-[11px] text-white/50 mb-2">
+            {fmtTime(duration)} · {MUSIC_TRACKS[musicIdx]}
+          </div>
+          <div className="flex items-center justify-around max-w-sm mx-auto">
+            <button
+              onClick={() => setPhaseIdx(0)}
+              className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition"
+            >
+              <RotateCcw className="w-5 h-5 text-white/80" />
+            </button>
+            <button
+              onClick={() => setIsPaused((p) => !p)}
+              className="w-16 h-16 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center transition border border-white/20"
+            >
+              {isPaused ? (
+                <Play className="w-6 h-6 text-white" />
+              ) : (
+                <Pause className="w-6 h-6 text-white" />
+              )}
+            </button>
+            <button
+              onClick={() => setMusicIdx((m) => (m + 1) % MUSIC_TRACKS.length)}
+              className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition"
+            >
+              <Music2 className="w-5 h-5 text-white/80" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* B — BOTTOM SHEET (just pause; chevron opens sheet) */}
+      {controlStyle === "sheet" && (
+        <>
+          <div className="fixed bottom-0 left-0 right-0 z-20 px-4 pb-6 pt-3 flex flex-col items-center gap-2">
+            <button
+              onClick={() => setSheetOpen(true)}
+              className="text-white/50 hover:text-white/80 flex flex-col items-center gap-0.5 transition"
+            >
+              <ChevronUp className="w-5 h-5" />
+              <span className="text-[10px] uppercase tracking-widest">Options</span>
+            </button>
+            <button
+              onClick={() => setIsPaused((p) => !p)}
+              className="w-16 h-16 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center transition border border-white/20"
+            >
+              {isPaused ? (
+                <Play className="w-6 h-6 text-white" />
+              ) : (
+                <Pause className="w-6 h-6 text-white" />
+              )}
+            </button>
+          </div>
+
+          <AnimatePresence>
+            {sheetOpen && (
+              <>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setSheetOpen(false)}
+                  className="fixed inset-0 z-30 bg-black/50 backdrop-blur-sm"
+                />
+                <motion.div
+                  initial={{ y: "100%" }}
+                  animate={{ y: 0 }}
+                  exit={{ y: "100%" }}
+                  transition={{ type: "spring", damping: 30, stiffness: 300 }}
+                  className="fixed bottom-0 left-0 right-0 z-40 bg-zinc-950 border-t border-white/10 rounded-t-3xl px-5 pt-4 pb-8"
+                >
+                  <div className="w-10 h-1 bg-white/20 rounded-full mx-auto mb-5" />
+                  <div className="text-[10px] uppercase tracking-[0.3em] text-white/50 mb-2">
+                    Duration
+                  </div>
+                  <div className="flex flex-wrap gap-2 mb-5">
+                    {DURATIONS.map((d) => {
+                      const on = d === duration;
+                      return (
+                        <button
+                          key={d}
+                          onClick={() => setDuration(d)}
+                          className={`px-3 py-1.5 rounded-full text-xs border transition ${
+                            on
+                              ? "bg-white text-black border-white"
+                              : "border-white/15 text-white/70 hover:border-white/40"
+                          }`}
+                        >
+                          {fmtTime(d)}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="text-[10px] uppercase tracking-[0.3em] text-white/50 mb-2">
+                    Background Music
+                  </div>
+                  <div className="flex flex-wrap gap-2 mb-5">
+                    {MUSIC_TRACKS.map((t, i) => {
+                      const on = i === musicIdx;
+                      return (
+                        <button
+                          key={t}
+                          onClick={() => setMusicIdx(i)}
+                          className={`px-3 py-1.5 rounded-full text-xs border flex items-center gap-1.5 transition ${
+                            on
+                              ? "bg-white text-black border-white"
+                              : "border-white/15 text-white/70 hover:border-white/40"
+                          }`}
+                        >
+                          <Music2 className="w-3 h-3" />
+                          {t}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <button
+                    onClick={() => setSheetOpen(false)}
+                    className="w-full py-3 rounded-full bg-white/10 hover:bg-white/20 text-sm text-white transition"
+                  >
+                    Done
+                  </button>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
+        </>
+      )}
+
+      {/* C — FLOATING PILL (compact; expands inline) */}
+      {controlStyle === "pill" && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-20">
+          <motion.div
+            layout
+            className="bg-white/10 backdrop-blur-xl border border-white/15 rounded-full overflow-hidden flex items-center"
+            style={{ boxShadow: "0 10px 40px hsl(0 0% 0% / 0.5)" }}
+          >
+            <AnimatePresence initial={false}>
+              {pillExpanded && (
+                <motion.div
+                  key="expanded"
+                  initial={{ width: 0, opacity: 0 }}
+                  animate={{ width: "auto", opacity: 1 }}
+                  exit={{ width: 0, opacity: 0 }}
+                  transition={{ duration: 0.25 }}
+                  className="flex items-center gap-1 pl-2 overflow-hidden"
+                >
+                  <button
+                    onClick={() => setPhaseIdx(0)}
+                    className="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center transition"
+                  >
+                    <RotateCcw className="w-4 h-4 text-white/80" />
+                  </button>
+                  <button
+                    onClick={() => setMusicIdx((m) => (m + 1) % MUSIC_TRACKS.length)}
+                    className="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center transition"
+                    title={MUSIC_TRACKS[musicIdx]}
+                  >
+                    <Music2 className="w-4 h-4 text-white/80" />
+                  </button>
+                  <button
+                    onClick={() =>
+                      setDuration(
+                        DURATIONS[(DURATIONS.indexOf(duration) + 1) % DURATIONS.length]
+                      )
+                    }
+                    className="px-2 h-9 rounded-full hover:bg-white/10 flex items-center justify-center transition gap-1"
+                    title="Duration"
+                  >
+                    <Timer className="w-4 h-4 text-white/80" />
+                    <span className="text-[11px] text-white/80">{fmtTime(duration)}</span>
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <button
+              onClick={() => setIsPaused((p) => !p)}
+              className="w-12 h-12 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center transition m-1"
+            >
+              {isPaused ? (
+                <Play className="w-5 h-5 text-white" />
+              ) : (
+                <Pause className="w-5 h-5 text-white" />
+              )}
+            </button>
+
+            <button
+              onClick={() => setPillExpanded((e) => !e)}
+              className="w-10 h-12 flex items-center justify-center hover:bg-white/5 transition pr-2"
+            >
+              <motion.div animate={{ rotate: pillExpanded ? 180 : 0 }}>
+                <ChevronUp className="w-4 h-4 text-white/60 rotate-90" />
+              </motion.div>
+            </button>
+          </motion.div>
+          <div className="text-[10px] text-white/40 text-center mt-2">
+            {pillExpanded ? "Tap chevron to collapse" : "Tap chevron for options"}
           </div>
         </div>
       )}
