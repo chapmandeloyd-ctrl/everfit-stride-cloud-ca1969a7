@@ -1,12 +1,26 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from "framer-motion";
-import { ArrowLeft, ChevronDown, Clock, Wind } from "lucide-react";
+import {
+  ArrowLeft,
+  ChevronDown,
+  Clock,
+  CircleDot,
+  Check,
+  TimerReset,
+  Volume2,
+  VolumeX,
+  Lightbulb,
+} from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Slider } from "@/components/ui/slider";
 import { BreathParticles, type BreathParticleStyle } from "./BreathParticles";
 import { Starfield } from "./Starfield";
+import { PortalControlPanel } from "./PortalControlPanel";
 import nebulaSleep from "@/assets/portal-nebula-sleep.jpg";
 import portalEarth from "@/assets/portal-earth.jpg";
+
+type Category = "Focus" | "Sleep" | "Escape" | "Breath";
 
 interface Props {
   onBack: () => void;
@@ -17,6 +31,10 @@ interface Props {
   /** Optional controlled particle style — when provided, switcher updates parent */
   style?: BreathParticleStyle;
   onStyleChange?: (s: BreathParticleStyle) => void;
+  /** Switch to another category from the slide-up panel */
+  onSelectCategory?: (cat: Category) => void;
+  /** Tap the BREATH title or BREATH tab → open the Breath Library prompt */
+  onOpenBreathLibrary?: () => void;
 }
 
 const STYLES: { id: BreathParticleStyle; label: string }[] = [
@@ -33,7 +51,15 @@ const STYLES: { id: BreathParticleStyle; label: string }[] = [
  *
  * Includes a small style switcher so the user can demo Soft / Pulse / Aurora live.
  */
-export function PortalBreathPreview({ onBack, onExpand, audioPaused, style: styleProp, onStyleChange }: Props) {
+export function PortalBreathPreview({
+  onBack,
+  onExpand,
+  audioPaused,
+  style: styleProp,
+  onStyleChange,
+  onSelectCategory,
+  onOpenBreathLibrary,
+}: Props) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [styleLocal, setStyleLocal] = useState<BreathParticleStyle>("aurora");
   const style = styleProp ?? styleLocal;
@@ -42,6 +68,10 @@ export function PortalBreathPreview({ onBack, onExpand, audioPaused, style: styl
     onStyleChange?.(s);
   };
   const [elapsed, setElapsed] = useState(0);
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [muted, setMuted] = useState(false);
+  const [volume, setVolume] = useState(0.35);
+  const [volumeOpen, setVolumeOpen] = useState(false);
 
   // Pull a real ambient track from the breathing music library
   const { data: track } = useQuery({
@@ -104,13 +134,13 @@ export function PortalBreathPreview({ onBack, onExpand, audioPaused, style: styl
   useEffect(() => {
     const a = audioRef.current;
     if (!a) return;
-    a.volume = 0.35;
+    a.volume = muted ? 0 : volume;
     if (audioPaused) {
       a.pause();
     } else {
       a.play().catch(() => {});
     }
-  }, [audioPaused, track?.file_url]);
+  }, [audioPaused, track?.file_url, muted, volume]);
 
   // Kick off audio on first user interaction (autoplay fallback)
   useEffect(() => {
@@ -250,15 +280,19 @@ export function PortalBreathPreview({ onBack, onExpand, audioPaused, style: styl
             </div>
           </motion.div>
 
-          {/* Title */}
-          <div className="text-center mt-7">
-            <h1 className="text-white text-[17px] font-semibold tracking-[0.18em] uppercase">
+          {/* Title — tap to open the Breath Library prompt */}
+          <button
+            onClick={onOpenBreathLibrary}
+            className="text-center mt-7 group"
+            aria-label="Open Breath Library"
+          >
+            <h1 className="text-white text-[17px] font-semibold tracking-[0.18em] uppercase group-hover:text-white/90 transition-colors">
               Breath
             </h1>
             <div className="text-white/60 text-[11px] uppercase tracking-[0.35em] mt-1.5">
               Live Particles
             </div>
-          </div>
+          </button>
 
 
           {/* Drag-down hint */}
@@ -272,27 +306,109 @@ export function PortalBreathPreview({ onBack, onExpand, audioPaused, style: styl
           </motion.div>
         </div>
 
-        {/* Bottom row — minimal, mirrors PortalPlayer footer */}
+        {/* Bottom icon row — matches PortalPlayer footer (Focus / Check / Timer / Volume / Lightbulb) */}
         <div
           className="relative z-10 px-8"
           style={{ paddingBottom: "max(env(safe-area-inset-bottom, 0px), 24px)" }}
         >
-          <div className="flex items-center justify-center text-white/85">
+          {/* Volume slider popover (above the row) */}
+          <AnimatePresence>
+            {volumeOpen && track?.file_url && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 8 }}
+                className="mb-4 mx-auto max-w-xs flex items-center gap-3 bg-white/[0.08] backdrop-blur-xl border border-white/15 rounded-full px-4 py-3"
+              >
+                <button
+                  onClick={() => setMuted((m) => !m)}
+                  className="text-white/80 hover:text-white"
+                  aria-label={muted ? "Unmute" : "Mute"}
+                >
+                  {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                </button>
+                <Slider
+                  value={[muted ? 0 : volume * 100]}
+                  onValueChange={(v) => {
+                    setVolume(v[0] / 100);
+                    if (muted && v[0] > 0) setMuted(false);
+                  }}
+                  max={100}
+                  step={1}
+                  className="flex-1"
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <div className="flex items-center justify-between text-white/85">
+            {/* FOCUS — opens portal control panel */}
+            <button
+              onClick={() => setPanelOpen(true)}
+              className="flex items-center gap-2 hover:text-white transition-colors"
+              aria-label="Open portal panel"
+            >
+              <CircleDot className="h-5 w-5" strokeWidth={1.5} />
+              <span className="text-[11px] uppercase tracking-[0.25em] font-medium">Focus</span>
+            </button>
+
             <button
               onClick={onExpand}
-              className="flex items-center gap-2 hover:text-white transition-colors"
+              className="text-white/70 hover:text-white transition-colors p-2"
+              aria-label="Begin session"
             >
-              <Wind className="h-5 w-5" strokeWidth={1.5} />
-              <span className="text-[11px] uppercase tracking-[0.25em] font-medium">
-                Begin Session
-              </span>
+              <Check className="h-5 w-5" strokeWidth={1.5} />
+            </button>
+
+            <button
+              onClick={onExpand}
+              className="text-white/70 hover:text-white transition-colors p-2"
+              aria-label="Set timer"
+            >
+              <TimerReset className="h-5 w-5" strokeWidth={1.5} />
+            </button>
+
+            <button
+              onClick={() => setVolumeOpen((o) => !o)}
+              className={`p-2 transition-colors ${volumeOpen ? "text-white" : "text-white/70 hover:text-white"}`}
+              aria-label="Volume"
+            >
+              {muted ? <VolumeX className="h-5 w-5" strokeWidth={1.5} /> : <Volume2 className="h-5 w-5" strokeWidth={1.5} />}
+            </button>
+
+            <button
+              className="text-white/70 hover:text-white transition-colors p-2"
+              aria-label="Ambient light"
+            >
+              <Lightbulb className="h-5 w-5" strokeWidth={1.5} />
             </button>
           </div>
+
+          {/* Page indicator dot */}
           <div className="flex justify-center mt-3">
             <div className="h-1 w-1 rounded-full bg-white/40" />
           </div>
         </div>
       </motion.div>
+
+      {/* Slide-up panel — same chrome as the other categories. Tapping the BREATH tab opens the library prompt. */}
+      <PortalControlPanel
+        open={panelOpen}
+        activeCategory={"Focus"}
+        onClose={() => setPanelOpen(false)}
+        onOpenLibrary={() => {
+          setPanelOpen(false);
+          onOpenBreathLibrary?.();
+        }}
+        onSelectCategory={(cat) => {
+          setPanelOpen(false);
+          if (cat === "Breath") {
+            onOpenBreathLibrary?.();
+            return;
+          }
+          onSelectCategory?.(cat);
+        }}
+      />
     </div>
   );
 }
