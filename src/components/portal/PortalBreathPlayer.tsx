@@ -1,44 +1,71 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Volume2, VolumeX, Clock, Wind, Check, TimerReset, Lightbulb } from "lucide-react";
-import { Slider } from "@/components/ui/slider";
+import { ArrowLeft, Pause, Play, RotateCcw, Music2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { BreathParticles, type BreathParticleStyle } from "./BreathParticles";
 import { Starfield } from "./Starfield";
 import { BREATHING_EXERCISES, type BreathingExercise } from "@/lib/breathingExercises";
 import { PortalBreathPanel } from "./PortalBreathPanel";
-import portalEarth from "@/assets/portal-earth.jpg";
-import nebulaFocus from "@/assets/portal-nebula-focus.jpg";
-
-const MUSIC_TRACKS = ["None", "Ocean Drone", "Aurora Pad", "Heartbeat", "Forest"];
+import nebulaSleep from "@/assets/portal-nebula-sleep.jpg";
 
 interface PortalBreathPlayerProps {
   onBack: () => void;
   onOpenLibrary?: () => void;
   onSelectCategory?: (category: "Focus" | "Sleep" | "Escape" | "Breath") => void;
+  /** Particle style chosen on the preview screen */
+  particleStyle?: BreathParticleStyle;
+  /** Total session duration in minutes (defaults to 5) */
+  initialDurationMin?: number;
 }
 
+const MUSIC_TRACKS = ["None", "Ocean Drone", "Aurora Pad", "Heartbeat", "Forest"];
+
 /**
- * PortalBreathPlayer — Breath equivalent of PortalPlayer.
- * Same cinematic chrome (KSOM CALM header, circle, bottom icons) but the
- * inner circle pulses to a breathing exercise rhythm and the slide-up sheet
- * exposes the breathing library + timer + music instead of scenes.
+ * PortalBreathPlayer — full-screen cinematic breathing session.
+ * Layout matches the user reference: ambient particle field across the whole
+ * viewport, centered phase label ("EXHALE / 3"), pattern footer ("4 — 2 — 6"),
+ * and a 3-button control row (restart, pause/play, music). Drag down or tap the
+ * music button to open the breath library panel.
  */
-export function PortalBreathPlayer({ onBack, onOpenLibrary, onSelectCategory }: PortalBreathPlayerProps) {
+export function PortalBreathPlayer({
+  onBack,
+  onOpenLibrary,
+  onSelectCategory,
+  particleStyle = "aurora",
+  initialDurationMin = 5,
+}: PortalBreathPlayerProps) {
   const [exercise, setExercise] = useState<BreathingExercise>(BREATHING_EXERCISES[0]);
   const [phaseIdx, setPhaseIdx] = useState(0);
   const [phaseElapsed, setPhaseElapsed] = useState(0);
   const [paused, setPaused] = useState(false);
   const [elapsed, setElapsed] = useState(0);
-  const [volume, setVolume] = useState(0.5);
-  const [muted, setMuted] = useState(false);
-  const [volumeOpen, setVolumeOpen] = useState(false);
+  const [cycles, setCycles] = useState(1);
   const [panelOpen, setPanelOpen] = useState(false);
-  const [durationMin, setDurationMin] = useState(5);
+  const [durationMin, setDurationMin] = useState(initialDurationMin);
   const [musicTrack, setMusicTrack] = useState<string>("Ocean Drone");
 
-  const cycleSeconds = useMemo(
-    () => exercise.phases.reduce((a, p) => a + p.seconds, 0) || 1,
-    [exercise]
-  );
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  // Pull a real ambient track from the trainer-managed breathing library
+  const { data: track } = useQuery({
+    queryKey: ["portal-breath-music"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("breathing_music_tracks")
+        .select("id, name, file_url")
+        .eq("is_active", true)
+        .order("order_index", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const totalSeconds = durationMin * 60;
+  const remaining = Math.max(0, totalSeconds - elapsed);
 
   // Reset when exercise changes
   useEffect(() => {
@@ -53,7 +80,11 @@ export function PortalBreathPlayer({ onBack, onOpenLibrary, onSelectCategory }: 
       setPhaseElapsed((prev) => {
         const len = exercise.phases[phaseIdx]?.seconds ?? 4;
         if (prev + 0.1 >= len) {
-          setPhaseIdx((p) => (p + 1) % exercise.phases.length);
+          setPhaseIdx((p) => {
+            const next = (p + 1) % exercise.phases.length;
+            if (next === 0) setCycles((c) => c + 1);
+            return next;
+          });
           return 0;
         }
         return prev + 0.1;
@@ -69,6 +100,18 @@ export function PortalBreathPlayer({ onBack, onOpenLibrary, onSelectCategory }: 
     return () => clearInterval(i);
   }, [paused, panelOpen]);
 
+  // Audio — pause when panel opens or session paused, same as other categories
+  useEffect(() => {
+    const a = audioRef.current;
+    if (!a) return;
+    a.volume = 0.35;
+    if (paused || panelOpen) {
+      a.pause();
+    } else {
+      a.play().catch(() => {});
+    }
+  }, [paused, panelOpen, track?.file_url]);
+
   const formatTime = (s: number) => {
     const m = Math.floor(s / 60);
     const sec = s % 60;
@@ -76,54 +119,55 @@ export function PortalBreathPlayer({ onBack, onOpenLibrary, onSelectCategory }: 
   };
 
   const phase = exercise.phases[phaseIdx];
-  const phaseLabel = phase?.label ?? "";
-  const phaseRemaining = Math.max(0, Math.ceil((phase?.seconds ?? 0) - phaseElapsed));
+  const phaseLabel = (phase?.label ?? "").toUpperCase();
+  const phaseRemaining = Math.max(1, Math.ceil((phase?.seconds ?? 0) - phaseElapsed));
+  const phaseProgress = (phase?.seconds ?? 1) > 0 ? phaseElapsed / (phase?.seconds ?? 1) : 0;
 
-  // Pulse scale per phase type
-  const targetScale =
-    phase?.type === "inhale" ? 1.18 : phase?.type === "exhale" ? 0.92 : 1.05;
+  const patternStr = useMemo(
+    () => exercise.phases.map((p) => p.seconds).join(" — "),
+    [exercise]
+  );
 
-  const hue = exercise.tone.hueBase;
+  const handleRestart = () => {
+    setPhaseIdx(0);
+    setPhaseElapsed(0);
+    setElapsed(0);
+    setCycles(1);
+  };
 
   return (
     <div className="fixed inset-0 z-[100] bg-black overflow-hidden">
-      {/* Galaxy nebula background */}
-      <div className="absolute inset-0 bg-black overflow-hidden">
+      {/* Ambient music from the trainer-managed breathing music library */}
+      {track?.file_url && (
+        <audio ref={audioRef} src={track.file_url} loop preload="auto" />
+      )}
+
+      {/* Full-screen ambient background */}
+      <div className="absolute inset-0">
         <img
-          src={nebulaFocus}
+          src={nebulaSleep}
           alt=""
-          className="absolute inset-0 w-full h-full object-cover opacity-90"
-          style={{ filter: `saturate(1.05) hue-rotate(${hue - 200}deg)` }}
+          className="absolute inset-0 w-full h-full object-cover opacity-70"
+          style={{ filter: "saturate(0.8) brightness(0.55)" }}
         />
+        {/* Vignette to push focus to center */}
         <div
           className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(ellipse 80% 70% at 50% 45%, transparent 0%, rgba(0,0,0,0.55) 75%, rgba(0,0,0,0.85) 100%)",
+              "radial-gradient(ellipse 75% 65% at 50% 50%, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.55) 60%, rgba(0,0,0,0.85) 100%)",
           }}
         />
-        <Starfield density={90} />
+        <Starfield density={70} />
+        {/* Particle field across the whole viewport */}
+        <div className="absolute inset-0">
+          <BreathParticles
+            style={particleStyle}
+            phase={phase?.type === "hold" ? "hold" : phase?.type === "exhale" ? "exhale" : "inhale"}
+            breathProgress={phaseProgress}
+          />
+        </div>
       </div>
-
-      {/* Earth horizon at bottom */}
-      <div
-        className="absolute left-1/2 -translate-x-1/2 pointer-events-none"
-        style={{ bottom: 0, width: "100%", maxWidth: "900px" }}
-      >
-        <img
-          src={portalEarth}
-          alt=""
-          className="w-full h-auto block opacity-95"
-          style={{
-            maskImage:
-              "radial-gradient(ellipse 55% 65% at 50% 75%, black 30%, rgba(0,0,0,0.85) 45%, rgba(0,0,0,0.4) 65%, transparent 80%)",
-            WebkitMaskImage:
-              "radial-gradient(ellipse 55% 65% at 50% 75%, black 30%, rgba(0,0,0,0.85) 45%, rgba(0,0,0,0.4) 65%, transparent 80%)",
-          }}
-        />
-      </div>
-
-      <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-transparent pointer-events-none" />
 
       {/* Top header */}
       <div
@@ -132,142 +176,93 @@ export function PortalBreathPlayer({ onBack, onOpenLibrary, onSelectCategory }: 
       >
         <button
           onClick={onBack}
-          className="flex items-center gap-1.5 text-white/70 hover:text-white text-sm font-medium transition-colors min-h-[44px]"
+          className="text-white/70 hover:text-white transition-colors min-h-[44px] min-w-[44px] flex items-center"
+          aria-label="Back"
         >
           <ArrowLeft className="h-5 w-5" />
-          Back
         </button>
-        <div className="text-white/50 text-xs uppercase tracking-widest">KSOM Calm</div>
-        <div className="flex items-center gap-1 text-white/60 text-xs font-medium">
-          <Clock className="h-3.5 w-3.5" />
-          {formatTime(elapsed)}
+        <div className="text-white/85 text-sm font-medium tabular-nums tracking-wide">
+          {formatTime(remaining)} remaining
+        </div>
+        <div className="text-white/70 text-sm font-medium tabular-nums w-10 text-right">
+          {cycles}
         </div>
       </div>
 
-      {/* Circle + Title */}
-      <div className="relative z-10 flex flex-col items-center justify-center px-8" style={{ paddingTop: "8vh" }}>
-        <motion.div
-          animate={{ scale: paused ? 1 : targetScale }}
-          transition={{
-            duration: phase?.seconds ?? 4,
-            ease: "easeInOut",
-          }}
-          className="relative aspect-square w-[58%] max-w-[260px] rounded-full overflow-hidden"
-        >
-          {/* Outer glow ring */}
-          <div
-            className="absolute inset-0 rounded-full pointer-events-none z-10"
-            style={{
-              boxShadow: `inset 0 0 0 1.5px rgba(255,255,255,0.95), 0 0 60px 10px hsla(${hue}, 90%, 60%, 0.35), 0 0 120px 20px hsla(${hue}, 90%, 60%, 0.15)`,
-            }}
-          />
-          {/* Animated breath fill */}
-          <div
-            className="absolute inset-0"
-            style={{
-              background: `radial-gradient(circle at 50% 50%, hsl(${hue} 80% 55%) 0%, hsl(${hue} 70% 25%) 60%, hsl(${hue} 80% 10%) 100%)`,
-            }}
-          />
+      {/* Centered phase label — pulses with the breath */}
+      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center pointer-events-none px-8">
+        <AnimatePresence mode="wait">
           <motion.div
-            className="absolute inset-0"
-            animate={{
-              opacity: phase?.type === "inhale" ? [0.4, 0.85] : phase?.type === "exhale" ? [0.85, 0.4] : 0.7,
-            }}
-            transition={{ duration: phase?.seconds ?? 4, ease: "easeInOut" }}
-            style={{
-              background: `radial-gradient(circle at 50% 50%, hsl(${hue} 100% 70% / 0.6), transparent 70%)`,
-            }}
-          />
-          {/* Phase label centered */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
-            <div className="text-[10px] uppercase tracking-[0.4em] text-white/70">{phaseLabel}</div>
-            <div className="text-5xl font-extralight tabular-nums mt-1">{phaseRemaining}</div>
-          </div>
-        </motion.div>
-
-        {/* Title under circle */}
-        <div className="text-center mt-7">
-          <h1 className="text-white text-[17px] font-semibold tracking-[0.18em] uppercase">
-            {exercise.name}
-          </h1>
-          <div className="text-white/60 text-[11px] uppercase tracking-[0.35em] mt-1.5">
-            {exercise.phases.map((p) => p.seconds).join(" · ")} · Breath
-          </div>
-        </div>
+            key={`${exercise.id}-${phaseIdx}`}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="flex flex-col items-center"
+          >
+            <motion.h1
+              animate={{
+                scale:
+                  phase?.type === "inhale"
+                    ? 1 + phaseProgress * 0.08
+                    : phase?.type === "exhale"
+                    ? 1.08 - phaseProgress * 0.08
+                    : 1.08,
+              }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+              className="text-white text-[26px] font-light tracking-[0.35em]"
+            >
+              {phaseLabel}
+            </motion.h1>
+            <div className="text-white/60 text-3xl font-extralight tabular-nums mt-3">
+              {phaseRemaining}
+            </div>
+          </motion.div>
+        </AnimatePresence>
       </div>
 
-      {/* Bottom icon row */}
+      {/* Bottom — pattern + control row */}
       <div
         className="absolute inset-x-0 bottom-0 z-10 px-8"
-        style={{ paddingBottom: "max(env(safe-area-inset-bottom, 0px), 24px)" }}
+        style={{ paddingBottom: "max(env(safe-area-inset-bottom, 0px), 28px)" }}
       >
-        <AnimatePresence>
-          {volumeOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 8 }}
-              className="mb-4 mx-auto max-w-xs flex items-center gap-3 bg-white/[0.08] backdrop-blur-xl border border-white/15 rounded-full px-4 py-3"
+        <div className="flex flex-col items-center gap-5">
+          <div className="text-white/55 text-[11px] tracking-[0.4em] tabular-nums">
+            {patternStr}
+          </div>
+
+          <div className="flex items-center justify-center gap-6">
+            {/* Restart */}
+            <button
+              onClick={handleRestart}
+              className="h-12 w-12 rounded-full bg-white/[0.08] backdrop-blur-md border border-white/15 text-white/75 hover:text-white hover:bg-white/[0.14] transition-all flex items-center justify-center"
+              aria-label="Restart"
             >
-              <button
-                onClick={() => setMuted((m) => !m)}
-                className="text-white/80 hover:text-white"
-                aria-label={muted ? "Unmute" : "Mute"}
-              >
-                {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-              </button>
-              <Slider
-                value={[muted ? 0 : volume * 100]}
-                onValueChange={(v) => {
-                  setVolume(v[0] / 100);
-                  if (muted && v[0] > 0) setMuted(false);
-                }}
-                max={100}
-                step={1}
-                className="flex-1"
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
+              <RotateCcw className="h-4 w-4" strokeWidth={1.5} />
+            </button>
 
-        <div className="flex items-center justify-between text-white/85">
-          {/* BREATH — opens the breath panel */}
-          <button
-            onClick={() => setPanelOpen(true)}
-            className="flex items-center gap-2 hover:text-white transition-colors"
-            aria-label="Open breath panel"
-          >
-            <Wind className="h-5 w-5" strokeWidth={1.5} />
-            <span className="text-[11px] uppercase tracking-[0.25em] font-medium">Breath</span>
-          </button>
+            {/* Pause / Play — primary */}
+            <button
+              onClick={() => setPaused((p) => !p)}
+              className="h-16 w-16 rounded-full bg-white/[0.12] backdrop-blur-md border border-white/25 text-white hover:bg-white/[0.18] transition-all flex items-center justify-center shadow-[0_0_30px_rgba(255,255,255,0.15)]"
+              aria-label={paused ? "Resume" : "Pause"}
+            >
+              {paused ? (
+                <Play className="h-5 w-5" strokeWidth={1.5} fill="currentColor" />
+              ) : (
+                <Pause className="h-5 w-5" strokeWidth={1.5} fill="currentColor" />
+              )}
+            </button>
 
-          <button
-            onClick={() => setPaused((p) => !p)}
-            className="text-white/70 hover:text-white transition-colors p-2"
-            aria-label={paused ? "Resume" : "Pause"}
-          >
-            <Check className="h-5 w-5" strokeWidth={1.5} />
-          </button>
-
-          <button className="text-white/70 hover:text-white transition-colors p-2" aria-label="Set timer">
-            <TimerReset className="h-5 w-5" strokeWidth={1.5} />
-          </button>
-
-          <button
-            onClick={() => setVolumeOpen((o) => !o)}
-            className={`p-2 transition-colors ${volumeOpen ? "text-white" : "text-white/70 hover:text-white"}`}
-            aria-label="Volume"
-          >
-            {muted ? <VolumeX className="h-5 w-5" strokeWidth={1.5} /> : <Volume2 className="h-5 w-5" strokeWidth={1.5} />}
-          </button>
-
-          <button className="text-white/70 hover:text-white transition-colors p-2" aria-label="Ambient light">
-            <Lightbulb className="h-5 w-5" strokeWidth={1.5} />
-          </button>
-        </div>
-
-        <div className="flex justify-center mt-3">
-          <div className="h-1 w-1 rounded-full bg-white/40" />
+            {/* Music — opens breath library panel */}
+            <button
+              onClick={() => setPanelOpen(true)}
+              className="h-12 w-12 rounded-full bg-white/[0.08] backdrop-blur-md border border-white/15 text-white/75 hover:text-white hover:bg-white/[0.14] transition-all flex items-center justify-center"
+              aria-label="Open breath library"
+            >
+              <Music2 className="h-4 w-4" strokeWidth={1.5} />
+            </button>
+          </div>
         </div>
       </div>
 
