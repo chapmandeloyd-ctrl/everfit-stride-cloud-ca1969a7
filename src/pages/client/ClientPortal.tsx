@@ -111,6 +111,7 @@ export default function ClientPortal() {
           onSelectCategory={(cat) => {
             if (cat === "Breath") {
               setActiveScene(null);
+              setBreathStage("preview");
               setBreathOpen(true);
               return;
             }
