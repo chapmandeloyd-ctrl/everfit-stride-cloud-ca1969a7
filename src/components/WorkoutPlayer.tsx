@@ -409,13 +409,11 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
         const isTimedBlock = TIMED_BLOCKS.includes((section?.section_type || "").toLowerCase());
         let msg = "";
 
-        // Announce block name at the start of each new section
-        if (isGrouped && step.exerciseIdx === 0 && section?.name) {
+        // Announce only the block label at the start of a grouped section.
+        if (isGrouped && step.exerciseIdx === 0 && step.round === 1 && section?.name) {
           const blockName = section.name.replace(/\s*Block\s*\d+$/i, "").replace(/\s*\d+$/, "").trim();
-          if (step.round === 1) {
-            const exCount = section.exercises.length;
-            const rounds = section.rounds;
-            msg += `${blockName}. ${exCount} exercise${exCount > 1 ? "s" : ""}, ${rounds} round${rounds > 1 ? "s" : ""}. `;
+          if (blockName) {
+            msg += `${blockName}. `;
           }
         }
 

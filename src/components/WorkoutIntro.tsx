@@ -69,17 +69,7 @@ export function WorkoutIntro({
     setStatsVisible(true);
 
     // Announce welcome — use the section name (block label) instead of raw section_type
-    const exerciseWord = totalExercises === 1 ? "exercise" : "exercises";
-    // Build a descriptive block summary from section names (e.g. "Working Sets 1", "Warm-Up")
-    const sectionNames = sections.map(s => {
-      // Strip trailing "Block X" or trailing numbers to get clean block label
-      return s.name.replace(/\s*Block\s*\d+$/i, "").replace(/\s*\d+$/, "").trim();
-    });
-    const uniqueBlocks = [...new Set(sectionNames)].filter(Boolean);
-    const blockInfo = uniqueBlocks.length > 0
-      ? ` featuring ${uniqueBlocks.join(", ")}`
-      : "";
-    const welcomeText = `Welcome to ${workoutName}. Today you'll be doing ${totalExercises} ${exerciseWord}${blockInfo} in about ${totalMinutes} minutes.`;
+    const welcomeText = `Welcome to ${workoutName}.`;
     await speakFn(welcomeText);
     if (!mountedRef.current) return;
 
@@ -107,7 +97,6 @@ export function WorkoutIntro({
     if (firstEx) {
       setPhase("firstup");
       const blockName = firstSection?.name?.replace(/\s*Block\s*\d+$/i, "").replace(/\s*\d+$/, "").trim() || "";
-      const rounds = firstSection?.rounds || 1;
       // Only timed block types announce duration. Rep-based blocks use a stopwatch.
       const TIMED_BLOCKS = ["circuit", "tabata", "emom", "amrap", "for_time", "fortime"];
       const isTimedBlock = TIMED_BLOCKS.includes((firstSection?.section_type || "").toLowerCase());
@@ -115,7 +104,7 @@ export function WorkoutIntro({
       const durationInfo = firstEx.duration_seconds && isTimedBlock
         ? `, ${firstEx.duration_seconds} seconds`
         : "";
-      const blockAnnounce = blockName ? `${blockName}, ${rounds} round${rounds > 1 ? "s" : ""}. ` : "";
+      const blockAnnounce = blockName ? `${blockName}. ` : "";
       await speakFn(
         `${blockAnnounce}First up, ${firstEx.exercise_name}${repsInfo}${durationInfo}. Let's go!`
       );
