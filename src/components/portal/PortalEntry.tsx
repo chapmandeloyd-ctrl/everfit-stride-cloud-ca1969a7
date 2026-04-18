@@ -11,13 +11,25 @@ export function PortalEntry({ onSelectCategory }: PortalEntryProps) {
     <div className="fixed inset-0 bg-black overflow-hidden z-50">
       {/* Earth video — fills screen */}
       <video
-        src="/portal/ksom-calm-earth.mp4"
         autoPlay
         loop
         muted
         playsInline
+        preload="auto"
+        disablePictureInPicture
+        disableRemotePlayback
+        controls={false}
         className="absolute inset-0 w-full h-full object-cover"
-      />
+        ref={(el) => {
+          if (!el) return;
+          el.muted = true;
+          const tryPlay = () => el.play().catch(() => {});
+          tryPlay();
+          el.addEventListener("canplay", tryPlay, { once: true });
+        }}
+      >
+        <source src="/portal/ksom-calm-earth.mp4" type="video/mp4" />
+      </video>
 
       {/* Top vignette to anchor title */}
       <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-none" />
