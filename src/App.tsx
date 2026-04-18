@@ -19,6 +19,7 @@ import Goals from "./pages/Goals";
 import TaskLibrary from "./pages/TaskLibrary";
 import Auth from "./pages/Auth";
 import Unsubscribe from "./pages/Unsubscribe";
+import PortalMockup from "./pages/PortalMockup";
 import ClientDashboard from "./pages/client/ClientDashboard";
 import ClientSmartPace from "./pages/client/ClientSmartPace";
 import SmartPacePreview from "./pages/SmartPacePreview";
@@ -128,6 +129,7 @@ const App = () => (
           <Route path="/guardian/:token" element={<GuardianSummary />} />
           <Route path="/unsubscribe" element={<Unsubscribe />} />
           <Route path="/checkout-test" element={<CheckoutTest />} />
+          <Route path="/portal-mockup" element={<PortalMockup />} />
           
           {/* Trainer Routes */}
           <Route path="/" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerDashboard /></ProtectedRoute>} />
