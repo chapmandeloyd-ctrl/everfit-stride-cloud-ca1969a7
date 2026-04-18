@@ -547,6 +547,24 @@ export function BreathingPlayer({
         </span>
       </div>
 
+      {/* Title + description — top */}
+      <div className="absolute top-14 left-0 right-0 px-6 z-10 pointer-events-none flex flex-col items-center text-center">
+        <h2
+          className="text-base font-light tracking-[0.18em] uppercase"
+          style={{ color: `hsla(${h - 5}, 30%, 92%, 0.85)` }}
+        >
+          {exercise.name}
+        </h2>
+        {exercise.description && (
+          <p className="mt-1.5 text-[11px] text-white/45 font-light max-w-[280px] leading-snug">
+            {exercise.description}
+          </p>
+        )}
+        <span className="mt-1.5 text-[10px] text-white/30 tracking-[0.25em] tabular-nums">
+          {ratioStr}
+        </span>
+      </div>
+
       {/* Center guidance */}
       <div className="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none">
         <span
