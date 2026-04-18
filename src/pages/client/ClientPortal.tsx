@@ -5,12 +5,15 @@ import { PortalPlayer, type PortalScene } from "@/components/portal/PortalPlayer
 import { PortalEntry } from "@/components/portal/PortalEntry";
 import { PortalLibrary } from "@/components/portal/PortalLibrary";
 import { PortalBreathPlayer } from "@/components/portal/PortalBreathPlayer";
+import { PortalBreathPreview } from "@/components/portal/PortalBreathPreview";
 
 type EntryCategory = "Focus" | "Sleep" | "Escape" | "Breath";
+type BreathStage = "preview" | "player";
 
 export default function ClientPortal() {
   const [activeScene, setActiveScene] = useState<PortalScene | null>(null);
   const [breathOpen, setBreathOpen] = useState(false);
+  const [breathStage, setBreathStage] = useState<BreathStage>("preview");
   const [libraryOpen, setLibraryOpen] = useState(false);
 
   const { data: scenes = [], isLoading } = useQuery({
@@ -32,6 +35,7 @@ export default function ClientPortal() {
   const handleSelectCategory = (category: EntryCategory) => {
     if (category === "Breath") {
       setActiveScene(null);
+      setBreathStage("preview");
       setBreathOpen(true);
       return;
     }
@@ -42,12 +46,36 @@ export default function ClientPortal() {
     }
   };
 
-  // Breath player — independent immersive surface
+  // Breath flow: circle preview → drag down → full player
   if (breathOpen) {
+    if (breathStage === "preview") {
+      return (
+        <>
+          <PortalBreathPreview
+            onBack={() => setBreathOpen(false)}
+            onExpand={() => setBreathStage("player")}
+            audioPaused={libraryOpen}
+          />
+          {libraryOpen && (
+            <PortalLibrary
+              scenes={scenes}
+              isLoading={isLoading}
+              onClose={() => setLibraryOpen(false)}
+              onSelectScene={(scene) => {
+                setLibraryOpen(false);
+                setBreathOpen(false);
+                setActiveScene(scene);
+              }}
+            />
+          )}
+        </>
+      );
+    }
+
     return (
       <>
         <PortalBreathPlayer
-          onBack={() => setBreathOpen(false)}
+          onBack={() => setBreathStage("preview")}
           onOpenLibrary={() => setLibraryOpen(true)}
           onSelectCategory={(cat) => {
             if (cat === "Breath") return;
@@ -83,6 +111,7 @@ export default function ClientPortal() {
           onSelectCategory={(cat) => {
             if (cat === "Breath") {
               setActiveScene(null);
+              setBreathStage("preview");
               setBreathOpen(true);
               return;
             }
