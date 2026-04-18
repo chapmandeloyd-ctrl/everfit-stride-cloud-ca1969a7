@@ -5,12 +5,15 @@ import { PortalPlayer, type PortalScene } from "@/components/portal/PortalPlayer
 import { PortalEntry } from "@/components/portal/PortalEntry";
 import { PortalLibrary } from "@/components/portal/PortalLibrary";
 import { PortalBreathPlayer } from "@/components/portal/PortalBreathPlayer";
+import { PortalBreathPreview } from "@/components/portal/PortalBreathPreview";
 
 type EntryCategory = "Focus" | "Sleep" | "Escape" | "Breath";
+type BreathStage = "preview" | "player";
 
 export default function ClientPortal() {
   const [activeScene, setActiveScene] = useState<PortalScene | null>(null);
   const [breathOpen, setBreathOpen] = useState(false);
+  const [breathStage, setBreathStage] = useState<BreathStage>("preview");
   const [libraryOpen, setLibraryOpen] = useState(false);
 
   const { data: scenes = [], isLoading } = useQuery({
