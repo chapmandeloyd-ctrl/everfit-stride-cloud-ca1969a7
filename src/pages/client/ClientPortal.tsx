@@ -4,11 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { PortalPlayer, type PortalScene } from "@/components/portal/PortalPlayer";
 import { PortalEntry } from "@/components/portal/PortalEntry";
 import { PortalLibrary } from "@/components/portal/PortalLibrary";
+import { PortalBreathPlayer } from "@/components/portal/PortalBreathPlayer";
 
 type EntryCategory = "Focus" | "Sleep" | "Escape" | "Breath";
 
 export default function ClientPortal() {
   const [activeScene, setActiveScene] = useState<PortalScene | null>(null);
+  const [breathOpen, setBreathOpen] = useState(false);
   const [libraryOpen, setLibraryOpen] = useState(false);
 
   const { data: scenes = [], isLoading } = useQuery({
@@ -28,9 +30,47 @@ export default function ClientPortal() {
     scenes.find((s) => s.category?.toLowerCase() === category.toLowerCase()) ?? null;
 
   const handleSelectCategory = (category: EntryCategory) => {
+    if (category === "Breath") {
+      setActiveScene(null);
+      setBreathOpen(true);
+      return;
+    }
     const first = findFirstInCategory(category);
-    if (first) setActiveScene(first);
+    if (first) {
+      setBreathOpen(false);
+      setActiveScene(first);
+    }
   };
+
+  // Breath player — independent immersive surface
+  if (breathOpen) {
+    return (
+      <>
+        <PortalBreathPlayer
+          onBack={() => setBreathOpen(false)}
+          onOpenLibrary={() => setLibraryOpen(true)}
+          onSelectCategory={(cat) => {
+            if (cat === "Breath") return;
+            setBreathOpen(false);
+            const next = findFirstInCategory(cat);
+            if (next) setActiveScene(next);
+          }}
+        />
+        {libraryOpen && (
+          <PortalLibrary
+            scenes={scenes}
+            isLoading={isLoading}
+            onClose={() => setLibraryOpen(false)}
+            onSelectScene={(scene) => {
+              setLibraryOpen(false);
+              setBreathOpen(false);
+              setActiveScene(scene);
+            }}
+          />
+        )}
+      </>
+    );
+  }
 
   // Active scene → cinematic player. Library can be opened from inside the player.
   if (activeScene) {
@@ -41,6 +81,11 @@ export default function ClientPortal() {
           onBack={() => setActiveScene(null)}
           onOpenLibrary={() => setLibraryOpen(true)}
           onSelectCategory={(cat) => {
+            if (cat === "Breath") {
+              setActiveScene(null);
+              setBreathOpen(true);
+              return;
+            }
             const next = findFirstInCategory(cat);
             if (next) setActiveScene(next);
           }}
