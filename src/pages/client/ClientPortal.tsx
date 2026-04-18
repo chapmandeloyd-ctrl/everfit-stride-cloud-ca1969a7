@@ -57,6 +57,8 @@ export default function ClientPortal() {
             onBack={() => setBreathOpen(false)}
             onExpand={() => setBreathStage("player")}
             audioPaused={libraryOpen}
+            style={breathStyle}
+            onStyleChange={setBreathStyle}
           />
           {libraryOpen && (
             <PortalLibrary
