@@ -11,6 +11,13 @@ interface Props {
   mode?: RestoreMode;
   onBack: () => void;
   contained?: boolean;
+  /** When true, skip the entry/setup screen and start immediately
+   * with `quickDurationSecs` and the first available music track. */
+  quickStart?: boolean;
+  /** Default duration when quickStart is true (default 30s). */
+  quickDurationSecs?: number;
+  /** Called when the session finishes naturally (replaces the summary screen). */
+  onComplete?: () => void;
 }
 
 /* ─── Particle system ─── */
