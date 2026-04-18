@@ -78,31 +78,10 @@ export default function ClientPortal() {
     }
 
     return (
-      <>
-        <PortalBreathPlayer
-          onBack={() => setBreathStage("preview")}
-          onOpenLibrary={() => setLibraryOpen(true)}
-          onSelectCategory={(cat) => {
-            if (cat === "Breath") return;
-            setBreathOpen(false);
-            const next = findFirstInCategory(cat);
-            if (next) setActiveScene(next);
-          }}
-          particleStyle={breathStyle}
-        />
-        {libraryOpen && (
-          <PortalLibrary
-            scenes={scenes}
-            isLoading={isLoading}
-            onClose={() => setLibraryOpen(false)}
-            onSelectScene={(scene) => {
-              setLibraryOpen(false);
-              setBreathOpen(false);
-              setActiveScene(scene);
-            }}
-          />
-        )}
-      </>
+      <BreathingPlayer
+        exercise={BREATHING_EXERCISES[0]}
+        onBack={() => setBreathStage("preview")}
+      />
     );
   }
 
