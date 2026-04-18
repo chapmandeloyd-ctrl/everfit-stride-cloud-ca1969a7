@@ -79,12 +79,12 @@ export function BreathingPlayer({
   const ratioStr = phases.map((p) => p.seconds).join("–");
 
   // States
-  const [stage, setStage] = useState<"entry" | "playing" | "summary">("entry");
-  const [playing, setPlaying] = useState(false);
+  const [stage, setStage] = useState<"entry" | "playing" | "summary">(quickStart ? "playing" : "entry");
+  const [playing, setPlaying] = useState(quickStart);
   const [phaseIndex, setPhaseIndex] = useState(0);
   const [phaseElapsed, setPhaseElapsed] = useState(0);
   const [cycleCount, setCycleCount] = useState(0);
-  const [durationSecs, setDurationSecs] = useState(180);
+  const [durationSecs, setDurationSecs] = useState(quickStart ? quickDurationSecs : 180);
   const [sessionElapsed, setSessionElapsed] = useState(0);
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
