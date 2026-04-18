@@ -6,6 +6,7 @@ import { PortalEntry } from "@/components/portal/PortalEntry";
 import { PortalLibrary } from "@/components/portal/PortalLibrary";
 import { PortalBreathPlayer } from "@/components/portal/PortalBreathPlayer";
 import { PortalBreathPreview } from "@/components/portal/PortalBreathPreview";
+import type { BreathParticleStyle } from "@/components/portal/BreathParticles";
 
 type EntryCategory = "Focus" | "Sleep" | "Escape" | "Breath";
 type BreathStage = "preview" | "player";
@@ -15,6 +16,7 @@ export default function ClientPortal() {
   const [breathOpen, setBreathOpen] = useState(false);
   const [breathStage, setBreathStage] = useState<BreathStage>("preview");
   const [libraryOpen, setLibraryOpen] = useState(false);
+  const [breathStyle, setBreathStyle] = useState<BreathParticleStyle>("aurora");
 
   const { data: scenes = [], isLoading } = useQuery({
     queryKey: ["portal-scenes-client"],
@@ -55,6 +57,8 @@ export default function ClientPortal() {
             onBack={() => setBreathOpen(false)}
             onExpand={() => setBreathStage("player")}
             audioPaused={libraryOpen}
+            style={breathStyle}
+            onStyleChange={setBreathStyle}
           />
           {libraryOpen && (
             <PortalLibrary
@@ -83,6 +87,7 @@ export default function ClientPortal() {
             const next = findFirstInCategory(cat);
             if (next) setActiveScene(next);
           }}
+          particleStyle={breathStyle}
         />
         {libraryOpen && (
           <PortalLibrary

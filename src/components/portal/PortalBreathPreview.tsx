@@ -14,6 +14,9 @@ interface Props {
   onExpand: () => void;
   /** When true (e.g. library overlay open), pause ambient music — same pattern as PortalPlayer */
   audioPaused?: boolean;
+  /** Optional controlled particle style — when provided, switcher updates parent */
+  style?: BreathParticleStyle;
+  onStyleChange?: (s: BreathParticleStyle) => void;
 }
 
 const STYLES: { id: BreathParticleStyle; label: string }[] = [
@@ -30,9 +33,14 @@ const STYLES: { id: BreathParticleStyle; label: string }[] = [
  *
  * Includes a small style switcher so the user can demo Soft / Pulse / Aurora live.
  */
-export function PortalBreathPreview({ onBack, onExpand, audioPaused }: Props) {
+export function PortalBreathPreview({ onBack, onExpand, audioPaused, style: styleProp, onStyleChange }: Props) {
   const audioRef = useRef<HTMLAudioElement>(null);
-  const [style, setStyle] = useState<BreathParticleStyle>("aurora");
+  const [styleLocal, setStyleLocal] = useState<BreathParticleStyle>("aurora");
+  const style = styleProp ?? styleLocal;
+  const setStyle = (s: BreathParticleStyle) => {
+    setStyleLocal(s);
+    onStyleChange?.(s);
+  };
   const [elapsed, setElapsed] = useState(0);
 
   // Pull a real ambient track from the breathing music library
