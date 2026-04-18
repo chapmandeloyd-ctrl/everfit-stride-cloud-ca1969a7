@@ -206,7 +206,7 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
               loop={scene.loop_video}
               muted
               playsInline
-              className="absolute inset-0 w-full h-full object-cover"
+              className="absolute inset-0 w-full h-full object-cover object-bottom"
             />
             {/* Vignette for cinematic feel */}
             <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/60 pointer-events-none" />
