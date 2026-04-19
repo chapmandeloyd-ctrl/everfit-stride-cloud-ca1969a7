@@ -343,6 +343,8 @@ async function elevenLabsSpeakNow(text: string): Promise<void> {
   audio.volume = 1;
   audio.src = url;
   activeAudio = audio;
+  ensureVoiceAudioGraph(audio);
+  if (voiceAudioCtx?.state === "suspended") voiceAudioCtx.resume().catch(() => {});
   speechAbortController = null;
   return new Promise((resolve) => {
     audio.onended = () => { URL.revokeObjectURL(url); if (activeAudio === audio) activeAudio = null; resolve(); };
