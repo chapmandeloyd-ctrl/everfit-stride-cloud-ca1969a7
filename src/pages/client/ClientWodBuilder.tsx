@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Trash2, Dumbbell, Hand, Layers, Repeat, GripVertical, Timer, X, Bookmark, Plus, Copy } from "lucide-react";
+import { Trash2, Dumbbell, Hand, Layers, Repeat, GripVertical, Timer, X, Bookmark, Plus, Copy, ArrowDown } from "lucide-react";
 import { useSavedWorkouts } from "@/hooks/useSavedWorkouts";
 import { getBlockType, WORKOUT_BLOCK_TYPES, WorkoutBlockType } from "@/lib/workoutBlockTypes";
 import { BlockTypePicker } from "@/components/workout/BlockTypePicker";
@@ -12,6 +12,7 @@ import { SetTargetSheet } from "@/components/workout/SetTargetSheet";
 import { RestTimePickerSheet } from "@/components/workout/RestTimePickerSheet";
 import { ExerciseDetailSheet, DetailField } from "@/components/workout/ExerciseDetailSheet";
 import { DetailValueSheet } from "@/components/workout/DetailValueSheet";
+import { PasteFieldsSheet, type PasteableField } from "@/components/workout/PasteFieldsSheet";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
@@ -132,6 +133,7 @@ export default function ClientWodBuilder() {
   const [showBlockPicker, setShowBlockPicker] = useState(true); // Auto-open on mount
   const [editingDetailFieldsId, setEditingDetailFieldsId] = useState<string | null>(null);
   const [editingDetailValue, setEditingDetailValue] = useState<{ id: string; field: DetailField } | null>(null);
+  const [pasteForwardSourceId, setPasteForwardSourceId] = useState<string | null>(null);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [overIndex, setOverIndex] = useState<number | null>(null);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -503,6 +505,58 @@ export default function ClientWodBuilder() {
     toast.success("Row duplicated");
   };
 
+  const deleteOne = (id: string) => {
+    setExercises((prev) => {
+      const target = prev.find((e) => e.id === id);
+      const next = prev.filter((e) => e.id !== id);
+      // Auto-remove empty groups
+      if (target?.group_id) {
+        const stillHasMembers = next.some((e) => e.group_id === target.group_id);
+        if (!stillHasMembers) {
+          setGroups((g) => g.filter((gr) => gr.id !== target.group_id));
+        }
+      }
+      return next;
+    });
+    toast.success("Removed");
+  };
+
+  const applyPasteForward = (sourceId: string, fields: PasteableField[]) => {
+    setExercises((prev) => {
+      const idx = prev.findIndex((e) => e.id === sourceId);
+      if (idx === -1) return prev;
+      const src = prev[idx];
+      const next = [...prev];
+      // Find the next non-rest exercise
+      let targetIdx = -1;
+      for (let i = idx + 1; i < next.length; i++) {
+        if (next[i].exercise_id !== "rest") { targetIdx = i; break; }
+      }
+      if (targetIdx === -1) return prev;
+      const tgt = next[targetIdx];
+      const updates: Partial<WodExercise> = {};
+      const detailUnion = new Set<DetailField>(tgt.detail_fields);
+      for (const f of fields) {
+        switch (f) {
+          case "sets": updates.sets = src.sets; break;
+          case "target":
+            updates.target_type = src.target_type;
+            updates.reps = src.reps;
+            break;
+          case "rest": updates.rest_seconds = src.rest_seconds; break;
+          case "weight": updates.weight_lbs = src.weight_lbs; if (src.weight_lbs) detailUnion.add("weight"); break;
+          case "tempo": updates.tempo = src.tempo; if (src.tempo) detailUnion.add("tempo"); break;
+          case "rpe": updates.rpe = src.rpe; if (src.rpe) detailUnion.add("rpe"); break;
+          case "distance": updates.distance = src.distance; if (src.distance) detailUnion.add("distance"); break;
+        }
+      }
+      updates.detail_fields = Array.from(detailUnion);
+      next[targetIdx] = { ...tgt, ...updates };
+      return next;
+    });
+    toast.success("Details copied to next row");
+  };
+
   const duplicateSelected = () => {
     const selectedIds = exercises.filter((e) => e.selected).map((e) => e.id);
     if (selectedIds.length === 0) {
@@ -764,14 +818,24 @@ export default function ClientWodBuilder() {
                           </p>
                         </div>
                         {ex.exercise_id !== "rest" && (
-                          <button
-                            type="button"
-                            onClick={(e) => { e.stopPropagation(); duplicateOne(ex.id); }}
-                            title="Duplicate row"
-                            className="shrink-0 p-1 text-muted-foreground/60 hover:text-primary transition-colors"
-                          >
-                            <Copy className="h-4 w-4" />
-                          </button>
+                          <>
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); setPasteForwardSourceId(ex.id); }}
+                              title="Copy details to next row"
+                              className="shrink-0 p-1 text-muted-foreground/60 hover:text-primary transition-colors"
+                            >
+                              <ArrowDown className="h-4 w-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); duplicateOne(ex.id); }}
+                              title="Duplicate row"
+                              className="shrink-0 p-1 text-muted-foreground/60 hover:text-primary transition-colors"
+                            >
+                              <Copy className="h-4 w-4" />
+                            </button>
+                          </>
                         )}
                         <div className="shrink-0 text-muted-foreground/30 cursor-grab">
                           <GripVertical className="h-5 w-5" />
@@ -913,11 +977,27 @@ export default function ClientWodBuilder() {
                           </div>
                           <button
                             type="button"
+                            onClick={(e) => { e.stopPropagation(); setPasteForwardSourceId(ex.id); }}
+                            title="Copy details to next row"
+                            className="shrink-0 p-1 text-muted-foreground/60 hover:text-primary transition-colors"
+                          >
+                            <ArrowDown className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
                             onClick={(e) => { e.stopPropagation(); duplicateOne(ex.id); }}
                             title="Duplicate row"
                             className="shrink-0 p-1 text-muted-foreground/60 hover:text-primary transition-colors"
                           >
                             <Copy className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); deleteOne(ex.id); }}
+                            title="Delete exercise"
+                            className="shrink-0 p-1 text-muted-foreground/60 hover:text-destructive transition-colors"
+                          >
+                            <Trash2 className="h-4 w-4" />
                           </button>
                           <div className="shrink-0 text-muted-foreground/30 cursor-grab">
                             <GripVertical className="h-5 w-5" />
@@ -1241,6 +1321,34 @@ export default function ClientWodBuilder() {
               setExercises((prev) => prev.map((e) => e.id === editingDetailValue.id ? { ...e, [fieldKey]: v } : e));
             }}
             onClose={() => setEditingDetailValue(null)}
+          />
+        );
+      })()}
+
+      {/* Paste Forward Sheet */}
+      {pasteForwardSourceId && (() => {
+        const src = exercises.find((e) => e.id === pasteForwardSourceId);
+        if (!src) return null;
+        const idx = exercises.findIndex((e) => e.id === pasteForwardSourceId);
+        const tgt = exercises.slice(idx + 1).find((e) => e.exercise_id !== "rest");
+        const available: PasteableField[] = ["sets", "target", "rest"];
+        if (src.weight_lbs) available.push("weight");
+        if (src.tempo) available.push("tempo");
+        if (src.rpe) available.push("rpe");
+        if (src.distance) available.push("distance");
+        const summaryParts: string[] = [`${src.sets} sets`];
+        if (src.target_type === "time") summaryParts.push(`⏱ ${src.reps}`);
+        else if (src.reps) summaryParts.push(src.reps);
+        if (src.rest_seconds) summaryParts.push(`${src.rest_seconds}s rest`);
+        if (src.weight_lbs) summaryParts.push(`${src.weight_lbs} lbs`);
+        return (
+          <PasteFieldsSheet
+            open
+            sourceSummary={summaryParts.join(" · ")}
+            targetName={tgt ? tgt.exercise_name : "No row below"}
+            availableFields={available}
+            onConfirm={(fields) => applyPasteForward(pasteForwardSourceId, fields)}
+            onClose={() => setPasteForwardSourceId(null)}
           />
         );
       })()}

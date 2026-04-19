@@ -8,9 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, X, GripVertical, Copy, Trash2, Timer, FileText, Clock, Sparkles } from "lucide-react";
+import { Search, Plus, X, GripVertical, Copy, Trash2, Timer, FileText, Clock, Sparkles, ArrowDown } from "lucide-react";
 import { ExerciseDetailSheet, type DetailField } from "@/components/workout/ExerciseDetailSheet";
 import { DetailValueSheet } from "@/components/workout/DetailValueSheet";
+import { PasteFieldsSheet, type PasteableField } from "@/components/workout/PasteFieldsSheet";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SortableGroupHeader } from "@/components/workout/SortableGroupHeader";
@@ -89,6 +90,8 @@ function ExerciseRow({
   onEditDetailFields,
   onEditDetailValue,
   onDuplicate,
+  onDelete,
+  onPasteForward,
 }: {
   item: WorkoutExercise;
   exerciseInfo: any;
@@ -97,6 +100,8 @@ function ExerciseRow({
   onEditDetailFields?: (id: string) => void;
   onEditDetailValue?: (edit: { id: string; field: DetailField }) => void;
   onDuplicate?: (id: string) => void;
+  onDelete?: (id: string) => void;
+  onPasteForward?: (id: string) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
   const style = {
@@ -186,9 +191,19 @@ function ExerciseRow({
         </Select>
       )}
       <div className="ml-auto flex items-center gap-1 shrink-0">
+        {onPasteForward && item.exercise_type === "normal" && (
+          <button type="button" onClick={() => onPasteForward(item.id)} title="Copy details to next row" className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-primary transition-colors">
+            <ArrowDown className="h-4 w-4" />
+          </button>
+        )}
         {onDuplicate && item.exercise_type === "normal" && (
           <button type="button" onClick={() => onDuplicate(item.id)} title="Duplicate row" className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-primary transition-colors">
             <Copy className="h-4 w-4" />
+          </button>
+        )}
+        {onDelete && (
+          <button type="button" onClick={() => onDelete(item.id)} title="Delete row" className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-destructive transition-colors">
+            <Trash2 className="h-4 w-4" />
           </button>
         )}
         <div {...attributes} {...listeners} className="cursor-grab p-1 touch-none">
@@ -283,6 +298,7 @@ export default function EditWorkout() {
   const [dataLoaded, setDataLoaded] = useState(false);
   const [editingDetailFieldsId, setEditingDetailFieldsId] = useState<string | null>(null);
   const [editingDetailValue, setEditingDetailValue] = useState<{ id: string; field: DetailField } | null>(null);
+  const [pasteForwardSourceId, setPasteForwardSourceId] = useState<string | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -489,6 +505,56 @@ export default function EditWorkout() {
       return next;
     });
   }, []);
+
+  const deleteOne = useCallback((itemId: string) => {
+    setExerciseItems((prev) => {
+      const target = prev.find((i) => i.id === itemId);
+      const next = prev.filter((i) => i.id !== itemId);
+      if (target?.group_id) {
+        const stillHasMembers = next.some((i) => i.group_id === target.group_id);
+        if (!stillHasMembers) {
+          setGroups((g) => g.filter((gr) => gr.id !== target.group_id));
+        }
+      }
+      return next;
+    });
+  }, []);
+
+  const applyPasteForward = useCallback((sourceId: string, fields: PasteableField[]) => {
+    setExerciseItems((prev) => {
+      const idx = prev.findIndex((i) => i.id === sourceId);
+      if (idx === -1 || idx === prev.length - 1) return prev;
+      const src = prev[idx];
+      const next = [...prev];
+      let targetIdx = -1;
+      for (let i = idx + 1; i < next.length; i++) {
+        if (next[i].exercise_type === "normal") { targetIdx = i; break; }
+      }
+      if (targetIdx === -1) return prev;
+      const tgt = next[targetIdx];
+      const updates: Partial<WorkoutExercise> = {};
+      const detailUnion = new Set<DetailField>(tgt.detail_fields);
+      for (const f of fields) {
+        switch (f) {
+          case "sets": updates.sets = src.sets; break;
+          case "target":
+            updates.target_type = src.target_type;
+            updates.target_value = src.target_value;
+            updates.time_seconds = src.time_seconds;
+            break;
+          case "rest": updates.rest_seconds = src.rest_seconds; break;
+          case "weight": updates.weight_lbs = src.weight_lbs; if (src.weight_lbs) detailUnion.add("weight"); break;
+          case "tempo": updates.tempo = src.tempo; if (src.tempo) detailUnion.add("tempo"); break;
+          case "rpe": updates.rpe = src.rpe; if (src.rpe) detailUnion.add("rpe"); break;
+          case "distance": updates.distance = src.distance; if (src.distance) detailUnion.add("distance"); break;
+        }
+      }
+      updates.detail_fields = Array.from(detailUnion);
+      next[targetIdx] = { ...tgt, ...updates };
+      return next;
+    });
+    toast({ title: "Details copied to next row" });
+  }, [toast]);
 
   const createGroup = (type: "superset" | "circuit") => {
     const selectedNormal = exerciseItems.filter((i) => i.selected && i.exercise_type === "normal");
@@ -724,7 +790,7 @@ export default function EditWorkout() {
                 customName={group.custom_name}
               />
               {groupItems.map((gi) => (
-                <ExerciseRow key={gi.id} item={gi} exerciseInfo={getExerciseById(gi.exercise_id)} onUpdate={updateItem} onToggleSelect={toggleSelect} onEditDetailFields={setEditingDetailFieldsId} onEditDetailValue={setEditingDetailValue} onDuplicate={duplicateOne} />
+                <ExerciseRow key={gi.id} item={gi} exerciseInfo={getExerciseById(gi.exercise_id)} onUpdate={updateItem} onToggleSelect={toggleSelect} onEditDetailFields={setEditingDetailFieldsId} onEditDetailValue={setEditingDetailValue} onDuplicate={duplicateOne} onDelete={deleteOne} onPasteForward={setPasteForwardSourceId} />
               ))}
             </div>
           );
@@ -735,7 +801,7 @@ export default function EditWorkout() {
       }
 
       if (!item.group_id) {
-        rendered.push(<ExerciseRow key={item.id} item={item} exerciseInfo={getExerciseById(item.exercise_id)} onUpdate={updateItem} onToggleSelect={toggleSelect} onEditDetailFields={setEditingDetailFieldsId} onEditDetailValue={setEditingDetailValue} onDuplicate={duplicateOne} />);
+        rendered.push(<ExerciseRow key={item.id} item={item} exerciseInfo={getExerciseById(item.exercise_id)} onUpdate={updateItem} onToggleSelect={toggleSelect} onEditDetailFields={setEditingDetailFieldsId} onEditDetailValue={setEditingDetailValue} onDuplicate={duplicateOne} onDelete={deleteOne} onPasteForward={setPasteForwardSourceId} />);
       }
     }
 
@@ -979,6 +1045,35 @@ export default function EditWorkout() {
               setExerciseItems((prev) => prev.map((e) => e.id === editingDetailValue.id ? { ...e, [fieldKey]: v } : e));
             }}
             onClose={() => setEditingDetailValue(null)}
+          />
+        );
+      })()}
+
+      {/* Paste Forward Sheet */}
+      {pasteForwardSourceId && (() => {
+        const src = exerciseItems.find((e) => e.id === pasteForwardSourceId);
+        if (!src) return null;
+        const idx = exerciseItems.findIndex((e) => e.id === pasteForwardSourceId);
+        const tgt = exerciseItems.slice(idx + 1).find((e) => e.exercise_type === "normal");
+        const tgtInfo = tgt ? getExerciseById(tgt.exercise_id) : null;
+        const available: PasteableField[] = ["sets", "target", "rest"];
+        if (src.weight_lbs) available.push("weight");
+        if (src.tempo) available.push("tempo");
+        if (src.rpe) available.push("rpe");
+        if (src.distance) available.push("distance");
+        const summaryParts: string[] = [`${src.sets} sets`];
+        if (src.target_type === "time") summaryParts.push(`⏱ ${src.time_seconds}s`);
+        else if (src.target_value) summaryParts.push(src.target_value);
+        if (src.rest_seconds) summaryParts.push(`${src.rest_seconds}s rest`);
+        if (src.weight_lbs) summaryParts.push(`${src.weight_lbs} lbs`);
+        return (
+          <PasteFieldsSheet
+            open
+            sourceSummary={summaryParts.join(" · ")}
+            targetName={tgt ? (tgtInfo?.name || "Next exercise") : "No row below"}
+            availableFields={available}
+            onConfirm={(fields) => applyPasteForward(pasteForwardSourceId, fields)}
+            onClose={() => setPasteForwardSourceId(null)}
           />
         );
       })()}
