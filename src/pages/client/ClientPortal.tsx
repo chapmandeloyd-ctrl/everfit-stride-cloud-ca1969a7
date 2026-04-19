@@ -5,9 +5,11 @@ import { PortalPlayer, type PortalScene } from "@/components/portal/PortalPlayer
 import { PortalEntry } from "@/components/portal/PortalEntry";
 import { PortalLibrary } from "@/components/portal/PortalLibrary";
 import { BreathingPlayer } from "@/components/vibes/BreathingPlayer";
-import { BREATHING_EXERCISES } from "@/lib/breathingExercises";
+import { BREATHING_EXERCISES, type BreathingExercise } from "@/lib/breathingExercises";
 import { PortalBreathPreview } from "@/components/portal/PortalBreathPreview";
 import { BreathLibraryPrompt } from "@/components/portal/BreathLibraryPrompt";
+import { BreathLibrary } from "@/components/portal/BreathLibrary";
+import { useBreathingExercises } from "@/hooks/useBreathingExercises";
 import type { BreathParticleStyle } from "@/components/portal/BreathParticles";
 
 type EntryCategory = "Focus" | "Sleep" | "Escape" | "Breath";
