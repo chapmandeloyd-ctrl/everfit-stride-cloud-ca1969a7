@@ -404,24 +404,26 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
         const ex = step.exercise;
         const section = sections[step.sectionIdx];
         const isGrouped = ["superset", "circuit"].includes(section?.section_type);
-        // Timed block types use countdown timers; rep-based blocks use stopwatch
-        const TIMED_BLOCKS = ["circuit", "tabata", "emom", "amrap", "for_time", "fortime"];
-        const isTimedBlock = TIMED_BLOCKS.includes((section?.section_type || "").toLowerCase());
         let msg = "";
 
-        // Announce only the block label at the start of a grouped section.
-        if (isGrouped && step.exerciseIdx === 0 && step.round === 1 && section?.name) {
-          const blockName = section.name.replace(/\s*Block\s*\d+$/i, "").replace(/\s*\d+$/, "").trim();
-          if (blockName) {
-            msg += `${blockName}. `;
+        // Announce block label + round X of Y on the first exercise of each round
+        if (isGrouped && step.exerciseIdx === 0 && section?.name) {
+          const blockName = section.name.trim();
+          if (blockName) msg += `${blockName}. `;
+          if ((section?.rounds || 1) > 1) {
+            msg += `Round ${step.round} of ${section.rounds}. `;
           }
+        }
+
+        // Position within the block: "1 of N"
+        if (isGrouped && section?.exercises?.length > 1) {
+          msg += `${step.exerciseIdx + 1} of ${section.exercises.length}. `;
         }
 
         msg += ex.exercise_name || "";
 
-        // Announce reps or duration based on block type
-        // Only timed blocks (Circuit/Tabata/EMOM/AMRAP/For Time) get the seconds callout
-        if (ex.duration_seconds && isTimedBlock) {
+        // Per-exercise: announce duration if set, otherwise reps
+        if (ex.duration_seconds && ex.duration_seconds > 0) {
           msg += `, ${ex.duration_seconds} seconds`;
         } else if (ex.reps) {
           msg += `, ${ex.reps} reps`;
@@ -463,13 +465,8 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
     const step = steps[stepIdx];
     if (!step) return;
 
-    // Last 3-second countdown ONLY for timed blocks (Circuit/Tabata/EMOM/AMRAP/For Time).
-    // Rep-based exercises (Regular/Superset/Giant Set) use a stopwatch and never count down.
-    const TIMED_BLOCKS = ["circuit", "tabata", "emom", "amrap", "for_time", "fortime"];
-    const section = sections[step.sectionIdx];
-    const isTimedBlock = TIMED_BLOCKS.includes((section?.section_type || "").toLowerCase());
-
-    if (step.type === "exercise" && isTimedBlock && step.exercise?.duration_seconds) {
+    // 3-2-1 countdown applies whenever the current exercise is duration-based.
+    if (step.type === "exercise" && step.exercise?.duration_seconds && step.exercise.duration_seconds > 0) {
       if (stepTimer > 0 && stepTimer <= 3 && lastCountdownRef.current !== stepTimer) {
         lastCountdownRef.current = stepTimer;
         const countdownWord = stepTimer === 3 ? "Three" : stepTimer === 2 ? "Two" : "One";
@@ -632,13 +629,10 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
     if (phase !== "playing" || !currentStep) return;
     if (currentStep.type === "exercise" && currentStep.exercise) {
       const ex = currentStep.exercise;
-      // Only timed block types (Circuit/Tabata/EMOM/AMRAP/For Time) use a countdown.
-      // Rep-based blocks (Regular/Superset/Giant Set) always use the stopwatch,
-      // even if the exercise has a duration_seconds value (treated as a target hint only).
-      const TIMED_BLOCKS = ["circuit", "tabata", "emom", "amrap", "for_time", "fortime"];
-      const section = sections[currentStep.sectionIdx];
-      const isTimedBlock = TIMED_BLOCKS.includes((section?.section_type || "").toLowerCase());
-      if (ex.duration_seconds && isTimedBlock) startStepCountdown(ex.duration_seconds);
+      // Per-exercise rule (predictable across all block types):
+      //   exercise has duration_seconds → countdown
+      //   exercise has reps (or no duration) → stopwatch
+      if (ex.duration_seconds && ex.duration_seconds > 0) startStepCountdown(ex.duration_seconds);
       else startStepStopwatch();
     } else if (currentStep.type === "rest") {
       const secs = currentStep.restSeconds || 60;
@@ -876,9 +870,9 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
   const currentSection = sections[currentStep.sectionIdx];
   const isGrouped = currentSection && ["superset", "circuit"].includes(currentSection.section_type);
   const isCircuitMode = currentStep.isCircuit;
-  // Timed block types use a countdown; rep-based blocks use a stopwatch even if duration_seconds is set
-  const TIMED_BLOCKS_RUNTIME = ["circuit", "tabata", "emom", "amrap", "for_time", "fortime"];
-  const isTimedBlock = TIMED_BLOCKS_RUNTIME.includes((currentSection?.section_type || "").toLowerCase());
+  // Per-exercise rule: any exercise with a duration runs a countdown,
+  // otherwise it runs a stopwatch. Block type no longer affects timer choice.
+  const isTimedExercise = !!(currentExercise?.duration_seconds && currentExercise.duration_seconds > 0);
 
   const sectionLabel = isGrouped
     ? currentSection.name
@@ -933,18 +927,18 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
         </div>
 
         {/* Stats bar */}
-        <div className={cn("grid px-4 py-2 border-b border-border/30 bg-background", isTimedBlock ? "grid-cols-4" : "grid-cols-3")}>
+        <div className={cn("grid px-4 py-2 border-b border-border/30 bg-background", isTimedExercise ? "grid-cols-4" : "grid-cols-3")}>
           <div className="text-center">
             <p className="text-xs font-semibold text-muted-foreground tracking-wider uppercase">TIME</p>
             <p className="text-sm font-bold tabular-nums">{formatTime(elapsedSeconds)}</p>
           </div>
-          {isTimedBlock && (
+          {isTimedExercise && (
             <div className="text-center border-x border-border/30">
               <p className="text-xs font-semibold text-muted-foreground tracking-wider uppercase">Remaining</p>
               <p className="text-sm font-bold tabular-nums">{formatTime(remainingSeconds)}</p>
             </div>
           )}
-          <div className={cn("text-center", isTimedBlock && "border-r border-border/30")}>
+          <div className={cn("text-center", isTimedExercise && "border-r border-border/30")}>
             <p className="text-xs font-semibold text-muted-foreground tracking-wider uppercase">Cal</p>
             <p className="text-sm font-bold">{estimatedCal}</p>
           </div>
@@ -983,8 +977,8 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
               </div>
             )}
 
-            {/* Countdown timer bubble — only for timed block types */}
-            {currentExercise?.duration_seconds && isTimedBlock && stepTimer > 0 && (
+            {/* Countdown timer bubble — for any duration-based exercise */}
+            {isTimedExercise && stepTimer > 0 && (
               <div className="absolute top-3 right-3">
                 <div className="relative w-20 h-20">
                   <svg className="w-full h-full -rotate-90" viewBox="0 0 80 80">
@@ -1009,7 +1003,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
             )}
 
             {/* Stopwatch bubble — for rep-based exercises (counts UP until user advances) */}
-            {(!currentExercise?.duration_seconds || !isTimedBlock) && !isRest && stepTimer >= 0 && (
+            {!isTimedExercise && !isRest && stepTimer >= 0 && (
               <div className="absolute top-3 right-3">
                 <div className="relative w-20 h-20 rounded-full bg-black/55 border border-white/15 flex flex-col items-center justify-center">
                   <span className="text-xl font-black text-white tabular-nums leading-none">

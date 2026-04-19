@@ -96,17 +96,18 @@ export function WorkoutIntro({
     const firstSection = sections[0];
     if (firstEx) {
       setPhase("firstup");
-      const blockName = firstSection?.name?.replace(/\s*Block\s*\d+$/i, "").replace(/\s*\d+$/, "").trim() || "";
-      // Only timed block types announce duration. Rep-based blocks use a stopwatch.
-      const TIMED_BLOCKS = ["circuit", "tabata", "emom", "amrap", "for_time", "fortime"];
-      const isTimedBlock = TIMED_BLOCKS.includes((firstSection?.section_type || "").toLowerCase());
-      const repsInfo = firstEx.reps ? `, ${firstEx.reps} reps` : "";
-      const durationInfo = firstEx.duration_seconds && isTimedBlock
+      const blockName = firstSection?.name?.trim() || "";
+      const totalRounds = firstSection?.rounds || 1;
+      const totalInBlock = firstSection?.exercises?.length || 1;
+      // Per-exercise: announce duration if set, otherwise reps
+      const targetInfo = firstEx.duration_seconds && firstEx.duration_seconds > 0
         ? `, ${firstEx.duration_seconds} seconds`
-        : "";
+        : firstEx.reps ? `, ${firstEx.reps} reps` : "";
       const blockAnnounce = blockName ? `${blockName}. ` : "";
+      const roundAnnounce = totalRounds > 1 ? `Round 1 of ${totalRounds}. ` : "";
+      const positionAnnounce = totalInBlock > 1 ? `1 of ${totalInBlock}. ` : "";
       await speakFn(
-        `${blockAnnounce}First up, ${firstEx.exercise_name}${repsInfo}${durationInfo}. Let's go!`
+        `${blockAnnounce}${roundAnnounce}${positionAnnounce}First up, ${firstEx.exercise_name}${targetInfo}. Let's go!`
       );
     }
 
