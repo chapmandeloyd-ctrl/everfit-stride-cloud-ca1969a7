@@ -55,18 +55,25 @@ export function BreathPreviewCircle({ exercise, className }: Props) {
         background: `radial-gradient(circle at 35% 30%, hsl(${tone.hueBase}, ${tone.hueSat}%, 18%) 0%, hsl(${tone.hueBase}, ${Math.max(20, tone.hueSat - 10)}%, 6%) 70%, #000 100%)`,
       }}
     >
-      <BreathingAnimationLayer
-        animation={exercise.animation}
-        progress={progress}
-        phaseType={phaseType}
-        hue={tone.hueBase}
-        sat={tone.hueSat}
-        brightness={0.55}
-        arcIntensity={0.6}
-        time={time}
-      />
+      {/* Scale wrapper — BreathingAnimationLayer's inner SVGs use fixed sizes
+          (w-64/w-72/w-80) which overflow small circles and create visible gaps.
+          We force the inner layer to fill the circle so the animation reaches
+          the rim on all sides. */}
+      <div className="absolute inset-0 [&>div]:!inset-0 [&_svg]:!w-full [&_svg]:!h-full [&_svg]:!opacity-100">
+        <BreathingAnimationLayer
+          animation={exercise.animation}
+          progress={progress}
+          phaseType={phaseType}
+          hue={tone.hueBase}
+          sat={tone.hueSat}
+          brightness={0.65}
+          arcIntensity={0.7}
+          time={time}
+        />
+      </div>
       {/* subtle vignette + rim for depth */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/40 pointer-events-none" />
+      <div className="absolute inset-0 rounded-full pointer-events-none bg-gradient-to-b from-transparent via-transparent to-black/40" />
+      <div className="absolute inset-0 rounded-full pointer-events-none ring-1 ring-inset ring-white/10" />
     </div>
   );
 }
