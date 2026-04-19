@@ -12,6 +12,7 @@ interface DetailValueSheetProps {
 
 const fieldConfig: Record<DetailField, { label: string; placeholder: string; type: string }> = {
   weight: { label: "Weight (lbs)", placeholder: "e.g. 135", type: "number" },
+  band: { label: "Band / Equipment", placeholder: "e.g. Red band, Light, Heavy", type: "text" },
   tempo: { label: "Tempo", placeholder: "e.g. 3-1-1-0", type: "text" },
   rpe: { label: "RPE (1-10)", placeholder: "e.g. 8", type: "number" },
   distance: { label: "Distance", placeholder: "e.g. 400m, 1 mile", type: "text" },

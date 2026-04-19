@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { X, ArrowDown } from "lucide-react";
 
-export type PasteableField = "sets" | "target" | "rest" | "weight" | "tempo" | "rpe" | "distance";
+export type PasteableField = "sets" | "target" | "rest" | "weight" | "band" | "tempo" | "rpe" | "distance";
 
 interface PasteFieldsSheetProps {
   open: boolean;
@@ -20,6 +20,7 @@ const FIELD_LABELS: Record<PasteableField, string> = {
   target: "Reps / Time / Target",
   rest: "Rest",
   weight: "Weight",
+  band: "Band / Equip.",
   tempo: "Tempo",
   rpe: "RPE",
   distance: "Distance",
@@ -53,7 +54,7 @@ export function PasteFieldsSheet({
     });
   };
 
-  const allOptions: PasteableField[] = ["sets", "target", "rest", "weight", "tempo", "rpe", "distance"];
+  const allOptions: PasteableField[] = ["sets", "target", "rest", "weight", "band", "tempo", "rpe", "distance"];
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center">
