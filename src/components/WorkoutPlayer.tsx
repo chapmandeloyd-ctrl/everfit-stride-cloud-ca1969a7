@@ -1131,7 +1131,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
               <p className="text-base font-semibold text-primary">{currentExercise.reps} reps</p>
             )}
             {currentExercise?.band && (
-              <p className="text-xs font-semibold text-orange-500 mt-0.5">🎯 {currentExercise.band}</p>
+              <p className="text-xs font-semibold text-primary mt-0.5">🎯 {currentExercise.band}</p>
             )}
             {currentExercise?.notes && (
               <p className="text-xs text-muted-foreground italic mt-0.5">{currentExercise.notes}</p>
@@ -1165,7 +1165,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
                 <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wide">Reps</p>
                 <Input
                   type="number"
-                  value={setLogs[currentStep.setKey]?.reps || ""}
+                  value={setLogs[currentStep.setKey]?.reps ?? (currentExercise.reps ? String(currentExercise.reps) : "")}
                   onChange={(e) => updateSetLog(currentStep.setKey!, "reps", e.target.value)}
                   className="h-10 text-center text-lg font-bold border-2 focus:border-primary"
                   placeholder={currentExercise.reps ? String(currentExercise.reps) : "0"}
@@ -1477,7 +1477,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
                         <p className="text-xs font-semibold text-muted-foreground mb-1.5 uppercase tracking-wide">Reps</p>
                         <Input
                           type="number"
-                          value={setLogs[currentStep.setKey]?.reps || ""}
+                          value={setLogs[currentStep.setKey]?.reps ?? (currentExercise.reps ? String(currentExercise.reps) : "")}
                           onChange={(e) => updateSetLog(currentStep.setKey!, "reps", e.target.value)}
                           className="h-10 text-center text-lg font-bold border-2 focus:border-primary"
                           placeholder={currentExercise.reps ? String(currentExercise.reps) : "0"}
