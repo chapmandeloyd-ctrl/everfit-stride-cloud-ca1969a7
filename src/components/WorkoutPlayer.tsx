@@ -773,6 +773,11 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
   };
 
   const markStepDone = () => {
+    // Unilateral: if currently on right side, switch to left WITHOUT advancing the step
+    if (currentSideRef.current === "right") {
+      setCurrentSide("left");
+      return;
+    }
     if (currentStep?.setKey) {
       setSetLogs((prev) => ({
         ...prev,
@@ -783,6 +788,20 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
           completed: true,
         },
       }));
+    }
+    advanceStep();
+  };
+
+  // For timed unilateral (Skip button on countdown screens): switch side or advance
+  const advanceOrSwitchSide = () => {
+    if (currentSideRef.current === "right") {
+      setCurrentSide("left");
+      // Restart the countdown for the left side
+      const ex = currentStep?.exercise;
+      if (ex?.duration_seconds && ex.duration_seconds > 0) {
+        startStepCountdown(ex.duration_seconds);
+      }
+      return;
     }
     advanceStep();
   };
