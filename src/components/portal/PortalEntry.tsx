@@ -93,6 +93,16 @@ export function PortalEntry({ onSelectCategory }: PortalEntryProps) {
       {/* Bottom vignette to anchor buttons */}
       <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/70 via-black/20 to-transparent pointer-events-none" />
 
+      {/* Close button — returns to dashboard */}
+      <button
+        onClick={() => navigate("/client/dashboard")}
+        aria-label="Close"
+        className="absolute z-[60] left-4 h-10 w-10 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center text-white/90 hover:bg-white/20 active:scale-95 transition-all"
+        style={{ top: "max(env(safe-area-inset-top, 0px), 16px)" }}
+      >
+        <X className="h-5 w-5" />
+      </button>
+
       {/* Title — Breathing CALM with shimmer */}
       <motion.div
         initial={{ opacity: 0 }}
