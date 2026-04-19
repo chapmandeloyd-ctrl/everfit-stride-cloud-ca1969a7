@@ -250,38 +250,46 @@ export function WorkoutIntro({
       )}
 
       {/* First Up Phase */}
-      {phase === "firstup" && allExercises[0] && (
-        <div className="flex-1 flex flex-col items-center justify-center px-6 animate-scale-in">
-          <div className="text-primary text-xs font-bold uppercase tracking-[0.3em] mb-2">
-            First Up
-          </div>
-          <div className="text-background/50 text-sm font-semibold mb-4">
-            1 of {allExercises.length}
-          </div>
-          {allExercises[0].exercise_image ? (
-            <img
-              src={allExercises[0].exercise_image}
-              alt={allExercises[0].exercise_name}
-              className="w-40 h-40 rounded-2xl object-cover mb-5 shadow-2xl"
-            />
-          ) : (
-            <div className="w-40 h-40 rounded-2xl bg-background/10 flex items-center justify-center mb-5">
-              <Dumbbell className="h-12 w-12 text-background/20" />
+      {phase === "firstup" && allExercises[0] && (() => {
+        const firstSection = sections[0];
+        const isGroupedFirstSection = ["superset", "circuit"].includes(firstSection?.section_type || "");
+        const firstUpMeta = isGroupedFirstSection
+          ? `Round 1 of ${firstSection?.rounds || 1}`
+          : `1 of 1`;
+
+        return (
+          <div className="flex-1 flex flex-col items-center justify-center px-6 animate-scale-in">
+            <div className="text-primary text-xs font-bold uppercase tracking-[0.3em] mb-2">
+              First Up
             </div>
-          )}
-          <h2 className="text-3xl font-black text-background text-center mb-2">
-            {allExercises[0].exercise_name}
-          </h2>
-          <p className="text-background/50 text-sm">
-            {allExercises[0].reps && `${allExercises[0].reps} reps`}
-            {allExercises[0].duration_seconds &&
-              `${allExercises[0].duration_seconds}s`}
-          </p>
-          <div className="mt-8 text-primary font-black text-xl animate-pulse">
-            LET'S GO!
+            <div className="text-background/50 text-sm font-semibold mb-4">
+              {firstUpMeta}
+            </div>
+            {allExercises[0].exercise_image ? (
+              <img
+                src={allExercises[0].exercise_image}
+                alt={allExercises[0].exercise_name}
+                className="w-40 h-40 rounded-2xl object-cover mb-5 shadow-2xl"
+              />
+            ) : (
+              <div className="w-40 h-40 rounded-2xl bg-background/10 flex items-center justify-center mb-5">
+                <Dumbbell className="h-12 w-12 text-background/20" />
+              </div>
+            )}
+            <h2 className="text-3xl font-black text-background text-center mb-2">
+              {allExercises[0].exercise_name}
+            </h2>
+            <p className="text-background/50 text-sm">
+              {allExercises[0].reps && `${allExercises[0].reps} reps`}
+              {allExercises[0].duration_seconds &&
+                `${allExercises[0].duration_seconds}s`}
+            </p>
+            <div className="mt-8 text-primary font-black text-xl animate-pulse">
+              LET'S GO!
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }
