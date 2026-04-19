@@ -187,7 +187,7 @@ function CircleRow({
   const w = SIZE_MAP[size];
   const small = size === "sm";
   return (
-    <div className="flex gap-5 overflow-x-auto px-6 pb-2 scrollbar-hide snap-x">
+    <div className="flex gap-4 overflow-x-auto px-8 pb-2 scrollbar-hide snap-x">
       {exercises.map((ex) => {
         const cycleSecs = ex.phases.reduce((a, p) => a + p.seconds, 0);
         return (
