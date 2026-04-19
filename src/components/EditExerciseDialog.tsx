@@ -26,6 +26,7 @@ interface Exercise {
   category: string | null;
   image_url: string | null;
   video_url: string | null;
+  is_unilateral?: boolean | null;
 }
 
 interface EditExerciseDialogProps {
@@ -54,6 +55,7 @@ export function EditExerciseDialog({ open, onOpenChange, exercise }: EditExercis
     equipment: "",
     category: "",
     video_url: "",
+    is_unilateral: false,
   });
 
   const [videoFile, setVideoFile] = useState<File | null>(null);
@@ -114,6 +116,7 @@ export function EditExerciseDialog({ open, onOpenChange, exercise }: EditExercis
         equipment: exercise.equipment || "",
         category: exercise.category || "",
         video_url: exercise.video_url || "",
+        is_unilateral: !!exercise.is_unilateral,
       });
       setVideoFile(null);
       setRemoveVideo(false);
@@ -250,6 +253,7 @@ export function EditExerciseDialog({ open, onOpenChange, exercise }: EditExercis
           category: formData.category || null,
           video_url: videoUrl,
           image_url: imageUrl,
+          is_unilateral: formData.is_unilateral,
         })
         .eq("id", exercise.id)
         .select()
@@ -308,6 +312,7 @@ export function EditExerciseDialog({ open, onOpenChange, exercise }: EditExercis
       equipment: "",
       category: "",
       video_url: "",
+      is_unilateral: false,
     });
     setVideoFile(null);
     setVideoPreview(null);
