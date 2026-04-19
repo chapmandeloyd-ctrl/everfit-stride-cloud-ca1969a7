@@ -88,6 +88,7 @@ function ExerciseRow({
   onToggleSelect,
   onEditDetailFields,
   onEditDetailValue,
+  onDuplicate,
 }: {
   item: WorkoutExercise;
   exerciseInfo: any;
@@ -95,6 +96,7 @@ function ExerciseRow({
   onToggleSelect: (id: string) => void;
   onEditDetailFields?: (id: string) => void;
   onEditDetailValue?: (edit: { id: string; field: DetailField }) => void;
+  onDuplicate?: (id: string) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
   const style = {
