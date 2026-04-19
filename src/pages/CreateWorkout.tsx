@@ -92,6 +92,8 @@ function ExerciseRow({
   onEditDetailFields,
   onEditDetailValue,
   onDuplicate,
+  onDelete,
+  onPasteForward,
 }: {
   item: WorkoutExercise;
   exerciseInfo: any;
@@ -100,6 +102,8 @@ function ExerciseRow({
   onEditDetailFields?: (id: string) => void;
   onEditDetailValue?: (edit: { id: string; field: DetailField }) => void;
   onDuplicate?: (id: string) => void;
+  onDelete?: (id: string) => void;
+  onPasteForward?: (id: string) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
 
@@ -240,9 +244,19 @@ function ExerciseRow({
       )}
 
       <div className="ml-auto flex items-center gap-1 shrink-0">
+        {onPasteForward && item.exercise_type === "normal" && (
+          <button type="button" onClick={() => onPasteForward(item.id)} title="Copy details to next row" className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-primary transition-colors">
+            <ArrowDown className="h-4 w-4" />
+          </button>
+        )}
         {onDuplicate && item.exercise_type === "normal" && (
           <button type="button" onClick={() => onDuplicate(item.id)} title="Duplicate row" className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-primary transition-colors">
             <Copy className="h-4 w-4" />
+          </button>
+        )}
+        {onDelete && (
+          <button type="button" onClick={() => onDelete(item.id)} title="Delete row" className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-destructive transition-colors">
+            <Trash2 className="h-4 w-4" />
           </button>
         )}
         {/* Drag Handle */}
