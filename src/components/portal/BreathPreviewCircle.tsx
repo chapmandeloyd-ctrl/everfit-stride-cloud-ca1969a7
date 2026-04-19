@@ -55,19 +55,25 @@ export function BreathPreviewCircle({ exercise, className }: Props) {
         background: `radial-gradient(circle at 35% 30%, hsl(${tone.hueBase}, ${tone.hueSat}%, 18%) 0%, hsl(${tone.hueBase}, ${Math.max(20, tone.hueSat - 10)}%, 6%) 70%, #000 100%)`,
       }}
     >
-      {/* Scale wrapper — BreathingAnimationLayer's inner SVGs use fixed sizes
-          (w-64/w-72/w-80) which overflow small circles and create visible gaps.
-          We force the inner layer to fill the circle so the animation reaches
-          the rim on all sides. */}
-      <div className="absolute inset-0 [&>div]:!inset-0 [&_svg]:!w-full [&_svg]:!h-full [&_svg]:!opacity-100">
+      {/* Scale wrapper — BreathingAnimationLayer's inner SVGs are designed for
+          full-screen players (fixed w-64/w-72/w-80, low opacity, blur filters,
+          and some are anchored to the bottom half of a 300x300 viewbox). For
+          the tiny library circle we force them to fill the box, strip their
+          built-in opacity/blur so they read clearly at small size, and
+          slightly upscale so artwork like the ocean waves and aurora curtains
+          fills the visible circle instead of sitting in one half. */}
+      <div
+        className="absolute inset-0 [&>div]:!inset-0 [&_svg]:!w-full [&_svg]:!h-full [&_svg]:!opacity-100 [&_svg]:![filter:none]"
+        style={{ transform: "scale(1.15)" }}
+      >
         <BreathingAnimationLayer
           animation={exercise.animation}
           progress={progress}
           phaseType={phaseType}
           hue={tone.hueBase}
           sat={tone.hueSat}
-          brightness={0.65}
-          arcIntensity={0.7}
+          brightness={0.7}
+          arcIntensity={0.75}
           time={time}
         />
       </div>
