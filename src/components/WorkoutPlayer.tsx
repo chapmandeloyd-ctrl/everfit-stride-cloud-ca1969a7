@@ -300,6 +300,21 @@ async function elevenLabsSpeakNow(text: string): Promise<void> {
 export { unlockAudioForMobile };
 // ─────────────────────────────────────────────────────────────────────────────
 
+function WorkoutCompleteScreen({ workoutName, onSave }: { workoutName?: string; onSave: () => void }) {
+  useEffect(() => {
+    const name = workoutName || "your workout";
+    elevenLabsSpeakNow(`Great job! You completed ${name}.`).catch(() => {});
+    return () => { cancelSpeech(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return (
+    <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-background gap-6 px-6">
+      <h2 className="text-2xl font-bold">Workout Complete! 🎉</h2>
+      <Button size="lg" className="w-full" onClick={onSave}>Save Workout</Button>
+    </div>
+  );
+}
+
 export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, onDiscard, onExit, onSaveForLater, resumeFromStep, resumeSetLogs, resumeElapsed, activeSessionId, dbStartedAt }: WorkoutPlayerProps) {
   const { toast } = useToast();
   const liveActivity = useLiveActivity();
