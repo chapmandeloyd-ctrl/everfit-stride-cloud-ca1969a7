@@ -404,24 +404,26 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
         const ex = step.exercise;
         const section = sections[step.sectionIdx];
         const isGrouped = ["superset", "circuit"].includes(section?.section_type);
-        // Timed block types use countdown timers; rep-based blocks use stopwatch
-        const TIMED_BLOCKS = ["circuit", "tabata", "emom", "amrap", "for_time", "fortime"];
-        const isTimedBlock = TIMED_BLOCKS.includes((section?.section_type || "").toLowerCase());
         let msg = "";
 
-        // Announce only the block label at the start of a grouped section.
-        if (isGrouped && step.exerciseIdx === 0 && step.round === 1 && section?.name) {
-          const blockName = section.name.replace(/\s*Block\s*\d+$/i, "").replace(/\s*\d+$/, "").trim();
-          if (blockName) {
-            msg += `${blockName}. `;
+        // Announce block label + round X of Y on the first exercise of each round
+        if (isGrouped && step.exerciseIdx === 0 && section?.name) {
+          const blockName = section.name.trim();
+          if (blockName) msg += `${blockName}. `;
+          if ((section?.rounds || 1) > 1) {
+            msg += `Round ${step.round} of ${section.rounds}. `;
           }
+        }
+
+        // Position within the block: "1 of N"
+        if (isGrouped && section?.exercises?.length > 1) {
+          msg += `${step.exerciseIdx + 1} of ${section.exercises.length}. `;
         }
 
         msg += ex.exercise_name || "";
 
-        // Announce reps or duration based on block type
-        // Only timed blocks (Circuit/Tabata/EMOM/AMRAP/For Time) get the seconds callout
-        if (ex.duration_seconds && isTimedBlock) {
+        // Per-exercise: announce duration if set, otherwise reps
+        if (ex.duration_seconds && ex.duration_seconds > 0) {
           msg += `, ${ex.duration_seconds} seconds`;
         } else if (ex.reps) {
           msg += `, ${ex.reps} reps`;
@@ -463,13 +465,8 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
     const step = steps[stepIdx];
     if (!step) return;
 
-    // Last 3-second countdown ONLY for timed blocks (Circuit/Tabata/EMOM/AMRAP/For Time).
-    // Rep-based exercises (Regular/Superset/Giant Set) use a stopwatch and never count down.
-    const TIMED_BLOCKS = ["circuit", "tabata", "emom", "amrap", "for_time", "fortime"];
-    const section = sections[step.sectionIdx];
-    const isTimedBlock = TIMED_BLOCKS.includes((section?.section_type || "").toLowerCase());
-
-    if (step.type === "exercise" && isTimedBlock && step.exercise?.duration_seconds) {
+    // 3-2-1 countdown applies whenever the current exercise is duration-based.
+    if (step.type === "exercise" && step.exercise?.duration_seconds && step.exercise.duration_seconds > 0) {
       if (stepTimer > 0 && stepTimer <= 3 && lastCountdownRef.current !== stepTimer) {
         lastCountdownRef.current = stepTimer;
         const countdownWord = stepTimer === 3 ? "Three" : stepTimer === 2 ? "Two" : "One";
@@ -632,13 +629,10 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
     if (phase !== "playing" || !currentStep) return;
     if (currentStep.type === "exercise" && currentStep.exercise) {
       const ex = currentStep.exercise;
-      // Only timed block types (Circuit/Tabata/EMOM/AMRAP/For Time) use a countdown.
-      // Rep-based blocks (Regular/Superset/Giant Set) always use the stopwatch,
-      // even if the exercise has a duration_seconds value (treated as a target hint only).
-      const TIMED_BLOCKS = ["circuit", "tabata", "emom", "amrap", "for_time", "fortime"];
-      const section = sections[currentStep.sectionIdx];
-      const isTimedBlock = TIMED_BLOCKS.includes((section?.section_type || "").toLowerCase());
-      if (ex.duration_seconds && isTimedBlock) startStepCountdown(ex.duration_seconds);
+      // Per-exercise rule (predictable across all block types):
+      //   exercise has duration_seconds → countdown
+      //   exercise has reps (or no duration) → stopwatch
+      if (ex.duration_seconds && ex.duration_seconds > 0) startStepCountdown(ex.duration_seconds);
       else startStepStopwatch();
     } else if (currentStep.type === "rest") {
       const secs = currentStep.restSeconds || 60;
