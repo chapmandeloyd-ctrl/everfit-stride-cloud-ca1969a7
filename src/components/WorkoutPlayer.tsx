@@ -97,7 +97,7 @@ function buildSteps(sections: Section[]): WorkoutStep[] {
             isCircuit: true,
             setKey: `${sIdx}-${eIdx}-${round}-1`,
           });
-          // Add rest between exercises within a round (if exercise has rest_seconds > 0)
+          // Add rest between exercises within a round (only for non-last exercises)
           const exRest = ex.rest_seconds || 0;
           if (exRest > 0 && eIdx < section.exercises.length - 1) {
             steps.push({
@@ -112,7 +112,9 @@ function buildSteps(sections: Section[]): WorkoutStep[] {
           }
         });
         if (round < section.rounds) {
-          const restSec = section.rest_between_rounds_seconds || section.rest_seconds || 60;
+          // Prefer explicit between-rounds rest, then fall back to last exercise's rest_seconds, then section rest, then 60s
+          const lastExRest = section.exercises[section.exercises.length - 1]?.rest_seconds || 0;
+          const restSec = section.rest_between_rounds_seconds || lastExRest || section.rest_seconds || 60;
           steps.push({
             type: "rest",
             sectionIdx: sIdx,
@@ -490,9 +492,12 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
     const isGrouped = ["superset", "circuit"].includes(s.section_type);
     if (isGrouped) {
       s.exercises.forEach((ex) => { acc += (ex.duration_seconds || 45) * s.rounds; });
-      const exRestTotal = s.exercises.reduce((sum, ex) => sum + (ex.rest_seconds || 0), 0);
+      // Sum rest for non-last exercises (last exercise's rest acts as between-rounds rest)
+      const exRestTotal = s.exercises.slice(0, -1).reduce((sum, ex) => sum + (ex.rest_seconds || 0), 0);
       acc += exRestTotal * s.rounds;
-      acc += (s.rest_between_rounds_seconds || 60) * Math.max(0, s.rounds - 1);
+      const lastExRest = s.exercises[s.exercises.length - 1]?.rest_seconds || 0;
+      const betweenRoundsRest = s.rest_between_rounds_seconds || lastExRest || 60;
+      acc += betweenRoundsRest * Math.max(0, s.rounds - 1);
     } else {
       s.exercises.forEach((ex) => {
         acc += ((ex.duration_seconds || 30) + (ex.rest_seconds || 30)) * (ex.sets || 1);
