@@ -158,7 +158,7 @@ function Section({
 }) {
   return (
     <section>
-      <div className="px-6 mb-4">
+      <div className="px-8 mb-4">
         <h2 className="text-white text-2xl font-semibold tracking-tight">{title}</h2>
         {subtitle && (
           <p className="text-white/55 text-sm font-light mt-1">{subtitle}</p>
@@ -187,7 +187,7 @@ function CircleRow({
   const w = SIZE_MAP[size];
   const small = size === "sm";
   return (
-    <div className="flex gap-5 overflow-x-auto px-6 pb-2 scrollbar-hide snap-x">
+    <div className="flex gap-4 overflow-x-auto px-8 pb-2 scrollbar-hide snap-x">
       {exercises.map((ex) => {
         const cycleSecs = ex.phases.reduce((a, p) => a + p.seconds, 0);
         return (
@@ -225,7 +225,7 @@ function CardRow({
   onSelect: (e: BreathingExercise) => void;
 }) {
   return (
-    <div className="flex gap-4 overflow-x-auto px-6 pb-2 scrollbar-hide snap-x snap-mandatory">
+    <div className="flex gap-4 overflow-x-auto px-8 pb-2 scrollbar-hide snap-x snap-mandatory">
       {exercises.map((ex) => {
         const cycleSecs = ex.phases.reduce((a, p) => a + p.seconds, 0);
         return (
