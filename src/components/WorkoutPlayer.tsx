@@ -410,25 +410,43 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
   const [swapDialogOpen, setSwapDialogOpen] = useState(false);
   const [swapTarget, setSwapTarget] = useState<{ sectionIdx: number; exerciseIdx: number } | null>(null);
 
-  // Track if voice was already announced for the current step
-  const announcedStepRef = useRef<number>(-1);
+  // Unilateral side tracking: 'right' = on right side; 'left' = on left side; null = not unilateral
+  const [currentSide, setCurrentSide] = useState<"right" | "left" | null>(null);
+  const currentSideRef = useRef<"right" | "left" | null>(null);
+  useEffect(() => { currentSideRef.current = currentSide; }, [currentSide]);
+
+  // Track if voice was already announced for the current step+side combo
+  const announcedStepRef = useRef<string>("");
   const lastCountdownRef = useRef<number>(-1); // last spoken countdown tick
 
   useEffect(() => { stepIdxRef.current = stepIdx; }, [stepIdx]);
   useEffect(() => { isPausedRef.current = isPaused; }, [isPaused]);
 
-  // Announce exercise/rest when step changes (ElevenLabs — cancels any prior speech)
+  // Reset side when step changes (init to 'right' for unilateral, null otherwise)
   useEffect(() => {
     if (phase !== "playing") return;
-    if (announcedStepRef.current === stepIdx) return;
-    announcedStepRef.current = stepIdx;
+    const step = steps[stepIdx];
+    if (step?.type === "exercise" && isUnilateralExercise(step.exercise)) {
+      setCurrentSide("right");
+    } else {
+      setCurrentSide(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stepIdx, phase]);
+
+  // Announce exercise/rest when step OR side changes (ElevenLabs — cancels any prior speech)
+  useEffect(() => {
+    if (phase !== "playing") return;
+    const announceKey = `${stepIdx}-${currentSide ?? "none"}`;
+    if (announcedStepRef.current === announceKey) return;
+    announcedStepRef.current = announceKey;
 
     const step = steps[stepIdx];
     if (!step) return;
 
     // Small delay on the very first step so "1" browser-speech fully finishes
     // before we cancel and fire the ElevenLabs request
-    const delayMs = stepIdx === 0 ? 500 : 0;
+    const delayMs = stepIdx === 0 && !currentSide ? 500 : 0;
 
     const timer = setTimeout(() => {
       if (step.type === "rest") {
@@ -443,13 +461,20 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
         const ex = step.exercise;
         const section = sections[step.sectionIdx];
         const isGrouped = ["superset", "circuit"].includes(section?.section_type);
+        const isUni = isUnilateralExercise(ex);
         let msg = "";
 
         // Announce block label + round X of Y on the first exercise of each round
-        if (isGrouped && step.exerciseIdx === 0) {
+        // (only on the first side if unilateral, to avoid repeating)
+        if (isGrouped && step.exerciseIdx === 0 && currentSide !== "left") {
           const blockName = section?.name?.trim() || "";
           if (blockName) msg += `${blockName}. `;
           msg += `Round ${step.round} of ${section?.rounds || 1}. `;
+        }
+
+        // Lead with the side cue for unilateral exercises
+        if (isUni && currentSide) {
+          msg += currentSide === "right" ? "Right side. " : "Left side. ";
         }
 
         msg += ex.exercise_name || "";
@@ -466,13 +491,13 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
           msg += `, at ${ex.weight_lbs} pounds`;
         }
 
-        // Announce tempo if set
-        if (ex.tempo) {
+        // Announce tempo if set (only on first side announcement to keep concise)
+        if (ex.tempo && currentSide !== "left") {
           msg += `, tempo ${ex.tempo}`;
         }
 
-        // Announce RPE if set
-        if (ex.rpe) {
+        // Announce RPE if set (first side only)
+        if (ex.rpe && currentSide !== "left") {
           msg += `, RPE ${ex.rpe}`;
         }
 
@@ -481,24 +506,13 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
           msg += `, ${ex.distance}`;
         }
 
-        // Unilateral cue: right side first, then left
-        if (isUnilateralExercise(ex)) {
-          const sideQty =
-            ex.duration_seconds && ex.duration_seconds > 0
-              ? `${ex.duration_seconds} seconds each side`
-              : ex.reps
-              ? `${ex.reps} reps each side`
-              : "each side";
-          msg += `. Start with your right side, ${sideQty}. Then switch to your left side.`;
-        }
-
         elevenLabsSpeakNow(msg).catch(() => {});
       }
     }, delayMs);
 
     return () => clearTimeout(timer);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stepIdx, phase]);
+  }, [stepIdx, phase, currentSide]);
 
   // (getready/countdown speech removed — intro handles this now)
 
@@ -586,7 +600,12 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
         const next = prev - 1;
         if (next <= 0) {
           clearInterval(stepTimerRef.current!);
-          advanceStep();
+          // Unilateral timed: switch from right → left without advancing step
+          if (currentSideRef.current === "right") {
+            setCurrentSide("left");
+          } else {
+            advanceStep();
+          }
           return 0;
         }
         return next;
@@ -688,7 +707,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
       startStepCountdown(secs);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stepIdx, phase]);
+  }, [stepIdx, phase, currentSide]);
 
   const handleComplete = () => {
     if (elapsedRef.current) clearInterval(elapsedRef.current);
@@ -759,6 +778,11 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
   };
 
   const markStepDone = () => {
+    // Unilateral: if currently on right side, switch to left WITHOUT advancing the step
+    if (currentSideRef.current === "right") {
+      setCurrentSide("left");
+      return;
+    }
     if (currentStep?.setKey) {
       setSetLogs((prev) => ({
         ...prev,
@@ -769,6 +793,20 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
           completed: true,
         },
       }));
+    }
+    advanceStep();
+  };
+
+  // For timed unilateral (Skip button on countdown screens): switch side or advance
+  const advanceOrSwitchSide = () => {
+    if (currentSideRef.current === "right") {
+      setCurrentSide("left");
+      // Restart the countdown for the left side
+      const ex = currentStep?.exercise;
+      if (ex?.duration_seconds && ex.duration_seconds > 0) {
+        startStepCountdown(ex.duration_seconds);
+      }
+      return;
     }
     advanceStep();
   };
@@ -1073,6 +1111,14 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
           <div className="px-4 py-3 bg-background">
             <p className="text-2xl font-black text-foreground leading-tight">
               {currentExercise?.exercise_name}
+              {currentSide && (
+                <span className={cn(
+                  "ml-2 inline-flex items-center px-2 py-0.5 rounded-md text-sm font-bold uppercase tracking-wider align-middle",
+                  currentSide === "right" ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"
+                )}>
+                  {currentSide} side
+                </span>
+              )}
             </p>
             {currentExercise?.reps && (
               <p className="text-base font-semibold text-primary">{currentExercise.reps} reps</p>
@@ -1197,9 +1243,11 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
               <Button
                 size="lg"
                 className="flex-1 h-12 font-bold text-base rounded-xl"
-                onClick={currentExercise?.duration_seconds ? advanceStep : markStepDone}
+                onClick={currentExercise?.duration_seconds ? advanceOrSwitchSide : markStepDone}
               >
-                {currentExercise?.duration_seconds ? "Skip" : "Done →"}
+                {currentExercise?.duration_seconds
+                  ? (currentSide === "right" ? "Right Done → Left" : "Skip")
+                  : (currentSide === "right" ? "Right Done → Left" : currentSide === "left" ? "Left Done →" : "Done →")}
               </Button>
               <Button variant="ghost" size="icon" onClick={() => setIsLocked(true)} className="text-muted-foreground">
                 <Lock className="h-5 w-5" />
@@ -1370,7 +1418,17 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
 
                   {/* Name + target */}
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-foreground leading-tight">{currentExercise.exercise_name}</p>
+                    <p className="font-semibold text-foreground leading-tight flex items-center gap-2 flex-wrap">
+                      <span>{currentExercise.exercise_name}</span>
+                      {currentSide && (
+                        <span className={cn(
+                          "inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider",
+                          currentSide === "right" ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"
+                        )}>
+                          {currentSide} side
+                        </span>
+                      )}
+                    </p>
                     <p className="text-sm text-muted-foreground mt-0.5">
                       {currentExercise.duration_seconds
                         ? `${currentExercise.duration_seconds}s`
@@ -1526,9 +1584,13 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
             <Button
               size="lg"
               className="flex-1 h-12 font-bold text-base rounded-xl"
-              onClick={!isRest && currentStep?.type === "exercise" && !currentExercise?.duration_seconds ? markStepDone : advanceStep}
+              onClick={!isRest && currentStep?.type === "exercise" && !currentExercise?.duration_seconds ? markStepDone : (isRest ? advanceStep : advanceOrSwitchSide)}
             >
-              {isRest ? "Skip Rest" : currentExercise?.duration_seconds ? "Skip" : "Save →"}
+              {isRest
+                ? "Skip Rest"
+                : currentExercise?.duration_seconds
+                ? (currentSide === "right" ? "Right Done → Left" : "Skip")
+                : (currentSide === "right" ? "Right Done → Left" : currentSide === "left" ? "Left Done →" : "Save →")}
             </Button>
 
             <Button variant="ghost" size="icon" onClick={() => setIsLocked(true)} className="text-muted-foreground">
