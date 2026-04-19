@@ -818,14 +818,24 @@ export default function ClientWodBuilder() {
                           </p>
                         </div>
                         {ex.exercise_id !== "rest" && (
-                          <button
-                            type="button"
-                            onClick={(e) => { e.stopPropagation(); duplicateOne(ex.id); }}
-                            title="Duplicate row"
-                            className="shrink-0 p-1 text-muted-foreground/60 hover:text-primary transition-colors"
-                          >
-                            <Copy className="h-4 w-4" />
-                          </button>
+                          <>
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); setPasteForwardSourceId(ex.id); }}
+                              title="Copy details to next row"
+                              className="shrink-0 p-1 text-muted-foreground/60 hover:text-primary transition-colors"
+                            >
+                              <ArrowDown className="h-4 w-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); duplicateOne(ex.id); }}
+                              title="Duplicate row"
+                              className="shrink-0 p-1 text-muted-foreground/60 hover:text-primary transition-colors"
+                            >
+                              <Copy className="h-4 w-4" />
+                            </button>
+                          </>
                         )}
                         <div className="shrink-0 text-muted-foreground/30 cursor-grab">
                           <GripVertical className="h-5 w-5" />
@@ -967,11 +977,27 @@ export default function ClientWodBuilder() {
                           </div>
                           <button
                             type="button"
+                            onClick={(e) => { e.stopPropagation(); setPasteForwardSourceId(ex.id); }}
+                            title="Copy details to next row"
+                            className="shrink-0 p-1 text-muted-foreground/60 hover:text-primary transition-colors"
+                          >
+                            <ArrowDown className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
                             onClick={(e) => { e.stopPropagation(); duplicateOne(ex.id); }}
                             title="Duplicate row"
                             className="shrink-0 p-1 text-muted-foreground/60 hover:text-primary transition-colors"
                           >
                             <Copy className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); deleteOne(ex.id); }}
+                            title="Delete exercise"
+                            className="shrink-0 p-1 text-muted-foreground/60 hover:text-destructive transition-colors"
+                          >
+                            <Trash2 className="h-4 w-4" />
                           </button>
                           <div className="shrink-0 text-muted-foreground/30 cursor-grab">
                             <GripVertical className="h-5 w-5" />
