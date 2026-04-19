@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Trash2, Dumbbell, Hand, Layers, Repeat, GripVertical, Timer, X, Bookmark, Plus } from "lucide-react";
+import { Trash2, Dumbbell, Hand, Layers, Repeat, GripVertical, Timer, X, Bookmark, Plus, Copy } from "lucide-react";
 import { useSavedWorkouts } from "@/hooks/useSavedWorkouts";
 import { getBlockType, WORKOUT_BLOCK_TYPES, WorkoutBlockType } from "@/lib/workoutBlockTypes";
 import { BlockTypePicker } from "@/components/workout/BlockTypePicker";
@@ -490,6 +490,38 @@ export default function ClientWodBuilder() {
     setExercises((prev) => [...prev, restItem]);
   };
 
+  const duplicateOne = (id: string) => {
+    setExercises((prev) => {
+      const idx = prev.findIndex((e) => e.id === id);
+      if (idx === -1) return prev;
+      const src = prev[idx];
+      const copy: WodExercise = { ...src, id: crypto.randomUUID(), selected: false };
+      const next = [...prev];
+      next.splice(idx + 1, 0, copy);
+      return next;
+    });
+    toast.success("Row duplicated");
+  };
+
+  const duplicateSelected = () => {
+    const selectedIds = exercises.filter((e) => e.selected).map((e) => e.id);
+    if (selectedIds.length === 0) {
+      toast.error("Select exercises to duplicate first");
+      return;
+    }
+    setExercises((prev) => {
+      const out: WodExercise[] = [];
+      for (const e of prev) {
+        out.push({ ...e, selected: false });
+        if (selectedIds.includes(e.id)) {
+          out.push({ ...e, id: crypto.randomUUID(), selected: false });
+        }
+      }
+      return out;
+    });
+    toast.success(`Duplicated ${selectedIds.length} row${selectedIds.length === 1 ? "" : "s"}`);
+  };
+
   const handleDeleteSelected = () => {
     const hasSelected = exercises.some((e) => e.selected) || groups.some((g) => g.selected);
     if (hasSelected) {
@@ -731,6 +763,16 @@ export default function ClientWodBuilder() {
                             {ex.exercise_name}{ex.exercise_id === "rest" && ex.rest_seconds > 0 ? ` · ${ex.rest_seconds >= 60 ? `${Math.floor(ex.rest_seconds / 60)}m${ex.rest_seconds % 60 > 0 ? ` ${ex.rest_seconds % 60}s` : ""}` : `${ex.rest_seconds}s`}` : ""}
                           </p>
                         </div>
+                        {ex.exercise_id !== "rest" && (
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); duplicateOne(ex.id); }}
+                            title="Duplicate row"
+                            className="shrink-0 p-1 text-muted-foreground/60 hover:text-primary transition-colors"
+                          >
+                            <Copy className="h-4 w-4" />
+                          </button>
+                        )}
                         <div className="shrink-0 text-muted-foreground/30 cursor-grab">
                           <GripVertical className="h-5 w-5" />
                         </div>
@@ -869,6 +911,14 @@ export default function ClientWodBuilder() {
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold text-foreground truncate">{ex.exercise_name}</p>
                           </div>
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); duplicateOne(ex.id); }}
+                            title="Duplicate row"
+                            className="shrink-0 p-1 text-muted-foreground/60 hover:text-primary transition-colors"
+                          >
+                            <Copy className="h-4 w-4" />
+                          </button>
                           <div className="shrink-0 text-muted-foreground/30 cursor-grab">
                             <GripVertical className="h-5 w-5" />
                           </div>
@@ -963,6 +1013,13 @@ export default function ClientWodBuilder() {
         >
           <Repeat className="h-5 w-5" />
           <span className="text-[10px] font-medium">Circuit</span>
+        </button>
+        <button
+          onClick={duplicateSelected}
+          className="flex flex-col items-center gap-1 text-primary hover:text-primary/80 transition-colors"
+        >
+          <Copy className="h-5 w-5" />
+          <span className="text-[10px] font-medium">Duplicate</span>
         </button>
         <button
           onClick={handleDeleteSelected}
