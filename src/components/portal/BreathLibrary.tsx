@@ -158,7 +158,7 @@ function Section({
 }) {
   return (
     <section>
-      <div className="px-12 mb-4">
+      <div className="px-10 mb-4">
         <h2 className="text-white text-2xl font-semibold tracking-tight">{title}</h2>
         {subtitle && (
           <p className="text-white/55 text-sm font-light mt-1">{subtitle}</p>
@@ -187,14 +187,14 @@ function CircleRow({
   const w = SIZE_MAP[size];
   const small = size === "sm";
   return (
-    <div className="flex gap-4 overflow-x-auto overflow-y-visible pl-12 pr-6 pb-2 scrollbar-hide snap-x">
+    <div className="flex gap-4 overflow-x-auto overflow-y-visible pl-10 pr-6 pb-2 scrollbar-hide [scroll-padding-left:2.5rem]">
       {exercises.map((ex) => {
         const cycleSecs = ex.phases.reduce((a, p) => a + p.seconds, 0);
         return (
           <button
             key={ex.id}
             onClick={() => onSelect(ex)}
-            className={`shrink-0 ${w} snap-start flex flex-col items-center group`}
+            className={`shrink-0 ${w} flex flex-col items-center group`}
           >
             <BreathPreviewCircle
               exercise={ex}
@@ -225,14 +225,14 @@ function CardRow({
   onSelect: (e: BreathingExercise) => void;
 }) {
   return (
-    <div className="flex gap-4 overflow-x-auto pl-12 pr-6 pb-2 scrollbar-hide snap-x snap-mandatory">
+    <div className="flex gap-4 overflow-x-auto pl-10 pr-6 pb-2 scrollbar-hide [scroll-padding-left:2.5rem]">
       {exercises.map((ex) => {
         const cycleSecs = ex.phases.reduce((a, p) => a + p.seconds, 0);
         return (
           <button
             key={ex.id}
             onClick={() => onSelect(ex)}
-            className="shrink-0 w-[82vw] max-w-md snap-start group"
+            className="shrink-0 w-[82vw] max-w-md group"
           >
             <div className="relative aspect-[16/10] rounded-2xl overflow-hidden ring-1 ring-white/10 group-hover:ring-white/30 transition-all bg-black">
               <div className="absolute inset-0 scale-[1.6] origin-center">

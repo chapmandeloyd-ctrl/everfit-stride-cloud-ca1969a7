@@ -160,7 +160,7 @@ function Section({
 }) {
   return (
     <section>
-      <div className="px-5 mb-4">
+      <div className="px-10 mb-4">
         <h2 className="text-white text-2xl font-semibold tracking-tight">
           {title}
         </h2>
@@ -191,12 +191,12 @@ function CircleRow({
   const w = SIZE_MAP[size];
   const small = size === "sm";
   return (
-    <div className="flex gap-4 overflow-x-auto px-5 pb-2 scrollbar-hide snap-x">
+    <div className="flex gap-4 overflow-x-auto pl-10 pr-6 pb-2 scrollbar-hide [scroll-padding-left:2.5rem]">
       {scenes.map((scene) => (
         <button
           key={scene.id}
           onClick={() => onSelect(scene)}
-          className={`shrink-0 ${w} snap-start flex flex-col items-start group`}
+          className={`shrink-0 ${w} flex flex-col items-start group`}
         >
           <div
             className={`relative ${w} aspect-square rounded-full overflow-hidden ring-1 ring-white/50 group-hover:ring-white/90 transition-all shadow-[0_0_24px_rgba(255,255,255,0.1)]`}
@@ -249,12 +249,12 @@ function CardRow({
   onSelect: (s: PortalScene) => void;
 }) {
   return (
-    <div className="flex gap-4 overflow-x-auto px-5 pb-2 scrollbar-hide snap-x snap-mandatory">
+    <div className="flex gap-4 overflow-x-auto pl-10 pr-6 pb-2 scrollbar-hide [scroll-padding-left:2.5rem]">
       {scenes.map((scene) => (
         <button
           key={scene.id}
           onClick={() => onSelect(scene)}
-          className="shrink-0 w-[82vw] max-w-md snap-start group"
+          className="shrink-0 w-[82vw] max-w-md group"
         >
           <div className="relative aspect-[16/10] rounded-2xl overflow-hidden ring-1 ring-white/10 group-hover:ring-white/30 transition-all">
             {scene.thumbnail_url ? (
