@@ -96,20 +96,22 @@ interface ExerciseGroup {
 
 const isGroupedWorkoutType = (type: string) => type === "circuit" || type === "superset";
 
-const defaultDetailExercise = (): Pick<WodExercise, "detail_fields" | "weight_lbs" | "tempo" | "rpe" | "distance"> => ({
+const defaultDetailExercise = (): Pick<WodExercise, "detail_fields" | "weight_lbs" | "tempo" | "rpe" | "distance" | "is_unilateral"> => ({
   detail_fields: [],
   weight_lbs: "",
   tempo: "",
   rpe: "",
   distance: "",
+  is_unilateral: false,
 });
 
-const defaultRestExercise = (): Pick<WodExercise, "detail_fields" | "weight_lbs" | "tempo" | "rpe" | "distance"> => ({
+const defaultRestExercise = (): Pick<WodExercise, "detail_fields" | "weight_lbs" | "tempo" | "rpe" | "distance" | "is_unilateral"> => ({
   detail_fields: [],
   weight_lbs: "",
   tempo: "",
   rpe: "",
   distance: "",
+  is_unilateral: false,
 });
 
 export default function ClientWodBuilder() {
