@@ -8871,6 +8871,7 @@ export type Database = {
           exercise_id: string | null
           exercise_type: string | null
           id: string
+          is_unilateral: boolean | null
           notes: string | null
           order_index: number
           recommended_band_level: string | null
@@ -8890,6 +8891,7 @@ export type Database = {
           exercise_id?: string | null
           exercise_type?: string | null
           id?: string
+          is_unilateral?: boolean | null
           notes?: string | null
           order_index: number
           recommended_band_level?: string | null
@@ -8909,6 +8911,7 @@ export type Database = {
           exercise_id?: string | null
           exercise_type?: string | null
           id?: string
+          is_unilateral?: boolean | null
           notes?: string | null
           order_index?: number
           recommended_band_level?: string | null
