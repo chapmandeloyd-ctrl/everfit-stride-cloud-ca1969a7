@@ -472,12 +472,7 @@ export default function EditWorkout() {
     }]);
   };
 
-  const addRest = () => {
-    setExerciseItems((prev) => [...prev, {
-      id: crypto.randomUUID(), exercise_id: "", sets: 0, target_type: "text" as const, target_value: "", time_seconds: 0, rest_seconds: 30, exercise_type: "rest" as const, selected: false, group_id: null,
-      detail_fields: [] as DetailField[], weight_lbs: "", tempo: "", rpe: "", distance: "",
-    }]);
-  };
+
 
   const updateItem = useCallback((itemId: string, updates: Partial<WorkoutExercise>) => {
     setExerciseItems((prev) => prev.map((item) => (item.id === itemId ? { ...item, ...updates } : item)));
