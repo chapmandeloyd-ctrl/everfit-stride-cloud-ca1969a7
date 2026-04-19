@@ -63,6 +63,7 @@ export default function ClientWorkoutSession() {
           exercise_id: wpe.exercise_id,
           exercise_name: wpe.exercise?.name,
           exercise_image: wpe.exercise?.image_url,
+          is_unilateral: wpe.exercise?.is_unilateral ?? false,
           sets: wpe.sets,
           reps: wpe.reps,
           duration_seconds: wpe.duration_seconds,
