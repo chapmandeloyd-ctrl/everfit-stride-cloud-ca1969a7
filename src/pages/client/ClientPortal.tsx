@@ -24,8 +24,12 @@ export default function ClientPortal() {
   const [breathOpen, setBreathOpen] = useState(false);
   const [breathStage, setBreathStage] = useState<BreathStage>("preview");
   const [libraryOpen, setLibraryOpen] = useState(false);
+  const [breathLibraryOpen, setBreathLibraryOpen] = useState(false);
   const [breathPromptOpen, setBreathPromptOpen] = useState(false);
   const [breathStyle, setBreathStyle] = useState<BreathParticleStyle>("aurora");
+  const [activeExercise, setActiveExercise] = useState<BreathingExercise | null>(null);
+
+  const { exercises, isLoading: exercisesLoading } = useBreathingExercises();
 
   const { data: scenes = [], isLoading } = useQuery({
     queryKey: ["portal-scenes-client"],
