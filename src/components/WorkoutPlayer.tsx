@@ -34,6 +34,7 @@ interface Exercise {
   weight_lbs?: number | null;
   rpe?: number | null;
   distance?: string | null;
+  band?: string | null;
   is_unilateral?: boolean | null;
 }
 
@@ -490,6 +491,11 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
         // Announce weight if set
         if (ex.weight_lbs) {
           msg += `, at ${ex.weight_lbs} pounds`;
+        }
+
+        // Announce band/equipment if set (first side only)
+        if (ex.band && currentSide !== "left") {
+          msg += `, using ${ex.band}`;
         }
 
         // Announce tempo if set (only on first side announcement to keep concise)
@@ -1123,6 +1129,9 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
             </p>
             {currentExercise?.reps && (
               <p className="text-base font-semibold text-primary">{currentExercise.reps} reps</p>
+            )}
+            {currentExercise?.band && (
+              <p className="text-xs font-semibold text-orange-500 mt-0.5">🎯 {currentExercise.band}</p>
             )}
             {currentExercise?.notes && (
               <p className="text-xs text-muted-foreground italic mt-0.5">{currentExercise.notes}</p>

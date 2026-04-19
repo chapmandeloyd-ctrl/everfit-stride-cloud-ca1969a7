@@ -73,6 +73,7 @@ export default function ClientWorkoutSession() {
           weight_lbs: wpe.weight_lbs,
           rpe: wpe.rpe,
           distance: wpe.distance,
+          band: wpe.recommended_band_level || null,
         })) || [],
     })) || [];
 
