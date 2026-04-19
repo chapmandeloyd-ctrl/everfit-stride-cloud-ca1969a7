@@ -505,6 +505,58 @@ export default function ClientWodBuilder() {
     toast.success("Row duplicated");
   };
 
+  const deleteOne = (id: string) => {
+    setExercises((prev) => {
+      const target = prev.find((e) => e.id === id);
+      const next = prev.filter((e) => e.id !== id);
+      // Auto-remove empty groups
+      if (target?.group_id) {
+        const stillHasMembers = next.some((e) => e.group_id === target.group_id);
+        if (!stillHasMembers) {
+          setGroups((g) => g.filter((gr) => gr.id !== target.group_id));
+        }
+      }
+      return next;
+    });
+    toast.success("Removed");
+  };
+
+  const applyPasteForward = (sourceId: string, fields: PasteableField[]) => {
+    setExercises((prev) => {
+      const idx = prev.findIndex((e) => e.id === sourceId);
+      if (idx === -1) return prev;
+      const src = prev[idx];
+      const next = [...prev];
+      // Find the next non-rest exercise
+      let targetIdx = -1;
+      for (let i = idx + 1; i < next.length; i++) {
+        if (next[i].exercise_id !== "rest") { targetIdx = i; break; }
+      }
+      if (targetIdx === -1) return prev;
+      const tgt = next[targetIdx];
+      const updates: Partial<WodExercise> = {};
+      const detailUnion = new Set<DetailField>(tgt.detail_fields);
+      for (const f of fields) {
+        switch (f) {
+          case "sets": updates.sets = src.sets; break;
+          case "target":
+            updates.target_type = src.target_type;
+            updates.reps = src.reps;
+            break;
+          case "rest": updates.rest_seconds = src.rest_seconds; break;
+          case "weight": updates.weight_lbs = src.weight_lbs; if (src.weight_lbs) detailUnion.add("weight"); break;
+          case "tempo": updates.tempo = src.tempo; if (src.tempo) detailUnion.add("tempo"); break;
+          case "rpe": updates.rpe = src.rpe; if (src.rpe) detailUnion.add("rpe"); break;
+          case "distance": updates.distance = src.distance; if (src.distance) detailUnion.add("distance"); break;
+        }
+      }
+      updates.detail_fields = Array.from(detailUnion);
+      next[targetIdx] = { ...tgt, ...updates };
+      return next;
+    });
+    toast.success("Details copied to next row");
+  };
+
   const duplicateSelected = () => {
     const selectedIds = exercises.filter((e) => e.selected).map((e) => e.id);
     if (selectedIds.length === 0) {
