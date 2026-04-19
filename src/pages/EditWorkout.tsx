@@ -1048,6 +1048,35 @@ export default function EditWorkout() {
           />
         );
       })()}
+
+      {/* Paste Forward Sheet */}
+      {pasteForwardSourceId && (() => {
+        const src = exerciseItems.find((e) => e.id === pasteForwardSourceId);
+        if (!src) return null;
+        const idx = exerciseItems.findIndex((e) => e.id === pasteForwardSourceId);
+        const tgt = exerciseItems.slice(idx + 1).find((e) => e.exercise_type === "normal");
+        const tgtInfo = tgt ? getExerciseById(tgt.exercise_id) : null;
+        const available: PasteableField[] = ["sets", "target", "rest"];
+        if (src.weight_lbs) available.push("weight");
+        if (src.tempo) available.push("tempo");
+        if (src.rpe) available.push("rpe");
+        if (src.distance) available.push("distance");
+        const summaryParts: string[] = [`${src.sets} sets`];
+        if (src.target_type === "time") summaryParts.push(`⏱ ${src.time_seconds}s`);
+        else if (src.target_value) summaryParts.push(src.target_value);
+        if (src.rest_seconds) summaryParts.push(`${src.rest_seconds}s rest`);
+        if (src.weight_lbs) summaryParts.push(`${src.weight_lbs} lbs`);
+        return (
+          <PasteFieldsSheet
+            open
+            sourceSummary={summaryParts.join(" · ")}
+            targetName={tgt ? (tgtInfo?.name || "Next exercise") : "No row below"}
+            availableFields={available}
+            onConfirm={(fields) => applyPasteForward(pasteForwardSourceId, fields)}
+            onClose={() => setPasteForwardSourceId(null)}
+          />
+        );
+      })()}
     </div>
   );
 }
