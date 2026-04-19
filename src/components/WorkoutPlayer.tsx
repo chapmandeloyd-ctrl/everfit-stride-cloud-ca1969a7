@@ -600,7 +600,12 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
         const next = prev - 1;
         if (next <= 0) {
           clearInterval(stepTimerRef.current!);
-          advanceStep();
+          // Unilateral timed: switch from right → left without advancing step
+          if (currentSideRef.current === "right") {
+            setCurrentSide("left");
+          } else {
+            advanceStep();
+          }
           return 0;
         }
         return next;
