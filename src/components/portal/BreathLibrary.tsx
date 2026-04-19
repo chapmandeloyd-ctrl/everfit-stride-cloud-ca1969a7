@@ -234,14 +234,9 @@ function CardRow({
             onClick={() => onSelect(ex)}
             className="shrink-0 w-[82vw] max-w-md snap-start group"
           >
-            <div
-              className="relative aspect-[16/10] rounded-2xl overflow-hidden ring-1 ring-white/10 group-hover:ring-white/30 transition-all"
-              style={{ background: toneGradient(ex.tone) }}
-            >
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-7xl opacity-90" aria-hidden>
-                  {ex.icon}
-                </span>
+            <div className="relative aspect-[16/10] rounded-2xl overflow-hidden ring-1 ring-white/10 group-hover:ring-white/30 transition-all bg-black">
+              <div className="absolute inset-0 scale-[1.6] origin-center">
+                <BreathPreviewCircle exercise={ex} className="w-full h-full !rounded-none" />
               </div>
               <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-4">
@@ -259,3 +254,4 @@ function CardRow({
     </div>
   );
 }
+
