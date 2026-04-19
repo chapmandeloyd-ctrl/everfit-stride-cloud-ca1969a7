@@ -14,6 +14,7 @@ interface Exercise {
   video_url: string | null;
   category: string | null;
   muscle_group: string | null;
+  is_unilateral?: boolean | null;
 }
 
 interface ExerciseLibrarySheetProps {

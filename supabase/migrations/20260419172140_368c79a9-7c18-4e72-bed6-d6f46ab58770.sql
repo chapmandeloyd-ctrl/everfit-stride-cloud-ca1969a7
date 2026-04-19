@@ -1,0 +1,1 @@
+ALTER TABLE public.workout_plan_exercises ADD COLUMN IF NOT EXISTS is_unilateral boolean;

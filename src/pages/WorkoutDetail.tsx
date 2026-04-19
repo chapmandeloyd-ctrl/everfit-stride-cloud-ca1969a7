@@ -132,7 +132,7 @@ export default function WorkoutDetail() {
           exercise_image: wpe.exercise?.image_url,
           exercise_video: wpe.exercise?.video_url,
           exercise_description: wpe.exercise?.description,
-          is_unilateral: wpe.exercise?.is_unilateral ?? false,
+          is_unilateral: wpe.is_unilateral ?? wpe.exercise?.is_unilateral ?? false,
           sets: wpe.sets,
           reps: wpe.reps,
           duration_seconds: wpe.duration_seconds,
