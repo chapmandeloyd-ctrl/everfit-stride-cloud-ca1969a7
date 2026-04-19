@@ -298,6 +298,7 @@ export default function EditWorkout() {
   const [dataLoaded, setDataLoaded] = useState(false);
   const [editingDetailFieldsId, setEditingDetailFieldsId] = useState<string | null>(null);
   const [editingDetailValue, setEditingDetailValue] = useState<{ id: string; field: DetailField } | null>(null);
+  const [pasteForwardSourceId, setPasteForwardSourceId] = useState<string | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
