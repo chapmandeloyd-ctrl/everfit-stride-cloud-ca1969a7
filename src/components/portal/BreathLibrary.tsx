@@ -2,8 +2,9 @@ import { useMemo } from "react";
 import { X, Star, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import nebulaFocus from "@/assets/portal-nebula-focus.jpg";
-import type { BreathingExercise, ProtocolTone } from "@/lib/breathingExercises";
+import type { BreathingExercise } from "@/lib/breathingExercises";
 import { getExerciseMode } from "@/lib/breathingExercises";
+import { BreathPreviewCircle } from "./BreathPreviewCircle";
 
 interface BreathLibraryProps {
   exercises: BreathingExercise[];
