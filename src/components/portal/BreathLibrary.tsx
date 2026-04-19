@@ -158,7 +158,7 @@ function Section({
 }) {
   return (
     <section>
-      <div className="px-8 mb-4">
+      <div className="px-6 mb-4">
         <h2 className="text-white text-2xl font-semibold tracking-tight">{title}</h2>
         {subtitle && (
           <p className="text-white/55 text-sm font-light mt-1">{subtitle}</p>
@@ -187,8 +187,8 @@ function CircleRow({
   const w = SIZE_MAP[size];
   const small = size === "sm";
   return (
-    <div className="flex gap-4 overflow-x-auto px-8 pb-2 scrollbar-hide snap-x">
-      <div aria-hidden="true" className="w-3 shrink-0" />
+    <div className="flex gap-4 overflow-x-auto overflow-y-visible px-6 pb-2 scrollbar-hide snap-x">
+      <div aria-hidden="true" className="w-2 shrink-0" />
       {exercises.map((ex) => {
         const cycleSecs = ex.phases.reduce((a, p) => a + p.seconds, 0);
         return (
@@ -199,7 +199,7 @@ function CircleRow({
           >
             <BreathPreviewCircle
               exercise={ex}
-              className={`${w} aspect-square ring-1 ring-white/40 group-hover:ring-white/90 transition-all shadow-[0_0_24px_rgba(255,255,255,0.08)]`}
+              className={`${w} aspect-square ring-1 ring-white/40 group-hover:ring-white/90 transition-all`}
             />
             {!small && (
               <div className="mt-3 w-full text-center px-1">
@@ -214,7 +214,7 @@ function CircleRow({
           </button>
         );
       })}
-      <div aria-hidden="true" className="w-3 shrink-0" />
+      <div aria-hidden="true" className="w-2 shrink-0" />
     </div>
   );
 }
@@ -227,8 +227,8 @@ function CardRow({
   onSelect: (e: BreathingExercise) => void;
 }) {
   return (
-    <div className="flex gap-4 overflow-x-auto px-8 pb-2 scrollbar-hide snap-x snap-mandatory">
-      <div aria-hidden="true" className="w-3 shrink-0" />
+    <div className="flex gap-4 overflow-x-auto px-6 pb-2 scrollbar-hide snap-x snap-mandatory">
+      <div aria-hidden="true" className="w-2 shrink-0" />
       {exercises.map((ex) => {
         const cycleSecs = ex.phases.reduce((a, p) => a + p.seconds, 0);
         return (
@@ -254,7 +254,7 @@ function CardRow({
           </button>
         );
       })}
-      <div aria-hidden="true" className="w-3 shrink-0" />
+      <div aria-hidden="true" className="w-2 shrink-0" />
     </div>
   );
 }
