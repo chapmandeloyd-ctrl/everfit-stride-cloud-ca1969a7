@@ -244,6 +244,16 @@ function ExerciseRow({
       )}
 
       <div className="ml-auto flex items-center gap-1 shrink-0">
+        {item.exercise_type === "normal" && (
+          <button
+            type="button"
+            onClick={() => onEditDetailFields?.(item.id)}
+            title="Add details (weight, tempo, RPE, distance)"
+            className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-primary transition-colors"
+          >
+            <Plus className="h-4 w-4" />
+          </button>
+        )}
         {onPasteForward && item.exercise_type === "normal" && (
           <button type="button" onClick={() => onPasteForward(item.id)} title="Copy details to next row" className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-primary transition-colors">
             <ArrowDown className="h-4 w-4" />
@@ -265,8 +275,8 @@ function ExerciseRow({
         </div>
       </div>
     </div>
-    {/* Detail field chips row */}
-    {item.exercise_type === "normal" && (
+    {/* Detail field chips row - only render when chips exist */}
+    {item.exercise_type === "normal" && item.detail_fields.length > 0 && (
       <div className="flex items-center gap-1.5 px-3 pb-2 flex-wrap -mt-1">
         {item.detail_fields.includes("weight") && (
           <button onClick={() => onEditDetailValue?.({ id: item.id, field: "weight" })} className="px-2.5 py-0.5 rounded-full border border-primary/30 bg-primary/5 text-[11px] font-medium text-primary hover:bg-primary/10 transition-colors">
@@ -288,9 +298,6 @@ function ExerciseRow({
             {item.distance || "Distance"}
           </button>
         )}
-        <button onClick={() => onEditDetailFields?.(item.id)} className="px-2 py-0.5 rounded-full border border-dashed border-muted-foreground/30 text-[11px] font-medium text-muted-foreground/60 hover:border-primary hover:text-primary transition-colors flex items-center gap-0.5">
-          <Plus className="h-3 w-3" /> Detail
-        </button>
       </div>
     )}
   </>
