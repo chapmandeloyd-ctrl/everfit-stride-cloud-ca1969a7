@@ -191,7 +191,7 @@ function CircleRow({
   const w = SIZE_MAP[size];
   const small = size === "sm";
   return (
-    <div className="flex gap-4 overflow-x-auto pl-10 pr-6 pb-2 scrollbar-hide [scroll-padding-left:2.5rem]">
+    <div className="flex gap-4 overflow-x-auto pl-10 pr-10 pb-2 scrollbar-hide [scroll-padding-left:2.5rem] [scroll-padding-right:2.5rem]">
       {scenes.map((scene) => (
         <button
           key={scene.id}
@@ -249,7 +249,7 @@ function CardRow({
   onSelect: (s: PortalScene) => void;
 }) {
   return (
-    <div className="flex gap-4 overflow-x-auto pl-10 pr-6 pb-2 scrollbar-hide [scroll-padding-left:2.5rem]">
+    <div className="flex gap-4 overflow-x-auto pl-10 pr-10 pb-2 scrollbar-hide [scroll-padding-left:2.5rem] [scroll-padding-right:2.5rem]">
       {scenes.map((scene) => (
         <button
           key={scene.id}
