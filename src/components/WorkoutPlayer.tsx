@@ -870,9 +870,9 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
   const currentSection = sections[currentStep.sectionIdx];
   const isGrouped = currentSection && ["superset", "circuit"].includes(currentSection.section_type);
   const isCircuitMode = currentStep.isCircuit;
-  // Timed block types use a countdown; rep-based blocks use a stopwatch even if duration_seconds is set
-  const TIMED_BLOCKS_RUNTIME = ["circuit", "tabata", "emom", "amrap", "for_time", "fortime"];
-  const isTimedBlock = TIMED_BLOCKS_RUNTIME.includes((currentSection?.section_type || "").toLowerCase());
+  // Per-exercise rule: any exercise with a duration runs a countdown,
+  // otherwise it runs a stopwatch. Block type no longer affects timer choice.
+  const isTimedExercise = !!(currentExercise?.duration_seconds && currentExercise.duration_seconds > 0);
 
   const sectionLabel = isGrouped
     ? currentSection.name
@@ -927,18 +927,18 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
         </div>
 
         {/* Stats bar */}
-        <div className={cn("grid px-4 py-2 border-b border-border/30 bg-background", isTimedBlock ? "grid-cols-4" : "grid-cols-3")}>
+        <div className={cn("grid px-4 py-2 border-b border-border/30 bg-background", isTimedExercise ? "grid-cols-4" : "grid-cols-3")}>
           <div className="text-center">
             <p className="text-xs font-semibold text-muted-foreground tracking-wider uppercase">TIME</p>
             <p className="text-sm font-bold tabular-nums">{formatTime(elapsedSeconds)}</p>
           </div>
-          {isTimedBlock && (
+          {isTimedExercise && (
             <div className="text-center border-x border-border/30">
               <p className="text-xs font-semibold text-muted-foreground tracking-wider uppercase">Remaining</p>
               <p className="text-sm font-bold tabular-nums">{formatTime(remainingSeconds)}</p>
             </div>
           )}
-          <div className={cn("text-center", isTimedBlock && "border-r border-border/30")}>
+          <div className={cn("text-center", isTimedExercise && "border-r border-border/30")}>
             <p className="text-xs font-semibold text-muted-foreground tracking-wider uppercase">Cal</p>
             <p className="text-sm font-bold">{estimatedCal}</p>
           </div>
@@ -977,8 +977,8 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
               </div>
             )}
 
-            {/* Countdown timer bubble — only for timed block types */}
-            {currentExercise?.duration_seconds && isTimedBlock && stepTimer > 0 && (
+            {/* Countdown timer bubble — for any duration-based exercise */}
+            {isTimedExercise && stepTimer > 0 && (
               <div className="absolute top-3 right-3">
                 <div className="relative w-20 h-20">
                   <svg className="w-full h-full -rotate-90" viewBox="0 0 80 80">
@@ -1003,7 +1003,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
             )}
 
             {/* Stopwatch bubble — for rep-based exercises (counts UP until user advances) */}
-            {(!currentExercise?.duration_seconds || !isTimedBlock) && !isRest && stepTimer >= 0 && (
+            {!isTimedExercise && !isRest && stepTimer >= 0 && (
               <div className="absolute top-3 right-3">
                 <div className="relative w-20 h-20 rounded-full bg-black/55 border border-white/15 flex flex-col items-center justify-center">
                   <span className="text-xl font-black text-white tabular-nums leading-none">
