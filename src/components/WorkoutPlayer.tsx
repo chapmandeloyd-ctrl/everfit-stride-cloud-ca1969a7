@@ -422,18 +422,31 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
   useEffect(() => { stepIdxRef.current = stepIdx; }, [stepIdx]);
   useEffect(() => { isPausedRef.current = isPaused; }, [isPaused]);
 
-  // Announce exercise/rest when step changes (ElevenLabs — cancels any prior speech)
+  // Reset side when step changes (init to 'right' for unilateral, null otherwise)
   useEffect(() => {
     if (phase !== "playing") return;
-    if (announcedStepRef.current === stepIdx) return;
-    announcedStepRef.current = stepIdx;
+    const step = steps[stepIdx];
+    if (step?.type === "exercise" && isUnilateralExercise(step.exercise)) {
+      setCurrentSide("right");
+    } else {
+      setCurrentSide(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stepIdx, phase]);
+
+  // Announce exercise/rest when step OR side changes (ElevenLabs — cancels any prior speech)
+  useEffect(() => {
+    if (phase !== "playing") return;
+    const announceKey = `${stepIdx}-${currentSide ?? "none"}`;
+    if (announcedStepRef.current === announceKey) return;
+    announcedStepRef.current = announceKey;
 
     const step = steps[stepIdx];
     if (!step) return;
 
     // Small delay on the very first step so "1" browser-speech fully finishes
     // before we cancel and fire the ElevenLabs request
-    const delayMs = stepIdx === 0 ? 500 : 0;
+    const delayMs = stepIdx === 0 && !currentSide ? 500 : 0;
 
     const timer = setTimeout(() => {
       if (step.type === "rest") {
@@ -448,13 +461,20 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
         const ex = step.exercise;
         const section = sections[step.sectionIdx];
         const isGrouped = ["superset", "circuit"].includes(section?.section_type);
+        const isUni = isUnilateralExercise(ex);
         let msg = "";
 
         // Announce block label + round X of Y on the first exercise of each round
-        if (isGrouped && step.exerciseIdx === 0) {
+        // (only on the first side if unilateral, to avoid repeating)
+        if (isGrouped && step.exerciseIdx === 0 && currentSide !== "left") {
           const blockName = section?.name?.trim() || "";
           if (blockName) msg += `${blockName}. `;
           msg += `Round ${step.round} of ${section?.rounds || 1}. `;
+        }
+
+        // Lead with the side cue for unilateral exercises
+        if (isUni && currentSide) {
+          msg += currentSide === "right" ? "Right side. " : "Left side. ";
         }
 
         msg += ex.exercise_name || "";
@@ -471,13 +491,13 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
           msg += `, at ${ex.weight_lbs} pounds`;
         }
 
-        // Announce tempo if set
-        if (ex.tempo) {
+        // Announce tempo if set (only on first side announcement to keep concise)
+        if (ex.tempo && currentSide !== "left") {
           msg += `, tempo ${ex.tempo}`;
         }
 
-        // Announce RPE if set
-        if (ex.rpe) {
+        // Announce RPE if set (first side only)
+        if (ex.rpe && currentSide !== "left") {
           msg += `, RPE ${ex.rpe}`;
         }
 
@@ -486,24 +506,13 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
           msg += `, ${ex.distance}`;
         }
 
-        // Unilateral cue: right side first, then left
-        if (isUnilateralExercise(ex)) {
-          const sideQty =
-            ex.duration_seconds && ex.duration_seconds > 0
-              ? `${ex.duration_seconds} seconds each side`
-              : ex.reps
-              ? `${ex.reps} reps each side`
-              : "each side";
-          msg += `. Start with your right side, ${sideQty}. Then switch to your left side.`;
-        }
-
         elevenLabsSpeakNow(msg).catch(() => {});
       }
     }, delayMs);
 
     return () => clearTimeout(timer);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stepIdx, phase]);
+  }, [stepIdx, phase, currentSide]);
 
   // (getready/countdown speech removed — intro handles this now)
 
