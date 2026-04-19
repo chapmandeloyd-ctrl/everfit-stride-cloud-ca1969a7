@@ -481,6 +481,17 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
           msg += `, ${ex.distance}`;
         }
 
+        // Unilateral cue: right side first, then left
+        if (isUnilateralExercise(ex)) {
+          const sideQty =
+            ex.duration_seconds && ex.duration_seconds > 0
+              ? `${ex.duration_seconds} seconds each side`
+              : ex.reps
+              ? `${ex.reps} reps each side`
+              : "each side";
+          msg += `. Start with your right side, ${sideQty}. Then switch to your left side.`;
+        }
+
         elevenLabsSpeakNow(msg).catch(() => {});
       }
     }, delayMs);
