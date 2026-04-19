@@ -138,7 +138,7 @@ function ExerciseRow({
 
   return (
     <>
-    <div ref={setNodeRef} style={style} className="flex items-center gap-2 px-3 py-2 border-b hover:bg-muted/30 transition-colors overflow-hidden">
+    <div ref={setNodeRef} style={style} className="flex flex-wrap items-center gap-2 px-3 py-2 border-b hover:bg-muted/30 transition-colors">
       <Checkbox checked={item.selected} onCheckedChange={() => onToggleSelect(item.id)} className="shrink-0" />
 
       {/* Thumbnail - show video if available */}
@@ -238,14 +238,16 @@ function ExerciseRow({
         </Select>
       )}
 
-      {onDuplicate && item.exercise_type === "normal" && (
-        <button type="button" onClick={() => onDuplicate(item.id)} title="Duplicate row" className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-primary transition-colors shrink-0">
-          <Copy className="h-3.5 w-3.5" />
-        </button>
-      )}
-      {/* Drag Handle */}
-      <div {...attributes} {...listeners} className="cursor-grab p-1 touch-none">
-        <GripVertical className="h-4 w-4 text-muted-foreground" />
+      <div className="ml-auto flex items-center gap-1 shrink-0">
+        {onDuplicate && item.exercise_type === "normal" && (
+          <button type="button" onClick={() => onDuplicate(item.id)} title="Duplicate row" className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-primary transition-colors">
+            <Copy className="h-4 w-4" />
+          </button>
+        )}
+        {/* Drag Handle */}
+        <div {...attributes} {...listeners} className="cursor-grab p-1 touch-none">
+          <GripVertical className="h-4 w-4 text-muted-foreground" />
+        </div>
       </div>
     </div>
     {/* Detail field chips row */}
