@@ -1,11 +1,11 @@
-import { Smartphone, Camera, Settings } from "lucide-react";
+import { Smartphone, Camera, PencilLine } from "lucide-react";
 import { ActivitySummary } from "@/components/health/ActivitySummary";
 import { useNativeHealth } from "@/hooks/useNativeHealth";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { AiSnapshotSheet } from "@/components/health/AiSnapshotSheet";
+import { ManualTrackingSheet } from "@/components/health/ManualTrackingSheet";
 
 interface Props {
   clientId: string;
@@ -13,8 +13,8 @@ interface Props {
 
 export function MyProgressSection({ clientId }: Props) {
   const { isNative, permissionGranted } = useNativeHealth();
-  const navigate = useNavigate();
   const [snapshotOpen, setSnapshotOpen] = useState(false);
+  const [manualOpen, setManualOpen] = useState(false);
 
   return (
     <div className="space-y-4">
@@ -46,10 +46,10 @@ export function MyProgressSection({ clientId }: Props) {
           <Button
             variant="outline"
             className="h-14 text-base font-semibold justify-center gap-2"
-            onClick={() => navigate("/client/settings")}
+            onClick={() => setManualOpen(true)}
           >
-            <Settings className="h-5 w-5" />
-            Settings
+            <PencilLine className="h-5 w-5" />
+            Manual Tracking
           </Button>
         </div>
       </div>
@@ -57,6 +57,7 @@ export function MyProgressSection({ clientId }: Props) {
       <ActivitySummary clientId={clientId} />
 
       <AiSnapshotSheet open={snapshotOpen} onOpenChange={setSnapshotOpen} clientId={clientId} />
+      <ManualTrackingSheet open={manualOpen} onOpenChange={setManualOpen} clientId={clientId} />
     </div>
   );
 }
