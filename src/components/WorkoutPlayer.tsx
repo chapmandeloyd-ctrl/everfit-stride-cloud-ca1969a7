@@ -325,7 +325,7 @@ export { unlockAudioForMobile };
 function WorkoutCompleteScreen({ workoutName, onSave }: { workoutName?: string; onSave: () => void }) {
   useEffect(() => {
     const name = workoutName || "your workout";
-    elevenLabsSpeakNow(`Great job! You completed ${name}.`).catch(() => {});
+    elevenLabsSpeakNow(`Great job! You completed ${name}. Click the save button below to view your stats.`).catch(() => {});
     return () => { cancelSpeech(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
