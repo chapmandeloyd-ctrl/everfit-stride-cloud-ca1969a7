@@ -2,22 +2,32 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Play, ArrowLeft, Music, Pin } from "lucide-react";
-import { BREATHING_EXERCISES, type BreathingExercise } from "@/lib/breathingExercises";
+import { Play, ArrowLeft, Music, Pin, Plus, Pencil, Trash2 } from "lucide-react";
 import { BreathingPlayer } from "@/components/vibes/BreathingPlayer";
 import { ManageBreathingMusicDialog } from "./ManageBreathingMusicDialog";
+import { BreathingExerciseEditorDialog } from "./BreathingExerciseEditorDialog";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import {
+  useBreathingExercisesAdmin,
+  rowToExercise,
+  type DBBreathingExerciseRow,
+} from "@/hooks/useBreathingExercises";
+import type { BreathingExercise } from "@/lib/breathingExercises";
 
 export function AdminBreathingTab() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [previewExercise, setPreviewExercise] = useState<BreathingExercise | null>(null);
   const [musicDialogOpen, setMusicDialogOpen] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editing, setEditing] = useState<DBBreathingExerciseRow | null>(null);
   const [autoPickOnOpen, setAutoPickOnOpen] = useState(false);
+
+  const { data: rows = [], isLoading } = useBreathingExercisesAdmin();
 
   const { data: tracks = [] } = useQuery({
     queryKey: ["breathing-music-tracks"],
@@ -65,6 +75,19 @@ export function AdminBreathingTab() {
     },
   });
 
+  const deleteExercise = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("breathing_exercises").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["breathing-exercises-admin"] });
+      queryClient.invalidateQueries({ queryKey: ["breathing-exercises-library"] });
+      toast.success("Exercise deleted");
+    },
+    onError: (err: any) => toast.error(err.message ?? "Delete failed"),
+  });
+
   if (previewExercise) {
     return (
       <div className="space-y-4">
@@ -84,20 +107,28 @@ export function AdminBreathingTab() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-muted-foreground">
-          {BREATHING_EXERCISES.length} exercises available for clients in the Restore → Breathe tab
+          {rows.length} {rows.length === 1 ? "exercise" : "exercises"} · shown to clients in Restore → Breathe
         </p>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            setAutoPickOnOpen(false);
-            setMusicDialogOpen(true);
-          }}
-        >
-          <Music className="h-4 w-4 mr-1" /> Manage Music
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setAutoPickOnOpen(false);
+              setMusicDialogOpen(true);
+            }}
+          >
+            <Music className="h-4 w-4 mr-1" /> Music
+          </Button>
+          <Button
+            size="sm"
+            onClick={() => { setEditing(null); setEditorOpen(true); }}
+          >
+            <Plus className="h-4 w-4 mr-1" /> New exercise
+          </Button>
+        </div>
       </div>
 
       <ManageBreathingMusicDialog
@@ -109,71 +140,98 @@ export function AdminBreathingTab() {
         autoPickOnOpen={autoPickOnOpen}
       />
 
-      <div className="grid gap-3 md:grid-cols-2">
-        {BREATHING_EXERCISES.map((ex) => {
-          const pinnedTrackId = pinnedMap[ex.id];
+      <BreathingExerciseEditorDialog
+        open={editorOpen}
+        onOpenChange={setEditorOpen}
+        editing={editing}
+      />
 
-          return (
-            <Card key={ex.id}>
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <div className="text-2xl">{ex.icon}</div>
-                    <div>
-                      <p className="font-semibold">{ex.name}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">{ex.description}</p>
+      {isLoading ? (
+        <div className="text-center text-sm text-muted-foreground py-8">Loading…</div>
+      ) : rows.length === 0 ? (
+        <div className="text-center text-sm text-muted-foreground py-12 border border-dashed rounded-lg">
+          No exercises yet. Click <strong>New exercise</strong> to create your first.
+        </div>
+      ) : (
+        <div className="grid gap-3 md:grid-cols-2">
+          {rows.map((row) => {
+            const ex = rowToExercise(row);
+            const pinnedTrackId = pinnedMap[row.id] ?? row.default_track_id;
+
+            return (
+              <Card key={row.id} className={!row.is_active ? "opacity-60" : undefined}>
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="text-2xl shrink-0">{ex.icon}</div>
+                      <div className="min-w-0">
+                        <p className="font-semibold truncate">{ex.name}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{ex.description}</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-1 shrink-0">
+                      <Button variant="ghost" size="icon" onClick={() => setPreviewExercise(ex)} title="Preview">
+                        <Play className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost" size="icon"
+                        onClick={() => { setEditing(row); setEditorOpen(true); }}
+                        title="Edit"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost" size="icon"
+                        className="text-destructive/70 hover:text-destructive"
+                        onClick={() => {
+                          if (confirm(`Delete "${ex.name}"?`)) deleteExercise.mutate(row.id);
+                        }}
+                        title="Delete"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setPreviewExercise(ex)}
-                    title="Preview"
-                  >
-                    <Play className="h-4 w-4" />
-                  </Button>
-                </div>
-                <div className="flex flex-wrap gap-1.5 mt-3">
-                  {ex.phases.map((phase, i) => (
-                    <Badge key={i} variant="secondary" className="text-xs">
-                      {phase.label} {phase.seconds}s
-                    </Badge>
-                  ))}
-                </div>
-                <div className="flex items-center gap-2 mt-2">
-                  <Badge variant="outline" className="text-xs capitalize">{ex.animation}</Badge>
-                  <span className="text-xs text-muted-foreground">
-                    {ex.phases.reduce((s, p) => s + p.seconds, 0)}s per cycle
-                  </span>
-                </div>
+                  <div className="flex flex-wrap gap-1.5 mt-3">
+                    {ex.phases.map((phase, i) => (
+                      <Badge key={i} variant="secondary" className="text-xs">
+                        {phase.label} {phase.seconds}s
+                      </Badge>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-2 mt-2">
+                    <Badge variant="outline" className="text-xs capitalize">{ex.animation}</Badge>
+                    <span className="text-xs text-muted-foreground">
+                      {ex.phases.reduce((s, p) => s + p.seconds, 0)}s per cycle
+                    </span>
+                    {!row.is_active && <Badge variant="outline" className="text-xs">Inactive</Badge>}
+                  </div>
 
-                {/* Per-exercise music pin */}
-                <div className="mt-3 flex items-center gap-2">
-                  <Pin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                  <Select
-                    value={pinnedTrackId ?? "none"}
-                    onValueChange={(val) =>
-                      pinTrack.mutate({ exerciseId: ex.id, trackId: val === "none" ? null : val })
-                    }
-                  >
-                    <SelectTrigger className="h-8 text-xs flex-1">
-                      <SelectValue placeholder="Default (shared library)" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Default (shared library)</SelectItem>
-                      {tracks.map((t) => (
-                        <SelectItem key={t.id} value={t.id}>
-                          {t.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+                  <div className="mt-3 flex items-center gap-2">
+                    <Pin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                    <Select
+                      value={pinnedTrackId ?? "none"}
+                      onValueChange={(val) =>
+                        pinTrack.mutate({ exerciseId: row.id, trackId: val === "none" ? null : val })
+                      }
+                    >
+                      <SelectTrigger className="h-8 text-xs flex-1">
+                        <SelectValue placeholder="Default (shared library)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Default (shared library)</SelectItem>
+                        {tracks.map((t) => (
+                          <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
