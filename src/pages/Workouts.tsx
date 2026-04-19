@@ -2,7 +2,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Filter, Clock, Users, Copy, Edit, Trash2, UserPlus, BookTemplate, Dumbbell } from "lucide-react";
+import { Plus, Search, Filter, Clock, Users, Copy, Edit, Trash2, BookTemplate, Dumbbell } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,7 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { AssignWorkoutDialog } from "@/components/AssignWorkoutDialog";
+
 import { SaveAsTemplateDialog } from "@/components/SaveAsTemplateDialog";
 
 const workoutTemplates = [
@@ -84,8 +84,6 @@ export default function Workouts() {
   const queryClient = useQueryClient();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [workoutToDelete, setWorkoutToDelete] = useState<string | null>(null);
-  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
-  const [workoutToAssign, setWorkoutToAssign] = useState<{ id: string; name: string } | null>(null);
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
   const [workoutToTemplate, setWorkoutToTemplate] = useState<{ id: string; name: string } | null>(null);
 
@@ -417,15 +415,6 @@ export default function Workouts() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Assign Workout Dialog */}
-      {workoutToAssign && (
-        <AssignWorkoutDialog
-          open={assignDialogOpen}
-          onOpenChange={setAssignDialogOpen}
-          workoutId={workoutToAssign.id}
-          workoutName={workoutToAssign.name}
-        />
-      )}
 
       {/* Save as Template Dialog */}
       {workoutToTemplate && (
