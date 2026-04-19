@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { X, Check } from "lucide-react";
 
-export type DetailField = "weight" | "tempo" | "rpe" | "distance";
+export type DetailField = "weight" | "tempo" | "rpe" | "distance" | "band";
 
 export const DETAIL_FIELD_OPTIONS: { key: DetailField; label: string; desc: string }[] = [
   { key: "weight", label: "Weight (lbs)", desc: "Target weight for this exercise" },
+  { key: "band", label: "Band / Equipment", desc: "Recommended band level or equipment (e.g. Red band, Light band)" },
   { key: "tempo", label: "Tempo", desc: "Movement speed e.g. 3-1-1-0" },
   { key: "rpe", label: "RPE", desc: "Rate of Perceived Exertion (1-10)" },
   { key: "distance", label: "Distance", desc: "Target distance e.g. 400m" },

@@ -38,6 +38,7 @@ interface WorkoutExercise {
   tempo: string;
   rpe: string;
   distance: string;
+  band: string;
   is_unilateral: boolean;
 }
 
@@ -295,6 +296,9 @@ function ExerciseRow({
         <span className="px-2.5 py-0.5 rounded-full border border-dashed border-border bg-muted/30 text-[11px] font-medium text-muted-foreground" title="Client logs actual weight in the workout player">
           Actual: client logs
         </span>
+        <button onClick={() => onEditDetailValue?.({ id: item.id, field: "band" })} className="px-2.5 py-0.5 rounded-full border border-primary/30 bg-primary/5 text-[11px] font-medium text-primary hover:bg-primary/10 transition-colors">
+          {item.band ? `🎯 ${item.band}` : "+ Band/Equip"}
+        </button>
         {item.detail_fields.includes("tempo") && (
           <button onClick={() => onEditDetailValue?.({ id: item.id, field: "tempo" })} className="px-2.5 py-0.5 rounded-full border border-primary/30 bg-primary/5 text-[11px] font-medium text-primary hover:bg-primary/10 transition-colors">
             {item.tempo || "Tempo"}
@@ -520,6 +524,7 @@ export default function CreateWorkout() {
       tempo: "",
       rpe: "",
       distance: "",
+      band: "",
       is_unilateral: !!ex?.is_unilateral,
     };
     setExerciseItems((prev) => [...prev, newItem]);
@@ -542,6 +547,7 @@ export default function CreateWorkout() {
       tempo: "",
       rpe: "",
       distance: "",
+      band: "",
       is_unilateral: false,
     };
     setExerciseItems((prev) => [...prev, newItem]);
@@ -815,6 +821,7 @@ export default function CreateWorkout() {
           weight_lbs: item.weight_lbs ? parseFloat(item.weight_lbs) : null,
           rpe: item.rpe ? parseInt(item.rpe) : null,
           distance: item.distance || null,
+          recommended_band_level: item.band || null,
           detail_fields: item.detail_fields.length > 0 ? item.detail_fields : null,
           is_unilateral: item.is_unilateral,
         }));
@@ -1252,11 +1259,11 @@ export default function CreateWorkout() {
           setInstructions(description);
           setCategory(cat);
           setDifficulty(diff as any);
-          setExerciseItems(items.map(i => ({ ...i, detail_fields: (i as any).detail_fields || [], weight_lbs: (i as any).weight_lbs || "", tempo: (i as any).tempo || "", rpe: (i as any).rpe || "", distance: (i as any).distance || "", is_unilateral: (i as any).is_unilateral ?? false })));
+          setExerciseItems(items.map(i => ({ ...i, detail_fields: (i as any).detail_fields || [], weight_lbs: (i as any).weight_lbs || "", tempo: (i as any).tempo || "", rpe: (i as any).rpe || "", distance: (i as any).distance || "", band: (i as any).band || "", is_unilateral: (i as any).is_unilateral ?? false })));
           setGroups(newGroups);
         }}
         onAddExercises={(items) => {
-          setExerciseItems((prev) => [...prev, ...items.map(i => ({ ...i, detail_fields: (i as any).detail_fields || [], weight_lbs: (i as any).weight_lbs || "", tempo: (i as any).tempo || "", rpe: (i as any).rpe || "", distance: (i as any).distance || "", is_unilateral: (i as any).is_unilateral ?? false }))]);
+          setExerciseItems((prev) => [...prev, ...items.map(i => ({ ...i, detail_fields: (i as any).detail_fields || [], weight_lbs: (i as any).weight_lbs || "", tempo: (i as any).tempo || "", rpe: (i as any).rpe || "", distance: (i as any).distance || "", band: (i as any).band || "", is_unilateral: (i as any).is_unilateral ?? false }))]);
         }}
       />
 
@@ -1280,7 +1287,7 @@ export default function CreateWorkout() {
       {editingDetailValue && (() => {
         const ex = exerciseItems.find((e) => e.id === editingDetailValue.id);
         if (!ex) return null;
-        const fieldMap: Record<DetailField, keyof WorkoutExercise> = { weight: "weight_lbs", tempo: "tempo", rpe: "rpe", distance: "distance" };
+        const fieldMap: Record<DetailField, keyof WorkoutExercise> = { weight: "weight_lbs", tempo: "tempo", rpe: "rpe", distance: "distance", band: "band" };
         const fieldKey = fieldMap[editingDetailValue.field];
         return (
           <DetailValueSheet

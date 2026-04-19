@@ -1329,7 +1329,7 @@ export default function ClientWodBuilder() {
       {editingDetailValue && (() => {
         const ex = exercises.find((e) => e.id === editingDetailValue.id);
         if (!ex) return null;
-        const fieldMap: Record<DetailField, keyof WodExercise> = { weight: "weight_lbs", tempo: "tempo", rpe: "rpe", distance: "distance" };
+        const fieldMap: Record<DetailField, keyof WodExercise> = { weight: "weight_lbs", tempo: "tempo", rpe: "rpe", distance: "distance", band: "band" as keyof WodExercise };
         const fieldKey = fieldMap[editingDetailValue.field];
         return (
           <DetailValueSheet

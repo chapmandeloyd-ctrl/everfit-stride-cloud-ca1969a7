@@ -34,6 +34,7 @@ interface Exercise {
   weight_lbs?: number | null;
   rpe?: number | null;
   distance?: string | null;
+  band?: string | null;
   is_unilateral?: boolean | null;
 }
 
@@ -490,6 +491,11 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
         // Announce weight if set
         if (ex.weight_lbs) {
           msg += `, at ${ex.weight_lbs} pounds`;
+        }
+
+        // Announce band/equipment if set (first side only)
+        if (ex.band && currentSide !== "left") {
+          msg += `, using ${ex.band}`;
         }
 
         // Announce tempo if set (only on first side announcement to keep concise)
@@ -1124,6 +1130,9 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
             {currentExercise?.reps && (
               <p className="text-base font-semibold text-primary">{currentExercise.reps} reps</p>
             )}
+            {currentExercise?.band && (
+              <p className="text-xs font-semibold text-primary mt-0.5">🎯 {currentExercise.band}</p>
+            )}
             {currentExercise?.notes && (
               <p className="text-xs text-muted-foreground italic mt-0.5">{currentExercise.notes}</p>
             )}
@@ -1156,7 +1165,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
                 <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wide">Reps</p>
                 <Input
                   type="number"
-                  value={setLogs[currentStep.setKey]?.reps || ""}
+                  value={setLogs[currentStep.setKey]?.reps ?? (currentExercise.reps ? String(currentExercise.reps) : "")}
                   onChange={(e) => updateSetLog(currentStep.setKey!, "reps", e.target.value)}
                   className="h-10 text-center text-lg font-bold border-2 focus:border-primary"
                   placeholder={currentExercise.reps ? String(currentExercise.reps) : "0"}
@@ -1468,7 +1477,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
                         <p className="text-xs font-semibold text-muted-foreground mb-1.5 uppercase tracking-wide">Reps</p>
                         <Input
                           type="number"
-                          value={setLogs[currentStep.setKey]?.reps || ""}
+                          value={setLogs[currentStep.setKey]?.reps ?? (currentExercise.reps ? String(currentExercise.reps) : "")}
                           onChange={(e) => updateSetLog(currentStep.setKey!, "reps", e.target.value)}
                           className="h-10 text-center text-lg font-bold border-2 focus:border-primary"
                           placeholder={currentExercise.reps ? String(currentExercise.reps) : "0"}
