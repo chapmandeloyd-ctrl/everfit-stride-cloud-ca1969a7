@@ -188,6 +188,34 @@ let persistentAudio: HTMLAudioElement | null = null;
 let activeAudio: HTMLAudioElement | null = null;
 let speechAbortController: AbortController | null = null;
 
+// Web Audio routing — lets us amplify TTS output above 1.0 (HTMLAudioElement
+// caps at volume=1, which is too quiet on iOS where media volume is separate
+// from ringer volume). GainNode boosts perceived loudness ~2x.
+const VOICE_GAIN = 2.2;
+let voiceAudioCtx: AudioContext | null = null;
+let voiceSourceNode: MediaElementAudioSourceNode | null = null;
+let voiceGainNode: GainNode | null = null;
+
+function ensureVoiceAudioGraph(audio: HTMLAudioElement) {
+  try {
+    if (!voiceAudioCtx) {
+      voiceAudioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    }
+    if (voiceAudioCtx.state === "suspended") {
+      voiceAudioCtx.resume().catch(() => {});
+    }
+    if (!voiceSourceNode) {
+      voiceSourceNode = voiceAudioCtx.createMediaElementSource(audio);
+      voiceGainNode = voiceAudioCtx.createGain();
+      voiceGainNode.gain.value = VOICE_GAIN;
+      voiceSourceNode.connect(voiceGainNode);
+      voiceGainNode.connect(voiceAudioCtx.destination);
+    }
+  } catch {
+    // MediaElementSource can only be created once per element — ignore re-attach errors
+  }
+}
+
 /**
  * Call once inside a click/tap handler (e.g. "Start Workout") to unlock audio
  * playback on iOS / Android browsers that require a user-gesture.
@@ -195,11 +223,14 @@ let speechAbortController: AbortController | null = null;
 function unlockAudioForMobile() {
   if (!persistentAudio) {
     persistentAudio = new Audio();
+    persistentAudio.crossOrigin = "anonymous";
   }
   // A silent play+pause satisfies the user-gesture requirement
   persistentAudio.src = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=";
   persistentAudio.volume = 1;
   persistentAudio.play().then(() => persistentAudio?.pause()).catch(() => {});
+  // Build the Web Audio graph during the user gesture too
+  if (persistentAudio) ensureVoiceAudioGraph(persistentAudio);
 }
 
 function cancelSpeech() {
