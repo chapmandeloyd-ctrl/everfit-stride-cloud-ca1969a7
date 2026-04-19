@@ -517,14 +517,17 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
   const advanceStep = useCallback(() => {
     if (stepTimerRef.current) clearInterval(stepTimerRef.current);
     lastCountdownRef.current = -1;
-    setStepTimer(-1);
     setStepIdx((prev) => {
       const next = prev + 1;
-      if (next >= steps.length) return prev;
+      if (next >= steps.length) {
+        setStepTimer(0);
+        return steps.length;
+      }
+      setStepTimer(-1);
       return next;
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [steps]);
+  }, [steps.length]);
 
   const startStepCountdown = useCallback((seconds: number) => {
     if (stepTimerRef.current) clearInterval(stepTimerRef.current);
