@@ -884,17 +884,9 @@ export default function ClientWodBuilder() {
                         <X className="h-4 w-4 text-muted-foreground hover:text-destructive" />
                       </button>
                       {workoutType === "superset" && (
-                          <button
-                            type="button"
-                            onClick={(e) => { e.stopPropagation(); duplicateOne(ex.id); }}
-                            title="Duplicate row"
-                            className="shrink-0 p-1 text-muted-foreground/60 hover:text-primary transition-colors"
-                          >
-                            <Copy className="h-4 w-4" />
-                          </button>
-                          <div className="shrink-0 text-muted-foreground/30 cursor-grab">
-                            <GripVertical className="h-5 w-5" />
-                          </div>
+                        <div className="shrink-0 text-muted-foreground/30 cursor-grab">
+                          <GripVertical className="h-5 w-5" />
+                        </div>
                       )}
                     </div>
 
