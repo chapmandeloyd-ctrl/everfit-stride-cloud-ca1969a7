@@ -702,7 +702,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
       startStepCountdown(secs);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stepIdx, phase]);
+  }, [stepIdx, phase, currentSide]);
 
   const handleComplete = () => {
     if (elapsedRef.current) clearInterval(elapsedRef.current);
