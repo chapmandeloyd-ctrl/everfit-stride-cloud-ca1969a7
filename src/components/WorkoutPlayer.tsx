@@ -330,9 +330,10 @@ function WorkoutCompleteScreen({ workoutName, onSave }: { workoutName?: string; 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return (
-    <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-background gap-6 px-6">
-      <h2 className="text-2xl font-bold">Workout Complete! 🎉</h2>
-      <Button size="lg" className="w-full" onClick={onSave}>Save Workout</Button>
+    <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-background gap-3 px-6">
+      <h2 className="text-2xl font-bold text-center">Great job! You completed{workoutName ? ` ${workoutName}` : " your workout"} 🎉</h2>
+      <p className="text-sm text-muted-foreground text-center">Click Save Workout to view your stats</p>
+      <Button size="lg" className="w-full mt-3" onClick={onSave}>Save Workout</Button>
     </div>
   );
 }
