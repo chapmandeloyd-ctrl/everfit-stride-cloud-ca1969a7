@@ -880,6 +880,13 @@ export default function ClientWodBuilder() {
                               {ex.distance || "Distance"}
                             </button>
                           )}
+                          <button
+                            onClick={() => setExercises((prev) => prev.map((e) => e.id === ex.id ? { ...e, is_unilateral: !e.is_unilateral } : e))}
+                            title={ex.is_unilateral ? "Unilateral on — voice will cue right side, then left" : "Tap to mark single-side (R/L)"}
+                            className={`px-3 py-1 rounded-full border text-xs font-medium transition-colors ${ex.is_unilateral ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground hover:border-primary hover:text-primary"}`}
+                          >
+                            R/L
+                          </button>
                           <button onClick={() => setEditingDetailFieldsId(ex.id)} className="px-2 py-1 rounded-full border border-dashed border-muted-foreground/30 text-xs font-medium text-muted-foreground/60 hover:border-primary hover:text-primary transition-colors flex items-center gap-0.5">
                             <Plus className="h-3 w-3" /> Detail
                           </button>
@@ -1037,6 +1044,13 @@ export default function ClientWodBuilder() {
                                 {ex.distance || "Distance"}
                               </button>
                             )}
+                            <button
+                              onClick={() => setExercises((prev) => prev.map((e) => e.id === ex.id ? { ...e, is_unilateral: !e.is_unilateral } : e))}
+                              title={ex.is_unilateral ? "Unilateral on — voice will cue right side, then left" : "Tap to mark single-side (R/L)"}
+                              className={`px-3 py-1 rounded-full border text-xs font-medium transition-colors ${ex.is_unilateral ? "border-primary bg-primary text-primary-foreground" : "border-input text-muted-foreground hover:border-primary hover:text-primary"}`}
+                            >
+                              R/L
+                            </button>
                             <button onClick={() => setEditingDetailFieldsId(ex.id)} className="px-2 py-1 rounded-full border border-dashed border-muted-foreground/30 text-xs font-medium text-muted-foreground/60 hover:border-primary hover:text-primary transition-colors flex items-center gap-0.5">
                               <Plus className="h-3 w-3" /> Detail
                             </button>
