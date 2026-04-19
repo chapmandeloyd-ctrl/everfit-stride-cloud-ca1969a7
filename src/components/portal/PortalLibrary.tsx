@@ -196,7 +196,7 @@ function CircleRow({
         <button
           key={scene.id}
           onClick={() => onSelect(scene)}
-          className={`shrink-0 ${w} flex flex-col items-start group`}
+          className={`shrink-0 ${w} flex flex-col items-center group`}
         >
           <div
             className={`relative ${w} aspect-square rounded-full overflow-hidden ring-1 ring-white/50 group-hover:ring-white/90 transition-all shadow-[0_0_24px_rgba(255,255,255,0.1)]`}
@@ -224,7 +224,7 @@ function CircleRow({
             )}
           </div>
           {!small && (
-            <div className="mt-3 text-left w-full">
+            <div className="mt-3 text-center w-full px-1">
               <div className="text-white text-xs font-bold uppercase tracking-wider truncate">
                 {scene.name}
               </div>
