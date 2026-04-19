@@ -149,9 +149,13 @@ export function AIWorkoutBuilderDialog({
 
       if (data?.result) {
         if (activeTab === "full") {
-          setWorkoutResult(data.result as AIWorkoutResult);
+          setWorkoutResult(sanitizeWorkoutResult(data.result as AIWorkoutResult));
         } else {
-          setSuggestions(data.result.suggestions || []);
+          const cleaned = (data.result.suggestions || []).map((s: AISuggestion) => ({
+            ...s,
+            exercise_name: sanitizeName(s.exercise_name),
+          }));
+          setSuggestions(cleaned);
         }
       }
     } catch (err: any) {
