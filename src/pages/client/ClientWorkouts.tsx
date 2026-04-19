@@ -257,8 +257,9 @@ export default function ClientWorkouts() {
                                       <div className="min-w-0">
                                         <p className="text-sm font-medium truncate">{ex.exercise?.name}</p>
                                         <p className="text-xs text-muted-foreground">
-                                          {ex.sets ? `${ex.sets} sets` : ''}
-                                          {ex.notes ? ` x ${ex.notes}` : ex.reps ? ` x ${ex.reps} reps` : ''}
+                                          {/* Inside grouped sections, rounds come from the section header — don't show per-exercise sets */}
+                                          {!isGrouped && ex.sets ? `${ex.sets} sets` : ''}
+                                          {ex.notes ? `${!isGrouped && ex.sets ? ' x ' : ''}${ex.notes}` : ex.reps ? `${!isGrouped && ex.sets ? ' x ' : ''}${ex.reps} reps` : ''}
                                           {ex.duration_seconds ? ` ${ex.duration_seconds}s` : ''}
                                           {ex.rest_seconds ? ` · ${ex.rest_seconds}s rest` : ''}
                                           {ex.tempo ? ` · ${ex.tempo}` : ''}
