@@ -35,6 +35,7 @@ export function CreateExerciseDialog({ open, onOpenChange }: CreateExerciseDialo
     equipment: "",
     category: "",
     video_url: "",
+    is_unilateral: false,
   });
 
   const [videoFile, setVideoFile] = useState<File | null>(null);
@@ -166,6 +167,7 @@ export function CreateExerciseDialog({ open, onOpenChange }: CreateExerciseDialo
           category: formData.category,
           video_url: videoUrl || null,
           image_url: imageUrl,
+          is_unilateral: formData.is_unilateral,
           trainer_id: user?.id,
         })
         .select()
@@ -204,6 +206,7 @@ export function CreateExerciseDialog({ open, onOpenChange }: CreateExerciseDialo
         equipment: "",
         category: "",
         video_url: "",
+        is_unilateral: false,
       });
       setSelectedTags([]);
       clearVideo();
@@ -290,6 +293,25 @@ export function CreateExerciseDialog({ open, onOpenChange }: CreateExerciseDialo
                 placeholder="Select equipment"
                 onAddCustom={(name) => addOption.mutate({ type: "equipment", name })}
               />
+            </div>
+          </div>
+
+          {/* Unilateral (single-side) */}
+          <div className="flex items-start gap-3 p-3 border border-border rounded-lg bg-muted/30">
+            <input
+              id="is_unilateral_create"
+              type="checkbox"
+              checked={formData.is_unilateral}
+              onChange={(e) => setFormData({ ...formData, is_unilateral: e.target.checked })}
+              className="mt-1 h-4 w-4 rounded border-border accent-primary"
+            />
+            <div className="flex-1">
+              <Label htmlFor="is_unilateral_create" className="cursor-pointer font-medium">
+                Unilateral (single-side movement)
+              </Label>
+              <p className="text-xs text-muted-foreground mt-1">
+                When enabled, the workout voice will cue right side first, then switch to left side for the same reps/time.
+              </p>
             </div>
           </div>
 
