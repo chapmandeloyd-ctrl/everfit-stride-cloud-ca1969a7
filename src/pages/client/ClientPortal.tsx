@@ -74,7 +74,7 @@ export default function ClientPortal() {
           <PortalBreathPreview
             onBack={() => setBreathOpen(false)}
             onExpand={() => setBreathStage("player")}
-            audioPaused={libraryOpen || breathPromptOpen}
+            audioPaused={libraryOpen || breathLibraryOpen || breathPromptOpen}
             style={breathStyle}
             onStyleChange={setBreathStyle}
             onOpenBreathLibrary={() => setBreathPromptOpen(true)}
@@ -102,14 +102,24 @@ export default function ClientPortal() {
               }}
             />
           )}
+          {breathLibraryOpen && (
+            <BreathLibrary
+              exercises={exercises}
+              isLoading={exercisesLoading}
+              onClose={() => setBreathLibraryOpen(false)}
+              onSelectExercise={(ex) => {
+                setBreathLibraryOpen(false);
+                setActiveExercise(ex);
+                setBreathStage("player");
+              }}
+            />
+          )}
           <BreathLibraryPrompt
             open={breathPromptOpen}
             onClose={() => setBreathPromptOpen(false)}
             onOpenLibrary={() => {
-              // TODO: route to dedicated Breath Library when built;
-              // for now reuse the Portal library overlay.
               setBreathPromptOpen(false);
-              setLibraryOpen(true);
+              setBreathLibraryOpen(true);
             }}
           />
         </>
@@ -118,14 +128,16 @@ export default function ClientPortal() {
 
     return (
       <BreathingPlayer
-        exercise={DEFAULT_BREATH_EXERCISE}
-        quickStart
+        exercise={activeExercise ?? DEFAULT_BREATH_EXERCISE}
+        quickStart={!activeExercise}
         quickDurationSecs={30}
         onBack={() => {
+          setActiveExercise(null);
           setBreathStage("preview");
           setBreathPromptOpen(true);
         }}
         onComplete={() => {
+          setActiveExercise(null);
           setBreathStage("preview");
           setBreathPromptOpen(true);
         }}
