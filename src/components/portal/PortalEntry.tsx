@@ -1,11 +1,14 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useRef, useEffect } from "react";
+import { X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface PortalEntryProps {
   onSelectCategory: (category: "Focus" | "Sleep" | "Escape" | "Breath") => void;
 }
 
 export function PortalEntry({ onSelectCategory }: PortalEntryProps) {
+  const navigate = useNavigate();
   const categories: Array<"Focus" | "Sleep" | "Escape" | "Breath"> = ["Focus", "Sleep", "Escape", "Breath"];
   const [videoReady, setVideoReady] = useState(false);
   const [showButtons, setShowButtons] = useState(false);
@@ -89,6 +92,16 @@ export function PortalEntry({ onSelectCategory }: PortalEntryProps) {
       <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-none" />
       {/* Bottom vignette to anchor buttons */}
       <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/70 via-black/20 to-transparent pointer-events-none" />
+
+      {/* Close button — returns to dashboard */}
+      <button
+        onClick={() => navigate("/client/dashboard")}
+        aria-label="Close"
+        className="absolute z-[60] left-4 h-10 w-10 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center text-white/90 hover:bg-white/20 active:scale-95 transition-all"
+        style={{ top: "max(env(safe-area-inset-top, 0px), 16px)" }}
+      >
+        <X className="h-5 w-5" />
+      </button>
 
       {/* Title — Breathing CALM with shimmer */}
       <motion.div
