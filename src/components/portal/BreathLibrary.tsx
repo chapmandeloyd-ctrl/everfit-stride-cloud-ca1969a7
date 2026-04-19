@@ -39,9 +39,9 @@ export function BreathLibrary({
   }, [exercises]);
 
   return (
-    <div className="fixed inset-0 z-[200] bg-black overflow-y-auto overflow-x-hidden">
+    <div className="fixed inset-0 z-[200] bg-black overflow-y-auto overflow-x-hidden flex flex-col">
       {/* Hero header */}
-      <div className="relative h-[36vh] min-h-[280px] w-full overflow-hidden">
+      <div className="relative h-[36vh] min-h-[280px] w-full overflow-hidden shrink-0">
         <img
           src={nebulaFocus}
           alt=""
@@ -85,8 +85,8 @@ export function BreathLibrary({
         </motion.div>
       </div>
 
-      {/* Body */}
-      <div className="relative -mt-6 pb-32 space-y-10">
+      {/* Body — flex column so Browse All can mt-auto to the bottom */}
+      <div className="relative -mt-6 pb-32 flex-1 flex flex-col">
         {isLoading ? (
           <div className="flex justify-center py-16">
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-white/80" />
@@ -99,48 +99,50 @@ export function BreathLibrary({
           </div>
         ) : (
           <>
-            {/* Featured */}
-            <Section title="Featured" subtitle="Start here. Trainer-picked breaths.">
-              <CardRow exercises={featured} onSelect={onSelectExercise} />
-            </Section>
-
-            {/* Downshift collection */}
-            {downshift.length > 0 && (
-              <Section
-                title="Downshift"
-                subtitle="Slow the system. Long exhales for deep calm."
-              >
-                <CircleRow exercises={downshift} onSelect={onSelectExercise} size="lg" />
+            <div className="space-y-10">
+              {/* Featured */}
+              <Section title="Featured" subtitle="Start here. Trainer-picked breaths.">
+                <CardRow exercises={featured} onSelect={onSelectExercise} />
               </Section>
-            )}
 
-            {/* Regulate collection */}
-            {regulate.length > 0 && (
-              <Section
-                title="Regulate"
-                subtitle="Center the breath. Find your baseline."
-              >
-                <CircleRow exercises={regulate} onSelect={onSelectExercise} size="md" />
-              </Section>
-            )}
+              {/* Downshift collection */}
+              {downshift.length > 0 && (
+                <Section
+                  title="Downshift"
+                  subtitle="Slow the system. Long exhales for deep calm."
+                >
+                  <CircleRow exercises={downshift} onSelect={onSelectExercise} size="lg" />
+                </Section>
+              )}
 
-            {/* Activate collection */}
-            {activate.length > 0 && (
-              <Section
-                title="Activate"
-                subtitle="Wake up. Sharpen focus."
-              >
-                <CircleRow exercises={activate} onSelect={onSelectExercise} size="md" />
-              </Section>
-            )}
+              {/* Regulate collection */}
+              {regulate.length > 0 && (
+                <Section
+                  title="Regulate"
+                  subtitle="Center the breath. Find your baseline."
+                >
+                  <CircleRow exercises={regulate} onSelect={onSelectExercise} size="md" />
+                </Section>
+              )}
 
-            {/* Browse all — small circles */}
+              {/* Activate collection */}
+              {activate.length > 0 && (
+                <Section
+                  title="Activate"
+                  subtitle="Wake up. Sharpen focus."
+                >
+                  <CircleRow exercises={activate} onSelect={onSelectExercise} size="md" />
+                </Section>
+              )}
+            </div>
+
+            {/* Browse all — pinned to bottom of library */}
             {browseAll.length > 0 && (
-              <Section title="Browse All">
-                <div className="mt-10">
+              <div className="mt-auto pt-16">
+                <Section title="Browse All">
                   <CircleRow exercises={browseAll} onSelect={onSelectExercise} size="sm" />
-                </div>
-              </Section>
+                </Section>
+              </div>
             )}
           </>
         )}
