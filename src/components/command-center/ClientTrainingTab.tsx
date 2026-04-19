@@ -2,11 +2,13 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dumbbell, Plus, Eye, ChevronLeft, ChevronRight, CheckCircle2 } from "lucide-react";
+import { Dumbbell, Plus, Eye, ChevronLeft, ChevronRight, CheckCircle2, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { format, addWeeks, subWeeks, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, parseISO, isToday } from "date-fns";
 import { useState } from "react";
 import { AssignWorkoutToClientDialog } from "@/components/command-center/AssignWorkoutToClientDialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
 
 interface Props {
   clientId: string;
@@ -16,16 +18,18 @@ interface Props {
 export function ClientTrainingTab({ clientId, trainerId }: Props) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [weekSpan, setWeekSpan] = useState<1 | 2>(2);
+  const [workoutToDelete, setWorkoutToDelete] = useState<{ id: string; name: string } | null>(null);
 
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
   const weekEnd = endOfWeek(addWeeks(weekStart, weekSpan - 1), { weekStartsOn: 1 });
   const days = eachDayOfInterval({ start: weekStart, end: weekEnd });
 
-  const { data: assignedWorkouts, refetch } = useQuery({
+  const { data: assignedWorkouts } = useQuery({
     queryKey: ["client-assigned-workouts", clientId, format(weekStart, "yyyy-MM-dd"), format(weekEnd, "yyyy-MM-dd")],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -35,6 +39,22 @@ export function ClientTrainingTab({ clientId, trainerId }: Props) {
         .order("scheduled_date", { ascending: true });
       if (error) throw error;
       return data;
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("client_workouts").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["client-assigned-workouts", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["training-stats", clientId] });
+      toast({ title: "Workout removed" });
+      setWorkoutToDelete(null);
+    },
+    onError: (err: Error) => {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
     },
   });
 
@@ -130,7 +150,7 @@ export function ClientTrainingTab({ clientId, trainerId }: Props) {
                         <div
                           key={w.id}
                           onClick={(e) => e.stopPropagation()}
-                          className={`text-xs p-1.5 rounded flex items-center gap-1.5 ${
+                          className={`group/wo text-xs p-1.5 rounded flex items-center gap-1.5 ${
                             done
                               ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
                               : "bg-primary/10 text-primary"
@@ -139,7 +159,17 @@ export function ClientTrainingTab({ clientId, trainerId }: Props) {
                           {done
                             ? <CheckCircle2 className="h-3 w-3 shrink-0" />
                             : <Dumbbell className="h-3 w-3 shrink-0" />}
-                          <span className="truncate">{w.workout_plan?.name || "Workout"}</span>
+                          <span className="truncate flex-1">{w.workout_plan?.name || "Workout"}</span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setWorkoutToDelete({ id: w.id, name: w.workout_plan?.name || "Workout" });
+                            }}
+                            className="opacity-0 group-hover/wo:opacity-100 transition-opacity hover:text-destructive shrink-0"
+                            aria-label="Delete workout"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </button>
                         </div>
                       );
                     })}
@@ -169,10 +199,21 @@ export function ClientTrainingTab({ clientId, trainerId }: Props) {
                     </p>
                   </div>
                 </div>
-                {w.completed_at
-                  ? <Badge variant="outline" className="text-xs text-green-600">Done</Badge>
-                  : <Badge variant="secondary" className="text-xs">Pending</Badge>
-                }
+                <div className="flex items-center gap-2">
+                  {w.completed_at
+                    ? <Badge variant="outline" className="text-xs text-green-600">Done</Badge>
+                    : <Badge variant="secondary" className="text-xs">Pending</Badge>
+                  }
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                    onClick={() => setWorkoutToDelete({ id: w.id, name: w.workout_plan?.name || "Workout" })}
+                    aria-label="Delete workout"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
@@ -191,6 +232,26 @@ export function ClientTrainingTab({ clientId, trainerId }: Props) {
         }}
         initialDate={selectedDate}
       />
+
+      <AlertDialog open={!!workoutToDelete} onOpenChange={(open) => !open && setWorkoutToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove this workout?</AlertDialogTitle>
+            <AlertDialogDescription>
+              "{workoutToDelete?.name}" will be removed from this client's calendar. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => workoutToDelete && deleteMutation.mutate(workoutToDelete.id)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
