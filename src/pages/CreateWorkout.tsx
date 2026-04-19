@@ -90,6 +90,7 @@ function ExerciseRow({
   onToggleSelect,
   onEditDetailFields,
   onEditDetailValue,
+  onDuplicate,
 }: {
   item: WorkoutExercise;
   exerciseInfo: any;
@@ -97,6 +98,7 @@ function ExerciseRow({
   onToggleSelect: (id: string) => void;
   onEditDetailFields?: (id: string) => void;
   onEditDetailValue?: (edit: { id: string; field: DetailField }) => void;
+  onDuplicate?: (id: string) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
 
@@ -124,7 +126,7 @@ function ExerciseRow({
             ))}
           </SelectContent>
         </Select>
-        <div {...attributes} {...listeners} className="cursor-grab p-1">
+        <div {...attributes} {...listeners} className="cursor-grab p-1 touch-none">
           <GripVertical className="h-4 w-4 text-muted-foreground" />
         </div>
       </div>
@@ -236,8 +238,13 @@ function ExerciseRow({
         </Select>
       )}
 
+      {onDuplicate && item.exercise_type === "normal" && (
+        <button type="button" onClick={() => onDuplicate(item.id)} title="Duplicate row" className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-primary transition-colors shrink-0">
+          <Copy className="h-3.5 w-3.5" />
+        </button>
+      )}
       {/* Drag Handle */}
-      <div {...attributes} {...listeners} className="cursor-grab p-1">
+      <div {...attributes} {...listeners} className="cursor-grab p-1 touch-none">
         <GripVertical className="h-4 w-4 text-muted-foreground" />
       </div>
     </div>
@@ -369,7 +376,7 @@ export default function CreateWorkout() {
   const [editingDetailFieldsId, setEditingDetailFieldsId] = useState<string | null>(null);
   const [editingDetailValue, setEditingDetailValue] = useState<{ id: string; field: DetailField } | null>(null);
 
-  const sensors = useSensors(useSensor(PointerSensor));
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   const { data: exercises } = useQuery({
     queryKey: ["exercises", user?.id],
@@ -518,10 +525,28 @@ export default function CreateWorkout() {
   };
 
   const duplicateSelected = () => {
-    const selected = exerciseItems.filter((i) => i.selected);
-    const copies = selected.map((item) => ({ ...item, id: crypto.randomUUID(), selected: false, group_id: null }));
-    setExerciseItems((prev) => [...prev, ...copies]);
+    setExerciseItems((prev) => {
+      const result: typeof prev = [];
+      for (const item of prev) {
+        result.push(item);
+        if (item.selected) {
+          result.push({ ...item, id: crypto.randomUUID(), selected: false });
+        }
+      }
+      return result.map((i) => ({ ...i, selected: false }));
+    });
   };
+
+  const duplicateOne = useCallback((itemId: string) => {
+    setExerciseItems((prev) => {
+      const idx = prev.findIndex((i) => i.id === itemId);
+      if (idx === -1) return prev;
+      const copy = { ...prev[idx], id: crypto.randomUUID(), selected: false };
+      const next = [...prev];
+      next.splice(idx + 1, 0, copy);
+      return next;
+    });
+  }, []);
 
   // Superset / Circuit grouping
   const createGroup = (type: "superset" | "circuit") => {
@@ -802,6 +827,7 @@ export default function CreateWorkout() {
                   onToggleSelect={toggleSelect}
                   onEditDetailFields={setEditingDetailFieldsId}
                   onEditDetailValue={setEditingDetailValue}
+                  onDuplicate={duplicateOne}
                 />
               ))}
             </div>
@@ -823,6 +849,7 @@ export default function CreateWorkout() {
             onToggleSelect={toggleSelect}
             onEditDetailFields={setEditingDetailFieldsId}
             onEditDetailValue={setEditingDetailValue}
+            onDuplicate={duplicateOne}
           />
         );
       }
