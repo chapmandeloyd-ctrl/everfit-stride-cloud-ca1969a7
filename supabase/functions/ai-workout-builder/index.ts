@@ -102,7 +102,7 @@ RULES:
                 items: {
                   type: "object",
                   properties: {
-                    section_name: { type: "string", description: "e.g. Warm-Up, Main, Superset A, Circuit, Cool Down" },
+                    section_name: { type: "string", description: "Descriptive name like 'Warm-Up', 'Upper Body Push', 'Chest & Shoulders Superset', 'Core Finisher Circuit', 'Cool Down'. NEVER use generic names like 'Custom Block', 'Block 1', 'Section 1', or 'Group A'. Always describe the muscle group, movement pattern, or purpose." },
                     section_type: { type: "string", enum: ["straight_set", "superset", "circuit"] },
                     rounds: { type: "number", description: "Number of rounds for supersets/circuits, 1 for straight sets" },
                     exercises: {
