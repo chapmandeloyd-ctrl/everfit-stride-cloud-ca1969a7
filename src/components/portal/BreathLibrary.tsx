@@ -158,7 +158,7 @@ function Section({
 }) {
   return (
     <section>
-      <div className="px-5 mb-4">
+      <div className="px-6 mb-4">
         <h2 className="text-white text-2xl font-semibold tracking-tight">{title}</h2>
         {subtitle && (
           <p className="text-white/55 text-sm font-light mt-1">{subtitle}</p>
