@@ -38,6 +38,7 @@ interface WorkoutExercise {
   tempo: string;
   rpe: string;
   distance: string;
+  is_unilateral: boolean;
 }
 
 interface ExerciseGroup {
@@ -244,6 +245,16 @@ function ExerciseRow({
       )}
 
       <div className="ml-auto flex items-center gap-1 shrink-0">
+        {item.exercise_type === "normal" && (
+          <button
+            type="button"
+            onClick={() => onUpdate(item.id, { is_unilateral: !item.is_unilateral })}
+            title={item.is_unilateral ? "Unilateral on — voice will cue right side, then left" : "Tap to mark single-side (R/L)"}
+            className={`px-2 h-7 rounded-full border text-[11px] font-semibold transition-colors ${item.is_unilateral ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground hover:border-primary hover:text-primary"}`}
+          >
+            R/L
+          </button>
+        )}
         {item.exercise_type === "normal" && (
           <button
             type="button"
@@ -491,6 +502,7 @@ export default function CreateWorkout() {
   const getExerciseById = (id: string) => exercises?.find((e) => e.id === id);
 
   const addExercise = (exerciseId: string) => {
+    const ex = exercises?.find((e) => e.id === exerciseId);
     const newItem: WorkoutExercise = {
       id: crypto.randomUUID(),
       exercise_id: exerciseId,
@@ -507,6 +519,7 @@ export default function CreateWorkout() {
       tempo: "",
       rpe: "",
       distance: "",
+      is_unilateral: !!ex?.is_unilateral,
     };
     setExerciseItems((prev) => [...prev, newItem]);
   };
@@ -528,6 +541,7 @@ export default function CreateWorkout() {
       tempo: "",
       rpe: "",
       distance: "",
+      is_unilateral: false,
     };
     setExerciseItems((prev) => [...prev, newItem]);
   };
@@ -801,6 +815,7 @@ export default function CreateWorkout() {
           rpe: item.rpe ? parseInt(item.rpe) : null,
           distance: item.distance || null,
           detail_fields: item.detail_fields.length > 0 ? item.detail_fields : null,
+          is_unilateral: item.is_unilateral,
         }));
 
       if (exercisesToInsert.length > 0) {
@@ -1236,11 +1251,11 @@ export default function CreateWorkout() {
           setInstructions(description);
           setCategory(cat);
           setDifficulty(diff as any);
-          setExerciseItems(items.map(i => ({ ...i, detail_fields: (i as any).detail_fields || [], weight_lbs: (i as any).weight_lbs || "", tempo: (i as any).tempo || "", rpe: (i as any).rpe || "", distance: (i as any).distance || "" })));
+          setExerciseItems(items.map(i => ({ ...i, detail_fields: (i as any).detail_fields || [], weight_lbs: (i as any).weight_lbs || "", tempo: (i as any).tempo || "", rpe: (i as any).rpe || "", distance: (i as any).distance || "", is_unilateral: (i as any).is_unilateral ?? false })));
           setGroups(newGroups);
         }}
         onAddExercises={(items) => {
-          setExerciseItems((prev) => [...prev, ...items.map(i => ({ ...i, detail_fields: (i as any).detail_fields || [], weight_lbs: (i as any).weight_lbs || "", tempo: (i as any).tempo || "", rpe: (i as any).rpe || "", distance: (i as any).distance || "" }))]);
+          setExerciseItems((prev) => [...prev, ...items.map(i => ({ ...i, detail_fields: (i as any).detail_fields || [], weight_lbs: (i as any).weight_lbs || "", tempo: (i as any).tempo || "", rpe: (i as any).rpe || "", distance: (i as any).distance || "", is_unilateral: (i as any).is_unilateral ?? false }))]);
         }}
       />
 
