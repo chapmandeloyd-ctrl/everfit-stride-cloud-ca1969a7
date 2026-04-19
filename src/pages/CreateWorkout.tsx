@@ -898,6 +898,8 @@ export default function CreateWorkout() {
                   onEditDetailFields={setEditingDetailFieldsId}
                   onEditDetailValue={setEditingDetailValue}
                   onDuplicate={duplicateOne}
+                  onDelete={deleteOne}
+                  onPasteForward={setPasteForwardSourceId}
                 />
               ))}
             </div>
@@ -920,6 +922,8 @@ export default function CreateWorkout() {
             onEditDetailFields={setEditingDetailFieldsId}
             onEditDetailValue={setEditingDetailValue}
             onDuplicate={duplicateOne}
+            onDelete={deleteOne}
+            onPasteForward={setPasteForwardSourceId}
           />
         );
       }
