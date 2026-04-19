@@ -34,6 +34,28 @@ interface Exercise {
   weight_lbs?: number | null;
   rpe?: number | null;
   distance?: string | null;
+  is_unilateral?: boolean | null;
+}
+
+// Detect single-side / unilateral exercises by name keywords (fallback when no flag set)
+function isUnilateralByName(name?: string): boolean {
+  if (!name) return false;
+  const n = name.toLowerCase();
+  const keywords = [
+    "single-arm", "single arm", "one-arm", "one arm",
+    "single-leg", "single leg", "one-leg", "one leg",
+    "unilateral", "split squat", "bulgarian", "pistol",
+    "suitcase", "offset", "staggered",
+    " right ", " left ", "right side", "left side",
+  ];
+  const padded = ` ${n} `;
+  return keywords.some((k) => padded.includes(k));
+}
+
+function isUnilateralExercise(ex?: Exercise | null): boolean {
+  if (!ex) return false;
+  if (ex.is_unilateral) return true;
+  return isUnilateralByName(ex.exercise_name);
 }
 
 interface Section {
