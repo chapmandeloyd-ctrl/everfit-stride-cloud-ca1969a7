@@ -286,14 +286,15 @@ function ExerciseRow({
         </div>
       </div>
     </div>
-    {/* Detail field chips row - only render when chips exist */}
-    {item.exercise_type === "normal" && item.detail_fields.length > 0 && (
+    {/* Detail field chips row - weight always shown for normal exercises */}
+    {item.exercise_type === "normal" && (
       <div className="flex items-center gap-1.5 px-3 pb-2 flex-wrap -mt-1">
-        {item.detail_fields.includes("weight") && (
-          <button onClick={() => onEditDetailValue?.({ id: item.id, field: "weight" })} className="px-2.5 py-0.5 rounded-full border border-primary/30 bg-primary/5 text-[11px] font-medium text-primary hover:bg-primary/10 transition-colors">
-            {item.weight_lbs ? `${item.weight_lbs} lbs` : "Weight"}
-          </button>
-        )}
+        <button onClick={() => onEditDetailValue?.({ id: item.id, field: "weight" })} className="px-2.5 py-0.5 rounded-full border border-primary/30 bg-primary/5 text-[11px] font-medium text-primary hover:bg-primary/10 transition-colors">
+          {item.weight_lbs ? `Rx ${item.weight_lbs} lbs` : "+ Rx Weight"}
+        </button>
+        <span className="px-2.5 py-0.5 rounded-full border border-dashed border-border bg-muted/30 text-[11px] font-medium text-muted-foreground" title="Client logs actual weight in the workout player">
+          Actual: client logs
+        </span>
         {item.detail_fields.includes("tempo") && (
           <button onClick={() => onEditDetailValue?.({ id: item.id, field: "tempo" })} className="px-2.5 py-0.5 rounded-full border border-primary/30 bg-primary/5 text-[11px] font-medium text-primary hover:bg-primary/10 transition-colors">
             {item.tempo || "Tempo"}
