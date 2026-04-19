@@ -5,9 +5,11 @@ import { PortalPlayer, type PortalScene } from "@/components/portal/PortalPlayer
 import { PortalEntry } from "@/components/portal/PortalEntry";
 import { PortalLibrary } from "@/components/portal/PortalLibrary";
 import { BreathingPlayer } from "@/components/vibes/BreathingPlayer";
-import { BREATHING_EXERCISES } from "@/lib/breathingExercises";
+import { BREATHING_EXERCISES, type BreathingExercise } from "@/lib/breathingExercises";
 import { PortalBreathPreview } from "@/components/portal/PortalBreathPreview";
 import { BreathLibraryPrompt } from "@/components/portal/BreathLibraryPrompt";
+import { BreathLibrary } from "@/components/portal/BreathLibrary";
+import { useBreathingExercises } from "@/hooks/useBreathingExercises";
 import type { BreathParticleStyle } from "@/components/portal/BreathParticles";
 
 type EntryCategory = "Focus" | "Sleep" | "Escape" | "Breath";
@@ -22,8 +24,12 @@ export default function ClientPortal() {
   const [breathOpen, setBreathOpen] = useState(false);
   const [breathStage, setBreathStage] = useState<BreathStage>("preview");
   const [libraryOpen, setLibraryOpen] = useState(false);
+  const [breathLibraryOpen, setBreathLibraryOpen] = useState(false);
   const [breathPromptOpen, setBreathPromptOpen] = useState(false);
   const [breathStyle, setBreathStyle] = useState<BreathParticleStyle>("aurora");
+  const [activeExercise, setActiveExercise] = useState<BreathingExercise | null>(null);
+
+  const { exercises, isLoading: exercisesLoading } = useBreathingExercises();
 
   const { data: scenes = [], isLoading } = useQuery({
     queryKey: ["portal-scenes-client"],
@@ -68,7 +74,7 @@ export default function ClientPortal() {
           <PortalBreathPreview
             onBack={() => setBreathOpen(false)}
             onExpand={() => setBreathStage("player")}
-            audioPaused={libraryOpen || breathPromptOpen}
+            audioPaused={libraryOpen || breathLibraryOpen || breathPromptOpen}
             style={breathStyle}
             onStyleChange={setBreathStyle}
             onOpenBreathLibrary={() => setBreathPromptOpen(true)}
@@ -96,14 +102,24 @@ export default function ClientPortal() {
               }}
             />
           )}
+          {breathLibraryOpen && (
+            <BreathLibrary
+              exercises={exercises}
+              isLoading={exercisesLoading}
+              onClose={() => setBreathLibraryOpen(false)}
+              onSelectExercise={(ex) => {
+                setBreathLibraryOpen(false);
+                setActiveExercise(ex);
+                setBreathStage("player");
+              }}
+            />
+          )}
           <BreathLibraryPrompt
             open={breathPromptOpen}
             onClose={() => setBreathPromptOpen(false)}
             onOpenLibrary={() => {
-              // TODO: route to dedicated Breath Library when built;
-              // for now reuse the Portal library overlay.
               setBreathPromptOpen(false);
-              setLibraryOpen(true);
+              setBreathLibraryOpen(true);
             }}
           />
         </>
@@ -112,14 +128,16 @@ export default function ClientPortal() {
 
     return (
       <BreathingPlayer
-        exercise={DEFAULT_BREATH_EXERCISE}
-        quickStart
+        exercise={activeExercise ?? DEFAULT_BREATH_EXERCISE}
+        quickStart={!activeExercise}
         quickDurationSecs={30}
         onBack={() => {
+          setActiveExercise(null);
           setBreathStage("preview");
           setBreathPromptOpen(true);
         }}
         onComplete={() => {
+          setActiveExercise(null);
           setBreathStage("preview");
           setBreathPromptOpen(true);
         }}
