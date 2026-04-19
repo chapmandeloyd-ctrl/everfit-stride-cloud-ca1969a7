@@ -509,6 +509,81 @@ export type Database = {
         }
         Relationships: []
       }
+      breathing_exercises: {
+        Row: {
+          animation: string
+          created_at: string
+          default_track_id: string | null
+          description: string
+          hero_image_url: string | null
+          icon: string
+          id: string
+          is_active: boolean
+          motion: Json
+          music_prompt: string
+          name: string
+          order_index: number
+          phases: Json
+          slug: string
+          tone: Json
+          trainer_id: string
+          updated_at: string
+        }
+        Insert: {
+          animation?: string
+          created_at?: string
+          default_track_id?: string | null
+          description?: string
+          hero_image_url?: string | null
+          icon?: string
+          id?: string
+          is_active?: boolean
+          motion?: Json
+          music_prompt?: string
+          name: string
+          order_index?: number
+          phases?: Json
+          slug: string
+          tone?: Json
+          trainer_id: string
+          updated_at?: string
+        }
+        Update: {
+          animation?: string
+          created_at?: string
+          default_track_id?: string | null
+          description?: string
+          hero_image_url?: string | null
+          icon?: string
+          id?: string
+          is_active?: boolean
+          motion?: Json
+          music_prompt?: string
+          name?: string
+          order_index?: number
+          phases?: Json
+          slug?: string
+          tone?: Json
+          trainer_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "breathing_exercises_default_track_id_fkey"
+            columns: ["default_track_id"]
+            isOneToOne: false
+            referencedRelation: "breathing_music_tracks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "breathing_exercises_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       breathing_music_tracks: {
         Row: {
           created_at: string
