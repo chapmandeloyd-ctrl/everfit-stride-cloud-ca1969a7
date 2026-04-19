@@ -407,17 +407,10 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
         let msg = "";
 
         // Announce block label + round X of Y on the first exercise of each round
-        if (isGrouped && step.exerciseIdx === 0 && section?.name) {
-          const blockName = section.name.trim();
+        if (isGrouped && step.exerciseIdx === 0) {
+          const blockName = section?.name?.trim() || "";
           if (blockName) msg += `${blockName}. `;
-          if ((section?.rounds || 1) > 1) {
-            msg += `Round ${step.round} of ${section.rounds}. `;
-          }
-        }
-
-        // Position within the block: "1 of N"
-        if (isGrouped && section?.exercises?.length > 1) {
-          msg += `${step.exerciseIdx + 1} of ${section.exercises.length}. `;
+          msg += `Round ${step.round} of ${section?.rounds || 1}. `;
         }
 
         msg += ex.exercise_name || "";
