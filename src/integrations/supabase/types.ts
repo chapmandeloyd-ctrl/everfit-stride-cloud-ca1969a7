@@ -3582,6 +3582,7 @@ export type Database = {
           exercise_type: string
           id: string
           image_url: string | null
+          is_unilateral: boolean
           muscle_group: string | null
           name: string
           trainer_id: string
@@ -3596,6 +3597,7 @@ export type Database = {
           exercise_type?: string
           id?: string
           image_url?: string | null
+          is_unilateral?: boolean
           muscle_group?: string | null
           name: string
           trainer_id: string
@@ -3610,6 +3612,7 @@ export type Database = {
           exercise_type?: string
           id?: string
           image_url?: string | null
+          is_unilateral?: boolean
           muscle_group?: string | null
           name?: string
           trainer_id?: string

@@ -26,6 +26,7 @@ interface Exercise {
   category: string | null;
   image_url: string | null;
   video_url: string | null;
+  is_unilateral?: boolean | null;
 }
 
 interface EditExerciseDialogProps {
@@ -54,6 +55,7 @@ export function EditExerciseDialog({ open, onOpenChange, exercise }: EditExercis
     equipment: "",
     category: "",
     video_url: "",
+    is_unilateral: false,
   });
 
   const [videoFile, setVideoFile] = useState<File | null>(null);
@@ -114,6 +116,7 @@ export function EditExerciseDialog({ open, onOpenChange, exercise }: EditExercis
         equipment: exercise.equipment || "",
         category: exercise.category || "",
         video_url: exercise.video_url || "",
+        is_unilateral: !!exercise.is_unilateral,
       });
       setVideoFile(null);
       setRemoveVideo(false);
@@ -250,6 +253,7 @@ export function EditExerciseDialog({ open, onOpenChange, exercise }: EditExercis
           category: formData.category || null,
           video_url: videoUrl,
           image_url: imageUrl,
+          is_unilateral: formData.is_unilateral,
         })
         .eq("id", exercise.id)
         .select()
@@ -308,6 +312,7 @@ export function EditExerciseDialog({ open, onOpenChange, exercise }: EditExercis
       equipment: "",
       category: "",
       video_url: "",
+      is_unilateral: false,
     });
     setVideoFile(null);
     setVideoPreview(null);
@@ -374,6 +379,25 @@ export function EditExerciseDialog({ open, onOpenChange, exercise }: EditExercis
                 placeholder="Select equipment"
                 onAddCustom={(name) => addOption.mutate({ type: "equipment", name })}
               />
+            </div>
+          </div>
+
+          {/* Unilateral (single-side) */}
+          <div className="flex items-start gap-3 p-3 border border-border rounded-lg bg-muted/30">
+            <input
+              id="is_unilateral_edit"
+              type="checkbox"
+              checked={formData.is_unilateral}
+              onChange={(e) => setFormData({ ...formData, is_unilateral: e.target.checked })}
+              className="mt-1 h-4 w-4 rounded border-border accent-primary"
+            />
+            <div className="flex-1">
+              <Label htmlFor="is_unilateral_edit" className="cursor-pointer font-medium">
+                Unilateral (single-side movement)
+              </Label>
+              <p className="text-xs text-muted-foreground mt-1">
+                When enabled, the workout voice will cue right side first, then switch to left side for the same reps/time.
+              </p>
             </div>
           </div>
 
