@@ -418,8 +418,8 @@ export default function CreateWorkout() {
   const { data: exercises } = useQuery({
     queryKey: ["exercises", user?.id],
     queryFn: async () => {
-      const { fetchAllExercises } = await import("@/lib/fetchAllRows");
-      return fetchAllExercises(user!.id);
+      const { fetchExercisesForBuilder } = await import("@/lib/fetchAllRows");
+      return fetchExercisesForBuilder(user!.id);
     },
     enabled: !!user?.id,
   });
