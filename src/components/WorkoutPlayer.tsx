@@ -282,6 +282,8 @@ async function playClip(text: string): Promise<void> {
     audio.volume = 1;
     audio.src = cachedUrl;
     activeAudio = audio;
+    ensureVoiceAudioGraph(audio);
+    if (voiceAudioCtx?.state === "suspended") voiceAudioCtx.resume().catch(() => {});
     return new Promise((resolve) => {
       audio.onended = () => { if (activeAudio === audio) activeAudio = null; resolve(); };
       audio.onerror = () => resolve();
