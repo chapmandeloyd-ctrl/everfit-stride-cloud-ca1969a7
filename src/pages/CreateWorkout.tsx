@@ -566,6 +566,58 @@ export default function CreateWorkout() {
     });
   }, []);
 
+  const deleteOne = useCallback((itemId: string) => {
+    setExerciseItems((prev) => {
+      const target = prev.find((i) => i.id === itemId);
+      const next = prev.filter((i) => i.id !== itemId);
+      // Auto-remove empty groups
+      if (target?.group_id) {
+        const stillHasMembers = next.some((i) => i.group_id === target.group_id);
+        if (!stillHasMembers) {
+          setGroups((g) => g.filter((gr) => gr.id !== target.group_id));
+        }
+      }
+      return next;
+    });
+  }, []);
+
+  const applyPasteForward = useCallback((sourceId: string, fields: PasteableField[]) => {
+    setExerciseItems((prev) => {
+      const idx = prev.findIndex((i) => i.id === sourceId);
+      if (idx === -1 || idx === prev.length - 1) return prev;
+      const src = prev[idx];
+      const next = [...prev];
+      // Find the next normal exercise (skip rest items)
+      let targetIdx = -1;
+      for (let i = idx + 1; i < next.length; i++) {
+        if (next[i].exercise_type === "normal") { targetIdx = i; break; }
+      }
+      if (targetIdx === -1) return prev;
+      const tgt = next[targetIdx];
+      const updates: Partial<WorkoutExercise> = {};
+      const detailUnion = new Set<DetailField>(tgt.detail_fields);
+      for (const f of fields) {
+        switch (f) {
+          case "sets": updates.sets = src.sets; break;
+          case "target":
+            updates.target_type = src.target_type;
+            updates.target_value = src.target_value;
+            updates.time_seconds = src.time_seconds;
+            break;
+          case "rest": updates.rest_seconds = src.rest_seconds; break;
+          case "weight": updates.weight_lbs = src.weight_lbs; if (src.weight_lbs) detailUnion.add("weight"); break;
+          case "tempo": updates.tempo = src.tempo; if (src.tempo) detailUnion.add("tempo"); break;
+          case "rpe": updates.rpe = src.rpe; if (src.rpe) detailUnion.add("rpe"); break;
+          case "distance": updates.distance = src.distance; if (src.distance) detailUnion.add("distance"); break;
+        }
+      }
+      updates.detail_fields = Array.from(detailUnion);
+      next[targetIdx] = { ...tgt, ...updates };
+      return next;
+    });
+    toast({ title: "Details copied to next row" });
+  }, [toast]);
+
   // Superset / Circuit grouping
   const createGroup = (type: "superset" | "circuit") => {
     const selectedNormal = exerciseItems.filter((i) => i.selected && i.exercise_type === "normal");
