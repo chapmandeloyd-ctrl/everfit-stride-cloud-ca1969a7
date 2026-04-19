@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Trash2, Dumbbell, Hand, Layers, Repeat, GripVertical, Timer, X, Bookmark, Plus } from "lucide-react";
+import { Trash2, Dumbbell, Hand, Layers, Repeat, GripVertical, Timer, X, Bookmark, Plus, Copy } from "lucide-react";
 import { useSavedWorkouts } from "@/hooks/useSavedWorkouts";
 import { getBlockType, WORKOUT_BLOCK_TYPES, WorkoutBlockType } from "@/lib/workoutBlockTypes";
 import { BlockTypePicker } from "@/components/workout/BlockTypePicker";
@@ -488,6 +488,38 @@ export default function ClientWodBuilder() {
       ...defaultRestExercise(),
     };
     setExercises((prev) => [...prev, restItem]);
+  };
+
+  const duplicateOne = (id: string) => {
+    setExercises((prev) => {
+      const idx = prev.findIndex((e) => e.id === id);
+      if (idx === -1) return prev;
+      const src = prev[idx];
+      const copy: WodExercise = { ...src, id: crypto.randomUUID(), selected: false };
+      const next = [...prev];
+      next.splice(idx + 1, 0, copy);
+      return next;
+    });
+    toast.success("Row duplicated");
+  };
+
+  const duplicateSelected = () => {
+    const selectedIds = exercises.filter((e) => e.selected).map((e) => e.id);
+    if (selectedIds.length === 0) {
+      toast.error("Select exercises to duplicate first");
+      return;
+    }
+    setExercises((prev) => {
+      const out: WodExercise[] = [];
+      for (const e of prev) {
+        out.push({ ...e, selected: false });
+        if (selectedIds.includes(e.id)) {
+          out.push({ ...e, id: crypto.randomUUID(), selected: false });
+        }
+      }
+      return out;
+    });
+    toast.success(`Duplicated ${selectedIds.length} row${selectedIds.length === 1 ? "" : "s"}`);
   };
 
   const handleDeleteSelected = () => {
