@@ -324,20 +324,9 @@ export default function Workouts() {
                   
                   <div className="flex gap-2 flex-wrap">
                     <Button 
-                      size="sm" 
-                      className="flex-1 min-w-[80px]"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setWorkoutToAssign({ id: workout.id, name: workout.name });
-                        setAssignDialogOpen(true);
-                      }}
-                    >
-                      <UserPlus className="h-3.5 w-3.5 mr-1.5" />
-                      Assign
-                    </Button>
-                    <Button 
                       variant="outline" 
                       size="sm" 
+                      className="flex-1 min-w-[80px]"
                       onClick={(e) => {
                         e.stopPropagation();
                         navigate(`/workouts/edit/${workout.id}`);
