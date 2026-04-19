@@ -763,6 +763,16 @@ export default function ClientWodBuilder() {
                             {ex.exercise_name}{ex.exercise_id === "rest" && ex.rest_seconds > 0 ? ` · ${ex.rest_seconds >= 60 ? `${Math.floor(ex.rest_seconds / 60)}m${ex.rest_seconds % 60 > 0 ? ` ${ex.rest_seconds % 60}s` : ""}` : `${ex.rest_seconds}s`}` : ""}
                           </p>
                         </div>
+                        {ex.exercise_id !== "rest" && (
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); duplicateOne(ex.id); }}
+                            title="Duplicate row"
+                            className="shrink-0 p-1 text-muted-foreground/60 hover:text-primary transition-colors"
+                          >
+                            <Copy className="h-4 w-4" />
+                          </button>
+                        )}
                         <div className="shrink-0 text-muted-foreground/30 cursor-grab">
                           <GripVertical className="h-5 w-5" />
                         </div>
@@ -874,9 +884,17 @@ export default function ClientWodBuilder() {
                         <X className="h-4 w-4 text-muted-foreground hover:text-destructive" />
                       </button>
                       {workoutType === "superset" && (
-                        <div className="shrink-0 text-muted-foreground/30 cursor-grab">
-                          <GripVertical className="h-5 w-5" />
-                        </div>
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); duplicateOne(ex.id); }}
+                            title="Duplicate row"
+                            className="shrink-0 p-1 text-muted-foreground/60 hover:text-primary transition-colors"
+                          >
+                            <Copy className="h-4 w-4" />
+                          </button>
+                          <div className="shrink-0 text-muted-foreground/30 cursor-grab">
+                            <GripVertical className="h-5 w-5" />
+                          </div>
                       )}
                     </div>
 
@@ -995,6 +1013,13 @@ export default function ClientWodBuilder() {
         >
           <Repeat className="h-5 w-5" />
           <span className="text-[10px] font-medium">Circuit</span>
+        </button>
+        <button
+          onClick={duplicateSelected}
+          className="flex flex-col items-center gap-1 text-primary hover:text-primary/80 transition-colors"
+        >
+          <Copy className="h-5 w-5" />
+          <span className="text-[10px] font-medium">Duplicate</span>
         </button>
         <button
           onClick={handleDeleteSelected}
