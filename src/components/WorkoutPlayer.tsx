@@ -1111,6 +1111,14 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
           <div className="px-4 py-3 bg-background">
             <p className="text-2xl font-black text-foreground leading-tight">
               {currentExercise?.exercise_name}
+              {currentSide && (
+                <span className={cn(
+                  "ml-2 inline-flex items-center px-2 py-0.5 rounded-md text-sm font-bold uppercase tracking-wider align-middle",
+                  currentSide === "right" ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"
+                )}>
+                  {currentSide} side
+                </span>
+              )}
             </p>
             {currentExercise?.reps && (
               <p className="text-base font-semibold text-primary">{currentExercise.reps} reps</p>
@@ -1235,9 +1243,11 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
               <Button
                 size="lg"
                 className="flex-1 h-12 font-bold text-base rounded-xl"
-                onClick={currentExercise?.duration_seconds ? advanceStep : markStepDone}
+                onClick={currentExercise?.duration_seconds ? advanceOrSwitchSide : markStepDone}
               >
-                {currentExercise?.duration_seconds ? "Skip" : "Done →"}
+                {currentExercise?.duration_seconds
+                  ? (currentSide === "right" ? "Right Done → Left" : "Skip")
+                  : (currentSide === "right" ? "Right Done → Left" : currentSide === "left" ? "Left Done →" : "Done →")}
               </Button>
               <Button variant="ghost" size="icon" onClick={() => setIsLocked(true)} className="text-muted-foreground">
                 <Lock className="h-5 w-5" />
@@ -1408,7 +1418,17 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
 
                   {/* Name + target */}
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-foreground leading-tight">{currentExercise.exercise_name}</p>
+                    <p className="font-semibold text-foreground leading-tight flex items-center gap-2 flex-wrap">
+                      <span>{currentExercise.exercise_name}</span>
+                      {currentSide && (
+                        <span className={cn(
+                          "inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider",
+                          currentSide === "right" ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"
+                        )}>
+                          {currentSide} side
+                        </span>
+                      )}
+                    </p>
                     <p className="text-sm text-muted-foreground mt-0.5">
                       {currentExercise.duration_seconds
                         ? `${currentExercise.duration_seconds}s`
@@ -1564,9 +1584,13 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
             <Button
               size="lg"
               className="flex-1 h-12 font-bold text-base rounded-xl"
-              onClick={!isRest && currentStep?.type === "exercise" && !currentExercise?.duration_seconds ? markStepDone : advanceStep}
+              onClick={!isRest && currentStep?.type === "exercise" && !currentExercise?.duration_seconds ? markStepDone : (isRest ? advanceStep : advanceOrSwitchSide)}
             >
-              {isRest ? "Skip Rest" : currentExercise?.duration_seconds ? "Skip" : "Save →"}
+              {isRest
+                ? "Skip Rest"
+                : currentExercise?.duration_seconds
+                ? (currentSide === "right" ? "Right Done → Left" : "Skip")
+                : (currentSide === "right" ? "Right Done → Left" : currentSide === "left" ? "Left Done →" : "Save →")}
             </Button>
 
             <Button variant="ghost" size="icon" onClick={() => setIsLocked(true)} className="text-muted-foreground">
