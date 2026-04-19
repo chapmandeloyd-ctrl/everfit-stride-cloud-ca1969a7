@@ -105,7 +105,7 @@ export function WorkoutIntro({
         ? `, ${firstEx.duration_seconds} seconds`
         : firstEx.reps ? `, ${firstEx.reps} reps` : "";
       const blockAnnounce = blockName ? `${blockName}. ` : "";
-      const roundAnnounce = totalRounds > 1 ? `Round 1 of ${totalRounds}. ` : "";
+      const roundAnnounce = `Round 1 of ${totalRounds}. `;
       // NOTE: position ("1 of N") is announced by the player on step 0 — don't duplicate here
       await speakFn(
         `${blockAnnounce}${roundAnnounce}First up, ${firstEx.exercise_name}${targetInfo}. Let's go!`
