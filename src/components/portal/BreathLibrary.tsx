@@ -2,8 +2,9 @@ import { useMemo } from "react";
 import { X, Star, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import nebulaFocus from "@/assets/portal-nebula-focus.jpg";
-import type { BreathingExercise, ProtocolTone } from "@/lib/breathingExercises";
+import type { BreathingExercise } from "@/lib/breathingExercises";
 import { getExerciseMode } from "@/lib/breathingExercises";
+import { BreathPreviewCircle } from "./BreathPreviewCircle";
 
 interface BreathLibraryProps {
   exercises: BreathingExercise[];
@@ -174,13 +175,6 @@ const SIZE_MAP = {
   sm: "w-24",
 } as const;
 
-function toneGradient(tone: ProtocolTone) {
-  const h = tone.hueBase;
-  const s = tone.hueSat;
-  // Soft inner glow → deep edge, mirrors the moody portal scene look
-  return `radial-gradient(circle at 35% 30%, hsl(${h}, ${s + 10}%, 45%) 0%, hsl(${h}, ${s}%, 22%) 45%, hsl(${h}, ${Math.max(20, s - 15)}%, 8%) 100%)`;
-}
-
 function CircleRow({
   exercises,
   onSelect,
@@ -202,18 +196,10 @@ function CircleRow({
             onClick={() => onSelect(ex)}
             className={`shrink-0 ${w} snap-start flex flex-col items-start group`}
           >
-            <div
-              className={`relative ${w} aspect-square rounded-full overflow-hidden ring-1 ring-white/40 group-hover:ring-white/90 transition-all shadow-[0_0_24px_rgba(255,255,255,0.08)]`}
-              style={{ background: toneGradient(ex.tone) }}
-            >
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className={small ? "text-3xl" : "text-5xl"} aria-hidden>
-                  {ex.icon}
-                </span>
-              </div>
-              {/* subtle vignette to match the photo circles */}
-              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/40" />
-            </div>
+            <BreathPreviewCircle
+              exercise={ex}
+              className={`${w} aspect-square ring-1 ring-white/40 group-hover:ring-white/90 transition-all shadow-[0_0_24px_rgba(255,255,255,0.08)]`}
+            />
             {!small && (
               <div className="mt-3 text-left w-full">
                 <div className="text-white text-xs font-bold uppercase tracking-wider truncate">
@@ -248,14 +234,9 @@ function CardRow({
             onClick={() => onSelect(ex)}
             className="shrink-0 w-[82vw] max-w-md snap-start group"
           >
-            <div
-              className="relative aspect-[16/10] rounded-2xl overflow-hidden ring-1 ring-white/10 group-hover:ring-white/30 transition-all"
-              style={{ background: toneGradient(ex.tone) }}
-            >
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-7xl opacity-90" aria-hidden>
-                  {ex.icon}
-                </span>
+            <div className="relative aspect-[16/10] rounded-2xl overflow-hidden ring-1 ring-white/10 group-hover:ring-white/30 transition-all bg-black">
+              <div className="absolute inset-0 scale-[1.6] origin-center">
+                <BreathPreviewCircle exercise={ex} className="w-full h-full !rounded-none" />
               </div>
               <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-4">
@@ -273,3 +254,4 @@ function CardRow({
     </div>
   );
 }
+
