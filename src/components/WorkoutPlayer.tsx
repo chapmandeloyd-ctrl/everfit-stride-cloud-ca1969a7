@@ -858,12 +858,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
 
   // ─── WORKOUT COMPLETE SCREEN ───
   if (!currentStep || stepIdx >= steps.length) {
-    return (
-      <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-background gap-6 px-6">
-        <h2 className="text-2xl font-bold">Workout Complete! 🎉</h2>
-        <Button size="lg" className="w-full" onClick={handleComplete}>Save Workout</Button>
-      </div>
-    );
+    return <WorkoutCompleteScreen workoutName={workoutName} onSave={handleComplete} />;
   }
 
   const currentExercise = currentStep.exercise;
