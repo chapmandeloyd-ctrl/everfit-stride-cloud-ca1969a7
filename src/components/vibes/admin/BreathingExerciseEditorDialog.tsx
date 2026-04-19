@@ -107,7 +107,7 @@ export function BreathingExerciseEditorDialog({ open, onOpenChange, editing }: P
       };
       const tone = editing?.tone ?? { hueBase: 215, hueSat: 50, warmth: 0.15, luminanceSpeed: 0.95 };
 
-      const payload = {
+      const payload: any = {
         trainer_id: user.id,
         slug:
           editing?.slug ??
@@ -116,9 +116,9 @@ export function BreathingExerciseEditorDialog({ open, onOpenChange, editing }: P
         description: description.trim(),
         icon: icon.trim() || "🌬️",
         animation,
-        phases,
-        tone,
-        motion,
+        phases: phases as any,
+        tone: tone as any,
+        motion: motion as any,
         music_prompt: editing?.music_prompt ?? "",
         default_track_id: defaultTrackId === "none" ? null : defaultTrackId,
         is_active: isActive,
