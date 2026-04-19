@@ -1324,6 +1324,34 @@ export default function ClientWodBuilder() {
           />
         );
       })()}
+
+      {/* Paste Forward Sheet */}
+      {pasteForwardSourceId && (() => {
+        const src = exercises.find((e) => e.id === pasteForwardSourceId);
+        if (!src) return null;
+        const idx = exercises.findIndex((e) => e.id === pasteForwardSourceId);
+        const tgt = exercises.slice(idx + 1).find((e) => e.exercise_id !== "rest");
+        const available: PasteableField[] = ["sets", "target", "rest"];
+        if (src.weight_lbs) available.push("weight");
+        if (src.tempo) available.push("tempo");
+        if (src.rpe) available.push("rpe");
+        if (src.distance) available.push("distance");
+        const summaryParts: string[] = [`${src.sets} sets`];
+        if (src.target_type === "time") summaryParts.push(`⏱ ${src.reps}`);
+        else if (src.reps) summaryParts.push(src.reps);
+        if (src.rest_seconds) summaryParts.push(`${src.rest_seconds}s rest`);
+        if (src.weight_lbs) summaryParts.push(`${src.weight_lbs} lbs`);
+        return (
+          <PasteFieldsSheet
+            open
+            sourceSummary={summaryParts.join(" · ")}
+            targetName={tgt ? tgt.exercise_name : "No row below"}
+            availableFields={available}
+            onConfirm={(fields) => applyPasteForward(pasteForwardSourceId, fields)}
+            onClose={() => setPasteForwardSourceId(null)}
+          />
+        );
+      })()}
     </div>
   );
 }
