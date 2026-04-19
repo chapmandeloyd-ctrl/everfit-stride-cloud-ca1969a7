@@ -382,6 +382,25 @@ export function EditExerciseDialog({ open, onOpenChange, exercise }: EditExercis
             </div>
           </div>
 
+          {/* Unilateral (single-side) */}
+          <div className="flex items-start gap-3 p-3 border border-border rounded-lg bg-muted/30">
+            <input
+              id="is_unilateral_edit"
+              type="checkbox"
+              checked={formData.is_unilateral}
+              onChange={(e) => setFormData({ ...formData, is_unilateral: e.target.checked })}
+              className="mt-1 h-4 w-4 rounded border-border accent-primary"
+            />
+            <div className="flex-1">
+              <Label htmlFor="is_unilateral_edit" className="cursor-pointer font-medium">
+                Unilateral (single-side movement)
+              </Label>
+              <p className="text-xs text-muted-foreground mt-1">
+                When enabled, the workout voice will cue right side first, then switch to left side for the same reps/time.
+              </p>
+            </div>
+          </div>
+
           {/* Tags */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
