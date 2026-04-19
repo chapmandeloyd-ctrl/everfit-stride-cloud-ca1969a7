@@ -136,11 +136,9 @@ export function BreathLibrary({
 
             {/* Browse all — small circles */}
             {browseAll.length > 0 && (
-              <div className="pt-10">
-                <Section title="Browse All">
-                  <CircleRow exercises={browseAll} onSelect={onSelectExercise} size="sm" />
-                </Section>
-              </div>
+              <Section title="Browse All">
+                <CircleRow exercises={browseAll} onSelect={onSelectExercise} size="sm" />
+              </Section>
             )}
           </>
         )}
