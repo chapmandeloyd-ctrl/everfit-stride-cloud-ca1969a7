@@ -410,8 +410,13 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
   const [swapDialogOpen, setSwapDialogOpen] = useState(false);
   const [swapTarget, setSwapTarget] = useState<{ sectionIdx: number; exerciseIdx: number } | null>(null);
 
-  // Track if voice was already announced for the current step
-  const announcedStepRef = useRef<number>(-1);
+  // Unilateral side tracking: 'right' = on right side; 'left' = on left side; null = not unilateral
+  const [currentSide, setCurrentSide] = useState<"right" | "left" | null>(null);
+  const currentSideRef = useRef<"right" | "left" | null>(null);
+  useEffect(() => { currentSideRef.current = currentSide; }, [currentSide]);
+
+  // Track if voice was already announced for the current step+side combo
+  const announcedStepRef = useRef<string>("");
   const lastCountdownRef = useRef<number>(-1); // last spoken countdown tick
 
   useEffect(() => { stepIdxRef.current = stepIdx; }, [stepIdx]);
