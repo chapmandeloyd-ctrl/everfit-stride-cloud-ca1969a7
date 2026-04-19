@@ -911,6 +911,14 @@ export default function ClientWodBuilder() {
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold text-foreground truncate">{ex.exercise_name}</p>
                           </div>
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); duplicateOne(ex.id); }}
+                            title="Duplicate row"
+                            className="shrink-0 p-1 text-muted-foreground/60 hover:text-primary transition-colors"
+                          >
+                            <Copy className="h-4 w-4" />
+                          </button>
                           <div className="shrink-0 text-muted-foreground/30 cursor-grab">
                             <GripVertical className="h-5 w-5" />
                           </div>
