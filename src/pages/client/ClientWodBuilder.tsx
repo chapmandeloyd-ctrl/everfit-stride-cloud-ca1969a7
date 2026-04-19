@@ -82,6 +82,7 @@ interface WodExercise {
   tempo: string;
   rpe: string;
   distance: string;
+  is_unilateral: boolean;
 }
 
 interface ExerciseGroup {
@@ -448,6 +449,7 @@ export default function ClientWodBuilder() {
               rpe: ex.rpe ? parseInt(ex.rpe) : null,
               distance: ex.distance || null,
               detail_fields: ex.detail_fields.length > 0 ? ex.detail_fields : null,
+              is_unilateral: ex.is_unilateral || null,
             };
           });
 
@@ -1140,6 +1142,7 @@ export default function ClientWodBuilder() {
             rest_seconds: 90,
             selected: false,
             group_id: null,
+            is_unilateral: !!(ex as any).is_unilateral,
             ...defaultDetailExercise(),
           }));
 
