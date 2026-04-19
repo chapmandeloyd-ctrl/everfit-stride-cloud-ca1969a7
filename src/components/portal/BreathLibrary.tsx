@@ -170,9 +170,9 @@ function Section({
 }
 
 const SIZE_MAP = {
-  lg: "w-44",
-  md: "w-36",
-  sm: "w-24",
+  lg: "w-40",
+  md: "w-32",
+  sm: "w-20",
 } as const;
 
 function CircleRow({
@@ -187,25 +187,25 @@ function CircleRow({
   const w = SIZE_MAP[size];
   const small = size === "sm";
   return (
-    <div className="flex gap-4 overflow-x-auto px-5 pb-2 scrollbar-hide snap-x">
+    <div className="flex gap-5 overflow-x-auto px-6 pb-2 scrollbar-hide snap-x">
       {exercises.map((ex) => {
         const cycleSecs = ex.phases.reduce((a, p) => a + p.seconds, 0);
         return (
           <button
             key={ex.id}
             onClick={() => onSelect(ex)}
-            className={`shrink-0 ${w} snap-start flex flex-col items-start group`}
+            className={`shrink-0 ${w} snap-start flex flex-col items-center group`}
           >
             <BreathPreviewCircle
               exercise={ex}
               className={`${w} aspect-square ring-1 ring-white/40 group-hover:ring-white/90 transition-all shadow-[0_0_24px_rgba(255,255,255,0.08)]`}
             />
             {!small && (
-              <div className="mt-3 text-left w-full">
-                <div className="text-white text-xs font-bold uppercase tracking-wider truncate">
+              <div className="mt-3 w-full text-center px-1">
+                <div className="text-white text-[11px] font-bold uppercase tracking-wider truncate">
                   {ex.name}
                 </div>
-                <div className="text-white/40 text-[10px] uppercase tracking-widest mt-0.5 truncate">
+                <div className="text-white/40 text-[9px] uppercase tracking-[0.18em] mt-1 truncate">
                   {cycleSecs}s per cycle
                 </div>
               </div>
@@ -225,7 +225,7 @@ function CardRow({
   onSelect: (e: BreathingExercise) => void;
 }) {
   return (
-    <div className="flex gap-4 overflow-x-auto px-5 pb-2 scrollbar-hide snap-x snap-mandatory">
+    <div className="flex gap-4 overflow-x-auto px-6 pb-2 scrollbar-hide snap-x snap-mandatory">
       {exercises.map((ex) => {
         const cycleSecs = ex.phases.reduce((a, p) => a + p.seconds, 0);
         return (
