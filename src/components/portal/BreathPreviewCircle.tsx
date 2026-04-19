@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { BreathingAnimationLayer } from "@/components/vibes/BreathingAnimationLayer";
 import type { BreathingExercise } from "@/lib/breathingExercises";
 
@@ -10,8 +10,8 @@ interface Props {
 /**
  * BreathPreviewCircle — renders a continuously-animating mini preview of an
  * exercise's breathing animation (ocean / lotus / orbital / aurora / heartbeat)
- * inside a circular mask. Cycles through the exercise's own phases on a loop
- * so the library card shows a "live" feel like a video thumbnail.
+ * inside a circular mask. Each animation gets its own thumbnail framing so the
+ * visible artwork fills the circle instead of leaving dead zones.
  */
 export function BreathPreviewCircle({ exercise, className }: Props) {
   const [progress, setProgress] = useState(0);
@@ -42,29 +42,72 @@ export function BreathPreviewCircle({ exercise, className }: Props) {
 
       raf = requestAnimationFrame(tick);
     };
+
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
   }, [phases, phaseIndex]);
 
   const phaseType = phases[phaseIndex]?.type ?? "inhale";
 
+  const frame = useMemo(() => {
+    switch (exercise.animation) {
+      case "ocean":
+        return {
+          scale: 1.42,
+          translateX: "0%",
+          translateY: "14%",
+          brightness: 0.78,
+          arcIntensity: 0.88,
+        };
+      case "aurora":
+        return {
+          scale: 1.55,
+          translateX: "6%",
+          translateY: "0%",
+          brightness: 0.82,
+          arcIntensity: 1,
+        };
+      case "lotus":
+        return {
+          scale: 1.24,
+          translateX: "0%",
+          translateY: "0%",
+          brightness: 0.74,
+          arcIntensity: 0.84,
+        };
+      case "orbital":
+        return {
+          scale: 1.22,
+          translateX: "0%",
+          translateY: "0%",
+          brightness: 0.76,
+          arcIntensity: 0.82,
+        };
+      case "heartbeat":
+      default:
+        return {
+          scale: 1.2,
+          translateX: "0%",
+          translateY: "0%",
+          brightness: 0.74,
+          arcIntensity: 0.82,
+        };
+    }
+  }, [exercise.animation]);
+
   return (
     <div
       className={`relative overflow-hidden rounded-full ${className ?? ""}`}
       style={{
-        background: `radial-gradient(circle at 35% 30%, hsl(${tone.hueBase}, ${tone.hueSat}%, 18%) 0%, hsl(${tone.hueBase}, ${Math.max(20, tone.hueSat - 10)}%, 6%) 70%, #000 100%)`,
+        background: `radial-gradient(circle at 35% 30%, hsl(${tone.hueBase}, ${tone.hueSat}%, 18%) 0%, hsl(${tone.hueBase}, ${Math.max(20, tone.hueSat - 10)}%, 6%) 70%, hsl(${tone.hueBase}, 20%, 3%) 100%)`,
       }}
     >
-      {/* Scale wrapper — BreathingAnimationLayer's inner SVGs are designed for
-          full-screen players (fixed w-64/w-72/w-80, low opacity, blur filters,
-          and some are anchored to the bottom half of a 300x300 viewbox). For
-          the tiny library circle we force them to fill the box, strip their
-          built-in opacity/blur so they read clearly at small size, and
-          slightly upscale so artwork like the ocean waves and aurora curtains
-          fills the visible circle instead of sitting in one half. */}
       <div
-        className="absolute inset-0 [&>div]:!inset-0 [&_svg]:!w-full [&_svg]:!h-full [&_svg]:!opacity-100 [&_svg]:![filter:none]"
-        style={{ transform: "scale(1.15)" }}
+        className="absolute inset-0 [&>div]:!inset-0 [&_svg]:!w-full [&_svg]:!h-full [&_svg]:!max-w-none [&_svg]:!max-h-none [&_svg]:!opacity-100 [&_svg]:![filter:none]"
+        style={{
+          transform: `translate(${frame.translateX}, ${frame.translateY}) scale(${frame.scale})`,
+          transformOrigin: "center",
+        }}
       >
         <BreathingAnimationLayer
           animation={exercise.animation}
@@ -72,14 +115,14 @@ export function BreathPreviewCircle({ exercise, className }: Props) {
           phaseType={phaseType}
           hue={tone.hueBase}
           sat={tone.hueSat}
-          brightness={0.7}
-          arcIntensity={0.75}
+          brightness={frame.brightness}
+          arcIntensity={frame.arcIntensity}
           time={time}
         />
       </div>
-      {/* subtle vignette + rim for depth */}
-      <div className="absolute inset-0 rounded-full pointer-events-none bg-gradient-to-b from-transparent via-transparent to-black/40" />
-      <div className="absolute inset-0 rounded-full pointer-events-none ring-1 ring-inset ring-white/10" />
+      <div className="absolute inset-0 rounded-full pointer-events-none bg-gradient-to-b from-white/5 via-transparent to-black/45" />
+      <div className="absolute inset-0 rounded-full pointer-events-none shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35),inset_0_0_30px_rgba(255,255,255,0.06)]" />
     </div>
   );
 }
+
