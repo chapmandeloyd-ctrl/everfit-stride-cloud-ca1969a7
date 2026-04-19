@@ -74,6 +74,27 @@ const PROMPT_EXAMPLES = [
   "Quick 20-minute core and abs burnout session",
 ];
 
+// Strip non-Latin characters (e.g., Chinese/Japanese/Arabic) and emoji from AI-generated names.
+// Keeps letters, numbers, spaces, and common punctuation. Voice TTS reads cleanly.
+const sanitizeName = (s: string): string => {
+  if (!s) return s;
+  return s
+    .replace(/[^\x00-\x7F]+/g, "") // strip all non-ASCII
+    .replace(/\s+/g, " ")
+    .trim();
+};
+
+const sanitizeWorkoutResult = (r: AIWorkoutResult): AIWorkoutResult => ({
+  ...r,
+  workout_name: sanitizeName(r.workout_name),
+  description: sanitizeName(r.description),
+  sections: r.sections.map(sec => ({
+    ...sec,
+    section_name: sanitizeName(sec.section_name),
+    exercises: sec.exercises.map(ex => ({ ...ex, exercise_name: sanitizeName(ex.exercise_name) })),
+  })),
+});
+
 export function AIWorkoutBuilderDialog({
   open,
   onOpenChange,
@@ -128,9 +149,13 @@ export function AIWorkoutBuilderDialog({
 
       if (data?.result) {
         if (activeTab === "full") {
-          setWorkoutResult(data.result as AIWorkoutResult);
+          setWorkoutResult(sanitizeWorkoutResult(data.result as AIWorkoutResult));
         } else {
-          setSuggestions(data.result.suggestions || []);
+          const cleaned = (data.result.suggestions || []).map((s: AISuggestion) => ({
+            ...s,
+            exercise_name: sanitizeName(s.exercise_name),
+          }));
+          setSuggestions(cleaned);
         }
       }
     } catch (err: any) {
