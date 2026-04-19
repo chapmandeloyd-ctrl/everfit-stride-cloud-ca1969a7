@@ -288,7 +288,7 @@ function ExerciseRow({
     </div>
     {/* Detail field chips row - aligned under exercise name */}
     {item.exercise_type === "normal" && (
-      <div ref={setNodeRef} style={{ ...style, paddingLeft: "84px" }} className="flex items-center gap-1.5 px-3 pb-2 flex-wrap border-b bg-background -mt-px">
+      <div className="flex items-center gap-1.5 pl-[84px] pr-3 pb-2 flex-wrap border-b bg-background -mt-px">
         <button onClick={() => onEditDetailValue?.({ id: item.id, field: "weight" })} className="px-2.5 py-0.5 rounded-full border border-primary/30 bg-primary/5 text-[11px] font-medium text-primary hover:bg-primary/10 transition-colors">
           {item.weight_lbs ? `Rx ${item.weight_lbs} lbs` : "+ Rx Weight"}
         </button>
