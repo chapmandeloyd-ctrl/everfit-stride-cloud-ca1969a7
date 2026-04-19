@@ -68,8 +68,10 @@ export function WorkoutIntro({
     if (!mountedRef.current) return;
     setStatsVisible(true);
 
-    // Announce welcome — use the section name (block label) instead of raw section_type
-    const welcomeText = `Welcome to ${workoutName}.`;
+    // Announce welcome with full session overview (exercise count + duration)
+    const exerciseWord = totalExercises === 1 ? "exercise" : "exercises";
+    const minuteWord = totalMinutes === 1 ? "minute" : "minutes";
+    const welcomeText = `Welcome to ${workoutName}. Today's session has ${totalExercises} ${exerciseWord} and will take about ${totalMinutes} ${minuteWord}. Let's get started.`;
     await speakFn(welcomeText);
     if (!mountedRef.current) return;
 
