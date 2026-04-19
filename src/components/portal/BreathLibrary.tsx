@@ -85,8 +85,8 @@ export function BreathLibrary({
         </motion.div>
       </div>
 
-      {/* Body — flex column so Browse All can mt-auto to the bottom */}
-      <div className="relative -mt-6 pb-32 flex-1 flex flex-col">
+      {/* Body — flex column so Browse All can sit near the bottom without dead space */}
+      <div className="relative -mt-6 pb-6 flex-1 flex flex-col">
         {isLoading ? (
           <div className="flex justify-center py-16">
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-white/80" />
