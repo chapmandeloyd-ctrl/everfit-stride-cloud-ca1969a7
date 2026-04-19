@@ -170,8 +170,8 @@ function Section({
 }
 
 const SIZE_MAP = {
-  lg: "w-40",
-  md: "w-32",
+  lg: "w-32",
+  md: "w-28",
   sm: "w-20",
 } as const;
 
