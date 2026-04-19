@@ -746,10 +746,13 @@ export default function CreateWorkout() {
       let blockNum = 0;
       for (const group of groups) {
         const bt = getBlockType(group.block_type || "custom");
-        const label = group.block_type === "custom" && group.custom_name ? group.custom_name : bt.label;
+        const rawLabel = group.block_type === "custom" && group.custom_name ? group.custom_name : bt.label;
+        // If label is generic ("Custom Block"), append a number; otherwise use the descriptive label as-is
+        const isGenericLabel = !rawLabel || rawLabel.trim().toLowerCase() === "custom block";
+        const supersetName = isGenericLabel ? `Block ${++blockNum}` : rawLabel.trim();
         sectionInserts.push({
           workout_plan_id: workout.id,
-          name: group.type === "superset" ? `${label} Block ${++blockNum}` : "Circuit",
+          name: group.type === "superset" ? supersetName : "Circuit",
           section_type: group.type,
           order_index: sectionIdx++,
           rounds: group.sets,
