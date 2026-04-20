@@ -161,7 +161,8 @@ Deno.serve(async (req) => {
         missedDays === 1
           ? `You owe ${debt.toFixed(1)} lb to stay on pace. Weigh in today.`
           : `${missedDays} days without a weigh-in. Total to make up: ${debt.toFixed(1)} lb.`,
-      category: "smart_pace",
+      type: "smart_pace",
+      reference_id: goal.id,
     });
 
     // 4. Notify the trainer when moderate/severe OR 2+ missed
@@ -183,7 +184,8 @@ Deno.serve(async (req) => {
           user_id: settings.trainer_id,
           title: `${clientProfile?.full_name ?? "A client"} is ${severity} on pace`,
           body: `${newConsecutiveMissed} missed day(s). Debt: ${debt.toFixed(1)} lb. Consider adjusting their goal.`,
-          category: "smart_pace_trainer",
+          type: "smart_pace_trainer",
+          reference_id: goal.id,
         });
       }
     }
