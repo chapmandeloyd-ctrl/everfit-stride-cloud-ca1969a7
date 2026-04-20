@@ -383,15 +383,22 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
               </AnimatePresence>
 
               <div className="flex items-center justify-between text-white/85">
-                {/* FOCUS — opens portal control panel */}
-                <button
-                  onClick={() => setPanelOpen(true)}
-                  className="flex items-center gap-2 hover:text-white transition-colors"
-                  aria-label="Open portal panel"
-                >
-                  <CircleDot className="h-5 w-5" strokeWidth={1.5} />
-                  <span className="text-[11px] uppercase tracking-[0.25em] font-medium">Focus</span>
-                </button>
+                {/* Category label — opens portal control panel */}
+                {(() => {
+                  const cat = scene.category?.toLowerCase();
+                  const label = cat === "sleep" ? "Sleep" : cat === "escape" ? "Escape" : "Focus";
+                  const CatIcon = cat === "sleep" ? Moon : cat === "escape" ? Globe : CircleDot;
+                  return (
+                    <button
+                      onClick={() => setPanelOpen(true)}
+                      className="flex items-center gap-2 hover:text-white transition-colors"
+                      aria-label="Open portal panel"
+                    >
+                      <CatIcon className="h-5 w-5" strokeWidth={1.5} />
+                      <span className="text-[11px] uppercase tracking-[0.25em] font-medium">{label}</span>
+                    </button>
+                  );
+                })()}
 
                 <button className="text-white/70 hover:text-white transition-colors p-2" aria-label="Mark complete">
                   <Check className="h-5 w-5" strokeWidth={1.5} />
