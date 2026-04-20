@@ -54,19 +54,33 @@ export function useSmartPace() {
       const enabled = !!settings?.smart_pace_enabled;
       if (!enabled || !goal) return emptySnapshot(enabled);
 
-      // ----- Live recalc (idempotent w/ nightly rollup) -----
-      // The cron rollup ages debt at ~3am UTC. Between rollups, we recompute
-      // the *expected* debt from scratch using last_weigh_in_date so we never
-      // double-count what the cron has already applied.
       const rawGoal = goal as unknown as SmartPaceGoal;
+      const { data: latestActivity } = await supabase
+        .from("smart_pace_daily_log")
+        .select("log_date")
+        .eq("goal_id", rawGoal.id)
+        .or("weight_recorded.not.is.null,status.eq.forgiven")
+        .order("log_date", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      // ----- Live recalc (idempotent w/ nightly rollup) -----
+      // Use the latest real weigh-in OR an admin-forgiven baseline day so a
+      // reset/forgive action becomes the new starting point for missed-day debt.
       const today = new Date().toISOString().slice(0, 10);
-      const last = rawGoal.last_weigh_in_date ?? rawGoal.start_date;
+      const lastActivityDate = [
+        rawGoal.start_date,
+        rawGoal.last_weigh_in_date,
+        latestActivity?.log_date,
+      ]
+        .filter((value): value is string => !!value)
+        .reduce((latest, value) => (value > latest ? value : latest), rawGoal.start_date);
       const msPerDay = 86_400_000;
       const daysSinceWeighIn = Math.max(
         0,
         Math.round(
           (new Date(today + "T00:00:00Z").getTime() -
-            new Date(last + "T00:00:00Z").getTime()) /
+            new Date(lastActivityDate + "T00:00:00Z").getTime()) /
             msPerDay
         )
       );

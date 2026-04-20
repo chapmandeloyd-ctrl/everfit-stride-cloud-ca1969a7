@@ -49,7 +49,7 @@ export function SmartPaceAdminPanel({ clientId, goal, onChanged }: Props) {
     payload: Record<string, unknown>,
     reasonText?: string
   ) => {
-    await supabase.from("smart_pace_admin_actions").insert([
+    const { error } = await supabase.from("smart_pace_admin_actions").insert([
       {
         goal_id: goal.id,
         client_id: clientId,
@@ -60,6 +60,8 @@ export function SmartPaceAdminPanel({ clientId, goal, onChanged }: Props) {
         reason: reasonText || null,
       },
     ]);
+
+    if (error) throw error;
   };
 
   // -------- Log Weight --------
@@ -96,7 +98,7 @@ export function SmartPaceAdminPanel({ clientId, goal, onChanged }: Props) {
   // -------- Forgive Day --------
   const forgiveMut = useMutation({
     mutationFn: async () => {
-      await supabase.from("smart_pace_daily_log").upsert(
+      const { error: logError } = await supabase.from("smart_pace_daily_log").upsert(
         {
           goal_id: goal.id,
           client_id: clientId,
@@ -112,10 +114,16 @@ export function SmartPaceAdminPanel({ clientId, goal, onChanged }: Props) {
         },
         { onConflict: "goal_id,log_date" }
       );
-      await supabase
+
+      if (logError) throw logError;
+
+      const { error: goalError } = await supabase
         .from("smart_pace_goals")
         .update({ consecutive_behind_days: 0, consecutive_missed_days: 0 })
         .eq("id", goal.id);
+
+      if (goalError) throw goalError;
+
       await logAction("forgive_day", { date: today }, reason);
     },
     onSuccess: () => {
@@ -126,12 +134,43 @@ export function SmartPaceAdminPanel({ clientId, goal, onChanged }: Props) {
       setReason("");
       onChanged?.();
     },
+    onError: (e: Error) => toast({ title: "Failed", description: e.message, variant: "destructive" }),
   });
 
   // -------- Reset Debt --------
   const resetMut = useMutation({
     mutationFn: async () => {
-      await supabase
+      const { data: todayRow, error: todayRowError } = await supabase
+        .from("smart_pace_daily_log")
+        .select("id, weight_recorded")
+        .eq("goal_id", goal.id)
+        .eq("log_date", today)
+        .maybeSingle();
+
+      if (todayRowError) throw todayRowError;
+
+      if (!todayRow?.weight_recorded) {
+        const { error: logError } = await supabase.from("smart_pace_daily_log").upsert(
+          {
+            goal_id: goal.id,
+            client_id: clientId,
+            log_date: today,
+            target_loss_lbs: 0,
+            actual_loss_lbs: null,
+            weight_recorded: null,
+            weight_source: "forgiven",
+            status: "forgiven",
+            debt_delta: 0,
+            credit_delta: 0,
+            notes: reason || "Admin reset debt baseline",
+          },
+          { onConflict: "goal_id,log_date" }
+        );
+
+        if (logError) throw logError;
+      }
+
+      const { error: goalError } = await supabase
         .from("smart_pace_goals")
         .update({
           current_debt_lbs: 0,
@@ -139,15 +178,20 @@ export function SmartPaceAdminPanel({ clientId, goal, onChanged }: Props) {
           consecutive_missed_days: 0,
         })
         .eq("id", goal.id);
-      await logAction("reset_debt", { previous_debt: goal.current_debt_lbs }, reason);
+
+      if (goalError) throw goalError;
+
+      await logAction("reset_debt", { previous_debt: goal.current_debt_lbs, baseline_date: today }, reason);
     },
     onSuccess: () => {
       toast({ title: "Debt reset", description: "Catch-up debt cleared to zero." });
       qc.invalidateQueries({ queryKey: ["smart-pace"] });
+      qc.invalidateQueries({ queryKey: ["smart-pace-log"] });
       setOpenAction(null);
       setReason("");
       onChanged?.();
     },
+    onError: (e: Error) => toast({ title: "Failed", description: e.message, variant: "destructive" }),
   });
 
   // -------- Adjust Pace --------
@@ -155,10 +199,11 @@ export function SmartPaceAdminPanel({ clientId, goal, onChanged }: Props) {
     mutationFn: async () => {
       const p = parseFloat(pace);
       if (!p || p < 0.1 || p > 5) throw new Error("Pace must be 0.1–5.0 lb/day");
-      await supabase
+      const { error } = await supabase
         .from("smart_pace_goals")
         .update({ daily_pace_lbs: p })
         .eq("id", goal.id);
+      if (error) throw error;
       await logAction("adjust_pace", { previous_pace: goal.daily_pace_lbs, new_pace: p }, reason);
     },
     onSuccess: () => {
