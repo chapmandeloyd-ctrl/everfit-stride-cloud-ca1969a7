@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, CheckCircle2, Circle, Trophy, Swords, MapPin, Clock } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, CheckCircle2, Circle, Trophy, Swords, MapPin, Clock, Target, CalendarClock, Flame } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
@@ -32,6 +32,7 @@ function formatEventTime(isoString: string): string {
 export function ClientCalendarTab({ clientId, trainerId }: ClientCalendarTabProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
+  const [showHeatmap, setShowHeatmap] = useState(false);
 
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
@@ -103,6 +104,54 @@ export function ClientCalendarTab({ clientId, trainerId }: ClientCalendarTabProp
     enabled: !!clientId,
   });
 
+  const { data: appointments } = useQuery({
+    queryKey: ["cc-calendar-appts", clientId, format(monthStart, "yyyy-MM")],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("appointments")
+        .select("*, appointment_types(name, color)")
+        .eq("client_id", clientId)
+        .gte("start_time", format(monthStart, "yyyy-MM-dd"))
+        .lte("start_time", format(monthEnd, "yyyy-MM-dd'T'23:59:59"))
+        .neq("status", "cancelled")
+        .order("start_time");
+      if (error) throw error;
+      return data as any[];
+    },
+    enabled: !!clientId,
+  });
+
+  const { data: goalCountdowns } = useQuery({
+    queryKey: ["cc-calendar-goals", clientId, format(monthStart, "yyyy-MM")],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("client_goal_countdowns")
+        .select("*")
+        .eq("client_id", clientId)
+        .gte("end_date", format(monthStart, "yyyy-MM-dd"))
+        .lte("end_date", format(monthEnd, "yyyy-MM-dd"))
+        .order("end_date");
+      if (error) throw error;
+      return data as any[];
+    },
+    enabled: !!clientId,
+  });
+
+  const { data: scoreHistory } = useQuery({
+    queryKey: ["cc-calendar-scores", clientId, format(monthStart, "yyyy-MM")],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("engine_score_history")
+        .select("score_date, capped_score")
+        .eq("client_id", clientId)
+        .gte("score_date", format(monthStart, "yyyy-MM-dd"))
+        .lte("score_date", format(monthEnd, "yyyy-MM-dd"));
+      if (error) throw error;
+      return data as any[];
+    },
+    enabled: !!clientId,
+  });
+
   const getWorkoutsForDay = (day: Date) =>
     workouts?.filter((w) => w.scheduled_date && isSameDay(parseISO(w.scheduled_date), day)) || [];
   const getTasksForDay = (day: Date) =>
@@ -120,12 +169,29 @@ export function ClientCalendarTab({ clientId, trainerId }: ClientCalendarTabProp
       return day.getDay() === startDay;
     });
   };
+  const getAppointmentsForDay = (day: Date) =>
+    appointments?.filter((a: any) => a.start_time && isSameDay(parseISO(a.start_time), day)) || [];
+  const getGoalsForDay = (day: Date) =>
+    goalCountdowns?.filter((g: any) => g.end_date && isSameDay(parseISO(g.end_date), day)) || [];
+  const getScoreForDay = (day: Date) => {
+    const dateStr = format(day, "yyyy-MM-dd");
+    return scoreHistory?.find((s: any) => s.score_date === dateStr)?.capped_score ?? null;
+  };
+  const heatmapClass = (score: number | null) => {
+    if (score === null) return "";
+    if (score >= 80) return "bg-success/30 border-success/50";
+    if (score >= 60) return "bg-amber-500/30 border-amber-500/50";
+    return "bg-rose-500/30 border-rose-500/50";
+  };
 
   const selectedDayWorkouts = selectedDay ? getWorkoutsForDay(selectedDay) : [];
   const selectedDayTasks = selectedDay ? getTasksForDay(selectedDay) : [];
   const selectedDayHabits = selectedDay ? getHabitsForDay(selectedDay) : [];
   const selectedDaySportEvents = selectedDay ? getSportEventsForDay(selectedDay) : [];
-  const hasSelectedDayEvents = selectedDayWorkouts.length + selectedDayTasks.length + selectedDayHabits.length + selectedDaySportEvents.length > 0;
+  const selectedDayAppointments = selectedDay ? getAppointmentsForDay(selectedDay) : [];
+  const selectedDayGoals = selectedDay ? getGoalsForDay(selectedDay) : [];
+  const selectedDayScore = selectedDay ? getScoreForDay(selectedDay) : null;
+  const hasSelectedDayEvents = selectedDayWorkouts.length + selectedDayTasks.length + selectedDayHabits.length + selectedDaySportEvents.length + selectedDayAppointments.length + selectedDayGoals.length > 0;
 
   return (
     <div className="space-y-6">
@@ -134,6 +200,10 @@ export function ClientCalendarTab({ clientId, trainerId }: ClientCalendarTabProp
           <div className="flex items-center justify-between">
             <CardTitle>{format(currentDate, "MMMM yyyy")}</CardTitle>
             <div className="flex items-center gap-2">
+              <Button variant={showHeatmap ? "default" : "outline"} size="sm" onClick={() => setShowHeatmap(!showHeatmap)}>
+                <Flame className="h-4 w-4 mr-2" />
+                Heatmap
+              </Button>
               <Button variant="outline" size="sm" onClick={() => { setCurrentDate(new Date()); setSelectedDay(new Date()); }}>
                 <CalendarIcon className="h-4 w-4 mr-2" />
                 Today
@@ -160,23 +230,30 @@ export function ClientCalendarTab({ clientId, trainerId }: ClientCalendarTabProp
               const dayTasks = getTasksForDay(day);
               const dayHabits = getHabitsForDay(day);
               const daySportEvents = getSportEventsForDay(day);
+              const dayAppointments = getAppointmentsForDay(day);
+              const dayGoals = getGoalsForDay(day);
+              const dayScore = getScoreForDay(day);
               const isCurrentMonth = isSameMonth(day, currentDate);
               const isToday = isSameDay(day, new Date());
               const isSelected = selectedDay && isSameDay(day, selectedDay);
-              const hasEvents = dayWorkouts.length + dayTasks.length + dayHabits.length + daySportEvents.length > 0;
+              const hasEvents = dayWorkouts.length + dayTasks.length + dayHabits.length + daySportEvents.length + dayAppointments.length + dayGoals.length > 0;
+              const heatBg = showHeatmap && isCurrentMonth ? heatmapClass(dayScore) : "";
 
               return (
                 <div
                   key={day.toISOString()}
                   onClick={() => setSelectedDay(day)}
                   className={`min-h-24 border rounded-lg p-2 cursor-pointer transition-colors ${
-                    isCurrentMonth ? "bg-background hover:bg-muted/50" : "bg-muted/30 hover:bg-muted/50"
+                    heatBg ? heatBg : (isCurrentMonth ? "bg-background hover:bg-muted/50" : "bg-muted/30 hover:bg-muted/50")
                   } ${isSelected ? "ring-2 ring-primary border-primary" : isToday ? "border-primary border-2" : "border-border"}`}
                 >
-                  <div className={`text-sm font-medium mb-1 ${
+                  <div className={`text-sm font-medium mb-1 flex items-center justify-between ${
                     isCurrentMonth ? "text-foreground" : "text-muted-foreground"
                   }`}>
-                    {format(day, "d")}
+                    <span>{format(day, "d")}</span>
+                    {showHeatmap && dayScore !== null && (
+                      <span className="text-[10px] font-bold opacity-80">{dayScore}</span>
+                    )}
                   </div>
 
                   <div className="space-y-1">
@@ -242,6 +319,28 @@ export function ClientCalendarTab({ clientId, trainerId }: ClientCalendarTabProp
                         </div>
                       );
                     })}
+                    {dayAppointments.map((appt: any) => (
+                      <div
+                        key={appt.id}
+                        className="w-full text-left text-xs p-1.5 rounded bg-teal-500/20 text-teal-900 dark:text-teal-200"
+                      >
+                        <div className="font-medium truncate flex items-center gap-1">
+                          <CalendarClock className="h-3 w-3 shrink-0" />
+                          {appt.appointment_types?.name || "Appointment"}
+                        </div>
+                      </div>
+                    ))}
+                    {dayGoals.map((goal: any) => (
+                      <div
+                        key={goal.id}
+                        className="w-full text-left text-xs p-1.5 rounded bg-fuchsia-500/20 text-fuchsia-900 dark:text-fuchsia-200"
+                      >
+                        <div className="font-medium truncate flex items-center gap-1">
+                          <Target className="h-3 w-3 shrink-0" />
+                          {goal.title}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               );
@@ -271,6 +370,14 @@ export function ClientCalendarTab({ clientId, trainerId }: ClientCalendarTabProp
               <span className="text-sm text-muted-foreground">Practice</span>
             </div>
             <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded bg-teal-500/20"></div>
+              <span className="text-sm text-muted-foreground">Appointment</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded bg-fuchsia-500/20"></div>
+              <span className="text-sm text-muted-foreground">Goal deadline</span>
+            </div>
+            <div className="flex items-center gap-2">
               <div className="w-4 h-4 rounded bg-success/20"></div>
               <span className="text-sm text-muted-foreground">Completed</span>
             </div>
@@ -278,6 +385,24 @@ export function ClientCalendarTab({ clientId, trainerId }: ClientCalendarTabProp
               <div className="w-4 h-4 rounded border-2 border-primary"></div>
               <span className="text-sm text-muted-foreground">Today</span>
             </div>
+            {showHeatmap && (
+              <>
+                <div className="w-px h-4 bg-border mx-1" />
+                <span className="text-xs text-muted-foreground font-medium">Adherence:</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded bg-success/30 border border-success/50"></div>
+                  <span className="text-sm text-muted-foreground">≥80</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded bg-amber-500/30 border border-amber-500/50"></div>
+                  <span className="text-sm text-muted-foreground">60–79</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded bg-rose-500/30 border border-rose-500/50"></div>
+                  <span className="text-sm text-muted-foreground">&lt;60</span>
+                </div>
+              </>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -286,13 +411,52 @@ export function ClientCalendarTab({ clientId, trainerId }: ClientCalendarTabProp
       {selectedDay && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">{format(selectedDay, "EEEE, MMMM d, yyyy")}</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg">{format(selectedDay, "EEEE, MMMM d, yyyy")}</CardTitle>
+              {selectedDayScore !== null && (
+                <Badge variant="outline" className={`text-sm ${heatmapClass(selectedDayScore)}`}>
+                  <Flame className="h-3 w-3 mr-1" />
+                  Score: {selectedDayScore}
+                </Badge>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             {!hasSelectedDayEvents ? (
               <p className="text-sm text-muted-foreground text-center py-4">No events scheduled for this day.</p>
             ) : (
               <div className="space-y-3">
+                {selectedDayAppointments.map((appt: any) => {
+                  const startTime = formatEventTime(appt.start_time);
+                  const endTime = appt.end_time ? formatEventTime(appt.end_time) : null;
+                  const timeDisplay = endTime && endTime !== startTime ? `${startTime} - ${endTime}` : startTime;
+                  return (
+                    <div key={appt.id} className="p-3 rounded-lg border bg-teal-500/10 border-teal-500/30">
+                      <div className="flex items-center gap-2 mb-1">
+                        <CalendarClock className="h-4 w-4 text-teal-500" />
+                        <span className="font-medium text-sm">{appt.appointment_types?.name || "Appointment"}</span>
+                        <Badge variant="outline" className="text-xs ml-auto capitalize">{appt.status}</Badge>
+                      </div>
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
+                        <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{timeDisplay}</span>
+                        {appt.location && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{appt.location}</span>}
+                      </div>
+                      {appt.notes && <p className="text-xs text-muted-foreground mt-1">{appt.notes}</p>}
+                    </div>
+                  );
+                })}
+
+                {selectedDayGoals.map((goal: any) => (
+                  <div key={goal.id} className="p-3 rounded-lg border bg-fuchsia-500/10 border-fuchsia-500/30">
+                    <div className="flex items-center gap-2">
+                      <Target className="h-4 w-4 text-fuchsia-500" />
+                      <span className="font-medium text-sm">{goal.title}</span>
+                      <Badge variant="outline" className="text-xs ml-auto">Goal deadline</Badge>
+                    </div>
+                    {goal.description && <p className="text-xs text-muted-foreground mt-1">{goal.description}</p>}
+                  </div>
+                ))}
+
                 {selectedDaySportEvents.map((event: any) => {
                   const isGame = event.event_type === "game" || event.event_type === "event";
                   const startTime = formatEventTime(event.start_time);
