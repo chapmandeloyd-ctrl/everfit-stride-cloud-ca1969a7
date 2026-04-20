@@ -21,6 +21,7 @@ import { useClientHealthScores } from "@/hooks/useClientHealthScores";
 import { ClientHealthScorecard } from "@/components/clients/ClientHealthScorecard";
 import { QuickControlPanel } from "@/components/clients/QuickControlPanel";
 import { BulkActionsSheet } from "@/components/clients/BulkActionsSheet";
+import { AUTH_URL } from "@/lib/appUrl";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -64,9 +65,8 @@ export default function Clients() {
 
   const resendEmailMutation = useMutation({
     mutationFn: async (clientId: string) => {
-      const loginUrl = `${window.location.origin}/auth`;
       const { data, error } = await supabase.functions.invoke("resend-client-welcome-email", {
-        body: { clientId, loginUrl },
+        body: { clientId, loginUrl: AUTH_URL },
       });
       if (error) throw error;
       if (!data?.success) throw new Error("Failed to send email");
