@@ -1,4 +1,4 @@
-import { Home, CalendarDays, BarChart3, User, Settings } from "lucide-react";
+import { Home, CalendarDays, BarChart3, User } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -13,7 +13,6 @@ const navItems: NavItem[] = [
   { label: "Progress", to: "/client/progress", icon: BarChart3 },
   { label: "You", to: "/client/profile", icon: User },
   { label: "Calendar", to: "/client/calendar", icon: CalendarDays },
-  { label: "Settings", to: "/client/settings", icon: Settings },
 ];
 
 export function ClientBottomNav() {
