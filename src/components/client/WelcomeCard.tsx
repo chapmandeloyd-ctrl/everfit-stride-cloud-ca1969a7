@@ -3,9 +3,10 @@ import { Sparkles } from "lucide-react";
 interface WelcomeCardProps {
   imageUrl?: string | null;
   message?: string | null;
+  title?: string | null;
 }
 
-export function WelcomeCard({ imageUrl, message }: WelcomeCardProps) {
+export function WelcomeCard({ imageUrl, message, title }: WelcomeCardProps) {
   return (
     <div className="relative rounded-2xl overflow-hidden h-56">
       {/* Background */}
@@ -24,11 +25,14 @@ export function WelcomeCard({ imageUrl, message }: WelcomeCardProps) {
         <div className="flex justify-center items-center flex-1">
           <Sparkles className="h-10 w-10 text-white/40" />
         </div>
-        <div>
-          <p className="text-sm font-semibold text-white">
-            {message || "Welcome to your fitness journey! Your coach will assign your first plan soon."}
-          </p>
-        </div>
+        {(title || message) && (
+          <div>
+            {title && (
+              <p className="text-xs font-semibold text-white/70 uppercase tracking-wider mb-1">{title}</p>
+            )}
+            {message && <p className="text-sm font-semibold text-white">{message}</p>}
+          </div>
+        )}
       </div>
     </div>
   );
