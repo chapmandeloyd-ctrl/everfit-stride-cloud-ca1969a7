@@ -20,6 +20,7 @@ import { GroupedNutritionTab } from "@/components/command-center/GroupedNutritio
 import { GroupedProgressTab } from "@/components/command-center/GroupedProgressTab";
 import { ClientWodsTab } from "@/components/command-center/ClientWodsTab";
 import { ClientTasksTab } from "@/components/command-center/ClientTasksTab";
+import { ClientCalendarTab } from "@/components/command-center/ClientCalendarTab";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AUTH_URL } from "@/lib/appUrl";
 
@@ -203,6 +204,7 @@ export default function ClientCommandCenter() {
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="command">Command Center</TabsTrigger>
             <TabsTrigger value="training">Training</TabsTrigger>
+            <TabsTrigger value="schedule">Schedule</TabsTrigger>
             <TabsTrigger value="tasks">Tasks</TabsTrigger>
             <TabsTrigger value="client-wods">Client WODs</TabsTrigger>
             <TabsTrigger value="nutrition">Nutrition</TabsTrigger>
@@ -218,6 +220,9 @@ export default function ClientCommandCenter() {
           </TabsContent>
           <TabsContent value="training">
             <GroupedTrainingTab clientId={clientId!} trainerId={user?.id!} />
+          </TabsContent>
+          <TabsContent value="schedule">
+            <ClientCalendarTab clientId={clientId!} trainerId={user?.id!} />
           </TabsContent>
           <TabsContent value="tasks">
             <ClientTasksTab clientId={clientId!} trainerId={user?.id!} />
