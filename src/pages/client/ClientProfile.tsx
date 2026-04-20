@@ -1,21 +1,34 @@
 import { ClientLayout } from "@/components/ClientLayout";
 import { Card, CardContent } from "@/components/ui/card";
-import { ChevronRight, Settings, Clock, Star, Bookmark, Dumbbell, Play } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { ChevronRight, Settings, Clock, Star, Bookmark, Dumbbell, Play, Upload, Trash2, Info } from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { useSavedWorkouts } from "@/hooks/useSavedWorkouts";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { NotificationSettings } from "@/components/NotificationSettings";
+import { NudgeSettings } from "@/components/NudgeSettings";
+import { ClientRemindersSection } from "@/components/ClientRemindersSection";
+import { HabitLoopSettings } from "@/components/notifications/HabitLoopSettings";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export default function ClientProfile() {
   const navigate = useNavigate();
-  const { signOut, userRole } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { signOut, userRole, user } = useAuth();
   const clientId = useEffectiveClientId();
   const isImpersonating = userRole === "trainer";
+  const queryClient = useQueryClient();
+  const [isUploading, setIsUploading] = useState(false);
+  const activeTab = searchParams.get("tab") === "settings" ? "settings" : "profile";
 
   const { data: profile } = useQuery({
     queryKey: ["profile", clientId],
@@ -78,6 +91,52 @@ export default function ClientProfile() {
     { label: "Health", to: "/client/health" },
   ];
 
+  const uploadAvatar = async (file: File) => {
+    if (!user?.id) return;
+    setIsUploading(true);
+    try {
+      if (profile?.avatar_url) {
+        const oldPath = profile.avatar_url.split('/').pop();
+        if (oldPath) await supabase.storage.from("avatars").remove([`${user.id}/${oldPath}`]);
+      }
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${user.id}/${Date.now()}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage.from("avatars").upload(filePath, file);
+      if (uploadError) throw uploadError;
+      const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(filePath);
+      const { error: updateError } = await supabase.from("profiles").update({ avatar_url: publicUrl }).eq("id", user.id);
+      if (updateError) throw updateError;
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+      toast.success("Avatar updated!");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to upload avatar");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const deleteAvatar = async () => {
+    if (!user?.id || !profile?.avatar_url) return;
+    try {
+      const oldPath = profile.avatar_url.split('/').pop();
+      if (oldPath) await supabase.storage.from("avatars").remove([`${user.id}/${oldPath}`]);
+      const { error } = await supabase.from("profiles").update({ avatar_url: null }).eq("id", user.id);
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+      toast.success("Avatar removed!");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to remove avatar");
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) return toast.error("File size must be less than 5MB");
+    if (!file.type.startsWith("image/")) return toast.error("Please upload an image file");
+    uploadAvatar(file);
+  };
+
   return (
     <ClientLayout>
       <div className="p-4 space-y-4">
@@ -95,15 +154,22 @@ export default function ClientProfile() {
               variant="ghost"
               size="icon"
               className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-muted"
-              onClick={() => navigate("/client/settings")}
+              onClick={() => setSearchParams({ tab: "settings" })}
             >
               <Settings className="h-4 w-4" />
             </Button>
           </div>
         </div>
 
-        {/* Stats */}
-        <Card>
+        <Tabs value={activeTab} onValueChange={(v) => setSearchParams(v === "profile" ? {} : { tab: v })}>
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="profile">Profile</TabsTrigger>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="profile" className="space-y-4 mt-4">
+            {/* Stats */}
+            <Card>
           <CardContent className="p-4 grid grid-cols-2 gap-4">
             <div className="flex items-center gap-2">
               <span className="text-2xl">⏱️</span>
@@ -146,6 +212,52 @@ export default function ClientProfile() {
             Logout
           </button>
         )}
+          </TabsContent>
+
+          <TabsContent value="settings" className="space-y-6 mt-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Profile Picture</CardTitle>
+                <CardDescription>Upload a custom avatar for your account</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-6">
+                  <Avatar className="h-24 w-24">
+                    <AvatarImage src={profile?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email}`} />
+                    <AvatarFallback>{user?.email?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col gap-2">
+                    <input type="file" id="avatar-upload" className="hidden" accept="image/jpeg,image/jpg,image/png,image/webp" onChange={handleFileChange} disabled={isUploading} />
+                    <Button onClick={() => document.getElementById("avatar-upload")?.click()} disabled={isUploading} size="sm">
+                      <Upload className="h-4 w-4 mr-2" />
+                      {isUploading ? "Uploading..." : "Upload Photo"}
+                    </Button>
+                    {profile?.avatar_url && (
+                      <Button variant="outline" size="sm" onClick={deleteAvatar} disabled={isUploading}>
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Remove Photo
+                      </Button>
+                    )}
+                    <p className="text-xs text-muted-foreground">JPG, PNG or WEBP. Max 5MB.</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Alert>
+              <Info className="h-4 w-4" />
+              <AlertTitle>Workout Reminders</AlertTitle>
+              <AlertDescription>
+                Enable notifications to get reminded about your upcoming scheduled workouts.
+              </AlertDescription>
+            </Alert>
+
+            <NotificationSettings />
+            <HabitLoopSettings />
+            <NudgeSettings />
+            <ClientRemindersSection />
+          </TabsContent>
+        </Tabs>
       </div>
     </ClientLayout>
   );
