@@ -411,13 +411,52 @@ export function ClientCalendarTab({ clientId, trainerId }: ClientCalendarTabProp
       {selectedDay && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">{format(selectedDay, "EEEE, MMMM d, yyyy")}</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg">{format(selectedDay, "EEEE, MMMM d, yyyy")}</CardTitle>
+              {selectedDayScore !== null && (
+                <Badge variant="outline" className={`text-sm ${heatmapClass(selectedDayScore)}`}>
+                  <Flame className="h-3 w-3 mr-1" />
+                  Score: {selectedDayScore}
+                </Badge>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             {!hasSelectedDayEvents ? (
               <p className="text-sm text-muted-foreground text-center py-4">No events scheduled for this day.</p>
             ) : (
               <div className="space-y-3">
+                {selectedDayAppointments.map((appt: any) => {
+                  const startTime = formatEventTime(appt.start_time);
+                  const endTime = appt.end_time ? formatEventTime(appt.end_time) : null;
+                  const timeDisplay = endTime && endTime !== startTime ? `${startTime} - ${endTime}` : startTime;
+                  return (
+                    <div key={appt.id} className="p-3 rounded-lg border bg-teal-500/10 border-teal-500/30">
+                      <div className="flex items-center gap-2 mb-1">
+                        <CalendarClock className="h-4 w-4 text-teal-500" />
+                        <span className="font-medium text-sm">{appt.appointment_types?.name || "Appointment"}</span>
+                        <Badge variant="outline" className="text-xs ml-auto capitalize">{appt.status}</Badge>
+                      </div>
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
+                        <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{timeDisplay}</span>
+                        {appt.location && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{appt.location}</span>}
+                      </div>
+                      {appt.notes && <p className="text-xs text-muted-foreground mt-1">{appt.notes}</p>}
+                    </div>
+                  );
+                })}
+
+                {selectedDayGoals.map((goal: any) => (
+                  <div key={goal.id} className="p-3 rounded-lg border bg-fuchsia-500/10 border-fuchsia-500/30">
+                    <div className="flex items-center gap-2">
+                      <Target className="h-4 w-4 text-fuchsia-500" />
+                      <span className="font-medium text-sm">{goal.title}</span>
+                      <Badge variant="outline" className="text-xs ml-auto">Goal deadline</Badge>
+                    </div>
+                    {goal.description && <p className="text-xs text-muted-foreground mt-1">{goal.description}</p>}
+                  </div>
+                ))}
+
                 {selectedDaySportEvents.map((event: any) => {
                   const isGame = event.event_type === "game" || event.event_type === "event";
                   const startTime = formatEventTime(event.start_time);
