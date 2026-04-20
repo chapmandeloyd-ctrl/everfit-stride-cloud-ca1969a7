@@ -110,8 +110,9 @@ export function SmartPaceTrainerCard({ clientId, trainerId }: Props) {
       if (!val) {
         setStartWeight("");
         setGoalWeight("");
-        setPace("2.5");
         setDirection("lose");
+        setStartDate(new Date());
+        setTargetDate(undefined);
       }
       qc.invalidateQueries({ queryKey: ["smart-pace-settings", clientId] });
       qc.invalidateQueries({ queryKey: ["smart-pace-trainer-goal", clientId] });
