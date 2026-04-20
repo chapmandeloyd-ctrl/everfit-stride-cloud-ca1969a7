@@ -1849,16 +1849,21 @@ export default function ClientDashboard() {
                   </h2>
                   {isRestDay ? (
                     showWelcomeCard ? (
-                      <WelcomeCard imageUrl={welcomeCard?.image_url} message={welcomeCard?.message} />
+                      <WelcomeCard imageUrl={welcomeCard?.image_url} message={welcomeCard?.message} title={welcomeCard?.title} textColor={welcomeCard?.text_color} />
                     ) : (
                     <Card className="overflow-hidden">
                       {restDayCard?.image_url ? (
                         <div className="relative h-56">
                           <img src={restDayCard.image_url} alt="Rest day" className="w-full h-full object-cover" />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                          <div className="absolute bottom-0 left-0 right-0 p-4">
-                            <p className="text-xs font-semibold text-white/70 uppercase tracking-wider">Rest Day</p>
-                            <p className="text-base font-bold text-white">
+                          <div
+                            className="absolute inset-0 bg-gradient-to-t from-black to-transparent"
+                            style={{ opacity: ((restDayCard as any)?.overlay_opacity ?? 50) / 100 }}
+                          />
+                          <div className="absolute bottom-0 left-0 right-0 p-4" style={(restDayCard as any)?.text_color ? { color: (restDayCard as any).text_color } : undefined}>
+                            <p className="text-xs font-semibold uppercase tracking-wider opacity-80">
+                              {(restDayCard as any)?.title?.trim() || "Rest Day"}
+                            </p>
+                            <p className="text-base font-bold">
                               {restDayCard?.message || "No workouts scheduled for today. Enjoy your rest!"}
                             </p>
                           </div>
@@ -1866,7 +1871,7 @@ export default function ClientDashboard() {
                       ) : (
                         <CardContent className="p-6 text-center">
                           <Dumbbell className="h-10 w-10 text-muted-foreground/30 mx-auto mb-2" />
-                          <p className="text-lg font-semibold">Rest Day</p>
+                          <p className="text-lg font-semibold">{(restDayCard as any)?.title?.trim() || "Rest Day"}</p>
                           <p className="text-sm text-muted-foreground">
                             {restDayCard?.message || "No workouts scheduled for today. Enjoy your rest!"}
                           </p>
