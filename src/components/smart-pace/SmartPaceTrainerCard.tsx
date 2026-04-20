@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,11 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Target, Loader2, ChevronRight } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Target, Loader2, ChevronRight, CalendarIcon } from "lucide-react";
+import { format, parseISO, differenceInCalendarDays } from "date-fns";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -58,17 +62,32 @@ export function SmartPaceTrainerCard({ clientId, trainerId }: Props) {
   // Form state
   const [startWeight, setStartWeight] = useState("");
   const [goalWeight, setGoalWeight] = useState("");
-  const [pace, setPace] = useState("2.5");
   const [direction, setDirection] = useState<"lose" | "gain" | "maintain">("lose");
+  const [startDate, setStartDate] = useState<Date>(new Date());
+  const [targetDate, setTargetDate] = useState<Date | undefined>(undefined);
 
   useEffect(() => {
     if (goal) {
       setStartWeight(String(goal.start_weight ?? ""));
       setGoalWeight(String(goal.goal_weight));
-      setPace(String(goal.daily_pace_lbs));
       setDirection(goal.goal_direction as any);
+      if (goal.start_date) setStartDate(parseISO(goal.start_date));
+      if (goal.target_date) setTargetDate(parseISO(goal.target_date));
     }
   }, [goal]);
+
+  // Auto-derived avg/day from start/target dates and weights
+  const derivedPace = useMemo(() => {
+    const sw = parseFloat(startWeight);
+    const gw = parseFloat(goalWeight);
+    if (!sw || !gw || !targetDate) return null;
+    const days = differenceInCalendarDays(targetDate, startDate);
+    if (days <= 0) return null;
+    const delta = Math.abs(sw - gw);
+    return delta / days;
+  }, [startWeight, goalWeight, startDate, targetDate]);
+
+  const totalDays = targetDate ? differenceInCalendarDays(targetDate, startDate) : null;
 
   const toggleMut = useMutation({
     mutationFn: async (val: boolean) => {
@@ -91,8 +110,9 @@ export function SmartPaceTrainerCard({ clientId, trainerId }: Props) {
       if (!val) {
         setStartWeight("");
         setGoalWeight("");
-        setPace("2.5");
         setDirection("lose");
+        setStartDate(new Date());
+        setTargetDate(undefined);
       }
       qc.invalidateQueries({ queryKey: ["smart-pace-settings", clientId] });
       qc.invalidateQueries({ queryKey: ["smart-pace-trainer-goal", clientId] });
@@ -106,8 +126,12 @@ export function SmartPaceTrainerCard({ clientId, trainerId }: Props) {
     mutationFn: async () => {
       const sw = parseFloat(startWeight);
       const gw = parseFloat(goalWeight);
-      const p = parseFloat(pace);
-      if (!gw || !p) throw new Error("Goal weight and pace required");
+      if (!gw) throw new Error("Goal weight required");
+      if (!targetDate) throw new Error("Target date required");
+      if (!derivedPace || derivedPace <= 0) throw new Error("Invalid date range or weights");
+
+      const startDateStr = format(startDate, "yyyy-MM-dd");
+      const targetDateStr = format(targetDate, "yyyy-MM-dd");
 
       if (goal) {
         const { error } = await supabase
@@ -115,8 +139,10 @@ export function SmartPaceTrainerCard({ clientId, trainerId }: Props) {
           .update({
             start_weight: sw || null,
             goal_weight: gw,
-            daily_pace_lbs: p,
+            daily_pace_lbs: derivedPace,
             goal_direction: direction,
+            start_date: startDateStr,
+            target_date: targetDateStr,
           })
           .eq("id", goal.id);
         if (error) throw error;
@@ -126,10 +152,12 @@ export function SmartPaceTrainerCard({ clientId, trainerId }: Props) {
           trainer_id: trainerId,
           start_weight: sw || null,
           goal_weight: gw,
-          daily_pace_lbs: p,
+          daily_pace_lbs: derivedPace,
           goal_direction: direction,
+          start_date: startDateStr,
+          target_date: targetDateStr,
           last_weigh_in_value: sw || null,
-          last_weigh_in_date: new Date().toISOString().slice(0, 10),
+          last_weigh_in_date: startDateStr,
         });
         if (error) throw error;
       }
@@ -174,10 +202,53 @@ export function SmartPaceTrainerCard({ clientId, trainerId }: Props) {
               <Input type="number" step="0.1" value={goalWeight} onChange={(e) => setGoalWeight(e.target.value)} />
             </div>
             <div>
-              <Label className="text-xs">Daily pace (lb/day)</Label>
-              <Input type="number" step="0.1" min="0.1" max="5" value={pace} onChange={(e) => setPace(e.target.value)} />
+              <Label className="text-xs">Start date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full h-10 justify-start text-left font-normal")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {format(startDate, "PP")}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={startDate}
+                    onSelect={(d) => d && setStartDate(d)}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
             <div>
+              <Label className="text-xs">Target date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full h-10 justify-start text-left font-normal",
+                      !targetDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {targetDate ? format(targetDate, "PP") : "Pick target date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={targetDate}
+                    onSelect={setTargetDate}
+                    disabled={(d) => d <= startDate}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div className="col-span-2">
               <Label className="text-xs">Direction</Label>
               <select
                 className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
@@ -188,6 +259,28 @@ export function SmartPaceTrainerCard({ clientId, trainerId }: Props) {
                 <option value="gain">Gain</option>
                 <option value="maintain">Maintain</option>
               </select>
+            </div>
+          </div>
+
+          {/* Derived avg/day preview */}
+          <div className="rounded-md border border-border bg-muted/30 p-3 grid grid-cols-3 gap-2 text-center">
+            <div>
+              <p className="text-[10px] uppercase text-muted-foreground">Total days</p>
+              <p className="font-bold text-sm">{totalDays ?? "—"}</p>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase text-muted-foreground">Total change</p>
+              <p className="font-bold text-sm">
+                {startWeight && goalWeight
+                  ? `${Math.abs(parseFloat(startWeight) - parseFloat(goalWeight)).toFixed(1)} lb`
+                  : "—"}
+              </p>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase text-muted-foreground">Avg / day</p>
+              <p className="font-bold text-sm text-primary">
+                {derivedPace ? `${derivedPace.toFixed(2)} lb` : "—"}
+              </p>
             </div>
           </div>
 
