@@ -1674,7 +1674,12 @@ export default function ClientDashboard() {
         <div className="flex items-center justify-between pt-2">
           <div>
             <p className="text-xs font-semibold text-muted-foreground tracking-wider">{todayDate}</p>
-            <h1 className="text-2xl font-bold mt-0.5">Hello, {firstName}! {settings.greeting_emoji || '👋'}</h1>
+            <h1 className="text-2xl font-bold mt-0.5">
+              {(settings as any).greeting_title?.trim()
+                ? (settings as any).greeting_title.replace(/\[Name\]/gi, firstName)
+                : `Hello, ${firstName}!`}{' '}
+              {settings.greeting_emoji || '👋'}
+            </h1>
             <p className="text-sm text-muted-foreground font-medium mt-0.5">{settings.greeting_subtitle || 'Let\'s do this'}</p>
           </div>
           <div className="flex items-center gap-2">
@@ -1699,10 +1704,20 @@ export default function ClientDashboard() {
         )}
 
         {/* Dashboard Hero Message */}
-        {settings.dashboard_hero_message && (
+        {(settings.dashboard_hero_message || (settings as any).dashboard_hero_title) && (
           <Card className="overflow-hidden border-primary/20 bg-primary/5">
-            <CardContent className="px-5 py-4">
-              <p className="text-sm font-medium text-foreground">{settings.dashboard_hero_message}</p>
+            <CardContent
+              className="px-5 py-4"
+              style={(settings as any).dashboard_hero_text_color ? { color: (settings as any).dashboard_hero_text_color } : undefined}
+            >
+              {(settings as any).dashboard_hero_title?.trim() && (
+                <p className="text-xs font-bold uppercase tracking-wider mb-1 opacity-70">
+                  {(settings as any).dashboard_hero_title}
+                </p>
+              )}
+              {settings.dashboard_hero_message && (
+                <p className="text-sm font-medium">{settings.dashboard_hero_message}</p>
+              )}
             </CardContent>
           </Card>
         )}
