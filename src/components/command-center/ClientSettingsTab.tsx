@@ -10,8 +10,6 @@ import { InsightCoachControls } from "./InsightCoachControls";
 import { CoachPlanOverrides } from "./CoachPlanOverrides";
 import { ENGINE_MODE_OPTIONS, type EngineMode, getEngineConfig } from "@/lib/engineConfig";
 import { Slider } from "@/components/ui/slider";
-import { RestDayCardEditor } from "./RestDayCardEditor";
-import { SportDayCardEditor } from "./SportDayCardEditor";
 import { ClientSportScheduleCard } from "./ClientSportScheduleCard";
 import { ClientSportProfileEditor } from "./ClientSportProfileEditor";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -28,6 +26,7 @@ import { useState, useEffect } from "react";
 import { Trash2, Plus } from "lucide-react";
 import { DashboardCardLayoutEditor } from "@/components/DashboardCardLayoutEditor";
 import { useDashboardLayout } from "@/hooks/useDashboardLayout";
+import { DashboardCardsEditor } from "./dashboard-cards/DashboardCardsEditor";
 
 interface ClientSettingsTabProps {
   clientId: string;
