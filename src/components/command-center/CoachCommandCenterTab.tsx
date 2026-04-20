@@ -1,6 +1,3 @@
-import { StatusOverviewPanel } from "./StatusOverviewPanel";
-
-
 import { InsightCoachControls } from "./InsightCoachControls";
 
 
@@ -72,9 +69,6 @@ export function CoachCommandCenterTab({ clientId, trainerId }: CoachCommandCente
 
   return (
     <div className="space-y-6">
-      {/* A) Status Overview */}
-      <StatusOverviewPanel clientId={clientId} />
-
       {/* Motivation & Journal (client's "Why" + shared entries) */}
       <CoachMotivationPanel clientId={clientId} trainerId={trainerId} />
 
