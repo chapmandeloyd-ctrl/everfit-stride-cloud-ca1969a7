@@ -104,6 +104,54 @@ export function ClientCalendarTab({ clientId, trainerId }: ClientCalendarTabProp
     enabled: !!clientId,
   });
 
+  const { data: appointments } = useQuery({
+    queryKey: ["cc-calendar-appts", clientId, format(monthStart, "yyyy-MM")],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("appointments")
+        .select("*, appointment_types(name, color)")
+        .eq("client_id", clientId)
+        .gte("start_time", format(monthStart, "yyyy-MM-dd"))
+        .lte("start_time", format(monthEnd, "yyyy-MM-dd'T'23:59:59"))
+        .neq("status", "cancelled")
+        .order("start_time");
+      if (error) throw error;
+      return data as any[];
+    },
+    enabled: !!clientId,
+  });
+
+  const { data: goalCountdowns } = useQuery({
+    queryKey: ["cc-calendar-goals", clientId, format(monthStart, "yyyy-MM")],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("client_goal_countdowns")
+        .select("*")
+        .eq("client_id", clientId)
+        .gte("end_date", format(monthStart, "yyyy-MM-dd"))
+        .lte("end_date", format(monthEnd, "yyyy-MM-dd"))
+        .order("end_date");
+      if (error) throw error;
+      return data as any[];
+    },
+    enabled: !!clientId,
+  });
+
+  const { data: scoreHistory } = useQuery({
+    queryKey: ["cc-calendar-scores", clientId, format(monthStart, "yyyy-MM")],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("engine_score_history")
+        .select("score_date, capped_score")
+        .eq("client_id", clientId)
+        .gte("score_date", format(monthStart, "yyyy-MM-dd"))
+        .lte("score_date", format(monthEnd, "yyyy-MM-dd"));
+      if (error) throw error;
+      return data as any[];
+    },
+    enabled: !!clientId,
+  });
+
   const getWorkoutsForDay = (day: Date) =>
     workouts?.filter((w) => w.scheduled_date && isSameDay(parseISO(w.scheduled_date), day)) || [];
   const getTasksForDay = (day: Date) =>
@@ -121,12 +169,29 @@ export function ClientCalendarTab({ clientId, trainerId }: ClientCalendarTabProp
       return day.getDay() === startDay;
     });
   };
+  const getAppointmentsForDay = (day: Date) =>
+    appointments?.filter((a: any) => a.start_time && isSameDay(parseISO(a.start_time), day)) || [];
+  const getGoalsForDay = (day: Date) =>
+    goalCountdowns?.filter((g: any) => g.end_date && isSameDay(parseISO(g.end_date), day)) || [];
+  const getScoreForDay = (day: Date) => {
+    const dateStr = format(day, "yyyy-MM-dd");
+    return scoreHistory?.find((s: any) => s.score_date === dateStr)?.capped_score ?? null;
+  };
+  const heatmapClass = (score: number | null) => {
+    if (score === null) return "";
+    if (score >= 80) return "bg-success/30 border-success/50";
+    if (score >= 60) return "bg-amber-500/30 border-amber-500/50";
+    return "bg-rose-500/30 border-rose-500/50";
+  };
 
   const selectedDayWorkouts = selectedDay ? getWorkoutsForDay(selectedDay) : [];
   const selectedDayTasks = selectedDay ? getTasksForDay(selectedDay) : [];
   const selectedDayHabits = selectedDay ? getHabitsForDay(selectedDay) : [];
   const selectedDaySportEvents = selectedDay ? getSportEventsForDay(selectedDay) : [];
-  const hasSelectedDayEvents = selectedDayWorkouts.length + selectedDayTasks.length + selectedDayHabits.length + selectedDaySportEvents.length > 0;
+  const selectedDayAppointments = selectedDay ? getAppointmentsForDay(selectedDay) : [];
+  const selectedDayGoals = selectedDay ? getGoalsForDay(selectedDay) : [];
+  const selectedDayScore = selectedDay ? getScoreForDay(selectedDay) : null;
+  const hasSelectedDayEvents = selectedDayWorkouts.length + selectedDayTasks.length + selectedDayHabits.length + selectedDaySportEvents.length + selectedDayAppointments.length + selectedDayGoals.length > 0;
 
   return (
     <div className="space-y-6">
