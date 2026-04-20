@@ -258,9 +258,6 @@ export function ClientSettingsTab({ clientId, trainerId }: ClientSettingsTabProp
 
   return (
     <div className="space-y-6">
-      {/* Insight Intelligence Controls */}
-      <InsightCoachControls clientId={clientId} trainerId={trainerId} settings={settings} toggleMutation={toggleMutation} />
-
       {/* Plan Override Controls */}
       <CoachPlanOverrides clientId={clientId} trainerId={trainerId} />
 
