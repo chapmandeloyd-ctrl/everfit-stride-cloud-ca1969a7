@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
@@ -18,6 +19,7 @@ export function RestDayCardEditor({ clientId, trainerId }: RestDayCardEditorProp
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState("");
+  const [title, setTitle] = useState("");
   const [uploading, setUploading] = useState(false);
   const [initialized, setInitialized] = useState(false);
 
@@ -37,16 +39,18 @@ export function RestDayCardEditor({ clientId, trainerId }: RestDayCardEditorProp
   // Initialize message from fetched data
   if (restDayCard && !initialized) {
     setMessage(restDayCard.message || "");
+    setTitle(restDayCard.title || "");
     setInitialized(true);
   }
 
   const saveMutation = useMutation({
-    mutationFn: async ({ msg, imageUrl }: { msg?: string; imageUrl?: string | null }) => {
+    mutationFn: async ({ msg, imageUrl, cardTitle }: { msg?: string; imageUrl?: string | null; cardTitle?: string }) => {
       const payload: any = {
         client_id: clientId,
         trainer_id: trainerId,
         ...(msg !== undefined && { message: msg }),
         ...(imageUrl !== undefined && { image_url: imageUrl }),
+        ...(cardTitle !== undefined && { title: cardTitle }),
       };
 
       if (restDayCard) {
@@ -101,7 +105,7 @@ export function RestDayCardEditor({ clientId, trainerId }: RestDayCardEditorProp
   };
 
   const saveMessage = () => {
-    saveMutation.mutate({ msg: message });
+    saveMutation.mutate({ msg: message, cardTitle: title });
   };
 
   if (isLoading) return null;
@@ -130,12 +134,12 @@ export function RestDayCardEditor({ clientId, trainerId }: RestDayCardEditorProp
               </div>
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-            <div className="absolute bottom-0 left-0 right-0 p-3">
-              <p className="text-xs font-semibold text-white/70 uppercase tracking-wider">Rest Day</p>
-              <p className="text-sm font-bold text-white">
-                {restDayCard?.message || "No workouts scheduled for today. Enjoy your rest!"}
-              </p>
-            </div>
+            {(title || message) && (
+              <div className="absolute bottom-0 left-0 right-0 p-3">
+                {title && <p className="text-xs font-semibold text-white/70 uppercase tracking-wider">{title}</p>}
+                {message && <p className="text-sm font-bold text-white">{message}</p>}
+              </div>
+            )}
           </div>
         </div>
 
@@ -168,13 +172,20 @@ export function RestDayCardEditor({ clientId, trainerId }: RestDayCardEditorProp
           </div>
         </div>
 
-        {/* Message */}
+        {/* Text */}
         <div>
+          <Label className="text-sm font-medium">Title</Label>
+          <Input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Leave empty to hide"
+            className="mt-1.5 mb-3"
+          />
           <Label className="text-sm font-medium">Message</Label>
           <Textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="No workouts scheduled for today. Enjoy your rest!"
+            placeholder="Leave empty to hide"
             className="mt-1.5"
             rows={2}
           />
@@ -182,7 +193,7 @@ export function RestDayCardEditor({ clientId, trainerId }: RestDayCardEditorProp
 
         <Button size="sm" onClick={saveMessage} disabled={saveMutation.isPending}>
           <Save className="h-4 w-4 mr-1.5" />
-          Save Message
+          Save Text
         </Button>
       </CardContent>
     </Card>
