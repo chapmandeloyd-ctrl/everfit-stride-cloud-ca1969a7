@@ -328,9 +328,23 @@ export function SmartPaceTrainerCard({ clientId, trainerId }: Props) {
             >
               All states demo
             </Button>
+            {goal && (
+              <Button
+                variant="ghost"
+                className="text-destructive hover:text-destructive"
+                onClick={() => {
+                  if (confirm("Delete this goal and start fresh? This cannot be undone.")) {
+                    resetMut.mutate();
+                  }
+                }}
+                disabled={resetMut.isPending}
+              >
+                {resetMut.isPending ? "Resetting..." : "Reset goal"}
+              </Button>
+            )}
           </div>
           <p className="text-[11px] text-muted-foreground">
-            <strong>Preview Tracker</strong> = client's live Smart Pace page (impersonates this client). <strong>Preview Dashboard</strong> = client's home with banner & notifications. <strong>All states demo</strong> = static Behind / On Pace / Ahead designs.
+            <strong>Toggle OFF</strong> just hides the tracker from the client — goal data is preserved. Use <strong>Reset goal</strong> to wipe and start over. <strong>Preview</strong> buttons are read-only.
           </p>
 
           {goal && (
