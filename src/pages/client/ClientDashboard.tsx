@@ -1849,7 +1849,12 @@ export default function ClientDashboard() {
                   </h2>
                   {isRestDay ? (
                     showWelcomeCard ? (
-                      <WelcomeCard imageUrl={welcomeCard?.image_url} message={welcomeCard?.message} title={welcomeCard?.title} textColor={welcomeCard?.text_color} />
+                      <WelcomeCard
+                        imageUrl={welcomeCard?.image_url}
+                        message={welcomeCard?.message}
+                        title={(welcomeCard as any)?.title}
+                        textColor={(welcomeCard as any)?.text_color}
+                      />
                     ) : (
                     <Card className="overflow-hidden">
                       {restDayCard?.image_url ? (
