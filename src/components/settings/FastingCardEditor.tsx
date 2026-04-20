@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
@@ -15,6 +16,7 @@ export function FastingCardEditor() {
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState("");
+  const [title, setTitle] = useState("");
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [initialized, setInitialized] = useState(false);
@@ -37,6 +39,7 @@ export function FastingCardEditor() {
 
   if (fastingCard && !initialized) {
     setMessage(fastingCard.message || "");
+    setTitle((fastingCard as any).title ?? "");
     setInitialized(true);
   }
 
@@ -67,7 +70,7 @@ export function FastingCardEditor() {
       } else {
         const { error } = await supabase
           .from("trainer_fasting_cards")
-          .insert({ trainer_id: trainerId, image_url: imageUrl, message: message || null });
+          .insert({ trainer_id: trainerId, image_url: imageUrl, message: message || null, title: title || null });
         if (error) throw error;
       }
 
@@ -99,17 +102,17 @@ export function FastingCardEditor() {
       if (fastingCard) {
         const { error } = await supabase
           .from("trainer_fasting_cards")
-          .update({ message: message || null })
+          .update({ message: message || null, title: title || null })
           .eq("id", fastingCard.id);
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from("trainer_fasting_cards")
-          .insert({ trainer_id: trainerId, message: message || null });
+          .insert({ trainer_id: trainerId, message: message || null, title: title || null });
         if (error) throw error;
       }
       queryClient.invalidateQueries({ queryKey: ["trainer-fasting-card"] });
-      toast({ title: "Message saved" });
+      toast({ title: "Saved" });
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
@@ -147,9 +150,10 @@ export function FastingCardEditor() {
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 p-3">
-              <p className="text-sm font-bold text-white">
-                {message || "Your fasting journey begins soon."}
-              </p>
+              {title && (
+                <p className="text-xs font-semibold text-white/70 uppercase tracking-wider">{title}</p>
+              )}
+              {message && <p className="text-sm font-bold text-white">{message}</p>}
             </div>
           </div>
         </div>
@@ -182,7 +186,13 @@ export function FastingCardEditor() {
 
         {/* Message */}
         <div className="space-y-2">
-          <Label>Fasting Message</Label>
+          <Label>Title (small label, leave empty to hide)</Label>
+          <Input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="FASTING"
+          />
+          <Label>Message (leave empty to hide)</Label>
           <Textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
@@ -191,7 +201,7 @@ export function FastingCardEditor() {
           />
           <Button size="sm" onClick={saveMessage} disabled={saving}>
             <Save className="h-4 w-4 mr-1.5" />
-            {saving ? "Saving..." : "Save Message"}
+            {saving ? "Saving..." : "Save"}
           </Button>
         </div>
       </CardContent>
