@@ -101,6 +101,16 @@ export function CardCustomizer({
     await onSave(payload);
   };
 
+  // Auto-save text fields on blur so trainers don't have to remember the Save button
+  const handleBlurSave = () => {
+    // Only save if something actually differs from persisted values
+    const changed =
+      (has("title") && (title || "") !== (values.title || "")) ||
+      (has("message") && (message || "") !== (values.message || "")) ||
+      (has("textColor") && (textColor || "") !== (values.textColor || ""));
+    if (changed) handleSaveText();
+  };
+
   const livePreviewValues: CardCustomizerValues = {
     title: has("title") ? title : values.title,
     message: has("message") ? message : values.message,
@@ -142,6 +152,7 @@ export function CardCustomizer({
           <Input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
+            onBlur={handleBlurSave}
             placeholder={titlePlaceholder}
             className="mt-1.5"
           />
@@ -154,6 +165,7 @@ export function CardCustomizer({
           <Textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
+            onBlur={handleBlurSave}
             placeholder={messagePlaceholder}
             rows={2}
             className="mt-1.5"
@@ -175,6 +187,7 @@ export function CardCustomizer({
             <Input
               value={textColor}
               onChange={(e) => setTextColor(e.target.value)}
+              onBlur={handleBlurSave}
               placeholder="#ffffff"
               className="max-w-[140px]"
             />
@@ -191,6 +204,9 @@ export function CardCustomizer({
           <Slider
             value={[overlay]}
             onValueChange={([v]) => setOverlay(v)}
+            onValueCommit={([v]) => {
+              if (v !== (values.overlayOpacity ?? 50)) onSave({ overlayOpacity: v });
+            }}
             min={0}
             max={90}
             step={5}
@@ -200,10 +216,13 @@ export function CardCustomizer({
       )}
 
       {(has("title") || has("message") || has("textColor") || has("overlayOpacity")) && (
-        <Button size="sm" onClick={handleSaveText} disabled={saving}>
-          <Save className="h-4 w-4 mr-1.5" />
-          Save
-        </Button>
+        <div className="flex items-center justify-between pt-1">
+          <p className="text-[11px] text-muted-foreground">Auto-saves when you click outside the field.</p>
+          <Button size="sm" onClick={handleSaveText} disabled={saving}>
+            <Save className="h-4 w-4 mr-1.5" />
+            {saving ? "Saving..." : "Save now"}
+          </Button>
+        </div>
       )}
     </div>
   );
