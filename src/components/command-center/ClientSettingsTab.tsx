@@ -258,50 +258,9 @@ export function ClientSettingsTab({ clientId, trainerId }: ClientSettingsTabProp
 
   return (
     <div className="space-y-6">
-      {/* Engine Mode Selector */}
+      {/* Auto-Advance Levels */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5" />
-            Engine Mode
-          </CardTitle>
-          <CardDescription>
-            Controls dashboard layout, scoring weights, insight tone, and feature emphasis for this client.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {ENGINE_MODE_OPTIONS.map((option) => {
-            const currentMode = (settings as any)?.engine_mode || "metabolic";
-            const isSelected = currentMode === option.value;
-            return (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => engineModeMutation.mutate(option.value)}
-                disabled={engineModeMutation.isPending}
-                className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
-                  isSelected
-                    ? "border-primary bg-primary/5"
-                    : "border-border hover:border-primary/40"
-                }`}
-              >
-                <div className="flex items-start gap-3">
-                  <div className={`p-2 rounded-lg ${isSelected ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
-                    {ENGINE_ICONS_MAP[option.value]}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-sm">{option.label}</span>
-                      <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{option.ageRange}</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-0.5">{option.description}</p>
-                  </div>
-                </div>
-              </button>
-            );
-          })}
-          {/* Auto-Advance Levels Toggle */}
-          <Separator className="my-3" />
+        <CardContent className="pt-6">
           <div className="flex items-center justify-between px-1">
             <div>
               <p className="text-sm font-medium">Auto-Advance Levels</p>
