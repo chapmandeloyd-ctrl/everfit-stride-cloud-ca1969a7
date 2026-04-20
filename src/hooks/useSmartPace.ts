@@ -121,19 +121,6 @@ export function useSmartPace() {
         cappedAt: target.cappedAt,
       };
     },
-        goal: typed,
-        enabled: true,
-        todayTargetLbs: target.todayTargetLbs,
-        baseLbs: target.baseLbs,
-        debtLbs: target.debtLbs,
-        creditLbs: target.creditLbs,
-        progressPct: paceProgressPct(typed),
-        reason: target.reason,
-        projectedDate: projectCompletionDate(typed),
-        status,
-        cappedAt: target.cappedAt,
-      };
-    },
     staleTime: 30_000,
   });
 }
