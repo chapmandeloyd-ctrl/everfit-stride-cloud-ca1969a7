@@ -1,21 +1,34 @@
 import { ClientLayout } from "@/components/ClientLayout";
 import { Card, CardContent } from "@/components/ui/card";
-import { ChevronRight, Settings, Clock, Star, Bookmark, Dumbbell, Play } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { ChevronRight, Settings, Clock, Star, Bookmark, Dumbbell, Play, Upload, Trash2, Info } from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { useSavedWorkouts } from "@/hooks/useSavedWorkouts";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { NotificationSettings } from "@/components/NotificationSettings";
+import { NudgeSettings } from "@/components/NudgeSettings";
+import { ClientRemindersSection } from "@/components/ClientRemindersSection";
+import { HabitLoopSettings } from "@/components/notifications/HabitLoopSettings";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export default function ClientProfile() {
   const navigate = useNavigate();
-  const { signOut, userRole } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { signOut, userRole, user } = useAuth();
   const clientId = useEffectiveClientId();
   const isImpersonating = userRole === "trainer";
+  const queryClient = useQueryClient();
+  const [isUploading, setIsUploading] = useState(false);
+  const activeTab = searchParams.get("tab") === "settings" ? "settings" : "profile";
 
   const { data: profile } = useQuery({
     queryKey: ["profile", clientId],
