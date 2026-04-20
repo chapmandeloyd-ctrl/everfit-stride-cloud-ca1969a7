@@ -81,29 +81,28 @@ Deno.serve(async (req) => {
     if (base <= 0) continue;
 
     const last = goal.last_weigh_in_date ?? goal.start_date;
-    // Days the client failed to log a weigh-in (excluding today)
-    const missedDays = daysBetween(last, today) - 1; // -1 because today not counted yet
+    // Full days that passed without a weigh-in, excluding today (still has time)
+    const missedDays = Math.max(0, daysBetween(last, today) - 1);
 
-    if (missedDays <= 0) continue; // weighed in yesterday or today, nothing to age
+    if (missedDays <= 0) continue;
 
-    // For each missed day, the client owes `base` lbs.
-    let credit = Number(goal.current_credit_lbs) || 0;
-    let debt = Number(goal.current_debt_lbs) || 0;
-    let owed = base * missedDays;
+    // IDEMPOTENT: compute expected debt from missed days vs available credit.
+    // Take MAX of stored vs expected so weigh-in-driven debt isn't erased.
+    const storedCredit = Number(goal.current_credit_lbs) || 0;
+    const storedDebt = Number(goal.current_debt_lbs) || 0;
+    const expectedFromMissed = Math.max(0, missedDays * base - storedCredit);
+    const debt = Math.round(Math.max(storedDebt, expectedFromMissed) * 10) / 10;
+    const credit =
+      debt > storedDebt ? 0 : Math.round(storedCredit * 10) / 10;
 
-    // Burn credit first
-    const burn = Math.min(credit, owed);
-    credit -= burn;
-    owed -= burn;
-    debt += owed;
-
-    debt = Math.round(debt * 10) / 10;
-    credit = Math.round(credit * 10) / 10;
-
-    const newConsecutiveMissed =
-      (goal.consecutive_missed_days || 0) + missedDays;
-    const newConsecutiveBehind =
-      (goal.consecutive_behind_days || 0) + missedDays;
+    const newConsecutiveMissed = Math.max(
+      goal.consecutive_missed_days || 0,
+      missedDays
+    );
+    const newConsecutiveBehind = Math.max(
+      goal.consecutive_behind_days || 0,
+      missedDays
+    );
 
     let severity: "mild" | "moderate" | "severe" = "mild";
     if (debt >= base * 3) severity = "severe";
