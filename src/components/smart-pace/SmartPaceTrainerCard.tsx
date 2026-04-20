@@ -199,23 +199,39 @@ export function SmartPaceTrainerCard({ clientId, trainerId }: Props) {
             </div>
           )}
 
-          <div className="flex gap-2">
-            <Button onClick={() => saveMut.mutate()} disabled={saveMut.isPending} className="flex-1">
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={() => saveMut.mutate()} disabled={saveMut.isPending} className="flex-1 min-w-[140px]">
               {saveMut.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               {goal ? "Update goal" : "Create goal"}
             </Button>
-            {goal && (
-              <Button
-                variant="outline"
-                onClick={() => {
-                  localStorage.setItem("impersonatedClientId", clientId);
-                  navigate("/client/pace");
-                }}
-              >
-                Preview <ChevronRight className="h-4 w-4 ml-1" />
-              </Button>
-            )}
+            <Button
+              variant="outline"
+              onClick={() => {
+                localStorage.setItem("impersonatedClientId", clientId);
+                navigate("/client/pace");
+              }}
+            >
+              Preview Tracker <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                localStorage.setItem("impersonatedClientId", clientId);
+                navigate("/client/dashboard");
+              }}
+            >
+              Preview Dashboard <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => navigate("/smart-pace-preview")}
+            >
+              All states demo
+            </Button>
           </div>
+          <p className="text-[11px] text-muted-foreground">
+            <strong>Preview Tracker</strong> = client's live Smart Pace page (impersonates this client). <strong>Preview Dashboard</strong> = client's home with banner & notifications. <strong>All states demo</strong> = static Behind / On Pace / Ahead designs.
+          </p>
 
           {goal && (
             <>
