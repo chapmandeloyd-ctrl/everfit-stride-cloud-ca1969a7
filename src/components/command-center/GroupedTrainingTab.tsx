@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronRight, Dumbbell, CalendarDays, MonitorPlay } from "lucide-react";
+import { ChevronDown, ChevronRight, Dumbbell, MonitorPlay } from "lucide-react";
 import { ClientTrainingTab } from "./ClientTrainingTab";
-import { ClientCalendarTab } from "./ClientCalendarTab";
 import { ClientOnDemandTab } from "./ClientOnDemandTab";
 
 interface GroupedTrainingTabProps {
@@ -12,14 +11,12 @@ interface GroupedTrainingTabProps {
 
 const sections = [
   { key: "training", label: "Workouts", icon: Dumbbell },
-  { key: "calendar", label: "Calendar", icon: CalendarDays },
   { key: "on-demand", label: "On-Demand", icon: MonitorPlay },
 ] as const;
 
 export function GroupedTrainingTab({ clientId, trainerId }: GroupedTrainingTabProps) {
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     training: true,
-    calendar: false,
     "on-demand": false,
   });
 
@@ -41,7 +38,6 @@ export function GroupedTrainingTab({ clientId, trainerId }: GroupedTrainingTabPr
           </CollapsibleTrigger>
           <CollapsibleContent className="pt-3">
             {key === "training" && <ClientTrainingTab clientId={clientId} trainerId={trainerId} />}
-            {key === "calendar" && <ClientCalendarTab clientId={clientId} trainerId={trainerId} />}
             {key === "on-demand" && <ClientOnDemandTab clientId={clientId} trainerId={trainerId} />}
           </CollapsibleContent>
         </Collapsible>
