@@ -230,23 +230,30 @@ export function ClientCalendarTab({ clientId, trainerId }: ClientCalendarTabProp
               const dayTasks = getTasksForDay(day);
               const dayHabits = getHabitsForDay(day);
               const daySportEvents = getSportEventsForDay(day);
+              const dayAppointments = getAppointmentsForDay(day);
+              const dayGoals = getGoalsForDay(day);
+              const dayScore = getScoreForDay(day);
               const isCurrentMonth = isSameMonth(day, currentDate);
               const isToday = isSameDay(day, new Date());
               const isSelected = selectedDay && isSameDay(day, selectedDay);
-              const hasEvents = dayWorkouts.length + dayTasks.length + dayHabits.length + daySportEvents.length > 0;
+              const hasEvents = dayWorkouts.length + dayTasks.length + dayHabits.length + daySportEvents.length + dayAppointments.length + dayGoals.length > 0;
+              const heatBg = showHeatmap && isCurrentMonth ? heatmapClass(dayScore) : "";
 
               return (
                 <div
                   key={day.toISOString()}
                   onClick={() => setSelectedDay(day)}
                   className={`min-h-24 border rounded-lg p-2 cursor-pointer transition-colors ${
-                    isCurrentMonth ? "bg-background hover:bg-muted/50" : "bg-muted/30 hover:bg-muted/50"
+                    heatBg ? heatBg : (isCurrentMonth ? "bg-background hover:bg-muted/50" : "bg-muted/30 hover:bg-muted/50")
                   } ${isSelected ? "ring-2 ring-primary border-primary" : isToday ? "border-primary border-2" : "border-border"}`}
                 >
-                  <div className={`text-sm font-medium mb-1 ${
+                  <div className={`text-sm font-medium mb-1 flex items-center justify-between ${
                     isCurrentMonth ? "text-foreground" : "text-muted-foreground"
                   }`}>
-                    {format(day, "d")}
+                    <span>{format(day, "d")}</span>
+                    {showHeatmap && dayScore !== null && (
+                      <span className="text-[10px] font-bold opacity-80">{dayScore}</span>
+                    )}
                   </div>
 
                   <div className="space-y-1">
