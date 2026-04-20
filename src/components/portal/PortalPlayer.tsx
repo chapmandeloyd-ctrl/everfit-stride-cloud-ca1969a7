@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Volume2, VolumeX, ChevronDown, Clock, CircleDot, Check, TimerReset, Lightbulb } from "lucide-react";
+import { ArrowLeft, Volume2, VolumeX, ChevronDown, Clock, CircleDot, Check, TimerReset, Lightbulb, Moon, Globe } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import portalEarth from "@/assets/portal-earth.jpg";
 import nebulaFocus from "@/assets/portal-nebula-focus.jpg";
