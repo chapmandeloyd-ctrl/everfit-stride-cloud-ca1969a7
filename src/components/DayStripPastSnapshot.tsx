@@ -280,19 +280,19 @@ export function DayStripPastSnapshot({
               <img src={restDayCard.image_url} alt="Rest day" className="w-full h-full object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-4">
-                <p className="text-xs font-semibold text-white/70 uppercase tracking-wider">Rest Day</p>
-                <p className="text-base font-bold text-white">
-                  {restDayCard?.message || "No workouts scheduled. Enjoy your rest!"}
-                </p>
+                {restDayCard?.title && (
+                  <p className="text-xs font-semibold text-white/70 uppercase tracking-wider">{restDayCard.title}</p>
+                )}
+                {restDayCard?.message && (
+                  <p className="text-base font-bold text-white">{restDayCard.message}</p>
+                )}
               </div>
             </div>
           ) : (
             <CardContent className="p-6 text-center">
               <Dumbbell className="h-10 w-10 text-muted-foreground/30 mx-auto mb-2" />
-              <p className="text-lg font-semibold">Rest Day</p>
-              <p className="text-sm text-muted-foreground">
-                {restDayCard?.message || "No workouts scheduled. Enjoy your rest!"}
-              </p>
+              {restDayCard?.title && <p className="text-lg font-semibold">{restDayCard.title}</p>}
+              {restDayCard?.message && <p className="text-sm text-muted-foreground">{restDayCard.message}</p>}
             </CardContent>
           )}
         </Card>
