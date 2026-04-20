@@ -16,6 +16,7 @@ export function WelcomeCardEditor() {
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState("");
+  const [title, setTitle] = useState("");
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [initialized, setInitialized] = useState(false);
@@ -38,6 +39,7 @@ export function WelcomeCardEditor() {
 
   if (welcomeCard && !initialized) {
     setMessage(welcomeCard.message || "");
+    setTitle((welcomeCard as any).title ?? "");
     setInitialized(true);
   }
 
@@ -59,7 +61,12 @@ export function WelcomeCardEditor() {
 
       const imageUrl = `${urlData.publicUrl}?t=${Date.now()}`;
 
-      const payload = { trainer_id: trainerId, image_url: imageUrl, message: message || null };
+      const payload = {
+        trainer_id: trainerId,
+        image_url: imageUrl,
+        message: message || null,
+        title: title || null,
+      };
 
       if (welcomeCard) {
         const { error } = await supabase
@@ -102,17 +109,17 @@ export function WelcomeCardEditor() {
       if (welcomeCard) {
         const { error } = await supabase
           .from("trainer_welcome_cards")
-          .update({ message: message || null })
+          .update({ message: message || null, title: title || null })
           .eq("id", welcomeCard.id);
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from("trainer_welcome_cards")
-          .insert({ trainer_id: trainerId, message: message || null });
+          .insert({ trainer_id: trainerId, message: message || null, title: title || null });
         if (error) throw error;
       }
       queryClient.invalidateQueries({ queryKey: ["trainer-welcome-card"] });
-      toast({ title: "Message saved" });
+      toast({ title: "Saved" });
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
