@@ -18,6 +18,7 @@ interface MenuItem {
   url: string;
   icon: any;
   featureKey?: string;
+  isVisible?: (settings: any) => boolean;
 }
 
 const mainItems: MenuItem[] = [
@@ -28,8 +29,18 @@ const mainItems: MenuItem[] = [
   { title: "Tasks", url: "/client/tasks", icon: CheckSquare, featureKey: "tasks_enabled" },
   { title: "Progress", url: "/client/progress", icon: TrendingUp, featureKey: "body_metrics_enabled" },
   { title: "Health", url: "/client/health", icon: Heart, featureKey: "activity_logging_enabled" },
-  { title: "Meal Plan", url: "/client/meal-plan", icon: Utensils, featureKey: "food_journal_enabled" },
-  { title: "Nutrition", url: "/client/nutrition", icon: Utensils, featureKey: "food_journal_enabled" },
+  {
+    title: "Meal Plan",
+    url: "/client/meal-plan",
+    icon: Utensils,
+    isVisible: (s) => s?.meal_plan_type && s.meal_plan_type !== "none",
+  },
+  {
+    title: "Nutrition",
+    url: "/client/nutrition",
+    icon: Utensils,
+    isVisible: (s) => s?.food_journal_enabled !== false && s?.meal_plan_type !== "none",
+  },
   { title: "Nutrition Dashboard", url: "/client/nutrition-dashboard", icon: Activity, featureKey: "macros_enabled" },
   { title: "Keto Types", url: "/client/keto-types", icon: Utensils, featureKey: "macros_enabled" },
   { title: "Messages", url: "/client/messages", icon: MessageSquare, featureKey: "messages_enabled" },
@@ -51,6 +62,7 @@ export function ClientSidebar() {
   const { settings } = useClientFeatureSettings();
 
   const isVisible = (item: MenuItem) => {
+    if (item.isVisible) return item.isVisible(settings);
     if (!item.featureKey) return true;
     return settings[item.featureKey as keyof typeof settings] !== false;
   };
