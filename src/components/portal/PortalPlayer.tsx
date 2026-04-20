@@ -127,6 +127,21 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
     }
   }, [playing, audioPaused]);
 
+  // When the scene's audio source changes (category/scene switch), reload and resume playback
+  useEffect(() => {
+    const a = audioRef.current;
+    if (!a) return;
+    a.volume = muted ? 0 : volume;
+    // Force reload of new src then play
+    try { a.load(); } catch {}
+    if (playing && !audioPaused) {
+      a.play().catch(() => {});
+    }
+    // Also nudge the video to play in case React swapped the element
+    const v = videoRef.current;
+    if (v && playing && !audioPaused) v.play().catch(() => {});
+  }, [scene.audio_url, scene.video_url]);
+
   // Volume sync
   useEffect(() => {
     if (audioRef.current) {
