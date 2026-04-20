@@ -204,6 +204,9 @@ export function CardCustomizer({
           <Slider
             value={[overlay]}
             onValueChange={([v]) => setOverlay(v)}
+            onValueCommit={([v]) => {
+              if (v !== (values.overlayOpacity ?? 50)) onSave({ overlayOpacity: v });
+            }}
             min={0}
             max={90}
             step={5}
