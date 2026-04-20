@@ -104,7 +104,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
   const handleBackToTrainer = () => {
     localStorage.removeItem("impersonatedClientId");
     queryClient.clear();
-    navigate("/");
+    navigate(location.state?.returnTo || "/");
   };
 
   return (
