@@ -91,14 +91,8 @@ export function SmartPaceTrainerCard({ clientId, trainerId }: Props) {
 
   const toggleMut = useMutation({
     mutationFn: async (val: boolean) => {
-      // When turning OFF: wipe the active goal so re-enabling starts fresh.
-      if (!val) {
-        const { error: delErr } = await supabase
-          .from("smart_pace_goals")
-          .delete()
-          .eq("client_id", clientId);
-        if (delErr) throw delErr;
-      }
+      // Non-destructive: only flip the feature flag. Goal data is preserved
+      // so re-enabling the tracker brings the client right back where they were.
       const { error } = await supabase
         .from("client_feature_settings")
         .update({ smart_pace_enabled: val })
@@ -106,20 +100,33 @@ export function SmartPaceTrainerCard({ clientId, trainerId }: Props) {
       if (error) throw error;
     },
     onSuccess: (_data, val) => {
-      // Clear local form state when disabled so re-enable shows blank fields.
-      if (!val) {
-        setStartWeight("");
-        setGoalWeight("");
-        setDirection("lose");
-        setStartDate(new Date());
-        setTargetDate(undefined);
-      }
       qc.invalidateQueries({ queryKey: ["smart-pace-settings", clientId] });
       qc.invalidateQueries({ queryKey: ["smart-pace-trainer-goal", clientId] });
       qc.invalidateQueries({ queryKey: ["smart-pace"] });
-      toast({ title: val ? "Smart Pace enabled" : "Smart Pace disabled — data cleared" });
+      toast({ title: val ? "Smart Pace enabled" : "Smart Pace disabled — data preserved" });
     },
     onError: (e: Error) => toast({ title: "Toggle failed", description: e.message, variant: "destructive" }),
+  });
+
+  const resetMut = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("smart_pace_goals")
+        .delete()
+        .eq("client_id", clientId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      setStartWeight("");
+      setGoalWeight("");
+      setDirection("lose");
+      setStartDate(new Date());
+      setTargetDate(undefined);
+      qc.invalidateQueries({ queryKey: ["smart-pace-trainer-goal", clientId] });
+      qc.invalidateQueries({ queryKey: ["smart-pace"] });
+      toast({ title: "Goal reset — start fresh" });
+    },
+    onError: (e: Error) => toast({ title: "Reset failed", description: e.message, variant: "destructive" }),
   });
 
   const saveMut = useMutation({
@@ -321,9 +328,23 @@ export function SmartPaceTrainerCard({ clientId, trainerId }: Props) {
             >
               All states demo
             </Button>
+            {goal && (
+              <Button
+                variant="ghost"
+                className="text-destructive hover:text-destructive"
+                onClick={() => {
+                  if (confirm("Delete this goal and start fresh? This cannot be undone.")) {
+                    resetMut.mutate();
+                  }
+                }}
+                disabled={resetMut.isPending}
+              >
+                {resetMut.isPending ? "Resetting..." : "Reset goal"}
+              </Button>
+            )}
           </div>
           <p className="text-[11px] text-muted-foreground">
-            <strong>Preview Tracker</strong> = client's live Smart Pace page (impersonates this client). <strong>Preview Dashboard</strong> = client's home with banner & notifications. <strong>All states demo</strong> = static Behind / On Pace / Ahead designs.
+            <strong>Toggle OFF</strong> just hides the tracker from the client — goal data is preserved. Use <strong>Reset goal</strong> to wipe and start over. <strong>Preview</strong> buttons are read-only.
           </p>
 
           {goal && (
