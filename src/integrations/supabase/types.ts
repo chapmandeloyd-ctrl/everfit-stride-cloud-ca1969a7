@@ -1077,19 +1077,27 @@ export type Database = {
           daily_checkin_enabled: boolean
           dashboard_hero_image_url: string | null
           dashboard_hero_message: string | null
+          dashboard_hero_text_color: string | null
+          dashboard_hero_title: string | null
           eating_window_card_image_url: string | null
+          eating_window_card_message: string | null
+          eating_window_card_text_color: string | null
+          eating_window_card_title: string | null
           eating_window_ends_at: string | null
           eating_window_hours: number
           engine_mode: Database["public"]["Enums"]["engine_mode"]
           fast_lock_pin: string | null
           fasting_card_image_url: string | null
           fasting_card_subtitle: string
+          fasting_card_text_color: string | null
+          fasting_card_title: string | null
           fasting_enabled: boolean
           fasting_strict_mode: boolean
           food_journal_enabled: boolean
           goals_enabled: boolean
           greeting_emoji: string
           greeting_subtitle: string
+          greeting_title: string | null
           homework_enabled: boolean
           id: string
           insights_enabled: boolean
@@ -1168,19 +1176,27 @@ export type Database = {
           daily_checkin_enabled?: boolean
           dashboard_hero_image_url?: string | null
           dashboard_hero_message?: string | null
+          dashboard_hero_text_color?: string | null
+          dashboard_hero_title?: string | null
           eating_window_card_image_url?: string | null
+          eating_window_card_message?: string | null
+          eating_window_card_text_color?: string | null
+          eating_window_card_title?: string | null
           eating_window_ends_at?: string | null
           eating_window_hours?: number
           engine_mode?: Database["public"]["Enums"]["engine_mode"]
           fast_lock_pin?: string | null
           fasting_card_image_url?: string | null
           fasting_card_subtitle?: string
+          fasting_card_text_color?: string | null
+          fasting_card_title?: string | null
           fasting_enabled?: boolean
           fasting_strict_mode?: boolean
           food_journal_enabled?: boolean
           goals_enabled?: boolean
           greeting_emoji?: string
           greeting_subtitle?: string
+          greeting_title?: string | null
           homework_enabled?: boolean
           id?: string
           insights_enabled?: boolean
@@ -1259,19 +1275,27 @@ export type Database = {
           daily_checkin_enabled?: boolean
           dashboard_hero_image_url?: string | null
           dashboard_hero_message?: string | null
+          dashboard_hero_text_color?: string | null
+          dashboard_hero_title?: string | null
           eating_window_card_image_url?: string | null
+          eating_window_card_message?: string | null
+          eating_window_card_text_color?: string | null
+          eating_window_card_title?: string | null
           eating_window_ends_at?: string | null
           eating_window_hours?: number
           engine_mode?: Database["public"]["Enums"]["engine_mode"]
           fast_lock_pin?: string | null
           fasting_card_image_url?: string | null
           fasting_card_subtitle?: string
+          fasting_card_text_color?: string | null
+          fasting_card_title?: string | null
           fasting_enabled?: boolean
           fasting_strict_mode?: boolean
           food_journal_enabled?: boolean
           goals_enabled?: boolean
           greeting_emoji?: string
           greeting_subtitle?: string
+          greeting_title?: string | null
           homework_enabled?: boolean
           id?: string
           insights_enabled?: boolean
@@ -2128,6 +2152,9 @@ export type Database = {
           id: string
           image_url: string | null
           message: string | null
+          overlay_opacity: number
+          text_color: string | null
+          title: string | null
           trainer_id: string
           updated_at: string
         }
@@ -2137,6 +2164,9 @@ export type Database = {
           id?: string
           image_url?: string | null
           message?: string | null
+          overlay_opacity?: number
+          text_color?: string | null
+          title?: string | null
           trainer_id: string
           updated_at?: string
         }
@@ -2146,6 +2176,9 @@ export type Database = {
           id?: string
           image_url?: string | null
           message?: string | null
+          overlay_opacity?: number
+          text_color?: string | null
+          title?: string | null
           trainer_id?: string
           updated_at?: string
         }
@@ -2198,6 +2231,9 @@ export type Database = {
           id: string
           image_url: string | null
           message: string | null
+          overlay_opacity: number
+          text_color: string | null
+          title: string | null
           trainer_id: string
           updated_at: string
         }
@@ -2208,6 +2244,9 @@ export type Database = {
           id?: string
           image_url?: string | null
           message?: string | null
+          overlay_opacity?: number
+          text_color?: string | null
+          title?: string | null
           trainer_id: string
           updated_at?: string
         }
@@ -2218,6 +2257,9 @@ export type Database = {
           id?: string
           image_url?: string | null
           message?: string | null
+          overlay_opacity?: number
+          text_color?: string | null
+          title?: string | null
           trainer_id?: string
           updated_at?: string
         }
