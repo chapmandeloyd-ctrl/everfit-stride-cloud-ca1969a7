@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
@@ -15,6 +16,7 @@ export function FastingCardEditor() {
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState("");
+  const [title, setTitle] = useState("");
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [initialized, setInitialized] = useState(false);
@@ -37,6 +39,7 @@ export function FastingCardEditor() {
 
   if (fastingCard && !initialized) {
     setMessage(fastingCard.message || "");
+    setTitle((fastingCard as any).title ?? "");
     setInitialized(true);
   }
 
@@ -67,7 +70,7 @@ export function FastingCardEditor() {
       } else {
         const { error } = await supabase
           .from("trainer_fasting_cards")
-          .insert({ trainer_id: trainerId, image_url: imageUrl, message: message || null });
+          .insert({ trainer_id: trainerId, image_url: imageUrl, message: message || null, title: title || null });
         if (error) throw error;
       }
 
@@ -99,17 +102,17 @@ export function FastingCardEditor() {
       if (fastingCard) {
         const { error } = await supabase
           .from("trainer_fasting_cards")
-          .update({ message: message || null })
+          .update({ message: message || null, title: title || null })
           .eq("id", fastingCard.id);
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from("trainer_fasting_cards")
-          .insert({ trainer_id: trainerId, message: message || null });
+          .insert({ trainer_id: trainerId, message: message || null, title: title || null });
         if (error) throw error;
       }
       queryClient.invalidateQueries({ queryKey: ["trainer-fasting-card"] });
-      toast({ title: "Message saved" });
+      toast({ title: "Saved" });
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {

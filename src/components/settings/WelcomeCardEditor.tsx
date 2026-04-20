@@ -157,10 +157,10 @@ export function WelcomeCardEditor() {
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 p-3">
-              <p className="text-xs font-semibold text-white/70 uppercase tracking-wider">Welcome</p>
-              <p className="text-sm font-bold text-white">
-                {message || "Welcome to your fitness journey!"}
-              </p>
+              {title && (
+                <p className="text-xs font-semibold text-white/70 uppercase tracking-wider">{title}</p>
+              )}
+              {message && <p className="text-sm font-bold text-white">{message}</p>}
             </div>
           </div>
         </div>
@@ -193,7 +193,13 @@ export function WelcomeCardEditor() {
 
         {/* Message */}
         <div className="space-y-2">
-          <Label>Welcome Message</Label>
+          <Label>Title (small label, leave empty to hide)</Label>
+          <Input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="WELCOME"
+          />
+          <Label>Message (leave empty to hide)</Label>
           <Textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
@@ -202,7 +208,7 @@ export function WelcomeCardEditor() {
           />
           <Button size="sm" onClick={saveMessage} disabled={saving}>
             <Save className="h-4 w-4 mr-1.5" />
-            {saving ? "Saving..." : "Save Message"}
+            {saving ? "Saving..." : "Save"}
           </Button>
         </div>
       </CardContent>
