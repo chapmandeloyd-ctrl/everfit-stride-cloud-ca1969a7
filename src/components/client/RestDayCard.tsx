@@ -1,9 +1,10 @@
 interface RestDayCardProps {
   imageUrl?: string;
   message?: string;
+  title?: string;
 }
 
-export function RestDayCard({ imageUrl, message }: RestDayCardProps) {
+export function RestDayCard({ imageUrl, message, title }: RestDayCardProps) {
   return (
     <div className="relative rounded-2xl overflow-hidden h-56">
       {/* Background image */}
@@ -20,18 +21,18 @@ export function RestDayCard({ imageUrl, message }: RestDayCardProps) {
       {/* Content */}
       <div className="relative h-full flex flex-col justify-between p-5">
         <div className="flex justify-center items-center flex-1">
-          <h2 className="text-4xl font-bold tracking-[0.3em] text-white/90 font-heading">
-            RELAX
-          </h2>
+          {!title && !message && (
+            <h2 className="text-4xl font-bold tracking-[0.3em] text-white/90 font-heading">
+              RELAX
+            </h2>
+          )}
         </div>
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-white/70 mb-1">
-            Rest Day
-          </p>
-          <p className="text-sm font-semibold text-white">
-            {message || "No workouts scheduled for today. Enjoy your rest!"}
-          </p>
-        </div>
+        {(title || message) && (
+          <div>
+            {title && <p className="text-xs font-semibold uppercase tracking-wider text-white/70 mb-1">{title}</p>}
+            {message && <p className="text-sm font-semibold text-white">{message}</p>}
+          </div>
+        )}
       </div>
     </div>
   );
