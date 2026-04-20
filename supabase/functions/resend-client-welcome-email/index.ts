@@ -46,7 +46,11 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Unauthorized");
     }
 
-    const { clientId, loginUrl }: ResendEmailRequest = await req.json();
+    const { clientId }: ResendEmailRequest = await req.json();
+
+    // Always force production URL — never trust client-provided URLs
+    // (could be Lovable editor or preview origin).
+    const loginUrl = "https://ksom-360.app/auth";
 
     console.log("Resending welcome email for client:", clientId);
 
