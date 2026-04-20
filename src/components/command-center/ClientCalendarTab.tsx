@@ -200,6 +200,10 @@ export function ClientCalendarTab({ clientId, trainerId }: ClientCalendarTabProp
           <div className="flex items-center justify-between">
             <CardTitle>{format(currentDate, "MMMM yyyy")}</CardTitle>
             <div className="flex items-center gap-2">
+              <Button variant={showHeatmap ? "default" : "outline"} size="sm" onClick={() => setShowHeatmap(!showHeatmap)}>
+                <Flame className="h-4 w-4 mr-2" />
+                Heatmap
+              </Button>
               <Button variant="outline" size="sm" onClick={() => { setCurrentDate(new Date()); setSelectedDay(new Date()); }}>
                 <CalendarIcon className="h-4 w-4 mr-2" />
                 Today
