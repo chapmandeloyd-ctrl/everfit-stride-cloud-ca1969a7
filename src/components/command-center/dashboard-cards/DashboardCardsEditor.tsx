@@ -83,12 +83,13 @@ function HeroSection({ clientId }: { clientId: string }) {
 
   return (
     <CardCustomizer
-      fields={["title", "message", "textColor"]}
+      fields={["title", "message", "image", "textColor"]}
       titlePlaceholder="Today's focus"
       messagePlaceholder="You've got this! Stay consistent 💪"
       values={{
         title: settings?.dashboard_hero_title,
         message: settings?.dashboard_hero_message,
+        imageUrl: settings?.dashboard_hero_image_url,
         textColor: settings?.dashboard_hero_text_color,
       }}
       saving={update.isPending}
@@ -97,6 +98,7 @@ function HeroSection({ clientId }: { clientId: string }) {
         update.mutateAsync({
           ...(v.title !== undefined && { dashboard_hero_title: v.title }),
           ...(v.message !== undefined && { dashboard_hero_message: v.message }),
+          ...(v.imageUrl !== undefined && { dashboard_hero_image_url: v.imageUrl }),
           ...(v.textColor !== undefined && { dashboard_hero_text_color: v.textColor }),
         })
       }
