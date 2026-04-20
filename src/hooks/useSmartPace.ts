@@ -54,17 +54,50 @@ export function useSmartPace() {
       const enabled = !!settings?.smart_pace_enabled;
       if (!enabled || !goal) return emptySnapshot(enabled);
 
-      const typed = goal as unknown as SmartPaceGoal;
-      const target = calculateDailyTarget(typed);
+      // ----- Live recalc: age debt for missed days since last weigh-in -----
+      // Cron runs nightly, but we want the dashboard to feel real-time.
+      const rawGoal = goal as unknown as SmartPaceGoal;
       const today = new Date().toISOString().slice(0, 10);
+      const last = rawGoal.last_weigh_in_date ?? rawGoal.start_date;
+      const msPerDay = 86_400_000;
+      const missedDays = Math.max(
+        0,
+        Math.round(
+          (new Date(today + "T00:00:00Z").getTime() -
+            new Date(last + "T00:00:00Z").getTime()) /
+            msPerDay
+        ) - 1 // exclude today (still has time to weigh in)
+      );
+
+      let liveDebt = Number(rawGoal.current_debt_lbs) || 0;
+      let liveCredit = Number(rawGoal.current_credit_lbs) || 0;
+      const base = Number(rawGoal.daily_pace_lbs) || 0;
+      if (missedDays > 0 && base > 0) {
+        let owed = base * missedDays;
+        const burn = Math.min(liveCredit, owed);
+        liveCredit -= burn;
+        owed -= burn;
+        liveDebt += owed;
+        liveDebt = Math.round(liveDebt * 10) / 10;
+        liveCredit = Math.round(liveCredit * 10) / 10;
+      }
+
+      const typed: SmartPaceGoal = {
+        ...rawGoal,
+        current_debt_lbs: liveDebt,
+        current_credit_lbs: liveCredit,
+        consecutive_behind_days:
+          (rawGoal.consecutive_behind_days || 0) + missedDays,
+        consecutive_missed_days:
+          (rawGoal.consecutive_missed_days || 0) + missedDays,
+      };
+
+      const target = calculateDailyTarget(typed);
 
       let status: SmartPaceSnapshot["status"] = "on_pace";
-      if (target.debtLbs > 0.05) status = "behind";
+      if (missedDays >= 2 || target.debtLbs >= base * 2) status = "missed";
+      else if (target.debtLbs > 0.05) status = "behind";
       else if (target.creditLbs > 0.05) status = "ahead";
-      if (typed.last_weigh_in_date && typed.last_weigh_in_date < today) {
-        // Hasn't weighed in today yet
-        if (target.debtLbs > 0.05) status = "behind";
-      }
 
       return {
         goal: typed,
