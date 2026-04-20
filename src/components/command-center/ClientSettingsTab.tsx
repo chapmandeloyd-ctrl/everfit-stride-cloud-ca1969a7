@@ -10,8 +10,6 @@ import { InsightCoachControls } from "./InsightCoachControls";
 import { CoachPlanOverrides } from "./CoachPlanOverrides";
 import { ENGINE_MODE_OPTIONS, type EngineMode, getEngineConfig } from "@/lib/engineConfig";
 import { Slider } from "@/components/ui/slider";
-import { RestDayCardEditor } from "./RestDayCardEditor";
-import { SportDayCardEditor } from "./SportDayCardEditor";
 import { ClientSportScheduleCard } from "./ClientSportScheduleCard";
 import { ClientSportProfileEditor } from "./ClientSportProfileEditor";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -28,6 +26,7 @@ import { useState, useEffect } from "react";
 import { Trash2, Plus } from "lucide-react";
 import { DashboardCardLayoutEditor } from "@/components/DashboardCardLayoutEditor";
 import { useDashboardLayout } from "@/hooks/useDashboardLayout";
+import { DashboardCardsEditor } from "./dashboard-cards/DashboardCardsEditor";
 
 interface ClientSettingsTabProps {
   clientId: string;
@@ -261,177 +260,39 @@ export function ClientSettingsTab({ clientId, trainerId }: ClientSettingsTabProp
       {/* Plan Override Controls */}
       <CoachPlanOverrides clientId={clientId} trainerId={trainerId} />
 
-      {/* Dashboard Customization */}
+      {/* Greeting Emoji — quick toggle kept inline for convenience */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Smile className="h-5 w-5" />
-            Dashboard Customization
+            Greeting Emoji
           </CardTitle>
-          <CardDescription>
-            Personalize the greeting, motivational message, and hero card shown on this client's Today screen.
-          </CardDescription>
+          <CardDescription>The emoji shown next to "Hello, [Name]!"</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-5">
-          <div className="space-y-2">
-            <Label className="text-sm font-medium flex items-center gap-2">
-              <Smile className="h-4 w-4" />
-              Greeting Emoji
-            </Label>
-            <Input
-              value={(settings as any)?.greeting_emoji ?? "👋"}
-              onChange={(e) => toggleMutation.mutate({ key: "greeting_emoji", value: e.target.value })}
-              placeholder="👋"
-              className="max-w-[80px] text-center text-xl"
-            />
-          </div>
+        <CardContent>
+          <Input
+            value={(settings as any)?.greeting_emoji ?? "👋"}
+            onChange={(e) => toggleMutation.mutate({ key: "greeting_emoji", value: e.target.value })}
+            placeholder="👋"
+            className="max-w-[80px] text-center text-xl"
+          />
+        </CardContent>
+      </Card>
 
-          <div className="space-y-2">
-            <Label className="text-sm font-medium flex items-center gap-2">
-              <Type className="h-4 w-4" />
-              Greeting Subtitle
-            </Label>
-            <p className="text-xs text-muted-foreground">The motivational line shown below "Hello, [Name]!"</p>
-            <Input
-              value={(settings as any)?.greeting_subtitle ?? "Let's do this"}
-              onChange={(e) => toggleMutation.mutate({ key: "greeting_subtitle", value: e.target.value })}
-              placeholder="Let's do this"
-              className="max-w-sm"
-            />
-          </div>
+      {/* Unified Dashboard Cards Editor — title / message / image / colors per card */}
+      <DashboardCardsEditor clientId={clientId} trainerId={trainerId} />
 
-          <Separator />
-
-          <div className="space-y-2">
-            <Label className="text-sm font-medium flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              Fasting Card Subtitle
-            </Label>
-            <p className="text-xs text-muted-foreground">The message shown on the fasting protocol card</p>
-            <Input
-              value={(settings as any)?.fasting_card_subtitle ?? "Fasting is the foundation of your KSOM-360 plan."}
-              onChange={(e) => toggleMutation.mutate({ key: "fasting_card_subtitle", value: e.target.value })}
-              placeholder="Fasting is the foundation of your KSOM-360 plan."
-              className="max-w-sm"
-            />
-          </div>
-
-           <Separator />
-
-          <div className="space-y-2">
-            <Label className="text-sm font-medium flex items-center gap-2">
-              <Image className="h-4 w-4" />
-              Fasting Card Background Image
-            </Label>
-            <p className="text-xs text-muted-foreground">Optional background image for the fasting protocol card</p>
-            {(settings as any)?.fasting_card_image_url && (
-              <div className="relative max-w-sm">
-                <img
-                  src={(settings as any).fasting_card_image_url}
-                  alt="Fasting card background"
-                  className="rounded-lg h-24 w-full object-cover border"
-                />
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  className="absolute top-1 right-1 h-6 px-2 text-xs"
-                  onClick={() => toggleMutation.mutate({ key: "fasting_card_image_url", value: null })}
-                >
-                  Remove
-                </Button>
-              </div>
-            )}
-            <Input
-              type="file"
-              accept="image/*"
-              className="max-w-sm"
-              onChange={async (e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                try {
-                  const ext = file.name.split(".").pop();
-                  const path = `${clientId}/fasting-card-${Date.now()}.${ext}`;
-                  const { error: uploadError } = await supabase.storage
-                    .from("rest-day-images")
-                    .upload(path, file, { upsert: true });
-                  if (uploadError) throw uploadError;
-                  const { data: { publicUrl } } = supabase.storage.from("rest-day-images").getPublicUrl(path);
-                  toggleMutation.mutate({ key: "fasting_card_image_url", value: publicUrl });
-                } catch (err) {
-                  console.error("Failed to upload fasting card image:", err);
-                }
-              }}
-            />
-          </div>
-
-          <Separator />
-
-          <div className="space-y-2">
-            <Label className="text-sm font-medium flex items-center gap-2">
-              <Image className="h-4 w-4" />
-              Eating Window Card Background Image
-            </Label>
-            <p className="text-xs text-muted-foreground">Optional background image for the eating window timer card</p>
-            {(settings as any)?.eating_window_card_image_url && (
-              <div className="relative max-w-sm">
-                <img
-                  src={(settings as any).eating_window_card_image_url}
-                  alt="Eating window card background"
-                  className="rounded-lg h-24 w-full object-cover border"
-                />
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  className="absolute top-1 right-1 h-6 px-2 text-xs"
-                  onClick={() => toggleMutation.mutate({ key: "eating_window_card_image_url", value: null })}
-                >
-                  Remove
-                </Button>
-              </div>
-            )}
-            <Input
-              type="file"
-              accept="image/*"
-              className="max-w-sm"
-              onChange={async (e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                try {
-                  const ext = file.name.split(".").pop();
-                  const path = `${clientId}/eating-window-card-${Date.now()}.${ext}`;
-                  const { error: uploadError } = await supabase.storage
-                    .from("rest-day-images")
-                    .upload(path, file, { upsert: true });
-                  if (uploadError) throw uploadError;
-                  const { data: { publicUrl } } = supabase.storage.from("rest-day-images").getPublicUrl(path);
-                  toggleMutation.mutate({ key: "eating_window_card_image_url", value: publicUrl });
-                } catch (err) {
-                  console.error("Failed to upload eating window card image:", err);
-                }
-              }}
-            />
-          </div>
-
-          <Separator />
-
-          {/* Meal Slideshow Photos */}
+      {/* Meal Slideshow Photos — kept separate as it's not a single card */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Image className="h-5 w-5" />
+            Meal Slideshow Photos
+          </CardTitle>
+          <CardDescription>Rotating photos shown on the eating window card.</CardDescription>
+        </CardHeader>
+        <CardContent>
           <MealSlideshowEditor clientId={clientId} trainerId={trainerId} />
-
-          <Separator />
-
-          <div className="space-y-2">
-            <Label className="text-sm font-medium flex items-center gap-2">
-              <Image className="h-4 w-4" />
-              Dashboard Hero Message
-            </Label>
-            <p className="text-xs text-muted-foreground">Optional motivational message shown as a hero banner on the dashboard</p>
-            <Input
-              value={(settings as any)?.dashboard_hero_message ?? ""}
-              onChange={(e) => toggleMutation.mutate({ key: "dashboard_hero_message", value: e.target.value })}
-              placeholder="You've got this! Stay consistent 💪"
-              className="max-w-sm"
-            />
-          </div>
         </CardContent>
       </Card>
 
@@ -476,9 +337,7 @@ export function ClientSettingsTab({ clientId, trainerId }: ClientSettingsTabProp
       <div className={cn("space-y-6 transition-opacity", !settings?.sport_schedule_enabled && "opacity-40 pointer-events-none")}>
         <ClientSportProfileEditor clientId={clientId} trainerId={trainerId} />
         <ClientSportScheduleCard clientId={clientId} trainerId={trainerId} />
-        <SportDayCardEditor clientId={clientId} trainerId={trainerId} />
       </div>
-      <RestDayCardEditor clientId={clientId} trainerId={trainerId} />
 
       {/* Meal Plan Configuration */}
       <Card>
