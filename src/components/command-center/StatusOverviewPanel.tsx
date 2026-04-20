@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Gauge, Layers } from "lucide-react";
+import { getLevelTier } from "@/lib/ksom360Levels";
 
 interface StatusOverviewPanelProps {
   clientId: string;
@@ -18,9 +19,8 @@ const ENGINE_LABELS: Record<string, string> = {
 };
 
 function getLevelBand(level: number): string {
-  if (level >= 7) return "7 (Mastery)";
-  if (level >= 4) return `${level} (4-6)`;
-  return `${level} (1-3)`;
+  const { tier } = getLevelTier(level);
+  return `${level} (${tier})`;
 }
 
 export function StatusOverviewPanel({ clientId }: StatusOverviewPanelProps) {
