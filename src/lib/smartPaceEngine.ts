@@ -193,16 +193,28 @@ export function processWeighIn(input: ProcessWeighInInput): ProcessWeighInResult
 
 /** Project the date the client will hit goal weight at the current pace. */
 export function projectCompletionDate(goal: SmartPaceGoal): Date | null {
-  if (!goal.last_weigh_in_value || !goal.daily_pace_lbs) return null;
+  if (!goal.daily_pace_lbs) return null;
+
+  // Fall back to start weight when no weigh-in has been logged yet so the
+  // projection still renders on day 1 instead of returning null.
+  const currentWeight = goal.last_weigh_in_value ?? goal.start_weight;
+  if (currentWeight == null) return null;
+
   const remaining =
     goal.goal_direction === "gain"
-      ? goal.goal_weight - goal.last_weigh_in_value
-      : goal.last_weigh_in_value - goal.goal_weight;
+      ? goal.goal_weight - currentWeight
+      : currentWeight - goal.goal_weight;
   if (remaining <= 0) return new Date();
-  const days = Math.ceil(remaining / goal.daily_pace_lbs);
-  const d = new Date();
-  d.setDate(d.getDate() + days);
-  return d;
+
+  // Anchor the projection to the date of the weight we're projecting from
+  // (last weigh-in, or start date if none yet). This avoids off-by-one drift
+  // caused by rounding `daily_pace_lbs` and ensures that on day 1 the
+  // projection lines up exactly with the trainer-set target date.
+  const anchorStr = goal.last_weigh_in_date ?? goal.start_date;
+  const anchor = anchorStr ? new Date(anchorStr + "T00:00:00") : new Date();
+  const days = Math.round(remaining / goal.daily_pace_lbs);
+  anchor.setDate(anchor.getDate() + days);
+  return anchor;
 }
 
 /** Overall progress 0–100. */
