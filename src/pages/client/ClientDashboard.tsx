@@ -2279,14 +2279,7 @@ export default function ClientDashboard() {
                       </div>
 
                       {/* Conditional gates / + Log meal footer */}
-                      {mealGateStatus === "no_protocol" ? (
-                        <div className="mt-4 p-3 rounded-lg bg-muted/50 text-center space-y-2">
-                          <p className="text-xs text-muted-foreground font-medium">Choose a fasting protocol to log meals.</p>
-                          <Button variant="outline" size="sm" className="w-full" onClick={(e) => { e.stopPropagation(); navigate("/client/programs"); }}>
-                            Choose Protocol
-                          </Button>
-                        </div>
-                      ) : mealGateStatus === "fasting" ? (
+                      {mealGateStatus === "fasting" ? (
                         <div className="mt-4 p-3 rounded-lg bg-muted/50 text-center space-y-2">
                           <p className="text-xs text-muted-foreground font-medium">You're currently fasting. Meals unlock when your fast ends.</p>
                           <p className="text-[10px] text-muted-foreground">Eating window opens at {fastEndTimeStr}</p>
@@ -2355,11 +2348,7 @@ export default function ClientDashboard() {
                           {todayMealCount > 0 ? "Tap to add more" : "Track your meals and macros"}
                         </p>
                       </div>
-                      {mealGateStatus === "no_protocol" ? (
-                        <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); navigate("/client/programs"); }}>
-                          Choose Protocol
-                        </Button>
-                      ) : mealGateStatus === "fasting" ? (
+                      {mealGateStatus === "fasting" ? (
                         <div className="text-right space-y-1">
                           <p className="text-[10px] text-muted-foreground">Fasting · opens at {fastEndTimeStr}</p>
                         </div>
