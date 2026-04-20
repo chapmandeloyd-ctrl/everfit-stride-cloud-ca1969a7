@@ -258,22 +258,6 @@ export function ClientSettingsTab({ clientId, trainerId }: ClientSettingsTabProp
 
   return (
     <div className="space-y-6">
-      {/* Auto-Advance Levels */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between px-1">
-            <div>
-              <p className="text-sm font-medium">Auto-Advance Levels</p>
-              <p className="text-xs text-muted-foreground">Automatically advance client when eligible (no coach approval needed)</p>
-            </div>
-            <Switch
-              checked={!!(settings as any)?.auto_advance_levels}
-              onCheckedChange={(checked) => toggleMutation.mutate({ key: "auto_advance_levels", value: checked })}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Insight Intelligence Controls */}
       <InsightCoachControls clientId={clientId} trainerId={trainerId} settings={settings} toggleMutation={toggleMutation} />
 
