@@ -31,6 +31,7 @@ export function SmartPaceTrainerCard({ clientId, trainerId }: Props) {
   const qc = useQueryClient();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const draftKey = `smart-pace-draft:${clientId}`;
 
   const { data: settings } = useQuery({
     queryKey: ["smart-pace-settings", clientId],
@@ -44,7 +45,7 @@ export function SmartPaceTrainerCard({ clientId, trainerId }: Props) {
     },
   });
 
-  const { data: goal } = useQuery({
+  const { data: goal, isLoading: goalLoading } = useQuery({
     queryKey: ["smart-pace-trainer-goal", clientId],
     queryFn: async () => {
       const { data } = await supabase
@@ -65,16 +66,73 @@ export function SmartPaceTrainerCard({ clientId, trainerId }: Props) {
   const [direction, setDirection] = useState<"lose" | "gain" | "maintain">("lose");
   const [startDate, setStartDate] = useState<Date>(new Date());
   const [targetDate, setTargetDate] = useState<Date | undefined>(undefined);
+  const [draftHydrated, setDraftHydrated] = useState(false);
 
   useEffect(() => {
-    if (goal) {
-      setStartWeight(String(goal.start_weight ?? ""));
-      setGoalWeight(String(goal.goal_weight));
-      setDirection(goal.goal_direction as any);
-      if (goal.start_date) setStartDate(parseISO(goal.start_date));
-      if (goal.target_date) setTargetDate(parseISO(goal.target_date));
+    if (goalLoading) return;
+
+    const restoreFromDraft = () => {
+      try {
+        const raw = sessionStorage.getItem(draftKey);
+        if (!raw) return false;
+
+        const draft = JSON.parse(raw) as {
+          sourceGoalId: string | null;
+          startWeight: string;
+          goalWeight: string;
+          direction: "lose" | "gain" | "maintain";
+          startDate: string;
+          targetDate: string | null;
+        };
+
+        if (draft.sourceGoalId !== (goal?.id ?? null)) return false;
+
+        setStartWeight(draft.startWeight);
+        setGoalWeight(draft.goalWeight);
+        setDirection(draft.direction);
+        setStartDate(parseISO(draft.startDate));
+        setTargetDate(draft.targetDate ? parseISO(draft.targetDate) : undefined);
+        return true;
+      } catch {
+        sessionStorage.removeItem(draftKey);
+        return false;
+      }
+    };
+
+    if (!restoreFromDraft()) {
+      if (goal) {
+        setStartWeight(String(goal.start_weight ?? ""));
+        setGoalWeight(String(goal.goal_weight));
+        setDirection(goal.goal_direction as "lose" | "gain" | "maintain");
+        setStartDate(goal.start_date ? parseISO(goal.start_date) : new Date());
+        setTargetDate(goal.target_date ? parseISO(goal.target_date) : undefined);
+      } else {
+        setStartWeight("");
+        setGoalWeight("");
+        setDirection("lose");
+        setStartDate(new Date());
+        setTargetDate(undefined);
+      }
     }
-  }, [goal]);
+
+    setDraftHydrated(true);
+  }, [draftKey, goal, goalLoading]);
+
+  useEffect(() => {
+    if (!draftHydrated) return;
+
+    sessionStorage.setItem(
+      draftKey,
+      JSON.stringify({
+        sourceGoalId: goal?.id ?? null,
+        startWeight,
+        goalWeight,
+        direction,
+        startDate: startDate.toISOString(),
+        targetDate: targetDate?.toISOString() ?? null,
+      })
+    );
+  }, [draftHydrated, draftKey, direction, goal?.id, goalWeight, startDate, startWeight, targetDate]);
 
   // Auto-derived avg/day from start/target dates and weights
   const derivedPace = useMemo(() => {
@@ -122,6 +180,7 @@ export function SmartPaceTrainerCard({ clientId, trainerId }: Props) {
       setDirection("lose");
       setStartDate(new Date());
       setTargetDate(undefined);
+      sessionStorage.removeItem(draftKey);
       qc.invalidateQueries({ queryKey: ["smart-pace-trainer-goal", clientId] });
       qc.invalidateQueries({ queryKey: ["smart-pace"] });
       toast({ title: "Goal reset — start fresh" });
@@ -170,6 +229,7 @@ export function SmartPaceTrainerCard({ clientId, trainerId }: Props) {
       }
     },
     onSuccess: () => {
+      sessionStorage.removeItem(draftKey);
       qc.invalidateQueries({ queryKey: ["smart-pace-trainer-goal", clientId] });
       qc.invalidateQueries({ queryKey: ["smart-pace"] });
       toast({ title: goal ? "Goal updated" : "Goal created" });
@@ -308,7 +368,7 @@ export function SmartPaceTrainerCard({ clientId, trainerId }: Props) {
               variant="outline"
               onClick={() => {
                 localStorage.setItem("impersonatedClientId", clientId);
-                navigate("/client/pace");
+                navigate("/client/pace", { state: { returnTo: `/clients/${clientId}` } });
               }}
             >
               Preview Tracker <ChevronRight className="h-4 w-4 ml-1" />
@@ -317,7 +377,7 @@ export function SmartPaceTrainerCard({ clientId, trainerId }: Props) {
               variant="outline"
               onClick={() => {
                 localStorage.setItem("impersonatedClientId", clientId);
-                navigate("/client/dashboard");
+                navigate("/client/dashboard", { state: { returnTo: `/clients/${clientId}` } });
               }}
             >
               Preview Dashboard <ChevronRight className="h-4 w-4 ml-1" />
