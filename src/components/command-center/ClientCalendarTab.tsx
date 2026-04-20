@@ -319,6 +319,28 @@ export function ClientCalendarTab({ clientId, trainerId }: ClientCalendarTabProp
                         </div>
                       );
                     })}
+                    {dayAppointments.map((appt: any) => (
+                      <div
+                        key={appt.id}
+                        className="w-full text-left text-xs p-1.5 rounded bg-teal-500/20 text-teal-900 dark:text-teal-200"
+                      >
+                        <div className="font-medium truncate flex items-center gap-1">
+                          <CalendarClock className="h-3 w-3 shrink-0" />
+                          {appt.appointment_types?.name || "Appointment"}
+                        </div>
+                      </div>
+                    ))}
+                    {dayGoals.map((goal: any) => (
+                      <div
+                        key={goal.id}
+                        className="w-full text-left text-xs p-1.5 rounded bg-fuchsia-500/20 text-fuchsia-900 dark:text-fuchsia-200"
+                      >
+                        <div className="font-medium truncate flex items-center gap-1">
+                          <Target className="h-3 w-3 shrink-0" />
+                          {goal.title}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               );
@@ -348,6 +370,14 @@ export function ClientCalendarTab({ clientId, trainerId }: ClientCalendarTabProp
               <span className="text-sm text-muted-foreground">Practice</span>
             </div>
             <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded bg-teal-500/20"></div>
+              <span className="text-sm text-muted-foreground">Appointment</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded bg-fuchsia-500/20"></div>
+              <span className="text-sm text-muted-foreground">Goal deadline</span>
+            </div>
+            <div className="flex items-center gap-2">
               <div className="w-4 h-4 rounded bg-success/20"></div>
               <span className="text-sm text-muted-foreground">Completed</span>
             </div>
@@ -355,6 +385,24 @@ export function ClientCalendarTab({ clientId, trainerId }: ClientCalendarTabProp
               <div className="w-4 h-4 rounded border-2 border-primary"></div>
               <span className="text-sm text-muted-foreground">Today</span>
             </div>
+            {showHeatmap && (
+              <>
+                <div className="w-px h-4 bg-border mx-1" />
+                <span className="text-xs text-muted-foreground font-medium">Adherence:</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded bg-success/30 border border-success/50"></div>
+                  <span className="text-sm text-muted-foreground">≥80</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded bg-amber-500/30 border border-amber-500/50"></div>
+                  <span className="text-sm text-muted-foreground">60–79</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded bg-rose-500/30 border border-rose-500/50"></div>
+                  <span className="text-sm text-muted-foreground">&lt;60</span>
+                </div>
+              </>
+            )}
           </div>
         </CardContent>
       </Card>
