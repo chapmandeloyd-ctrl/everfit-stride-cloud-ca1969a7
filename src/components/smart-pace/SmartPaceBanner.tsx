@@ -31,7 +31,7 @@ export function SmartPaceBanner() {
   const targetDate = goal.target_date;
 
   const tone =
-    status === "behind"
+    status === "behind" || status === "missed"
       ? {
           gradient:
             "bg-[linear-gradient(135deg,hsl(0_0%_18%)_0%,hsl(0_0%_12%)_45%,hsl(0_60%_22%)_100%)]",
@@ -69,7 +69,9 @@ export function SmartPaceBanner() {
 
   const Icon = tone.icon;
   const headline =
-    status === "behind"
+    status === "missed"
+      ? "Catch-up needed"
+      : status === "behind"
       ? "Catch-up day"
       : status === "ahead"
       ? "Ahead of pace"

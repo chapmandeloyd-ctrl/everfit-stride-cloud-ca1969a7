@@ -54,42 +54,50 @@ export function useSmartPace() {
       const enabled = !!settings?.smart_pace_enabled;
       if (!enabled || !goal) return emptySnapshot(enabled);
 
-      // ----- Live recalc: age debt for missed days since last weigh-in -----
-      // Cron runs nightly, but we want the dashboard to feel real-time.
+      // ----- Live recalc (idempotent w/ nightly rollup) -----
+      // The cron rollup ages debt at ~3am UTC. Between rollups, we recompute
+      // the *expected* debt from scratch using last_weigh_in_date so we never
+      // double-count what the cron has already applied.
       const rawGoal = goal as unknown as SmartPaceGoal;
       const today = new Date().toISOString().slice(0, 10);
       const last = rawGoal.last_weigh_in_date ?? rawGoal.start_date;
       const msPerDay = 86_400_000;
-      const missedDays = Math.max(
+      const daysSinceWeighIn = Math.max(
         0,
         Math.round(
           (new Date(today + "T00:00:00Z").getTime() -
             new Date(last + "T00:00:00Z").getTime()) /
             msPerDay
-        ) - 1 // exclude today (still has time to weigh in)
+        )
       );
+      // We owe target for every full day that passed without a weigh-in
+      // (excluding today — they still have time to weigh in).
+      const missedDays = Math.max(0, daysSinceWeighIn - 1);
 
-      let liveDebt = Number(rawGoal.current_debt_lbs) || 0;
-      let liveCredit = Number(rawGoal.current_credit_lbs) || 0;
       const base = Number(rawGoal.daily_pace_lbs) || 0;
-      if (missedDays > 0 && base > 0) {
-        let owed = base * missedDays;
-        const burn = Math.min(liveCredit, owed);
-        liveCredit -= burn;
-        owed -= burn;
-        liveDebt += owed;
-        liveDebt = Math.round(liveDebt * 10) / 10;
-        liveCredit = Math.round(liveCredit * 10) / 10;
-      }
+      const storedDebt = Number(rawGoal.current_debt_lbs) || 0;
+      const storedCredit = Number(rawGoal.current_credit_lbs) || 0;
+
+      // Expected debt from missed days. Take the MAX of stored vs expected so
+      // we never under-report (cron may not have caught up yet) and never
+      // double-count (cron may already have included these missed days).
+      const expectedMissedDebt = Math.max(0, missedDays * base - storedCredit);
+      const liveDebt = Math.max(storedDebt, Math.round(expectedMissedDebt * 10) / 10);
+      const liveCredit =
+        liveDebt > storedDebt ? 0 : storedCredit; // if we bumped debt, credit was burned
 
       const typed: SmartPaceGoal = {
         ...rawGoal,
         current_debt_lbs: liveDebt,
         current_credit_lbs: liveCredit,
-        consecutive_behind_days:
-          (rawGoal.consecutive_behind_days || 0) + missedDays,
-        consecutive_missed_days:
-          (rawGoal.consecutive_missed_days || 0) + missedDays,
+        consecutive_missed_days: Math.max(
+          rawGoal.consecutive_missed_days || 0,
+          missedDays
+        ),
+        consecutive_behind_days: Math.max(
+          rawGoal.consecutive_behind_days || 0,
+          missedDays
+        ),
       };
 
       const target = calculateDailyTarget(typed);
@@ -100,6 +108,19 @@ export function useSmartPace() {
       else if (target.creditLbs > 0.05) status = "ahead";
 
       return {
+        goal: typed,
+        enabled: true,
+        todayTargetLbs: target.todayTargetLbs,
+        baseLbs: target.baseLbs,
+        debtLbs: target.debtLbs,
+        creditLbs: target.creditLbs,
+        progressPct: paceProgressPct(typed),
+        reason: target.reason,
+        projectedDate: projectCompletionDate(typed),
+        status,
+        cappedAt: target.cappedAt,
+      };
+    },
         goal: typed,
         enabled: true,
         todayTargetLbs: target.todayTargetLbs,
