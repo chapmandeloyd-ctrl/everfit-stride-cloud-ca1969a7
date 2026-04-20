@@ -1,444 +1,493 @@
 import { ClientLayout } from "@/components/ClientLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, CheckCircle2, Circle, Trophy } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+import { Card } from "@/components/ui/card";
+import {
+  Calendar as CalendarIcon,
+  CheckCircle2,
+  Circle,
+  Trophy,
+  Swords,
+  Dumbbell,
+  Clock,
+  MapPin,
+  ChevronRight,
+  Target,
+  Flame,
+} from "lucide-react";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useState } from "react";
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, parseISO, startOfWeek, endOfWeek } from "date-fns";
-import { WorkoutDetailDialog } from "@/components/WorkoutDetailDialog";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  format,
+  addDays,
+  startOfDay,
+  isSameDay,
+  isToday,
+  isTomorrow,
+  isYesterday,
+  parseISO,
+  isBefore,
+  differenceInCalendarDays,
+} from "date-fns";
+import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
+
+type AgendaItem =
+  | { kind: "workout"; id: string; date: Date; data: any }
+  | { kind: "task"; id: string; date: Date; data: any }
+  | { kind: "habit"; id: string; date: Date; data: any }
+  | { kind: "sport"; id: string; date: Date; data: any }
+  | { kind: "appointment"; id: string; date: Date; data: any }
+  | { kind: "goal"; id: string; date: Date; data: any };
+
+const RANGE_BEFORE_DAYS = 14;
+const RANGE_AFTER_DAYS = 60;
+
+function dayLabel(date: Date) {
+  if (isToday(date)) return `Today, ${format(date, "MMMM do")}`;
+  if (isTomorrow(date)) return `Tomorrow, ${format(date, "MMMM do")}`;
+  if (isYesterday(date)) return `Yesterday, ${format(date, "MMMM do")}`;
+  return format(date, "EEEE, MMMM do");
+}
 
 export default function ClientCalendar() {
-  const { user } = useAuth();
   const clientId = useEffectiveClientId();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedWorkoutId, setSelectedWorkoutId] = useState<string | null>(null);
+  const todayRef = useRef<HTMLDivElement | null>(null);
 
-  // Fetch client workouts for the current month
-  const monthStart = startOfMonth(currentDate);
-  const monthEnd = endOfMonth(currentDate);
+  const today = startOfDay(new Date());
+  const rangeStart = useMemo(() => addDays(today, -RANGE_BEFORE_DAYS), []);
+  const rangeEnd = useMemo(() => addDays(today, RANGE_AFTER_DAYS), []);
+  const startStr = format(rangeStart, "yyyy-MM-dd");
+  const endStr = format(rangeEnd, "yyyy-MM-dd");
 
-  const { data: workouts, isLoading } = useQuery({
-    queryKey: ["calendar-workouts", clientId, format(monthStart, "yyyy-MM")],
+  // Workouts
+  const { data: workouts } = useQuery({
+    queryKey: ["agenda-workouts", clientId, startStr, endStr],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("client_workouts")
-        .select(`
-          *,
-          workout_plans (
-            id,
-            name,
-            category,
-            duration_minutes,
-            difficulty
-          )
-        `)
-        .eq("client_id", clientId)
-        .gte("scheduled_date", format(monthStart, "yyyy-MM-dd"))
-        .lte("scheduled_date", format(monthEnd, "yyyy-MM-dd"))
-        .order("scheduled_date", { ascending: true });
-
+        .select("*, workout_plans(id, name, category, duration_minutes, difficulty)")
+        .eq("client_id", clientId!)
+        .gte("scheduled_date", startStr)
+        .lte("scheduled_date", endStr)
+        .order("scheduled_date");
       if (error) throw error;
       return data;
     },
     enabled: !!clientId,
   });
 
-  // Fetch tasks for the month
+  // Tasks
   const { data: tasks } = useQuery({
-    queryKey: ["calendar-tasks", clientId, format(monthStart, "yyyy-MM")],
+    queryKey: ["agenda-tasks", clientId, startStr, endStr],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("client_tasks")
         .select("*")
-        .eq("client_id", clientId)
-        .gte("due_date", format(monthStart, "yyyy-MM-dd"))
-        .lte("due_date", format(monthEnd, "yyyy-MM-dd"))
-        .order("due_date", { ascending: true });
+        .eq("client_id", clientId!)
+        .gte("due_date", startStr)
+        .lte("due_date", endStr)
+        .order("due_date");
       if (error) throw error;
       return data;
     },
     enabled: !!clientId,
   });
 
-  // Fetch sport schedule events for the month
-  const { data: sportEvents } = useQuery({
-    queryKey: ["sport-schedule-events", clientId, format(monthStart, "yyyy-MM")],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("sport_schedule_events")
-        .select("*")
-        .eq("client_id", clientId)
-        .gte("start_time", format(monthStart, "yyyy-MM-dd"))
-        .lte("start_time", format(monthEnd, "yyyy-MM-dd'T'23:59:59"))
-        .order("start_time", { ascending: true });
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!clientId,
-  });
-
-  // Fetch habits for the month
+  // Habits (active in window)
   const { data: habits } = useQuery({
-    queryKey: ["calendar-habits", clientId, format(monthStart, "yyyy-MM")],
+    queryKey: ["agenda-habits", clientId, endStr],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("client_habits")
         .select("*")
-        .eq("client_id", clientId)
+        .eq("client_id", clientId!)
         .eq("is_active", true)
-        .lte("start_date", format(monthEnd, "yyyy-MM-dd"));
+        .lte("start_date", endStr);
       if (error) throw error;
-      return data as any[];
+      return data;
     },
     enabled: !!clientId,
   });
 
-  // Fetch selected workout details
-  const { data: selectedWorkout } = useQuery({
-    queryKey: ["workout-detail", selectedWorkoutId],
+  // Sport events
+  const { data: sportEvents } = useQuery({
+    queryKey: ["agenda-sport", clientId, startStr, endStr],
     queryFn: async () => {
-      if (!selectedWorkoutId) return null;
-
       const { data, error } = await supabase
-        .from("client_workouts")
-        .select(`
-          *,
-          workout_plans (
-            *,
-            workout_plan_exercises (
-              *,
-              exercises (*)
-            )
-          )
-        `)
-        .eq("id", selectedWorkoutId)
-        .single();
-
+        .from("sport_schedule_events")
+        .select("*")
+        .eq("client_id", clientId!)
+        .gte("start_time", startStr)
+        .lte("start_time", `${endStr}T23:59:59`)
+        .order("start_time");
       if (error) throw error;
-
-      // Transform to match WorkoutDetailDialog format
-      return {
-        ...data.workout_plans,
-        workout_plan_exercises: data.workout_plans.workout_plan_exercises.map((wpe: any) => ({
-          exercise: wpe.exercises,
-          sets: wpe.sets,
-          reps: wpe.reps,
-          duration_seconds: wpe.duration_seconds,
-          rest_seconds: wpe.rest_seconds,
-          notes: wpe.notes,
-          order_index: wpe.order_index,
-        })),
-      };
+      return data;
     },
-    enabled: !!selectedWorkoutId,
+    enabled: !!clientId,
   });
 
-  // Mark workout as complete
-  const completeWorkoutMutation = useMutation({
-    mutationFn: async () => {
-      if (!selectedWorkoutId) return;
+  // Appointments
+  const { data: appointments } = useQuery({
+    queryKey: ["agenda-appointments", clientId, startStr, endStr],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("appointments")
+        .select("*, appointment_type:appointment_types(name, color, duration_minutes)")
+        .eq("client_id", clientId!)
+        .gte("start_time", startStr)
+        .lte("start_time", `${endStr}T23:59:59`)
+        .in("status", ["confirmed", "completed"])
+        .order("start_time");
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!clientId,
+  });
 
+  // Goal countdowns ending in window
+  const { data: goals } = useQuery({
+    queryKey: ["agenda-goals", clientId, startStr, endStr],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("client_goal_countdowns")
+        .select("*")
+        .eq("client_id", clientId!)
+        .gte("end_date", startStr)
+        .lte("end_date", endStr)
+        .eq("is_completed", false)
+        .order("end_date");
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!clientId,
+  });
+
+  // Build day-grouped map
+  const grouped = useMemo(() => {
+    const map = new Map<string, AgendaItem[]>();
+    const push = (key: string, item: AgendaItem) => {
+      const arr = map.get(key) ?? [];
+      arr.push(item);
+      map.set(key, arr);
+    };
+
+    workouts?.forEach((w) => {
+      if (!w.scheduled_date) return;
+      const d = parseISO(w.scheduled_date);
+      push(format(d, "yyyy-MM-dd"), { kind: "workout", id: w.id, date: d, data: w });
+    });
+
+    tasks?.forEach((t) => {
+      if (!t.due_date) return;
+      const d = parseISO(t.due_date);
+      push(format(d, "yyyy-MM-dd"), { kind: "task", id: t.id, date: d, data: t });
+    });
+
+    sportEvents?.forEach((e: any) => {
+      if (!e.start_time) return;
+      const d = parseISO(e.start_time);
+      push(format(d, "yyyy-MM-dd"), { kind: "sport", id: e.id, date: d, data: e });
+    });
+
+    appointments?.forEach((a: any) => {
+      if (!a.start_time) return;
+      const d = parseISO(a.start_time);
+      push(format(d, "yyyy-MM-dd"), { kind: "appointment", id: a.id, date: d, data: a });
+    });
+
+    goals?.forEach((g: any) => {
+      if (!g.end_date) return;
+      const d = parseISO(g.end_date);
+      push(format(d, "yyyy-MM-dd"), { kind: "goal", id: g.id, date: d, data: g });
+    });
+
+    // Habits — expand each into the days they occur within the window
+    if (habits) {
+      for (let i = 0; i <= differenceInCalendarDays(rangeEnd, rangeStart); i++) {
+        const day = addDays(rangeStart, i);
+        const ds = format(day, "yyyy-MM-dd");
+        habits.forEach((h: any) => {
+          if (h.start_date > ds) return;
+          if (h.end_date && h.end_date < ds) return;
+          let active = false;
+          if (h.frequency === "daily") active = true;
+          else {
+            const startDay = new Date(h.start_date + "T00:00:00").getDay();
+            active = day.getDay() === startDay;
+          }
+          if (active) {
+            push(ds, { kind: "habit", id: `${h.id}-${ds}`, date: day, data: h });
+          }
+        });
+      }
+    }
+
+    return map;
+  }, [workouts, tasks, habits, sportEvents, appointments, goals, rangeStart, rangeEnd]);
+
+  // List of all days in range (for headers, even empty)
+  const allDays = useMemo(() => {
+    const arr: Date[] = [];
+    const total = differenceInCalendarDays(rangeEnd, rangeStart);
+    for (let i = 0; i <= total; i++) arr.push(addDays(rangeStart, i));
+    return arr;
+  }, [rangeStart, rangeEnd]);
+
+  // Scroll to today on mount
+  useEffect(() => {
+    const t = setTimeout(() => {
+      todayRef.current?.scrollIntoView({ block: "start", behavior: "auto" });
+    }, 100);
+    return () => clearTimeout(t);
+  }, []);
+
+  const scrollToToday = () => {
+    todayRef.current?.scrollIntoView({ block: "start", behavior: "smooth" });
+  };
+
+  // Toggle task completion
+  const toggleTask = useMutation({
+    mutationFn: async ({ id, completed }: { id: string; completed: boolean }) => {
       const { error } = await supabase
-        .from("client_workouts")
-        .update({ completed_at: new Date().toISOString() })
-        .eq("id", selectedWorkoutId);
-
+        .from("client_tasks")
+        .update({ completed_at: completed ? new Date().toISOString() : null })
+        .eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["calendar-workouts"] });
-      queryClient.invalidateQueries({ queryKey: ["workout-detail"] });
-      toast({
-        title: "Success",
-        description: "Workout marked as complete!",
-      });
-      setSelectedWorkoutId(null);
+      queryClient.invalidateQueries({ queryKey: ["agenda-tasks"] });
     },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to complete workout",
-        variant: "destructive",
-      });
-    },
+    onError: (e: Error) => toast({ title: "Couldn't update", description: e.message, variant: "destructive" }),
   });
-
-  // Generate calendar days
-  const calendarStart = startOfWeek(monthStart, { weekStartsOn: 1 });
-  const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
-  const calendarDays = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
-
-  const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-
-  const getTasksForDay = (day: Date) => {
-    if (!tasks) return [];
-    return tasks.filter((t) => t.due_date && isSameDay(parseISO(t.due_date), day));
-  };
-
-  const getHabitsForDay = (day: Date) => {
-    if (!habits) return [];
-    const dateStr = format(day, "yyyy-MM-dd");
-    return habits.filter((h: any) => {
-      if (h.start_date > dateStr) return false;
-      if (h.end_date && h.end_date < dateStr) return false;
-      if (h.frequency === "daily") return true;
-      const startDay = new Date(h.start_date + "T00:00:00").getDay();
-      return day.getDay() === startDay;
-    });
-  };
-
-  const getWorkoutsForDay = (day: Date) => {
-    if (!workouts) return [];
-    return workouts.filter((w) => w.scheduled_date && isSameDay(parseISO(w.scheduled_date), day));
-  };
-
-  const getSportEventsForDay = (day: Date) => {
-    if (!sportEvents) return [];
-    return sportEvents.filter((e: any) => e.start_time && isSameDay(parseISO(e.start_time), day));
-  };
-
-  const handlePreviousMonth = () => setCurrentDate(subMonths(currentDate, 1));
-  const handleNextMonth = () => setCurrentDate(addMonths(currentDate, 1));
-  const handleToday = () => setCurrentDate(new Date());
-
-  if (isLoading) {
-    return (
-      <ClientLayout>
-        <div className="p-6 flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading calendar...</p>
-          </div>
-        </div>
-      </ClientLayout>
-    );
-  }
 
   return (
     <ClientLayout>
-      <div className="p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Calendar</h1>
-            <p className="text-muted-foreground mt-1">View your scheduled workouts, tasks & habits</p>
-          </div>
-          <Button variant="outline" onClick={handleToday}>
-            <CalendarIcon className="h-4 w-4 mr-2" />
+      {/* Sticky header */}
+      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur border-b">
+        <div className="flex items-center justify-between px-4 py-3">
+          <h1 className="text-xl font-bold">Calendar</h1>
+          <Button variant="ghost" size="sm" onClick={scrollToToday} className="gap-2">
+            <CalendarIcon className="h-4 w-4" />
             Today
           </Button>
         </div>
-
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>{format(currentDate, "MMMM yyyy")}</CardTitle>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="icon" onClick={handlePreviousMonth}>
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button variant="outline" size="icon" onClick={handleNextMonth}>
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {/* Calendar Grid */}
-            <div className="grid grid-cols-7 gap-2">
-              {/* Week day headers */}
-              {weekDays.map((day) => (
-                <div key={day} className="text-center text-sm font-medium text-muted-foreground py-2">
-                  {day}
-                </div>
-              ))}
-
-              {/* Calendar days */}
-              {calendarDays.map((day) => {
-                const dayWorkouts = getWorkoutsForDay(day);
-                const dayTasks = getTasksForDay(day);
-                const dayHabits = getHabitsForDay(day);
-                const daySportEvents = getSportEventsForDay(day);
-                const isCurrentMonth = isSameMonth(day, currentDate);
-                const isToday = isSameDay(day, new Date());
-
-                return (
-                  <div
-                    key={day.toISOString()}
-                    className={`min-h-24 border rounded-lg p-2 ${
-                      isCurrentMonth ? "bg-background" : "bg-muted/30"
-                    } ${isToday ? "border-primary border-2" : "border-border"}`}
-                  >
-                    <div className={`text-sm font-medium mb-1 ${
-                      isCurrentMonth ? "text-foreground" : "text-muted-foreground"
-                    }`}>
-                      {format(day, "d")}
-                    </div>
-                    
-                    <div className="space-y-1">
-                      {dayWorkouts.map((workout) => {
-                        const isCompleted = !!workout.completed_at;
-                        return (
-                          <button
-                            key={workout.id}
-                            onClick={() => setSelectedWorkoutId(workout.id)}
-                            className={`w-full text-left text-xs p-1.5 rounded transition-colors ${
-                              isCompleted
-                                ? "bg-success/20 hover:bg-success/30 text-success-foreground"
-                                : "bg-primary/20 hover:bg-primary/30 text-primary-foreground"
-                            }`}
-                          >
-                            <div className="font-medium truncate">
-                              {workout.workout_plans?.name}
-                            </div>
-                            <div className="text-[10px] opacity-80">
-                              {workout.workout_plans?.duration_minutes}min
-                            </div>
-                          </button>
-                        );
-                      })}
-                      {dayTasks.map((task) => {
-                        const isCompleted = !!task.completed_at;
-                        return (
-                          <div
-                            key={task.id}
-                            className={`w-full text-left text-xs p-1.5 rounded ${
-                              isCompleted
-                                ? "bg-success/20 text-success-foreground"
-                                : "bg-amber-500/20 text-amber-900 dark:text-amber-200"
-                            }`}
-                          >
-                            <div className="font-medium truncate flex items-center gap-1">
-                              {isCompleted ? <CheckCircle2 className="h-3 w-3 shrink-0" /> : <Circle className="h-3 w-3 shrink-0" />}
-                              {task.name}
-                            </div>
-                          </div>
-                        );
-                      })}
-                      {dayHabits.map((habit: any) => {
-                        const icon = habit.icon_url?.startsWith("emoji:") ? habit.icon_url.replace("emoji:", "") : "🎯";
-                        return (
-                          <div
-                            key={habit.id}
-                            className="w-full text-left text-xs p-1.5 rounded bg-violet-500/20 text-violet-900 dark:text-violet-200"
-                          >
-                            <div className="font-medium truncate">
-                              {icon} {habit.name}
-                            </div>
-                          </div>
-                        );
-                      })}
-                      {daySportEvents.map((event: any) => {
-                        const isGame = event.event_type === "game";
-                        return (
-                          <div
-                            key={event.id}
-                            className={`w-full text-left text-xs p-1.5 rounded ${
-                              isGame
-                                ? "bg-rose-500/20 text-rose-900 dark:text-rose-200"
-                                : "bg-sky-500/20 text-sky-900 dark:text-sky-200"
-                            }`}
-                          >
-                            <div className="font-medium truncate flex items-center gap-1">
-                              <Trophy className="h-3 w-3 shrink-0" />
-                              {event.title}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Legend */}
-            <div className="flex flex-wrap items-center gap-4 mt-6 pt-4 border-t border-border">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-primary/20"></div>
-                <span className="text-sm text-muted-foreground">Workout</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-amber-500/20"></div>
-                <span className="text-sm text-muted-foreground">Task</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-violet-500/20"></div>
-                <span className="text-sm text-muted-foreground">Habit</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-rose-500/20"></div>
-                <span className="text-sm text-muted-foreground">Game</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-sky-500/20"></div>
-                <span className="text-sm text-muted-foreground">Practice</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-success/20"></div>
-                <span className="text-sm text-muted-foreground">Completed</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded border-2 border-primary"></div>
-                <span className="text-sm text-muted-foreground">Today</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Upcoming Workouts List */}
-        {workouts && workouts.filter(w => !w.completed_at).length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Upcoming Workouts This Month</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {workouts
-                  .filter((w) => !w.completed_at)
-                  .slice(0, 5)
-                  .map((workout) => (
-                    <button
-                      key={workout.id}
-                      onClick={() => setSelectedWorkoutId(workout.id)}
-                      className="w-full p-4 border rounded-lg hover:bg-accent transition-colors text-left"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h3 className="font-semibold">{workout.workout_plans?.name}</h3>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {workout.scheduled_date && format(parseISO(workout.scheduled_date), "EEEE, MMMM d")}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline">{workout.workout_plans?.category}</Badge>
-                          <Badge variant="secondary">{workout.workout_plans?.duration_minutes}min</Badge>
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
       </div>
 
-      {selectedWorkoutId && (
-        <WorkoutDetailDialog
-          open={!!selectedWorkoutId}
-          onOpenChange={(open) => !open && setSelectedWorkoutId(null)}
-          workout={selectedWorkout || null}
-          isCompleted={!!workouts?.find((w) => w.id === selectedWorkoutId)?.completed_at}
-          onMarkComplete={() => completeWorkoutMutation.mutate()}
-          completingWorkout={completeWorkoutMutation.isPending}
-        />
-      )}
+      <div className="px-4 pb-24">
+        {allDays.map((day) => {
+          const key = format(day, "yyyy-MM-dd");
+          const items = grouped.get(key) ?? [];
+          const isCurrentDay = isSameDay(day, today);
+          return (
+            <div
+              key={key}
+              ref={isCurrentDay ? todayRef : undefined}
+              className="pt-4"
+            >
+              <div className="flex items-center gap-2 pb-2 border-b">
+                {isCurrentDay && <span className="h-2 w-2 rounded-full bg-primary" />}
+                <h2 className={cn(
+                  "text-base font-semibold",
+                  isCurrentDay ? "text-primary" : isBefore(day, today) ? "text-muted-foreground" : "text-foreground"
+                )}>
+                  {dayLabel(day)}
+                </h2>
+              </div>
+
+              {items.length === 0 ? (
+                <div className="py-3" />
+              ) : (
+                <div className="py-3 space-y-2">
+                  {items
+                    .sort((a, b) => a.date.getTime() - b.date.getTime())
+                    .map((item) => (
+                      <AgendaCard
+                        key={`${item.kind}-${item.id}`}
+                        item={item}
+                        onToggleTask={(id, completed) => toggleTask.mutate({ id, completed })}
+                        onOpenWorkout={(id) => navigate(`/client/workouts/${id}`)}
+                      />
+                    ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </ClientLayout>
   );
+}
+
+function AgendaCard({
+  item,
+  onToggleTask,
+  onOpenWorkout,
+}: {
+  item: AgendaItem;
+  onToggleTask: (id: string, completed: boolean) => void;
+  onOpenWorkout: (workoutPlanId: string) => void;
+}) {
+  if (item.kind === "workout") {
+    const w = item.data;
+    const completed = !!w.completed_at;
+    return (
+      <Card
+        className="p-3 flex items-center gap-3 cursor-pointer hover:bg-accent/50 transition-colors"
+        onClick={() => w.workout_plans?.id && onOpenWorkout(w.workout_plans.id)}
+      >
+        <div className={cn(
+          "h-9 w-9 rounded-full flex items-center justify-center shrink-0",
+          completed ? "bg-success/20 text-success" : "bg-primary/20 text-primary"
+        )}>
+          {completed ? <CheckCircle2 className="h-5 w-5" /> : <Dumbbell className="h-5 w-5" />}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="font-medium text-sm truncate">{w.workout_plans?.name ?? "Workout"}</div>
+          <div className="text-xs text-muted-foreground flex items-center gap-2 mt-0.5">
+            {completed ? (
+              <span>Completed</span>
+            ) : (
+              <span>Complete your scheduled workout.</span>
+            )}
+            {w.workout_plans?.duration_minutes && (
+              <span className="flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                {w.workout_plans.duration_minutes}m
+              </span>
+            )}
+          </div>
+        </div>
+        <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+      </Card>
+    );
+  }
+
+  if (item.kind === "task") {
+    const t = item.data;
+    const completed = !!t.completed_at;
+    return (
+      <Card className="p-3 flex items-center gap-3">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleTask(t.id, !completed);
+          }}
+          className={cn(
+            "h-7 w-7 rounded-full flex items-center justify-center shrink-0 border-2 transition-colors",
+            completed ? "bg-success/20 border-success text-success" : "border-amber-500 text-amber-500 hover:bg-amber-500/10"
+          )}
+          aria-label={completed ? "Mark incomplete" : "Mark complete"}
+        >
+          {completed ? <CheckCircle2 className="h-4 w-4" /> : <Circle className="h-4 w-4" />}
+        </button>
+        <div className="flex-1 min-w-0">
+          <div className={cn("font-medium text-sm truncate", completed && "line-through text-muted-foreground")}>
+            {t.name}
+          </div>
+          {t.description && (
+            <div className="text-xs text-muted-foreground truncate mt-0.5">{t.description}</div>
+          )}
+        </div>
+      </Card>
+    );
+  }
+
+  if (item.kind === "habit") {
+    const h = item.data;
+    const icon = h.icon_url?.startsWith("emoji:") ? h.icon_url.replace("emoji:", "") : "🎯";
+    return (
+      <Card className="p-3 flex items-center gap-3">
+        <div className="h-9 w-9 rounded-full bg-violet-500/15 flex items-center justify-center text-lg shrink-0">
+          {icon}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="font-medium text-sm truncate">{h.name}</div>
+          <div className="text-xs text-muted-foreground">
+            Habit • {h.goal_value} {h.goal_unit}
+          </div>
+        </div>
+        <Badge variant="outline" className="text-[10px]">Habit</Badge>
+      </Card>
+    );
+  }
+
+  if (item.kind === "sport") {
+    const e = item.data;
+    const isGame = e.event_type === "game" || e.event_type === "event";
+    return (
+      <Card className={cn(
+        "p-3 flex items-center gap-3",
+        isGame ? "border-rose-500/30 bg-rose-500/5" : "border-sky-500/30 bg-sky-500/5"
+      )}>
+        <div className={cn(
+          "h-9 w-9 rounded-full flex items-center justify-center shrink-0",
+          isGame ? "bg-rose-500/20 text-rose-500" : "bg-sky-500/20 text-sky-500"
+        )}>
+          {isGame ? <Swords className="h-5 w-5" /> : <Trophy className="h-5 w-5" />}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="font-medium text-sm truncate">{e.title}</div>
+          <div className="text-xs text-muted-foreground flex items-center gap-3 mt-0.5">
+            <span className="flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              {format(parseISO(e.start_time), "h:mm a")}
+            </span>
+            {e.location && (
+              <span className="flex items-center gap-1 truncate">
+                <MapPin className="h-3 w-3" />
+                {e.location}
+              </span>
+            )}
+          </div>
+        </div>
+        <Badge variant="outline" className="text-[10px]">{isGame ? "Game" : "Practice"}</Badge>
+      </Card>
+    );
+  }
+
+  if (item.kind === "appointment") {
+    const a = item.data;
+    return (
+      <Card className="p-3 flex items-center gap-3">
+        <div className="h-9 w-9 rounded-full bg-blue-500/20 text-blue-500 flex items-center justify-center shrink-0">
+          <CalendarIcon className="h-5 w-5" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="font-medium text-sm truncate">
+            {a.appointment_type?.name ?? "Appointment"}
+          </div>
+          <div className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+            <Clock className="h-3 w-3" />
+            {format(parseISO(a.start_time), "h:mm a")} – {format(parseISO(a.end_time), "h:mm a")}
+          </div>
+        </div>
+        <Badge variant="outline" className="text-[10px]">Session</Badge>
+      </Card>
+    );
+  }
+
+  if (item.kind === "goal") {
+    const g = item.data;
+    return (
+      <Card className="p-3 flex items-center gap-3 border-orange-500/30 bg-orange-500/5">
+        <div className="h-9 w-9 rounded-full bg-orange-500/20 text-orange-500 flex items-center justify-center shrink-0">
+          <Target className="h-5 w-5" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="font-medium text-sm truncate">{g.title}</div>
+          <div className="text-xs text-muted-foreground">Goal deadline</div>
+        </div>
+        <Flame className="h-4 w-4 text-orange-500 shrink-0" />
+      </Card>
+    );
+  }
+
+  return null;
 }
