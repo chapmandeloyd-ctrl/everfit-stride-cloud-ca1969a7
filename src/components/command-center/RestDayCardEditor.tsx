@@ -105,7 +105,7 @@ export function RestDayCardEditor({ clientId, trainerId }: RestDayCardEditorProp
   };
 
   const saveMessage = () => {
-    saveMutation.mutate({ msg: message });
+    saveMutation.mutate({ msg: message, cardTitle: title });
   };
 
   if (isLoading) return null;
