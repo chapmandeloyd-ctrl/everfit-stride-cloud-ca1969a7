@@ -95,10 +95,14 @@ Deno.serve(async (req) => {
     const credit =
       debt > storedDebt ? 0 : Math.round(storedCredit * 10) / 10;
 
-    const newConsecutiveMissed =
-      (goal.consecutive_missed_days || 0) + missedDays;
-    const newConsecutiveBehind =
-      (goal.consecutive_behind_days || 0) + missedDays;
+    const newConsecutiveMissed = Math.max(
+      goal.consecutive_missed_days || 0,
+      missedDays
+    );
+    const newConsecutiveBehind = Math.max(
+      goal.consecutive_behind_days || 0,
+      missedDays
+    );
 
     let severity: "mild" | "moderate" | "severe" = "mild";
     if (debt >= base * 3) severity = "severe";
