@@ -72,17 +72,34 @@ export function SmartPaceTrainerCard({ clientId, trainerId }: Props) {
 
   const toggleMut = useMutation({
     mutationFn: async (val: boolean) => {
+      // When turning OFF: wipe the active goal so re-enabling starts fresh.
+      if (!val) {
+        const { error: delErr } = await supabase
+          .from("smart_pace_goals")
+          .delete()
+          .eq("client_id", clientId);
+        if (delErr) throw delErr;
+      }
       const { error } = await supabase
         .from("client_feature_settings")
         .update({ smart_pace_enabled: val })
         .eq("client_id", clientId);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_data, val) => {
+      // Clear local form state when disabled so re-enable shows blank fields.
+      if (!val) {
+        setStartWeight("");
+        setGoalWeight("");
+        setPace("2.5");
+        setDirection("lose");
+      }
       qc.invalidateQueries({ queryKey: ["smart-pace-settings", clientId] });
+      qc.invalidateQueries({ queryKey: ["smart-pace-trainer-goal", clientId] });
       qc.invalidateQueries({ queryKey: ["smart-pace"] });
-      toast({ title: "Smart Pace updated" });
+      toast({ title: val ? "Smart Pace enabled" : "Smart Pace disabled — data cleared" });
     },
+    onError: (e: Error) => toast({ title: "Toggle failed", description: e.message, variant: "destructive" }),
   });
 
   const saveMut = useMutation({
