@@ -32,6 +32,7 @@ function formatEventTime(isoString: string): string {
 export function ClientCalendarTab({ clientId, trainerId }: ClientCalendarTabProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
+  const [showHeatmap, setShowHeatmap] = useState(false);
 
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
