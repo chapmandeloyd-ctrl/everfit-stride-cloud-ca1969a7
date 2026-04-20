@@ -89,7 +89,7 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
     queryFn: async () => {
       const { data, error } = await supabase
         .from("client_feature_settings")
-        .select("selected_protocol_id, selected_quick_plan_id, protocol_start_date, active_fast_start_at, active_fast_target_hours, last_fast_ended_at, eating_window_ends_at, eating_window_hours, fasting_strict_mode, protocol_assigned_by, fasting_card_title, fasting_card_subtitle, fasting_card_text_color, fasting_card_image_url, eating_window_card_title, eating_window_card_message, eating_window_card_image_url, eating_window_card_text_color, fast_lock_pin, protocol_completed, maintenance_mode, maintenance_schedule_type, trainer_id")
+        .select("selected_protocol_id, selected_quick_plan_id, protocol_start_date, active_fast_start_at, active_fast_target_hours, last_fast_ended_at, eating_window_ends_at, eating_window_hours, fasting_strict_mode, protocol_assigned_by, fasting_card_subtitle, fasting_card_image_url, eating_window_card_image_url, fast_lock_pin, protocol_completed, maintenance_mode, maintenance_schedule_type, trainer_id")
         .eq("client_id", clientId)
         .maybeSingle();
       if (error) throw error;
@@ -478,10 +478,6 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
     // Use per-client image first, then universal trainer fasting card
     const fastingCardBg = featureSettings?.fasting_card_image_url || universalFastingCard?.image_url;
     const fastingCardMsg = fastingSubtitle || universalFastingCard?.message || "Your fasting journey begins soon.";
-    const fastingCardTitle = (featureSettings as any)?.fasting_card_title?.trim() || null;
-    const fastingTextStyle = (featureSettings as any)?.fasting_card_text_color
-      ? { color: (featureSettings as any).fasting_card_text_color }
-      : undefined;
     return (
       <Card className="overflow-hidden border-primary/20 shadow-lg relative">
         {fastingCardBg ? (
@@ -492,12 +488,7 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
             <CardContent className="relative z-10 min-h-[240px] flex flex-col justify-end p-5 space-y-3">
-              <div className="text-left" style={fastingTextStyle}>
-                {fastingCardTitle && (
-                  <p className="text-xs font-bold uppercase tracking-wider text-white/70 drop-shadow mb-1">
-                    {fastingCardTitle}
-                  </p>
-                )}
+              <div className="text-left">
                 <p className="text-base font-bold text-white drop-shadow-lg">
                   {fastingCardMsg}
                 </p>
@@ -506,12 +497,7 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
           </>
         ) : (
           <CardContent className="px-6 py-8 text-center space-y-4">
-            <div style={fastingTextStyle}>
-              {fastingCardTitle && (
-                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">
-                  {fastingCardTitle}
-                </p>
-              )}
+            <div>
               <p className="text-base font-bold">
                 {fastingCardMsg}
               </p>
@@ -1674,12 +1660,7 @@ export default function ClientDashboard() {
         <div className="flex items-center justify-between pt-2">
           <div>
             <p className="text-xs font-semibold text-muted-foreground tracking-wider">{todayDate}</p>
-            <h1 className="text-2xl font-bold mt-0.5">
-              {(settings as any).greeting_title?.trim()
-                ? (settings as any).greeting_title.replace(/\[Name\]/gi, firstName)
-                : `Hello, ${firstName}!`}{' '}
-              {settings.greeting_emoji || '👋'}
-            </h1>
+            <h1 className="text-2xl font-bold mt-0.5">Hello, {firstName}! {settings.greeting_emoji || '👋'}</h1>
             <p className="text-sm text-muted-foreground font-medium mt-0.5">{settings.greeting_subtitle || 'Let\'s do this'}</p>
           </div>
           <div className="flex items-center gap-2">
@@ -1704,20 +1685,10 @@ export default function ClientDashboard() {
         )}
 
         {/* Dashboard Hero Message */}
-        {(settings.dashboard_hero_message || (settings as any).dashboard_hero_title) && (
+        {settings.dashboard_hero_message && (
           <Card className="overflow-hidden border-primary/20 bg-primary/5">
-            <CardContent
-              className="px-5 py-4"
-              style={(settings as any).dashboard_hero_text_color ? { color: (settings as any).dashboard_hero_text_color } : undefined}
-            >
-              {(settings as any).dashboard_hero_title?.trim() && (
-                <p className="text-xs font-bold uppercase tracking-wider mb-1 opacity-70">
-                  {(settings as any).dashboard_hero_title}
-                </p>
-              )}
-              {settings.dashboard_hero_message && (
-                <p className="text-sm font-medium">{settings.dashboard_hero_message}</p>
-              )}
+            <CardContent className="px-5 py-4">
+              <p className="text-sm font-medium text-foreground">{settings.dashboard_hero_message}</p>
             </CardContent>
           </Card>
         )}
@@ -1878,26 +1849,16 @@ export default function ClientDashboard() {
                   </h2>
                   {isRestDay ? (
                     showWelcomeCard ? (
-                      <WelcomeCard
-                        imageUrl={welcomeCard?.image_url}
-                        message={welcomeCard?.message}
-                        title={(welcomeCard as any)?.title}
-                        textColor={(welcomeCard as any)?.text_color}
-                      />
+                      <WelcomeCard imageUrl={welcomeCard?.image_url} message={welcomeCard?.message} />
                     ) : (
                     <Card className="overflow-hidden">
                       {restDayCard?.image_url ? (
                         <div className="relative h-56">
                           <img src={restDayCard.image_url} alt="Rest day" className="w-full h-full object-cover" />
-                          <div
-                            className="absolute inset-0 bg-gradient-to-t from-black to-transparent"
-                            style={{ opacity: ((restDayCard as any)?.overlay_opacity ?? 50) / 100 }}
-                          />
-                          <div className="absolute bottom-0 left-0 right-0 p-4" style={(restDayCard as any)?.text_color ? { color: (restDayCard as any).text_color } : undefined}>
-                            <p className="text-xs font-semibold uppercase tracking-wider opacity-80">
-                              {(restDayCard as any)?.title?.trim() || "Rest Day"}
-                            </p>
-                            <p className="text-base font-bold">
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                          <div className="absolute bottom-0 left-0 right-0 p-4">
+                            <p className="text-xs font-semibold text-white/70 uppercase tracking-wider">Rest Day</p>
+                            <p className="text-base font-bold text-white">
                               {restDayCard?.message || "No workouts scheduled for today. Enjoy your rest!"}
                             </p>
                           </div>
@@ -1905,7 +1866,7 @@ export default function ClientDashboard() {
                       ) : (
                         <CardContent className="p-6 text-center">
                           <Dumbbell className="h-10 w-10 text-muted-foreground/30 mx-auto mb-2" />
-                          <p className="text-lg font-semibold">{(restDayCard as any)?.title?.trim() || "Rest Day"}</p>
+                          <p className="text-lg font-semibold">Rest Day</p>
                           <p className="text-sm text-muted-foreground">
                             {restDayCard?.message || "No workouts scheduled for today. Enjoy your rest!"}
                           </p>
