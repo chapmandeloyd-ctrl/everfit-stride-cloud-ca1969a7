@@ -91,14 +91,8 @@ export function SmartPaceTrainerCard({ clientId, trainerId }: Props) {
 
   const toggleMut = useMutation({
     mutationFn: async (val: boolean) => {
-      // When turning OFF: wipe the active goal so re-enabling starts fresh.
-      if (!val) {
-        const { error: delErr } = await supabase
-          .from("smart_pace_goals")
-          .delete()
-          .eq("client_id", clientId);
-        if (delErr) throw delErr;
-      }
+      // Non-destructive: only flip the feature flag. Goal data is preserved
+      // so re-enabling the tracker brings the client right back where they were.
       const { error } = await supabase
         .from("client_feature_settings")
         .update({ smart_pace_enabled: val })
@@ -106,20 +100,33 @@ export function SmartPaceTrainerCard({ clientId, trainerId }: Props) {
       if (error) throw error;
     },
     onSuccess: (_data, val) => {
-      // Clear local form state when disabled so re-enable shows blank fields.
-      if (!val) {
-        setStartWeight("");
-        setGoalWeight("");
-        setDirection("lose");
-        setStartDate(new Date());
-        setTargetDate(undefined);
-      }
       qc.invalidateQueries({ queryKey: ["smart-pace-settings", clientId] });
       qc.invalidateQueries({ queryKey: ["smart-pace-trainer-goal", clientId] });
       qc.invalidateQueries({ queryKey: ["smart-pace"] });
-      toast({ title: val ? "Smart Pace enabled" : "Smart Pace disabled — data cleared" });
+      toast({ title: val ? "Smart Pace enabled" : "Smart Pace disabled — data preserved" });
     },
     onError: (e: Error) => toast({ title: "Toggle failed", description: e.message, variant: "destructive" }),
+  });
+
+  const resetMut = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("smart_pace_goals")
+        .delete()
+        .eq("client_id", clientId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      setStartWeight("");
+      setGoalWeight("");
+      setDirection("lose");
+      setStartDate(new Date());
+      setTargetDate(undefined);
+      qc.invalidateQueries({ queryKey: ["smart-pace-trainer-goal", clientId] });
+      qc.invalidateQueries({ queryKey: ["smart-pace"] });
+      toast({ title: "Goal reset — start fresh" });
+    },
+    onError: (e: Error) => toast({ title: "Reset failed", description: e.message, variant: "destructive" }),
   });
 
   const saveMut = useMutation({
