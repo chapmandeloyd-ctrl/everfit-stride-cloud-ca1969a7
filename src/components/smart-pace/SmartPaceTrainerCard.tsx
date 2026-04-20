@@ -11,6 +11,8 @@ import { Target, Loader2, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { SmartPaceAdminPanel } from "./SmartPaceAdminPanel";
+import type { SmartPaceGoal } from "@/lib/smartPaceEngine";
 
 interface Props {
   clientId: string;
@@ -197,6 +199,19 @@ export function SmartPaceTrainerCard({ clientId, trainerId }: Props) {
               </Button>
             )}
           </div>
+
+          {goal && (
+            <>
+              <Separator />
+              <SmartPaceAdminPanel
+                clientId={clientId}
+                goal={goal as unknown as SmartPaceGoal}
+                onChanged={() => {
+                  qc.invalidateQueries({ queryKey: ["smart-pace-trainer-goal", clientId] });
+                }}
+              />
+            </>
+          )}
         </CardContent>
       )}
     </Card>
