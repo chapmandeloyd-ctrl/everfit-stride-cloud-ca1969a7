@@ -639,7 +639,6 @@ export function ClientSettingsTab({ clientId, trainerId }: ClientSettingsTabProp
         </CardContent>
       </Card>
 
-      <FastingProtocolAssignment clientId={clientId} trainerId={trainerId} settings={settings} />
       <MaintenanceScheduleAssignment clientId={clientId} trainerId={trainerId} settings={settings} />
       <FastingStrictModeSettings settings={settings} toggleMutation={toggleMutation} />
 
