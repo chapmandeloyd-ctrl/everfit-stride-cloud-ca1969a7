@@ -119,44 +119,34 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Trainer-client relationship created");
 
-    // Generate a password reset link so we don't send the password in plain text
+    // Force production URL — never trust browser-provided URLs (could be Lovable editor)
+    const PROD_LOGIN_URL = "https://ksom-360.app/auth";
     let emailSent = false;
     let emailErrorMessage: string | null = null;
 
-    const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
-      type: 'magiclink',
-      email: email.trim(),
-      options: {
-        redirectTo: loginUrl,
-      },
-    });
-
-    if (linkError) {
-      console.error("Failed to generate login link:", linkError);
-      emailErrorMessage = "Failed to generate login link";
-    } else {
-      // Send welcome email with magic link instead of password
-      const { data: emailData, error: emailError } = await supabaseAdmin.functions.invoke(
-        "send-client-welcome-email",
-        {
-          body: {
-            email: email.trim(),
-            fullName: fullName.trim(),
-            loginLink: linkData?.properties?.action_link || loginUrl,
-            loginUrl,
-          },
-        }
-      );
-
-      if (emailError) {
-        console.error("Failed to send welcome email:", emailError);
-        emailErrorMessage = "Failed to send welcome email";
-      } else if (emailData?.success) {
-        emailSent = true;
-      } else {
-        emailErrorMessage = emailData?.error || "Failed to send welcome email";
-        console.error("Welcome email not sent:", emailErrorMessage);
+    // Send welcome email with the production login URL + the password the trainer set.
+    // We intentionally do NOT send a Supabase magic link, because magic links route
+    // through Supabase's configured Site URL which may point to a non-production host.
+    const { data: emailData, error: emailError } = await supabaseAdmin.functions.invoke(
+      "send-client-welcome-email",
+      {
+        body: {
+          email: email.trim(),
+          fullName: fullName.trim(),
+          loginLink: PROD_LOGIN_URL,
+          loginUrl: PROD_LOGIN_URL,
+        },
       }
+    );
+
+    if (emailError) {
+      console.error("Failed to send welcome email:", emailError);
+      emailErrorMessage = "Failed to send welcome email";
+    } else if (emailData?.success) {
+      emailSent = true;
+    } else {
+      emailErrorMessage = emailData?.error || "Failed to send welcome email";
+      console.error("Welcome email not sent:", emailErrorMessage);
     }
 
     return new Response(
