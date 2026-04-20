@@ -478,6 +478,10 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
     // Use per-client image first, then universal trainer fasting card
     const fastingCardBg = featureSettings?.fasting_card_image_url || universalFastingCard?.image_url;
     const fastingCardMsg = fastingSubtitle || universalFastingCard?.message || "Your fasting journey begins soon.";
+    const fastingCardTitle = (featureSettings as any)?.fasting_card_title?.trim() || null;
+    const fastingTextStyle = (featureSettings as any)?.fasting_card_text_color
+      ? { color: (featureSettings as any).fasting_card_text_color }
+      : undefined;
     return (
       <Card className="overflow-hidden border-primary/20 shadow-lg relative">
         {fastingCardBg ? (
@@ -488,7 +492,12 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
             <CardContent className="relative z-10 min-h-[240px] flex flex-col justify-end p-5 space-y-3">
-              <div className="text-left">
+              <div className="text-left" style={fastingTextStyle}>
+                {fastingCardTitle && (
+                  <p className="text-xs font-bold uppercase tracking-wider text-white/70 drop-shadow mb-1">
+                    {fastingCardTitle}
+                  </p>
+                )}
                 <p className="text-base font-bold text-white drop-shadow-lg">
                   {fastingCardMsg}
                 </p>
@@ -497,7 +506,12 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
           </>
         ) : (
           <CardContent className="px-6 py-8 text-center space-y-4">
-            <div>
+            <div style={fastingTextStyle}>
+              {fastingCardTitle && (
+                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">
+                  {fastingCardTitle}
+                </p>
+              )}
               <p className="text-base font-bold">
                 {fastingCardMsg}
               </p>
