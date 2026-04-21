@@ -61,7 +61,7 @@ serve(async (req) => {
 
     const { data: subs } = await supabase
       .from("push_subscriptions")
-      .select("id, endpoint, p256dh, auth")
+      .select("id, endpoint, p256dh, auth, user_agent")
       .eq("user_id", targetUserId);
 
     if (!subs || subs.length === 0) {
@@ -73,6 +73,24 @@ serve(async (req) => {
 
     let delivered = 0;
     let failed = 0;
+    const deviceResults: Array<{
+      id: string;
+      device: string;
+      endpoint_host: string;
+      ok: boolean;
+      status?: number;
+      expired?: boolean;
+      removed?: boolean;
+      error?: string;
+    }> = [];
+    function describeDevice(ua?: string | null): string {
+      if (!ua) return "Unknown device";
+      if (/iPhone|iPad/.test(ua)) return "iOS device";
+      if (/Android/.test(ua)) return "Android device";
+      if (/Macintosh/.test(ua)) return "Mac";
+      if (/Windows/.test(ua)) return "Windows";
+      return "Browser";
+    }
     for (const sub of subs) {
       const r = await sendWebPush(sub, {
         title: "KSOM-360 test push ✅",
@@ -81,6 +99,10 @@ serve(async (req) => {
         url: "/client/dashboard",
         data: { kind: "test" },
       });
+      let endpointHost = "";
+      try { endpointHost = new URL(sub.endpoint).host; } catch { /* ignore */ }
+      const subAny = sub as any;
+      const removed = !r.ok && !!r.expired;
       if (r.ok) delivered++;
       else {
         failed++;
@@ -88,6 +110,16 @@ serve(async (req) => {
           await supabase.from("push_subscriptions").delete().eq("id", sub.id);
         }
       }
+      deviceResults.push({
+        id: sub.id,
+        device: describeDevice(subAny.user_agent),
+        endpoint_host: endpointHost,
+        ok: r.ok,
+        status: r.status,
+        expired: r.expired,
+        removed,
+        error: r.error,
+      });
     }
 
     await supabase.from("notification_log").insert({
@@ -102,7 +134,13 @@ serve(async (req) => {
     });
 
     return new Response(
-      JSON.stringify({ ok: delivered > 0, delivered, failed, total: subs.length }),
+      JSON.stringify({
+        ok: delivered > 0,
+        delivered,
+        failed,
+        total: subs.length,
+        devices: deviceResults,
+      }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (err: any) {

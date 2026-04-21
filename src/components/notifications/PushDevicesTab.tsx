@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Bell, BellOff, Send, Smartphone, BellRing, AlertTriangle, CheckCircle2, Search } from "lucide-react";
+import { Bell, BellOff, Send, Smartphone, BellRing, AlertTriangle, CheckCircle2, Search, XCircle, Loader2, ChevronDown, ChevronUp } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,7 +10,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { sendTestPush } from "@/lib/pushNotifications";
+import { sendTestPush, type PushDeviceResult } from "@/lib/pushNotifications";
 import { formatDistanceToNow } from "date-fns";
 
 /**
@@ -38,6 +38,16 @@ type FilterKey = "all" | "no_devices" | "stale" | "subscribed";
 const STALE_DAYS = 14;
 const STALE_MS = STALE_DAYS * 24 * 60 * 60 * 1000;
 
+type DeliveryResult = {
+  ok: boolean;
+  delivered: number;
+  failed: number;
+  total: number;
+  message?: string;
+  devices: PushDeviceResult[];
+  ranAt: number;
+};
+
 export function PushDevicesTab() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -45,6 +55,8 @@ export function PushDevicesTab() {
   const [filter, setFilter] = useState<FilterKey>("all");
   const [search, setSearch] = useState("");
   const [pendingId, setPendingId] = useState<string | null>(null);
+  const [results, setResults] = useState<Record<string, DeliveryResult>>({});
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   // 1) Roster of this trainer's clients.
   const { data: roster = [], isLoading: rosterLoading } = useQuery({
@@ -202,6 +214,19 @@ export function PushDevicesTab() {
     setPendingId(clientId);
     try {
       const result = await sendTestPush(clientId);
+      setResults((prev) => ({
+        ...prev,
+        [clientId]: {
+          ok: !!result.ok,
+          delivered: result.delivered ?? 0,
+          failed: result.failed ?? 0,
+          total: result.total ?? 0,
+          message: result.message,
+          devices: result.devices ?? [],
+          ranAt: Date.now(),
+        },
+      }));
+      setExpanded((prev) => ({ ...prev, [clientId]: true }));
       if (result.ok) {
         toast({
           title: "Test push sent",
@@ -214,6 +239,8 @@ export function PushDevicesTab() {
           variant: "destructive",
         });
       }
+      // Refresh roster — expired endpoints may have been pruned server-side.
+      queryClient.invalidateQueries({ queryKey: ["push-overview-subs"] });
     } finally {
       setPendingId(null);
     }
@@ -297,11 +324,14 @@ export function PushDevicesTab() {
               {filtered.map((r) => {
                 const status = classify(r);
                 const isPending = pendingId === r.client_id;
+                const result = results[r.client_id];
+                const isExpanded = !!expanded[r.client_id];
                 return (
                   <li
                     key={r.client_id}
-                    className="flex flex-col gap-3 p-4 md:flex-row md:items-center md:justify-between"
+                    className="flex flex-col gap-3 p-4"
                   >
+                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                     <div className="flex items-center gap-3 min-w-0">
                       <Avatar className="h-9 w-9 shrink-0">
                         <AvatarImage src={r.avatar_url ?? undefined} />
@@ -338,6 +368,15 @@ export function PushDevicesTab() {
                             </>
                           )}
                         </div>
+                        {result && (
+                          <DeliverySummary
+                            result={result}
+                            expanded={isExpanded}
+                            onToggle={() =>
+                              setExpanded((p) => ({ ...p, [r.client_id]: !p[r.client_id] }))
+                            }
+                          />
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
@@ -348,8 +387,12 @@ export function PushDevicesTab() {
                           onClick={() => handleTestPush(r.client_id)}
                           disabled={isPending}
                         >
-                          <Send className="h-4 w-4 mr-2" />
-                          Test push
+                          {isPending ? (
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          ) : (
+                            <Send className="h-4 w-4 mr-2" />
+                          )}
+                          {isPending ? "Sending…" : "Test push"}
                         </Button>
                       ) : (
                         <Button
@@ -362,6 +405,8 @@ export function PushDevicesTab() {
                         </Button>
                       )}
                     </div>
+                    </div>
+                    {result && isExpanded && <DeliveryDetails result={result} />}
                   </li>
                 );
               })}
@@ -418,5 +463,123 @@ function StatusBadge({ status }: { status: "subscribed" | "no_devices" | "stale"
     <Badge variant="outline" className="text-destructive border-destructive">
       Not subscribed
     </Badge>
+  );
+}
+
+function DeliverySummary({
+  result,
+  expanded,
+  onToggle,
+}: {
+  result: DeliveryResult;
+  expanded: boolean;
+  onToggle: () => void;
+}) {
+  const noDevices = result.total === 0;
+  const allOk = result.ok && result.failed === 0 && result.total > 0;
+  const partial = result.delivered > 0 && result.failed > 0;
+  const allFailed = !noDevices && result.delivered === 0;
+
+  let tone = "text-muted-foreground";
+  let Icon = AlertTriangle;
+  let label = "";
+  if (noDevices) {
+    tone = "text-destructive";
+    Icon = XCircle;
+    label = "No devices found by edge function";
+  } else if (allOk) {
+    tone = "text-primary";
+    Icon = CheckCircle2;
+    label = `Delivered to all ${result.total} device${result.total === 1 ? "" : "s"}`;
+  } else if (partial) {
+    tone = "text-amber-600 dark:text-amber-400";
+    Icon = AlertTriangle;
+    label = `Delivered ${result.delivered}/${result.total} — ${result.failed} failed`;
+  } else if (allFailed) {
+    tone = "text-destructive";
+    Icon = XCircle;
+    label = `All ${result.total} device${result.total === 1 ? "" : "s"} failed`;
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      className={`mt-1 inline-flex items-center gap-1 text-xs hover:underline ${tone}`}
+    >
+      <Icon className="h-3 w-3" />
+      <span>{label}</span>
+      <span className="text-muted-foreground">
+        · {formatDistanceToNow(new Date(result.ranAt), { addSuffix: true })}
+      </span>
+      {result.devices.length > 0 &&
+        (expanded ? (
+          <ChevronUp className="h-3 w-3" />
+        ) : (
+          <ChevronDown className="h-3 w-3" />
+        ))}
+    </button>
+  );
+}
+
+function DeliveryDetails({ result }: { result: DeliveryResult }) {
+  if (result.total === 0) {
+    return (
+      <div className="rounded-md border border-dashed bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+        The edge function reported 0 push subscriptions for this client.
+        {result.message ? <> Server message: <span className="font-mono">{result.message}</span></> : null}
+      </div>
+    );
+  }
+  return (
+    <div className="rounded-md border bg-muted/30">
+      <div className="border-b px-3 py-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+        Per-device delivery
+      </div>
+      <ul className="divide-y divide-border">
+        {result.devices.map((d) => (
+          <li key={d.id} className="flex items-start justify-between gap-3 px-3 py-2 text-xs">
+            <div className="min-w-0 flex items-start gap-2">
+              {d.ok ? (
+                <CheckCircle2 className="h-3.5 w-3.5 mt-0.5 shrink-0 text-primary" />
+              ) : (
+                <XCircle className="h-3.5 w-3.5 mt-0.5 shrink-0 text-destructive" />
+              )}
+              <div className="min-w-0">
+                <p className="font-medium">
+                  {d.device}
+                  {d.endpoint_host && (
+                    <span className="ml-1 text-muted-foreground font-normal">
+                      · {d.endpoint_host}
+                    </span>
+                  )}
+                </p>
+                {!d.ok && d.error && (
+                  <p className="mt-0.5 break-all text-destructive/90 font-mono text-[11px]">
+                    {d.error.length > 240 ? d.error.slice(0, 240) + "…" : d.error}
+                  </p>
+                )}
+                {d.removed && (
+                  <p className="mt-0.5 text-muted-foreground italic">
+                    Endpoint expired — subscription removed.
+                  </p>
+                )}
+              </div>
+            </div>
+            <div className="shrink-0 text-right text-muted-foreground">
+              {d.ok ? (
+                <Badge variant="outline" className="text-primary border-primary">
+                  {d.status ?? "ok"}
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="text-destructive border-destructive">
+                  {d.status ?? "error"}
+                </Badge>
+              )}
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

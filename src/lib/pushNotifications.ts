@@ -178,6 +178,18 @@ export async function removePushSubscription(
   }
 }
 
+// Per-device delivery result returned by the `test-push` edge function.
+export interface PushDeviceResult {
+  id: string;
+  device: string;
+  endpoint_host: string;
+  ok: boolean;
+  status?: number;
+  expired?: boolean;
+  removed?: boolean;
+  error?: string;
+}
+
 // Send a test push to the current user (or, for trainers, a specific client).
 export async function sendTestPush(targetUserId?: string): Promise<{
   ok: boolean;
@@ -185,6 +197,7 @@ export async function sendTestPush(targetUserId?: string): Promise<{
   failed?: number;
   total?: number;
   message?: string;
+  devices?: PushDeviceResult[];
 }> {
   try {
     const { data, error } = await supabase.functions.invoke("test-push", {
