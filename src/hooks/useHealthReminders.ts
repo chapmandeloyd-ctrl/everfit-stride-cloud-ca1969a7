@@ -2,40 +2,26 @@ import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { getBrowserTimezone, getZonedParts } from '@/lib/healthReminderTimezone';
+import { useHealthReminderSettings } from '@/hooks/useHealthReminderSettings';
 
-const STORAGE_KEY = 'healthReminderSettings';
-const FIRED_KEY = 'healthReminderFiredToday';
-
-type ReminderSettings = {
-  enabled: boolean;
-  times: string[];
-  timezone?: string;
-};
+// Per-client "already fired today" cache keyed by client id so trainer
+// impersonation doesn't bleed into the trainer's own device state.
+const FIRED_KEY_PREFIX = 'healthReminderFiredToday::';
 
 type FiredState = {
   date: string; // YYYY-MM-DD
   times: string[]; // already-fired "HH:MM"
 };
 
-function loadSettings(): ReminderSettings | null {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    return JSON.parse(raw);
-  } catch {
-    return null;
-  }
-}
-
 function todayKey(timezone?: string): string {
   const tz = timezone || getBrowserTimezone();
   return getZonedParts(new Date(), tz).dateKey;
 }
 
-function loadFired(timezone?: string): FiredState {
+function loadFired(clientId: string, timezone?: string): FiredState {
   try {
     const today = todayKey(timezone);
-    const raw = localStorage.getItem(FIRED_KEY);
+    const raw = localStorage.getItem(FIRED_KEY_PREFIX + clientId);
     if (!raw) return { date: today, times: [] };
     const parsed: FiredState = JSON.parse(raw);
     if (parsed.date !== today) {
@@ -47,8 +33,8 @@ function loadFired(timezone?: string): FiredState {
   }
 }
 
-function saveFired(state: FiredState) {
-  localStorage.setItem(FIRED_KEY, JSON.stringify(state));
+function saveFired(clientId: string, state: FiredState) {
+  localStorage.setItem(FIRED_KEY_PREFIX + clientId, JSON.stringify(state));
 }
 
 /**
@@ -61,27 +47,37 @@ export function useHealthReminders() {
   const navigateRef = useRef(navigate);
   navigateRef.current = navigate;
 
+  // Pull the (effective) client's reminder schedule from the database. The
+  // hook handles impersonation, caching, and refetch on focus.
+  const { data: settings } = useHealthReminderSettings();
+  const settingsRef = useRef(settings);
+  settingsRef.current = settings;
+
   useEffect(() => {
     const check = () => {
-      const settings = loadSettings();
-      if (!settings || !settings.enabled || !settings.times?.length) return;
+      const current = settingsRef.current;
+      if (!current || !current.enabled || !current.times?.length) return;
+      // We need a stable per-client key for the "already fired today" cache.
+      // Use the timezone + times signature as a fallback when no client id is
+      // available (shouldn't happen in practice — the query is gated on it).
+      const cacheKey = (current as ReminderSettings & { _clientId?: string })._clientId
+        || `${current.timezone}|${current.times.join(',')}`;
 
-      const tz = settings.timezone || getBrowserTimezone();
+      const tz = current.timezone || getBrowserTimezone();
       const { hours, minutes } = getZonedParts(new Date(), tz);
       const nowMins = hours * 60 + minutes;
-      const fired = loadFired(tz);
+      const fired = loadFired(cacheKey, tz);
 
-      for (const time of settings.times) {
+      for (const time of current.times) {
         if (fired.times.includes(time)) continue;
         const [h, m] = time.split(':').map(Number);
         if (Number.isNaN(h) || Number.isNaN(m)) continue;
         const reminderMins = h * 60 + m;
         const diff = nowMins - reminderMins;
-        // Fire if reminder time was within the last 5 min and not in the future
         if (diff >= 0 && diff <= 5) {
           fireReminder(time);
           fired.times = [...fired.times, time];
-          saveFired(fired);
+          saveFired(cacheKey, fired);
         }
       }
     };

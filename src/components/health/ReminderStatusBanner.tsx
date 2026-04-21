@@ -2,24 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Bell, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getBrowserTimezone, getZonedParts } from '@/lib/healthReminderTimezone';
-
-const STORAGE_KEY = 'healthReminderSettings';
-
-type ReminderSettings = {
-  enabled: boolean;
-  times: string[];
-  timezone?: string;
-};
-
-function loadSettings(): ReminderSettings | null {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    return JSON.parse(raw);
-  } catch {
-    return null;
-  }
-}
+import { useHealthReminderSettings } from '@/hooks/useHealthReminderSettings';
 
 function formatTimeLabel(time: string): string {
   const [h, m] = time.split(':').map(Number);
@@ -88,22 +71,17 @@ interface Props {
 const HIGHLIGHT_MS = 30_000;
 
 export function ReminderStatusBanner({ fromReminder, onSnap }: Props) {
-  const [settings, setSettings] = useState<ReminderSettings | null>(null);
+  const { data: settings } = useHealthReminderSettings();
   const [showHighlight, setShowHighlight] = useState(fromReminder);
   const [countdownSeconds, setCountdownSeconds] = useState(HIGHLIGHT_MS / 1000);
   const [tick, setTick] = useState(0);
 
-  // Load settings once + tick every second so countdown stays live as time passes
+  // Tick every second so countdown stays live as time passes
   useEffect(() => {
-    setSettings(loadSettings());
-    const settingsRefresh = window.setInterval(() => {
-      setSettings(loadSettings());
-    }, 30_000);
     const tickInterval = window.setInterval(() => {
       setTick((t) => t + 1);
     }, 1000);
     return () => {
-      window.clearInterval(settingsRefresh);
       window.clearInterval(tickInterval);
     };
   }, []);
