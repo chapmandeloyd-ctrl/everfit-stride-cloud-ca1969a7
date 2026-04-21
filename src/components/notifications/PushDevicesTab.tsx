@@ -324,11 +324,14 @@ export function PushDevicesTab() {
               {filtered.map((r) => {
                 const status = classify(r);
                 const isPending = pendingId === r.client_id;
+                const result = results[r.client_id];
+                const isExpanded = !!expanded[r.client_id];
                 return (
                   <li
                     key={r.client_id}
-                    className="flex flex-col gap-3 p-4 md:flex-row md:items-center md:justify-between"
+                    className="flex flex-col gap-3 p-4"
                   >
+                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                     <div className="flex items-center gap-3 min-w-0">
                       <Avatar className="h-9 w-9 shrink-0">
                         <AvatarImage src={r.avatar_url ?? undefined} />
@@ -365,6 +368,15 @@ export function PushDevicesTab() {
                             </>
                           )}
                         </div>
+                        {result && (
+                          <DeliverySummary
+                            result={result}
+                            expanded={isExpanded}
+                            onToggle={() =>
+                              setExpanded((p) => ({ ...p, [r.client_id]: !p[r.client_id] }))
+                            }
+                          />
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
@@ -375,8 +387,12 @@ export function PushDevicesTab() {
                           onClick={() => handleTestPush(r.client_id)}
                           disabled={isPending}
                         >
-                          <Send className="h-4 w-4 mr-2" />
-                          Test push
+                          {isPending ? (
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          ) : (
+                            <Send className="h-4 w-4 mr-2" />
+                          )}
+                          {isPending ? "Sending…" : "Test push"}
                         </Button>
                       ) : (
                         <Button
@@ -389,6 +405,8 @@ export function PushDevicesTab() {
                         </Button>
                       )}
                     </div>
+                    </div>
+                    {result && isExpanded && <DeliveryDetails result={result} />}
                   </li>
                 );
               })}
