@@ -47,6 +47,47 @@ export interface SendResult {
   expired?: boolean; // 404/410 — caller should delete the row
 }
 
+/**
+ * Delete an expired push subscription and log it to
+ * `push_subscription_removals` for trainer visibility.
+ * Call this from any dispatcher after sendWebPush returns `expired: true`.
+ * `supabase` must be a service-role client.
+ */
+export async function recordExpiredSubscription(
+  supabase: any,
+  args: {
+    subscription_id: string;
+    user_id: string;
+    endpoint: string;
+    user_agent?: string | null;
+    status?: number;
+    removed_by: string;
+  },
+): Promise<void> {
+  let endpoint_host: string | null = null;
+  try { endpoint_host = new URL(args.endpoint).host; } catch { /* ignore */ }
+  const reason =
+    args.status === 404 ? "expired_404"
+    : args.status === 410 ? "expired_410"
+    : "expired_other";
+  try {
+    await supabase.from("push_subscription_removals").insert({
+      user_id: args.user_id,
+      endpoint_host,
+      user_agent: args.user_agent ?? null,
+      reason,
+      removed_by: args.removed_by,
+    });
+  } catch (err) {
+    console.error("Failed to log push_subscription_removals row", err);
+  }
+  try {
+    await supabase.from("push_subscriptions").delete().eq("id", args.subscription_id);
+  } catch (err) {
+    console.error("Failed to delete expired push_subscriptions row", err);
+  }
+}
+
 export async function sendWebPush(
   sub: PushSubRow,
   payload: PushPayload,
