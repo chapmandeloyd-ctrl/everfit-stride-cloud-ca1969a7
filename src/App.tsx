@@ -228,6 +228,8 @@ const App = () => (
           <Route path="/client/protocol/:id" element={<ProtectedRoute allowedRoles={["client"]}><FastingRouteGuard><ClientProtocolDetail /></FastingRouteGuard></ProtectedRoute>} />
           <Route path="/client/complete-plan" element={<ProtectedRoute allowedRoles={["client"]}><ClientCompletePlan /></ProtectedRoute>} />
           <Route path="/client/protocol-card-demo" element={<ProtectedRoute allowedRoles={["client"]}><ClientProtocolCardDemo /></ProtectedRoute>} />
+          {/* Trainer-accessible alias for previewing the protocol card demo without impersonation */}
+          <Route path="/protocol-card-demo" element={<ClientProtocolCardDemo />} />
           <Route path="/client/fast-complete" element={<ProtectedRoute allowedRoles={["client"]}><ClientFastComplete /></ProtectedRoute>} />
           <Route path="/client/vibes" element={<ProtectedRoute allowedRoles={["client"]}><ClientVibes /></ProtectedRoute>} />
           <Route path="/client/labs" element={<ProtectedRoute allowedRoles={["client"]}><ClientLabs /></ProtectedRoute>} />
