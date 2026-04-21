@@ -1495,6 +1495,47 @@ export type Database = {
           },
         ]
       }
+      client_health_reminders: {
+        Row: {
+          client_id: string
+          created_at: string
+          enabled: boolean
+          id: string
+          times: string[]
+          timezone: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          times?: string[]
+          timezone?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          times?: string[]
+          timezone?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_health_reminders_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_ical_feeds: {
         Row: {
           client_id: string
