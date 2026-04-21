@@ -14,6 +14,7 @@ import { useState } from "react";
 import { AddClientDialog } from "@/components/AddClientDialog";
 import { ClientListItem } from "@/components/ClientListItem";
 import { useIsMobile } from "@/hooks/use-mobile";
+import * as React from "react";
 import { ClientStatusDialog } from "@/components/ClientStatusDialog";
 import { AssignTaskDialog } from "@/components/AssignTaskDialog";
 import { useToast } from "@/hooks/use-toast";
@@ -35,7 +36,17 @@ export default function Clients() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
-  const isMobile = useIsMobile();
+  const sidebarIsMobile = useIsMobile();
+  // Local breakpoint for the Clients grid: show simple list only on true phones (<768px),
+  // so tablets and narrow desktops still get the rich client cards with quick controls.
+  const [isMobile, setIsMobile] = React.useState<boolean>(() =>
+    typeof window !== "undefined" ? window.innerWidth < 768 : false
+  );
+  React.useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
   const [addClientDialogOpen, setAddClientDialogOpen] = useState(false);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [assignTaskDialogOpen, setAssignTaskDialogOpen] = useState(false);
