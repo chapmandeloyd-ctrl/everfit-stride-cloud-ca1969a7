@@ -224,7 +224,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-3.1-pro-preview',
+        model: 'google/gemini-2.5-flash',
         messages: [
           {
             role: 'user',
@@ -324,6 +324,7 @@ Today's date is ${new Date().toISOString().split('T')[0]}.`
     const extracted = JSON.parse(toolCall.function.arguments);
     const normalizedMetrics = (extracted.metrics ?? []).map(normalizeMetric);
     console.log('Extracted metrics:', normalizedMetrics.length, 'items');
+    console.log('Normalized:', JSON.stringify(normalizedMetrics));
 
     if (normalizedMetrics.length === 0) {
       return new Response(
@@ -378,6 +379,7 @@ Today's date is ${new Date().toISOString().split('T')[0]}.`
     }
 
     const metricNames = Object.keys(aggregated);
+    console.log('Aggregated metric names:', metricNames);
     const { data: metricDefs } = await supabase
       .from('metric_definitions')
       .select('id, name')
@@ -404,6 +406,7 @@ Today's date is ${new Date().toISOString().split('T')[0]}.`
     for (const [metricName, value] of Object.entries(aggregated)) {
       const metricDefId = defMap[metricName];
       if (!metricDefId) continue;
+      console.log(`Saving ${metricName} = ${value}`);
 
       const { data: existingCM } = await supabase
         .from('client_metrics')
