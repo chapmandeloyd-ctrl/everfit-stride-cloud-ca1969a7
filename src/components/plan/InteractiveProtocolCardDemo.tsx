@@ -131,6 +131,208 @@ function AnimatedStatValue({ value, accentClass, start }: { value: string; accen
 
 /* -------- card front (shared) -------- */
 
+/* -------- front extras (space-fillers below stats) -------- */
+
+function FrontExtra({
+  variant,
+  protocol,
+  animate,
+}: {
+  variant: FrontExtraVariant;
+  protocol: DemoProtocol;
+  animate: boolean;
+}) {
+  if (variant === "timeline") return <PhaseTimelineExtra protocol={protocol} />;
+  if (variant === "feelChips") return <FeelChipsExtra protocol={protocol} />;
+  if (variant === "timelineAndChips")
+    return (
+      <div className="space-y-4">
+        <PhaseTimelineExtra protocol={protocol} />
+        <FeelChipsExtra protocol={protocol} />
+      </div>
+    );
+  if (variant === "progressRing") return <ProgressRingExtra protocol={protocol} animate={animate} />;
+  if (variant === "coachQuote") return <CoachQuoteExtra protocol={protocol} />;
+  if (variant === "difficulty") return <DifficultyExtra protocol={protocol} />;
+  return null;
+}
+
+/** #1 — Mini phase timeline (pulled from content.phases). */
+function PhaseTimelineExtra({ protocol }: { protocol: DemoProtocol }) {
+  const phases = protocol.content.phases.slice(0, 4);
+  if (phases.length === 0) return null;
+  return (
+    <div>
+      <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground mb-2">The Journey</p>
+      <div className="relative">
+        <div className={`absolute left-2 right-2 top-[7px] h-px bg-gradient-to-r ${protocol.iconGradient} opacity-50`} />
+        <div className="relative flex items-start justify-between">
+          {phases.map((p, i) => (
+            <div key={i} className="flex flex-col items-center" style={{ flex: "1 1 0", minWidth: 0 }}>
+              <span
+                className={`h-3.5 w-3.5 rounded-full bg-gradient-to-br ${protocol.iconGradient}`}
+                style={{ boxShadow: "0 0 0 3px hsl(var(--card)), 0 2px 6px hsl(0 0% 0% / 0.3)" }}
+              />
+              <span className={`mt-1.5 text-[9px] font-extrabold tracking-wider ${protocol.accentColorClass}`}>
+                {p.range.split("–")[0]}
+              </span>
+              <span className="text-[9px] font-semibold text-center leading-tight mt-0.5 line-clamp-2 px-0.5">
+                {p.title}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** #2 — "What you'll feel" chips. */
+function FeelChipsExtra({ protocol }: { protocol: DemoProtocol }) {
+  const palette = [
+    { Icon: Flame, label: "Fat burn" },
+    { Icon: Zap, label: "Energy" },
+    { Icon: BrainCircuit, label: "Clarity" },
+  ];
+  // Try to pull short labels from benefits, fall back to defaults.
+  const labels = protocol.content.benefits.slice(0, 3).map((b) => {
+    const short = b.split(/[—\-:]/)[0].trim();
+    return short.length > 18 ? short.slice(0, 16) + "…" : short;
+  });
+  return (
+    <div>
+      <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground mb-2">What You'll Feel</p>
+      <div className="flex items-center gap-1.5">
+        {palette.map(({ Icon, label }, i) => (
+          <div
+            key={i}
+            className="flex-1 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 border border-border/60"
+            style={{
+              background: "linear-gradient(145deg, hsl(var(--muted) / 0.7), hsl(var(--muted) / 0.3))",
+              boxShadow: "inset 0 1px 0 hsl(0 0% 100% / 0.06), 0 2px 6px hsl(0 0% 0% / 0.15)",
+            }}
+          >
+            <Icon className={`h-3 w-3 ${protocol.accentColorClass}`} />
+            <span className="text-[10px] font-bold truncate">{labels[i] ?? label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** #3 — Live progress ring (demo: 38%). */
+function ProgressRingExtra({ protocol, animate }: { protocol: DemoProtocol; animate: boolean }) {
+  const pct = useCountUp(38, 1100, animate);
+  const r = 28;
+  const c = 2 * Math.PI * r;
+  const offset = c - (pct / 100) * c;
+  return (
+    <div className="flex items-center gap-4">
+      <div className="relative h-20 w-20 shrink-0">
+        <svg viewBox="0 0 72 72" className="h-full w-full -rotate-90">
+          <circle cx="36" cy="36" r={r} fill="none" stroke="hsl(var(--muted))" strokeWidth="6" />
+          <circle
+            cx="36"
+            cy="36"
+            r={r}
+            fill="none"
+            stroke={`url(#ring-grad-${protocol.id})`}
+            strokeWidth="6"
+            strokeLinecap="round"
+            strokeDasharray={c}
+            strokeDashoffset={offset}
+          />
+          <defs>
+            <linearGradient id={`ring-grad-${protocol.id}`} x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="hsl(var(--primary))" />
+              <stop offset="100%" stopColor="hsl(var(--primary) / 0.5)" />
+            </linearGradient>
+          </defs>
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="text-sm font-black leading-none">{Math.round(pct)}%</span>
+          <span className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">Done</span>
+        </div>
+      </div>
+      <div className="min-w-0">
+        <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">In Progress</p>
+        <p className="text-sm font-extrabold leading-tight mt-0.5">18h of 48h logged</p>
+        <p className="text-[10px] text-muted-foreground mt-1 leading-tight">
+          Next milestone:{" "}
+          <span className={`font-bold ${protocol.accentColorClass}`}>Ketone ramp-up at 24h</span>
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/** #4 — Coach quote pulled from coachWarning or mentalReality. */
+function CoachQuoteExtra({ protocol }: { protocol: DemoProtocol }) {
+  const quote =
+    protocol.content.mentalReality?.[0] ??
+    protocol.content.coachWarning?.[0] ??
+    "Discipline turns into momentum.";
+  return (
+    <div
+      className="relative rounded-xl border border-border/60 p-3 pl-9"
+      style={{
+        background: "linear-gradient(145deg, hsl(var(--muted) / 0.7), hsl(var(--muted) / 0.25))",
+        boxShadow: "inset 0 1px 0 hsl(0 0% 100% / 0.06)",
+      }}
+    >
+      <Quote className={`absolute left-2.5 top-2.5 h-4 w-4 ${protocol.accentColorClass}`} />
+      <p className="text-xs font-medium italic leading-snug">{quote}</p>
+      <p className={`text-[9px] font-extrabold uppercase tracking-wider mt-1.5 ${protocol.accentColorClass}`}>
+        — Coach K
+      </p>
+    </div>
+  );
+}
+
+/** #5 — Difficulty meter + readiness badge. */
+function DifficultyExtra({ protocol }: { protocol: DemoProtocol }) {
+  // Map difficulty by Level stat / eyebrow.
+  const levelLabel = protocol.stats.find((s) => s.label.toLowerCase() === "level")?.value ?? "Intermediate";
+  const levelMap: Record<string, number> = {
+    Beginner: 1,
+    Intermediate: 2,
+    Advanced: 4,
+    Expert: 5,
+  };
+  const dots = levelMap[levelLabel] ?? 3;
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <div>
+        <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">Intensity</p>
+        <div className="flex items-center gap-1">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <span
+              key={i}
+              className={`h-2 w-2 rounded-full ${
+                i <= dots
+                  ? `bg-gradient-to-br ${protocol.iconGradient}`
+                  : "bg-muted"
+              }`}
+              style={i <= dots ? { boxShadow: "0 1px 2px hsl(0 0% 0% / 0.3)" } : undefined}
+            />
+          ))}
+        </div>
+        <p className="text-[10px] font-extrabold mt-1">{levelLabel}</p>
+      </div>
+      <div
+        className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 border border-border/60"
+        style={{
+          background: "linear-gradient(145deg, hsl(var(--muted) / 0.7), hsl(var(--muted) / 0.3))",
+        }}
+      >
+        <Activity className={`h-3 w-3 ${protocol.accentColorClass}`} />
+        <span className="text-[10px] font-extrabold uppercase tracking-wider">Recommended ✓</span>
+      </div>
+    </div>
+  );
+}
+
 function CardFront({
   protocol,
   showChevron = true,
