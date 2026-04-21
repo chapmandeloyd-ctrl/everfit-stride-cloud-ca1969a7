@@ -173,11 +173,11 @@ export function HeroPremiumStack({ protocol, isQuickPlan }: HeroProps) {
   const dl = dayLabel(protocol, isQuickPlan);
   return (
     <div className="relative pt-6 pb-4">
-      {/* Deep stacked depth — back card */}
+      {/* Deep stacked depth — back card (neutral) */}
       <div
         className="absolute inset-x-10 top-0 h-8 rounded-2xl"
         style={{
-          background: "linear-gradient(180deg, hsl(var(--primary) / 0.35), hsl(var(--primary) / 0.1))",
+          background: "linear-gradient(180deg, hsl(var(--muted) / 0.6), hsl(var(--muted) / 0.2))",
           filter: "blur(2px)",
           transform: "scaleY(0.6)",
         }}
@@ -185,38 +185,38 @@ export function HeroPremiumStack({ protocol, isQuickPlan }: HeroProps) {
       />
       {/* Mid card */}
       <div
-        className="absolute inset-x-6 top-2 h-10 rounded-2xl border border-primary/20"
+        className="absolute inset-x-6 top-2 h-10 rounded-2xl border border-border"
         style={{
           background: "linear-gradient(180deg, hsl(var(--card)), hsl(var(--card) / 0.6))",
-          boxShadow: "0 8px 20px -8px hsl(var(--primary) / 0.3)",
+          boxShadow: "0 8px 20px -8px hsl(0 0% 0% / 0.4)",
         }}
         aria-hidden
       />
       {/* Front card edge highlight */}
       <div
-        className="absolute inset-x-3 top-4 h-12 rounded-2xl border border-primary/15"
+        className="absolute inset-x-3 top-4 h-12 rounded-2xl border border-border"
         style={{
           background: "linear-gradient(180deg, hsl(var(--card)), hsl(var(--card)))",
-          boxShadow: "0 12px 24px -10px hsl(var(--primary) / 0.4)",
+          boxShadow: "0 12px 24px -10px hsl(0 0% 0% / 0.5)",
         }}
         aria-hidden
       />
 
       <div
-        className="relative overflow-hidden rounded-2xl border border-primary/30"
+        className="relative overflow-hidden rounded-2xl border border-border"
         style={{
           background:
-            "linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--card)) 50%, hsl(var(--primary) / 0.12) 100%)",
+            "linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--card)) 60%, hsl(var(--muted) / 0.6) 100%)",
           boxShadow:
-            "0 30px 60px -15px hsl(var(--primary) / 0.5), 0 18px 36px -12px hsl(0 0% 0% / 0.5), 0 6px 12px -4px hsl(0 0% 0% / 0.3), inset 0 1px 0 hsl(0 0% 100% / 0.12), inset 0 -1px 0 hsl(0 0% 0% / 0.3)",
+            "0 24px 48px -16px hsl(0 0% 0% / 0.55), 0 12px 24px -10px hsl(0 0% 0% / 0.4), 0 4px 8px -2px hsl(0 0% 0% / 0.25), inset 0 1px 0 hsl(0 0% 100% / 0.1), inset 0 -1px 0 hsl(0 0% 0% / 0.3)",
         }}
       >
-        {/* Mesh gradient overlay */}
+        {/* Mesh gradient overlay — neutral */}
         <div
-          className="absolute inset-0 opacity-90"
+          className="absolute inset-0 opacity-70"
           style={{
             background:
-              "radial-gradient(ellipse at top right, hsl(var(--primary) / 0.28), transparent 55%), radial-gradient(ellipse at bottom left, hsl(220 70% 25% / 0.25), transparent 55%), radial-gradient(circle at 50% 120%, hsl(var(--primary) / 0.2), transparent 50%)",
+              "radial-gradient(ellipse at top right, hsl(0 0% 100% / 0.06), transparent 55%), radial-gradient(ellipse at bottom left, hsl(0 0% 0% / 0.25), transparent 55%)",
           }}
         />
 
@@ -230,41 +230,25 @@ export function HeroPremiumStack({ protocol, isQuickPlan }: HeroProps) {
           }}
         />
 
-        {/* Glow orb top-right */}
+        {/* Top edge highlight (no glow) */}
         <div
-          className="absolute -top-16 -right-16 h-40 w-40 rounded-full pointer-events-none"
+          className="absolute top-0 left-0 right-0 h-px"
           style={{
-            background: "radial-gradient(circle, hsl(var(--primary) / 0.35), transparent 70%)",
-            filter: "blur(8px)",
-          }}
-          aria-hidden
-        />
-
-        {/* Animated shimmer line */}
-        <div
-          className="absolute top-0 left-0 right-0 h-[2px]"
-          style={{
-            background: "linear-gradient(90deg, transparent, hsl(var(--primary)), transparent)",
-            boxShadow: "0 0 12px hsl(var(--primary) / 0.8)",
+            background: "linear-gradient(90deg, transparent, hsl(0 0% 100% / 0.2), transparent)",
           }}
         />
 
         <div className="relative p-6">
           <div className="flex items-center gap-3 mb-4">
-            {/* Embossed 3D icon — beefier */}
+            {/* Embossed 3D icon — no halo */}
             <div className="relative">
-              <div
-                className="absolute inset-0 rounded-2xl blur-xl opacity-70"
-                style={{ background: "hsl(var(--primary) / 0.6)" }}
-                aria-hidden
-              />
               <div
                 className="relative h-14 w-14 rounded-2xl flex items-center justify-center"
                 style={{
                   background:
                     "linear-gradient(145deg, hsl(var(--primary)) 0%, hsl(0 75% 40%) 50%, hsl(0 60% 25%) 100%)",
                   boxShadow:
-                    "inset 2px 2px 3px hsl(0 0% 100% / 0.5), inset -3px -3px 6px hsl(0 0% 0% / 0.5), 0 10px 24px hsl(var(--primary) / 0.6), 0 4px 8px hsl(0 0% 0% / 0.4)",
+                    "inset 2px 2px 3px hsl(0 0% 100% / 0.5), inset -3px -3px 6px hsl(0 0% 0% / 0.5), 0 6px 14px hsl(0 0% 0% / 0.45), 0 2px 4px hsl(0 0% 0% / 0.3)",
                 }}
               >
                 <Zap className="h-7 w-7 text-white drop-shadow-lg" strokeWidth={2.5} />
