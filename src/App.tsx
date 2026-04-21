@@ -227,6 +227,7 @@ const App = () => (
           <Route path="/client/quick-plan/:id" element={<ProtectedRoute allowedRoles={["client"]}><FastingRouteGuard><ClientQuickPlanDetail /></FastingRouteGuard></ProtectedRoute>} />
           <Route path="/client/protocol/:id" element={<ProtectedRoute allowedRoles={["client"]}><FastingRouteGuard><ClientProtocolDetail /></FastingRouteGuard></ProtectedRoute>} />
           <Route path="/client/complete-plan" element={<ProtectedRoute allowedRoles={["client"]}><ClientCompletePlan /></ProtectedRoute>} />
+          <Route path="/client/protocol-card-demo" element={<ProtectedRoute allowedRoles={["client"]}><ClientProtocolCardDemo /></ProtectedRoute>} />
           <Route path="/client/fast-complete" element={<ProtectedRoute allowedRoles={["client"]}><ClientFastComplete /></ProtectedRoute>} />
           <Route path="/client/vibes" element={<ProtectedRoute allowedRoles={["client"]}><ClientVibes /></ProtectedRoute>} />
           <Route path="/client/labs" element={<ProtectedRoute allowedRoles={["client"]}><ClientLabs /></ProtectedRoute>} />
