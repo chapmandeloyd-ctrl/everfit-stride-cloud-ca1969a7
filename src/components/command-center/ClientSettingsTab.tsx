@@ -1070,6 +1070,7 @@ function DashboardLayoutSection({ clientId, trainerId, settings }: { clientId: s
           clientName={settings?.greeting_emoji ? `${settings.greeting_emoji} Client` : "Client"}
           clientId={clientId}
           disabledCards={disabledCards}
+          onSaveAsDefault={(newCards) => save({ cards: newCards, forClient: null })}
         />
       </CardContent>
     </Card>
