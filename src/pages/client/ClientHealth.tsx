@@ -4,6 +4,8 @@ import { ClientLayout } from '@/components/ClientLayout';
 import { ActivitySummary } from '@/components/health/ActivitySummary';
 import { AiSnapshotSheet } from '@/components/health/AiSnapshotSheet';
 import { ReminderStatusBanner } from '@/components/health/ReminderStatusBanner';
+import { TodaysReminderLog } from '@/components/health/TodaysReminderLog';
+import { appendReminderLog, findActiveReminderTime } from '@/lib/healthReminderLog';
 import { useEffectiveClientId } from '@/hooks/useEffectiveClientId';
 import { Settings, Smartphone, Bell, Camera } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -36,12 +38,33 @@ export default function ClientHealth() {
     if (searchParams.get('snap') === '1') {
       setSnapshotOpen(true);
       setFromReminder(true);
+      // Log this as a reminder-tied snap
+      try {
+        const raw = localStorage.getItem('healthReminderSettings');
+        const settings = raw ? JSON.parse(raw) : null;
+        const matched = settings?.times ? findActiveReminderTime(settings.times) : null;
+        appendReminderLog(matched);
+      } catch {
+        appendReminderLog(null);
+      }
       // Clear param so refresh doesn't reopen
       const next = new URLSearchParams(searchParams);
       next.delete('snap');
       setSearchParams(next, { replace: true });
     }
   }, [searchParams, setSearchParams]);
+
+  const handleManualSnap = () => {
+    setSnapshotOpen(true);
+    try {
+      const raw = localStorage.getItem('healthReminderSettings');
+      const settings = raw ? JSON.parse(raw) : null;
+      const matched = settings?.times ? findActiveReminderTime(settings.times) : null;
+      appendReminderLog(matched);
+    } catch {
+      appendReminderLog(null);
+    }
+  };
 
   const handleConnectTap = async () => {
     if (isConnecting) return;
