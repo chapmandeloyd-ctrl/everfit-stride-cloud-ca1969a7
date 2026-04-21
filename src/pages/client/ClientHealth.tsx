@@ -143,7 +143,7 @@ export default function ClientHealth() {
             </Button>
             <Button
               variant="default"
-              onClick={() => setSnapshotOpen(true)}
+              onClick={handleManualSnap}
               className="bg-primary"
             >
               <Camera className="h-4 w-4 mr-2" />
@@ -154,11 +154,12 @@ export default function ClientHealth() {
 
         <div>
           <h2 className="text-lg font-semibold mb-4">Today's Summary</h2>
-          <div className="mb-4">
+          <div className="mb-4 space-y-3">
             <ReminderStatusBanner
               fromReminder={fromReminder}
-              onSnap={() => setSnapshotOpen(true)}
+              onSnap={handleManualSnap}
             />
+            <TodaysReminderLog />
           </div>
           <ActivitySummary clientId={effectiveClientId} />
         </div>
