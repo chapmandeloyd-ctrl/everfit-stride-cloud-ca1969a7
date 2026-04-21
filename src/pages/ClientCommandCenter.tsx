@@ -12,6 +12,8 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { ClientOverviewTab } from "@/components/command-center/ClientOverviewTab";
 import { ClientSettingsTab } from "@/components/command-center/ClientSettingsTab";
 import { CoachCommandCenterTab } from "@/components/command-center/CoachCommandCenterTab";
@@ -34,6 +36,9 @@ export default function ClientCommandCenter() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [generatedPassword, setGeneratedPassword] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [passwordChooserOpen, setPasswordChooserOpen] = useState(false);
+  const [customPassword, setCustomPassword] = useState("");
+  const [customPasswordError, setCustomPasswordError] = useState<string | null>(null);
 
   const { data: clientData, isLoading } = useQuery({
     queryKey: ["client-detail", clientId],
@@ -61,8 +66,11 @@ export default function ClientCommandCenter() {
   };
 
   const resetPasswordMutation = useMutation({
-    mutationFn: async () => {
-      const newPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-4).toUpperCase();
+    mutationFn: async (overridePassword?: string) => {
+      const newPassword =
+        overridePassword ??
+        Math.random().toString(36).slice(-8) +
+          Math.random().toString(36).slice(-4).toUpperCase();
       const { data, error } = await supabase.functions.invoke("delete-users", {
         body: { action: "reset-password", userId: clientId, newPassword },
       });
@@ -72,6 +80,9 @@ export default function ClientCommandCenter() {
     },
     onSuccess: (password) => {
       setGeneratedPassword(password);
+      setPasswordChooserOpen(false);
+      setCustomPassword("");
+      setCustomPasswordError(null);
       setCredentialsOpen(true);
     },
     onError: (error: Error) => {
@@ -171,7 +182,7 @@ export default function ClientCommandCenter() {
               variant="outline"
               size="sm"
               className="gap-2"
-              onClick={() => resetPasswordMutation.mutate()}
+              onClick={() => setPasswordChooserOpen(true)}
               disabled={resetPasswordMutation.isPending}
             >
               {resetPasswordMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Key className="h-4 w-4" />}
@@ -273,6 +284,88 @@ export default function ClientCommandCenter() {
               Share via Text
             </Button>
             <Button onClick={() => setCredentialsOpen(false)} className="flex-1">Done</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Password Chooser Dialog */}
+      <Dialog
+        open={passwordChooserOpen}
+        onOpenChange={(open) => {
+          setPasswordChooserOpen(open);
+          if (!open) {
+            setCustomPassword("");
+            setCustomPasswordError(null);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Reset Password for {clientName}</DialogTitle>
+            <DialogDescription>
+              Auto-generate a secure password or set your own. The new password will replace the client's current one.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Button
+              className="w-full"
+              onClick={() => resetPasswordMutation.mutate(undefined)}
+              disabled={resetPasswordMutation.isPending}
+            >
+              {resetPasswordMutation.isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Key className="mr-2 h-4 w-4" />
+              )}
+              Auto-Generate Secure Password
+            </Button>
+            <div className="relative flex items-center">
+              <div className="flex-grow border-t border-border" />
+              <span className="mx-4 text-xs uppercase text-muted-foreground">or</span>
+              <div className="flex-grow border-t border-border" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="custom-password">Set Custom Password</Label>
+              <Input
+                id="custom-password"
+                type="text"
+                placeholder="Min 8 characters"
+                value={customPassword}
+                onChange={(e) => {
+                  setCustomPassword(e.target.value);
+                  setCustomPasswordError(null);
+                }}
+                maxLength={72}
+              />
+              {customPasswordError && (
+                <p className="text-xs text-destructive">{customPasswordError}</p>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPasswordChooserOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                const trimmed = customPassword.trim();
+                if (trimmed.length < 8) {
+                  setCustomPasswordError("Password must be at least 8 characters.");
+                  return;
+                }
+                if (trimmed.length > 72) {
+                  setCustomPasswordError("Password must be 72 characters or fewer.");
+                  return;
+                }
+                resetPasswordMutation.mutate(trimmed);
+              }}
+              disabled={resetPasswordMutation.isPending || customPassword.trim().length === 0}
+            >
+              {resetPasswordMutation.isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : null}
+              Set Custom Password
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
