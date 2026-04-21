@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { getBrowserTimezone, getZonedParts } from '@/lib/healthReminderTimezone';
 
 const STORAGE_KEY = 'healthReminderSettings';
 const FIRED_KEY = 'healthReminderFiredToday';
@@ -8,6 +9,7 @@ const FIRED_KEY = 'healthReminderFiredToday';
 type ReminderSettings = {
   enabled: boolean;
   times: string[];
+  timezone?: string;
 };
 
 type FiredState = {
@@ -25,22 +27,23 @@ function loadSettings(): ReminderSettings | null {
   }
 }
 
-function todayKey(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+function todayKey(timezone?: string): string {
+  const tz = timezone || getBrowserTimezone();
+  return getZonedParts(new Date(), tz).dateKey;
 }
 
-function loadFired(): FiredState {
+function loadFired(timezone?: string): FiredState {
   try {
+    const today = todayKey(timezone);
     const raw = localStorage.getItem(FIRED_KEY);
-    if (!raw) return { date: todayKey(), times: [] };
+    if (!raw) return { date: today, times: [] };
     const parsed: FiredState = JSON.parse(raw);
-    if (parsed.date !== todayKey()) {
-      return { date: todayKey(), times: [] };
+    if (parsed.date !== today) {
+      return { date: today, times: [] };
     }
     return parsed;
   } catch {
-    return { date: todayKey(), times: [] };
+    return { date: todayKey(timezone), times: [] };
   }
 }
 
@@ -63,9 +66,10 @@ export function useHealthReminders() {
       const settings = loadSettings();
       if (!settings || !settings.enabled || !settings.times?.length) return;
 
-      const now = new Date();
-      const nowMins = now.getHours() * 60 + now.getMinutes();
-      const fired = loadFired();
+      const tz = settings.timezone || getBrowserTimezone();
+      const { hours, minutes } = getZonedParts(new Date(), tz);
+      const nowMins = hours * 60 + minutes;
+      const fired = loadFired(tz);
 
       for (const time of settings.times) {
         if (fired.times.includes(time)) continue;

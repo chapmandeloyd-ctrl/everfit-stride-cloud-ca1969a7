@@ -3,19 +3,33 @@ import { ClientLayout } from '@/components/ClientLayout';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Card } from '@/components/ui/card';
-import { Bell, Plus, Trash2, ArrowLeft, Smartphone, FlaskConical } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Bell, Plus, Trash2, ArrowLeft, Smartphone, FlaskConical, Globe } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import {
+  buildTimezoneOptions,
+  getBrowserTimezone,
+  getZonedParts,
+} from '@/lib/healthReminderTimezone';
 
 type ReminderSettings = {
   enabled: boolean;
   times: string[]; // "HH:MM" 24h
+  timezone: string; // IANA tz, e.g. "America/New_York"
 };
 
 const STORAGE_KEY = 'healthReminderSettings';
 const DEFAULTS: ReminderSettings = {
   enabled: false,
   times: ['08:00', '13:00', '20:00'],
+  timezone: getBrowserTimezone(),
 };
 
 function loadSettings(): ReminderSettings {
@@ -26,6 +40,7 @@ function loadSettings(): ReminderSettings {
     return {
       enabled: !!parsed.enabled,
       times: Array.isArray(parsed.times) && parsed.times.length > 0 ? parsed.times : DEFAULTS.times,
+      timezone: typeof parsed.timezone === 'string' && parsed.timezone ? parsed.timezone : getBrowserTimezone(),
     };
   } catch {
     return DEFAULTS;
@@ -54,6 +69,12 @@ export default function ClientHealthReminders() {
   const sortedTimes = useMemo(
     () => [...settings.times].sort((a, b) => a.localeCompare(b)),
     [settings.times],
+  );
+
+  const browserTz = useMemo(() => getBrowserTimezone(), []);
+  const timezoneOptions = useMemo(
+    () => buildTimezoneOptions(settings.timezone),
+    [settings.timezone],
   );
 
   const updateSettings = (next: Partial<ReminderSettings>) => {
@@ -93,14 +114,18 @@ export default function ClientHealthReminders() {
    */
   const scheduleTestReminder = (minutesFromNow: number) => {
     const target = new Date(Date.now() + minutesFromNow * 60_000);
-    const hh = String(target.getHours()).padStart(2, '0');
-    const mm = String(target.getMinutes()).padStart(2, '0');
-    const newTime = `${hh}:${mm}`;
+    // Use the chosen timezone so the test time matches what the banner displays
+    const { hours, minutes } = getZonedParts(target, settings.timezone);
+    const newTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 
     const mergedTimes = Array.from(new Set([...settings.times, newTime])).sort((a, b) =>
       a.localeCompare(b),
     );
-    const toSave: ReminderSettings = { enabled: true, times: mergedTimes };
+    const toSave: ReminderSettings = {
+      enabled: true,
+      times: mergedTimes,
+      timezone: settings.timezone,
+    };
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
     setSettings(toSave);
@@ -132,7 +157,11 @@ export default function ClientHealthReminders() {
   const handleSave = () => {
     // Dedupe + sort
     const cleaned = Array.from(new Set(settings.times)).sort((a, b) => a.localeCompare(b));
-    const toSave: ReminderSettings = { enabled: settings.enabled, times: cleaned };
+    const toSave: ReminderSettings = {
+      enabled: settings.enabled,
+      times: cleaned,
+      timezone: settings.timezone,
+    };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
     setSettings(toSave);
     setHasChanges(false);
@@ -194,6 +223,44 @@ export default function ClientHealthReminders() {
               </Button>
             </div>
           )}
+
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Globe className="h-4 w-4 text-muted-foreground" />
+              <p className="font-semibold text-sm">Timezone</p>
+            </div>
+            <Select
+              value={settings.timezone}
+              onValueChange={(value) => updateSettings({ timezone: value })}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select timezone" />
+              </SelectTrigger>
+              <SelectContent className="max-h-72">
+                {timezoneOptions.map((tz) => (
+                  <SelectItem key={tz.value} value={tz.value}>
+                    {tz.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Reminder times are interpreted in this timezone. Device timezone:{' '}
+              <span className="font-medium text-foreground">{browserTz}</span>
+              {settings.timezone !== browserTz && (
+                <>
+                  {' · '}
+                  <button
+                    type="button"
+                    onClick={() => updateSettings({ timezone: browserTz })}
+                    className="underline underline-offset-2 hover:text-foreground"
+                  >
+                    Use device timezone
+                  </button>
+                </>
+              )}
+            </p>
+          </div>
 
           <div className="space-y-3">
             <div className="flex items-center justify-between">

@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Bell, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { getBrowserTimezone, getZonedParts } from '@/lib/healthReminderTimezone';
 
 const STORAGE_KEY = 'healthReminderSettings';
 
 type ReminderSettings = {
   enabled: boolean;
   times: string[];
+  timezone?: string;
 };
 
 function loadSettings(): ReminderSettings | null {
@@ -43,10 +45,13 @@ function getNextReminder(times: string[]): { time: string; minutesUntil: number 
   return { time: next.time, minutesUntil: diff };
 }
 
-function getNextReminderSeconds(times: string[]): { time: string; secondsUntil: number } | null {
+function getNextReminderSeconds(
+  times: string[],
+  timezone: string,
+): { time: string; secondsUntil: number } | null {
   if (!times.length) return null;
-  const now = new Date();
-  const nowSecs = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+  const { hours, minutes, seconds } = getZonedParts(new Date(), timezone);
+  const nowSecs = hours * 3600 + minutes * 60 + seconds;
   const sorted = times
     .map((t) => {
       const [h, m] = t.split(':').map(Number);
@@ -122,7 +127,8 @@ export function ReminderStatusBanner({ fromReminder, onSnap }: Props) {
 
   const next = useMemo(() => {
     if (!settings?.enabled || !settings.times?.length) return null;
-    return getNextReminderSeconds(settings.times);
+    const tz = settings.timezone || getBrowserTimezone();
+    return getNextReminderSeconds(settings.times, tz);
   }, [settings, tick]);
 
   // Active reminder highlight (pulse + countdown bar)
