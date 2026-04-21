@@ -14,6 +14,7 @@ import {
 import { toast } from "sonner";
 
 // No aggressive timeout — let native iOS flow complete naturally
+const HEALTH_PERMISSION_UI_GUARD_MS = 3_500;
 
 function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -116,7 +117,19 @@ export function useNativeHealth() {
       return false;
     }
 
-    const granted = await requestHealthPermissions();
+    const permissionRequest = requestHealthPermissions();
+    const granted = await Promise.race<boolean | "pending">(([
+      permissionRequest,
+      wait(HEALTH_PERMISSION_UI_GUARD_MS).then(() => "pending" as const),
+    ]));
+
+    if (granted === "pending") {
+      toast.info("Finish the Apple Health popup on your iPhone — we’ll verify access automatically.", {
+        id: "apple-health-status",
+      });
+      startPermissionVerification();
+      return true;
+    }
 
     if (granted) {
       // iOS deliberately returns "notDetermined" for read permissions even
@@ -133,7 +146,7 @@ export function useNativeHealth() {
     queryClient.setQueryData(["native-health-permissions"], false);
     toast.error("Health permissions denied", { id: "apple-health-status" });
     return false;
-  }, [isImpersonating, queryClient, refetch]);
+  }, [isImpersonating, queryClient, refetch, startPermissionVerification]);
 
   useEffect(() => {
     if (healthData && clientId) {
