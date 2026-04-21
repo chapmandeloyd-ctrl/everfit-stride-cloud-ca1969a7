@@ -32,7 +32,7 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     // ── Auth: make sure the caller is logged in ──────────────────────────
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("No authorization header");
+    if (!authHeader?.startsWith("Bearer ")) throw new Error("No authorization header");
 
     const userClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -40,11 +40,16 @@ const handler = async (req: Request): Promise<Response> => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    const {
-      data: { user },
-      error: authError,
-    } = await userClient.auth.getUser();
-    if (authError || !user) throw new Error("Unauthorized");
+    // Validate the JWT cryptographically via getClaims (works even if the
+    // local session row was rotated/expired on the auth server, as long as
+    // the access token itself is still valid and not expired).
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: authError } = await userClient.auth.getClaims(token);
+    if (authError || !claimsData?.claims?.sub) {
+      console.error("[read-health-stats] getClaims failed:", authError?.message);
+      throw new Error("Unauthorized");
+    }
+    const user = { id: claimsData.claims.sub as string };
 
     // ── Parse body ───────────────────────────────────────────────────────
     const body = await req.json();
