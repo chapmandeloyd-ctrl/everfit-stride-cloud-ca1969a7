@@ -168,7 +168,7 @@ export default function PrivacyPolicy() {
           <div className="bg-muted rounded-lg p-4 text-sm text-muted-foreground space-y-1">
             <p className="font-medium text-foreground">KSOM-360</p>
             <p>Email: <a href="mailto:privacy@ksom360.com" className="text-primary underline">privacy@ksom360.com</a></p>
-            <p>Website: <a href="https://everfit-stride-cloud.lovable.app" className="text-primary underline">ksom360.com</a></p>
+            <p>Website: <a href="https://ksom-360.app" className="text-primary underline">ksom-360.app</a></p>
           </div>
         </section>
 
