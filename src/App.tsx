@@ -201,6 +201,7 @@ const App = () => (
           <Route path="/client/resource-collection/:id" element={<ProtectedRoute allowedRoles={["client"]}><ClientResourceCollectionDetail /></ProtectedRoute>} />
           <Route path="/client/health" element={<ProtectedRoute allowedRoles={["client"]}><ClientHealth /></ProtectedRoute>} />
           <Route path="/client/health-connect" element={<ProtectedRoute allowedRoles={["client"]}><ClientHealthConnect /></ProtectedRoute>} />
+          <Route path="/client/health-reminders" element={<ProtectedRoute allowedRoles={["client"]}><ClientHealthReminders /></ProtectedRoute>} />
           <Route path="/client/badges" element={<ProtectedRoute allowedRoles={["client"]}><ClientBadges /></ProtectedRoute>} />
           <Route path="/client/habits" element={<ProtectedRoute allowedRoles={["client"]}><ClientHabits /></ProtectedRoute>} />
           <Route path="/client/habits/:id" element={<ProtectedRoute allowedRoles={["client"]}><ClientHabitDetail /></ProtectedRoute>} />
