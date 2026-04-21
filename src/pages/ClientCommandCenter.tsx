@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, MessageSquare, Key, Trash2, Copy, Check, Loader2, Share2 } from "lucide-react";
+import { ArrowLeft, MessageSquare, Key, Trash2, Copy, Check, Loader2, Share2, Bell } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -196,6 +196,23 @@ export default function ClientCommandCenter() {
             >
               <MessageSquare className="h-4 w-4" />
               Message
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              onClick={() => {
+                if (!clientId) return;
+                localStorage.setItem("impersonatedClientId", clientId);
+                queryClient.clear();
+                navigate("/client/health/reminders", {
+                  state: { returnTo: `/clients/${clientId}` },
+                });
+              }}
+              title="Open this client's check-in reminder settings (preview as client)"
+            >
+              <Bell className="h-4 w-4" />
+              Reminders
             </Button>
             <Button
               variant="destructive"
