@@ -173,6 +173,14 @@ export function SmartPaceBanner() {
                   {todayTargetLbs.toFixed(1)} <span className="text-base font-medium text-white/60">lb today</span>
                 </h3>
                 <p className="text-xs text-white/70 mt-0.5">{reason}</p>
+                {showColorHint && (
+                  <div className="mt-2 flex items-start gap-1.5 rounded-lg bg-white/5 ring-1 ring-white/10 px-2 py-1.5 animate-fade-in">
+                    <span className={cn("mt-1 h-1.5 w-1.5 rounded-full flex-shrink-0", tone.dot)} />
+                    <p className="text-[10px] leading-snug text-white/80 italic">
+                      {tone.hint}
+                    </p>
+                  </div>
+                )}
                 {cappedAt !== null && (
                   <p className="text-[11px] text-amber-300 mt-1">
                     Capped at {cappedAt.toFixed(1)} lb (max safe pace)
