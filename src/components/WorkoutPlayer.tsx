@@ -85,6 +85,7 @@ interface WorkoutPlayerProps {
   onDiscard: () => void;
   onExit: () => void;
   onSaveForLater?: (data: { setLogs: Record<string, SetLog>; elapsedSeconds: number; startedAt: string; stepIdx: number; completionPercent: number }) => void;
+  onProgressSave?: (data: { setLogs: Record<string, SetLog>; elapsedSeconds: number; startedAt: string; stepIdx: number; completionPercent: number }) => void;
   resumeFromStep?: number;
   resumeSetLogs?: Record<string, SetLog>;
   resumeElapsed?: number;
@@ -374,7 +375,7 @@ function WorkoutCompleteScreen({ workoutName, onSave }: { workoutName?: string; 
   );
 }
 
-export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, onDiscard, onExit, onSaveForLater, resumeFromStep, resumeSetLogs, resumeElapsed, activeSessionId, dbStartedAt }: WorkoutPlayerProps) {
+export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, onDiscard, onExit, onSaveForLater, onProgressSave, resumeFromStep, resumeSetLogs, resumeElapsed, activeSessionId, dbStartedAt }: WorkoutPlayerProps) {
   const { toast } = useToast();
   const liveActivity = useLiveActivity();
   const startedAtRef = useRef(new Date().toISOString());
