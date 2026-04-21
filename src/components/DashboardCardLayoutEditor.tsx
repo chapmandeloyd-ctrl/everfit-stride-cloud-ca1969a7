@@ -266,6 +266,20 @@ export function DashboardCardLayoutEditor({
           </div>
         </div>
       </div>
+
+      {onSaveAsDefault && (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={handleSaveAsDefault}
+          disabled={savingDefault || isSaving}
+          className="gap-2"
+        >
+          <Star className="h-3.5 w-3.5" />
+          {savingDefault ? "Saving..." : "Save as default for new clients"}
+        </Button>
+      )}
     </div>
   );
 }
