@@ -8,18 +8,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Clear only HTTP/disk cache to ensure fresh web bundle after updates
-        // Do NOT clear cookies, localStorage, or sessionStorage — those hold auth tokens
-        URLCache.shared.removeAllCachedResponses()
-        let dataStore = WKWebsiteDataStore.default()
-        // Only clear disk cache and memory cache, preserve localStorage/cookies for auth
-        let cacheTypes: Set<String> = [
-            WKWebsiteDataTypeDiskCache,
-            WKWebsiteDataTypeMemoryCache,
-            WKWebsiteDataTypeFetchCache,
-            WKWebsiteDataTypeServiceWorkerRegistrations
-        ]
-        dataStore.removeData(ofTypes: cacheTypes, modifiedSince: Date.distantPast) { }
+        // Keep native WebView caches intact during normal launches.
+        // Repeated cache wipes make dashboard cards/media reload choppily.
         return true
     }
 
@@ -35,16 +25,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func applicationWillEnterForeground(_ application: UIApplication) {
         // Called as part of the transition from the background to the active state.
-        // Clear HTTP/disk cache again so the WebView picks up any OTA-updated bundle.
-        URLCache.shared.removeAllCachedResponses()
-        let dataStore = WKWebsiteDataStore.default()
-        let cacheTypes: Set<String> = [
-            WKWebsiteDataTypeDiskCache,
-            WKWebsiteDataTypeMemoryCache,
-            WKWebsiteDataTypeFetchCache,
-            WKWebsiteDataTypeServiceWorkerRegistrations
-        ]
-        dataStore.removeData(ofTypes: cacheTypes, modifiedSince: Date.distantPast) { }
+        // Do not clear caches here; active timers and media should resume smoothly.
     }
 
     func applicationDidBecomeActive(_ application: UIApplication) {

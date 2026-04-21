@@ -85,6 +85,7 @@ interface WorkoutPlayerProps {
   onDiscard: () => void;
   onExit: () => void;
   onSaveForLater?: (data: { setLogs: Record<string, SetLog>; elapsedSeconds: number; startedAt: string; stepIdx: number; completionPercent: number }) => void;
+  onProgressSave?: (data: { setLogs: Record<string, SetLog>; elapsedSeconds: number; startedAt: string; stepIdx: number; completionPercent: number }) => void;
   resumeFromStep?: number;
   resumeSetLogs?: Record<string, SetLog>;
   resumeElapsed?: number;
@@ -374,10 +375,10 @@ function WorkoutCompleteScreen({ workoutName, onSave }: { workoutName?: string; 
   );
 }
 
-export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, onDiscard, onExit, onSaveForLater, resumeFromStep, resumeSetLogs, resumeElapsed, activeSessionId, dbStartedAt }: WorkoutPlayerProps) {
+export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, onDiscard, onExit, onSaveForLater, onProgressSave, resumeFromStep, resumeSetLogs, resumeElapsed, activeSessionId, dbStartedAt }: WorkoutPlayerProps) {
   const { toast } = useToast();
   const liveActivity = useLiveActivity();
-  const startedAtRef = useRef(new Date().toISOString());
+  const startedAtRef = useRef(dbStartedAt ?? new Date().toISOString());
   const [setLogs, setSetLogs] = useState<Record<string, SetLog>>(resumeSetLogs || {});
   const [isLocked, setIsLocked] = useState(false);
 
@@ -423,22 +424,20 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
   }, []);
 
   const savedTimer = loadWorkoutTimer();
-  const [elapsedSeconds, setElapsedSeconds] = useState(() => {
-    if (resumeElapsed) return resumeElapsed;
-    if (!savedTimer) {
-      // DB fallback: recover elapsed from the session's started_at timestamp
-      if (dbStartedAt) {
-        return Math.max(0, Math.floor((Date.now() - new Date(dbStartedAt).getTime()) / 1000));
-      }
-      return 0;
+  const restoredElapsedSeconds = (() => {
+    if (resumeElapsed !== undefined) return resumeElapsed;
+    if (savedTimer) {
+      if (savedTimer.paused) return savedTimer.accumulated;
+      return savedTimer.accumulated + Math.floor((Date.now() - savedTimer.wallStart) / 1000);
     }
-    if (savedTimer.paused) return savedTimer.accumulated;
-    return savedTimer.accumulated + Math.floor((Date.now() - savedTimer.wallStart) / 1000);
-  });
+    if (dbStartedAt) {
+      return Math.max(0, Math.floor((Date.now() - new Date(dbStartedAt).getTime()) / 1000));
+    }
+    return 0;
+  })();
+  const [elapsedSeconds, setElapsedSeconds] = useState(restoredElapsedSeconds);
   const elapsedRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const elapsedAccRef = useRef<number>(
-    resumeElapsed ?? savedTimer?.accumulated ?? (dbStartedAt ? Math.max(0, Math.floor((Date.now() - new Date(dbStartedAt).getTime()) / 1000)) : 0)
-  );
+  const elapsedAccRef = useRef<number>(restoredElapsedSeconds);
   const isPausedRef = useRef(savedTimer?.paused ?? false);
   const [isPaused, setIsPaused] = useState(savedTimer?.paused ?? false);
 
@@ -734,6 +733,34 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
     window.addEventListener("pagehide", handleUnload);
     return () => { window.removeEventListener("beforeunload", handleUnload); window.removeEventListener("pagehide", handleUnload); };
   }, [phase, persistWorkoutTimer]);
+
+  useEffect(() => {
+    if (phase !== "playing" || !onProgressSave) return;
+
+    const saveProgress = () => {
+      const liveElapsed = isPausedRef.current
+        ? elapsedAccRef.current
+        : elapsedAccRef.current + Math.floor((Date.now() - wallStartRef.current) / 1000);
+
+      onProgressSave({
+        setLogs,
+        elapsedSeconds: liveElapsed,
+        startedAt: startedAtRef.current,
+        stepIdx: stepIdxRef.current,
+        completionPercent: completedPercent,
+      });
+    };
+
+    const interval = window.setInterval(saveProgress, 15_000);
+    window.addEventListener("pagehide", saveProgress);
+    document.addEventListener("visibilitychange", saveProgress);
+
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("pagehide", saveProgress);
+      document.removeEventListener("visibilitychange", saveProgress);
+    };
+  }, [completedPercent, onProgressSave, phase, setLogs]);
 
   useEffect(() => {
     if (phase !== "playing" || !currentStep) return;

@@ -27,9 +27,16 @@ export async function clearServiceWorkersAndCaches(logPrefix = '[App]'): Promise
 /**
  * Unregister all service workers when running inside a native shell.
  * Service workers conflict with Capacitor's WebView and cause stale caching.
+ * Do not wipe Cache Storage here: media/cards need it for smooth native entry.
  */
 export async function disableServiceWorkersInNative(): Promise<void> {
   if (!isNativeApp()) return;
-  await clearServiceWorkersAndCaches('[Native]');
+  if (!('serviceWorker' in navigator)) return;
+
+  const registrations = await navigator.serviceWorker.getRegistrations();
+  for (const reg of registrations) {
+    await reg.unregister();
+    console.log('[Native] Unregistered service worker:', reg.scope);
+  }
 }
 
