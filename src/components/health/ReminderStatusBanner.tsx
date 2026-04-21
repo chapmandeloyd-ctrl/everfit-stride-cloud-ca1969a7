@@ -86,7 +86,7 @@ export function ReminderStatusBanner({ fromReminder, onSnap }: Props) {
   const [settings, setSettings] = useState<ReminderSettings | null>(null);
   const [showHighlight, setShowHighlight] = useState(fromReminder);
   const [countdownSeconds, setCountdownSeconds] = useState(HIGHLIGHT_MS / 1000);
-  const [, setTick] = useState(0);
+  const [tick, setTick] = useState(0);
 
   // Load settings once + tick every second so countdown stays live as time passes
   useEffect(() => {
@@ -123,8 +123,7 @@ export function ReminderStatusBanner({ fromReminder, onSnap }: Props) {
   const next = useMemo(() => {
     if (!settings?.enabled || !settings.times?.length) return null;
     return getNextReminderSeconds(settings.times);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [settings, /* tick */]);
+  }, [settings, tick]);
 
   // Active reminder highlight (pulse + countdown bar)
   if (showHighlight) {
