@@ -17,6 +17,8 @@ export default function ClientHealth() {
   const { isNative, permissionGranted, requestPermissions, isImpersonating } = useNativeHealth();
   const { data: connections = [] } = useHealthConnections();
   const [isConnecting, setIsConnecting] = useState(false);
+  const [snapshotOpen, setSnapshotOpen] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
   const isConnected =
     permissionGranted ||
     connections.some((connection) => connection.provider === 'apple_health' && connection.is_connected);
@@ -26,6 +28,17 @@ export default function ClientHealth() {
       setIsConnecting(false);
     }
   }, [isConnected]);
+
+  // Auto-open snapshot flow when navigating with ?snap=1 (from reminders)
+  useEffect(() => {
+    if (searchParams.get('snap') === '1') {
+      setSnapshotOpen(true);
+      // Clear param so refresh doesn't reopen
+      const next = new URLSearchParams(searchParams);
+      next.delete('snap');
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const handleConnectTap = async () => {
     if (isConnecting) return;
