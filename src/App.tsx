@@ -63,6 +63,7 @@ import ClientHealthConnect from "./pages/client/ClientHealthConnect";
 import ClientBadges from "./pages/client/ClientBadges";
 import ClientMealPlan from "./pages/client/ClientMealPlan";
 import ClientMealSelect from "./pages/client/ClientMealSelect";
+import ClientHealthReminders from "./pages/client/ClientHealthReminders";
 import ClientMealResults from "./pages/client/ClientMealResults";
 import ClientHabits from "./pages/client/ClientHabits";
 import ClientHabitDetail from "./pages/client/ClientHabitDetail";
