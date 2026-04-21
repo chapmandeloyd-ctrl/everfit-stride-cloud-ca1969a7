@@ -241,6 +241,27 @@ export default function ClientHealthReminders() {
           </div>
         </Card>
 
+        <Card className="p-4 sm:p-6 space-y-3 border-dashed">
+          <div className="flex items-center gap-2">
+            <FlaskConical className="h-4 w-4 text-primary" />
+            <p className="font-semibold text-sm">Test mode</p>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Add a one-off reminder a minute or two from now to verify the banner countdown and pop-up. The time is saved and reminders are turned on immediately.
+          </p>
+          <div className="flex flex-wrap gap-2 pt-1">
+            <Button size="sm" variant="outline" onClick={() => scheduleTestReminder(1)}>
+              Test in 1 min
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => scheduleTestReminder(2)}>
+              Test in 2 min
+            </Button>
+            <Button size="sm" variant="ghost" asChild>
+              <Link to="/client/health">Open Health page</Link>
+            </Button>
+          </div>
+        </Card>
+
         <div className="flex items-center justify-between gap-3">
           <Button variant="ghost" asChild>
             <Link to="/client/health">Cancel</Link>
