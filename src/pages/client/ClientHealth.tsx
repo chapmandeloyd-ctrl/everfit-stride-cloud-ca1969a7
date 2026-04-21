@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ClientLayout } from '@/components/ClientLayout';
 import { ActivitySummary } from '@/components/health/ActivitySummary';
 import { useEffectiveClientId } from '@/hooks/useEffectiveClientId';
@@ -19,6 +19,12 @@ export default function ClientHealth() {
     permissionGranted ||
     connections.some((connection) => connection.provider === 'apple_health' && connection.is_connected);
 
+  useEffect(() => {
+    if (isConnected) {
+      setIsConnecting(false);
+    }
+  }, [isConnected]);
+
   const handleConnectTap = async () => {
     if (isConnecting) return;
 
@@ -33,16 +39,21 @@ export default function ClientHealth() {
     toast.info('Requesting Apple Health access — please allow on the popup...', { id: 'apple-health-request' });
     setIsConnecting(true);
 
-    try {
-      await requestPermissions();
-    } catch (err: any) {
-      console.error('[HealthConnect] Error:', err);
-      toast.error(`Connection failed: ${err?.message || 'Unknown error'}`, {
-        id: 'apple-health-request',
-      });
-    } finally {
+    const releaseUiTimer = window.setTimeout(() => {
       setIsConnecting(false);
-    }
+    }, 4000);
+
+    void requestPermissions()
+      .catch((err: any) => {
+        console.error('[HealthConnect] Error:', err);
+        toast.error(`Connection failed: ${err?.message || 'Unknown error'}`, {
+          id: 'apple-health-request',
+        });
+      })
+      .finally(() => {
+        window.clearTimeout(releaseUiTimer);
+        setIsConnecting(false);
+      });
   };
 
   return (

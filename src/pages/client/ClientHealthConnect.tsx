@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ClientLayout } from '@/components/ClientLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Activity, Heart, Info, Shield, Smartphone, CheckCircle2, XCircle } from 'lucide-react';
@@ -17,22 +17,33 @@ export default function ClientHealthConnect() {
     permissionGranted ||
     connections.some((connection) => connection.provider === 'apple_health' && connection.is_connected);
 
+  useEffect(() => {
+    if (isConnected) {
+      setIsConnecting(false);
+    }
+  }, [isConnected]);
+
   const handleConnectTap = async () => {
     if (isConnecting) return;
 
     toast.info('Requesting Apple Health access — please allow on the popup...', { id: 'apple-health-request' });
     setIsConnecting(true);
 
-    try {
-      await requestPermissions();
-    } catch (err: any) {
-      console.error('[HealthConnect] Error:', err);
-      toast.error(`Connection failed: ${err?.message || 'Unknown error'}`, {
-        id: 'apple-health-request',
-      });
-    } finally {
+    const releaseUiTimer = window.setTimeout(() => {
       setIsConnecting(false);
-    }
+    }, 4000);
+
+    void requestPermissions()
+      .catch((err: any) => {
+        console.error('[HealthConnect] Error:', err);
+        toast.error(`Connection failed: ${err?.message || 'Unknown error'}`, {
+          id: 'apple-health-request',
+        });
+      })
+      .finally(() => {
+        window.clearTimeout(releaseUiTimer);
+        setIsConnecting(false);
+      });
   };
 
   const statusLabel = !isNative
