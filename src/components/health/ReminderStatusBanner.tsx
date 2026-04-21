@@ -88,14 +88,19 @@ export function ReminderStatusBanner({ fromReminder, onSnap }: Props) {
   const [countdownSeconds, setCountdownSeconds] = useState(HIGHLIGHT_MS / 1000);
   const [, setTick] = useState(0);
 
-  // Load settings once + refresh every minute so the "next" countdown stays accurate
+  // Load settings once + tick every second so countdown stays live as time passes
   useEffect(() => {
     setSettings(loadSettings());
-    const interval = window.setInterval(() => {
+    const settingsRefresh = window.setInterval(() => {
       setSettings(loadSettings());
+    }, 30_000);
+    const tickInterval = window.setInterval(() => {
       setTick((t) => t + 1);
-    }, 60_000);
-    return () => window.clearInterval(interval);
+    }, 1000);
+    return () => {
+      window.clearInterval(settingsRefresh);
+      window.clearInterval(tickInterval);
+    };
   }, []);
 
   // Highlight countdown
@@ -117,8 +122,9 @@ export function ReminderStatusBanner({ fromReminder, onSnap }: Props) {
 
   const next = useMemo(() => {
     if (!settings?.enabled || !settings.times?.length) return null;
-    return getNextReminder(settings.times);
-  }, [settings]);
+    return getNextReminderSeconds(settings.times);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings, /* tick */]);
 
   // Active reminder highlight (pulse + countdown bar)
   if (showHighlight) {
@@ -159,7 +165,7 @@ export function ReminderStatusBanner({ fromReminder, onSnap }: Props) {
           Next check-in reminder at{' '}
           <span className="font-semibold text-foreground">{formatTimeLabel(next.time)}</span>
           {' · in '}
-          <span className="font-semibold text-foreground">{formatCountdown(next.minutesUntil)}</span>
+          <span className="font-semibold text-foreground">{formatCountdown(next.secondsUntil)}</span>
         </span>
       </div>
     );
