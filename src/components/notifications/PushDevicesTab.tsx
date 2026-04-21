@@ -369,6 +369,34 @@ export function PushDevicesTab() {
         </CardContent>
       </Card>
 
+      {/* Silent failure banner — recent unresolved auto-removals (404/410) */}
+      {counts.expired > 0 && (
+        <Card className="border-destructive/50 bg-destructive/5">
+          <CardContent className="flex flex-col gap-3 p-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-start gap-3">
+              <ZapOff className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+              <div>
+                <p className="font-medium text-sm">
+                  {counts.expired} client{counts.expired === 1 ? "" : "s"} had push silently fail in the last {REMOVAL_LOOKBACK_DAYS} days
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Their device endpoints returned 404/410 during a real reminder. Banner clears automatically when they re-subscribe.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <Button size="sm" variant="outline" onClick={() => setFilter("expired")}>
+                Show affected
+              </Button>
+              <Button size="sm" onClick={handleBulkNudge} disabled={bulkSending}>
+                <Bell className="h-4 w-4 mr-2" />
+                {bulkSending ? "Sending…" : "Prompt all to re-enable"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Filter + search */}
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <Tabs value={filter} onValueChange={(v) => setFilter(v as FilterKey)}>
@@ -377,6 +405,11 @@ export function PushDevicesTab() {
             <TabsTrigger value="no_devices">Not subscribed ({counts.no_devices})</TabsTrigger>
             <TabsTrigger value="stale">Stale ({counts.stale})</TabsTrigger>
             <TabsTrigger value="subscribed">Subscribed ({counts.subscribed})</TabsTrigger>
+            {counts.expired > 0 && (
+              <TabsTrigger value="expired" className="text-destructive">
+                Expired ({counts.expired})
+              </TabsTrigger>
+            )}
           </TabsList>
         </Tabs>
         <div className="relative md:w-64">
