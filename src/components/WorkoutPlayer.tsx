@@ -424,22 +424,20 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
   }, []);
 
   const savedTimer = loadWorkoutTimer();
-  const [elapsedSeconds, setElapsedSeconds] = useState(() => {
-    if (resumeElapsed) return resumeElapsed;
-    if (!savedTimer) {
-      // DB fallback: recover elapsed from the session's started_at timestamp
-      if (dbStartedAt) {
-        return Math.max(0, Math.floor((Date.now() - new Date(dbStartedAt).getTime()) / 1000));
-      }
-      return 0;
+  const restoredElapsedSeconds = (() => {
+    if (resumeElapsed !== undefined) return resumeElapsed;
+    if (savedTimer) {
+      if (savedTimer.paused) return savedTimer.accumulated;
+      return savedTimer.accumulated + Math.floor((Date.now() - savedTimer.wallStart) / 1000);
     }
-    if (savedTimer.paused) return savedTimer.accumulated;
-    return savedTimer.accumulated + Math.floor((Date.now() - savedTimer.wallStart) / 1000);
-  });
+    if (dbStartedAt) {
+      return Math.max(0, Math.floor((Date.now() - new Date(dbStartedAt).getTime()) / 1000));
+    }
+    return 0;
+  })();
+  const [elapsedSeconds, setElapsedSeconds] = useState(restoredElapsedSeconds);
   const elapsedRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const elapsedAccRef = useRef<number>(
-    resumeElapsed ?? savedTimer?.accumulated ?? (dbStartedAt ? Math.max(0, Math.floor((Date.now() - new Date(dbStartedAt).getTime()) / 1000)) : 0)
-  );
+  const elapsedAccRef = useRef<number>(restoredElapsedSeconds);
   const isPausedRef = useRef(savedTimer?.paused ?? false);
   const [isPaused, setIsPaused] = useState(savedTimer?.paused ?? false);
 
