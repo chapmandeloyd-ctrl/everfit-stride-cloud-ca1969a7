@@ -218,6 +218,44 @@ export default function ClientHealthReminders() {
             </div>
           )}
 
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Globe className="h-4 w-4 text-muted-foreground" />
+              <p className="font-semibold text-sm">Timezone</p>
+            </div>
+            <Select
+              value={settings.timezone}
+              onValueChange={(value) => updateSettings({ timezone: value })}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select timezone" />
+              </SelectTrigger>
+              <SelectContent className="max-h-72">
+                {timezoneOptions.map((tz) => (
+                  <SelectItem key={tz.value} value={tz.value}>
+                    {tz.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Reminder times are interpreted in this timezone. Device timezone:{' '}
+              <span className="font-medium text-foreground">{browserTz}</span>
+              {settings.timezone !== browserTz && (
+                <>
+                  {' · '}
+                  <button
+                    type="button"
+                    onClick={() => updateSettings({ timezone: browserTz })}
+                    className="underline underline-offset-2 hover:text-foreground"
+                  >
+                    Use device timezone
+                  </button>
+                </>
+              )}
+            </p>
+          </div>
+
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <p className="font-semibold text-sm">Reminder times</p>
