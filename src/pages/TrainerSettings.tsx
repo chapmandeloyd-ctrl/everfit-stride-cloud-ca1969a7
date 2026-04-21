@@ -9,6 +9,7 @@ import { getIconComponent } from "@/components/cardio/cardioActivities";
 import { OnboardingPreviewSection } from "@/components/settings/OnboardingPreviewSection";
 import { WelcomeCardEditor } from "@/components/settings/WelcomeCardEditor";
 import { FastingCardEditor } from "@/components/settings/FastingCardEditor";
+import { DefaultDashboardLayoutEditor } from "@/components/settings/DefaultDashboardLayoutEditor";
 import { useState } from "react";
 
 export default function TrainerSettings() {
@@ -83,6 +84,9 @@ export default function TrainerSettings() {
 
         {/* Fasting Card for New Clients */}
         <FastingCardEditor />
+
+        {/* Default Dashboard Layout for New Clients */}
+        <DefaultDashboardLayoutEditor />
 
         {/* Onboarding Flows Preview */}
         <OnboardingPreviewSection />
