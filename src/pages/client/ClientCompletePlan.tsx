@@ -284,9 +284,16 @@ export default function ClientCompletePlan() {
               </div>
               <h2 className="text-[26px] font-black leading-tight tracking-tight">
                 {protocol.name}
-                {isQuickPlan && protocol.fast_target_hours >= 24 && (
-                  <> — {Math.round(protocol.fast_target_hours / 24)} Day{Math.round(protocol.fast_target_hours / 24) !== 1 ? "s" : ""}</>
-                )}
+                {isQuickPlan && protocol.fast_target_hours >= 24 && (() => {
+                  const hrs = protocol.fast_target_hours;
+                  const exactDays = hrs / 24;
+                  // Whole day: "48h — 2 Days". Fractional: "36h — 1.5 Days".
+                  const label = Number.isInteger(exactDays)
+                    ? `${exactDays}`
+                    : (Math.round(exactDays * 10) / 10).toString();
+                  const isOne = exactDays === 1;
+                  return <> — {label} Day{isOne ? "" : "s"}</>;
+                })()}
               </h2>
               <div className="flex items-center justify-center gap-8 mt-4 pt-3 border-t border-border/30">
                 <div className="text-center">
