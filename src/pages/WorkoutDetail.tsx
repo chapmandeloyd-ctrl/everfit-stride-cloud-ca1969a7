@@ -354,8 +354,9 @@ export default function WorkoutDetail() {
   };
 
   // Create an in-progress session immediately when starting a workout
-  const createActiveSession = async () => {
-    if (!isClient || !effectiveClientId || !id) return null;
+  const createActiveSession = useCallback(async () => {
+    if (!isClient || !effectiveClientId || !id || pendingStartRef.current) return null;
+    pendingStartRef.current = true;
     const startedAt = new Date().toISOString();
     try {
       const { data: session } = await supabase
@@ -378,9 +379,41 @@ export default function WorkoutDetail() {
       }
     } catch (err) {
       console.error("Failed to create active session:", err);
+    } finally {
+      pendingStartRef.current = false;
     }
     return null;
-  };
+  }, [clientWorkout?.id, effectiveClientId, id, isClient]);
+
+  const handleProgressSave = useCallback(async (data: { setLogs: Record<string, any>; elapsedSeconds: number; startedAt: string; stepIdx: number; completionPercent: number }) => {
+    if (!isClient || progressSaveInFlightRef.current) return;
+    progressSaveInFlightRef.current = true;
+
+    try {
+      let sessionId = activeSessionId || inProgressSession?.id;
+      if (!sessionId) {
+        const created = await createActiveSession();
+        sessionId = created?.sessionId || null;
+      }
+      if (!sessionId) return;
+
+      await supabase.from("workout_sessions").update({
+        duration_seconds: data.elapsedSeconds,
+        resume_section_index: data.stepIdx,
+        resume_set_logs: data.setLogs as any,
+        completion_percentage: data.completionPercent,
+        status: "in_progress",
+      }).eq("id", sessionId);
+    } finally {
+      progressSaveInFlightRef.current = false;
+    }
+  }, [activeSessionId, createActiveSession, inProgressSession?.id, isClient]);
+
+  useEffect(() => {
+    if (isPlaying && isClient && !activeSessionId && !inProgressSession?.id) {
+      void createActiveSession();
+    }
+  }, [activeSessionId, createActiveSession, inProgressSession?.id, isClient, isPlaying]);
 
   const handleResume = () => {
     if (inProgressSession) {
