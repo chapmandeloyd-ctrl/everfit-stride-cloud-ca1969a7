@@ -87,6 +87,30 @@ export default function ClientHealthReminders() {
     updateSettings({ times: next });
   };
 
+  /**
+   * Test mode: schedule a reminder N minutes from now and immediately persist
+   * + enable reminders so the banner countdown can be verified end-to-end.
+   */
+  const scheduleTestReminder = (minutesFromNow: number) => {
+    const target = new Date(Date.now() + minutesFromNow * 60_000);
+    const hh = String(target.getHours()).padStart(2, '0');
+    const mm = String(target.getMinutes()).padStart(2, '0');
+    const newTime = `${hh}:${mm}`;
+
+    const mergedTimes = Array.from(new Set([...settings.times, newTime])).sort((a, b) =>
+      a.localeCompare(b),
+    );
+    const toSave: ReminderSettings = { enabled: true, times: mergedTimes };
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+    setSettings(toSave);
+    setHasChanges(false);
+
+    toast.success(
+      `Test reminder set for ${formatTimeLabel(newTime)} (in ~${minutesFromNow} min). Head to the Health page to watch the countdown.`,
+    );
+  };
+
   const requestNotifPermission = async () => {
     if (typeof Notification === 'undefined') {
       toast.error('Notifications are not supported in this browser.');
