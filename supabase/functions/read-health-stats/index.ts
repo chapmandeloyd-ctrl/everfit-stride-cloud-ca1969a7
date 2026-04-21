@@ -204,6 +204,44 @@ const handler = async (req: Request): Promise<Response> => {
           ? (workoutRows ?? []).length
           : (workoutCountFallback ?? 0);
 
+      // ── Caloric Intake from KSOM-360 nutrition_logs (today, in client TZ) ──
+      // Apple Health rarely has Dietary Energy populated, so the source of
+      // truth for "calories consumed" is the in-app meal log.
+      try {
+        const nowMs = Date.now();
+        const localNowMs = nowMs + tzOffsetMin * 60_000;
+        const localMidnight = new Date(localNowMs);
+        localMidnight.setUTCHours(0, 0, 0, 0);
+        // Today's date in the client's local timezone, formatted YYYY-MM-DD
+        const localDateStr = localMidnight.toISOString().slice(0, 10);
+
+        const { data: mealRows, error: mealErr } = await admin
+          .from("nutrition_logs")
+          .select("calories, created_at")
+          .eq("client_id", clientId)
+          .eq("log_date", localDateStr);
+
+        if (mealErr) {
+          console.error("[read-health-stats] nutrition_logs query error:", mealErr);
+        } else if ((mealRows ?? []).length > 0) {
+          const totalIntake = (mealRows ?? []).reduce(
+            (sum: number, row: any) => sum + (Number(row.calories) || 0),
+            0
+          );
+          // Use the latest created_at as the snapshot date for the card
+          const latestDate = (mealRows ?? [])
+            .map((r: any) => r.created_at)
+            .sort()
+            .pop();
+          metrics["Caloric Intake"] = {
+            value: totalIntake,
+            date: latestDate ?? new Date().toISOString(),
+          };
+        }
+      } catch (err) {
+        console.error("[read-health-stats] caloric intake calc failed:", err);
+      }
+
       return json({
         metrics,
         workoutCount,
