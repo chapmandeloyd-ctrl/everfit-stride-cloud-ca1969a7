@@ -737,6 +737,34 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
   }, [phase, persistWorkoutTimer]);
 
   useEffect(() => {
+    if (phase !== "playing" || !onProgressSave) return;
+
+    const saveProgress = () => {
+      const liveElapsed = isPausedRef.current
+        ? elapsedAccRef.current
+        : elapsedAccRef.current + Math.floor((Date.now() - wallStartRef.current) / 1000);
+
+      onProgressSave({
+        setLogs,
+        elapsedSeconds: liveElapsed,
+        startedAt: startedAtRef.current,
+        stepIdx: stepIdxRef.current,
+        completionPercent: completedPercent,
+      });
+    };
+
+    const interval = window.setInterval(saveProgress, 15_000);
+    window.addEventListener("pagehide", saveProgress);
+    document.addEventListener("visibilitychange", saveProgress);
+
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("pagehide", saveProgress);
+      document.removeEventListener("visibilitychange", saveProgress);
+    };
+  }, [completedPercent, onProgressSave, phase, setLogs]);
+
+  useEffect(() => {
     if (phase !== "playing" || !currentStep) return;
     if (currentStep.type === "exercise" && currentStep.exercise) {
       const ex = currentStep.exercise;
