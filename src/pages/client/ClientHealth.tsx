@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { ClientLayout } from '@/components/ClientLayout';
 import { ActivitySummary } from '@/components/health/ActivitySummary';
+import { AiSnapshotSheet } from '@/components/health/AiSnapshotSheet';
 import { useEffectiveClientId } from '@/hooks/useEffectiveClientId';
-import { Settings, Smartphone, Bell } from 'lucide-react';
+import { Settings, Smartphone, Bell, Camera } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useNativeHealth } from '@/hooks/useNativeHealth';
@@ -15,6 +17,8 @@ export default function ClientHealth() {
   const { isNative, permissionGranted, requestPermissions, isImpersonating } = useNativeHealth();
   const { data: connections = [] } = useHealthConnections();
   const [isConnecting, setIsConnecting] = useState(false);
+  const [snapshotOpen, setSnapshotOpen] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
   const isConnected =
     permissionGranted ||
     connections.some((connection) => connection.provider === 'apple_health' && connection.is_connected);
@@ -24,6 +28,17 @@ export default function ClientHealth() {
       setIsConnecting(false);
     }
   }, [isConnected]);
+
+  // Auto-open snapshot flow when navigating with ?snap=1 (from reminders)
+  useEffect(() => {
+    if (searchParams.get('snap') === '1') {
+      setSnapshotOpen(true);
+      // Clear param so refresh doesn't reopen
+      const next = new URLSearchParams(searchParams);
+      next.delete('snap');
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const handleConnectTap = async () => {
     if (isConnecting) return;
@@ -100,6 +115,14 @@ export default function ClientHealth() {
                 Reminders
               </Link>
             </Button>
+            <Button
+              variant="default"
+              onClick={() => setSnapshotOpen(true)}
+              className="bg-primary"
+            >
+              <Camera className="h-4 w-4 mr-2" />
+              Snap Health Now
+            </Button>
           </div>
         </div>
 
@@ -107,6 +130,12 @@ export default function ClientHealth() {
           <h2 className="text-lg font-semibold mb-4">Today's Summary</h2>
           <ActivitySummary clientId={effectiveClientId} />
         </div>
+
+        <AiSnapshotSheet
+          open={snapshotOpen}
+          onOpenChange={setSnapshotOpen}
+          clientId={effectiveClientId}
+        />
       </div>
     </ClientLayout>
   );

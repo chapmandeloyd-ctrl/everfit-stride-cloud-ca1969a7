@@ -88,8 +88,8 @@ export function useHealthReminders() {
         description: message,
         duration: 10000,
         action: {
-          label: 'Log now',
-          onClick: () => navigateRef.current('/client/health'),
+          label: 'Snap Health Now',
+          onClick: () => navigateRef.current('/client/health?snap=1'),
         },
       });
 
@@ -103,7 +103,7 @@ export function useHealthReminders() {
           });
           notif.onclick = () => {
             window.focus();
-            navigateRef.current('/client/health');
+            navigateRef.current('/client/health?snap=1');
             notif.close();
           };
         } catch {
