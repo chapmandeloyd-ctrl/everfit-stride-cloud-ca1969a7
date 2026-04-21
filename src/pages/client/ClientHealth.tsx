@@ -4,6 +4,8 @@ import { ClientLayout } from '@/components/ClientLayout';
 import { ActivitySummary } from '@/components/health/ActivitySummary';
 import { AiSnapshotSheet } from '@/components/health/AiSnapshotSheet';
 import { ReminderStatusBanner } from '@/components/health/ReminderStatusBanner';
+import { TodaysReminderLog } from '@/components/health/TodaysReminderLog';
+import { appendReminderLog, findActiveReminderTime } from '@/lib/healthReminderLog';
 import { useEffectiveClientId } from '@/hooks/useEffectiveClientId';
 import { Settings, Smartphone, Bell, Camera } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -36,12 +38,33 @@ export default function ClientHealth() {
     if (searchParams.get('snap') === '1') {
       setSnapshotOpen(true);
       setFromReminder(true);
+      // Log this as a reminder-tied snap
+      try {
+        const raw = localStorage.getItem('healthReminderSettings');
+        const settings = raw ? JSON.parse(raw) : null;
+        const matched = settings?.times ? findActiveReminderTime(settings.times) : null;
+        appendReminderLog(matched);
+      } catch {
+        appendReminderLog(null);
+      }
       // Clear param so refresh doesn't reopen
       const next = new URLSearchParams(searchParams);
       next.delete('snap');
       setSearchParams(next, { replace: true });
     }
   }, [searchParams, setSearchParams]);
+
+  const handleManualSnap = () => {
+    setSnapshotOpen(true);
+    try {
+      const raw = localStorage.getItem('healthReminderSettings');
+      const settings = raw ? JSON.parse(raw) : null;
+      const matched = settings?.times ? findActiveReminderTime(settings.times) : null;
+      appendReminderLog(matched);
+    } catch {
+      appendReminderLog(null);
+    }
+  };
 
   const handleConnectTap = async () => {
     if (isConnecting) return;
@@ -120,7 +143,7 @@ export default function ClientHealth() {
             </Button>
             <Button
               variant="default"
-              onClick={() => setSnapshotOpen(true)}
+              onClick={handleManualSnap}
               className="bg-primary"
             >
               <Camera className="h-4 w-4 mr-2" />
@@ -131,11 +154,12 @@ export default function ClientHealth() {
 
         <div>
           <h2 className="text-lg font-semibold mb-4">Today's Summary</h2>
-          <div className="mb-4">
+          <div className="mb-4 space-y-3">
             <ReminderStatusBanner
               fromReminder={fromReminder}
-              onSnap={() => setSnapshotOpen(true)}
+              onSnap={handleManualSnap}
             />
+            <TodaysReminderLog />
           </div>
           <ActivitySummary clientId={effectiveClientId} />
         </div>
