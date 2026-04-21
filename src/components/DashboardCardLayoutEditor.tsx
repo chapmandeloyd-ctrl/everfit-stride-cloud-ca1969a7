@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { GripVertical, RotateCcw, Eye, Pencil, Ban } from "lucide-react";
+import { GripVertical, RotateCcw, Eye, Pencil, Ban, Star } from "lucide-react";
 import { DashboardCardConfig, DEFAULT_CARD_ORDER } from "@/lib/dashboardCards";
 import { useToast } from "@/hooks/use-toast";
 
@@ -16,6 +16,8 @@ interface DashboardCardLayoutEditorProps {
   showPreview?: boolean;
   /** Card keys that don't apply to this client (engine mode / feature flags) */
   disabledCards?: Record<string, string>;
+  /** Optional: promote the current layout as the trainer-wide default for new clients */
+  onSaveAsDefault?: (cards: DashboardCardConfig[]) => Promise<void>;
 }
 
 export function DashboardCardLayoutEditor({
