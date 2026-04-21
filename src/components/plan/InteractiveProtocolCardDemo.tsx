@@ -800,7 +800,7 @@ function SwipeCarousel({ protocols }: { protocols: DemoProtocol[] }) {
 
 /* -------- 5) COMBO variant: swipe between protocols + tap to flip each -------- */
 
-function ComboCard({ protocols }: { protocols: DemoProtocol[] }) {
+function ComboCard({ protocols, frontExtra = "none" }: { protocols: DemoProtocol[]; frontExtra?: FrontExtraVariant }) {
   const [idx, setIdx] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const startX = useRef<number | null>(null);
@@ -858,11 +858,11 @@ function ComboCard({ protocols }: { protocols: DemoProtocol[] }) {
           onPointerUp={onUp}
         >
           <div key={current.id} className="animate-fade-in">
-            <CardFront protocol={current} showChevron={false} animateStats={!flipped} />
+            <CardFront protocol={current} showChevron={false} animateStats={!flipped} frontExtra={frontExtra} />
           </div>
 
           {/* tap hint */}
-          <div className="absolute bottom-9 left-0 right-0 flex justify-center pointer-events-none">
+          <div className="absolute bottom-8 left-0 right-0 flex justify-center pointer-events-none">
             <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80">
               Tap for details · Swipe to browse
             </span>
