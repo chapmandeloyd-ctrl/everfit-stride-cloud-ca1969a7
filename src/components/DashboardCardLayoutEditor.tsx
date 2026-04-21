@@ -29,12 +29,14 @@ export function DashboardCardLayoutEditor({
   clientName,
   clientId,
   disabledCards = {},
+  onSaveAsDefault,
 }: DashboardCardLayoutEditorProps) {
   const { toast } = useToast();
   const [cards, setCards] = useState<DashboardCardConfig[]>(initialCards);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
   const [mode, setMode] = useState<"live" | "edit">("live");
+  const [savingDefault, setSavingDefault] = useState(false);
 
   useEffect(() => {
     setCards(initialCards);
@@ -71,6 +73,20 @@ export function DashboardCardLayoutEditor({
     await onSave(cards);
     setHasChanges(false);
     toast({ title: "Layout saved", description: "Dashboard card layout has been updated." });
+  };
+
+  const handleSaveAsDefault = async () => {
+    if (!onSaveAsDefault) return;
+    try {
+      setSavingDefault(true);
+      await onSaveAsDefault(cards);
+      toast({
+        title: "Default updated",
+        description: "This layout is now the default for all new clients.",
+      });
+    } finally {
+      setSavingDefault(false);
+    }
   };
 
   const handleReset = () => {
