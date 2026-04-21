@@ -3,7 +3,7 @@ import { ClientLayout } from '@/components/ClientLayout';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Card } from '@/components/ui/card';
-import { Bell, Plus, Trash2, ArrowLeft, Smartphone } from 'lucide-react';
+import { Bell, Plus, Trash2, ArrowLeft, Smartphone, FlaskConical } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -85,6 +85,30 @@ export default function ClientHealthReminders() {
     }
     const next = settings.times.filter((_, i) => i !== index);
     updateSettings({ times: next });
+  };
+
+  /**
+   * Test mode: schedule a reminder N minutes from now and immediately persist
+   * + enable reminders so the banner countdown can be verified end-to-end.
+   */
+  const scheduleTestReminder = (minutesFromNow: number) => {
+    const target = new Date(Date.now() + minutesFromNow * 60_000);
+    const hh = String(target.getHours()).padStart(2, '0');
+    const mm = String(target.getMinutes()).padStart(2, '0');
+    const newTime = `${hh}:${mm}`;
+
+    const mergedTimes = Array.from(new Set([...settings.times, newTime])).sort((a, b) =>
+      a.localeCompare(b),
+    );
+    const toSave: ReminderSettings = { enabled: true, times: mergedTimes };
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+    setSettings(toSave);
+    setHasChanges(false);
+
+    toast.success(
+      `Test reminder set for ${formatTimeLabel(newTime)} (in ~${minutesFromNow} min). Head to the Health page to watch the countdown.`,
+    );
   };
 
   const requestNotifPermission = async () => {
@@ -214,6 +238,27 @@ export default function ClientHealthReminders() {
             <p className="text-xs text-muted-foreground pt-1">
               Tip: 3 reminders (morning, afternoon, evening) catches your full daily activity.
             </p>
+          </div>
+        </Card>
+
+        <Card className="p-4 sm:p-6 space-y-3 border-dashed">
+          <div className="flex items-center gap-2">
+            <FlaskConical className="h-4 w-4 text-primary" />
+            <p className="font-semibold text-sm">Test mode</p>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Add a one-off reminder a minute or two from now to verify the banner countdown and pop-up. The time is saved and reminders are turned on immediately.
+          </p>
+          <div className="flex flex-wrap gap-2 pt-1">
+            <Button size="sm" variant="outline" onClick={() => scheduleTestReminder(1)}>
+              Test in 1 min
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => scheduleTestReminder(2)}>
+              Test in 2 min
+            </Button>
+            <Button size="sm" variant="ghost" asChild>
+              <Link to="/client/health">Open Health page</Link>
+            </Button>
           </div>
         </Card>
 
