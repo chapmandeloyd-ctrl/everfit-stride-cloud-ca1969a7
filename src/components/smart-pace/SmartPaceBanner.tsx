@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, AlertTriangle, Target, BookHeart, Heart } from "lucide-react";
@@ -7,6 +7,9 @@ import { cn } from "@/lib/utils";
 import { SmartPaceJournalView } from "./SmartPaceJournalView";
 import { SmartPaceWhyView } from "./SmartPaceWhyView";
 
+const COLOR_HINT_STORAGE_KEY = "smartPaceColorHintViews";
+const MAX_HINT_VIEWS = 3;
+
 /**
  * Dashboard banner — replaces the old GoalCard when smart_pace_enabled = true.
  * Severity-driven visuals.
@@ -14,6 +17,20 @@ import { SmartPaceWhyView } from "./SmartPaceWhyView";
 export function SmartPaceBanner() {
   const { data } = useSmartPace();
   const [flipView, setFlipView] = useState<"none" | "journal" | "why">("none");
+  const [showColorHint, setShowColorHint] = useState(false);
+
+  useEffect(() => {
+    if (!data?.enabled || !data.goal) return;
+    try {
+      const views = parseInt(localStorage.getItem(COLOR_HINT_STORAGE_KEY) || "0", 10);
+      if (views < MAX_HINT_VIEWS) {
+        setShowColorHint(true);
+        localStorage.setItem(COLOR_HINT_STORAGE_KEY, String(views + 1));
+      }
+    } catch {
+      // localStorage unavailable — silently skip the hint
+    }
+  }, [data?.enabled, data?.goal?.id]);
 
   if (!data?.enabled || !data.goal) return null;
 
