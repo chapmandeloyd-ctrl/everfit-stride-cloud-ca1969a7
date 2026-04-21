@@ -3,39 +3,17 @@ import { ClientLayout } from '@/components/ClientLayout';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Card } from '@/components/ui/card';
-import { Bell, Plus, Trash2, ArrowLeft, Smartphone, FlaskConical, Globe } from 'lucide-react';
+import { Bell, Plus, Trash2, ArrowLeft, Smartphone, FlaskConical, Globe, Loader2, UserCog } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { getBrowserTimezone, getZonedParts } from '@/lib/healthReminderTimezone';
 import { TimezoneCombobox } from '@/components/health/TimezoneCombobox';
-
-type ReminderSettings = {
-  enabled: boolean;
-  times: string[]; // "HH:MM" 24h
-  timezone: string; // IANA tz, e.g. "America/New_York"
-};
-
-const STORAGE_KEY = 'healthReminderSettings';
-const DEFAULTS: ReminderSettings = {
-  enabled: false,
-  times: ['08:00', '13:00', '20:00'],
-  timezone: getBrowserTimezone(),
-};
-
-function loadSettings(): ReminderSettings {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return DEFAULTS;
-    const parsed = JSON.parse(raw);
-    return {
-      enabled: !!parsed.enabled,
-      times: Array.isArray(parsed.times) && parsed.times.length > 0 ? parsed.times : DEFAULTS.times,
-      timezone: typeof parsed.timezone === 'string' && parsed.timezone ? parsed.timezone : getBrowserTimezone(),
-    };
-  } catch {
-    return DEFAULTS;
-  }
-}
+import {
+  useHealthReminderSettings,
+  useSaveHealthReminderSettings,
+  type ReminderSettings,
+} from '@/hooks/useHealthReminderSettings';
+import { useImpersonation } from '@/hooks/useImpersonation';
 
 function formatTimeLabel(time: string): string {
   const [h, m] = time.split(':').map(Number);
@@ -46,15 +24,26 @@ function formatTimeLabel(time: string): string {
 
 export default function ClientHealthReminders() {
   const navigate = useNavigate();
-  const [settings, setSettings] = useState<ReminderSettings>(DEFAULTS);
+  const { isImpersonating } = useImpersonation();
+  const { data: serverSettings, isLoading } = useHealthReminderSettings();
+  const saveMutation = useSaveHealthReminderSettings();
+  const [settings, setSettings] = useState<ReminderSettings>({
+    enabled: false,
+    times: ['08:00', '13:00', '20:00'],
+    timezone: getBrowserTimezone(),
+  });
   const [hasChanges, setHasChanges] = useState(false);
   const [permission, setPermission] = useState<NotificationPermission>(
     typeof Notification !== 'undefined' ? Notification.permission : 'default',
   );
 
+  // Hydrate local form state from the database when it loads / changes
   useEffect(() => {
-    setSettings(loadSettings());
-  }, []);
+    if (serverSettings) {
+      setSettings(serverSettings);
+      setHasChanges(false);
+    }
+  }, [serverSettings]);
 
   const sortedTimes = useMemo(
     () => [...settings.times].sort((a, b) => a.localeCompare(b)),
@@ -98,9 +87,8 @@ export default function ClientHealthReminders() {
    * Test mode: schedule a reminder N minutes from now and immediately persist
    * + enable reminders so the banner countdown can be verified end-to-end.
    */
-  const scheduleTestReminder = (minutesFromNow: number) => {
+  const scheduleTestReminder = async (minutesFromNow: number) => {
     const target = new Date(Date.now() + minutesFromNow * 60_000);
-    // Use the chosen timezone so the test time matches what the banner displays
     const { hours, minutes } = getZonedParts(target, settings.timezone);
     const newTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 
@@ -113,13 +101,17 @@ export default function ClientHealthReminders() {
       timezone: settings.timezone,
     };
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
-    setSettings(toSave);
-    setHasChanges(false);
-
-    toast.success(
-      `Test reminder set for ${formatTimeLabel(newTime)} (in ~${minutesFromNow} min). Head to the Health page to watch the countdown.`,
-    );
+    try {
+      await saveMutation.mutateAsync(toSave);
+      setSettings(toSave);
+      setHasChanges(false);
+      toast.success(
+        `Test reminder set for ${formatTimeLabel(newTime)} (in ~${minutesFromNow} min). Head to the Health page to watch the countdown.`,
+      );
+    } catch (err) {
+      console.error('[reminders] test save failed', err);
+      toast.error('Could not save the test reminder.');
+    }
   };
 
   const requestNotifPermission = async () => {
@@ -140,22 +132,26 @@ export default function ClientHealthReminders() {
     }
   };
 
-  const handleSave = () => {
-    // Dedupe + sort
+  const handleSave = async () => {
     const cleaned = Array.from(new Set(settings.times)).sort((a, b) => a.localeCompare(b));
     const toSave: ReminderSettings = {
       enabled: settings.enabled,
       times: cleaned,
       timezone: settings.timezone,
     };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
-    setSettings(toSave);
-    setHasChanges(false);
-    toast.success(
-      toSave.enabled
-        ? `Saved — ${cleaned.length} daily reminder${cleaned.length === 1 ? '' : 's'} scheduled.`
-        : 'Reminders saved (currently turned off).',
-    );
+    try {
+      await saveMutation.mutateAsync(toSave);
+      setSettings(toSave);
+      setHasChanges(false);
+      toast.success(
+        toSave.enabled
+          ? `Saved — ${cleaned.length} daily reminder${cleaned.length === 1 ? '' : 's'} scheduled.`
+          : 'Reminders saved (currently turned off).',
+      );
+    } catch (err) {
+      console.error('[reminders] save failed', err);
+      toast.error('Could not save reminders.');
+    }
   };
 
   return (
