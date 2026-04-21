@@ -378,7 +378,7 @@ function WorkoutCompleteScreen({ workoutName, onSave }: { workoutName?: string; 
 export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, onDiscard, onExit, onSaveForLater, onProgressSave, resumeFromStep, resumeSetLogs, resumeElapsed, activeSessionId, dbStartedAt }: WorkoutPlayerProps) {
   const { toast } = useToast();
   const liveActivity = useLiveActivity();
-  const startedAtRef = useRef(new Date().toISOString());
+  const startedAtRef = useRef(dbStartedAt ?? new Date().toISOString());
   const [setLogs, setSetLogs] = useState<Record<string, SetLog>>(resumeSetLogs || {});
   const [isLocked, setIsLocked] = useState(false);
 
