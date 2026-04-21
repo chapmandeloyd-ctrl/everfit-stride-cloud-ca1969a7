@@ -66,9 +66,20 @@ export function useDashboardLayout(trainerId: string | undefined, clientId?: str
         if (error) throw error;
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["dashboard-layout"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard-layout-client"] });
+    onSuccess: async () => {
+      // Refetch immediately so editor + iframe preview reflect new layout without manual reload.
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["dashboard-layout"], refetchType: "all" }),
+        queryClient.invalidateQueries({ queryKey: ["dashboard-layout-client"], refetchType: "all" }),
+      ]);
+      // Notify any open dashboards (including the embedded preview iframe) to refetch.
+      try {
+        window.dispatchEvent(new CustomEvent("dashboard-layout-updated"));
+        // Also broadcast across tabs / iframes via localStorage event.
+        localStorage.setItem("dashboard-layout-updated-at", String(Date.now()));
+      } catch {
+        // no-op
+      }
     },
   });
 

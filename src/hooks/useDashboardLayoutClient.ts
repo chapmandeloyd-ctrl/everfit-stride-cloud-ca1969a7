@@ -1,4 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardCardConfig, mergeWithDefaults } from "@/lib/dashboardCards";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
@@ -9,6 +10,7 @@ import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
  */
 export function useDashboardLayoutClient() {
   const clientId = useEffectiveClientId();
+  const queryClient = useQueryClient();
 
   const { data: layout, isLoading } = useQuery({
     queryKey: ["dashboard-layout-client", clientId],
@@ -51,8 +53,25 @@ export function useDashboardLayoutClient() {
       return mergeWithDefaults(null);
     },
     enabled: !!clientId,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 30 * 1000,
   });
+
+  // Listen for layout-updated events (same-window CustomEvent + cross-window storage event)
+  // so the dashboard / iframe preview refetches immediately after a save.
+  useEffect(() => {
+    const refetch = () => {
+      queryClient.invalidateQueries({ queryKey: ["dashboard-layout-client"], refetchType: "all" });
+    };
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "dashboard-layout-updated-at") refetch();
+    };
+    window.addEventListener("dashboard-layout-updated", refetch);
+    window.addEventListener("storage", onStorage);
+    return () => {
+      window.removeEventListener("dashboard-layout-updated", refetch);
+      window.removeEventListener("storage", onStorage);
+    };
+  }, [queryClient]);
 
   return {
     // While loading, return an empty array so we don't flash the hardcoded
