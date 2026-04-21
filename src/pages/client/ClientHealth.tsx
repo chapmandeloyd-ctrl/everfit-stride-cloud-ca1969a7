@@ -5,28 +5,21 @@ import { Settings, Smartphone } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useNativeHealth } from '@/hooks/useNativeHealth';
+import { useConnectHealth, useHealthConnections } from '@/hooks/useHealthData';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { useCallback, useEffect, useRef, useState, type MouseEvent } from 'react';
 
 export default function ClientHealth() {
   const effectiveClientId = useEffectiveClientId();
   const { isNative, permissionGranted, requestPermissions, isImpersonating } = useNativeHealth();
-  const [connecting, setConnecting] = useState(false);
-  const lastTapRef = useRef(0);
-  const connectInFlightRef = useRef(false);
+  const { data: connections = [] } = useHealthConnections();
+  const connectMutation = useConnectHealth();
+  const isConnected =
+    permissionGranted ||
+    connections.some((connection) => connection.provider === 'apple_health' && connection.is_connected);
 
-  // Auto-clear "Connecting…" the moment permission flips to granted,
-  // regardless of which code path resolved the promise.
-  useEffect(() => {
-    if (permissionGranted && connecting) {
-      setConnecting(false);
-      connectInFlightRef.current = false;
-    }
-  }, [permissionGranted, connecting]);
-
-  const handleConnect = useCallback(async () => {
-    if (connectInFlightRef.current) return;
+  const handleConnectTap = async () => {
+    if (connectMutation.isPending) return;
 
     if (isImpersonating) {
       toast.error(
@@ -36,45 +29,18 @@ export default function ClientHealth() {
       return;
     }
 
-    connectInFlightRef.current = true;
-    setConnecting(true);
-    console.log('[HealthConnect] Tap received — waiting for iOS permission sheet...');
     toast.info('Requesting Apple Health access — please allow on the popup...', { id: 'apple-health-request' });
 
     try {
-      // No timeout race — let native iOS complete naturally (up to 60s)
-      const result = await requestPermissions();
-
-      if (!result) {
-        toast.error('Permission denied — open Settings > Privacy > Health to enable', {
-          id: 'apple-health-request',
-        });
-      } else {
-        toast.success('Apple Health connected!', { id: 'apple-health-request' });
-      }
+      await connectMutation.mutateAsync();
+      toast.success('Apple Health request sent.', { id: 'apple-health-request' });
     } catch (err: any) {
       console.error('[HealthConnect] Error:', err);
       toast.error(`Connection failed: ${err?.message || 'Unknown error'}`, {
         id: 'apple-health-request',
       });
-    } finally {
-      connectInFlightRef.current = false;
-      setConnecting(false);
     }
-  }, [isImpersonating, requestPermissions]);
-
-  const handleConnectTap = useCallback(
-    (event: MouseEvent<HTMLButtonElement>) => {
-      event.preventDefault();
-
-      const now = Date.now();
-      if (connecting || connectInFlightRef.current || now - lastTapRef.current < 700) return;
-
-      lastTapRef.current = now;
-      void handleConnect();
-    },
-    [connecting, handleConnect],
-  );
+  };
 
   return (
     <ClientLayout>
@@ -95,16 +61,16 @@ export default function ClientHealth() {
             )}
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            {isNative && !permissionGranted ? (
+            {isNative && !isConnected ? (
               <Button
                 type="button"
                 variant="default"
-                onClick={handleConnectTap}
-                disabled={connecting}
+                onClick={() => void handleConnectTap()}
+                disabled={connectMutation.isPending}
                 className="min-h-12 touch-manipulation select-none relative z-10"
               >
                 <Smartphone className="h-4 w-4 mr-2" />
-                {connecting ? 'Connecting...' : 'Connect Apple Health'}
+                {connectMutation.isPending ? 'Connecting...' : 'Connect Apple Health'}
               </Button>
             ) : (
               <Button variant="outline" asChild>
