@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -46,6 +46,8 @@ export default function WorkoutDetail() {
     completedAt: string;
     isPartial: boolean;
   } | null>(null);
+  const progressSaveInFlightRef = useRef(false);
+  const pendingStartRef = useRef(false);
   const isImpersonating = !!localStorage.getItem("impersonatedClientId");
   const isClient = userRole === "client" || isImpersonating;
 
