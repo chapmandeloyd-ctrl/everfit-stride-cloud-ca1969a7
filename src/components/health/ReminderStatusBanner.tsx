@@ -43,10 +43,33 @@ function getNextReminder(times: string[]): { time: string; minutesUntil: number 
   return { time: next.time, minutesUntil: diff };
 }
 
-function formatCountdown(minutes: number): string {
-  if (minutes < 60) return `${minutes} min`;
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
+function getNextReminderSeconds(times: string[]): { time: string; secondsUntil: number } | null {
+  if (!times.length) return null;
+  const now = new Date();
+  const nowSecs = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+  const sorted = times
+    .map((t) => {
+      const [h, m] = t.split(':').map(Number);
+      return { time: t, secs: h * 3600 + m * 60 };
+    })
+    .sort((a, b) => a.secs - b.secs);
+
+  const next = sorted.find((s) => s.secs > nowSecs) ?? sorted[0];
+  let diff = next.secs - nowSecs;
+  if (diff <= 0) diff += 24 * 3600;
+  return { time: next.time, secondsUntil: diff };
+}
+
+function formatCountdown(seconds: number): string {
+  if (seconds < 60) return `${seconds}s`;
+  const totalMins = Math.floor(seconds / 60);
+  if (totalMins < 60) {
+    const s = seconds % 60;
+    if (totalMins < 10 && s > 0) return `${totalMins}m ${s}s`;
+    return `${totalMins} min`;
+  }
+  const h = Math.floor(totalMins / 60);
+  const m = totalMins % 60;
   if (m === 0) return `${h}h`;
   return `${h}h ${m}m`;
 }
