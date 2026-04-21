@@ -258,6 +258,38 @@ export function PushDevicesTab() {
     nudgeMutation.mutate(clientId);
   };
 
+  // Bulk nudge: send re-subscribe nudges to every client with recent
+  // unresolved auto-removals. Inserted as a single batch.
+  const [bulkSending, setBulkSending] = useState(false);
+  const handleBulkNudge = async () => {
+    const targets = rows.filter((r) => r.recent_removal_count > 0).map((r) => r.client_id);
+    if (targets.length === 0) return;
+    setBulkSending(true);
+    try {
+      const payload = targets.map((id) => ({
+        user_id: id,
+        type: "push_resubscribe",
+        title: "Re-enable lock-screen reminders",
+        body: "Your device stopped receiving reminders. Open Settings → Lock-screen reminders to fix it (one tap).",
+        action_url: "/client/settings",
+      }));
+      const { error } = await supabase.from("in_app_notifications").insert(payload);
+      if (error) throw error;
+      toast({
+        title: `Nudged ${targets.length} client${targets.length === 1 ? "" : "s"}`,
+        description: "Each will see it in their notification bell.",
+      });
+    } catch (err) {
+      toast({
+        title: "Bulk nudge failed",
+        description: (err as Error).message,
+        variant: "destructive",
+      });
+    } finally {
+      setBulkSending(false);
+    }
+  };
+
   const handleTestPush = async (clientId: string) => {
     setPendingId(clientId);
     try {
