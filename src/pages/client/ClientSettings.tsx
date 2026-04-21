@@ -3,6 +3,7 @@ import { NotificationSettings } from "@/components/NotificationSettings";
 import { NudgeSettings } from "@/components/NudgeSettings";
 import { ClientRemindersSection } from "@/components/ClientRemindersSection";
 import { HabitLoopSettings } from "@/components/notifications/HabitLoopSettings";
+import { PushStatusCard } from "@/components/notifications/PushStatusCard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -195,6 +196,8 @@ export default function ClientSettings() {
               Browser notifications work instantly, while email reminders require additional setup by your trainer.
             </AlertDescription>
           </Alert>
+
+          <PushStatusCard />
 
           <NotificationSettings />
 

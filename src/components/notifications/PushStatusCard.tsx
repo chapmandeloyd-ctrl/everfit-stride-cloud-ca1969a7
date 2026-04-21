@@ -183,14 +183,14 @@ export function PushStatusCard() {
     switch (status) {
       case "subscribed":
         return (
-          <Badge variant="outline" className="text-emerald-600 border-emerald-600">
+          <Badge variant="outline" className="text-primary border-primary">
             <CheckCircle2 className="h-3 w-3 mr-1" />
             Subscribed on this device
           </Badge>
         );
       case "missing":
         return (
-          <Badge variant="outline" className="text-amber-600 border-amber-600">
+          <Badge variant="outline" className="text-muted-foreground border-border">
             <BellOff className="h-3 w-3 mr-1" />
             Not subscribed on this device
           </Badge>
