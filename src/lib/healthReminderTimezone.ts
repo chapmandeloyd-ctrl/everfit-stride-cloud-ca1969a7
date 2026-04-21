@@ -14,6 +14,36 @@ export function getBrowserTimezone(): string {
 }
 
 /**
+ * Returns every IANA timezone the browser knows about. Falls back to a
+ * curated list on older runtimes that don't support `Intl.supportedValuesOf`.
+ */
+export function getAllIanaTimezones(): string[] {
+  try {
+    // @ts-expect-error - supportedValuesOf is supported in modern browsers (Chrome 99+, Safari 15.4+)
+    const list = Intl.supportedValuesOf?.('timeZone') as string[] | undefined;
+    if (list && list.length) return list;
+  } catch {
+    /* fall through */
+  }
+  return COMMON_TIMEZONES.map((t) => t.value);
+}
+
+/** Pretty label for an arbitrary IANA timezone (e.g. "Europe/Paris (CET, +01:00)"). */
+export function describeTimezone(tz: string): string {
+  try {
+    const fmt = new Intl.DateTimeFormat('en-US', {
+      timeZone: tz,
+      timeZoneName: 'shortOffset',
+    });
+    const parts = fmt.formatToParts(new Date());
+    const offset = parts.find((p) => p.type === 'timeZoneName')?.value ?? '';
+    return offset ? `${tz.replace(/_/g, ' ')} (${offset})` : tz.replace(/_/g, ' ');
+  } catch {
+    return tz.replace(/_/g, ' ');
+  }
+}
+
+/**
  * Returns { hours, minutes, seconds, dateKey } for `date` rendered in `timezone`.
  * dateKey is YYYY-MM-DD in that zone — useful for "today" comparisons.
  */
