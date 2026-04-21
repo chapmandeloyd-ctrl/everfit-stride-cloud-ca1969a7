@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Bell, BellOff, Send, Smartphone, BellRing, AlertTriangle, CheckCircle2, Search, XCircle, Loader2, ChevronDown, ChevronUp } from "lucide-react";
+import { Bell, BellOff, Send, Smartphone, BellRing, AlertTriangle, CheckCircle2, Search, XCircle, Loader2, ChevronDown, ChevronUp, ZapOff } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,12 +31,16 @@ type ClientRow = {
   device_count: number;
   last_seen_at: string | null;
   prefers_push: boolean | null;
+  recent_removal_count: number;
+  last_removal_at: string | null;
+  last_removal_reason: string | null;
 };
 
-type FilterKey = "all" | "no_devices" | "stale" | "subscribed";
+type FilterKey = "all" | "no_devices" | "stale" | "subscribed" | "expired";
 
 const STALE_DAYS = 14;
 const STALE_MS = STALE_DAYS * 24 * 60 * 60 * 1000;
+const REMOVAL_LOOKBACK_DAYS = 7;
 
 type DeliveryResult = {
   ok: boolean;
@@ -114,6 +118,29 @@ export function PushDevicesTab() {
     enabled: clientIds.length > 0,
   });
 
+  // 4) Recent unresolved push subscription removals (auto-pruned 404/410
+  //    endpoints). These are the "silent failure" clients — the dispatcher
+  //    actually tried to deliver and the endpoint was dead.
+  const { data: removals = [], refetch: refetchRemovals } = useQuery({
+    queryKey: ["push-overview-removals", clientIds.join(",")],
+    queryFn: async () => {
+      if (clientIds.length === 0) return [];
+      const since = new Date(
+        Date.now() - REMOVAL_LOOKBACK_DAYS * 24 * 60 * 60 * 1000,
+      ).toISOString();
+      const { data, error } = await supabase
+        .from("push_subscription_removals")
+        .select("user_id, removed_at, reason, removed_by, endpoint_host")
+        .in("user_id", clientIds)
+        .is("resolved_at", null)
+        .gte("removed_at", since)
+        .order("removed_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+    enabled: clientIds.length > 0,
+  });
+
   // Merge into denormalized rows.
   const rows: ClientRow[] = useMemo(() => {
     const subBy: Record<string, { count: number; latest: string | null }> = {};
@@ -127,6 +154,16 @@ export function PushDevicesTab() {
     }
     const prefBy: Record<string, boolean | null> = {};
     for (const p of prefs) prefBy[p.user_id] = p.push_enabled ?? null;
+    const remBy: Record<string, { count: number; latest: string | null; reason: string | null }> = {};
+    for (const r of removals) {
+      const cur = remBy[r.user_id] ?? { count: 0, latest: null, reason: null };
+      cur.count += 1;
+      if (!cur.latest || (r.removed_at && r.removed_at > cur.latest)) {
+        cur.latest = r.removed_at;
+        cur.reason = r.reason;
+      }
+      remBy[r.user_id] = cur;
+    }
 
     return roster.map((r) => ({
       client_id: r.client_id,
@@ -136,8 +173,11 @@ export function PushDevicesTab() {
       device_count: subBy[r.client_id]?.count ?? 0,
       last_seen_at: subBy[r.client_id]?.latest ?? null,
       prefers_push: prefBy[r.client_id] ?? null,
+      recent_removal_count: remBy[r.client_id]?.count ?? 0,
+      last_removal_at: remBy[r.client_id]?.latest ?? null,
+      last_removal_reason: remBy[r.client_id]?.reason ?? null,
     }));
-  }, [roster, subscriptions, prefs]);
+  }, [roster, subscriptions, prefs, removals]);
 
   // Status classification — deliberately three buckets, matching client UI.
   function classify(row: ClientRow): "subscribed" | "no_devices" | "stale" {
@@ -148,15 +188,20 @@ export function PushDevicesTab() {
   }
 
   const counts = useMemo(() => {
-    const c = { all: rows.length, subscribed: 0, no_devices: 0, stale: 0 };
+    const c = { all: rows.length, subscribed: 0, no_devices: 0, stale: 0, expired: 0 };
     for (const r of rows) c[classify(r)] += 1;
+    c.expired = rows.filter((r) => r.recent_removal_count > 0).length;
     return c;
   }, [rows]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return rows
-      .filter((r) => filter === "all" || classify(r) === filter)
+      .filter((r) => {
+        if (filter === "all") return true;
+        if (filter === "expired") return r.recent_removal_count > 0;
+        return classify(r) === filter;
+      })
       .filter((r) =>
         !q
           ? true
@@ -164,7 +209,10 @@ export function PushDevicesTab() {
             (r.email ?? "").toLowerCase().includes(q)
       )
       .sort((a, b) => {
-        // Surface problems first: no_devices → stale → subscribed
+        // Surface problems first: expired removals → no_devices → stale → subscribed
+        const expiredA = a.recent_removal_count > 0 ? -1 : 0;
+        const expiredB = b.recent_removal_count > 0 ? -1 : 0;
+        if (expiredA !== expiredB) return expiredA - expiredB;
         const order = { no_devices: 0, stale: 1, subscribed: 2 } as const;
         const sa = order[classify(a)];
         const sb = order[classify(b)];
@@ -210,6 +258,38 @@ export function PushDevicesTab() {
     nudgeMutation.mutate(clientId);
   };
 
+  // Bulk nudge: send re-subscribe nudges to every client with recent
+  // unresolved auto-removals. Inserted as a single batch.
+  const [bulkSending, setBulkSending] = useState(false);
+  const handleBulkNudge = async () => {
+    const targets = rows.filter((r) => r.recent_removal_count > 0).map((r) => r.client_id);
+    if (targets.length === 0) return;
+    setBulkSending(true);
+    try {
+      const payload = targets.map((id) => ({
+        user_id: id,
+        type: "push_resubscribe",
+        title: "Re-enable lock-screen reminders",
+        body: "Your device stopped receiving reminders. Open Settings → Lock-screen reminders to fix it (one tap).",
+        action_url: "/client/settings",
+      }));
+      const { error } = await supabase.from("in_app_notifications").insert(payload);
+      if (error) throw error;
+      toast({
+        title: `Nudged ${targets.length} client${targets.length === 1 ? "" : "s"}`,
+        description: "Each will see it in their notification bell.",
+      });
+    } catch (err) {
+      toast({
+        title: "Bulk nudge failed",
+        description: (err as Error).message,
+        variant: "destructive",
+      });
+    } finally {
+      setBulkSending(false);
+    }
+  };
+
   const handleTestPush = async (clientId: string) => {
     setPendingId(clientId);
     try {
@@ -241,6 +321,8 @@ export function PushDevicesTab() {
       }
       // Refresh roster — expired endpoints may have been pruned server-side.
       queryClient.invalidateQueries({ queryKey: ["push-overview-subs"] });
+      queryClient.invalidateQueries({ queryKey: ["push-overview-removals"] });
+      void refetchRemovals;
     } finally {
       setPendingId(null);
     }
@@ -287,6 +369,34 @@ export function PushDevicesTab() {
         </CardContent>
       </Card>
 
+      {/* Silent failure banner — recent unresolved auto-removals (404/410) */}
+      {counts.expired > 0 && (
+        <Card className="border-destructive/50 bg-destructive/5">
+          <CardContent className="flex flex-col gap-3 p-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-start gap-3">
+              <ZapOff className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+              <div>
+                <p className="font-medium text-sm">
+                  {counts.expired} client{counts.expired === 1 ? "" : "s"} had push silently fail in the last {REMOVAL_LOOKBACK_DAYS} days
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Their device endpoints returned 404/410 during a real reminder. Banner clears automatically when they re-subscribe.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <Button size="sm" variant="outline" onClick={() => setFilter("expired")}>
+                Show affected
+              </Button>
+              <Button size="sm" onClick={handleBulkNudge} disabled={bulkSending}>
+                <Bell className="h-4 w-4 mr-2" />
+                {bulkSending ? "Sending…" : "Prompt all to re-enable"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Filter + search */}
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <Tabs value={filter} onValueChange={(v) => setFilter(v as FilterKey)}>
@@ -295,6 +405,11 @@ export function PushDevicesTab() {
             <TabsTrigger value="no_devices">Not subscribed ({counts.no_devices})</TabsTrigger>
             <TabsTrigger value="stale">Stale ({counts.stale})</TabsTrigger>
             <TabsTrigger value="subscribed">Subscribed ({counts.subscribed})</TabsTrigger>
+            {counts.expired > 0 && (
+              <TabsTrigger value="expired" className="text-destructive">
+                Expired ({counts.expired})
+              </TabsTrigger>
+            )}
           </TabsList>
         </Tabs>
         <div className="relative md:w-64">
@@ -365,6 +480,19 @@ export function PushDevicesTab() {
                             <>
                               <span>·</span>
                               <span className="text-destructive">had push enabled</span>
+                            </>
+                          )}
+                          {r.recent_removal_count > 0 && (
+                            <>
+                              <span>·</span>
+                              <span className="inline-flex items-center gap-1 text-destructive">
+                                <ZapOff className="h-3 w-3" />
+                                {r.recent_removal_count} expired endpoint
+                                {r.recent_removal_count === 1 ? "" : "s"}
+                                {r.last_removal_at && (
+                                  <> · {formatDistanceToNow(new Date(r.last_removal_at), { addSuffix: true })}</>
+                                )}
+                              </span>
                             </>
                           )}
                         </div>

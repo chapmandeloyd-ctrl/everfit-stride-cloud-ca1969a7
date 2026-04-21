@@ -5,7 +5,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { sendWebPush } from "../_shared/web-push.ts";
+import { sendWebPush, recordExpiredSubscription } from "../_shared/web-push.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -61,7 +61,7 @@ serve(async (req) => {
       if (existing) continue;
 
       const { data: subs } = await supabase
-        .from("push_subscriptions").select("id, endpoint, p256dh, auth")
+        .from("push_subscriptions").select("id, endpoint, p256dh, auth, user_agent")
         .eq("user_id", s.client_id);
       if (!subs?.length) continue;
 
@@ -75,7 +75,17 @@ serve(async (req) => {
           data: { kind: "fasting_milestone", hours: target.hours },
         });
         if (r.ok) { delivered++; sent++; }
-        else { failed++; if (r.expired) await supabase.from("push_subscriptions").delete().eq("id", sub.id); }
+        else {
+          failed++;
+          if (r.expired) await recordExpiredSubscription(supabase, {
+            subscription_id: sub.id,
+            user_id: s.client_id,
+            endpoint: sub.endpoint,
+            user_agent: (sub as any).user_agent,
+            status: r.status,
+            removed_by: "dispatch-fasting-milestones",
+          });
+        }
       }
 
       await supabase.from("notification_log").insert({

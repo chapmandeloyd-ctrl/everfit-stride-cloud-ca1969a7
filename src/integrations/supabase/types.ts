@@ -6779,6 +6779,42 @@ export type Database = {
           },
         ]
       }
+      push_subscription_removals: {
+        Row: {
+          created_at: string
+          endpoint_host: string | null
+          id: string
+          reason: string
+          removed_at: string
+          removed_by: string
+          resolved_at: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          endpoint_host?: string | null
+          id?: string
+          reason: string
+          removed_at?: string
+          removed_by: string
+          resolved_at?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          endpoint_host?: string | null
+          id?: string
+          reason?: string
+          removed_at?: string
+          removed_by?: string
+          resolved_at?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       push_subscriptions: {
         Row: {
           auth: string

@@ -7,7 +7,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { sendWebPush } from "../_shared/web-push.ts";
+import { sendWebPush, recordExpiredSubscription } from "../_shared/web-push.ts";
 import { nowInZone, getClientTimezone } from "../_shared/push-time.ts";
 
 const corsHeaders = {
@@ -69,7 +69,7 @@ serve(async (req) => {
             .limit(1);
           if (!sess?.length) {
             const { data: subs } = await supabase
-              .from("push_subscriptions").select("id, endpoint, p256dh, auth")
+              .from("push_subscriptions").select("id, endpoint, p256dh, auth, user_agent")
               .eq("user_id", s.client_id);
             if (subs?.length) {
               let delivered = 0;
@@ -82,7 +82,17 @@ serve(async (req) => {
                   data: { kind: "nudge", nudge: "missed_workout" },
                 });
                 if (r.ok) { delivered++; sent++; }
-                else { failed++; if (r.expired) await supabase.from("push_subscriptions").delete().eq("id", sub.id); }
+                else {
+                  failed++;
+                  if (r.expired) await recordExpiredSubscription(supabase, {
+                    subscription_id: sub.id,
+                    user_id: s.client_id,
+                    endpoint: sub.endpoint,
+                    user_agent: (sub as any).user_agent,
+                    status: r.status,
+                    removed_by: "dispatch-smart-nudges",
+                  });
+                }
               }
               await supabase.from("notification_log").insert({
                 user_id: s.client_id, kind: "nudge", reference_id: refId,
@@ -106,7 +116,7 @@ serve(async (req) => {
           .eq("reference_id", refId).eq("status", "sent").maybeSingle();
         if (!existing) {
           const { data: subs } = await supabase
-            .from("push_subscriptions").select("id, endpoint, p256dh, auth")
+            .from("push_subscriptions").select("id, endpoint, p256dh, auth, user_agent")
             .eq("user_id", s.client_id);
           if (subs?.length) {
             let delivered = 0;
@@ -119,7 +129,17 @@ serve(async (req) => {
                 data: { kind: "nudge", nudge: "sleep_winddown" },
               });
               if (r.ok) { delivered++; sent++; }
-              else { failed++; if (r.expired) await supabase.from("push_subscriptions").delete().eq("id", sub.id); }
+              else {
+                failed++;
+                if (r.expired) await recordExpiredSubscription(supabase, {
+                  subscription_id: sub.id,
+                  user_id: s.client_id,
+                  endpoint: sub.endpoint,
+                  user_agent: (sub as any).user_agent,
+                  status: r.status,
+                  removed_by: "dispatch-smart-nudges",
+                });
+              }
             }
             await supabase.from("notification_log").insert({
               user_id: s.client_id, kind: "nudge", reference_id: refId,

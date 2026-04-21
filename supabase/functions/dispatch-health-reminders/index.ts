@@ -6,7 +6,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { sendWebPush } from "../_shared/web-push.ts";
+import { sendWebPush, recordExpiredSubscription } from "../_shared/web-push.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -94,7 +94,7 @@ serve(async (req) => {
       // Look up subscriptions
       const { data: subs } = await supabase
         .from("push_subscriptions")
-        .select("id, endpoint, p256dh, auth")
+        .select("id, endpoint, p256dh, auth, user_agent")
         .eq("user_id", r.client_id);
 
       if (!subs || subs.length === 0) continue;
@@ -116,7 +116,14 @@ serve(async (req) => {
         } else {
           totalFailed++;
           if (result.expired) {
-            await supabase.from("push_subscriptions").delete().eq("id", sub.id);
+            await recordExpiredSubscription(supabase, {
+              subscription_id: sub.id,
+              user_id: r.client_id,
+              endpoint: sub.endpoint,
+              user_agent: (sub as any).user_agent,
+              status: result.status,
+              removed_by: "dispatch-health-reminders",
+            });
           }
           console.error(`Push failed for ${r.client_id}: ${result.status} ${result.error}`);
         }
