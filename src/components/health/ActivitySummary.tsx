@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Footprints, Flame, Moon, Scale, Dumbbell, BatteryCharging } from 'lucide-react';
+import { Footprints, Flame, Moon, Scale, BatteryCharging } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -26,7 +26,6 @@ const METRIC_CARDS = [
   { key: 'Sleep', icon: Moon, color: 'text-indigo-500', bgColor: 'bg-indigo-500/10', unit: 'hrs' },
   { key: 'Caloric Intake', icon: Flame, color: 'text-orange-500', bgColor: 'bg-orange-500/10', unit: 'cal' },
   { key: 'Caloric Burn', icon: BatteryCharging, color: 'text-amber-500', bgColor: 'bg-amber-500/10', unit: 'cal' },
-  { key: 'Workouts', icon: Dumbbell, color: 'text-purple-500', bgColor: 'bg-purple-500/10', unit: 'done' },
 ];
 
 export function ActivitySummary({ clientId }: ActivitySummaryProps) {
@@ -89,13 +88,8 @@ export function ActivitySummary({ clientId }: ActivitySummaryProps) {
     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
       {METRIC_CARDS.map((card) => {
         const Icon = card.icon;
-        const isWorkout = card.key === 'Workouts';
-        const data = isWorkout ? null : metricData[card.key];
-        const displayValue = isWorkout
-          ? String(workoutCount)
-          : data
-            ? Number(data.value).toLocaleString()
-            : '--';
+        const data = metricData[card.key];
+        const displayValue = data ? Number(data.value).toLocaleString() : '--';
         const progressPercent = card.goal && data
           ? Math.min((Number(data.value) / card.goal) * 100, 100)
           : null;
