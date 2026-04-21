@@ -4,12 +4,23 @@
 
 import webpush from "npm:web-push@3.6.7";
 
-const VAPID_PUBLIC = Deno.env.get("VAPID_PUBLIC_KEY")!;
-const VAPID_PRIVATE = Deno.env.get("VAPID_PRIVATE_KEY")!;
-const VAPID_SUBJECT = "mailto:notifications@ksom-360.app";
+// Normalize a base64 string to URL-safe form without padding (what web-push wants).
+function toUrlSafeNoPad(s: string): string {
+  return (s || "").trim().replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
 
-if (VAPID_PUBLIC && VAPID_PRIVATE) {
-  webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC, VAPID_PRIVATE);
+const VAPID_SUBJECT = "mailto:notifications@ksom-360.app";
+let vapidConfigured = false;
+
+function ensureVapid() {
+  if (vapidConfigured) return;
+  const pub = toUrlSafeNoPad(Deno.env.get("VAPID_PUBLIC_KEY") || "");
+  const priv = toUrlSafeNoPad(Deno.env.get("VAPID_PRIVATE_KEY") || "");
+  if (!pub || !priv) {
+    throw new Error("VAPID keys are not configured");
+  }
+  webpush.setVapidDetails(VAPID_SUBJECT, pub, priv);
+  vapidConfigured = true;
 }
 
 export interface PushSubRow {
@@ -40,6 +51,12 @@ export async function sendWebPush(
   sub: PushSubRow,
   payload: PushPayload,
 ): Promise<SendResult> {
+  try {
+    ensureVapid();
+  } catch (err: any) {
+    return { ok: false, error: err?.message || String(err) };
+  }
+
   const body = JSON.stringify({
     title: payload.title,
     body: payload.body,
