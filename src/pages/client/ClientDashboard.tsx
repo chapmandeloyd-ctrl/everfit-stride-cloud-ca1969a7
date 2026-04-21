@@ -1613,7 +1613,10 @@ export default function ClientDashboard() {
   const hasSportEvents = (todaySportEvents?.length || 0) > 0;
   const hasNoPlanEver = !clientWorkouts || clientWorkouts.length === 0;
   const isRestDay = todaysWorkouts.length === 0 && !hasSportEvents;
-  const showWelcomeCard = hasNoPlanEver && isRestDay && !!welcomeCard;
+  // Show the trainer's universal Welcome Card on any rest day for clients
+  // without a custom rest-day card. Falls back to defaults so it appears
+  // for every new client even before the trainer customizes it.
+  const showWelcomeCard = isRestDay && !restDayCard?.image_url && !restDayCard?.message;
   const totalCards = todaysWorkouts.length + (todaySportEvents?.length || 0);
   const hasMultiple = totalCards > 1;
 
