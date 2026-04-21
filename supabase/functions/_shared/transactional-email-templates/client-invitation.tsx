@@ -75,7 +75,7 @@ export const template = {
   previewData: {
     name: 'Jordan',
     trainerName: 'Coach Mike',
-    loginUrl: 'https://everfit-stride-cloud.lovable.app/auth',
+    loginUrl: 'https://ksom-360.app/auth',
     tempPassword: 'Temp1234!',
   },
 } satisfies TemplateEntry
