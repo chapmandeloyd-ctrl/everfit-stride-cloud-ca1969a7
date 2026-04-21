@@ -83,6 +83,7 @@ import ClientQuickPlans from "./pages/client/ClientQuickPlans";
 import ClientQuickPlanDetail from "./pages/client/ClientQuickPlanDetail";
 import ClientProtocolDetail from "./pages/client/ClientProtocolDetail";
 import ClientCompletePlan from "./pages/client/ClientCompletePlan";
+import ClientProtocolCardDemo from "./pages/client/ClientProtocolCardDemo";
 import ClientFastComplete from "./pages/client/ClientFastComplete";
 import ClientVibes from "./pages/client/ClientVibes";
 import ClientLabs from "./pages/client/ClientLabs";
