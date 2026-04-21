@@ -578,6 +578,122 @@ function SwipeCarousel({ protocols }: { protocols: DemoProtocol[] }) {
 
 /* -------- public entry -------- */
 
+/* -------- 5) COMBO variant: swipe between protocols + tap to flip each -------- */
+
+function ComboCard({ protocols }: { protocols: DemoProtocol[] }) {
+  const [idx, setIdx] = useState(0);
+  const [flipped, setFlipped] = useState(false);
+  const startX = useRef<number | null>(null);
+  const moved = useRef(false);
+
+  const go = (dir: number) => {
+    setFlipped(false);
+    setIdx((i) => Math.max(0, Math.min(protocols.length - 1, i + dir)));
+  };
+
+  const onDown = (e: ReactPointerEvent<HTMLDivElement>) => {
+    startX.current = e.clientX;
+    moved.current = false;
+  };
+  const onMove = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (startX.current !== null && Math.abs(e.clientX - startX.current) > 8) moved.current = true;
+  };
+  const onUp = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (startX.current === null) return;
+    const dx = e.clientX - startX.current;
+    startX.current = null;
+    if (Math.abs(dx) > 50) {
+      go(dx < 0 ? 1 : -1);
+      return;
+    }
+    if (!moved.current) setFlipped((f) => !f);
+  };
+
+  const current = protocols[idx];
+
+  return (
+    <div className="relative pt-6 pb-4 select-none" style={{ perspective: "1400px" }}>
+      <CardStackBackdrop />
+      <div
+        className="relative rounded-2xl group"
+        style={{
+          transformStyle: "preserve-3d",
+          transition: "transform 0.7s cubic-bezier(0.22, 1, 0.36, 1)",
+          transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)",
+          minHeight: 320,
+        }}
+      >
+        {/* FRONT — swipeable carousel */}
+        <div
+          className="absolute inset-0 overflow-hidden rounded-2xl border border-border cursor-grab active:cursor-grabbing"
+          style={{
+            backfaceVisibility: "hidden",
+            background:
+              "linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--card)) 60%, hsl(var(--muted) / 0.6) 100%)",
+            boxShadow:
+              "0 24px 48px -16px hsl(0 0% 0% / 0.55), 0 12px 24px -10px hsl(0 0% 0% / 0.4), 0 4px 8px -2px hsl(0 0% 0% / 0.25), inset 0 1px 0 hsl(0 0% 100% / 0.1), inset 0 -1px 0 hsl(0 0% 0% / 0.3)",
+          }}
+          onPointerDown={onDown}
+          onPointerMove={onMove}
+          onPointerUp={onUp}
+        >
+          <div key={current.id} className="animate-fade-in">
+            <CardFront protocol={current} showChevron={false} animateStats={!flipped} />
+          </div>
+
+          {/* tap hint */}
+          <div className="absolute bottom-9 left-0 right-0 flex justify-center pointer-events-none">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80">
+              Tap for details · Swipe to browse
+            </span>
+          </div>
+
+          {/* arrows */}
+          <button
+            onClick={(e) => { e.stopPropagation(); go(-1); }}
+            disabled={idx === 0}
+            className="absolute left-2 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-background/80 backdrop-blur border border-border shadow flex items-center justify-center disabled:opacity-30"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); go(1); }}
+            disabled={idx === protocols.length - 1}
+            className="absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-background/80 backdrop-blur border border-border shadow flex items-center justify-center disabled:opacity-30"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+
+          {/* dots */}
+          <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1.5">
+            {protocols.map((_, i) => (
+              <span
+                key={i}
+                className={`h-1.5 rounded-full transition-all ${i === idx ? "w-6 bg-foreground" : "w-1.5 bg-foreground/30"}`}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* BACK — full details for current protocol */}
+        <div
+          className="relative overflow-hidden rounded-2xl border border-border cursor-pointer"
+          style={{
+            backfaceVisibility: "hidden",
+            transform: "rotateY(180deg)",
+            background:
+              "linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--card)) 60%, hsl(var(--muted) / 0.6) 100%)",
+            boxShadow:
+              "0 24px 48px -16px hsl(0 0% 0% / 0.55), 0 12px 24px -10px hsl(0 0% 0% / 0.4), 0 4px 8px -2px hsl(0 0% 0% / 0.25)",
+          }}
+        >
+          <BackContent protocol={current} onClose={() => setFlipped(false)} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function InteractiveProtocolCardDemo({
   variant,
   protocol,
