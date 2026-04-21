@@ -53,7 +53,7 @@ export function AiSnapshotSheet({ open, onOpenChange, clientId }: Props) {
     setSubmitting(true);
     try {
       const { data, error } = await supabase.functions.invoke("analyze-health-screenshot", {
-        body: { image: preview, clientId },
+        body: { image: preview.includes(",") ? preview.split(",")[1] : preview, clientId },
       });
       if (error) throw error;
 
