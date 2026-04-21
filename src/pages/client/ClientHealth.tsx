@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { ClientLayout } from '@/components/ClientLayout';
 import { ActivitySummary } from '@/components/health/ActivitySummary';
 import { useEffectiveClientId } from '@/hooks/useEffectiveClientId';
-import { Settings, Smartphone } from 'lucide-react';
+import { Settings, Smartphone, Bell } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useNativeHealth } from '@/hooks/useNativeHealth';
@@ -94,6 +94,12 @@ export default function ClientHealth() {
                 </Link>
               </Button>
             )}
+            <Button variant="outline" asChild>
+              <Link to="/client/health-reminders">
+                <Bell className="h-4 w-4 mr-2" />
+                Reminders
+              </Link>
+            </Button>
           </div>
         </div>
 

@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { useAppUpdate } from "@/hooks/useAppUpdate";
+import { useHealthReminders } from "@/hooks/useHealthReminders";
 import logoSrc from "@/assets/logo.png";
 import {
   DropdownMenu,
@@ -33,6 +34,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
   const location = useLocation();
   const queryClient = useQueryClient();
   const { updateAvailable } = useAppUpdate();
+  useHealthReminders();
 
   // Use a single stable client id reference across the component
   const activeClientId = useEffectiveClientId();
