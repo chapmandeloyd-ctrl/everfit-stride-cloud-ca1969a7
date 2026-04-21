@@ -274,46 +274,26 @@ export default function ClientCompletePlan() {
 
         {/* PROTOCOL DETAIL CARD — Single structured premium card */}
         <div className="px-5 space-y-4">
-          {/* BLOCK 1 — HERO (colored) */}
-          <Card className="overflow-hidden" style={{ backgroundColor: "hsl(var(--primary) / 0.04)", borderColor: "hsl(var(--primary) / 0.18)" }}>
-            <CardContent className="p-5">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="h-10 w-10 rounded-xl flex items-center justify-center bg-primary/10">
-                  <Zap className="h-5 w-5 text-primary" />
-                </div>
-                <span className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-primary">Your KSOM Plan</span>
-              </div>
-              <h2 className="text-[26px] font-black leading-tight tracking-tight">
-                {protocol.name}
-                {isQuickPlan && protocol.fast_target_hours >= 24 && (() => {
-                  const hrs = protocol.fast_target_hours;
-                  const exactDays = hrs / 24;
-                  // Whole day: "48h — 2 Days". Fractional: "36h — 1.5 Days".
-                  const label = Number.isInteger(exactDays)
-                    ? `${exactDays}`
-                    : (Math.round(exactDays * 10) / 10).toString();
-                  const isOne = exactDays === 1;
-                  return <> — {label} Day{isOne ? "" : "s"}</>;
-                })()}
-              </h2>
-              <div className="flex items-center justify-center gap-8 mt-4 pt-3 border-t border-border/30">
-                <div className="text-center">
-                  <p className="text-base font-black">{protocol.fast_target_hours}h</p>
-                  <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">Fast</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-base font-black">
-                    {protocol.duration_days === 0 ? "∞" : `${Math.ceil(protocol.duration_days / 7)} wk${Math.ceil(protocol.duration_days / 7) !== 1 ? "s" : ""}`}
-                  </p>
-                  <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">Duration</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-base font-black capitalize">{getDifficultyLabel(protocol.difficulty_level)}</p>
-                  <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">Level</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          {/* PREVIEW MODE — 3 hero variants for selection */}
+          <div className="rounded-lg border border-dashed border-primary/40 bg-primary/5 p-3 text-center">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-primary">Preview Mode</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">Pick your favorite hero style below</p>
+          </div>
+
+          <div>
+            <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-muted-foreground mb-2">Option A — Glass Orb Badge</p>
+            <HeroGlassOrb protocol={protocol} isQuickPlan={isQuickPlan} />
+          </div>
+
+          <div className="pt-4">
+            <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-muted-foreground mb-2">Option B — Liquid Gradient + 3D Numerals</p>
+            <HeroLiquid3D protocol={protocol} isQuickPlan={isQuickPlan} />
+          </div>
+
+          <div className="pt-4">
+            <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-muted-foreground mb-2">Option C — Premium Card Stack with Depth</p>
+            <HeroPremiumStack protocol={protocol} isQuickPlan={isQuickPlan} />
+          </div>
 
           {/* BLOCK 2 — HOW THIS PROTOCOL WORKS */}
           <Card>
