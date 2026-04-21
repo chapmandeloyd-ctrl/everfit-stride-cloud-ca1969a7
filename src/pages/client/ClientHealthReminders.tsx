@@ -178,8 +178,8 @@ export default function ClientHealthReminders() {
         </div>
 
         {isImpersonating && (
-          <div className="rounded-lg border border-warning/40 bg-warning/10 p-3 flex items-start gap-3">
-            <UserCog className="h-4 w-4 text-warning mt-0.5 flex-shrink-0" />
+          <div className="rounded-lg border border-primary/40 bg-primary/10 p-3 flex items-start gap-3">
+            <UserCog className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
             <div className="flex-1 text-sm">
               <p className="font-medium">You're editing this client's reminder schedule</p>
               <p className="text-xs text-muted-foreground mt-0.5">
