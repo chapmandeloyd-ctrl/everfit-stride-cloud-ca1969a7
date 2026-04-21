@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Bell, BellOff, Send, Smartphone, BellRing, AlertTriangle, CheckCircle2, Search, XCircle, Loader2, ChevronDown, ChevronUp } from "lucide-react";
+import { Bell, BellOff, Send, Smartphone, BellRing, AlertTriangle, CheckCircle2, Search, XCircle, Loader2, ChevronDown, ChevronUp, ZapOff } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,12 +31,16 @@ type ClientRow = {
   device_count: number;
   last_seen_at: string | null;
   prefers_push: boolean | null;
+  recent_removal_count: number;
+  last_removal_at: string | null;
+  last_removal_reason: string | null;
 };
 
-type FilterKey = "all" | "no_devices" | "stale" | "subscribed";
+type FilterKey = "all" | "no_devices" | "stale" | "subscribed" | "expired";
 
 const STALE_DAYS = 14;
 const STALE_MS = STALE_DAYS * 24 * 60 * 60 * 1000;
+const REMOVAL_LOOKBACK_DAYS = 7;
 
 type DeliveryResult = {
   ok: boolean;
