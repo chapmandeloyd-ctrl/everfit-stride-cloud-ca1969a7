@@ -4,7 +4,7 @@ import { ClientLayout } from '@/components/ClientLayout';
 import { ActivitySummary } from '@/components/health/ActivitySummary';
 import { AiSnapshotSheet } from '@/components/health/AiSnapshotSheet';
 import { useEffectiveClientId } from '@/hooks/useEffectiveClientId';
-import { Settings, Smartphone, Bell } from 'lucide-react';
+import { Settings, Smartphone, Bell, Camera } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useNativeHealth } from '@/hooks/useNativeHealth';
@@ -115,6 +115,14 @@ export default function ClientHealth() {
                 Reminders
               </Link>
             </Button>
+            <Button
+              variant="default"
+              onClick={() => setSnapshotOpen(true)}
+              className="bg-primary"
+            >
+              <Camera className="h-4 w-4 mr-2" />
+              Snap Health Now
+            </Button>
           </div>
         </div>
 
@@ -122,6 +130,12 @@ export default function ClientHealth() {
           <h2 className="text-lg font-semibold mb-4">Today's Summary</h2>
           <ActivitySummary clientId={effectiveClientId} />
         </div>
+
+        <AiSnapshotSheet
+          open={snapshotOpen}
+          onOpenChange={setSnapshotOpen}
+          clientId={effectiveClientId}
+        />
       </div>
     </ClientLayout>
   );
