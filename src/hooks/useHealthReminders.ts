@@ -84,11 +84,16 @@ export function useHealthReminders() {
 
     const fireReminder = (time: string) => {
       const message = 'Snap your Apple Health screen to update your dashboard.';
+      const [hh, mm] = time.split(':').map(Number);
+      const period = hh >= 12 ? 'PM' : 'AM';
+      const hour12 = hh % 12 === 0 ? 12 : hh % 12;
+      const timeLabel = `${hour12}:${String(mm).padStart(2, '0')} ${period}`;
+      const actionLabel = `Snap Now (${timeLabel})`;
       toast('Health check-in time', {
         description: message,
         duration: 10000,
         action: {
-          label: 'Snap Health Now',
+          label: actionLabel,
           onClick: () => navigateRef.current('/client/health?snap=1'),
         },
       });
@@ -96,8 +101,8 @@ export function useHealthReminders() {
       // Best-effort native notification
       if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
         try {
-          const notif = new Notification('Health check-in time', {
-            body: message,
+          const notif = new Notification(`Health check-in — ${timeLabel}`, {
+            body: `${message} Tap to ${actionLabel}.`,
             tag: `health-reminder-${time}`,
             icon: '/KSOM-360_LOGO-2.png',
           });
