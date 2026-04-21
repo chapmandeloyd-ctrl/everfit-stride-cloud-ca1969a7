@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { ClientLayout } from '@/components/ClientLayout';
 import { ActivitySummary } from '@/components/health/ActivitySummary';
+import { AiSnapshotSheet } from '@/components/health/AiSnapshotSheet';
 import { useEffectiveClientId } from '@/hooks/useEffectiveClientId';
 import { Settings, Smartphone, Bell } from 'lucide-react';
 import { Link } from 'react-router-dom';
