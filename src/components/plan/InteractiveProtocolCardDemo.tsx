@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
-import { Lock, ShieldCheck, ChevronRight, ChevronLeft, RotateCcw, AlertTriangle, Brain, CalendarClock, ListChecks, Sparkles, type LucideIcon } from "lucide-react";
+import { Lock, ShieldCheck, ChevronRight, ChevronLeft, RotateCcw, AlertTriangle, Brain, CalendarClock, ListChecks, Sparkles, Flame, Zap, BrainCircuit, Quote, Activity, type LucideIcon } from "lucide-react";
 import type { ProtocolCardContent } from "@/lib/protocolCardContent";
 
 export interface DemoStat {
@@ -24,6 +24,16 @@ export interface DemoProtocol {
 }
 
 export type ProtocolCardVariant = "flip" | "expand" | "tilt" | "swipe" | "combo";
+
+/** Optional visual filler shown below the stat tiles on the front face. */
+export type FrontExtraVariant =
+  | "none"
+  | "timeline"          // #1 mini phase timeline
+  | "feelChips"         // #2 what you'll feel chips
+  | "timelineAndChips"  // #1 + #2 combined (recommended)
+  | "progressRing"      // #3 live progress ring
+  | "coachQuote"        // #4 coach quote
+  | "difficulty";       // #5 intensity + readiness meter
 
 /* -------- shared visuals (matches PremiumPlanCard) -------- */
 
