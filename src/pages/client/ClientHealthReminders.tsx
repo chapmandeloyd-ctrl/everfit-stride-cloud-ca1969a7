@@ -3,7 +3,7 @@ import { ClientLayout } from '@/components/ClientLayout';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Card } from '@/components/ui/card';
-import { Bell, Plus, Trash2, ArrowLeft, Smartphone } from 'lucide-react';
+import { Bell, Plus, Trash2, ArrowLeft, Smartphone, FlaskConical } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
