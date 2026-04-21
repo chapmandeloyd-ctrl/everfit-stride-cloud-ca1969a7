@@ -590,5 +590,6 @@ export function InteractiveProtocolCardDemo({
   if (variant === "flip") return <FlipCard protocol={protocol} />;
   if (variant === "expand") return <ExpandCard protocol={protocol} />;
   if (variant === "tilt") return <TiltCard protocol={protocol} />;
+  if (variant === "combo") return <ComboCard protocols={protocols ?? [protocol]} />;
   return <SwipeCarousel protocols={protocols ?? [protocol]} />;
 }
