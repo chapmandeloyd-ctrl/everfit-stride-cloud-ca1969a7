@@ -918,14 +918,16 @@ export function InteractiveProtocolCardDemo({
   variant,
   protocol,
   protocols,
+  frontExtra = "none",
 }: {
   variant: ProtocolCardVariant;
   protocol: DemoProtocol;
   protocols?: DemoProtocol[];
+  frontExtra?: FrontExtraVariant;
 }) {
   if (variant === "flip") return <FlipCard protocol={protocol} />;
   if (variant === "expand") return <ExpandCard protocol={protocol} />;
   if (variant === "tilt") return <TiltCard protocol={protocol} />;
-  if (variant === "combo") return <ComboCard protocols={protocols ?? [protocol]} />;
+  if (variant === "combo") return <ComboCard protocols={protocols ?? [protocol]} frontExtra={frontExtra} />;
   return <SwipeCarousel protocols={protocols ?? [protocol]} />;
 }
