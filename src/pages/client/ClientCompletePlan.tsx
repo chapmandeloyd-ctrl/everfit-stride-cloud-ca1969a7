@@ -17,6 +17,7 @@ import {
 } from "@/lib/fastingCategoryConfig";
 import { PROTOCOL_DETAIL_COPY } from "@/lib/protocolDetailContent";
 import { getProtocolCardContent } from "@/lib/protocolCardContent";
+import { getTierForLevel } from "@/lib/quickPlanTierConfig";
 import { usePlanSynergy } from "@/hooks/usePlanSynergy";
 import { useMemo, useEffect } from "react";
 import { PremiumPlanCard } from "@/components/plan/PremiumPlanCard";
@@ -245,6 +246,36 @@ export default function ClientCompletePlan() {
   const protocolContent = getProtocolCardContent(protocol.fast_target_hours, isQuickPlan);
   const maxPct = Math.max(ketoType.fat_pct, ketoType.protein_pct, ketoType.carbs_pct);
 
+  // Resolve hero card visuals — protocols use category, quick plans use tier
+  const quickTier = isQuickPlan ? getTierForLevel(protocol.min_level_required ?? 1) : null;
+  const heroIcon = isQuickPlan ? quickTier!.icon : (config?.icon ?? Zap);
+  const heroAccentClass = isQuickPlan ? quickTier!.accentColor : (config?.color ?? "text-primary");
+  const heroIconGradient = isQuickPlan
+    ? quickTier!.iconGradient
+    : (config?.iconGradient ?? "from-primary via-primary to-primary");
+  const heroSurfaceTint = isQuickPlan
+    ? quickTier!.surfaceTintGradient
+    : (config?.surfaceTintGradient ?? "from-primary/15 via-transparent to-primary/10");
+  const heroEyebrow = isQuickPlan
+    ? `Level ${protocol.min_level_required ?? 1}`
+    : (config?.label ?? "Your KSOM Plan");
+  const heroSubEyebrow = isQuickPlan ? (quickTier!.subtitle) : "Adaptive Protocol";
+
+  // Title suffix — show day count for extended quick plans
+  const exactDays = protocol.fast_target_hours / 24;
+  const titleSuffix =
+    isQuickPlan && protocol.fast_target_hours >= 24
+      ? ` — ${Number.isInteger(exactDays) ? exactDays : Math.round(exactDays * 10) / 10} Day${exactDays === 1 ? "" : "s"}`
+      : "";
+
+  const durationLabel =
+    protocol.duration_days === 0
+      ? "∞"
+      : (() => {
+          const wks = Math.ceil(protocol.duration_days / 7);
+          return `${wks} wk${wks !== 1 ? "s" : ""}`;
+        })();
+
   return (
     <ClientLayout>
       <div className="pb-8 w-full">
@@ -274,26 +305,22 @@ export default function ClientCompletePlan() {
 
         {/* PROTOCOL DETAIL CARD — Single structured premium card */}
         <div className="px-5 space-y-4">
-          {/* PREVIEW MODE — 3 hero variants for selection */}
-          <div className="rounded-lg border border-dashed border-primary/40 bg-primary/5 p-3 text-center">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-primary">Preview Mode</p>
-            <p className="text-[11px] text-muted-foreground mt-0.5">Pick your favorite hero style below</p>
-          </div>
-
-          <div>
-            <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-muted-foreground mb-2">Option A — Glass Orb Badge</p>
-            <HeroGlassOrb protocol={protocol} isQuickPlan={isQuickPlan} />
-          </div>
-
-          <div className="pt-4">
-            <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-muted-foreground mb-2">Option B — Liquid Gradient + 3D Numerals</p>
-            <HeroLiquid3D protocol={protocol} isQuickPlan={isQuickPlan} />
-          </div>
-
-          <div className="pt-4">
-            <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-muted-foreground mb-2">Option C — Premium Card Stack with Depth</p>
-            <HeroPremiumStack protocol={protocol} isQuickPlan={isQuickPlan} />
-          </div>
+          {/* HERO — Premium 3D card with category gradient + icon */}
+          <PremiumPlanCard
+            icon={heroIcon}
+            accentColorClass={heroAccentClass}
+            iconGradient={heroIconGradient}
+            surfaceTintGradient={heroSurfaceTint}
+            eyebrow={heroEyebrow}
+            subEyebrow={heroSubEyebrow}
+            title={protocol.name}
+            titleSuffix={titleSuffix}
+            stats={[
+              { value: `${protocol.fast_target_hours}h`, label: "Fast", accentClass: heroAccentClass },
+              { value: durationLabel, label: "Duration" },
+              { value: getDifficultyLabel(protocol.difficulty_level), label: "Level" },
+            ]}
+          />
 
           {/* BLOCK 2 — HOW THIS PROTOCOL WORKS */}
           <Card>
