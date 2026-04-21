@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { GripVertical, RotateCcw, Eye, Pencil, Ban } from "lucide-react";
+import { GripVertical, RotateCcw, Eye, Pencil, Ban, Star } from "lucide-react";
 import { DashboardCardConfig, DEFAULT_CARD_ORDER } from "@/lib/dashboardCards";
 import { useToast } from "@/hooks/use-toast";
 
@@ -16,6 +16,8 @@ interface DashboardCardLayoutEditorProps {
   showPreview?: boolean;
   /** Card keys that don't apply to this client (engine mode / feature flags) */
   disabledCards?: Record<string, string>;
+  /** Optional: promote the current layout as the trainer-wide default for new clients */
+  onSaveAsDefault?: (cards: DashboardCardConfig[]) => Promise<void>;
 }
 
 export function DashboardCardLayoutEditor({
@@ -27,12 +29,14 @@ export function DashboardCardLayoutEditor({
   clientName,
   clientId,
   disabledCards = {},
+  onSaveAsDefault,
 }: DashboardCardLayoutEditorProps) {
   const { toast } = useToast();
   const [cards, setCards] = useState<DashboardCardConfig[]>(initialCards);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
   const [mode, setMode] = useState<"live" | "edit">("live");
+  const [savingDefault, setSavingDefault] = useState(false);
 
   useEffect(() => {
     setCards(initialCards);
@@ -69,6 +73,20 @@ export function DashboardCardLayoutEditor({
     await onSave(cards);
     setHasChanges(false);
     toast({ title: "Layout saved", description: "Dashboard card layout has been updated." });
+  };
+
+  const handleSaveAsDefault = async () => {
+    if (!onSaveAsDefault) return;
+    try {
+      setSavingDefault(true);
+      await onSaveAsDefault(cards);
+      toast({
+        title: "Default updated",
+        description: "This layout is now the default for all new clients.",
+      });
+    } finally {
+      setSavingDefault(false);
+    }
   };
 
   const handleReset = () => {
@@ -248,6 +266,20 @@ export function DashboardCardLayoutEditor({
           </div>
         </div>
       </div>
+
+      {onSaveAsDefault && (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={handleSaveAsDefault}
+          disabled={savingDefault || isSaving}
+          className="gap-2"
+        >
+          <Star className="h-3.5 w-3.5" />
+          {savingDefault ? "Saving..." : "Save as default for new clients"}
+        </Button>
+      )}
     </div>
   );
 }
