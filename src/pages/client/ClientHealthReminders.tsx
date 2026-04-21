@@ -215,21 +215,10 @@ export default function ClientHealthReminders() {
               <Globe className="h-4 w-4 text-muted-foreground" />
               <p className="font-semibold text-sm">Timezone</p>
             </div>
-            <Select
+            <TimezoneCombobox
               value={settings.timezone}
-              onValueChange={(value) => updateSettings({ timezone: value })}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select timezone" />
-              </SelectTrigger>
-              <SelectContent className="max-h-72">
-                {timezoneOptions.map((tz) => (
-                  <SelectItem key={tz.value} value={tz.value}>
-                    {tz.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              onChange={(value) => updateSettings({ timezone: value })}
+            />
             <p className="text-xs text-muted-foreground">
               Reminder times are interpreted in this timezone. Device timezone:{' '}
               <span className="font-medium text-foreground">{browserTz}</span>
