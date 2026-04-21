@@ -137,12 +137,14 @@ function CardFront({
   pulse = true,
   shimmer = true,
   animateStats = true,
+  frontExtra = "none",
 }: {
   protocol: DemoProtocol;
   showChevron?: boolean;
   pulse?: boolean;
   shimmer?: boolean;
   animateStats?: boolean;
+  frontExtra?: FrontExtraVariant;
 }) {
   const Icon = protocol.icon;
   return (
@@ -232,6 +234,12 @@ function CardFront({
             </div>
           )}
         </div>
+
+        {frontExtra !== "none" && (
+          <div className="mt-5">
+            <FrontExtra variant={frontExtra} protocol={protocol} animate={animateStats} />
+          </div>
+        )}
       </div>
     </>
   );
