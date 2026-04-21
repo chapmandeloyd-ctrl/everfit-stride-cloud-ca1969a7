@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ClientLayout } from '@/components/ClientLayout';
 import { ActivitySummary } from '@/components/health/ActivitySummary';
@@ -12,6 +12,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useNativeHealth } from '@/hooks/useNativeHealth';
 import { useHealthConnections } from '@/hooks/useHealthData';
+import { useHealthReminderSettings } from '@/hooks/useHealthReminderSettings';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 
@@ -19,6 +20,9 @@ export default function ClientHealth() {
   const effectiveClientId = useEffectiveClientId();
   const { isNative, permissionGranted, requestPermissions, isImpersonating } = useNativeHealth();
   const { data: connections = [] } = useHealthConnections();
+  const { data: reminderSettings } = useHealthReminderSettings();
+  const reminderSettingsRef = useRef(reminderSettings);
+  reminderSettingsRef.current = reminderSettings;
   const [isConnecting, setIsConnecting] = useState(false);
   const [snapshotOpen, setSnapshotOpen] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -38,11 +42,10 @@ export default function ClientHealth() {
     if (searchParams.get('snap') === '1') {
       setSnapshotOpen(true);
       setFromReminder(true);
-      // Log this as a reminder-tied snap
+      // Log this as a reminder-tied snap (read settings from cached query)
       try {
-        const raw = localStorage.getItem('healthReminderSettings');
-        const settings = raw ? JSON.parse(raw) : null;
-        const matched = settings?.times ? findActiveReminderTime(settings.times) : null;
+        const times = reminderSettingsRef.current?.times;
+        const matched = times?.length ? findActiveReminderTime(times) : null;
         appendReminderLog(matched);
       } catch {
         appendReminderLog(null);
@@ -57,9 +60,8 @@ export default function ClientHealth() {
   const handleManualSnap = () => {
     setSnapshotOpen(true);
     try {
-      const raw = localStorage.getItem('healthReminderSettings');
-      const settings = raw ? JSON.parse(raw) : null;
-      const matched = settings?.times ? findActiveReminderTime(settings.times) : null;
+      const times = reminderSettingsRef.current?.times;
+      const matched = times?.length ? findActiveReminderTime(times) : null;
       appendReminderLog(matched);
     } catch {
       appendReminderLog(null);
