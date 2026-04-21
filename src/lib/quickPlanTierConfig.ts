@@ -31,6 +31,10 @@ export interface LevelTierConfig {
   borderClass: string;
   /** Badge bg */
   badgeBg: string;
+  /** Gradient for the embossed icon badge fill (PremiumPlanCard) */
+  iconGradient: string;
+  /** Soft tint gradient overlay on the card surface (PremiumPlanCard) */
+  surfaceTintGradient: string;
 }
 
 export const LEVEL_TIERS: LevelTierConfig[] = [
@@ -44,6 +48,8 @@ export const LEVEL_TIERS: LevelTierConfig[] = [
     glowShadow: "shadow-[0_20px_50px_-20px_rgba(16,185,129,0.4)]",
     borderClass: "border-emerald-400/30",
     badgeBg: "bg-emerald-500/15",
+    iconGradient: "from-emerald-400 via-teal-500 to-cyan-700",
+    surfaceTintGradient: "from-emerald-500/15 via-transparent to-cyan-600/10",
   },
   {
     label: "Milestone",
@@ -55,6 +61,8 @@ export const LEVEL_TIERS: LevelTierConfig[] = [
     glowShadow: "shadow-[0_20px_50px_-20px_rgba(245,158,11,0.4)]",
     borderClass: "border-amber-400/30",
     badgeBg: "bg-amber-500/15",
+    iconGradient: "from-amber-400 via-yellow-500 to-orange-600",
+    surfaceTintGradient: "from-amber-500/15 via-transparent to-orange-600/10",
   },
   {
     label: "Progressive",
@@ -66,6 +74,8 @@ export const LEVEL_TIERS: LevelTierConfig[] = [
     glowShadow: "shadow-[0_20px_50px_-20px_rgba(59,130,246,0.4)]",
     borderClass: "border-blue-400/30",
     badgeBg: "bg-blue-500/15",
+    iconGradient: "from-blue-400 via-indigo-500 to-violet-700",
+    surfaceTintGradient: "from-blue-500/15 via-transparent to-violet-600/10",
   },
   {
     label: "Landmark",
@@ -77,6 +87,8 @@ export const LEVEL_TIERS: LevelTierConfig[] = [
     glowShadow: "shadow-[0_20px_50px_-20px_rgba(244,63,94,0.4)]",
     borderClass: "border-rose-400/30",
     badgeBg: "bg-rose-500/15",
+    iconGradient: "from-rose-400 via-pink-500 to-red-700",
+    surfaceTintGradient: "from-rose-500/15 via-transparent to-red-600/10",
   },
   {
     label: "Extended",
@@ -88,6 +100,8 @@ export const LEVEL_TIERS: LevelTierConfig[] = [
     glowShadow: "shadow-[0_20px_50px_-20px_rgba(168,85,247,0.4)]",
     borderClass: "border-purple-400/30",
     badgeBg: "bg-purple-500/15",
+    iconGradient: "from-purple-400 via-fuchsia-500 to-violet-700",
+    surfaceTintGradient: "from-purple-500/15 via-transparent to-violet-600/10",
   },
   {
     label: "Elite",
@@ -99,6 +113,8 @@ export const LEVEL_TIERS: LevelTierConfig[] = [
     glowShadow: "shadow-[0_20px_50px_-20px_rgba(234,179,8,0.45)]",
     borderClass: "border-yellow-400/30",
     badgeBg: "bg-yellow-500/15",
+    iconGradient: "from-yellow-400 via-amber-500 to-orange-600",
+    surfaceTintGradient: "from-yellow-500/15 via-transparent to-orange-600/10",
   },
 ];
 

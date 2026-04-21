@@ -27,6 +27,8 @@ export const CATEGORY_CONFIG: Record<string, CategoryConfig> = {
     cardSurfaceClass: "bg-gradient-to-br from-background via-blue-50/95 to-blue-100/80",
     cardBorderClass: "border-blue-200/90",
     cardShadowClass: "shadow-[0_24px_60px_-28px_rgba(59,130,246,0.45)]",
+    iconGradient: "from-blue-400 via-blue-500 to-blue-700",
+    surfaceTintGradient: "from-blue-500/15 via-transparent to-blue-700/10",
   },
   "LOSE WEIGHT": {
     label: "LOSE WEIGHT",
@@ -38,6 +40,8 @@ export const CATEGORY_CONFIG: Record<string, CategoryConfig> = {
     cardSurfaceClass: "bg-gradient-to-br from-background via-emerald-50/95 to-emerald-100/80",
     cardBorderClass: "border-emerald-200/90",
     cardShadowClass: "shadow-[0_24px_60px_-28px_rgba(16,185,129,0.42)]",
+    iconGradient: "from-emerald-400 via-emerald-500 to-teal-700",
+    surfaceTintGradient: "from-emerald-500/15 via-transparent to-teal-600/10",
   },
   "SHARPEN FOCUS": {
     label: "SHARPEN FOCUS",
@@ -49,6 +53,8 @@ export const CATEGORY_CONFIG: Record<string, CategoryConfig> = {
     cardSurfaceClass: "bg-gradient-to-br from-background via-violet-50/95 to-fuchsia-100/80",
     cardBorderClass: "border-violet-200/90",
     cardShadowClass: "shadow-[0_24px_60px_-28px_rgba(139,92,246,0.42)]",
+    iconGradient: "from-violet-400 via-violet-500 to-fuchsia-700",
+    surfaceTintGradient: "from-violet-500/15 via-transparent to-fuchsia-600/10",
   },
   "BOOST ENERGY": {
     label: "BOOST ENERGY",
@@ -60,6 +66,8 @@ export const CATEGORY_CONFIG: Record<string, CategoryConfig> = {
     cardSurfaceClass: "bg-gradient-to-br from-background via-amber-50/95 to-yellow-100/80",
     cardBorderClass: "border-amber-200/90",
     cardShadowClass: "shadow-[0_24px_60px_-28px_rgba(245,158,11,0.42)]",
+    iconGradient: "from-amber-400 via-orange-500 to-yellow-600",
+    surfaceTintGradient: "from-amber-500/15 via-transparent to-orange-600/10",
   },
   "GET HEALTHIER": {
     label: "GET HEALTHIER",
@@ -71,6 +79,8 @@ export const CATEGORY_CONFIG: Record<string, CategoryConfig> = {
     cardSurfaceClass: "bg-gradient-to-br from-background via-teal-50/95 to-cyan-100/80",
     cardBorderClass: "border-teal-200/90",
     cardShadowClass: "shadow-[0_24px_60px_-28px_rgba(20,184,166,0.42)]",
+    iconGradient: "from-teal-400 via-teal-500 to-cyan-700",
+    surfaceTintGradient: "from-teal-500/15 via-transparent to-cyan-600/10",
   },
   "POPULAR SCHEDULES": {
     label: "POPULAR SCHEDULES",
@@ -82,6 +92,8 @@ export const CATEGORY_CONFIG: Record<string, CategoryConfig> = {
     cardSurfaceClass: "bg-gradient-to-br from-background via-sky-50/95 to-indigo-100/80",
     cardBorderClass: "border-sky-200/90",
     cardShadowClass: "shadow-[0_24px_60px_-28px_rgba(14,165,233,0.42)]",
+    iconGradient: "from-sky-400 via-blue-500 to-indigo-700",
+    surfaceTintGradient: "from-sky-500/15 via-transparent to-indigo-600/10",
   },
 };
 
