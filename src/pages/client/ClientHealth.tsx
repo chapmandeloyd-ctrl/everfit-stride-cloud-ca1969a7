@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { ClientLayout } from '@/components/ClientLayout';
 import { ActivitySummary } from '@/components/health/ActivitySummary';
 import { AiSnapshotSheet } from '@/components/health/AiSnapshotSheet';
+import { ReminderStatusBanner } from '@/components/health/ReminderStatusBanner';
 import { useEffectiveClientId } from '@/hooks/useEffectiveClientId';
 import { Settings, Smartphone, Bell, Camera } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -19,6 +20,7 @@ export default function ClientHealth() {
   const [isConnecting, setIsConnecting] = useState(false);
   const [snapshotOpen, setSnapshotOpen] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
+  const [fromReminder, setFromReminder] = useState(false);
   const isConnected =
     permissionGranted ||
     connections.some((connection) => connection.provider === 'apple_health' && connection.is_connected);
@@ -33,6 +35,7 @@ export default function ClientHealth() {
   useEffect(() => {
     if (searchParams.get('snap') === '1') {
       setSnapshotOpen(true);
+      setFromReminder(true);
       // Clear param so refresh doesn't reopen
       const next = new URLSearchParams(searchParams);
       next.delete('snap');
@@ -128,6 +131,12 @@ export default function ClientHealth() {
 
         <div>
           <h2 className="text-lg font-semibold mb-4">Today's Summary</h2>
+          <div className="mb-4">
+            <ReminderStatusBanner
+              fromReminder={fromReminder}
+              onSnap={() => setSnapshotOpen(true)}
+            />
+          </div>
           <ActivitySummary clientId={effectiveClientId} />
         </div>
 
