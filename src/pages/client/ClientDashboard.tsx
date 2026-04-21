@@ -1854,7 +1854,7 @@ export default function ClientDashboard() {
                     showWelcomeCard ? (
                       <WelcomeCard
                         imageUrl={welcomeCard?.image_url}
-                        message={welcomeCard?.message || "Welcome to KSOM360"}
+                        message={welcomeCard?.message || "Welcome to your fitness journey!"}
                         title={(welcomeCard as any)?.title || "WELCOME"}
                       />
                     ) : (
