@@ -59,6 +59,8 @@ export function SmartPaceBanner() {
           badge: "bg-destructive text-destructive-foreground",
           progress: "bg-gradient-to-r from-destructive via-red-400 to-destructive",
           accent: "from-destructive/40",
+          dot: "bg-destructive shadow-[0_0_10px_hsl(var(--destructive))]",
+          hint: "Red means you're falling behind your daily target — let's catch up.",
         }
       : status === "ahead"
       ? {
@@ -71,6 +73,8 @@ export function SmartPaceBanner() {
           badge: "bg-sky-500 text-white",
           progress: "bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500",
           accent: "from-sky-400/40",
+          dot: "bg-sky-400 shadow-[0_0_10px_hsl(200_85%_60%)]",
+          hint: "Blue means you're ahead of pace — fantastic momentum.",
         }
       : {
           gradient:
@@ -82,6 +86,8 @@ export function SmartPaceBanner() {
           badge: "bg-emerald-500 text-white",
           progress: "bg-gradient-to-r from-emerald-500 via-green-300 to-emerald-500",
           accent: "from-emerald-400/40",
+          dot: "bg-emerald-400 shadow-[0_0_10px_hsl(150_75%_55%)]",
+          hint: "Green means you're right on pace — keep it going.",
         };
 
   const Icon = tone.icon;
