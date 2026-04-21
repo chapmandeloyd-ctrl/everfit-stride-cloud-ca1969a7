@@ -71,6 +71,12 @@ export default function ClientHealthReminders() {
     [settings.times],
   );
 
+  const browserTz = useMemo(() => getBrowserTimezone(), []);
+  const timezoneOptions = useMemo(
+    () => buildTimezoneOptions(settings.timezone),
+    [settings.timezone],
+  );
+
   const updateSettings = (next: Partial<ReminderSettings>) => {
     setSettings((prev) => ({ ...prev, ...next }));
     setHasChanges(true);
