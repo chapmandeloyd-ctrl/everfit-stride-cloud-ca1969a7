@@ -188,15 +188,20 @@ export function PushDevicesTab() {
   }
 
   const counts = useMemo(() => {
-    const c = { all: rows.length, subscribed: 0, no_devices: 0, stale: 0 };
+    const c = { all: rows.length, subscribed: 0, no_devices: 0, stale: 0, expired: 0 };
     for (const r of rows) c[classify(r)] += 1;
+    c.expired = rows.filter((r) => r.recent_removal_count > 0).length;
     return c;
   }, [rows]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return rows
-      .filter((r) => filter === "all" || classify(r) === filter)
+      .filter((r) => {
+        if (filter === "all") return true;
+        if (filter === "expired") return r.recent_removal_count > 0;
+        return classify(r) === filter;
+      })
       .filter((r) =>
         !q
           ? true
@@ -204,7 +209,10 @@ export function PushDevicesTab() {
             (r.email ?? "").toLowerCase().includes(q)
       )
       .sort((a, b) => {
-        // Surface problems first: no_devices → stale → subscribed
+        // Surface problems first: expired removals → no_devices → stale → subscribed
+        const expiredA = a.recent_removal_count > 0 ? -1 : 0;
+        const expiredB = b.recent_removal_count > 0 ? -1 : 0;
+        if (expiredA !== expiredB) return expiredA - expiredB;
         const order = { no_devices: 0, stale: 1, subscribed: 2 } as const;
         const sa = order[classify(a)];
         const sb = order[classify(b)];
