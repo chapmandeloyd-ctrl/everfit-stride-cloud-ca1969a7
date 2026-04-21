@@ -12,6 +12,14 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
   return outputArray;
 }
 
+function arrayBufferToBase64Url(buffer: ArrayBuffer | null): string {
+  if (!buffer) return "";
+  const bytes = new Uint8Array(buffer);
+  let bin = "";
+  for (let i = 0; i < bytes.byteLength; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
 // Get the VAPID public key from the server
 export async function getVapidPublicKey(): Promise<string | null> {
   try {
@@ -76,27 +84,57 @@ export async function unsubscribeFromPush(): Promise<boolean> {
   }
 }
 
-// Save subscription to the database
+// Save subscription to the database — writes one row per device into
+// `push_subscriptions` (so the same user can receive pushes on multiple
+// browsers/phones) and also flips `notification_preferences.push_enabled`
+// for backwards compatibility with existing UI.
 export async function savePushSubscription(
   userId: string,
   subscription: PushSubscription
 ): Promise<boolean> {
   try {
-    const subscriptionJson = subscription.toJSON();
+    const json = subscription.toJSON() as {
+      endpoint?: string;
+      keys?: { p256dh?: string; auth?: string };
+    };
+    const endpoint = json.endpoint || subscription.endpoint;
+    const p256dhKey = subscription.getKey?.("p256dh");
+    const authKey = subscription.getKey?.("auth");
+    const p256dh = json.keys?.p256dh || arrayBufferToBase64Url(p256dhKey ?? null);
+    const auth = json.keys?.auth || arrayBufferToBase64Url(authKey ?? null);
 
-    const { error } = await supabase
+    if (!endpoint || !p256dh || !auth) {
+      console.error("Push subscription missing required fields", { endpoint, p256dh, auth });
+      return false;
+    }
+
+    const { error: subError } = await supabase
+      .from("push_subscriptions")
+      .upsert(
+        {
+          user_id: userId,
+          endpoint,
+          p256dh,
+          auth,
+          user_agent: typeof navigator !== "undefined" ? navigator.userAgent : null,
+          last_seen_at: new Date().toISOString(),
+        },
+        { onConflict: "user_id,endpoint" }
+      );
+    if (subError) throw subError;
+
+    // Keep the legacy preference flag in sync so existing UI lights up.
+    await supabase
       .from("notification_preferences")
       .upsert(
         {
           user_id: userId,
           push_enabled: true,
-          push_subscription: subscriptionJson as any,
           updated_at: new Date().toISOString(),
         },
         { onConflict: "user_id" }
       );
 
-    if (error) throw error;
     return true;
   } catch (err) {
     console.error("Failed to save push subscription:", err);
@@ -104,23 +142,59 @@ export async function savePushSubscription(
   }
 }
 
-// Remove subscription from the database
-export async function removePushSubscription(userId: string): Promise<boolean> {
+// Remove subscription(s) from the database. If `endpoint` is provided, only
+// that device row is deleted; otherwise all subscriptions for the user are
+// removed. Also flips the legacy `push_enabled` flag off when no devices
+// remain.
+export async function removePushSubscription(
+  userId: string,
+  endpoint?: string
+): Promise<boolean> {
   try {
-    const { error } = await supabase
-      .from("notification_preferences")
-      .update({
-        push_enabled: false,
-        push_subscription: null,
-        updated_at: new Date().toISOString(),
-      })
+    const query = supabase.from("push_subscriptions").delete().eq("user_id", userId);
+    if (endpoint) query.eq("endpoint", endpoint);
+    const { error } = await query;
+    if (error) throw error;
+
+    const { count } = await supabase
+      .from("push_subscriptions")
+      .select("id", { count: "exact", head: true })
       .eq("user_id", userId);
 
-    if (error) throw error;
+    if ((count ?? 0) === 0) {
+      await supabase
+        .from("notification_preferences")
+        .update({
+          push_enabled: false,
+          push_subscription: null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("user_id", userId);
+    }
     return true;
   } catch (err) {
     console.error("Failed to remove push subscription:", err);
     return false;
+  }
+}
+
+// Send a test push to the current user (or, for trainers, a specific client).
+export async function sendTestPush(targetUserId?: string): Promise<{
+  ok: boolean;
+  delivered?: number;
+  failed?: number;
+  total?: number;
+  message?: string;
+}> {
+  try {
+    const { data, error } = await supabase.functions.invoke("test-push", {
+      body: targetUserId ? { target_user_id: targetUserId } : {},
+    });
+    if (error) throw error;
+    return data;
+  } catch (err) {
+    console.error("Failed to send test push:", err);
+    return { ok: false, message: (err as Error).message };
   }
 }
 
