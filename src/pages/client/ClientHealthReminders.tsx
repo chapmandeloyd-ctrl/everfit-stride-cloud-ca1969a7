@@ -3,19 +3,33 @@ import { ClientLayout } from '@/components/ClientLayout';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Card } from '@/components/ui/card';
-import { Bell, Plus, Trash2, ArrowLeft, Smartphone, FlaskConical } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Bell, Plus, Trash2, ArrowLeft, Smartphone, FlaskConical, Globe } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import {
+  buildTimezoneOptions,
+  getBrowserTimezone,
+  getZonedParts,
+} from '@/lib/healthReminderTimezone';
 
 type ReminderSettings = {
   enabled: boolean;
   times: string[]; // "HH:MM" 24h
+  timezone: string; // IANA tz, e.g. "America/New_York"
 };
 
 const STORAGE_KEY = 'healthReminderSettings';
 const DEFAULTS: ReminderSettings = {
   enabled: false,
   times: ['08:00', '13:00', '20:00'],
+  timezone: getBrowserTimezone(),
 };
 
 function loadSettings(): ReminderSettings {
@@ -26,6 +40,7 @@ function loadSettings(): ReminderSettings {
     return {
       enabled: !!parsed.enabled,
       times: Array.isArray(parsed.times) && parsed.times.length > 0 ? parsed.times : DEFAULTS.times,
+      timezone: typeof parsed.timezone === 'string' && parsed.timezone ? parsed.timezone : getBrowserTimezone(),
     };
   } catch {
     return DEFAULTS;
