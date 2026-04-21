@@ -488,6 +488,7 @@ export default function WorkoutDetail() {
         onDiscard={handleDiscard}
         onExit={handleExit}
         onSaveForLater={isClient ? handleSaveForLater : undefined}
+        onProgressSave={isClient ? handleProgressSave : undefined}
         resumeFromStep={resumeData?.stepIdx}
         resumeSetLogs={resumeData?.setLogs}
         resumeElapsed={resumeData?.elapsed}
