@@ -36,6 +36,9 @@ export default function ClientCommandCenter() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [generatedPassword, setGeneratedPassword] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [passwordChooserOpen, setPasswordChooserOpen] = useState(false);
+  const [customPassword, setCustomPassword] = useState("");
+  const [customPasswordError, setCustomPasswordError] = useState<string | null>(null);
 
   const { data: clientData, isLoading } = useQuery({
     queryKey: ["client-detail", clientId],
@@ -63,8 +66,11 @@ export default function ClientCommandCenter() {
   };
 
   const resetPasswordMutation = useMutation({
-    mutationFn: async () => {
-      const newPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-4).toUpperCase();
+    mutationFn: async (overridePassword?: string) => {
+      const newPassword =
+        overridePassword ??
+        Math.random().toString(36).slice(-8) +
+          Math.random().toString(36).slice(-4).toUpperCase();
       const { data, error } = await supabase.functions.invoke("delete-users", {
         body: { action: "reset-password", userId: clientId, newPassword },
       });
@@ -74,6 +80,9 @@ export default function ClientCommandCenter() {
     },
     onSuccess: (password) => {
       setGeneratedPassword(password);
+      setPasswordChooserOpen(false);
+      setCustomPassword("");
+      setCustomPasswordError(null);
       setCredentialsOpen(true);
     },
     onError: (error: Error) => {
