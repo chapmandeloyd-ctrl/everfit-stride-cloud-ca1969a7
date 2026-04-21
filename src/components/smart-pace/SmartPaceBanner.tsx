@@ -127,6 +127,19 @@ export function SmartPaceBanner() {
       {/* Bottom-right radial glow */}
       <div className="pointer-events-none absolute -bottom-12 -right-12 h-40 w-40 rounded-full bg-white/5 blur-3xl" />
 
+      {/* Live "mood ring" dot — ambient color-state cue (Option D) */}
+      {flipView === "none" && (
+        <div
+          className="absolute top-3 right-3 flex items-center gap-1.5 z-10"
+          aria-label={`Status indicator: ${status}`}
+        >
+          <span className="relative flex h-2.5 w-2.5">
+            <span className={cn("absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping", tone.dot)} />
+            <span className={cn("relative inline-flex h-2.5 w-2.5 rounded-full", tone.dot)} />
+          </span>
+        </div>
+      )}
+
       {flipView === "journal" ? (
         <div className="relative" onClick={(e) => e.stopPropagation()}>
           <SmartPaceJournalView
