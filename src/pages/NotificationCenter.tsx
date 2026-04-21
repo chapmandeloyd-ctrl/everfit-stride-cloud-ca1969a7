@@ -5,7 +5,8 @@ import { ComposeTab } from "@/components/notifications/ComposeTab";
 import { QuickSendTab } from "@/components/notifications/QuickSendTab";
 import { TemplatesTab } from "@/components/notifications/TemplatesTab";
 import { HistoryTab } from "@/components/notifications/HistoryTab";
-import { Bell, FileText, History, Send, Zap } from "lucide-react";
+import { PushDevicesTab } from "@/components/notifications/PushDevicesTab";
+import { Bell, FileText, History, Send, Smartphone, Zap } from "lucide-react";
 
 export default function NotificationCenter() {
   const [activeTab, setActiveTab] = useState("quick");
@@ -24,7 +25,7 @@ export default function NotificationCenter() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid w-full max-w-lg grid-cols-4">
+          <TabsList className="grid w-full max-w-2xl grid-cols-5">
             <TabsTrigger value="quick" className="flex items-center gap-1.5">
               <Zap className="h-4 w-4" />
               Quick Send
@@ -40,6 +41,10 @@ export default function NotificationCenter() {
             <TabsTrigger value="history" className="flex items-center gap-1.5">
               <History className="h-4 w-4" />
               History
+            </TabsTrigger>
+            <TabsTrigger value="push-devices" className="flex items-center gap-1.5">
+              <Smartphone className="h-4 w-4" />
+              Push Devices
             </TabsTrigger>
           </TabsList>
 
@@ -57,6 +62,10 @@ export default function NotificationCenter() {
 
           <TabsContent value="history">
             <HistoryTab />
+          </TabsContent>
+
+          <TabsContent value="push-devices">
+            <PushDevicesTab />
           </TabsContent>
         </Tabs>
       </div>
