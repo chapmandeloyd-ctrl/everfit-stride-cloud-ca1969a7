@@ -61,7 +61,7 @@ serve(async (req) => {
 
     const { data: subs } = await supabase
       .from("push_subscriptions")
-      .select("id, endpoint, p256dh, auth")
+      .select("id, endpoint, p256dh, auth, user_agent")
       .eq("user_id", targetUserId);
 
     if (!subs || subs.length === 0) {
