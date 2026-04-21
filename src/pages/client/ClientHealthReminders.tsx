@@ -3,21 +3,11 @@ import { ClientLayout } from '@/components/ClientLayout';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Card } from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Bell, Plus, Trash2, ArrowLeft, Smartphone, FlaskConical, Globe } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import {
-  buildTimezoneOptions,
-  getBrowserTimezone,
-  getZonedParts,
-} from '@/lib/healthReminderTimezone';
+import { getBrowserTimezone, getZonedParts } from '@/lib/healthReminderTimezone';
+import { TimezoneCombobox } from '@/components/health/TimezoneCombobox';
 
 type ReminderSettings = {
   enabled: boolean;
@@ -72,10 +62,6 @@ export default function ClientHealthReminders() {
   );
 
   const browserTz = useMemo(() => getBrowserTimezone(), []);
-  const timezoneOptions = useMemo(
-    () => buildTimezoneOptions(settings.timezone),
-    [settings.timezone],
-  );
 
   const updateSettings = (next: Partial<ReminderSettings>) => {
     setSettings((prev) => ({ ...prev, ...next }));
