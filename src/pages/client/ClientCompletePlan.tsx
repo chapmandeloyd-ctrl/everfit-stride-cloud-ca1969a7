@@ -19,6 +19,7 @@ import { PROTOCOL_DETAIL_COPY } from "@/lib/protocolDetailContent";
 import { getProtocolCardContent } from "@/lib/protocolCardContent";
 import { usePlanSynergy } from "@/hooks/usePlanSynergy";
 import { useMemo, useEffect } from "react";
+import { HeroGlassOrb, HeroLiquid3D, HeroPremiumStack } from "@/components/plan/HeroVariants";
 
 function generateWeeklyProgression(durationDays: number, fastTargetHours: number) {
   const weeks = Math.ceil(durationDays / 7);
