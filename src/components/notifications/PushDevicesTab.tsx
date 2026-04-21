@@ -118,6 +118,29 @@ export function PushDevicesTab() {
     enabled: clientIds.length > 0,
   });
 
+  // 4) Recent unresolved push subscription removals (auto-pruned 404/410
+  //    endpoints). These are the "silent failure" clients — the dispatcher
+  //    actually tried to deliver and the endpoint was dead.
+  const { data: removals = [], refetch: refetchRemovals } = useQuery({
+    queryKey: ["push-overview-removals", clientIds.join(",")],
+    queryFn: async () => {
+      if (clientIds.length === 0) return [];
+      const since = new Date(
+        Date.now() - REMOVAL_LOOKBACK_DAYS * 24 * 60 * 60 * 1000,
+      ).toISOString();
+      const { data, error } = await supabase
+        .from("push_subscription_removals")
+        .select("user_id, removed_at, reason, removed_by, endpoint_host")
+        .in("user_id", clientIds)
+        .is("resolved_at", null)
+        .gte("removed_at", since)
+        .order("removed_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+    enabled: clientIds.length > 0,
+  });
+
   // Merge into denormalized rows.
   const rows: ClientRow[] = useMemo(() => {
     const subBy: Record<string, { count: number; latest: string | null }> = {};
@@ -131,6 +154,16 @@ export function PushDevicesTab() {
     }
     const prefBy: Record<string, boolean | null> = {};
     for (const p of prefs) prefBy[p.user_id] = p.push_enabled ?? null;
+    const remBy: Record<string, { count: number; latest: string | null; reason: string | null }> = {};
+    for (const r of removals) {
+      const cur = remBy[r.user_id] ?? { count: 0, latest: null, reason: null };
+      cur.count += 1;
+      if (!cur.latest || (r.removed_at && r.removed_at > cur.latest)) {
+        cur.latest = r.removed_at;
+        cur.reason = r.reason;
+      }
+      remBy[r.user_id] = cur;
+    }
 
     return roster.map((r) => ({
       client_id: r.client_id,
@@ -140,8 +173,11 @@ export function PushDevicesTab() {
       device_count: subBy[r.client_id]?.count ?? 0,
       last_seen_at: subBy[r.client_id]?.latest ?? null,
       prefers_push: prefBy[r.client_id] ?? null,
+      recent_removal_count: remBy[r.client_id]?.count ?? 0,
+      last_removal_at: remBy[r.client_id]?.latest ?? null,
+      last_removal_reason: remBy[r.client_id]?.reason ?? null,
     }));
-  }, [roster, subscriptions, prefs]);
+  }, [roster, subscriptions, prefs, removals]);
 
   // Status classification — deliberately three buckets, matching client UI.
   function classify(row: ClientRow): "subscribed" | "no_devices" | "stale" {
