@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Bell, BellOff, Send, Smartphone, BellRing, AlertTriangle, CheckCircle2, Search } from "lucide-react";
+import { Bell, BellOff, Send, Smartphone, BellRing, AlertTriangle, CheckCircle2, Search, XCircle, Loader2, ChevronDown, ChevronUp } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,7 +10,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { sendTestPush } from "@/lib/pushNotifications";
+import { sendTestPush, type PushDeviceResult } from "@/lib/pushNotifications";
 import { formatDistanceToNow } from "date-fns";
 
 /**
@@ -38,6 +38,16 @@ type FilterKey = "all" | "no_devices" | "stale" | "subscribed";
 const STALE_DAYS = 14;
 const STALE_MS = STALE_DAYS * 24 * 60 * 60 * 1000;
 
+type DeliveryResult = {
+  ok: boolean;
+  delivered: number;
+  failed: number;
+  total: number;
+  message?: string;
+  devices: PushDeviceResult[];
+  ranAt: number;
+};
+
 export function PushDevicesTab() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -45,6 +55,8 @@ export function PushDevicesTab() {
   const [filter, setFilter] = useState<FilterKey>("all");
   const [search, setSearch] = useState("");
   const [pendingId, setPendingId] = useState<string | null>(null);
+  const [results, setResults] = useState<Record<string, DeliveryResult>>({});
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   // 1) Roster of this trainer's clients.
   const { data: roster = [], isLoading: rosterLoading } = useQuery({
