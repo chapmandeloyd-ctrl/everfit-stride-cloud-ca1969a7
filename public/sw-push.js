@@ -2,7 +2,7 @@
 // This file handles push events when the app is in the background or closed
 
 self.addEventListener("push", (event) => {
-  let data = { title: "EverFit Stride", body: "You have a new notification", icon: "/pwa-192x192.png" };
+  let data = { title: "KSOM-360", body: "You have a new notification", icon: "/pwa-192x192.png" };
 
   try {
     if (event.data) {
@@ -23,7 +23,8 @@ self.addEventListener("push", (event) => {
       { action: "dismiss", title: "Dismiss" },
     ],
     requireInteraction: true,
-    tag: data.tag || "everfit-notification",
+    tag: data.tag || "ksom-notification",
+    renotify: true,
   };
 
   event.waitUntil(self.registration.showNotification(data.title, options));
