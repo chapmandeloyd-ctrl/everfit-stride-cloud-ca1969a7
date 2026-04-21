@@ -108,14 +108,18 @@ export default function ClientHealthReminders() {
    */
   const scheduleTestReminder = (minutesFromNow: number) => {
     const target = new Date(Date.now() + minutesFromNow * 60_000);
-    const hh = String(target.getHours()).padStart(2, '0');
-    const mm = String(target.getMinutes()).padStart(2, '0');
-    const newTime = `${hh}:${mm}`;
+    // Use the chosen timezone so the test time matches what the banner displays
+    const { hours, minutes } = getZonedParts(target, settings.timezone);
+    const newTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 
     const mergedTimes = Array.from(new Set([...settings.times, newTime])).sort((a, b) =>
       a.localeCompare(b),
     );
-    const toSave: ReminderSettings = { enabled: true, times: mergedTimes };
+    const toSave: ReminderSettings = {
+      enabled: true,
+      times: mergedTimes,
+      timezone: settings.timezone,
+    };
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
     setSettings(toSave);
@@ -147,7 +151,11 @@ export default function ClientHealthReminders() {
   const handleSave = () => {
     // Dedupe + sort
     const cleaned = Array.from(new Set(settings.times)).sort((a, b) => a.localeCompare(b));
-    const toSave: ReminderSettings = { enabled: settings.enabled, times: cleaned };
+    const toSave: ReminderSettings = {
+      enabled: settings.enabled,
+      times: cleaned,
+      timezone: settings.timezone,
+    };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
     setSettings(toSave);
     setHasChanges(false);
