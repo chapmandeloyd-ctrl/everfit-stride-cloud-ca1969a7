@@ -167,8 +167,93 @@ export default function ClientProtocolCardDemo() {
           <InteractiveProtocolCardDemo variant="combo" protocol={referenceProtocol} protocols={protocolsForSwipe} />
         </VariantSection>
 
+        <div className="pt-6 border-t border-border space-y-2">
+          <h2 className="text-lg font-black leading-tight">Front-face fillers · 5 ideas</h2>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Same combo card, different ways to fill the empty space below the stat tiles. Swipe + tap each one to feel it.
+          </p>
+        </div>
+
+        <VariantSection
+          num={6}
+          title="A · Phase timeline + Feel chips (recommended)"
+          description="Combines the two top picks: a 3–4 dot journey timeline + a strip showing what the client will feel."
+        >
+          <InteractiveProtocolCardDemo
+            variant="combo"
+            protocol={referenceProtocol}
+            protocols={protocolsForSwipe}
+            frontExtra="timelineAndChips"
+          />
+        </VariantSection>
+
+        <VariantSection
+          num={7}
+          title="B · Mini phase timeline only"
+          description="A compact horizontal timeline of body phases (Glycogen → Fat-burning → Autophagy)."
+        >
+          <InteractiveProtocolCardDemo
+            variant="combo"
+            protocol={referenceProtocol}
+            protocols={protocolsForSwipe}
+            frontExtra="timeline"
+          />
+        </VariantSection>
+
+        <VariantSection
+          num={8}
+          title="C · 'What you'll feel' chips only"
+          description="Three icon chips teasing the top benefits — fat burn, energy, clarity."
+        >
+          <InteractiveProtocolCardDemo
+            variant="combo"
+            protocol={referenceProtocol}
+            protocols={protocolsForSwipe}
+            frontExtra="feelChips"
+          />
+        </VariantSection>
+
+        <VariantSection
+          num={9}
+          title="D · Live progress ring (active protocol only)"
+          description="Big ring showing how far into the fast they are, with the next milestone called out."
+        >
+          <InteractiveProtocolCardDemo
+            variant="combo"
+            protocol={referenceProtocol}
+            protocols={protocolsForSwipe}
+            frontExtra="progressRing"
+          />
+        </VariantSection>
+
+        <VariantSection
+          num={10}
+          title="E · Coach quote"
+          description="One short italic line of personality + social proof from Coach K."
+        >
+          <InteractiveProtocolCardDemo
+            variant="combo"
+            protocol={referenceProtocol}
+            protocols={protocolsForSwipe}
+            frontExtra="coachQuote"
+          />
+        </VariantSection>
+
+        <VariantSection
+          num={11}
+          title="F · Difficulty + readiness meter"
+          description="5-dot intensity scale plus a 'recommended for you' badge based on tier."
+        >
+          <InteractiveProtocolCardDemo
+            variant="combo"
+            protocol={referenceProtocol}
+            protocols={protocolsForSwipe}
+            frontExtra="difficulty"
+          />
+        </VariantSection>
+
         <p className="text-center text-xs text-muted-foreground pt-4">
-          All four use count-up stat tiles, icon pulse + glow, and shimmer on hover.
+          All variants use count-up stat tiles, icon pulse + glow, and shimmer on hover.
         </p>
       </div>
     </ClientLayout>
