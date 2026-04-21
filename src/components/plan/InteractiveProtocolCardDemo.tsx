@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
-import { Lock, ShieldCheck, ChevronRight, ChevronLeft, RotateCcw, type LucideIcon } from "lucide-react";
+import { Lock, ShieldCheck, ChevronRight, ChevronLeft, RotateCcw, AlertTriangle, Brain, CalendarClock, ListChecks, Sparkles, type LucideIcon } from "lucide-react";
 import type { ProtocolCardContent } from "@/lib/protocolCardContent";
 
 export interface DemoStat {
@@ -23,7 +23,7 @@ export interface DemoProtocol {
   content: ProtocolCardContent;
 }
 
-export type ProtocolCardVariant = "flip" | "expand" | "tilt" | "swipe";
+export type ProtocolCardVariant = "flip" | "expand" | "tilt" | "swipe" | "combo";
 
 /* -------- shared visuals (matches PremiumPlanCard) -------- */
 
