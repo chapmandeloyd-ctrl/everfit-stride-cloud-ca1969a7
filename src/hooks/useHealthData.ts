@@ -2,7 +2,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   syncHealthData, 
-  requestHealthPermissions, 
   getHealthConnectionStatus,
   disconnectHealthProvider,
   isNativePlatform,
@@ -11,6 +10,7 @@ import {
   setLocalHealthConnected,
   clearLocalHealthConnection,
 } from '@/services/healthSyncService';
+import { requestHealthPermissions } from '@/lib/native-health';
 import { useAuth } from './useAuth';
 import { useEffectiveClientId } from './useEffectiveClientId';
 import { useEffect } from 'react';
