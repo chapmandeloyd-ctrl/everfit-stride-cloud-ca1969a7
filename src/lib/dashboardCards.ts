@@ -20,7 +20,6 @@ export const DEFAULT_CARD_ORDER: DashboardCardConfig[] = [
   { key: "progress", label: "My Progress", visible: true },
   { key: "game_stats", label: "Game Stats", visible: true },
   { key: "cardio", label: "Cardio Activity", visible: true },
-  { key: "cardio", label: "Cardio Activity", visible: true },
 ];
 
 export function mergeWithDefaults(saved: DashboardCardConfig[] | null): DashboardCardConfig[] {
