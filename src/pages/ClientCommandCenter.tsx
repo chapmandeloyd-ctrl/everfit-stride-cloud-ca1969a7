@@ -288,6 +288,88 @@ export default function ClientCommandCenter() {
         </DialogContent>
       </Dialog>
 
+      {/* Password Chooser Dialog */}
+      <Dialog
+        open={passwordChooserOpen}
+        onOpenChange={(open) => {
+          setPasswordChooserOpen(open);
+          if (!open) {
+            setCustomPassword("");
+            setCustomPasswordError(null);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Reset Password for {clientName}</DialogTitle>
+            <DialogDescription>
+              Auto-generate a secure password or set your own. The new password will replace the client's current one.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Button
+              className="w-full"
+              onClick={() => resetPasswordMutation.mutate(undefined)}
+              disabled={resetPasswordMutation.isPending}
+            >
+              {resetPasswordMutation.isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Key className="mr-2 h-4 w-4" />
+              )}
+              Auto-Generate Secure Password
+            </Button>
+            <div className="relative flex items-center">
+              <div className="flex-grow border-t border-border" />
+              <span className="mx-4 text-xs uppercase text-muted-foreground">or</span>
+              <div className="flex-grow border-t border-border" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="custom-password">Set Custom Password</Label>
+              <Input
+                id="custom-password"
+                type="text"
+                placeholder="Min 8 characters"
+                value={customPassword}
+                onChange={(e) => {
+                  setCustomPassword(e.target.value);
+                  setCustomPasswordError(null);
+                }}
+                maxLength={72}
+              />
+              {customPasswordError && (
+                <p className="text-xs text-destructive">{customPasswordError}</p>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPasswordChooserOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                const trimmed = customPassword.trim();
+                if (trimmed.length < 8) {
+                  setCustomPasswordError("Password must be at least 8 characters.");
+                  return;
+                }
+                if (trimmed.length > 72) {
+                  setCustomPasswordError("Password must be 72 characters or fewer.");
+                  return;
+                }
+                resetPasswordMutation.mutate(trimmed);
+              }}
+              disabled={resetPasswordMutation.isPending || customPassword.trim().length === 0}
+            >
+              {resetPasswordMutation.isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : null}
+              Set Custom Password
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Delete Confirmation */}
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>
