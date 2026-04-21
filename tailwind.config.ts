@@ -93,11 +93,24 @@ export default {
           "90%": { transform: "rotate(-1deg)" },
           "100%": { transform: "rotate(0deg)" },
         },
+        "shimmer-sweep": {
+          "0%": { transform: "translateX(0)" },
+          "100%": { transform: "translateX(450%)" },
+        },
+        "icon-pulse": {
+          "0%, 100%": { transform: "scale(1)", opacity: "0" },
+          "50%": { transform: "scale(1.25)", opacity: "0.45" },
+        },
+        "fade-in": {
+          "0%": { opacity: "0", transform: "translateY(8px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "vibes-sway": "vibes-sway 1.2s ease-in-out infinite",
+        "fade-in": "fade-in 0.35s ease-out",
       },
     },
   },
