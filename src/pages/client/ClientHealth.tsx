@@ -7,17 +7,34 @@ import { Button } from '@/components/ui/button';
 import { useNativeHealth } from '@/hooks/useNativeHealth';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { useCallback, useRef, useState, type MouseEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type MouseEvent } from 'react';
 
 export default function ClientHealth() {
   const effectiveClientId = useEffectiveClientId();
-  const { isNative, permissionGranted, requestPermissions } = useNativeHealth();
+  const { isNative, permissionGranted, requestPermissions, isImpersonating } = useNativeHealth();
   const [connecting, setConnecting] = useState(false);
   const lastTapRef = useRef(0);
   const connectInFlightRef = useRef(false);
 
+  // Auto-clear "Connecting…" the moment permission flips to granted,
+  // regardless of which code path resolved the promise.
+  useEffect(() => {
+    if (permissionGranted && connecting) {
+      setConnecting(false);
+      connectInFlightRef.current = false;
+    }
+  }, [permissionGranted, connecting]);
+
   const handleConnect = useCallback(async () => {
     if (connectInFlightRef.current) return;
+
+    if (isImpersonating) {
+      toast.error(
+        'Exit "Preview as Client" first — Apple Health is tied to the iPhone owner.',
+        { id: 'apple-health-request' },
+      );
+      return;
+    }
 
     connectInFlightRef.current = true;
     setConnecting(true);
@@ -44,7 +61,7 @@ export default function ClientHealth() {
       connectInFlightRef.current = false;
       setConnecting(false);
     }
-  }, [requestPermissions]);
+  }, [isImpersonating, requestPermissions]);
 
   const handleConnectTap = useCallback(
     (event: MouseEvent<HTMLButtonElement>) => {
