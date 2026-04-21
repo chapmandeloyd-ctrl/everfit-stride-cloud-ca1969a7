@@ -234,7 +234,7 @@ function BackContent({ protocol, onClose }: { protocol: DemoProtocol; onClose?: 
   return (
     <div className="relative h-full overflow-hidden">
       <CardSurfaceOverlays surfaceTintGradient={surfaceTintGradient} />
-      <div className="relative p-6 space-y-5 max-h-[520px] overflow-y-auto">
+      <div className="relative p-6 space-y-6 max-h-[640px] overflow-y-auto">
         <div className="flex items-center justify-between">
           <span className={`text-[10px] font-extrabold uppercase tracking-[0.18em] ${accentColorClass}`}>
             Inside the protocol
@@ -249,9 +249,24 @@ function BackContent({ protocol, onClose }: { protocol: DemoProtocol; onClose?: 
           )}
         </div>
 
-        {/* Phases timeline */}
+        {/* How This Protocol Works */}
+        {content.overview?.length > 0 && (
+          <section>
+            <div className="flex items-center gap-1.5 mb-2">
+              <Sparkles className={`h-3.5 w-3.5 ${accentColorClass}`} />
+              <h3 className="text-xs font-extrabold uppercase tracking-wider">How This Protocol Works</h3>
+            </div>
+            <div className="space-y-2">
+              {content.overview.map((p, i) => (
+                <p key={i} className="text-xs text-muted-foreground leading-relaxed">{p}</p>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Phases timeline (What Your Body Is Doing) */}
         <section>
-          <h3 className="text-xs font-extrabold uppercase tracking-wider mb-3">Fasting Timeline</h3>
+          <h3 className="text-xs font-extrabold uppercase tracking-wider mb-3">What Your Body Is Doing</h3>
           <div className="relative pl-4">
             <div className={`absolute left-1 top-1 bottom-1 w-px bg-gradient-to-b ${protocol.iconGradient} opacity-60`} />
             <ul className="space-y-3">
@@ -274,7 +289,7 @@ function BackContent({ protocol, onClose }: { protocol: DemoProtocol; onClose?: 
 
         {/* Benefits */}
         <section>
-          <h3 className="text-xs font-extrabold uppercase tracking-wider mb-2">Body Benefits</h3>
+          <h3 className="text-xs font-extrabold uppercase tracking-wider mb-2">What This Does For You</h3>
           <ul className="grid grid-cols-1 gap-1.5">
             {content.benefits.map((b, i) => (
               <li key={i} className="flex items-start gap-2 text-xs">
@@ -285,15 +300,72 @@ function BackContent({ protocol, onClose }: { protocol: DemoProtocol; onClose?: 
           </ul>
         </section>
 
-        {/* Phases summary (compact) */}
-        <section>
-          <h3 className="text-xs font-extrabold uppercase tracking-wider mb-2">Coach Notes</h3>
-          <ul className="space-y-1.5">
-            {content.mentalReality.slice(0, 3).map((m, i) => (
-              <li key={i} className="text-xs text-muted-foreground leading-relaxed">— {m}</li>
+        {/* Execution Rules */}
+        {content.rules?.length > 0 && (
+          <section>
+            <div className="flex items-center gap-1.5 mb-2">
+              <ListChecks className={`h-3.5 w-3.5 ${accentColorClass}`} />
+              <h3 className="text-xs font-extrabold uppercase tracking-wider">Execution Rules</h3>
+            </div>
+            <ul className="space-y-1.5">
+              {content.rules.map((r, i) => (
+                <li key={i} className="flex items-start gap-2 text-xs">
+                  <span className={`mt-1.5 h-1.5 w-1.5 rounded-full bg-gradient-to-br ${protocol.iconGradient}`} />
+                  <span className="leading-relaxed">{r}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {/* Mental Reality */}
+        {content.mentalReality?.length > 0 && (
+          <section>
+            <div className="flex items-center gap-1.5 mb-2">
+              <Brain className={`h-3.5 w-3.5 ${accentColorClass}`} />
+              <h3 className="text-xs font-extrabold uppercase tracking-wider">Mental Reality</h3>
+            </div>
+            <ul className="space-y-1.5">
+              {content.mentalReality.map((m, i) => (
+                <li key={i} className="text-xs text-muted-foreground leading-relaxed">— {m}</li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {/* Daily Schedule */}
+        {content.schedule?.length > 0 && (
+          <section>
+            <div className="flex items-center gap-1.5 mb-2">
+              <CalendarClock className={`h-3.5 w-3.5 ${accentColorClass}`} />
+              <h3 className="text-xs font-extrabold uppercase tracking-wider">Daily Schedule</h3>
+            </div>
+            <ul className="divide-y divide-border/50 rounded-xl border border-border/60 overflow-hidden">
+              {content.schedule.map((s, i) => (
+                <li key={i} className="flex items-center justify-between px-3 py-2 text-xs">
+                  <span className="font-semibold">{s.label}</span>
+                  <span className="text-muted-foreground">{s.detail}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {/* Coach Warning */}
+        {content.coachWarning?.length > 0 && (
+          <section
+            className="rounded-xl border border-amber-500/40 p-3 space-y-1.5"
+            style={{ background: "linear-gradient(135deg, hsl(38 92% 50% / 0.08), hsl(38 92% 50% / 0.02))" }}
+          >
+            <div className="flex items-center gap-1.5">
+              <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
+              <h3 className="text-xs font-extrabold uppercase tracking-wider text-amber-600 dark:text-amber-400">Coach Warning</h3>
+            </div>
+            {content.coachWarning.map((w, i) => (
+              <p key={i} className="text-xs leading-relaxed text-amber-900 dark:text-amber-100/90">{w}</p>
             ))}
-          </ul>
-        </section>
+          </section>
+        )}
       </div>
     </div>
   );
