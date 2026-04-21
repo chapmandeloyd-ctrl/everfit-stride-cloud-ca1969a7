@@ -172,57 +172,106 @@ export function HeroLiquid3D({ protocol, isQuickPlan }: HeroProps) {
 export function HeroPremiumStack({ protocol, isQuickPlan }: HeroProps) {
   const dl = dayLabel(protocol, isQuickPlan);
   return (
-    <div className="relative pt-3 pb-1">
-      {/* Stacked depth shadow cards */}
+    <div className="relative pt-6 pb-4">
+      {/* Deep stacked depth — back card */}
       <div
-        className="absolute inset-x-6 top-0 h-3 rounded-2xl bg-primary/20 blur-sm"
+        className="absolute inset-x-10 top-0 h-8 rounded-2xl"
+        style={{
+          background: "linear-gradient(180deg, hsl(var(--primary) / 0.35), hsl(var(--primary) / 0.1))",
+          filter: "blur(2px)",
+          transform: "scaleY(0.6)",
+        }}
         aria-hidden
       />
+      {/* Mid card */}
       <div
-        className="absolute inset-x-3 top-1.5 h-4 rounded-2xl bg-primary/10"
+        className="absolute inset-x-6 top-2 h-10 rounded-2xl border border-primary/20"
+        style={{
+          background: "linear-gradient(180deg, hsl(var(--card)), hsl(var(--card) / 0.6))",
+          boxShadow: "0 8px 20px -8px hsl(var(--primary) / 0.3)",
+        }}
+        aria-hidden
+      />
+      {/* Front card edge highlight */}
+      <div
+        className="absolute inset-x-3 top-4 h-12 rounded-2xl border border-primary/15"
+        style={{
+          background: "linear-gradient(180deg, hsl(var(--card)), hsl(var(--card)))",
+          boxShadow: "0 12px 24px -10px hsl(var(--primary) / 0.4)",
+        }}
         aria-hidden
       />
 
       <div
-        className="relative overflow-hidden rounded-2xl border border-primary/25"
+        className="relative overflow-hidden rounded-2xl border border-primary/30"
         style={{
-          background: "linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--card)) 60%, hsl(var(--primary) / 0.08) 100%)",
+          background:
+            "linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--card)) 50%, hsl(var(--primary) / 0.12) 100%)",
           boxShadow:
-            "0 20px 40px -12px hsl(var(--primary) / 0.35), 0 8px 16px -8px hsl(0 0% 0% / 0.3), inset 0 1px 0 hsl(0 0% 100% / 0.08)",
+            "0 30px 60px -15px hsl(var(--primary) / 0.5), 0 18px 36px -12px hsl(0 0% 0% / 0.5), 0 6px 12px -4px hsl(0 0% 0% / 0.3), inset 0 1px 0 hsl(0 0% 100% / 0.12), inset 0 -1px 0 hsl(0 0% 0% / 0.3)",
         }}
       >
         {/* Mesh gradient overlay */}
         <div
-          className="absolute inset-0 opacity-60"
+          className="absolute inset-0 opacity-90"
           style={{
             background:
-              "radial-gradient(ellipse at top right, hsl(var(--primary) / 0.18), transparent 50%), radial-gradient(ellipse at bottom left, hsl(220 60% 30% / 0.15), transparent 50%)",
+              "radial-gradient(ellipse at top right, hsl(var(--primary) / 0.28), transparent 55%), radial-gradient(ellipse at bottom left, hsl(220 70% 25% / 0.25), transparent 55%), radial-gradient(circle at 50% 120%, hsl(var(--primary) / 0.2), transparent 50%)",
           }}
+        />
+
+        {/* Subtle grid texture for substance */}
+        <div
+          className="absolute inset-0 opacity-[0.04] mix-blend-overlay pointer-events-none"
+          style={{
+            backgroundImage:
+              "linear-gradient(hsl(0 0% 100%) 1px, transparent 1px), linear-gradient(90deg, hsl(0 0% 100%) 1px, transparent 1px)",
+            backgroundSize: "24px 24px",
+          }}
+        />
+
+        {/* Glow orb top-right */}
+        <div
+          className="absolute -top-16 -right-16 h-40 w-40 rounded-full pointer-events-none"
+          style={{
+            background: "radial-gradient(circle, hsl(var(--primary) / 0.35), transparent 70%)",
+            filter: "blur(8px)",
+          }}
+          aria-hidden
         />
 
         {/* Animated shimmer line */}
         <div
-          className="absolute top-0 left-0 right-0 h-px"
+          className="absolute top-0 left-0 right-0 h-[2px]"
           style={{
-            background: "linear-gradient(90deg, transparent, hsl(var(--primary) / 0.6), transparent)",
+            background: "linear-gradient(90deg, transparent, hsl(var(--primary)), transparent)",
+            boxShadow: "0 0 12px hsl(var(--primary) / 0.8)",
           }}
         />
 
         <div className="relative p-6">
           <div className="flex items-center gap-3 mb-4">
-            {/* Embossed 3D icon */}
-            <div
-              className="h-12 w-12 rounded-2xl flex items-center justify-center"
-              style={{
-                background: "linear-gradient(145deg, hsl(var(--primary)), hsl(0 70% 35%))",
-                boxShadow:
-                  "inset 1px 1px 2px hsl(0 0% 100% / 0.4), inset -2px -2px 4px hsl(0 0% 0% / 0.3), 0 6px 16px hsl(var(--primary) / 0.4)",
-              }}
-            >
-              <Zap className="h-6 w-6 text-white drop-shadow" strokeWidth={2.5} />
+            {/* Embossed 3D icon — beefier */}
+            <div className="relative">
+              <div
+                className="absolute inset-0 rounded-2xl blur-xl opacity-70"
+                style={{ background: "hsl(var(--primary) / 0.6)" }}
+                aria-hidden
+              />
+              <div
+                className="relative h-14 w-14 rounded-2xl flex items-center justify-center"
+                style={{
+                  background:
+                    "linear-gradient(145deg, hsl(var(--primary)) 0%, hsl(0 75% 40%) 50%, hsl(0 60% 25%) 100%)",
+                  boxShadow:
+                    "inset 2px 2px 3px hsl(0 0% 100% / 0.5), inset -3px -3px 6px hsl(0 0% 0% / 0.5), 0 10px 24px hsl(var(--primary) / 0.6), 0 4px 8px hsl(0 0% 0% / 0.4)",
+                }}
+              >
+                <Zap className="h-7 w-7 text-white drop-shadow-lg" strokeWidth={2.5} />
+              </div>
             </div>
             <div>
-              <span className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-primary block">
+              <span className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-primary block drop-shadow">
                 Your KSOM Plan
               </span>
               <span className="text-[10px] font-medium text-muted-foreground">Adaptive Protocol</span>
@@ -233,8 +282,8 @@ export function HeroPremiumStack({ protocol, isQuickPlan }: HeroProps) {
             {protocol.name}{dl}
           </h2>
 
-          {/* Stat tiles with depth */}
-          <div className="grid grid-cols-3 gap-2 mt-5">
+          {/* Stat tiles with depth — deeper emboss */}
+          <div className="grid grid-cols-3 gap-2.5 mt-5">
             {[
               { v: `${protocol.fast_target_hours}h`, l: "Fast" },
               { v: durationLabel(protocol), l: "Duration" },
@@ -242,14 +291,20 @@ export function HeroPremiumStack({ protocol, isQuickPlan }: HeroProps) {
             ].map((s, i) => (
               <div
                 key={i}
-                className="rounded-xl py-3 text-center"
+                className="relative rounded-xl py-3.5 text-center overflow-hidden"
                 style={{
-                  background: "linear-gradient(145deg, hsl(var(--muted) / 0.6), hsl(var(--muted) / 0.3))",
+                  background:
+                    "linear-gradient(145deg, hsl(var(--muted) / 0.9), hsl(var(--muted) / 0.4))",
                   boxShadow:
-                    "inset 1px 1px 2px hsl(0 0% 100% / 0.05), inset -1px -1px 2px hsl(0 0% 0% / 0.15), 0 2px 4px hsl(0 0% 0% / 0.1)",
+                    "inset 2px 2px 3px hsl(0 0% 100% / 0.08), inset -2px -2px 4px hsl(0 0% 0% / 0.35), 0 4px 8px hsl(0 0% 0% / 0.2), 0 1px 0 hsl(0 0% 100% / 0.06)",
                 }}
               >
-                <p className="text-base font-black capitalize">{s.v}</p>
+                <div
+                  className="absolute top-0 left-2 right-2 h-px"
+                  style={{ background: "linear-gradient(90deg, transparent, hsl(0 0% 100% / 0.15), transparent)" }}
+                  aria-hidden
+                />
+                <p className="text-base font-black capitalize drop-shadow-sm">{s.v}</p>
                 <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground mt-0.5">{s.l}</p>
               </div>
             ))}
