@@ -214,6 +214,19 @@ export function PushDevicesTab() {
     setPendingId(clientId);
     try {
       const result = await sendTestPush(clientId);
+      setResults((prev) => ({
+        ...prev,
+        [clientId]: {
+          ok: !!result.ok,
+          delivered: result.delivered ?? 0,
+          failed: result.failed ?? 0,
+          total: result.total ?? 0,
+          message: result.message,
+          devices: result.devices ?? [],
+          ranAt: Date.now(),
+        },
+      }));
+      setExpanded((prev) => ({ ...prev, [clientId]: true }));
       if (result.ok) {
         toast({
           title: "Test push sent",
@@ -226,6 +239,8 @@ export function PushDevicesTab() {
           variant: "destructive",
         });
       }
+      // Refresh roster — expired endpoints may have been pruned server-side.
+      queryClient.invalidateQueries({ queryKey: ["push-overview-subs"] });
     } finally {
       setPendingId(null);
     }
