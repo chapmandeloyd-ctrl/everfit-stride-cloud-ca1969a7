@@ -182,7 +182,7 @@ export default function ClientCommandCenter() {
               variant="outline"
               size="sm"
               className="gap-2"
-              onClick={() => resetPasswordMutation.mutate()}
+              onClick={() => setPasswordChooserOpen(true)}
               disabled={resetPasswordMutation.isPending}
             >
               {resetPasswordMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Key className="h-4 w-4" />}
