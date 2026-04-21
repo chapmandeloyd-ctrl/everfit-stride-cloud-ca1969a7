@@ -438,17 +438,56 @@ Today's date is ${new Date().toISOString().split('T')[0]}.`
         clientMetricId = newCM.id;
       }
 
-      const { error: entryErr } = await supabase
+      // ── Smart dedup: one entry per metric per day ──────────────────────
+      // Apple Health values for Steps/Energy/Sleep are cumulative daily
+      // totals that only grow. For these, the latest (highest) value of the
+      // day wins. Weight is point-in-time and just gets the latest reading.
+      const startOfDay = new Date(now);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(now);
+      endOfDay.setHours(23, 59, 59, 999);
+
+      const { data: todaysEntry } = await supabase
         .from('metric_entries')
-        .insert({
-          client_id: targetClientId,
-          client_metric_id: clientMetricId,
-          value,
-          recorded_at: now.toISOString(),
-        });
+        .select('id, value')
+        .eq('client_id', targetClientId)
+        .eq('client_metric_id', clientMetricId)
+        .gte('recorded_at', startOfDay.toISOString())
+        .lte('recorded_at', endOfDay.toISOString())
+        .order('recorded_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      // For cumulative metrics, only update if new value is strictly higher.
+      // For Weight, always overwrite with the latest snapshot.
+      const isCumulative = metricName !== 'Weight';
+      let entryErr: any = null;
+
+      if (todaysEntry) {
+        const existingValue = Number(todaysEntry.value) || 0;
+        if (isCumulative && value <= existingValue) {
+          console.log(`Skipping ${metricName}: snapshot ${value} <= today's ${existingValue}`);
+          continue;
+        }
+        const { error } = await supabase
+          .from('metric_entries')
+          .update({ value, recorded_at: now.toISOString() })
+          .eq('id', todaysEntry.id);
+        entryErr = error;
+      } else {
+        const { error } = await supabase
+          .from('metric_entries')
+          .insert({
+            client_id: targetClientId,
+            client_metric_id: clientMetricId,
+            value,
+            recorded_at: now.toISOString(),
+          });
+        entryErr = error;
+      }
 
       if (entryErr) {
-        console.error('Error inserting metric_entry:', entryErr);
+        console.error('Error saving metric_entry:', entryErr);
       } else {
         savedCount++;
 
