@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { getBrowserTimezone, getZonedParts } from '@/lib/healthReminderTimezone';
-import { useHealthReminderSettings } from '@/hooks/useHealthReminderSettings';
+import { useHealthReminderSettings, type ReminderSettings } from '@/hooks/useHealthReminderSettings';
 
 // Per-client "already fired today" cache keyed by client id so trainer
 // impersonation doesn't bleed into the trainer's own device state.
