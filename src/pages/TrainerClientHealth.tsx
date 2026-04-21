@@ -10,7 +10,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useHealthConnections, useHealthData, useRealtimeHealthData, useHealthStats } from '@/hooks/useHealthData';
 import { useAuth } from '@/hooks/useAuth';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Watch, CheckCircle2, XCircle, Activity, Heart, Flame, Footprints, Bug } from 'lucide-react';
+import { ArrowLeft, Watch, CheckCircle2, XCircle, Activity, Heart, Flame, Footprints, Bug, Bell } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -115,6 +115,22 @@ export default function TrainerClientHealth() {
               </>
             )}
           </Badge>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              if (!clientId) return;
+              localStorage.setItem('impersonatedClientId', clientId);
+              queryClient.clear();
+              navigate('/client/health/reminders', {
+                state: { returnTo: `/clients/${clientId}/health` },
+              });
+            }}
+            title="Open this client's check-in reminder settings (preview as client)"
+          >
+            <Bell className="h-4 w-4 mr-1.5" />
+            Reminders
+          </Button>
           <Button variant="ghost" size="icon" onClick={() => setShowDebug(d => !d)} title="Debug info">
             <Bug className="h-4 w-4" />
           </Button>
