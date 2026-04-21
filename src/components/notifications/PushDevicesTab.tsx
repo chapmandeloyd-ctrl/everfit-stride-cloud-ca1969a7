@@ -321,6 +321,8 @@ export function PushDevicesTab() {
       }
       // Refresh roster — expired endpoints may have been pruned server-side.
       queryClient.invalidateQueries({ queryKey: ["push-overview-subs"] });
+      queryClient.invalidateQueries({ queryKey: ["push-overview-removals"] });
+      void refetchRemovals;
     } finally {
       setPendingId(null);
     }
