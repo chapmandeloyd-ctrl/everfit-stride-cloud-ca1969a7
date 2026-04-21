@@ -177,6 +177,25 @@ export default function ClientHealthReminders() {
           </div>
         </div>
 
+        {isImpersonating && (
+          <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 flex items-start gap-3">
+            <UserCog className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
+            <div className="flex-1 text-sm">
+              <p className="font-medium">You're editing this client's reminder schedule</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Changes are saved to the client's account and will fire on their device when the app is open.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {isLoading && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Loading reminder settings…
+          </div>
+        )}
+
         <Card className="p-4 sm:p-6 space-y-5">
           <div className="flex items-center justify-between">
             <div>
@@ -304,8 +323,19 @@ export default function ClientHealthReminders() {
           <Button variant="ghost" asChild>
             <Link to="/client/health">Cancel</Link>
           </Button>
-          <Button onClick={handleSave} disabled={!hasChanges} className="min-w-32">
-            Save reminders
+          <Button
+            onClick={handleSave}
+            disabled={!hasChanges || saveMutation.isPending}
+            className="min-w-32"
+          >
+            {saveMutation.isPending ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Saving…
+              </>
+            ) : (
+              'Save reminders'
+            )}
           </Button>
         </div>
       </div>
