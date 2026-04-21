@@ -1,7 +1,6 @@
 import { ClientLayout } from "@/components/ClientLayout";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, ChevronRight, Lock, ShieldCheck } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
@@ -17,8 +16,8 @@ import {
 import {
   LEVEL_TIERS,
   getTierForLevel,
-  getIntensityLabel,
 } from "@/lib/quickPlanTierConfig";
+import { PremiumPlanCard } from "@/components/plan/PremiumPlanCard";
 
 interface FastingProtocol {
   id: string;
@@ -110,183 +109,62 @@ export default function ClientPrograms() {
   function renderProtocolCard(protocol: FastingProtocol, isActive: boolean) {
     const config = CATEGORY_CONFIG[protocol.category];
     if (!config) return null;
-    const CatIcon = config.icon;
-    const locked = !isActive;
-
     return (
-      <div
+      <PremiumPlanCard
         key={protocol.id}
-        className={`group relative cursor-pointer overflow-hidden rounded-[28px] transition-all duration-300 hover:-translate-y-1 active:scale-[0.985] ${locked ? "opacity-50 grayscale-[30%]" : ""}`}
+        icon={config.icon}
+        accentColorClass={config.color}
+        iconGradient={config.iconGradient}
+        surfaceTintGradient={config.surfaceTintGradient}
+        eyebrow={config.label}
+        subEyebrow="Adaptive Protocol"
+        title={protocol.name}
+        stats={[
+          { value: `${protocol.fast_target_hours}h`, label: "Fast", accentClass: config.color },
+          { value: getDurationLabel(protocol.duration_days), label: "Duration" },
+          { value: getDifficultyLabel(protocol.difficulty_level), label: "Level" },
+        ]}
+        status={isActive ? "current" : "locked"}
+        dimmed={!isActive}
         onClick={() => {
-          if (isActive) {
-            navigate(`/client/protocol/${protocol.id}`);
-          } else {
-            setShowLocked(true);
-          }
+          if (isActive) navigate(`/client/protocol/${protocol.id}`);
+          else setShowLocked(true);
         }}
-      >
-        <div className={`absolute inset-0 rounded-[28px] ${config.cardShadowClass}`} />
-        <div className={`absolute -inset-[1px] rounded-[28px] bg-gradient-to-br ${config.glowGradient} opacity-90`} />
-        <div className={`absolute inset-[1px] rounded-[27px] ${config.cardSurfaceClass}`} />
-        <div className={`absolute -right-6 top-4 h-24 w-24 rounded-full ${config.bgColor} blur-3xl opacity-90`} />
-        <div className="absolute inset-x-6 top-0 h-px bg-white/90" />
-
-        <div className={`relative rounded-[27px] border ${config.cardBorderClass} backdrop-blur-xl overflow-hidden`}>
-          <div className="px-6 pt-6 pb-3">
-            <div className="mb-4 flex items-center gap-3">
-              <div className={`flex h-14 w-14 items-center justify-center rounded-2xl ${config.bgColor} ring-1 ring-white/70 shadow-lg`}>
-                <CatIcon className={`h-7 w-7 ${config.color}`} />
-              </div>
-              <span className={`text-sm font-black uppercase tracking-[0.18em] ${config.color}`}>
-                {config.label}
-              </span>
-              <div className="ml-auto">
-                {isActive ? (
-                  <Badge className="text-[10px] px-2.5 py-0.5 bg-primary text-primary-foreground border-0">
-                    <ShieldCheck className="h-3 w-3 mr-1" /> CURRENT
-                  </Badge>
-                ) : (
-                  <div className="flex items-center gap-1.5 text-muted-foreground">
-                    <Lock className="h-3.5 w-3.5" />
-                    <span className="text-[10px] font-semibold uppercase tracking-wider">Locked</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <h3 className="text-[2.15rem] font-black tracking-[-0.04em] leading-[0.95] text-foreground drop-shadow-sm">
-              {protocol.name}
-            </h3>
-
-            {protocol.description && (
-              <p className="mt-3 max-w-[28ch] text-base leading-relaxed text-muted-foreground line-clamp-2">
-                {protocol.description}
-              </p>
-            )}
-          </div>
-
-          <div className="mx-6 border-t border-border/70" />
-
-          <div className="flex items-end gap-5 px-6 py-4">
-            <div className="shrink-0">
-              <span className={`block text-lg font-black leading-none ${config.color}`}>
-                {protocol.fast_target_hours}h
-              </span>
-              <span className="mt-1 block text-[10px] uppercase tracking-wider text-muted-foreground">Fast</span>
-            </div>
-            <div className="shrink-0">
-              <span className="block text-lg font-black leading-none text-foreground">
-                {getDurationLabel(protocol.duration_days)}
-              </span>
-              <span className="mt-1 block text-[10px] uppercase tracking-wider text-muted-foreground">Duration</span>
-            </div>
-            <div className="ml-auto flex items-center gap-2">
-              <div className="text-right">
-                <span className="block text-lg font-black leading-none text-foreground">
-                  {getDifficultyLabel(protocol.difficulty_level)}
-                </span>
-                <span className="mt-1 block text-[10px] uppercase tracking-wider text-muted-foreground">Level</span>
-              </div>
-              <ChevronRight className={`h-5 w-5 shrink-0 transition-transform group-hover:translate-x-1 ${config.color}`} />
-            </div>
-          </div>
-        </div>
-      </div>
+      />
     );
   }
 
   // ── Render a quick plan card ──
   function renderQuickPlanCard(plan: QuickPlan, isActive: boolean) {
     const planTier = getTierForLevel(plan.min_level_required);
-    const PlanIcon = planTier.icon;
     const subtitle = typeof plan.description === "object" && plan.description?.subtitle
       ? plan.description.subtitle
       : null;
-    const locked = !isActive;
-
+    const stats = [
+      { value: `${plan.fast_hours}h`, label: "Fast", accentClass: planTier.accentColor },
+      { value: `${plan.eat_hours}h`, label: "Eat" },
+      ...(plan.is_extended_fast
+        ? [{ value: "EXT", label: "Type", accentClass: "text-destructive" }]
+        : [{ value: planTier.label, label: "Tier" }]),
+    ];
     return (
-      <div
+      <PremiumPlanCard
         key={plan.id}
-        className={`group relative cursor-pointer overflow-hidden rounded-[28px] transition-all duration-300 hover:-translate-y-1 active:scale-[0.985] ${locked ? "opacity-50 grayscale-[30%]" : ""}`}
+        icon={planTier.icon}
+        accentColorClass={planTier.accentColor}
+        iconGradient={planTier.iconGradient}
+        surfaceTintGradient={planTier.surfaceTintGradient}
+        eyebrow={`Level ${plan.min_level_required}`}
+        subEyebrow={subtitle ?? planTier.subtitle}
+        title={plan.name}
+        stats={stats}
+        status={isActive ? "current" : "locked"}
+        dimmed={!isActive}
         onClick={() => {
-          if (isActive) {
-            navigate(`/client/quick-plan/${plan.id}`);
-          } else {
-            setShowLocked(true);
-          }
+          if (isActive) navigate(`/client/quick-plan/${plan.id}`);
+          else setShowLocked(true);
         }}
-      >
-        <div className={`absolute inset-0 rounded-[28px] ${planTier.glowShadow}`} />
-        <div className={`absolute -inset-[1px] rounded-[28px] bg-gradient-to-br ${planTier.cardGradient} opacity-80`} />
-        <div className="absolute inset-[1px] rounded-[27px] bg-gradient-to-br from-background/95 via-background/90 to-background/85 backdrop-blur-xl" />
-        <div className={`absolute -right-8 -top-4 h-28 w-28 rounded-full bg-gradient-to-br ${planTier.cardGradient} blur-3xl opacity-60`} />
-        <div className="absolute inset-x-8 top-0 h-px bg-white/60" />
-
-        <div className={`relative rounded-[27px] border ${planTier.borderClass} backdrop-blur-xl overflow-hidden`}>
-          <div className="px-6 pt-6 pb-3">
-            <div className="mb-4 flex items-center gap-3">
-              <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${planTier.badgeBg} ring-1 ring-white/40 shadow-lg`}>
-                <PlanIcon className={`h-6 w-6 ${planTier.accentColor}`} />
-              </div>
-              <div>
-                <span className={`text-[10px] font-bold uppercase tracking-[0.18em] ${planTier.accentColor}`}>
-                  Level {plan.min_level_required}
-                </span>
-              </div>
-              <div className="ml-auto flex items-center gap-2">
-                {isActive ? (
-                  <Badge className="text-[10px] px-2.5 py-0.5 bg-primary text-primary-foreground border-0">
-                    <ShieldCheck className="h-3 w-3 mr-1" /> CURRENT
-                  </Badge>
-                ) : (
-                  <div className="flex items-center gap-1.5 text-muted-foreground">
-                    <Lock className="h-3.5 w-3.5" />
-                    <span className="text-[10px] font-semibold uppercase tracking-wider">Locked</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <h3 className="text-[2rem] font-black tracking-[-0.04em] leading-[0.95] text-foreground drop-shadow-sm">
-              {plan.name}
-            </h3>
-
-            {subtitle && (
-              <p className="mt-2 max-w-[28ch] text-sm leading-relaxed text-muted-foreground line-clamp-2">
-                {subtitle}
-              </p>
-            )}
-          </div>
-
-          <div className="mx-6 border-t border-border/60" />
-
-          <div className="flex items-end gap-5 px-6 py-4">
-            <div className="shrink-0">
-              <span className={`block text-lg font-black leading-none ${planTier.accentColor}`}>
-                {plan.fast_hours}h
-              </span>
-              <span className="mt-1 block text-[10px] uppercase tracking-wider text-muted-foreground">Fast</span>
-            </div>
-            <div className="shrink-0">
-              <span className="block text-lg font-black leading-none text-foreground">
-                {plan.eat_hours}h
-              </span>
-              <span className="mt-1 block text-[10px] uppercase tracking-wider text-muted-foreground">Eat</span>
-            </div>
-            {plan.is_extended_fast && (
-              <div className="shrink-0">
-                <span className="block text-lg font-black leading-none text-destructive">
-                  EXT
-                </span>
-                <span className="mt-1 block text-[10px] uppercase tracking-wider text-muted-foreground">Type</span>
-              </div>
-            )}
-            <div className="ml-auto flex items-center gap-1">
-              <ChevronRight className={`h-5 w-5 shrink-0 transition-transform group-hover:translate-x-1 ${planTier.accentColor}`} />
-            </div>
-          </div>
-        </div>
-      </div>
+      />
     );
   }
 
