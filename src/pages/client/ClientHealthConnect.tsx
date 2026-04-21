@@ -5,60 +5,36 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useNativeHealth } from '@/hooks/useNativeHealth';
-import { useCallback, useRef, useState, type MouseEvent } from 'react';
+import { useConnectHealth, useHealthConnections } from '@/hooks/useHealthData';
 import { toast } from 'sonner';
 
 export default function ClientHealthConnect() {
-  const { isNative, permissionGranted, requestPermissions } = useNativeHealth();
-  const [connecting, setConnecting] = useState(false);
-  const lastTapRef = useRef(0);
-  const connectInFlightRef = useRef(false);
+  const { isNative, permissionGranted } = useNativeHealth();
+  const { data: connections = [] } = useHealthConnections();
+  const connectMutation = useConnectHealth();
+  const isConnected =
+    permissionGranted ||
+    connections.some((connection) => connection.provider === 'apple_health' && connection.is_connected);
 
-  const handleConnect = useCallback(async () => {
-    if (connectInFlightRef.current) return;
+  const handleConnectTap = async () => {
+    if (connectMutation.isPending) return;
 
-    connectInFlightRef.current = true;
-    setConnecting(true);
     toast.info('Requesting Apple Health access — please allow on the popup...', { id: 'apple-health-request' });
 
     try {
-      // No timeout race — let native iOS complete naturally (up to 60s)
-      const result = await requestPermissions();
-
-      if (!result) {
-        toast.error('Permission denied — open Settings > Privacy > Health to enable', {
-          id: 'apple-health-request',
-        });
-      } else {
-        toast.success('Apple Health connected!', { id: 'apple-health-request' });
-      }
+      await connectMutation.mutateAsync();
+      toast.success('Apple Health request sent.', { id: 'apple-health-request' });
     } catch (err: any) {
       console.error('[HealthConnect] Error:', err);
       toast.error(`Connection failed: ${err?.message || 'Unknown error'}`, {
         id: 'apple-health-request',
       });
-    } finally {
-      connectInFlightRef.current = false;
-      setConnecting(false);
     }
-  }, [requestPermissions]);
-
-  const handleConnectTap = useCallback(
-    (event: MouseEvent<HTMLButtonElement>) => {
-      event.preventDefault();
-
-      const now = Date.now();
-      if (connecting || connectInFlightRef.current || now - lastTapRef.current < 700) return;
-
-      lastTapRef.current = now;
-      void handleConnect();
-    },
-    [connecting, handleConnect],
-  );
+  };
 
   const statusLabel = !isNative
     ? 'Mobile App Required'
-    : permissionGranted
+    : isConnected
       ? 'Connected'
       : 'Not Connected';
 
@@ -96,8 +72,8 @@ export default function ClientHealthConnect() {
                   </CardDescription>
                 </div>
               </div>
-              <Badge variant={permissionGranted ? 'default' : 'secondary'}>
-                {permissionGranted ? (
+              <Badge variant={isConnected ? 'default' : 'secondary'}>
+                {isConnected ? (
                   <>
                     <CheckCircle2 className="mr-1 h-3 w-3" />
                     {statusLabel}
@@ -116,7 +92,7 @@ export default function ClientHealthConnect() {
               <p className="text-sm text-muted-foreground">
                 Apple Health connection only works inside the native iPhone app.
               </p>
-            ) : permissionGranted ? (
+            ) : isConnected ? (
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Smartphone className="h-4 w-4 text-primary" />
@@ -130,10 +106,10 @@ export default function ClientHealthConnect() {
               <Button
                 type="button"
                 className="w-full"
-                onClick={handleConnectTap}
-                disabled={connecting}
+                  onClick={() => void handleConnectTap()}
+                  disabled={connectMutation.isPending}
               >
-                {connecting ? 'Connecting...' : 'Connect Apple Health'}
+                  {connectMutation.isPending ? 'Connecting...' : 'Connect Apple Health'}
               </Button>
             )}
           </CardContent>
