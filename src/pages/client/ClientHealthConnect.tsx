@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { ClientLayout } from '@/components/ClientLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Activity, Heart, Info, Shield, Smartphone, CheckCircle2, XCircle } from 'lucide-react';
@@ -5,30 +6,32 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useNativeHealth } from '@/hooks/useNativeHealth';
-import { useConnectHealth, useHealthConnections } from '@/hooks/useHealthData';
+import { useHealthConnections } from '@/hooks/useHealthData';
 import { toast } from 'sonner';
 
 export default function ClientHealthConnect() {
-  const { isNative, permissionGranted } = useNativeHealth();
+  const { isNative, permissionGranted, requestPermissions } = useNativeHealth();
   const { data: connections = [] } = useHealthConnections();
-  const connectMutation = useConnectHealth();
+  const [isConnecting, setIsConnecting] = useState(false);
   const isConnected =
     permissionGranted ||
     connections.some((connection) => connection.provider === 'apple_health' && connection.is_connected);
 
   const handleConnectTap = async () => {
-    if (connectMutation.isPending) return;
+    if (isConnecting) return;
 
     toast.info('Requesting Apple Health access — please allow on the popup...', { id: 'apple-health-request' });
+    setIsConnecting(true);
 
     try {
-      await connectMutation.mutateAsync();
-      toast.success('Apple Health request sent.', { id: 'apple-health-request' });
+      await requestPermissions();
     } catch (err: any) {
       console.error('[HealthConnect] Error:', err);
       toast.error(`Connection failed: ${err?.message || 'Unknown error'}`, {
         id: 'apple-health-request',
       });
+    } finally {
+      setIsConnecting(false);
     }
   };
 
@@ -107,9 +110,9 @@ export default function ClientHealthConnect() {
                 type="button"
                 className="w-full"
                   onClick={() => void handleConnectTap()}
-                  disabled={connectMutation.isPending}
+                  disabled={isConnecting}
               >
-                  {connectMutation.isPending ? 'Connecting...' : 'Connect Apple Health'}
+                  {isConnecting ? 'Connecting...' : 'Connect Apple Health'}
               </Button>
             )}
           </CardContent>

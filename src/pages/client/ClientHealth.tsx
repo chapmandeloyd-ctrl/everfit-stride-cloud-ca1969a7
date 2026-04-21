@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { ClientLayout } from '@/components/ClientLayout';
 import { ActivitySummary } from '@/components/health/ActivitySummary';
 import { useEffectiveClientId } from '@/hooks/useEffectiveClientId';
@@ -5,7 +6,7 @@ import { Settings, Smartphone } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useNativeHealth } from '@/hooks/useNativeHealth';
-import { useConnectHealth, useHealthConnections } from '@/hooks/useHealthData';
+import { useHealthConnections } from '@/hooks/useHealthData';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 
@@ -13,13 +14,13 @@ export default function ClientHealth() {
   const effectiveClientId = useEffectiveClientId();
   const { isNative, permissionGranted, requestPermissions, isImpersonating } = useNativeHealth();
   const { data: connections = [] } = useHealthConnections();
-  const connectMutation = useConnectHealth();
+  const [isConnecting, setIsConnecting] = useState(false);
   const isConnected =
     permissionGranted ||
     connections.some((connection) => connection.provider === 'apple_health' && connection.is_connected);
 
   const handleConnectTap = async () => {
-    if (connectMutation.isPending) return;
+    if (isConnecting) return;
 
     if (isImpersonating) {
       toast.error(
@@ -30,15 +31,17 @@ export default function ClientHealth() {
     }
 
     toast.info('Requesting Apple Health access — please allow on the popup...', { id: 'apple-health-request' });
+    setIsConnecting(true);
 
     try {
-      await connectMutation.mutateAsync();
-      toast.success('Apple Health request sent.', { id: 'apple-health-request' });
+      await requestPermissions();
     } catch (err: any) {
       console.error('[HealthConnect] Error:', err);
       toast.error(`Connection failed: ${err?.message || 'Unknown error'}`, {
         id: 'apple-health-request',
       });
+    } finally {
+      setIsConnecting(false);
     }
   };
 
@@ -66,11 +69,11 @@ export default function ClientHealth() {
                 type="button"
                 variant="default"
                 onClick={() => void handleConnectTap()}
-                disabled={connectMutation.isPending}
+                disabled={isConnecting}
                 className="min-h-12 touch-manipulation select-none relative z-10"
               >
                 <Smartphone className="h-4 w-4 mr-2" />
-                {connectMutation.isPending ? 'Connecting...' : 'Connect Apple Health'}
+                {isConnecting ? 'Connecting...' : 'Connect Apple Health'}
               </Button>
             ) : (
               <Button variant="outline" asChild>
