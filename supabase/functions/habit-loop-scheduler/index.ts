@@ -30,7 +30,7 @@ const TRIGGERS = [
   { key: "daily_score",        prefKey: "daily_score_enabled",        offsetMin: null /* fires at 21:00 UTC */, title: "🏆 Daily score ready", body: "See how you did today and what to focus on tomorrow." },
 ] as const;
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
