@@ -14,6 +14,7 @@ import { AIPhotoAnalysisPanel } from "./AIPhotoAnalysisPanel";
 import { RecurringCheckinScheduler } from "./RecurringCheckinScheduler";
 import { SynergyPreviewPanel } from "./SynergyPreviewPanel";
 import { CoachMotivationPanel } from "./CoachMotivationPanel";
+import { PushNotificationStatusPanel } from "./PushNotificationStatusPanel";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -71,6 +72,9 @@ export function CoachCommandCenterTab({ clientId, trainerId }: CoachCommandCente
     <div className="space-y-6">
       {/* Motivation & Journal (client's "Why" + shared entries) */}
       <CoachMotivationPanel clientId={clientId} trainerId={trainerId} />
+
+      {/* Push Notification Status + Test */}
+      <PushNotificationStatusPanel clientId={clientId} trainerId={trainerId} />
 
 
 
