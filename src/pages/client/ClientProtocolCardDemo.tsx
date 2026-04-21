@@ -159,6 +159,14 @@ export default function ClientProtocolCardDemo() {
           <InteractiveProtocolCardDemo variant="swipe" protocol={referenceProtocol} protocols={protocolsForSwipe} />
         </VariantSection>
 
+        <VariantSection
+          num={5}
+          title="Combo: Swipe + Flip (recommended)"
+          description="Swipe left/right to browse protocols. Tap the card to flip and reveal all 7 sections of real coaching detail."
+        >
+          <InteractiveProtocolCardDemo variant="combo" protocol={referenceProtocol} protocols={protocolsForSwipe} />
+        </VariantSection>
+
         <p className="text-center text-xs text-muted-foreground pt-4">
           All four use count-up stat tiles, icon pulse + glow, and shimmer on hover.
         </p>
