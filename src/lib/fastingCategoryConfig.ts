@@ -10,6 +10,10 @@ export interface CategoryConfig {
   cardSurfaceClass: string;
   cardBorderClass: string;
   cardShadowClass: string;
+  /** Gradient for the embossed icon badge fill (PremiumPlanCard) */
+  iconGradient: string;
+  /** Soft tint gradient overlay on the card surface (PremiumPlanCard) */
+  surfaceTintGradient: string;
 }
 
 export const CATEGORY_CONFIG: Record<string, CategoryConfig> = {
