@@ -482,6 +482,19 @@ export function PushDevicesTab() {
                               <span className="text-destructive">had push enabled</span>
                             </>
                           )}
+                          {r.recent_removal_count > 0 && (
+                            <>
+                              <span>·</span>
+                              <span className="inline-flex items-center gap-1 text-destructive">
+                                <ZapOff className="h-3 w-3" />
+                                {r.recent_removal_count} expired endpoint
+                                {r.recent_removal_count === 1 ? "" : "s"}
+                                {r.last_removal_at && (
+                                  <> · {formatDistanceToNow(new Date(r.last_removal_at), { addSuffix: true })}</>
+                                )}
+                              </span>
+                            </>
+                          )}
                         </div>
                         {result && (
                           <DeliverySummary
