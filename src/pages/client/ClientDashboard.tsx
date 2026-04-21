@@ -490,6 +490,9 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
             <CardContent className="relative z-10 min-h-[240px] flex flex-col justify-end p-5 space-y-3">
               <div className="text-left">
+                <p className="text-xs font-semibold text-white/70 uppercase tracking-wider mb-1 drop-shadow-lg">
+                  {fastingTitle}
+                </p>
                 <p className="text-base font-bold text-white drop-shadow-lg">
                   {fastingCardMsg}
                 </p>
@@ -499,6 +502,9 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
         ) : (
           <CardContent className="px-6 py-8 text-center space-y-4">
             <div>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                {fastingTitle}
+              </p>
               <p className="text-base font-bold">
                 {fastingCardMsg}
               </p>
