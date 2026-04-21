@@ -1854,8 +1854,8 @@ export default function ClientDashboard() {
                     showWelcomeCard ? (
                       <WelcomeCard
                         imageUrl={welcomeCard?.image_url}
-                        message={welcomeCard?.message}
-                        title={(welcomeCard as any)?.title}
+                        message={welcomeCard?.message || "Welcome to your fitness journey!"}
+                        title={(welcomeCard as any)?.title || "WELCOME"}
                       />
                     ) : (
                     <Card className="overflow-hidden">
