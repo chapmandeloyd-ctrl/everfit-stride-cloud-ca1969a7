@@ -380,7 +380,8 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
       queryClient.invalidateQueries({ queryKey: ["fasting-gate-state"] });
     },
   });
-  const fastingSubtitle = featureSettings?.fasting_card_subtitle || "Fasting is the foundation of your KSOM-360 plan.";
+  const fastingSubtitle = featureSettings?.fasting_card_subtitle || "Fasting is the foundation of your plan.";
+  const fastingTitle = (featureSettings as any)?.fasting_card_title || "KSOM-360";
 
   // No protocol selected — empty state
   const hasQuickPlan = !!featureSettings?.selected_quick_plan_id && !!activeQuickPlan;
