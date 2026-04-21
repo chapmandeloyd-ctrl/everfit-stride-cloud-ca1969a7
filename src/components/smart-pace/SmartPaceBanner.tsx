@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, AlertTriangle, Target, BookHeart, Heart } from "lucide-react";
@@ -7,6 +7,9 @@ import { cn } from "@/lib/utils";
 import { SmartPaceJournalView } from "./SmartPaceJournalView";
 import { SmartPaceWhyView } from "./SmartPaceWhyView";
 
+const COLOR_HINT_STORAGE_KEY = "smartPaceColorHintViews";
+const MAX_HINT_VIEWS = 3;
+
 /**
  * Dashboard banner — replaces the old GoalCard when smart_pace_enabled = true.
  * Severity-driven visuals.
@@ -14,6 +17,20 @@ import { SmartPaceWhyView } from "./SmartPaceWhyView";
 export function SmartPaceBanner() {
   const { data } = useSmartPace();
   const [flipView, setFlipView] = useState<"none" | "journal" | "why">("none");
+  const [showColorHint, setShowColorHint] = useState(false);
+
+  useEffect(() => {
+    if (!data?.enabled || !data.goal) return;
+    try {
+      const views = parseInt(localStorage.getItem(COLOR_HINT_STORAGE_KEY) || "0", 10);
+      if (views < MAX_HINT_VIEWS) {
+        setShowColorHint(true);
+        localStorage.setItem(COLOR_HINT_STORAGE_KEY, String(views + 1));
+      }
+    } catch {
+      // localStorage unavailable — silently skip the hint
+    }
+  }, [data?.enabled, data?.goal?.id]);
 
   if (!data?.enabled || !data.goal) return null;
 
@@ -42,6 +59,8 @@ export function SmartPaceBanner() {
           badge: "bg-destructive text-destructive-foreground",
           progress: "bg-gradient-to-r from-destructive via-red-400 to-destructive",
           accent: "from-destructive/40",
+          dot: "bg-destructive shadow-[0_0_10px_hsl(var(--destructive))]",
+          hint: "Red means you're falling behind your daily target — let's catch up.",
         }
       : status === "ahead"
       ? {
@@ -54,6 +73,8 @@ export function SmartPaceBanner() {
           badge: "bg-sky-500 text-white",
           progress: "bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500",
           accent: "from-sky-400/40",
+          dot: "bg-sky-400 shadow-[0_0_10px_hsl(200_85%_60%)]",
+          hint: "Blue means you're ahead of pace — fantastic momentum.",
         }
       : {
           gradient:
@@ -65,6 +86,8 @@ export function SmartPaceBanner() {
           badge: "bg-emerald-500 text-white",
           progress: "bg-gradient-to-r from-emerald-500 via-green-300 to-emerald-500",
           accent: "from-emerald-400/40",
+          dot: "bg-emerald-400 shadow-[0_0_10px_hsl(150_75%_55%)]",
+          hint: "Green means you're right on pace — keep it going.",
         };
 
   const Icon = tone.icon;
@@ -104,6 +127,19 @@ export function SmartPaceBanner() {
       {/* Bottom-right radial glow */}
       <div className="pointer-events-none absolute -bottom-12 -right-12 h-40 w-40 rounded-full bg-white/5 blur-3xl" />
 
+      {/* Live "mood ring" dot — ambient color-state cue (Option D) */}
+      {flipView === "none" && (
+        <div
+          className="absolute top-3 right-3 flex items-center gap-1.5 z-10"
+          aria-label={`Status indicator: ${status}`}
+        >
+          <span className="relative flex h-2.5 w-2.5">
+            <span className={cn("absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping", tone.dot)} />
+            <span className={cn("relative inline-flex h-2.5 w-2.5 rounded-full", tone.dot)} />
+          </span>
+        </div>
+      )}
+
       {flipView === "journal" ? (
         <div className="relative" onClick={(e) => e.stopPropagation()}>
           <SmartPaceJournalView
@@ -137,6 +173,14 @@ export function SmartPaceBanner() {
                   {todayTargetLbs.toFixed(1)} <span className="text-base font-medium text-white/60">lb today</span>
                 </h3>
                 <p className="text-xs text-white/70 mt-0.5">{reason}</p>
+                {showColorHint && (
+                  <div className="mt-2 flex items-start gap-1.5 rounded-lg bg-white/5 ring-1 ring-white/10 px-2 py-1.5 animate-fade-in">
+                    <span className={cn("mt-1 h-1.5 w-1.5 rounded-full flex-shrink-0", tone.dot)} />
+                    <p className="text-[10px] leading-snug text-white/80 italic">
+                      {tone.hint}
+                    </p>
+                  </div>
+                )}
                 {cappedAt !== null && (
                   <p className="text-[11px] text-amber-300 mt-1">
                     Capped at {cappedAt.toFixed(1)} lb (max safe pace)
