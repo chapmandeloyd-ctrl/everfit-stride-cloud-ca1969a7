@@ -221,6 +221,15 @@ export function InteractiveProtocolCard({
       </div>
 
       <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {touchHint}
+      </div>
+
+      <div
         className="relative rounded-2xl group"
         style={innerStyle}
         onPointerDown={onDown}
