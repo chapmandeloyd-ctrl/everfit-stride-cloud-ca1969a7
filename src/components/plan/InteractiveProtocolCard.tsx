@@ -230,6 +230,27 @@ export function InteractiveProtocolCard({
         {liveMessage}
       </div>
 
+      {/* Visible flip toast — small pill at the top-center of the card */}
+      <div
+        aria-hidden="true"
+        className={`pointer-events-none absolute top-2 left-1/2 -translate-x-1/2 z-30 transition-all duration-200 ${
+          visibleFlipToast ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-1"
+        }`}
+      >
+        {visibleFlipToast && (
+          <div
+            className="rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-primary-foreground shadow-lg"
+            style={{
+              backgroundImage:
+                "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.85) 100%)",
+              boxShadow: "0 6px 18px -4px hsl(var(--primary) / 0.55)",
+            }}
+          >
+            {visibleFlipToast}
+          </div>
+        )}
+      </div>
+
       <div
         role="status"
         aria-live="polite"
