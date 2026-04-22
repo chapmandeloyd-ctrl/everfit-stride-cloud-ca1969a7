@@ -314,7 +314,7 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
         <span className="font-medium tabular-nums">
           {topIndex + 1} / {total}
         </span>
-        <span className="opacity-60">· Swipe to browse</span>
+        <span className="opacity-60">· Swipe to browse protocols</span>
       </div>
     </div>
   );
