@@ -155,23 +155,29 @@ export default function ClientPrograms() {
         ? [{ value: "EXT", label: "Type", accentClass: "text-destructive" }]
         : [{ value: planTier.label, label: "Tier" }]),
     ];
+    const demo: DemoProtocol = {
+      id: plan.id,
+      icon: planTier.icon,
+      accentColorClass: planTier.accentColor,
+      iconGradient: planTier.iconGradient,
+      surfaceTintGradient: planTier.surfaceTintGradient,
+      eyebrow: `Level ${plan.min_level_required}`,
+      subEyebrow: subtitle ?? planTier.subtitle,
+      title: plan.name,
+      stats,
+      status: isActive ? "current" : "locked",
+      content: getProtocolCardContent(plan.fast_hours, true),
+    };
     return (
-      <PremiumPlanCard
+      <InteractiveProtocolCard
         key={plan.id}
-        icon={planTier.icon}
-        accentColorClass={planTier.accentColor}
-        iconGradient={planTier.iconGradient}
-        surfaceTintGradient={planTier.surfaceTintGradient}
-        eyebrow={`Level ${plan.min_level_required}`}
-        subEyebrow={subtitle ?? planTier.subtitle}
-        title={plan.name}
-        stats={stats}
-        status={isActive ? "current" : "locked"}
+        protocol={demo}
         dimmed={!isActive}
-        onClick={() => {
+        onOpen={() => {
           if (isActive) navigate(`/client/quick-plan/${plan.id}`);
           else setShowLocked(true);
         }}
+        openLabel={isActive ? "Open plan" : "Unlock"}
       />
     );
   }
