@@ -191,10 +191,48 @@ export function MacroComparisonFlipCard({
               <span className="text-xs font-bold w-12" style={{ color: c }}>
                 {t.abbreviation}
               </span>
-              <div className="flex-1 h-3 rounded-full overflow-hidden flex">
-                <div className="h-full" style={{ width: `${fatW}%`, backgroundColor: c, opacity: 0.9 }} />
-                <div className="h-full bg-muted-foreground/30" style={{ width: `${protW}%` }} />
-                <div className="h-full bg-muted-foreground/60" style={{ width: `${carbW}%` }} />
+              {/* 3D embossed pill — outer shadow + inner highlights */}
+              <div
+                className="relative flex-1 h-3.5 rounded-full overflow-hidden flex"
+                style={{
+                  boxShadow:
+                    "0 2px 4px -1px hsl(0 0% 0% / 0.35), 0 1px 2px hsl(0 0% 0% / 0.25), inset 0 1px 1px hsl(0 0% 100% / 0.18), inset 0 -1px 1px hsl(0 0% 0% / 0.35)",
+                }}
+              >
+                {/* Fat segment — colored, glossy */}
+                <div
+                  className="h-full"
+                  style={{
+                    width: `${fatW}%`,
+                    background: `linear-gradient(180deg, ${c} 0%, ${c} 45%, ${c}cc 100%)`,
+                  }}
+                />
+                {/* Protein segment — mid grey, raised */}
+                <div
+                  className="h-full"
+                  style={{
+                    width: `${protW}%`,
+                    background:
+                      "linear-gradient(180deg, hsl(var(--muted-foreground) / 0.45) 0%, hsl(var(--muted-foreground) / 0.3) 100%)",
+                  }}
+                />
+                {/* Carb segment — darker grey, deeper */}
+                <div
+                  className="h-full"
+                  style={{
+                    width: `${carbW}%`,
+                    background:
+                      "linear-gradient(180deg, hsl(var(--muted-foreground) / 0.7) 0%, hsl(var(--muted-foreground) / 0.55) 100%)",
+                  }}
+                />
+                {/* Top gloss highlight — sits over the entire pill */}
+                <div
+                  className="pointer-events-none absolute inset-x-0 top-0 h-1/2 rounded-t-full"
+                  style={{
+                    background:
+                      "linear-gradient(180deg, hsl(0 0% 100% / 0.28) 0%, hsl(0 0% 100% / 0) 100%)",
+                  }}
+                />
               </div>
               <span className="text-[11px] text-muted-foreground w-24 text-right tabular-nums">
                 <span style={{ color: c }}>{t.fat_pct}%F</span> {t.protein_pct}%P {t.carbs_pct}%C
@@ -202,7 +240,11 @@ export function MacroComparisonFlipCard({
               {isActive && (
                 <span
                   className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded text-black"
-                  style={{ backgroundColor: c }}
+                  style={{
+                    background: `linear-gradient(180deg, ${c} 0%, ${c}d9 100%)`,
+                    boxShadow:
+                      "0 2px 4px -1px hsl(0 0% 0% / 0.35), inset 0 1px 0 hsl(0 0% 100% / 0.35), inset 0 -1px 0 hsl(0 0% 0% / 0.25)",
+                  }}
                 >
                   You
                 </span>
