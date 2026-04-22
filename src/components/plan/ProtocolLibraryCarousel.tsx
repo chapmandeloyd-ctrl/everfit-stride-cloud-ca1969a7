@@ -1,4 +1,4 @@
-import { useMemo, useState, useRef, useCallback } from "react";
+import { useMemo, useState, useRef, useCallback, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
 import { Lock } from "lucide-react";
 import { toast } from "sonner";
 import { InteractiveProtocolCard } from "@/components/plan/InteractiveProtocolCard";
@@ -94,17 +94,14 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
   const lockedAxisRef = useRef<"x" | "y" | null>(null);
 
   const total = slides.length;
-  if (total === 0) return null;
-
   const SWIPE_THRESHOLD = 90; // px to commit a swipe
 
   const advance = useCallback(
     (direction: 1 | -1) => {
       setIsAnimating(true);
-      // Throw the top card off-screen, then swap & reset.
       setDragX(direction * 600);
       window.setTimeout(() => {
-        setTopIndex((prev) => (prev + 1) % total);
+        setTopIndex((prev) => (total === 0 ? 0 : (prev + 1) % total));
         setDragX(0);
         setIsAnimating(false);
       }, 280);
@@ -160,12 +157,15 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
   const STACK_DEPTH = 3;
   const stack = useMemo(() => {
     const arr: { slide: typeof slides[number]; offset: number }[] = [];
+    if (total === 0) return arr;
     for (let i = 0; i < Math.min(STACK_DEPTH, total); i++) {
       const idx = (topIndex + i) % total;
       arr.push({ slide: slides[idx], offset: i });
     }
     return arr;
   }, [slides, topIndex, total]);
+
+  if (total === 0) return null;
 
   // Subtle rotation as user drags (Tinder feel).
   const rotation = Math.max(-12, Math.min(12, dragX / 14));
