@@ -419,6 +419,7 @@ export default function ClientCompletePlan() {
           </Button>
         </div>
       </div>
+      <DeviceTelemetryButton />
     </ClientLayout>
   );
 }
