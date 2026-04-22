@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
-import { Lock, ShieldCheck, ChevronRight, ChevronLeft, RotateCcw, AlertTriangle, Brain, CalendarClock, ListChecks, Sparkles, Flame, Zap, BrainCircuit, Activity, type LucideIcon } from "lucide-react";
+import { Lock, ShieldCheck, ChevronRight, ChevronLeft, RotateCcw, AlertTriangle, Brain, CalendarClock, ListChecks, Sparkles, Flame, Zap, BrainCircuit, Quote, Activity, type LucideIcon } from "lucide-react";
 import type { ProtocolCardContent } from "@/lib/protocolCardContent";
 
 export interface DemoStat {
