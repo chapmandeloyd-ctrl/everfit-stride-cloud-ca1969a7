@@ -280,10 +280,9 @@ function CoachQuoteExtra({ protocol }: { protocol: DemoProtocol }) {
     "Stay consistent — the middle is where it changes you.";
   return (
     <div className="space-y-3">
-      {/* Coach K quote box removed — reserved space kept so layout below does not shift */}
-      <div aria-hidden className="invisible relative rounded-xl border border-border/60 p-4 pl-10">
-        <p className="text-sm font-medium italic leading-snug">{primary}</p>
-        <p className="text-[10px] font-extrabold uppercase tracking-wider mt-2">— Coach K</p>
+      {/* Reserved quote area now holds the tap hint so lower content and dots stay clear */}
+      <div className="flex min-h-[92px] items-center justify-center px-2" aria-label="Interaction hint">
+        <TapBrowseHint />
       </div>
       <div
         className="rounded-xl border border-border/60 p-3"
@@ -384,6 +383,15 @@ function FullHeightPreviewExtra({ protocol, animate }: { protocol: DemoProtocol;
         </div>
       </div>
     </div>
+  );
+}
+
+function TapBrowseHint() {
+  return (
+    <span className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-primary/40 bg-background/85 px-3 py-1 text-center text-[10px] font-extrabold uppercase tracking-wider text-primary shadow-md backdrop-blur animate-[tap-hint-pulse_2.4s_ease-in-out_infinite]">
+      <span className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-primary animate-pulse" />
+      <span className="truncate">Tap for details · Swipe to browse</span>
+    </span>
   );
 }
 
@@ -506,12 +514,7 @@ function CardFront({
                     {protocol.content.coachWarning?.[0] ?? protocol.content.mentalReality?.[0] ?? "Stay consistent and let the middle phase pass."}
                   </p>
                 </div>
-                <div className="flex justify-center">
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-background/85 backdrop-blur px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-primary shadow-md animate-[tap-hint-pulse_2.4s_ease-in-out_infinite]">
-                    <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-                    Tap for details · Swipe to browse
-                  </span>
-                </div>
+                {frontExtra !== "coachQuote" && <div className="flex justify-center"><TapBrowseHint /></div>}
               </div>
             </div>
           )}
