@@ -75,7 +75,8 @@ export function InteractiveProtocolCard({
   onMeasureHeight,
   backExtraAction,
 }: InteractiveProtocolCardProps) {
-  const isMobile = useIsMobile();
+  const isMobileViewport = typeof window !== "undefined" ? window.innerWidth < 1024 : false;
+  const isMobile = useIsMobile() || isMobileViewport;
   const [flipped, setFlipped] = useState(false);
   const tiltRef = useRef<HTMLDivElement>(null);
   const [tilt, setTilt] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -93,6 +94,7 @@ export function InteractiveProtocolCard({
   const [measuredHeight, setMeasuredHeight] = useState<number>(0);
 
   useEffect(() => {
+    if (isMobile) return;
     const front = frontMeasureRef.current;
     const back = backMeasureRef.current;
     if (!front || !back) return;
@@ -109,11 +111,12 @@ export function InteractiveProtocolCard({
     ro.observe(front);
     ro.observe(back);
     return () => ro.disconnect();
-  }, [protocol, frontExtra]);
+  }, [isMobile, protocol, frontExtra]);
 
   useEffect(() => {
+    if (isMobile) return;
     if (measuredHeight > 0) onMeasureHeight?.(measuredHeight);
-  }, [measuredHeight, onMeasureHeight]);
+  }, [isMobile, measuredHeight, onMeasureHeight]);
 
   const effectiveHeight = forcedHeight ?? measuredHeight;
 
