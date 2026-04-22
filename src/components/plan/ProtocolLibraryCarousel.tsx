@@ -299,6 +299,28 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
                     protocol={buildDemoProtocol(entry, isLocked)}
                     dimmed={isLocked}
                   />
+                  {/* Show details toggle + inline expansion live INSIDE the card so it visually extends */}
+                  <div className="border-t border-border/60" data-no-flip>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDetailsOpen((v) => !v);
+                      }}
+                      className="w-full flex items-center justify-center gap-1.5 px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-foreground hover:bg-muted/40 transition-colors"
+                      aria-expanded={detailsOpen}
+                    >
+                      {detailsOpen ? "Hide details" : "Show details"}
+                      <ChevronDown
+                        className={`h-3.5 w-3.5 transition-transform ${detailsOpen ? "rotate-180" : ""}`}
+                      />
+                    </button>
+                    {detailsOpen && (
+                      <div className="border-t border-border/60">
+                        <BackContent protocol={buildDemoProtocol(entry, isLocked)} />
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -306,42 +328,6 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
         })()}
       </div>
 
-      {/* Position indicator — always below the card, never overlaps */}
-      <div className="relative z-10 mt-4 flex items-center justify-center gap-2 text-xs text-muted-foreground">
-        <span className="font-medium tabular-nums">
-          {topIndex + 1} / {total}
-        </span>
-        <span className="opacity-60">· Swipe to browse protocols</span>
-      </div>
-
-      {/* Show details toggle for the active card */}
-      {(() => {
-        const top = stack[0];
-        if (!top) return null;
-        const demo = buildDemoProtocol(top.slide.entry, top.slide.isLocked);
-        return (
-          <div className="mt-3">
-            <div className="flex justify-center">
-              <button
-                type="button"
-                onClick={() => setDetailsOpen((v) => !v)}
-                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card/80 px-4 py-1.5 text-[11px] font-bold uppercase tracking-wider text-foreground hover:bg-muted/60 transition-colors"
-                aria-expanded={detailsOpen}
-              >
-                {detailsOpen ? "Hide details" : "Show details"}
-                <ChevronDown
-                  className={`h-3.5 w-3.5 transition-transform ${detailsOpen ? "rotate-180" : ""}`}
-                />
-              </button>
-            </div>
-            {detailsOpen && (
-              <div className="mt-3 rounded-2xl overflow-hidden border border-border bg-card">
-                <BackContent protocol={demo} />
-              </div>
-            )}
-          </div>
-        );
-      })()}
     </div>
   );
 }
