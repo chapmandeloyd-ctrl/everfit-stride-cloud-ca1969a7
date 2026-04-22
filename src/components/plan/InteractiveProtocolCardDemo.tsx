@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
+import { memo, useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
 import { Lock, ShieldCheck, ChevronRight, ChevronLeft, RotateCcw, AlertTriangle, Brain, CalendarClock, ListChecks, Sparkles, Flame, Zap, BrainCircuit, Quote, Activity, type LucideIcon } from "lucide-react";
 import type { ProtocolCardContent } from "@/lib/protocolCardContent";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -38,7 +38,7 @@ export type FrontExtraVariant =
 
 /* -------- shared visuals (matches PremiumPlanCard) -------- */
 
-export function CardStackBackdrop() {
+export const CardStackBackdrop = memo(function CardStackBackdrop() {
   return (
     <>
       <div
@@ -68,7 +68,7 @@ export function CardStackBackdrop() {
       />
     </>
   );
-}
+});
 
 export function CardSurfaceOverlays({ surfaceTintGradient }: { surfaceTintGradient: string }) {
   return (
@@ -411,7 +411,7 @@ function TapBrowseHint() {
   );
 }
 
-export function CardFront({
+export const CardFront = memo(function CardFront({
   protocol,
   showChevron = true,
   pulse = true,
@@ -538,7 +538,7 @@ export function CardFront({
       </div>
     </>
   );
-}
+});
 
 /* -------- back content (timeline + benefits + phases) -------- */
 
@@ -554,7 +554,7 @@ export interface BackContentProps {
   extraAction?: React.ReactNode;
 }
 
-export function BackContent({ protocol, onClose, extraAction }: BackContentProps) {
+export const BackContent = memo(function BackContent({ protocol, onClose, extraAction }: BackContentProps) {
   const { content, accentColorClass, surfaceTintGradient } = protocol;
   return (
     <div className="relative h-full overflow-hidden">
@@ -697,7 +697,7 @@ export function BackContent({ protocol, onClose, extraAction }: BackContentProps
       </div>
     </div>
   );
-}
+});
 
 /* -------- 1) FLIP variant -------- */
 
