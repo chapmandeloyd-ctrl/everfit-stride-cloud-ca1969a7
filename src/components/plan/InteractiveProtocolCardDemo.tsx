@@ -392,14 +392,16 @@ function TapBrowseHint() {
   const label = isMobile ? "Tap for details · Swipe to browse" : "Tap for details";
   return (
     <span
-      className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-primary/50 px-3 py-1 text-center text-[10px] font-extrabold uppercase tracking-wider text-primary shadow-lg backdrop-blur animate-[tap-hint-tilt_3.6s_ease-in-out_infinite] will-change-transform"
+      className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-primary/60 px-3 py-1 text-center text-[10px] font-extrabold uppercase tracking-wider text-primary-foreground shadow-lg animate-[tap-hint-tilt_3.6s_ease-in-out_infinite] will-change-transform"
       style={{
         transformStyle: "preserve-3d",
         backgroundImage:
-          "linear-gradient(135deg, hsl(var(--primary) / 0.22) 0%, hsl(var(--background) / 0.85) 45%, hsl(var(--primary) / 0.18) 100%)",
+          "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.85) 50%, hsl(var(--primary) / 0.95) 100%)",
+        boxShadow:
+          "0 6px 18px -4px hsl(var(--primary) / 0.55), 0 2px 6px -2px hsl(var(--primary) / 0.4)",
       }}
     >
-      <span className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-primary animate-pulse" />
+      <span className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-primary-foreground animate-pulse" />
       <span className="truncate">{label}</span>
     </span>
   );
