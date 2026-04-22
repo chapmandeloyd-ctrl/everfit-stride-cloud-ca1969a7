@@ -440,3 +440,41 @@ function DecoderRow({ label, detail }: { label: string; detail: string }) {
     </div>
   );
 }
+
+/**
+ * 3D embossed squircle icon container — matches the flame app-icon look.
+ * Layered gradients, inset highlight on top, soft drop shadow below.
+ */
+function SquircleIcon({
+  themeColor,
+  children,
+}: {
+  themeColor: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      className="relative h-9 w-9 rounded-[10px] flex items-center justify-center shrink-0"
+      style={{
+        background: `linear-gradient(160deg, ${themeColor} 0%, ${themeColor}e6 50%, ${themeColor}b3 100%)`,
+        boxShadow: [
+          `0 6px 14px -4px ${themeColor}80`,
+          "0 2px 4px hsl(0 0% 0% / 0.25)",
+          "inset 0 1px 0 hsl(0 0% 100% / 0.45)",
+          "inset 0 -2px 3px hsl(0 0% 0% / 0.25)",
+          `inset 0 0 0 1px ${themeColor}`,
+        ].join(", "),
+      }}
+    >
+      {/* Top gloss highlight */}
+      <div
+        className="pointer-events-none absolute inset-x-1 top-1 h-1/2 rounded-[7px]"
+        style={{
+          background:
+            "linear-gradient(180deg, hsl(0 0% 100% / 0.3) 0%, hsl(0 0% 100% / 0) 100%)",
+        }}
+      />
+      <div className="relative">{children}</div>
+    </div>
+  );
+}
