@@ -38,7 +38,7 @@ export type FrontExtraVariant =
 
 /* -------- shared visuals (matches PremiumPlanCard) -------- */
 
-function CardStackBackdrop() {
+export function CardStackBackdrop() {
   return (
     <>
       <div
@@ -70,7 +70,7 @@ function CardStackBackdrop() {
   );
 }
 
-function CardSurfaceOverlays({ surfaceTintGradient }: { surfaceTintGradient: string }) {
+export function CardSurfaceOverlays({ surfaceTintGradient }: { surfaceTintGradient: string }) {
   return (
     <>
       <div
@@ -407,7 +407,7 @@ function TapBrowseHint() {
   );
 }
 
-function CardFront({
+export function CardFront({
   protocol,
   showChevron = true,
   pulse = true,
@@ -538,7 +538,7 @@ function CardFront({
 
 /* -------- back content (timeline + benefits + phases) -------- */
 
-function BackContent({ protocol, onClose }: { protocol: DemoProtocol; onClose?: () => void }) {
+export function BackContent({ protocol, onClose }: { protocol: DemoProtocol; onClose?: () => void }) {
   const { content, accentColorClass, surfaceTintGradient } = protocol;
   return (
     <div className="relative h-full overflow-hidden">
