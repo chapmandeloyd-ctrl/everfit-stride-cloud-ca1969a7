@@ -179,6 +179,16 @@ export function InteractiveProtocolCard({
       ? `${protocolName} details shown.`
       : `${protocolName} summary shown.`;
 
+  // Visible flip toast (mirrors the screen-reader announcement so sighted users
+  // also see the state change). Auto-hides after a short delay.
+  const [visibleFlipToast, setVisibleFlipToast] = useState("");
+  useEffect(() => {
+    if (!hasFlipped) return;
+    setVisibleFlipToast(flipped ? "Showing details" : "Showing summary");
+    const t = window.setTimeout(() => setVisibleFlipToast(""), 1600);
+    return () => window.clearTimeout(t);
+  }, [flipped, hasFlipped]);
+
   // One-time touch hint: announced the first time a touch interaction starts on this card.
   const [touchHint, setTouchHint] = useState("");
   const touchHintShownRef = useRef(false);
