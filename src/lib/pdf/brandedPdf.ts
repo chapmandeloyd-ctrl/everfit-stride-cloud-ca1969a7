@@ -53,6 +53,18 @@ export interface BrandedPdfOptions {
   sections: PdfSection[];
   /** Optional document subject metadata. */
   subject?: string;
+  /**
+   * Trainer-controlled branding. When omitted, defaults are used (logo on,
+   * brand red, KSOM-360 wordmark, default footer right text). Pulled from
+   * the trainer_pdf_branding table at the call site.
+   */
+  branding?: {
+    showLogo?: boolean;
+    /** Custom footer-left line that REPLACES "Prepared for ..." when set. */
+    footerText?: string | null;
+    /** Replaces the small uppercase eyebrow in the header when set. */
+    documentLabelOverride?: string | null;
+  };
 }
 
 /* ------------------------------- constants ------------------------------- */
