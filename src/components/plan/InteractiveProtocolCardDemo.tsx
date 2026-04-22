@@ -38,7 +38,7 @@ export type FrontExtraVariant =
 
 /* -------- shared visuals (matches PremiumPlanCard) -------- */
 
-function CardStackBackdrop() {
+export function CardStackBackdrop() {
   return (
     <>
       <div
@@ -70,7 +70,7 @@ function CardStackBackdrop() {
   );
 }
 
-function CardSurfaceOverlays({ surfaceTintGradient }: { surfaceTintGradient: string }) {
+export function CardSurfaceOverlays({ surfaceTintGradient }: { surfaceTintGradient: string }) {
   return (
     <>
       <div
