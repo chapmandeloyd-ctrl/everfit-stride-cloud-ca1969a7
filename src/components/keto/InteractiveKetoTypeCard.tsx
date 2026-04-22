@@ -1,5 +1,10 @@
-import { useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
-import { Zap, Check, Info, Flame, ArrowRight } from "lucide-react";
+import { Flame } from "lucide-react";
+import {
+  InteractiveProtocolCard,
+  type InteractiveProtocolCardProps,
+} from "@/components/plan/InteractiveProtocolCard";
+import type { DemoProtocol } from "@/components/plan/InteractiveProtocolCardDemo";
+import type { ProtocolCardContent } from "@/lib/protocolCardContent";
 
 export interface KetoTypeForCard {
   abbreviation: string;
@@ -13,6 +18,7 @@ export interface KetoTypeForCard {
   carb_limit_grams?: number | null;
   how_it_works?: string | null;
   built_for?: string[] | null;
+  /** Optional hex color (e.g. "#E4572E"). Used to pick the closest tailwind palette. */
   color?: string | null;
 }
 
@@ -20,335 +26,230 @@ export interface InteractiveKetoTypeCardProps {
   ketoType: KetoTypeForCard;
   /** Theme color (hex). Defaults to the ketoType.color or a red fallback. */
   themeColor?: string;
-  /** Optional secondary action when the user taps the "Open" pill on the back face. */
+  /** Optional secondary action shown on the back face. */
   onOpen?: () => void;
   openLabel?: string;
-  flipCancelHorizontalPx?: number;
-  flipCancelVerticalPx?: number;
+  /** Mark this keto type as the client's active one (shows "Current" pill on the front). */
+  isCurrent?: boolean;
+  flipCancelHorizontalPx?: InteractiveProtocolCardProps["flipCancelHorizontalPx"];
+  flipCancelVerticalPx?: InteractiveProtocolCardProps["flipCancelVerticalPx"];
 }
 
-const difficultyLabel = (d?: string | null) =>
-  d === "beginner" ? "Beginner" : d === "intermediate" ? "Intermediate" : d === "advanced" ? "Advanced" : "—";
+/* ----------------------------- color mapping ----------------------------- */
+
+type Palette = {
+  iconGradient: string;
+  accentColorClass: string;
+  surfaceTintGradient: string;
+};
+
+const PALETTES: Record<string, Palette> = {
+  red: {
+    iconGradient: "from-red-500 to-rose-600",
+    accentColorClass: "text-red-500",
+    surfaceTintGradient: "from-red-500/10 via-transparent to-transparent",
+  },
+  orange: {
+    iconGradient: "from-orange-500 to-red-500",
+    accentColorClass: "text-orange-500",
+    surfaceTintGradient: "from-orange-500/10 via-transparent to-transparent",
+  },
+  amber: {
+    iconGradient: "from-amber-500 to-orange-500",
+    accentColorClass: "text-amber-500",
+    surfaceTintGradient: "from-amber-500/10 via-transparent to-transparent",
+  },
+  yellow: {
+    iconGradient: "from-yellow-500 to-amber-500",
+    accentColorClass: "text-yellow-500",
+    surfaceTintGradient: "from-yellow-500/10 via-transparent to-transparent",
+  },
+  green: {
+    iconGradient: "from-emerald-500 to-green-600",
+    accentColorClass: "text-emerald-500",
+    surfaceTintGradient: "from-emerald-500/10 via-transparent to-transparent",
+  },
+  teal: {
+    iconGradient: "from-teal-500 to-cyan-600",
+    accentColorClass: "text-teal-500",
+    surfaceTintGradient: "from-teal-500/10 via-transparent to-transparent",
+  },
+  blue: {
+    iconGradient: "from-blue-500 to-indigo-600",
+    accentColorClass: "text-blue-500",
+    surfaceTintGradient: "from-blue-500/10 via-transparent to-transparent",
+  },
+  purple: {
+    iconGradient: "from-violet-500 to-purple-600",
+    accentColorClass: "text-violet-500",
+    surfaceTintGradient: "from-violet-500/10 via-transparent to-transparent",
+  },
+  pink: {
+    iconGradient: "from-pink-500 to-rose-500",
+    accentColorClass: "text-pink-500",
+    surfaceTintGradient: "from-pink-500/10 via-transparent to-transparent",
+  },
+};
+
+function paletteFromHex(hex?: string | null): Palette {
+  if (!hex) return PALETTES.red;
+  const m = hex.replace("#", "").match(/^([0-9a-f]{6})$/i);
+  if (!m) return PALETTES.red;
+  const n = parseInt(m[1], 16);
+  const r = (n >> 16) & 0xff;
+  const g = (n >> 8) & 0xff;
+  const b = n & 0xff;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const d = max - min;
+  let h = 0;
+  if (d !== 0) {
+    if (max === r) h = ((g - b) / d) % 6;
+    else if (max === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    h *= 60;
+    if (h < 0) h += 360;
+  }
+  const s = max === 0 ? 0 : d / max;
+  if (s < 0.15) return PALETTES.blue;
+  if (h < 15) return PALETTES.red;
+  if (h < 35) return PALETTES.orange;
+  if (h < 50) return PALETTES.amber;
+  if (h < 70) return PALETTES.yellow;
+  if (h < 165) return PALETTES.green;
+  if (h < 200) return PALETTES.teal;
+  if (h < 255) return PALETTES.blue;
+  if (h < 310) return PALETTES.purple;
+  if (h < 345) return PALETTES.pink;
+  return PALETTES.red;
+}
+
+/* ----------------------------- content builder ----------------------------- */
+
+function difficultyLabel(d?: string | null): string {
+  if (d === "beginner") return "Beginner";
+  if (d === "intermediate") return "Intermediate";
+  if (d === "advanced") return "Advanced";
+  return "Standard";
+}
+
+function buildContent(kt: KetoTypeForCard): ProtocolCardContent {
+  const overview: string[] = [];
+  if (kt.description) overview.push(kt.description);
+  if (kt.how_it_works) overview.push(kt.how_it_works);
+  if (overview.length === 0) {
+    overview.push(
+      `${kt.name} is a ketogenic approach designed to keep your body in fat-burning mode while matching your activity level and goals.`
+    );
+  }
+
+  const phases = [
+    {
+      range: "Days 1–3",
+      title: "Glycogen Drawdown",
+      detail: `Carbs drop to ${kt.carbs_pct}% of intake (≤${kt.carb_limit_grams ?? 30}g net carbs). Insulin falls and your body starts spending stored glucose.`,
+    },
+    {
+      range: "Days 3–7",
+      title: "Fat Adaptation Begins",
+      detail: `Fat rises to ${kt.fat_pct}% of intake. Hunger stabilizes, energy starts to even out, and ketones begin to appear.`,
+    },
+    {
+      range: "Week 2",
+      title: "Ketosis Locked In",
+      detail: `Protein at ${kt.protein_pct}% protects lean mass while fat fuels training, focus, and daily output.`,
+    },
+    {
+      range: "Week 3+",
+      title: "Metabolic Flexibility",
+      detail: "Steady fat burn, fewer cravings, and consistent energy across long days and training blocks.",
+    },
+  ];
+
+  const benefits =
+    kt.built_for && kt.built_for.length > 0
+      ? kt.built_for
+      : [
+          "Steady fat loss without crashes",
+          "Stable energy and appetite",
+          "Mental clarity and focus",
+          "Training-ready fueling pattern",
+        ];
+
+  const rules: string[] = [
+    `Keep carbs at ${kt.carbs_pct}% of intake (≤${kt.carb_limit_grams ?? 30}g net carbs/day)`,
+    `Hit fat at ~${kt.fat_pct}% of intake — don't fear the fat`,
+    `Protein at ~${kt.protein_pct}% — enough to protect muscle, not so much it kicks you out of ketosis`,
+    "Hydrate aggressively — water + sodium, potassium, magnesium",
+    "Plan meals around the eating window — no random snacking",
+  ];
+
+  const mentalReality = [
+    "Days 2–4 are usually the hardest — this is the keto adaptation curve.",
+    "Once fat-adapted, hunger and energy flatten out. That's the goal.",
+    "Stay consistent — most people quit one week before it gets easy.",
+  ];
+
+  const schedule = [
+    { label: "Fat", detail: `${kt.fat_pct}% of daily calories` },
+    { label: "Protein", detail: `${kt.protein_pct}% of daily calories` },
+    { label: "Carbs", detail: `${kt.carbs_pct}% (≤${kt.carb_limit_grams ?? 30}g net)` },
+    { label: "Difficulty", detail: difficultyLabel(kt.difficulty) },
+  ];
+
+  const coachWarning = [
+    "Track for the first 2 weeks — guessing macros is the #1 reason people stall.",
+    "If you train hard, prioritize electrolytes and don't undereat fat.",
+  ];
+
+  return { overview, phases, benefits, rules, mentalReality, schedule, coachWarning };
+}
+
+/* ----------------------------- component ----------------------------- */
 
 /**
- * Interactive flip card for the "Your Active Keto Type" hero.
- * Front = current Complete Plan hero look (eyebrow, big abbreviation, name, subtitle, description).
- * Back  = "How it works", "Built for" highlights, and macro breakdown bars.
- * Tap to flip; the whole card is the affordance.
+ * "Your Active Keto Type" — interactive flip card that matches the protocol card visuals 1:1.
+ * Front  = eyebrow ("Your Active Keto Type"), abbreviation as the title, name + subtitle, macro stat tiles, coach quote space-filler, "Tap for details" pill.
+ * Back   = full content (How it works, What your body is doing, What this does for you, Macro Schedule, Coach notes).
  */
 export function InteractiveKetoTypeCard({
   ketoType,
-  themeColor: themeColorProp,
+  themeColor,
   onOpen,
   openLabel = "Open keto details",
-  flipCancelHorizontalPx = 8,
-  flipCancelVerticalPx = 8,
+  isCurrent = true,
+  flipCancelHorizontalPx,
+  flipCancelVerticalPx,
 }: InteractiveKetoTypeCardProps) {
-  const themeColor = themeColorProp || ketoType.color || "#E4572E";
+  const palette = paletteFromHex(themeColor || ketoType.color);
 
-  const [flipped, setFlipped] = useState(false);
-  const tiltRef = useRef<HTMLDivElement>(null);
-  const [tilt, setTilt] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  const startX = useRef<number | null>(null);
-  const startY = useRef<number | null>(null);
-  const moved = useRef(false);
-  const frameRef = useRef<number | null>(null);
-  const pendingTiltRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
-  const activePointerId = useRef<number | null>(null);
-  const suppressClickRef = useRef(false);
-
-  useEffect(() => {
-    return () => {
-      if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
-    };
-  }, []);
-
-  const onTiltMove = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (e.pointerType === "touch") return;
-    const el = tiltRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const px = (e.clientX - rect.left) / rect.width;
-    const py = (e.clientY - rect.top) / rect.height;
-    const rx = (py - 0.5) * -6;
-    const ry = (px - 0.5) * 8;
-    pendingTiltRef.current = { x: rx, y: ry };
-    if (frameRef.current !== null) return;
-    frameRef.current = requestAnimationFrame(() => {
-      frameRef.current = null;
-      setTilt(pendingTiltRef.current);
-    });
+  const protocol: DemoProtocol = {
+    id: `keto-${ketoType.abbreviation.toLowerCase()}`,
+    icon: Flame,
+    accentColorClass: palette.accentColorClass,
+    iconGradient: palette.iconGradient,
+    surfaceTintGradient: palette.surfaceTintGradient,
+    eyebrow: "Your Active Keto Type",
+    subEyebrow: ketoType.name,
+    title: ketoType.abbreviation,
+    titleSuffix: ketoType.subtitle ? ` — ${ketoType.subtitle}` : "",
+    stats: [
+      { value: `${ketoType.fat_pct}%`, label: "Fat", accentClass: palette.accentColorClass },
+      { value: `${ketoType.protein_pct}%`, label: "Protein" },
+      { value: `${ketoType.carbs_pct}%`, label: "Carbs" },
+    ],
+    status: isCurrent ? "current" : null,
+    content: buildContent(ketoType),
   };
-  const onTiltLeave = () => {
-    if (frameRef.current !== null) {
-      cancelAnimationFrame(frameRef.current);
-      frameRef.current = null;
-    }
-    pendingTiltRef.current = { x: 0, y: 0 };
-    setTilt({ x: 0, y: 0 });
-  };
-
-  const isInteractiveTarget = (target: EventTarget | null) =>
-    target instanceof Element && Boolean(target.closest("button, a, input, select, textarea, label, [data-no-flip]"));
-
-  const onDown = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if ((e.pointerType === "mouse" && e.button !== 0) || isInteractiveTarget(e.target)) return;
-    activePointerId.current = e.pointerId;
-    startX.current = e.clientX;
-    startY.current = e.clientY;
-    moved.current = false;
-  };
-  const onMoveCheck = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (activePointerId.current !== e.pointerId || startX.current === null || startY.current === null) return;
-    const dx = Math.abs(e.clientX - startX.current);
-    const dy = Math.abs(e.clientY - startY.current);
-    if (dx > flipCancelHorizontalPx || dy > flipCancelVerticalPx) moved.current = true;
-  };
-  const onUp = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (activePointerId.current !== e.pointerId) return;
-    suppressClickRef.current = moved.current;
-    if (e.pointerType === "touch") onTiltLeave();
-    activePointerId.current = null;
-    startX.current = null;
-    startY.current = null;
-    moved.current = false;
-  };
-  const onCancel = (e?: ReactPointerEvent<HTMLDivElement>) => {
-    if (e && activePointerId.current !== e.pointerId) return;
-    suppressClickRef.current = true;
-    moved.current = true;
-    if (e?.pointerType === "touch") onTiltLeave();
-    activePointerId.current = null;
-    startX.current = null;
-    startY.current = null;
-  };
-  const onClickCapture = (e: any) => {
-    if (isInteractiveTarget(e.target)) return;
-    if (suppressClickRef.current) {
-      suppressClickRef.current = false;
-      return;
-    }
-    setFlipped((f) => !f);
-  };
-  const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (isInteractiveTarget(e.target)) return;
-    if (e.key === " " || e.key === "Enter") {
-      e.preventDefault();
-      setFlipped((f) => !f);
-    } else if (e.key === "Escape" && flipped) {
-      e.preventDefault();
-      setFlipped(false);
-    }
-  };
-
-  const innerStyle: CSSProperties = {
-    transformStyle: "preserve-3d",
-    WebkitTransformStyle: "preserve-3d",
-    willChange: "transform",
-    transition: flipped ? "transform 0.5s cubic-bezier(0.22, 1, 0.36, 1)" : "transform 0.14s ease-out",
-    transform: flipped
-      ? "translateZ(0) rotateY(180deg)"
-      : `translateZ(0) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
-    minHeight: 280,
-  };
-
-  const surfaceStyle: CSSProperties = {
-    backgroundColor: `${themeColor}08`,
-    borderColor: `${themeColor}25`,
-    boxShadow:
-      "0 18px 36px -16px hsl(0 0% 0% / 0.18), 0 8px 18px -10px hsl(0 0% 0% / 0.14), inset 0 1px 0 hsl(0 0% 100% / 0.5)",
-  };
-
-  const maxPct = Math.max(ketoType.fat_pct, ketoType.protein_pct, ketoType.carbs_pct, 1);
-
-  const ariaLabel = flipped
-    ? `${ketoType.abbreviation} keto type details. Press Enter, Space, or Escape to return.`
-    : `${ketoType.abbreviation} keto type. Press Enter or Space to view details.`;
 
   return (
-    <div
-      ref={tiltRef}
-      className="relative select-none"
-      style={{ perspective: "1400px", touchAction: "pan-y" }}
-      onPointerMove={onTiltMove}
-      onPointerLeave={onTiltLeave}
-      onPointerCancel={onTiltLeave}
-      onPointerUp={(e) => { if (e.pointerType === "touch") onTiltLeave(); }}
-    >
-      <div
-        className="relative rounded-2xl"
-        style={innerStyle}
-        onPointerDown={onDown}
-        onPointerMove={onMoveCheck}
-        onPointerUp={onUp}
-        onPointerCancel={onCancel}
-        onClickCapture={onClickCapture}
-        onKeyDown={onKeyDown}
-        role="button"
-        tabIndex={0}
-        aria-pressed={flipped}
-        aria-label={ariaLabel}
-      >
-        {/* FRONT */}
-        <div
-          className="absolute inset-0 overflow-hidden rounded-2xl border cursor-pointer"
-          style={{
-            backfaceVisibility: "hidden",
-            WebkitBackfaceVisibility: "hidden",
-            pointerEvents: flipped ? "none" : "auto",
-            ...surfaceStyle,
-          }}
-          aria-hidden={flipped}
-        >
-          <div className="p-5">
-            <div className="flex items-center gap-2 mb-3">
-              <div
-                className="h-7 w-7 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: `${themeColor}15` }}
-              >
-                <Zap className="h-3.5 w-3.5" style={{ color: themeColor }} />
-              </div>
-              <span
-                className="text-[11px] font-bold uppercase tracking-wider"
-                style={{ color: themeColor }}
-              >
-                Your Active Keto Type
-              </span>
-            </div>
-            <div className="flex items-baseline gap-3 mb-1">
-              <h2 className="text-5xl font-black tracking-tight" style={{ color: themeColor }}>
-                {ketoType.abbreviation}
-              </h2>
-              <span className="text-lg text-muted-foreground">{ketoType.name}</span>
-            </div>
-            {ketoType.subtitle && (
-              <p className="font-bold text-base mt-1">{ketoType.subtitle}</p>
-            )}
-            {ketoType.description && (
-              <p className="text-sm text-muted-foreground leading-relaxed mt-2">
-                {ketoType.description}
-              </p>
-            )}
-
-            {/* Tap-for-details pill */}
-            <div className="mt-4 flex items-center justify-center">
-              <span
-                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-primary-foreground shadow"
-                style={{
-                  backgroundImage: `linear-gradient(135deg, ${themeColor} 0%, ${themeColor}D9 100%)`,
-                  boxShadow: `0 6px 18px -4px ${themeColor}80`,
-                }}
-              >
-                Tap for details <ArrowRight className="h-3 w-3" />
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* BACK */}
-        <div
-          className="relative overflow-hidden rounded-2xl border"
-          style={{
-            backfaceVisibility: "hidden",
-            WebkitBackfaceVisibility: "hidden",
-            pointerEvents: flipped ? "auto" : "none",
-            transform: "translateZ(0) rotateY(180deg)",
-            ...surfaceStyle,
-          }}
-          aria-hidden={!flipped}
-        >
-          <div className="p-5 space-y-4">
-            <div className="flex items-center gap-2">
-              <div
-                className="h-7 w-7 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: `${themeColor}15` }}
-              >
-                <Flame className="h-3.5 w-3.5" style={{ color: themeColor }} />
-              </div>
-              <span
-                className="text-[11px] font-bold uppercase tracking-wider"
-                style={{ color: themeColor }}
-              >
-                {ketoType.abbreviation} · {difficultyLabel(ketoType.difficulty)}
-              </span>
-            </div>
-
-            {ketoType.how_it_works && (
-              <div>
-                <h3 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
-                  How it works
-                </h3>
-                <p className="text-sm text-foreground/90 leading-relaxed line-clamp-4">
-                  {ketoType.how_it_works}
-                </p>
-              </div>
-            )}
-
-            {ketoType.built_for && ketoType.built_for.length > 0 && (
-              <div>
-                <h3 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">
-                  Built for
-                </h3>
-                <ul className="space-y-1.5">
-                  {ketoType.built_for.slice(0, 3).map((item, i) => (
-                    <li key={i} className="flex items-start gap-2">
-                      <Check className="h-3.5 w-3.5 mt-0.5 shrink-0" style={{ color: themeColor }} />
-                      <span className="text-sm text-foreground/90">{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            <div>
-              <h3 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-2">
-                Macros
-              </h3>
-              {[
-                { label: "Fat", pct: ketoType.fat_pct, barColor: themeColor },
-                { label: "Protein", pct: ketoType.protein_pct, barColor: "#94a3b8" },
-                { label: "Carbs", pct: ketoType.carbs_pct, barColor: "#475569" },
-              ].map((m) => (
-                <div key={m.label} className="flex items-center gap-3 mb-2 last:mb-0">
-                  <span className="text-xs w-12 text-muted-foreground">{m.label}</span>
-                  <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all"
-                      style={{ width: `${(m.pct / maxPct) * 100}%`, backgroundColor: m.barColor }}
-                    />
-                  </div>
-                  <span className="text-xs font-bold w-9 text-right" style={{ color: themeColor }}>
-                    {m.pct}%
-                  </span>
-                </div>
-              ))}
-              {ketoType.carb_limit_grams && (
-                <div className="mt-2 flex items-start gap-1.5">
-                  <Info className="h-3 w-3 mt-0.5 text-muted-foreground shrink-0" />
-                  <p className="text-[11px] text-muted-foreground">
-                    Carb limit: <strong>≤{ketoType.carb_limit_grams}g net</strong>
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {onOpen && (
-              <div className="pt-1 flex justify-center">
-                <button
-                  onClick={(e) => { e.stopPropagation(); onOpen(); }}
-                  className="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[11px] font-extrabold uppercase tracking-wider text-primary-foreground shadow-lg"
-                  style={{
-                    backgroundImage: `linear-gradient(135deg, ${themeColor} 0%, ${themeColor}D9 100%)`,
-                    boxShadow: `0 6px 18px -4px ${themeColor}80`,
-                  }}
-                >
-                  {openLabel} →
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
+    <InteractiveProtocolCard
+      protocol={protocol}
+      frontExtra="coachQuote"
+      onOpen={onOpen}
+      openLabel={openLabel}
+      flipCancelHorizontalPx={flipCancelHorizontalPx}
+      flipCancelVerticalPx={flipCancelVerticalPx}
+    />
   );
 }
