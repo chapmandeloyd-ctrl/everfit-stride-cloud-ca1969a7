@@ -885,6 +885,20 @@ function ComboCard({ protocols, frontExtra = "none" }: { protocols: DemoProtocol
   const [flipped, setFlipped] = useState(false);
   const startX = useRef<number | null>(null);
   const moved = useRef(false);
+  const tiltRef = useRef<HTMLDivElement>(null);
+  const [tilt, setTilt] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+
+  const onTiltMove = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const el = tiltRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const px = (e.clientX - rect.left) / rect.width;
+    const py = (e.clientY - rect.top) / rect.height;
+    const rx = (py - 0.5) * -8;
+    const ry = (px - 0.5) * 10;
+    setTilt({ x: rx, y: ry });
+  };
+  const onTiltLeave = () => setTilt({ x: 0, y: 0 });
 
   const go = (dir: number) => {
     setFlipped(false);
@@ -912,14 +926,22 @@ function ComboCard({ protocols, frontExtra = "none" }: { protocols: DemoProtocol
   const current = protocols[idx];
 
   return (
-    <div className="relative pt-6 pb-4 select-none" style={{ perspective: "1400px" }}>
+    <div
+      ref={tiltRef}
+      className="relative pt-6 pb-4 select-none"
+      style={{ perspective: "1400px" }}
+      onPointerMove={onTiltMove}
+      onPointerLeave={onTiltLeave}
+    >
       <CardStackBackdrop />
       <div
         className="relative rounded-2xl group"
         style={{
           transformStyle: "preserve-3d",
-          transition: "transform 0.7s cubic-bezier(0.22, 1, 0.36, 1)",
-          transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)",
+          transition: flipped ? "transform 0.7s cubic-bezier(0.22, 1, 0.36, 1)" : "transform 0.18s ease-out",
+          transform: flipped
+            ? "rotateY(180deg)"
+            : `rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
           minHeight: 320,
         }}
       >
