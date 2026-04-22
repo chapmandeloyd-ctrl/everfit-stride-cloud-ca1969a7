@@ -147,6 +147,22 @@ export function InteractiveProtocolCard({
     setFlipped((f) => !f);
   };
 
+  const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (isInteractiveTarget(e.target)) return;
+    if (e.key === " " || e.key === "Enter") {
+      e.preventDefault();
+      setFlipped((f) => !f);
+    } else if (e.key === "Escape" && flipped) {
+      e.preventDefault();
+      setFlipped(false);
+    }
+  };
+
+  const protocolName = (protocol as any)?.name ?? (protocol as any)?.title ?? "protocol";
+  const ariaLabel = flipped
+    ? `${protocolName} details. Press Enter, Space, or Escape to return to summary.`
+    : `${protocolName} summary card. Press Enter or Space to view details.`;
+
   const innerStyle: CSSProperties = {
     transformStyle: "preserve-3d",
     WebkitTransformStyle: "preserve-3d",
@@ -183,11 +199,17 @@ export function InteractiveProtocolCard({
         onPointerUp={onUp}
         onPointerCancel={onCancel}
         onClickCapture={onClickCapture}
+        role="button"
+        tabIndex={0}
+        aria-pressed={flipped}
+        aria-label={ariaLabel}
+        onKeyDown={onKeyDown}
       >
         {/* FRONT */}
         <div
           className="absolute inset-0 overflow-hidden rounded-2xl border border-border cursor-pointer"
           style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden", pointerEvents: flipped ? "none" : "auto", ...surfaceStyle }}
+          aria-hidden={flipped}
         >
           <CardFront protocol={protocol} showChevron={false} animateStats={!flipped} frontExtra={frontExtra} />
         </div>
@@ -202,6 +224,7 @@ export function InteractiveProtocolCard({
             transform: "translateZ(0) rotateY(180deg)",
             ...surfaceStyle,
           }}
+          aria-hidden={!flipped}
         >
           <BackContent protocol={protocol} onClose={() => setFlipped(false)} />
           {onOpen && (
