@@ -1,5 +1,6 @@
 import { ClientLayout } from "@/components/ClientLayout";
 import { InteractiveKetoTypeCard, type KetoTypeForCard } from "@/components/keto/InteractiveKetoTypeCard";
+import { useCallback, useMemo, useState } from "react";
 
 const sampleKetoTypes: { theme: string; kt: KetoTypeForCard }[] = [
   {
@@ -71,6 +72,21 @@ const sampleKetoTypes: { theme: string; kt: KetoTypeForCard }[] = [
 ];
 
 export default function ClientKetoTypeCardDemo() {
+  // Collect each card's auto-measured height, then feed back the max so all
+  // cards in the list end up the same height (no dead space, no clipping).
+  const [heights, setHeights] = useState<Record<string, number>>({});
+  const tallest = useMemo(() => {
+    const vals = Object.values(heights);
+    return vals.length ? Math.max(...vals) : 0;
+  }, [heights]);
+
+  const makeOnMeasure = useCallback(
+    (key: string) => (h: number) => {
+      setHeights((prev) => (prev[key] === h ? prev : { ...prev, [key]: h }));
+    },
+    []
+  );
+
   return (
     <ClientLayout>
       <div className="max-w-md mx-auto px-4 py-6 space-y-8 pb-32">
@@ -96,7 +112,12 @@ export default function ClientKetoTypeCardDemo() {
               </span>
               <p className="text-xs text-muted-foreground">{kt.name}</p>
             </div>
-            <InteractiveKetoTypeCard ketoType={kt} themeColor={theme} />
+            <InteractiveKetoTypeCard
+              ketoType={kt}
+              themeColor={theme}
+              onMeasureHeight={makeOnMeasure(kt.abbreviation)}
+              forcedHeight={tallest > 0 ? tallest : undefined}
+            />
           </section>
         ))}
       </div>

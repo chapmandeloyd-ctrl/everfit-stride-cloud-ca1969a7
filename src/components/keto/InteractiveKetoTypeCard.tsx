@@ -33,6 +33,10 @@ export interface InteractiveKetoTypeCardProps {
   isCurrent?: boolean;
   flipCancelHorizontalPx?: InteractiveProtocolCardProps["flipCancelHorizontalPx"];
   flipCancelVerticalPx?: InteractiveProtocolCardProps["flipCancelVerticalPx"];
+  /** Pass-through: force a uniform card height across a list. */
+  forcedHeight?: InteractiveProtocolCardProps["forcedHeight"];
+  /** Pass-through: emits the auto-measured height for parent to collect. */
+  onMeasureHeight?: InteractiveProtocolCardProps["onMeasureHeight"];
 }
 
 /* ----------------------------- color mapping ----------------------------- */
@@ -220,6 +224,8 @@ export function InteractiveKetoTypeCard({
   isCurrent = true,
   flipCancelHorizontalPx,
   flipCancelVerticalPx,
+  forcedHeight,
+  onMeasureHeight,
 }: InteractiveKetoTypeCardProps) {
   const palette = paletteFromHex(themeColor || ketoType.color);
 
@@ -250,6 +256,8 @@ export function InteractiveKetoTypeCard({
       openLabel={openLabel}
       flipCancelHorizontalPx={flipCancelHorizontalPx}
       flipCancelVerticalPx={flipCancelVerticalPx}
+      forcedHeight={forcedHeight}
+      onMeasureHeight={onMeasureHeight}
     />
   );
 }

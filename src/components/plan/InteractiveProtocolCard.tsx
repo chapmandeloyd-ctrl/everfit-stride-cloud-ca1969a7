@@ -33,6 +33,18 @@ export interface InteractiveProtocolCardProps {
    * Default: 8.
    */
   flipCancelVerticalPx?: number;
+  /**
+   * Optional fixed height (px) for the flip container. When provided, overrides
+   * the auto-measured height. Use this to make a list of cards uniform height
+   * (parent measures each card via `onMeasureHeight` and feeds back the max).
+   */
+  forcedHeight?: number;
+  /**
+   * Called whenever the card's natural (auto-measured) height changes.
+   * Parent can collect these from sibling cards and re-render with `forcedHeight`
+   * set to the max so all cards in a list end up the same height.
+   */
+  onMeasureHeight?: (heightPx: number) => void;
 }
 
 /**
@@ -51,6 +63,8 @@ export function InteractiveProtocolCard({
   frontExtra = "coachQuote",
   flipCancelHorizontalPx = 8,
   flipCancelVerticalPx = 8,
+  forcedHeight,
+  onMeasureHeight,
 }: InteractiveProtocolCardProps) {
   const [flipped, setFlipped] = useState(false);
   const tiltRef = useRef<HTMLDivElement>(null);
@@ -62,6 +76,36 @@ export function InteractiveProtocolCard({
   const pendingTiltRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const activePointerId = useRef<number | null>(null);
   const suppressClickRef = useRef(false);
+
+  // --- Auto-sizing: measure both faces and use the taller as the container height ---
+  const frontMeasureRef = useRef<HTMLDivElement>(null);
+  const backMeasureRef = useRef<HTMLDivElement>(null);
+  const [measuredHeight, setMeasuredHeight] = useState<number>(0);
+
+  useEffect(() => {
+    const front = frontMeasureRef.current;
+    const back = backMeasureRef.current;
+    if (!front || !back) return;
+
+    const update = () => {
+      const fh = front.scrollHeight;
+      const bh = back.scrollHeight;
+      const next = Math.max(fh, bh);
+      setMeasuredHeight((prev) => (Math.abs(prev - next) > 0.5 ? next : prev));
+    };
+
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(front);
+    ro.observe(back);
+    return () => ro.disconnect();
+  }, [protocol, frontExtra]);
+
+  useEffect(() => {
+    if (measuredHeight > 0) onMeasureHeight?.(measuredHeight);
+  }, [measuredHeight, onMeasureHeight]);
+
+  const effectiveHeight = forcedHeight ?? measuredHeight;
 
   useEffect(() => {
     return () => {
@@ -199,7 +243,8 @@ export function InteractiveProtocolCard({
     willChange: "transform",
     transition: flipped ? "transform 0.5s cubic-bezier(0.22, 1, 0.36, 1)" : "transform 0.14s ease-out",
     transform: flipped ? "translateZ(0) rotateY(180deg)" : `translateZ(0) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
-    minHeight: 820,
+    height: effectiveHeight > 0 ? effectiveHeight : undefined,
+    minHeight: effectiveHeight > 0 ? undefined : 320,
   };
 
   const surfaceStyle: CSSProperties = {
@@ -220,6 +265,22 @@ export function InteractiveProtocolCard({
       onPointerUp={(e) => { if (e.pointerType === "touch") onTiltLeave(); }}
     >
       <CardStackBackdrop />
+
+      {/* Hidden measurement layer — renders both faces off-screen at full width
+          so we can size the flip container to the taller of the two. Pointer
+          events disabled and aria-hidden so it's invisible to users + a11y. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 invisible"
+        style={{ contain: "layout paint" }}
+      >
+        <div ref={frontMeasureRef} className="rounded-2xl border border-border">
+          <CardFront protocol={protocol} showChevron={false} animateStats={false} frontExtra={frontExtra} />
+        </div>
+        <div ref={backMeasureRef} className="rounded-2xl border border-border">
+          <BackContent protocol={protocol} onClose={() => {}} />
+        </div>
+      </div>
 
       <div
         role="status"
