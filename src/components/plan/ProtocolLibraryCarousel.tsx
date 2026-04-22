@@ -96,6 +96,7 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
   const lockedAxisRef = useRef<"x" | "y" | null>(null);
   const didSwipeRef = useRef(false);
   const topCardRef = useRef<HTMLDivElement | null>(null);
+  const topCardInnerRef = useRef<HTMLDivElement | null>(null);
   const [stackHeight, setStackHeight] = useState<number>(0);
 
   const total = slides.length;
@@ -203,7 +204,7 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
   // Measure the visible top card so the stack container grows to match it.
   // Re-measures whenever the top card changes (different content height).
   useLayoutEffect(() => {
-    const el = topCardRef.current;
+    const el = topCardInnerRef.current;
     if (!el) return;
     const measure = () => {
       const h = el.getBoundingClientRect().height;
@@ -276,7 +277,7 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
               onPointerCancel={handlePointerUp}
               onClickCapture={handleClickCapture}
             >
-              <div className="relative">
+              <div ref={topCardInnerRef} className="relative">
                 {isLocked && (
                   <button
                     type="button"
@@ -299,17 +300,20 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
                     dimmed={isLocked}
                   />
                 </div>
-                {/* Detail sections rendered as separate stacked cards below the protocol card */}
-                {!isLocked && (
-                  <div data-no-flip>
-                    <ProtocolDetailSections protocol={buildDemoProtocol(entry, isLocked)} />
-                  </div>
-                )}
               </div>
             </div>
           );
         })()}
       </div>
+
+      {/* Detail sections rendered as separate stacked cards below the carousel — matches original layout */}
+      {(() => {
+        const top = stack[0];
+        if (!top || top.slide.isLocked) return null;
+        return (
+          <ProtocolDetailSections protocol={buildDemoProtocol(top.slide.entry, false)} />
+        );
+      })()}
 
     </div>
   );
