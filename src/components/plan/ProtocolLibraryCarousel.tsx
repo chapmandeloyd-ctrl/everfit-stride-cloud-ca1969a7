@@ -90,6 +90,7 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
   const [dragX, setDragX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const dragXRef = useRef(0);
   const startXRef = useRef<number | null>(null);
   const startYRef = useRef<number | null>(null);
   const lockedAxisRef = useRef<"x" | "y" | null>(null);
@@ -103,10 +104,12 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
   const advance = useCallback(
     (direction: 1 | -1) => {
       setIsAnimating(true);
+      dragXRef.current = direction * 600;
       setDragX(direction * 600);
       window.setTimeout(() => {
         setTopIndex((prev) => (total === 0 ? 0 : (prev + 1) % total));
         setIsTopFlipped(false);
+        dragXRef.current = 0;
         setDragX(0);
         setIsAnimating(false);
       }, 280);
@@ -114,12 +117,17 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
     [total],
   );
 
+  const isInteractiveTarget = (target: EventTarget | null) =>
+    target instanceof Element && Boolean(target.closest("button, a, input, select, textarea, label, [data-no-flip]"));
+
   const handlePointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (isInteractiveTarget(e.target) || isTopFlipped) return;
     if (isAnimating) return;
     startXRef.current = e.clientX;
     startYRef.current = e.clientY;
     lockedAxisRef.current = null;
     didSwipeRef.current = false;
+    dragXRef.current = 0;
     setIsDragging(true);
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   };
@@ -135,6 +143,7 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
     if (lockedAxisRef.current === "x") {
       e.preventDefault();
       if (Math.abs(dx) > 10) didSwipeRef.current = true;
+      dragXRef.current = dx;
       setDragX(dx);
     }
   };
@@ -147,13 +156,26 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
     } catch {
       // ignore
     }
-    if (lockedAxisRef.current === "x" && Math.abs(dragX) > SWIPE_THRESHOLD) {
-      advance(dragX > 0 ? 1 : -1);
+    const finalDragX = dragXRef.current;
+    if (lockedAxisRef.current === "x" && Math.abs(finalDragX) > SWIPE_THRESHOLD) {
+      advance(finalDragX > 0 ? 1 : -1);
     } else {
+      const isTap = !didSwipeRef.current && !isInteractiveTarget(e.target);
       // Snap back
       setIsAnimating(true);
+      dragXRef.current = 0;
       setDragX(0);
       window.setTimeout(() => setIsAnimating(false), 200);
+      if (isTap) {
+        const top = stack[0]?.slide;
+        if (top?.isLocked) {
+          toast(`Unlocks at Level ${top.entry.minLevelRequired}`, {
+            description: "Keep up your streak to unlock this protocol.",
+          });
+        } else {
+          setIsTopFlipped((prev) => !prev);
+        }
+      }
     }
     startXRef.current = null;
     startYRef.current = null;
@@ -214,11 +236,6 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
           height: stackHeight > 0 ? stackHeight : undefined,
           minHeight: stackHeight > 0 ? undefined : 360,
         }}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onPointerCancel={handlePointerUp}
-        onClickCapture={handleClickCapture}
       >
         {/* Background ghost cards (depth illusion) — pure visual, no pointer events. */}
         {stack
@@ -260,6 +277,11 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
               key={entry.key}
               className="absolute inset-x-0 top-0"
               style={style}
+              onPointerDown={handlePointerDown}
+              onPointerMove={handlePointerMove}
+              onPointerUp={handlePointerUp}
+              onPointerCancel={handlePointerUp}
+              onClickCapture={handleClickCapture}
             >
               <div className="relative">
                 {isLocked && (
@@ -284,7 +306,7 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
                     dimmed={isLocked}
                     flipped={isTopFlipped}
                     onFlippedChange={setIsTopFlipped}
-                    disableTapToFlip={didSwipeRef.current || isDragging}
+                    disableTapToFlip
                   />
                 </div>
                 {isCurrent && !isLocked && (
