@@ -407,7 +407,7 @@ function TapBrowseHint() {
   );
 }
 
-function CardFront({
+export function CardFront({
   protocol,
   showChevron = true,
   pulse = true,
