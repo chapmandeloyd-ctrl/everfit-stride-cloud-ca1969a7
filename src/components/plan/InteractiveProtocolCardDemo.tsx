@@ -125,8 +125,15 @@ function AnimatedStatValue({ value, accentClass, start }: { value: string; accen
   const isNumber = !Number.isNaN(numeric);
   const animated = useCountUp(isNumber ? numeric : 0, 900, start);
   const display = isNumber ? `${Math.round(animated)}${suffix}` : value;
+  // Auto-shrink long non-numeric labels (e.g. "Auto+MPS") so they don't
+  // overflow the narrow stat tile.
+  const sizeClass = !isNumber && display.length > 5 ? "text-xs" : "text-base";
   return (
-    <p className={`text-base font-black capitalize drop-shadow-sm ${accentClass ?? ""}`}>{display}</p>
+    <p
+      className={`${sizeClass} font-black capitalize drop-shadow-sm leading-tight px-1 truncate ${accentClass ?? ""}`}
+    >
+      {display}
+    </p>
   );
 }
 
@@ -195,26 +202,23 @@ function FeelChipsExtra({ protocol }: { protocol: DemoProtocol }) {
     { Icon: Zap, label: "Energy" },
     { Icon: BrainCircuit, label: "Clarity" },
   ];
-  // Try to pull short labels from benefits, fall back to defaults.
-  const labels = protocol.content.benefits.slice(0, 3).map((b) => {
-    const short = b.split(/[—\-:]/)[0].trim();
-    return short.length > 18 ? short.slice(0, 16) + "…" : short;
-  });
+  // Use the curated default labels so chips stay tight and centered.
+  // (Benefit strings from content can be too long and break the row.)
   return (
     <div>
-      <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground mb-2">What You'll Feel</p>
-      <div className="flex items-center gap-1.5">
+      <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground mb-2 text-center">What You'll Feel</p>
+      <div className="flex items-center justify-center gap-1.5">
         {palette.map(({ Icon, label }, i) => (
           <div
             key={i}
-            className="flex-1 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 border border-border/60"
+            className="flex-1 min-w-0 inline-flex items-center justify-center gap-1.5 rounded-full px-2 py-1.5 border border-border/60"
             style={{
               background: "linear-gradient(145deg, hsl(var(--muted) / 0.7), hsl(var(--muted) / 0.3))",
               boxShadow: "inset 0 1px 0 hsl(0 0% 100% / 0.06), 0 2px 6px hsl(0 0% 0% / 0.15)",
             }}
           >
-            <Icon className={`h-3 w-3 ${protocol.accentColorClass}`} />
-            <span className="text-[10px] font-bold truncate">{labels[i] ?? label}</span>
+            <Icon className={`h-3 w-3 shrink-0 ${protocol.accentColorClass}`} />
+            <span className="text-[10px] font-bold truncate">{label}</span>
           </div>
         ))}
       </div>
