@@ -333,6 +333,38 @@ function DifficultyExtra({ protocol }: { protocol: DemoProtocol }) {
   );
 }
 
+function FullHeightPreviewExtra({ protocol, animate }: { protocol: DemoProtocol; animate: boolean }) {
+  return (
+    <div className="flex h-full flex-col justify-between gap-4">
+      <div className="rounded-2xl border border-border/60 p-4" style={{
+        background: "linear-gradient(145deg, hsl(var(--muted) / 0.72), hsl(var(--muted) / 0.28))",
+        boxShadow: "inset 0 1px 0 hsl(0 0% 100% / 0.06), 0 8px 20px hsl(0 0% 0% / 0.12)"
+      }}>
+        <div className="space-y-4">
+          <PhaseTimelineExtra protocol={protocol} />
+          <FeelChipsExtra protocol={protocol} />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div className="rounded-xl border border-border/60 p-3" style={{
+          background: "linear-gradient(145deg, hsl(var(--muted) / 0.66), hsl(var(--muted) / 0.24))"
+        }}>
+          <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Coach note</p>
+          <p className="mt-2 text-xs font-medium leading-relaxed line-clamp-3">
+            {protocol.content.coachWarning?.[0] ?? protocol.content.mentalReality?.[0] ?? "Stay steady through the hard middle phase."}
+          </p>
+        </div>
+        <div className="rounded-xl border border-border/60 p-3" style={{
+          background: "linear-gradient(145deg, hsl(var(--muted) / 0.66), hsl(var(--muted) / 0.24))"
+        }}>
+          <ProgressRingExtra protocol={protocol} animate={animate} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function CardFront({
   protocol,
   showChevron = true,
@@ -366,7 +398,7 @@ function CardFront({
         </div>
       )}
 
-      <div className="relative p-6">
+      <div className="relative flex h-full min-h-[640px] flex-col p-6">
         <div className="flex items-center gap-3 mb-4">
           <div
             className={`relative h-14 w-14 rounded-2xl flex items-center justify-center bg-gradient-to-br ${protocol.iconGradient}`}
@@ -437,11 +469,23 @@ function CardFront({
           )}
         </div>
 
-        {frontExtra !== "none" && (
-          <div className="mt-5">
-            <FrontExtra variant={frontExtra} protocol={protocol} animate={animateStats} />
-          </div>
-        )}
+        <div className="mt-5 flex-1">
+          {frontExtra === "none" ? (
+            <FullHeightPreviewExtra protocol={protocol} animate={animateStats} />
+          ) : (
+            <div className="flex h-full flex-col justify-between gap-4">
+              <FrontExtra variant={frontExtra} protocol={protocol} animate={animateStats} />
+              <div className="rounded-xl border border-border/60 px-3 py-2" style={{
+                background: "linear-gradient(145deg, hsl(var(--muted) / 0.6), hsl(var(--muted) / 0.22))"
+              }}>
+                <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Coach read</p>
+                <p className="mt-1.5 text-xs font-medium leading-relaxed line-clamp-3">
+                  {protocol.content.coachWarning?.[0] ?? protocol.content.mentalReality?.[0] ?? "Stay consistent and let the middle phase pass."}
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </>
   );
