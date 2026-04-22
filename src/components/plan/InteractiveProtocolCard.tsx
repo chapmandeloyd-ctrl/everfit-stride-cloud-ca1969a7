@@ -501,65 +501,23 @@ export function InteractiveProtocolCard({
       <div
         ref={innerRef}
         className="relative rounded-2xl group"
-        style={innerStyle}
-        onPointerDown={onDown}
-        onPointerMove={onMoveCheck}
-        onPointerUp={onUp}
-        onPointerCancel={onCancel}
-        onClickCapture={onClickCapture}
-        role="button"
-        tabIndex={0}
-        aria-pressed={flipped}
-        aria-label={ariaLabel}
-        onKeyDown={onKeyDown}
       >
-        {/* FRONT */}
         <div
-          className="absolute inset-0 overflow-hidden rounded-2xl border border-border cursor-pointer"
-          style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden", pointerEvents: flipped ? "none" : "auto", ...surfaceStyle }}
-          aria-hidden={flipped}
+          className="relative overflow-hidden rounded-2xl border border-border"
+          style={surfaceStyle}
         >
           <CardFront
             protocol={protocol}
             showChevron={false}
             pulse={!disableHeavyInteractions}
             shimmer={!disableHeavyInteractions}
-            animateStats={!disableHeavyInteractions && !flipped}
+            animateStats={!disableHeavyInteractions}
             frontExtra={frontExtra}
           />
         </div>
-
-        {/* BACK */}
-        <div
-          className="relative overflow-hidden rounded-2xl border border-border"
-          style={{
-            backfaceVisibility: "hidden",
-            WebkitBackfaceVisibility: "hidden",
-            pointerEvents: flipped ? "auto" : "none",
-            transform: "translateZ(0) rotateY(180deg)",
-            ...surfaceStyle,
-          }}
-          aria-hidden={!flipped}
-        >
-          <BackContent protocol={protocol} onClose={handleClose} extraAction={backExtraAction} />
-          {onOpen && (
-            <div className="absolute bottom-3 left-0 right-0 flex justify-center">
-              <button
-                onClick={handleOpen}
-                className="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[11px] font-extrabold uppercase tracking-wider text-primary-foreground shadow-lg"
-                style={{
-                  backgroundImage:
-                    "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.85) 50%, hsl(var(--primary) / 0.95) 100%)",
-                  boxShadow:
-                    "0 6px 18px -4px hsl(var(--primary) / 0.55), 0 2px 6px -2px hsl(var(--primary) / 0.4)",
-                }}
-              >
-                {openLabel} →
-              </button>
-            </div>
-          )}
-        </div>
       </div>
+      {renderDetailsToggle()}
+      {renderInlineDetails()}
     </div>
   );
 }
