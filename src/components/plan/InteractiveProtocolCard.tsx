@@ -407,49 +407,17 @@ export function InteractiveProtocolCard({
         </div>
 
         <div className="relative rounded-2xl overflow-hidden border border-border" style={surfaceStyle}>
-          {!flipped ? (
-            <div
-              role="button"
-              tabIndex={0}
-              aria-pressed={false}
-              aria-label={ariaLabel}
-                onPointerDown={onMobileFrontPointerDown}
-                onPointerMove={onMobileFrontPointerMove}
-                onPointerUp={onMobileFrontPointerUp}
-                onPointerCancel={onMobileFrontPointerCancel}
-              onKeyDown={onKeyDown}
-            >
-              <CardFront
-                protocol={protocol}
-                showChevron={false}
-                pulse={false}
-                shimmer={false}
-                animateStats={false}
-                frontExtra={frontExtra}
-              />
-            </div>
-          ) : (
-            <>
-              <BackContent protocol={protocol} onClose={handleClose} extraAction={backExtraAction} />
-              {onOpen && (
-                <div className="px-4 pb-4 -mt-2">
-                  <button
-                    onClick={handleOpen}
-                    className="inline-flex w-full items-center justify-center gap-1.5 rounded-full px-4 py-2 text-[11px] font-extrabold uppercase tracking-wider text-primary-foreground shadow-lg"
-                    style={{
-                      backgroundImage:
-                        "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.85) 50%, hsl(var(--primary) / 0.95) 100%)",
-                      boxShadow:
-                        "0 6px 18px -4px hsl(var(--primary) / 0.55), 0 2px 6px -2px hsl(var(--primary) / 0.4)",
-                    }}
-                  >
-                    {openLabel} →
-                  </button>
-                </div>
-              )}
-            </>
-          )}
+          <CardFront
+            protocol={protocol}
+            showChevron={false}
+            pulse={false}
+            shimmer={false}
+            animateStats={false}
+            frontExtra={frontExtra}
+          />
         </div>
+        {renderDetailsToggle()}
+        {renderInlineDetails()}
       </div>
     );
   }
