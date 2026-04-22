@@ -23,6 +23,7 @@ import { useMemo, useEffect } from "react";
 import { InteractiveProtocolCard } from "@/components/plan/InteractiveProtocolCard";
 import type { DemoProtocol } from "@/components/plan/InteractiveProtocolCardDemo";
 import { InteractiveKetoTypeCard } from "@/components/keto/InteractiveKetoTypeCard";
+import { MacroComparisonFlipCard } from "@/components/keto/MacroComparisonFlipCard";
 
 function generateWeeklyProgression(durationDays: number, fastTargetHours: number) {
   const weeks = Math.ceil(durationDays / 7);
@@ -366,34 +367,11 @@ export default function ClientCompletePlan() {
 
           {/* Macro Comparison */}
           {allKetoTypes && allKetoTypes.length > 1 && (
-            <Card>
-              <CardContent className="p-5">
-                <h3 className="text-sm font-bold uppercase tracking-wider mb-4">Macro Comparison — All Types</h3>
-                <div className="space-y-3">
-                  {allKetoTypes.map((t) => {
-                    const total = t.fat_pct + t.protein_pct + t.carbs_pct;
-                    const fatW = (t.fat_pct / total) * 100;
-                    const protW = (t.protein_pct / total) * 100;
-                    const carbW = (t.carbs_pct / total) * 100;
-                    const isCurrent = t.id === ketoType.id;
-                    return (
-                      <div key={t.id} className={`flex items-center gap-3 px-2 py-1.5 rounded-lg ${isCurrent ? "bg-muted/50" : ""}`}>
-                        <span className="text-xs font-bold w-12" style={{ color: t.color }}>{t.abbreviation}</span>
-                        <div className="flex-1 h-3 rounded-full overflow-hidden flex">
-                          <div className="h-full" style={{ width: `${fatW}%`, backgroundColor: t.color, opacity: 0.8 }} />
-                          <div className="h-full bg-muted-foreground/30" style={{ width: `${protW}%` }} />
-                          <div className="h-full bg-muted-foreground/60" style={{ width: `${carbW}%` }} />
-                        </div>
-                        <span className="text-xs text-muted-foreground w-28 text-right">
-                          <span style={{ color: t.color }}>{t.fat_pct}%F</span>{" "}
-                          {t.protein_pct}%P {t.carbs_pct}%C
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
+            <MacroComparisonFlipCard
+              items={allKetoTypes}
+              activeId={ketoType.id}
+              themeColor={themeColor}
+            />
           )}
         </div>
 
