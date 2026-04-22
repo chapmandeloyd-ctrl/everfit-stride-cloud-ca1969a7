@@ -266,6 +266,22 @@ export function InteractiveProtocolCard({
     >
       <CardStackBackdrop />
 
+      {/* Hidden measurement layer — renders both faces off-screen at full width
+          so we can size the flip container to the taller of the two. Pointer
+          events disabled and aria-hidden so it's invisible to users + a11y. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 invisible"
+        style={{ contain: "layout paint" }}
+      >
+        <div ref={frontMeasureRef} className="rounded-2xl border border-border">
+          <CardFront protocol={protocol} showChevron={false} animateStats={false} frontExtra={frontExtra} />
+        </div>
+        <div ref={backMeasureRef} className="rounded-2xl border border-border">
+          <BackContent protocol={protocol} onClose={() => {}} />
+        </div>
+      </div>
+
       <div
         role="status"
         aria-live="polite"
