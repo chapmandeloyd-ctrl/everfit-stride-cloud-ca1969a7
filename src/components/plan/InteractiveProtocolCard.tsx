@@ -63,6 +63,8 @@ export function InteractiveProtocolCard({
   frontExtra = "coachQuote",
   flipCancelHorizontalPx = 8,
   flipCancelVerticalPx = 8,
+  forcedHeight,
+  onMeasureHeight,
 }: InteractiveProtocolCardProps) {
   const [flipped, setFlipped] = useState(false);
   const tiltRef = useRef<HTMLDivElement>(null);
@@ -74,6 +76,36 @@ export function InteractiveProtocolCard({
   const pendingTiltRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const activePointerId = useRef<number | null>(null);
   const suppressClickRef = useRef(false);
+
+  // --- Auto-sizing: measure both faces and use the taller as the container height ---
+  const frontMeasureRef = useRef<HTMLDivElement>(null);
+  const backMeasureRef = useRef<HTMLDivElement>(null);
+  const [measuredHeight, setMeasuredHeight] = useState<number>(0);
+
+  useEffect(() => {
+    const front = frontMeasureRef.current;
+    const back = backMeasureRef.current;
+    if (!front || !back) return;
+
+    const update = () => {
+      const fh = front.scrollHeight;
+      const bh = back.scrollHeight;
+      const next = Math.max(fh, bh);
+      setMeasuredHeight((prev) => (Math.abs(prev - next) > 0.5 ? next : prev));
+    };
+
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(front);
+    ro.observe(back);
+    return () => ro.disconnect();
+  }, [protocol, frontExtra]);
+
+  useEffect(() => {
+    if (measuredHeight > 0) onMeasureHeight?.(measuredHeight);
+  }, [measuredHeight, onMeasureHeight]);
+
+  const effectiveHeight = forcedHeight ?? measuredHeight;
 
   useEffect(() => {
     return () => {
