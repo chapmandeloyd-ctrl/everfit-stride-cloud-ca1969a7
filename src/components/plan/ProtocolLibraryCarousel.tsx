@@ -170,8 +170,6 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
           toast(`Unlocks at Level ${top.entry.minLevelRequired}`, {
             description: "Keep up your streak to unlock this protocol.",
           });
-        } else {
-          setIsTopFlipped((prev) => !prev);
         }
       }
     }
@@ -214,10 +212,6 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
     const ro = new ResizeObserver(measure);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [topIndex]);
-
-  useEffect(() => {
-    setIsTopFlipped(false);
   }, [topIndex]);
 
   if (total === 0) return null;
