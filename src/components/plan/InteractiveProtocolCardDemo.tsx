@@ -269,23 +269,38 @@ function ProgressRingExtra({ protocol, animate }: { protocol: DemoProtocol; anim
 
 /** #4 — Coach quote pulled from coachWarning or mentalReality. */
 function CoachQuoteExtra({ protocol }: { protocol: DemoProtocol }) {
-  const quote =
+  const primary =
     protocol.content.mentalReality?.[0] ??
     protocol.content.coachWarning?.[0] ??
     "Discipline turns into momentum.";
+  const secondary =
+    protocol.content.mentalReality?.[1] ??
+    protocol.content.coachWarning?.[1] ??
+    protocol.content.benefits?.[0] ??
+    "Stay consistent — the middle is where it changes you.";
   return (
-    <div
-      className="relative rounded-xl border border-border/60 p-3 pl-9"
-      style={{
-        background: "linear-gradient(145deg, hsl(var(--muted) / 0.7), hsl(var(--muted) / 0.25))",
-        boxShadow: "inset 0 1px 0 hsl(0 0% 100% / 0.06)",
-      }}
-    >
-      <Quote className={`absolute left-2.5 top-2.5 h-4 w-4 ${protocol.accentColorClass}`} />
-      <p className="text-xs font-medium italic leading-snug">{quote}</p>
-      <p className={`text-[9px] font-extrabold uppercase tracking-wider mt-1.5 ${protocol.accentColorClass}`}>
-        — Coach K
-      </p>
+    <div className="space-y-3">
+      <div
+        className="relative rounded-xl border border-border/60 p-4 pl-10"
+        style={{
+          background: "linear-gradient(145deg, hsl(var(--muted) / 0.7), hsl(var(--muted) / 0.25))",
+          boxShadow: "inset 0 1px 0 hsl(0 0% 100% / 0.06)",
+        }}
+      >
+        <Quote className={`absolute left-3 top-3 h-4 w-4 ${protocol.accentColorClass}`} />
+        <p className="text-sm font-medium italic leading-snug">{primary}</p>
+        <p className={`text-[10px] font-extrabold uppercase tracking-wider mt-2 ${protocol.accentColorClass}`}>
+          — Coach K
+        </p>
+      </div>
+      <div
+        className="rounded-xl border border-border/60 p-3"
+        style={{ background: "linear-gradient(145deg, hsl(var(--muted) / 0.55), hsl(var(--muted) / 0.2))" }}
+      >
+        <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Coach Follow-Up</p>
+        <p className="text-xs leading-relaxed">{secondary}</p>
+      </div>
+      <PhaseTimelineExtra protocol={protocol} />
     </div>
   );
 }
