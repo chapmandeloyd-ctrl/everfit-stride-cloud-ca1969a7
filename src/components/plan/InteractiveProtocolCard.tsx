@@ -215,6 +215,33 @@ export function InteractiveProtocolCard({
     moved.current = false;
   };
 
+  const onMobileFrontPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if ((e.pointerType === "mouse" && e.button !== 0) || isInteractiveTarget(e.target)) return;
+    activePointerId.current = e.pointerId;
+    startX.current = e.clientX;
+    startY.current = e.clientY;
+    moved.current = false;
+  };
+
+  const onMobileFrontPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (activePointerId.current !== e.pointerId || startX.current === null || startY.current === null) return;
+    const deltaX = Math.abs(e.clientX - startX.current);
+    const deltaY = Math.abs(e.clientY - startY.current);
+    if (deltaX > flipCancelHorizontalPx || deltaY > flipCancelVerticalPx) moved.current = true;
+  };
+
+  const onMobileFrontPointerUp = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (activePointerId.current !== e.pointerId) return;
+    const shouldFlip = !moved.current;
+    resetPress();
+    if (shouldFlip) setFlipped(true);
+  };
+
+  const onMobileFrontPointerCancel = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (activePointerId.current !== e.pointerId) return;
+    resetPress();
+  };
+
   const isInteractiveTarget = (target: EventTarget | null) =>
     target instanceof Element && Boolean(target.closest("button, a, input, select, textarea, label, [data-no-flip]"));
 
@@ -339,7 +366,10 @@ export function InteractiveProtocolCard({
               tabIndex={0}
               aria-pressed={false}
               aria-label={ariaLabel}
-              onClick={() => setFlipped(true)}
+                onPointerDown={onMobileFrontPointerDown}
+                onPointerMove={onMobileFrontPointerMove}
+                onPointerUp={onMobileFrontPointerUp}
+                onPointerCancel={onMobileFrontPointerCancel}
               onKeyDown={onKeyDown}
             >
               <CardFront
