@@ -33,6 +33,10 @@ export interface InteractiveKetoTypeCardProps {
   isCurrent?: boolean;
   flipCancelHorizontalPx?: InteractiveProtocolCardProps["flipCancelHorizontalPx"];
   flipCancelVerticalPx?: InteractiveProtocolCardProps["flipCancelVerticalPx"];
+  /** Pass-through: force a uniform card height across a list. */
+  forcedHeight?: InteractiveProtocolCardProps["forcedHeight"];
+  /** Pass-through: emits the auto-measured height for parent to collect. */
+  onMeasureHeight?: InteractiveProtocolCardProps["onMeasureHeight"];
 }
 
 /* ----------------------------- color mapping ----------------------------- */
