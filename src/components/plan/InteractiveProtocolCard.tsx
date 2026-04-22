@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
 import {
   CardStackBackdrop,
   CardFront,
@@ -55,6 +55,16 @@ export interface InteractiveProtocolCardProps {
   backExtraAction?: React.ReactNode;
 }
 
+function isLowMemoryDevice() {
+  if (typeof navigator === "undefined") return false;
+
+  const nav = navigator as Navigator & { deviceMemory?: number };
+  const hasLowMemory = typeof nav.deviceMemory === "number" && nav.deviceMemory <= 4;
+  const hasLowCpu = typeof nav.hardwareConcurrency === "number" && nav.hardwareConcurrency <= 4;
+
+  return hasLowMemory || hasLowCpu;
+}
+
 /**
  * Production protocol card: flip-on-tap + 3D pointer tilt + premium surface.
  * Pulls front + back from the demo so demo and prod stay in lockstep.
@@ -77,13 +87,16 @@ export function InteractiveProtocolCard({
 }: InteractiveProtocolCardProps) {
   const isMobileViewport = typeof window !== "undefined" ? window.innerWidth < 1024 : false;
   const isMobile = useIsMobile() || isMobileViewport;
+  const reduceMotionWork = useMemo(() => isLowMemoryDevice(), []);
+  const disableHeavyInteractions = isMobile || reduceMotionWork;
   const [flipped, setFlipped] = useState(false);
   const tiltRef = useRef<HTMLDivElement>(null);
-  const [tilt, setTilt] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const innerRef = useRef<HTMLDivElement>(null);
   const startX = useRef<number | null>(null);
   const startY = useRef<number | null>(null);
   const moved = useRef(false);
   const frameRef = useRef<number | null>(null);
+  const measureFrameRef = useRef<number | null>(null);
   const pendingTiltRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const activePointerId = useRef<number | null>(null);
   const suppressClickRef = useRef(false);
@@ -93,30 +106,60 @@ export function InteractiveProtocolCard({
   const backMeasureRef = useRef<HTMLDivElement>(null);
   const [measuredHeight, setMeasuredHeight] = useState<number>(0);
 
+  const applyTiltTransform = useCallback((nextTilt: { x: number; y: number }) => {
+    const el = innerRef.current;
+    if (!el || flipped) return;
+
+    el.style.transform = `translateZ(0) rotateX(${nextTilt.x}deg) rotateY(${nextTilt.y}deg)`;
+  }, [flipped]);
+
+  const scheduleMeasure = useCallback(() => {
+    if (measureFrameRef.current !== null) return;
+
+    measureFrameRef.current = requestAnimationFrame(() => {
+      measureFrameRef.current = null;
+
+      const front = frontMeasureRef.current;
+      const back = backMeasureRef.current;
+      if (!front || !back) return;
+
+      const next = Math.max(front.scrollHeight, back.scrollHeight);
+      setMeasuredHeight((prev) => (Math.abs(prev - next) > 0.5 ? next : prev));
+    });
+  }, []);
+
   useEffect(() => {
-    if (isMobile) return;
+    if (isMobile || forcedHeight) return;
+
     const front = frontMeasureRef.current;
     const back = backMeasureRef.current;
     if (!front || !back) return;
 
-    const update = () => {
-      const fh = front.scrollHeight;
-      const bh = back.scrollHeight;
-      const next = Math.max(fh, bh);
-      setMeasuredHeight((prev) => (Math.abs(prev - next) > 0.5 ? next : prev));
-    };
+    scheduleMeasure();
 
-    update();
-    const ro = new ResizeObserver(update);
-    ro.observe(front);
-    ro.observe(back);
-    return () => ro.disconnect();
-  }, [isMobile, protocol, frontExtra]);
+    let ro: ResizeObserver | null = null;
+    if (!disableHeavyInteractions) {
+      ro = new ResizeObserver(scheduleMeasure);
+      ro.observe(front);
+      ro.observe(back);
+    }
+
+    window.addEventListener("resize", scheduleMeasure);
+
+    return () => {
+      ro?.disconnect();
+      window.removeEventListener("resize", scheduleMeasure);
+      if (measureFrameRef.current !== null) {
+        cancelAnimationFrame(measureFrameRef.current);
+        measureFrameRef.current = null;
+      }
+    };
+  }, [isMobile, forcedHeight, disableHeavyInteractions, scheduleMeasure, protocol, frontExtra, backExtraAction]);
 
   useEffect(() => {
-    if (isMobile) return;
+    if (isMobile || forcedHeight) return;
     if (measuredHeight > 0) onMeasureHeight?.(measuredHeight);
-  }, [isMobile, measuredHeight, onMeasureHeight]);
+  }, [isMobile, forcedHeight, measuredHeight, onMeasureHeight]);
 
   const effectiveHeight = forcedHeight ?? measuredHeight;
 
@@ -125,12 +168,14 @@ export function InteractiveProtocolCard({
       if (frameRef.current !== null) {
         cancelAnimationFrame(frameRef.current);
       }
+      if (measureFrameRef.current !== null) {
+        cancelAnimationFrame(measureFrameRef.current);
+      }
     };
   }, []);
 
   const onTiltMove = (e: ReactPointerEvent<HTMLDivElement>) => {
-    // Skip tilt entirely on touch — it fights vertical scroll and causes jank.
-    if (e.pointerType === "touch") return;
+    if (disableHeavyInteractions || flipped || e.pointerType === "touch") return;
     const el = tiltRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
@@ -145,7 +190,7 @@ export function InteractiveProtocolCard({
 
     frameRef.current = requestAnimationFrame(() => {
       frameRef.current = null;
-      setTilt(pendingTiltRef.current);
+      applyTiltTransform(pendingTiltRef.current);
     });
   };
   const onTiltLeave = () => {
@@ -154,8 +199,14 @@ export function InteractiveProtocolCard({
       frameRef.current = null;
     }
     pendingTiltRef.current = { x: 0, y: 0 };
-    setTilt({ x: 0, y: 0 });
+    applyTiltTransform(pendingTiltRef.current);
   };
+
+  const handleClose = useCallback(() => setFlipped(false), []);
+  const handleOpen = useCallback((e?: React.SyntheticEvent) => {
+    e?.stopPropagation();
+    onOpen?.();
+  }, [onOpen]);
 
   const resetPress = () => {
     activePointerId.current = null;
@@ -253,9 +304,9 @@ export function InteractiveProtocolCard({
   const innerStyle: CSSProperties = {
     transformStyle: "preserve-3d",
     WebkitTransformStyle: "preserve-3d",
-    willChange: "transform",
+    willChange: disableHeavyInteractions ? "auto" : "transform",
     transition: flipped ? "transform 0.5s cubic-bezier(0.22, 1, 0.36, 1)" : "transform 0.14s ease-out",
-    transform: flipped ? "translateZ(0) rotateY(180deg)" : `translateZ(0) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
+    transform: flipped ? "translateZ(0) rotateY(180deg)" : "translateZ(0) rotateX(0deg) rotateY(0deg)",
     height: effectiveHeight > 0 ? effectiveHeight : undefined,
     minHeight: effectiveHeight > 0 ? undefined : 320,
   };
@@ -302,14 +353,11 @@ export function InteractiveProtocolCard({
             </div>
           ) : (
             <>
-              <BackContent protocol={protocol} onClose={() => setFlipped(false)} extraAction={backExtraAction} />
+              <BackContent protocol={protocol} onClose={handleClose} extraAction={backExtraAction} />
               {onOpen && (
                 <div className="px-4 pb-4 -mt-2">
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onOpen();
-                    }}
+                    onClick={handleOpen}
                     className="inline-flex w-full items-center justify-center gap-1.5 rounded-full px-4 py-2 text-[11px] font-extrabold uppercase tracking-wider text-primary-foreground shadow-lg"
                     style={{
                       backgroundImage:
@@ -334,28 +382,37 @@ export function InteractiveProtocolCard({
       ref={tiltRef}
       className={`relative pt-6 pb-4 select-none ${dimmed ? "opacity-60 grayscale-[20%]" : ""}`}
       style={{ perspective: "1400px", touchAction: "pan-y" }}
-      onPointerMove={onTiltMove}
-      onPointerLeave={onTiltLeave}
-      onPointerCancel={onTiltLeave}
-      onPointerUp={(e) => { if (e.pointerType === "touch") onTiltLeave(); }}
+      onPointerMove={disableHeavyInteractions ? undefined : onTiltMove}
+      onPointerLeave={disableHeavyInteractions ? undefined : onTiltLeave}
+      onPointerCancel={disableHeavyInteractions ? undefined : onTiltLeave}
+      onPointerUp={disableHeavyInteractions ? undefined : (e) => { if (e.pointerType === "touch") onTiltLeave(); }}
     >
       <CardStackBackdrop />
 
       {/* Hidden measurement layer — renders both faces off-screen at full width
           so we can size the flip container to the taller of the two. Pointer
           events disabled and aria-hidden so it's invisible to users + a11y. */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 invisible"
-        style={{ contain: "layout paint" }}
-      >
-        <div ref={frontMeasureRef} className="rounded-2xl border border-border">
-          <CardFront protocol={protocol} showChevron={false} animateStats={false} frontExtra={frontExtra} />
+      {forcedHeight === undefined && (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 top-0 invisible"
+          style={{ contain: "layout paint" }}
+        >
+          <div ref={frontMeasureRef} className="rounded-2xl border border-border">
+            <CardFront
+              protocol={protocol}
+              showChevron={false}
+              pulse={false}
+              shimmer={false}
+              animateStats={false}
+              frontExtra={frontExtra}
+            />
+          </div>
+          <div ref={backMeasureRef} className="rounded-2xl border border-border">
+            <BackContent protocol={protocol} extraAction={backExtraAction} />
+          </div>
         </div>
-        <div ref={backMeasureRef} className="rounded-2xl border border-border">
-          <BackContent protocol={protocol} onClose={() => {}} extraAction={backExtraAction} />
-        </div>
-      </div>
+      )}
 
       <div
         role="status"
@@ -397,6 +454,7 @@ export function InteractiveProtocolCard({
       </div>
 
       <div
+        ref={innerRef}
         className="relative rounded-2xl group"
         style={innerStyle}
         onPointerDown={onDown}
@@ -416,7 +474,14 @@ export function InteractiveProtocolCard({
           style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden", pointerEvents: flipped ? "none" : "auto", ...surfaceStyle }}
           aria-hidden={flipped}
         >
-          <CardFront protocol={protocol} showChevron={false} animateStats={!flipped} frontExtra={frontExtra} />
+          <CardFront
+            protocol={protocol}
+            showChevron={false}
+            pulse={!disableHeavyInteractions}
+            shimmer={!disableHeavyInteractions}
+            animateStats={!disableHeavyInteractions && !flipped}
+            frontExtra={frontExtra}
+          />
         </div>
 
         {/* BACK */}
@@ -431,11 +496,11 @@ export function InteractiveProtocolCard({
           }}
           aria-hidden={!flipped}
         >
-          <BackContent protocol={protocol} onClose={() => setFlipped(false)} extraAction={backExtraAction} />
+          <BackContent protocol={protocol} onClose={handleClose} extraAction={backExtraAction} />
           {onOpen && (
             <div className="absolute bottom-3 left-0 right-0 flex justify-center">
               <button
-                onClick={(e) => { e.stopPropagation(); onOpen(); }}
+                onClick={handleOpen}
                 className="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[11px] font-extrabold uppercase tracking-wider text-primary-foreground shadow-lg"
                 style={{
                   backgroundImage:
