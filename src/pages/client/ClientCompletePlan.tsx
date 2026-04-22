@@ -22,6 +22,7 @@ import { usePlanSynergy } from "@/hooks/usePlanSynergy";
 import { useMemo, useEffect } from "react";
 import { InteractiveProtocolCard } from "@/components/plan/InteractiveProtocolCard";
 import type { DemoProtocol } from "@/components/plan/InteractiveProtocolCardDemo";
+import { InteractiveKetoTypeCard } from "@/components/keto/InteractiveKetoTypeCard";
 
 function generateWeeklyProgression(durationDays: number, fastTargetHours: number) {
   const weeks = Math.ceil(durationDays / 7);
@@ -344,129 +345,25 @@ export default function ClientCompletePlan() {
         </div>
 
         <div className="px-5 space-y-4">
-          {/* Keto Hero */}
-          <Card className="overflow-hidden" style={{ backgroundColor: `${themeColor}08`, borderColor: `${themeColor}25` }}>
-            <CardContent className="p-5">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="h-7 w-7 rounded-full flex items-center justify-center" style={{ backgroundColor: `${themeColor}15` }}>
-                  <Zap className="h-3.5 w-3.5" style={{ color: themeColor }} />
-                </div>
-                <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: themeColor }}>
-                  Your Active Keto Type
-                </span>
-              </div>
-              <div className="flex items-baseline gap-3 mb-1">
-                <h2 className="text-5xl font-black tracking-tight" style={{ color: themeColor }}>
-                  {ketoType.abbreviation}
-                </h2>
-                <span className="text-lg text-muted-foreground">{ketoType.name}</span>
-              </div>
-              {ketoType.subtitle && <p className="font-bold text-base mt-1">{ketoType.subtitle}</p>}
-              {ketoType.description && (
-                <p className="text-sm text-muted-foreground leading-relaxed mt-2">{ketoType.description}</p>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-2">
-            {[
-              { label: "Level", value: ketoType.difficulty === "beginner" ? "Beginner" : ketoType.difficulty === "intermediate" ? "Intermediate" : "Advanced" },
-              { label: "System", value: "KSOM-360" },
-              { label: "Protein", value: `${ketoType.protein_pct}%` },
-            ].map((stat) => (
-              <Card key={stat.label}>
-                <CardContent className="p-3 text-center overflow-hidden">
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide font-medium">{stat.label}</p>
-                  <p className="font-bold mt-0.5 text-sm capitalize truncate">{stat.value}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {/* Macro Breakdown */}
-          <Card>
-            <CardContent className="p-5">
-              <h3 className="text-sm font-bold uppercase tracking-wider mb-4">Macro Breakdown</h3>
-              {[
-                { label: "Fat", pct: ketoType.fat_pct, barColor: themeColor },
-                { label: "Protein", pct: ketoType.protein_pct, barColor: "#94a3b8" },
-                { label: "Carbs", pct: ketoType.carbs_pct, barColor: "#475569" },
-              ].map((m) => (
-                <div key={m.label} className="flex items-center gap-3 mb-3 last:mb-0">
-                  <span className="text-sm w-14 text-muted-foreground">{m.label}</span>
-                  <div className="flex-1 h-3 bg-muted rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all"
-                      style={{ width: `${(m.pct / maxPct) * 100}%`, backgroundColor: m.barColor }}
-                    />
-                  </div>
-                  <span className="text-sm font-bold w-10 text-right" style={{ color: themeColor }}>
-                    {m.pct}%
-                  </span>
-                </div>
-              ))}
-              {ketoType.carb_limit_grams && (
-                <div className="mt-3 pt-3 border-t flex items-start gap-2">
-                  <Info className="h-3.5 w-3.5 mt-0.5 text-muted-foreground shrink-0" />
-                  <p className="text-xs text-muted-foreground">
-                    Carb limit: <strong>≤{ketoType.carb_limit_grams}g net carbs</strong>
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* How It Works */}
-          {ketoType.how_it_works && (
-            <Card>
-              <CardContent className="p-5">
-                <h3 className="text-sm font-bold uppercase tracking-wider mb-3">How It Works</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{ketoType.how_it_works}</p>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Built For */}
-          {ketoType.built_for && ketoType.built_for.length > 0 && (
-            <Card>
-              <CardContent className="p-5">
-                <h3 className="text-sm font-bold uppercase tracking-wider mb-3">Built For</h3>
-                <ul className="space-y-2.5">
-                  {ketoType.built_for.map((item: string, i: number) => (
-                    <li key={i} className="flex items-start gap-2.5">
-                      <div className="h-5 w-5 rounded-full bg-green-500/15 flex items-center justify-center shrink-0 mt-0.5">
-                        <Check className="h-3 w-3 text-green-600" />
-                      </div>
-                      <span className="text-sm text-muted-foreground">{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Coach Notes */}
-          {ketoType.coach_notes && ketoType.coach_notes.length > 0 && (
-            <Card>
-              <CardContent className="p-5">
-                <h3 className="text-sm font-bold uppercase tracking-wider mb-3">Coach Notes</h3>
-                <ul className="space-y-3">
-                  {ketoType.coach_notes.map((note: string, i: number) => (
-                    <li key={i} className="flex items-start gap-3">
-                      <span
-                        className="h-6 w-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-                        style={{ backgroundColor: `${themeColor}15`, color: themeColor }}
-                      >
-                        {i + 1}
-                      </span>
-                      <span className="text-sm text-muted-foreground leading-relaxed">{note}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          )}
+          {/* HERO — Interactive 3D flip card (matches protocol card) */}
+          <InteractiveKetoTypeCard
+            ketoType={{
+              abbreviation: ketoType.abbreviation,
+              name: ketoType.name,
+              subtitle: ketoType.subtitle,
+              description: ketoType.description,
+              difficulty: ketoType.difficulty,
+              fat_pct: ketoType.fat_pct,
+              protein_pct: ketoType.protein_pct,
+              carbs_pct: ketoType.carbs_pct,
+              carb_limit_grams: ketoType.carb_limit_grams,
+              how_it_works: ketoType.how_it_works,
+              built_for: ketoType.built_for,
+              color: ketoType.color,
+            }}
+            themeColor={themeColor}
+            isCurrent
+          />
 
           {/* Macro Comparison */}
           {allKetoTypes && allKetoTypes.length > 1 && (
