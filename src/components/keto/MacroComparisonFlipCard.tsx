@@ -158,12 +158,9 @@ export function MacroComparisonFlipCard({
     <div className="p-5">
       {/* Header */}
       <div className="flex items-center gap-2 mb-4">
-        <div
-          className="h-7 w-7 rounded-full flex items-center justify-center"
-          style={{ background: `linear-gradient(135deg, ${themeColor}, ${themeColor}99)` }}
-        >
-          <BarChart3 className="h-3.5 w-3.5 text-black" />
-        </div>
+        <SquircleIcon themeColor={themeColor}>
+          <BarChart3 className="h-4 w-4 text-white" strokeWidth={2.5} />
+        </SquircleIcon>
         <span
           className="text-[11px] font-bold uppercase tracking-wider"
           style={{ color: themeColor }}
@@ -274,12 +271,9 @@ export function MacroComparisonFlipCard({
     <div className="p-5 space-y-4">
       {/* Header */}
       <div className="flex items-center gap-2">
-        <div
-          className="h-7 w-7 rounded-full flex items-center justify-center"
-          style={{ background: `linear-gradient(135deg, ${themeColor}, ${themeColor}99)` }}
-        >
-          <Sparkles className="h-3.5 w-3.5 text-black" />
-        </div>
+        <SquircleIcon themeColor={themeColor}>
+          <Sparkles className="h-4 w-4 text-white" strokeWidth={2.5} />
+        </SquircleIcon>
         <span
           className="text-[11px] font-bold uppercase tracking-wider"
           style={{ color: themeColor }}
