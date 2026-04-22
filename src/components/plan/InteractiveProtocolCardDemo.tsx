@@ -284,10 +284,6 @@ function CoachQuoteExtra({ protocol }: { protocol: DemoProtocol }) {
     "Stay consistent — the middle is where it changes you.";
   return (
     <div className="space-y-3">
-      {/* Reserved quote area now holds the tap hint so lower content and dots stay clear */}
-      <div className="flex min-h-[92px] items-center justify-center px-2" aria-label="Interaction hint">
-        <TapBrowseHint />
-      </div>
       <div
         className="rounded-xl border border-border/60 p-3"
         style={{ background: "linear-gradient(145deg, hsl(var(--muted) / 0.55), hsl(var(--muted) / 0.2))" }}
