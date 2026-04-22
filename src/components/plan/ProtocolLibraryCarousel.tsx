@@ -1,7 +1,7 @@
-import { useMemo, useState, useRef, useCallback, useEffect, useLayoutEffect, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
+import { useMemo, useState, useRef, useCallback, useLayoutEffect, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
 import { Lock } from "lucide-react";
 import { toast } from "sonner";
-import { InteractiveProtocolCard } from "@/components/plan/InteractiveProtocolCard";
+import { ProtocolCardStatic } from "@/components/plan/ProtocolCardStatic";
 import type { DemoProtocol } from "@/components/plan/InteractiveProtocolCardDemo";
 import { CATEGORY_CONFIG, getDifficultyLabel } from "@/lib/fastingCategoryConfig";
 import { getProtocolCardContent } from "@/lib/protocolCardContent";
@@ -86,7 +86,6 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
   );
 
   const [topIndex, setTopIndex] = useState(0);
-  const [isTopFlipped, setIsTopFlipped] = useState(false);
   const [dragX, setDragX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -108,7 +107,6 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
       setDragX(direction * 600);
       window.setTimeout(() => {
         setTopIndex((prev) => (total === 0 ? 0 : (prev + 1) % total));
-        setIsTopFlipped(false);
         dragXRef.current = 0;
         setDragX(0);
         setIsAnimating(false);
@@ -121,7 +119,7 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
     target instanceof Element && Boolean(target.closest("button, a, input, select, textarea, label, [data-no-flip]"));
 
   const handlePointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (isInteractiveTarget(e.target) || isTopFlipped) return;
+    if (isInteractiveTarget(e.target)) return;
     if (isAnimating) return;
     startXRef.current = e.clientX;
     startYRef.current = e.clientY;
@@ -172,8 +170,6 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
           toast(`Unlocks at Level ${top.entry.minLevelRequired}`, {
             description: "Keep up your streak to unlock this protocol.",
           });
-        } else {
-          setIsTopFlipped((prev) => !prev);
         }
       }
     }
@@ -216,10 +212,6 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
     const ro = new ResizeObserver(measure);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [topIndex]);
-
-  useEffect(() => {
-    setIsTopFlipped(false);
   }, [topIndex]);
 
   if (total === 0) return null;
@@ -301,12 +293,9 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
                   </button>
                 )}
                 <div className={isLocked ? "opacity-60" : ""}>
-                  <InteractiveProtocolCard
+                  <ProtocolCardStatic
                     protocol={buildDemoProtocol(entry, isLocked)}
                     dimmed={isLocked}
-                    flipped={isTopFlipped}
-                    onFlippedChange={setIsTopFlipped}
-                    disableTapToFlip
                   />
                 </div>
                 {isCurrent && !isLocked && (
@@ -325,7 +314,7 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
         <span className="font-medium tabular-nums">
           {topIndex + 1} / {total}
         </span>
-        <span className="opacity-60">· Swipe to browse</span>
+        <span className="opacity-60">· Swipe to browse protocols</span>
       </div>
     </div>
   );
