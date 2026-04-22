@@ -53,6 +53,7 @@ export function InteractiveProtocolCard({
   const frameRef = useRef<number | null>(null);
   const pendingTiltRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const activePointerId = useRef<number | null>(null);
+  const suppressClickRef = useRef(false);
 
   useEffect(() => {
     return () => {
@@ -107,7 +108,6 @@ export function InteractiveProtocolCard({
     startX.current = e.clientX;
     startY.current = e.clientY;
     moved.current = false;
-    e.currentTarget.setPointerCapture(e.pointerId);
   };
   const onMoveCheck = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (activePointerId.current !== e.pointerId || startX.current === null || startY.current === null) return;
@@ -117,24 +117,26 @@ export function InteractiveProtocolCard({
   };
   const onUp = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (activePointerId.current !== e.pointerId) return;
-    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-      e.currentTarget.releasePointerCapture(e.pointerId);
-    }
-    if (!moved.current && !isInteractiveTarget(e.target)) {
-      setFlipped((f) => !f);
-    }
+    suppressClickRef.current = moved.current;
     if (e.pointerType === "touch") onTiltLeave();
     resetPress();
   };
 
   const onCancel = (e?: ReactPointerEvent<HTMLDivElement>) => {
     if (e && activePointerId.current !== e.pointerId) return;
-    if (e && e.currentTarget.hasPointerCapture(e.pointerId)) {
-      e.currentTarget.releasePointerCapture(e.pointerId);
-    }
+    suppressClickRef.current = true;
     moved.current = true;
     if (e?.pointerType === "touch") onTiltLeave();
     resetPress();
+  };
+
+  const onClickCapture = (e: any) => {
+    if (isInteractiveTarget(e.target)) return;
+    if (suppressClickRef.current) {
+      suppressClickRef.current = false;
+      return;
+    }
+    setFlipped((f) => !f);
   };
 
   const innerStyle: CSSProperties = {
@@ -172,12 +174,12 @@ export function InteractiveProtocolCard({
         onPointerMove={onMoveCheck}
         onPointerUp={onUp}
         onPointerCancel={onCancel}
-        onLostPointerCapture={onCancel}
+        onClickCapture={onClickCapture}
       >
         {/* FRONT */}
         <div
           className="absolute inset-0 overflow-hidden rounded-2xl border border-border cursor-pointer"
-          style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden", ...surfaceStyle }}
+          style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden", pointerEvents: flipped ? "none" : "auto", ...surfaceStyle }}
         >
           <CardFront protocol={protocol} showChevron={false} animateStats={!flipped} />
         </div>
@@ -188,6 +190,7 @@ export function InteractiveProtocolCard({
           style={{
             backfaceVisibility: "hidden",
             WebkitBackfaceVisibility: "hidden",
+            pointerEvents: flipped ? "auto" : "none",
             transform: "translateZ(0) rotateY(180deg)",
             ...surfaceStyle,
           }}
