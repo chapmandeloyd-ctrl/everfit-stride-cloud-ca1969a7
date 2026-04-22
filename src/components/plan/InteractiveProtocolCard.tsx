@@ -45,6 +45,13 @@ export interface InteractiveProtocolCardProps {
    * set to the max so all cards in a list end up the same height.
    */
   onMeasureHeight?: (heightPx: number) => void;
+  /**
+   * Optional element rendered inside the back-face header row, to the left of
+   * the "Flip" pill. Used by feature cards (e.g. keto) to add a contextual
+   * action like "Export as PDF" without coupling the shared component to
+   * any one feature.
+   */
+  backExtraAction?: React.ReactNode;
 }
 
 /**
@@ -65,6 +72,7 @@ export function InteractiveProtocolCard({
   flipCancelVerticalPx = 8,
   forcedHeight,
   onMeasureHeight,
+  backExtraAction,
 }: InteractiveProtocolCardProps) {
   const [flipped, setFlipped] = useState(false);
   const tiltRef = useRef<HTMLDivElement>(null);
@@ -278,7 +286,7 @@ export function InteractiveProtocolCard({
           <CardFront protocol={protocol} showChevron={false} animateStats={false} frontExtra={frontExtra} />
         </div>
         <div ref={backMeasureRef} className="rounded-2xl border border-border">
-          <BackContent protocol={protocol} onClose={() => {}} />
+          <BackContent protocol={protocol} onClose={() => {}} extraAction={backExtraAction} />
         </div>
       </div>
 
@@ -356,7 +364,7 @@ export function InteractiveProtocolCard({
           }}
           aria-hidden={!flipped}
         >
-          <BackContent protocol={protocol} onClose={() => setFlipped(false)} />
+          <BackContent protocol={protocol} onClose={() => setFlipped(false)} extraAction={backExtraAction} />
           {onOpen && (
             <div className="absolute bottom-3 left-0 right-0 flex justify-center">
               <button
