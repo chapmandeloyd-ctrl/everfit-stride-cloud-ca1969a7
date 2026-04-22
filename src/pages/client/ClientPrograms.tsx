@@ -111,27 +111,33 @@ export default function ClientPrograms() {
   function renderProtocolCard(protocol: FastingProtocol, isActive: boolean) {
     const config = CATEGORY_CONFIG[protocol.category];
     if (!config) return null;
+    const demo: DemoProtocol = {
+      id: protocol.id,
+      icon: config.icon,
+      accentColorClass: config.color,
+      iconGradient: config.iconGradient,
+      surfaceTintGradient: config.surfaceTintGradient,
+      eyebrow: config.label,
+      subEyebrow: "Adaptive Protocol",
+      title: protocol.name,
+      stats: [
+        { value: `${protocol.fast_target_hours}h`, label: "Fast", accentClass: config.color },
+        { value: getDurationLabel(protocol.duration_days), label: "Duration" },
+        { value: getDifficultyLabel(protocol.difficulty_level), label: "Level" },
+      ],
+      status: isActive ? "current" : "locked",
+      content: getProtocolCardContent(protocol.fast_target_hours, false),
+    };
     return (
-      <PremiumPlanCard
+      <InteractiveProtocolCard
         key={protocol.id}
-        icon={config.icon}
-        accentColorClass={config.color}
-        iconGradient={config.iconGradient}
-        surfaceTintGradient={config.surfaceTintGradient}
-        eyebrow={config.label}
-        subEyebrow="Adaptive Protocol"
-        title={protocol.name}
-        stats={[
-          { value: `${protocol.fast_target_hours}h`, label: "Fast", accentClass: config.color },
-          { value: getDurationLabel(protocol.duration_days), label: "Duration" },
-          { value: getDifficultyLabel(protocol.difficulty_level), label: "Level" },
-        ]}
-        status={isActive ? "current" : "locked"}
+        protocol={demo}
         dimmed={!isActive}
-        onClick={() => {
+        onOpen={() => {
           if (isActive) navigate(`/client/protocol/${protocol.id}`);
           else setShowLocked(true);
         }}
+        openLabel={isActive ? "Open plan" : "Unlock"}
       />
     );
   }
