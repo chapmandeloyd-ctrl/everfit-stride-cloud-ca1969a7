@@ -172,6 +172,10 @@ export function InteractiveProtocolCard({
       ? `${protocolName} details shown.`
       : `${protocolName} summary shown.`;
 
+  // One-time touch hint: announced the first time a touch interaction starts on this card.
+  const [touchHint, setTouchHint] = useState("");
+  const touchHintShownRef = useRef(false);
+
   const innerStyle: CSSProperties = {
     transformStyle: "preserve-3d",
     WebkitTransformStyle: "preserve-3d",
