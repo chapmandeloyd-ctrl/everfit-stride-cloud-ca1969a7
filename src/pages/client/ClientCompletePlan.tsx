@@ -26,6 +26,8 @@ import { InteractiveKetoTypeCard } from "@/components/keto/InteractiveKetoTypeCa
 import { MacroComparisonFlipCard } from "@/components/keto/MacroComparisonFlipCard";
 import { buildSynergyProtocol } from "@/lib/synergyDemoContent";
 import { DeviceTelemetryButton } from "@/components/debug/DeviceTelemetryButton";
+import { ProtocolLibraryCarousel } from "@/components/plan/ProtocolLibraryCarousel";
+import { useProtocolLibrary } from "@/hooks/useProtocolLibrary";
 
 function generateWeeklyProgression(durationDays: number, fastTargetHours: number) {
   const weeks = Math.ceil(durationDays / 7);
@@ -113,6 +115,9 @@ export default function ClientCompletePlan() {
   const isQuickPlan = !protocolId && !!quickPlanId;
   const activeProtocolId = protocolId || quickPlanId;
   const ketoTypeId = ketoAssignment?.keto_type_id;
+
+  // Merged protocol library (quick plans + fasting protocols) for the carousel.
+  const { data: library } = useProtocolLibrary(clientId);
 
   // Fetch protocol data
   const { data: protocol } = useQuery({
@@ -309,28 +314,35 @@ export default function ClientCompletePlan() {
 
         {/* PROTOCOL DETAIL CARD — Single structured premium card */}
         <div className="px-5 space-y-4">
-          {/* HERO — Interactive flip card (tap for details, tilt on hover/touch) */}
-          <InteractiveProtocolCard
-            protocol={{
-              id: protocol.id ?? "active-plan",
-              icon: heroIcon,
-              accentColorClass: heroAccentClass,
-              iconGradient: heroIconGradient,
-              surfaceTintGradient: heroSurfaceTint,
-              eyebrow: heroEyebrow,
-              subEyebrow: heroSubEyebrow,
-              title: protocol.name,
-              titleSuffix: titleSuffix,
-              stats: [
-                { value: `${protocol.fast_target_hours}h`, label: "Fast", accentClass: heroAccentClass },
-                { value: durationLabel, label: "Duration" },
-                { value: getDifficultyLabel(protocol.difficulty_level), label: "Level" },
-              ],
-              status: "current",
-              content: protocolContent,
-            } as DemoProtocol}
-          />
-
+          {/* MERGED LIBRARY — peek-snap horizontal carousel of every protocol */}
+          {library && library.entries.length > 0 ? (
+            <ProtocolLibraryCarousel
+              entries={library.entries}
+              currentLevel={library.currentLevel}
+              selectedKey={library.selectedKey}
+            />
+          ) : (
+            <InteractiveProtocolCard
+              protocol={{
+                id: protocol.id ?? "active-plan",
+                icon: heroIcon,
+                accentColorClass: heroAccentClass,
+                iconGradient: heroIconGradient,
+                surfaceTintGradient: heroSurfaceTint,
+                eyebrow: heroEyebrow,
+                subEyebrow: heroSubEyebrow,
+                title: protocol.name,
+                titleSuffix: titleSuffix,
+                stats: [
+                  { value: `${protocol.fast_target_hours}h`, label: "Fast", accentClass: heroAccentClass },
+                  { value: durationLabel, label: "Duration" },
+                  { value: getDifficultyLabel(protocol.difficulty_level), label: "Level" },
+                ],
+                status: "current",
+                content: protocolContent,
+              } as DemoProtocol}
+            />
+          )}
         </div>
 
         {/* ═══════════════════════════════════════════ */}
