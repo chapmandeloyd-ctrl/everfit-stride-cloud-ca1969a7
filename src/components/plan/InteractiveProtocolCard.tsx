@@ -4,6 +4,7 @@ import {
   CardFront,
   BackContent,
   type DemoProtocol,
+  type FrontExtraVariant,
 } from "@/components/plan/InteractiveProtocolCardDemo";
 
 export interface InteractiveProtocolCardProps {
@@ -14,6 +15,12 @@ export interface InteractiveProtocolCardProps {
   onOpen?: () => void;
   /** Label for the optional Open button on the back face. */
   openLabel?: string;
+  /**
+   * Which space-filler to render below the stat tiles on the front face.
+   * Defaults to "coachQuote" — the design with the red "Tap for details"
+   * pill in the middle, a Coach Follow-Up block, and a phase timeline.
+   */
+  frontExtra?: FrontExtraVariant;
   /**
    * Pixels of horizontal travel allowed before a press is treated as a swipe
    * (and therefore NOT a flip). Lower = more sensitive / easier to cancel a flip.
@@ -41,6 +48,7 @@ export function InteractiveProtocolCard({
   dimmed,
   onOpen,
   openLabel = "Open plan",
+  frontExtra = "coachQuote",
   flipCancelHorizontalPx = 8,
   flipCancelVerticalPx = 8,
 }: InteractiveProtocolCardProps) {
