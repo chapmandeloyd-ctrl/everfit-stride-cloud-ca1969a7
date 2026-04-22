@@ -105,12 +105,23 @@ export default {
           "0%": { opacity: "0", transform: "translateY(8px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
+        "tap-hint-pulse": {
+          "0%, 100%": {
+            transform: "translateY(0) scale(1)",
+            boxShadow: "0 0 0 0 hsl(var(--primary) / 0.45)",
+          },
+          "50%": {
+            transform: "translateY(-2px) scale(1.04)",
+            boxShadow: "0 0 0 8px hsl(var(--primary) / 0)",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "vibes-sway": "vibes-sway 1.2s ease-in-out infinite",
         "fade-in": "fade-in 0.35s ease-out",
+        "tap-hint-pulse": "tap-hint-pulse 2.4s ease-in-out infinite",
       },
     },
   },
