@@ -497,13 +497,21 @@ function CardFront({
           ) : (
             <div className="flex h-full flex-col justify-between gap-4">
               <FrontExtra variant={frontExtra} protocol={protocol} animate={animateStats} />
-              <div className="rounded-xl border border-border/60 px-3 py-2" style={{
-                background: "linear-gradient(145deg, hsl(var(--muted) / 0.6), hsl(var(--muted) / 0.22))"
-              }}>
-                <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Coach read</p>
-                <p className="mt-1.5 text-xs font-medium leading-relaxed line-clamp-3">
-                  {protocol.content.coachWarning?.[0] ?? protocol.content.mentalReality?.[0] ?? "Stay consistent and let the middle phase pass."}
-                </p>
+              <div className="space-y-3">
+                <div className="rounded-xl border border-border/60 px-3 py-2" style={{
+                  background: "linear-gradient(145deg, hsl(var(--muted) / 0.6), hsl(var(--muted) / 0.22))"
+                }}>
+                  <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Coach read</p>
+                  <p className="mt-1.5 text-xs font-medium leading-relaxed line-clamp-3">
+                    {protocol.content.coachWarning?.[0] ?? protocol.content.mentalReality?.[0] ?? "Stay consistent and let the middle phase pass."}
+                  </p>
+                </div>
+                <div className="flex justify-center">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-background/85 backdrop-blur px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-primary shadow-md animate-[tap-hint-pulse_2.4s_ease-in-out_infinite]">
+                    <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                    Tap for details · Swipe to browse
+                  </span>
+                </div>
               </div>
             </div>
           )}
