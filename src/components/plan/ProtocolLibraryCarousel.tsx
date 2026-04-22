@@ -92,6 +92,7 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
   const startXRef = useRef<number | null>(null);
   const startYRef = useRef<number | null>(null);
   const lockedAxisRef = useRef<"x" | "y" | null>(null);
+  const didSwipeRef = useRef(false);
   const topCardRef = useRef<HTMLDivElement | null>(null);
   const [stackHeight, setStackHeight] = useState<number>(0);
 
@@ -116,6 +117,7 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
     startXRef.current = e.clientX;
     startYRef.current = e.clientY;
     lockedAxisRef.current = null;
+    didSwipeRef.current = false;
     setIsDragging(true);
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   };
@@ -130,6 +132,7 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
     }
     if (lockedAxisRef.current === "x") {
       e.preventDefault();
+      if (Math.abs(dx) > 10) didSwipeRef.current = true;
       setDragX(dx);
     }
   };
@@ -153,6 +156,15 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
     startXRef.current = null;
     startYRef.current = null;
     lockedAxisRef.current = null;
+  };
+
+  // Swallow the click that follows a swipe so InteractiveProtocolCard doesn't flip.
+  const handleClickCapture = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (didSwipeRef.current) {
+      e.stopPropagation();
+      e.preventDefault();
+      didSwipeRef.current = false;
+    }
   };
 
   // Visible stack: top card + 2 behind it for depth (no peek — same size, hidden under).
@@ -200,6 +212,7 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
+        onClickCapture={handleClickCapture}
       >
         {/* Background ghost cards (depth illusion) — pure visual, no pointer events. */}
         {stack

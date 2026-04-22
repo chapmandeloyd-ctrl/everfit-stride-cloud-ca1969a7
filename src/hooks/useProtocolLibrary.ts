@@ -107,13 +107,19 @@ export function useProtocolLibrary(clientId: string | null | undefined) {
       // Merged base order: quick plans (by order_index), then protocols (by level then hours).
       const merged = [...quickEntries, ...protocolEntries];
 
-      // Pin the client's selected entry to the front, if present.
-      const ordered = selectedKey
-        ? [
-            ...merged.filter((e) => e.key === selectedKey),
-            ...merged.filter((e) => e.key !== selectedKey),
-          ]
-        : merged;
+      // Sort so the user always lands on something they can actually use:
+      // 1. The client's currently-selected entry (if any) — pinned to front.
+      // 2. Unlocked entries (minLevelRequired ≤ currentLevel), by ascending level then hours.
+      // 3. Locked entries, by ascending level then hours.
+      const isUnlocked = (e: LibraryEntry) => e.minLevelRequired <= currentLevel;
+      const byLevelThenHours = (a: LibraryEntry, b: LibraryEntry) =>
+        a.minLevelRequired - b.minLevelRequired || a.fastTargetHours - b.fastTargetHours;
+
+      const selected = selectedKey ? merged.filter((e) => e.key === selectedKey) : [];
+      const rest = merged.filter((e) => e.key !== selectedKey);
+      const unlocked = rest.filter(isUnlocked).sort(byLevelThenHours);
+      const locked = rest.filter((e) => !isUnlocked(e)).sort(byLevelThenHours);
+      const ordered = [...selected, ...unlocked, ...locked];
 
       return { entries: ordered, currentLevel, selectedKey };
     },
