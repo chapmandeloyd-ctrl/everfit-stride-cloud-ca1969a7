@@ -79,7 +79,7 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
   const slides = useMemo(
     () => entries.map((entry) => ({
       entry,
-      isLocked: entry.minLevelRequired > currentLevel,
+      isLocked: entry.key !== selectedKey && entry.minLevelRequired > currentLevel,
       isCurrent: entry.key === selectedKey,
     })),
     [entries, currentLevel, selectedKey],
