@@ -183,15 +183,17 @@ interface Ctx {
   accent: RGB;
   documentLabel: string;
   clientName?: string | null;
+  showLogo: boolean;
+  footerText?: string | null;
 }
 
 function drawHeader(ctx: Ctx) {
-  const { page, fontRegular, fontBold, logo, accent, documentLabel } = ctx;
+  const { page, fontRegular, fontBold, logo, accent, documentLabel, showLogo } = ctx;
   const top = PAGE_HEIGHT - 28;
 
   // Logo + wordmark (left)
   let wordmarkX = MARGIN;
-  if (logo) {
+  if (showLogo && logo) {
     const targetH = 28;
     const aspect = logo.width / logo.height;
     const targetW = targetH * aspect;
@@ -205,7 +207,7 @@ function drawHeader(ctx: Ctx) {
   }
   page.drawText("KSOM-360", {
     x: wordmarkX,
-    y: top - (logo ? 19 : 18),
+    y: top - (showLogo && logo ? 19 : 18),
     size: 13,
     font: fontBold,
     color: toColor(BRAND_RED),
@@ -248,7 +250,7 @@ function drawHeader(ctx: Ctx) {
 }
 
 function drawFooter(ctx: Ctx) {
-  const { page, fontRegular, clientName } = ctx;
+  const { page, fontRegular, clientName, footerText } = ctx;
   const y = 22;
   page.drawRectangle({
     x: MARGIN,
@@ -257,7 +259,12 @@ function drawFooter(ctx: Ctx) {
     height: 0.5,
     color: toColor(HAIRLINE),
   });
-  const left = safeText(clientName ? `Prepared for ${clientName}` : "Prepared by KSOM-360");
+  const leftRaw = footerText && footerText.trim().length > 0
+    ? footerText
+    : clientName
+      ? `Prepared for ${clientName}`
+      : "Prepared by KSOM-360";
+  const left = safeText(leftRaw);
   page.drawText(left, {
     x: MARGIN,
     y,
