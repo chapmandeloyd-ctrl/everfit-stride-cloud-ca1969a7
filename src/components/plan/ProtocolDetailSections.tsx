@@ -1,4 +1,4 @@
-import { Sparkles, Brain, ListChecks, CalendarClock, AlertTriangle, Flame, ShieldCheck } from "lucide-react";
+import { Sparkles, Brain, CalendarClock, AlertTriangle, Flame, ShieldCheck } from "lucide-react";
 import type { DemoProtocol } from "@/components/plan/InteractiveProtocolCardDemo";
 
 interface SectionCardProps {

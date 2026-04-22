@@ -1,8 +1,9 @@
 import { useMemo, useState, useRef, useCallback, useLayoutEffect, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
-import { Lock, ChevronDown } from "lucide-react";
+import { Lock } from "lucide-react";
 import { toast } from "sonner";
 import { ProtocolCardStatic } from "@/components/plan/ProtocolCardStatic";
-import { BackContent, type DemoProtocol } from "@/components/plan/InteractiveProtocolCardDemo";
+import { ProtocolDetailSections } from "@/components/plan/ProtocolDetailSections";
+import { type DemoProtocol } from "@/components/plan/InteractiveProtocolCardDemo";
 import { CATEGORY_CONFIG, getDifficultyLabel } from "@/lib/fastingCategoryConfig";
 import { getProtocolCardContent } from "@/lib/protocolCardContent";
 import { getTierForLevel } from "@/lib/quickPlanTierConfig";
