@@ -928,8 +928,11 @@ function ComboCard({ protocols, frontExtra = "none" }: { protocols: DemoProtocol
           </div>
 
           {/* tap hint */}
-          <div className="absolute bottom-8 left-0 right-0 flex justify-center pointer-events-none">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80">
+          <div className="absolute bottom-5 left-0 right-0 flex justify-center pointer-events-none">
+            <span
+              className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-background/85 backdrop-blur px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-primary shadow-md animate-[tap-hint-pulse_2.4s_ease-in-out_infinite]"
+            >
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
               Tap for details · Swipe to browse
             </span>
           </div>
