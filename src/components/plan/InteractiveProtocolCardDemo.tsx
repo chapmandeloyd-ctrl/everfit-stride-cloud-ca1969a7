@@ -894,8 +894,10 @@ function ComboCard({ protocols, frontExtra = "none" }: { protocols: DemoProtocol
     const rect = el.getBoundingClientRect();
     const px = (e.clientX - rect.left) / rect.width;
     const py = (e.clientY - rect.top) / rect.height;
-    const rx = (py - 0.5) * -8;
-    const ry = (px - 0.5) * 10;
+    // Slightly stronger tilt on touch so it's clearly visible with a finger
+    const intensity = e.pointerType === "touch" ? 1.4 : 1;
+    const rx = (py - 0.5) * -8 * intensity;
+    const ry = (px - 0.5) * 10 * intensity;
     setTilt({ x: rx, y: ry });
   };
   const onTiltLeave = () => setTilt({ x: 0, y: 0 });
@@ -929,9 +931,11 @@ function ComboCard({ protocols, frontExtra = "none" }: { protocols: DemoProtocol
     <div
       ref={tiltRef}
       className="relative pt-6 pb-4 select-none"
-      style={{ perspective: "1400px" }}
+      style={{ perspective: "1400px", touchAction: "pan-y" }}
       onPointerMove={onTiltMove}
       onPointerLeave={onTiltLeave}
+      onPointerCancel={onTiltLeave}
+      onPointerUp={(e) => { if (e.pointerType === "touch") onTiltLeave(); }}
     >
       <CardStackBackdrop />
       <div
