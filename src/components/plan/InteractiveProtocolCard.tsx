@@ -199,7 +199,7 @@ export function InteractiveProtocolCard({
     willChange: "transform",
     transition: flipped ? "transform 0.5s cubic-bezier(0.22, 1, 0.36, 1)" : "transform 0.14s ease-out",
     transform: flipped ? "translateZ(0) rotateY(180deg)" : `translateZ(0) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
-    minHeight: 320,
+    minHeight: 640,
   };
 
   const surfaceStyle: CSSProperties = {
