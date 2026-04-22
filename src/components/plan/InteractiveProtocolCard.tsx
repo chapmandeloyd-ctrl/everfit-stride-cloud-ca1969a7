@@ -6,6 +6,7 @@ import {
   type DemoProtocol,
   type FrontExtraVariant,
 } from "@/components/plan/InteractiveProtocolCardDemo";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export interface InteractiveProtocolCardProps {
   protocol: DemoProtocol;
@@ -74,6 +75,8 @@ export function InteractiveProtocolCard({
   onMeasureHeight,
   backExtraAction,
 }: InteractiveProtocolCardProps) {
+  const isMobileViewport = typeof window !== "undefined" ? window.innerWidth < 1024 : false;
+  const isMobile = useIsMobile() || isMobileViewport;
   const [flipped, setFlipped] = useState(false);
   const tiltRef = useRef<HTMLDivElement>(null);
   const [tilt, setTilt] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -91,6 +94,7 @@ export function InteractiveProtocolCard({
   const [measuredHeight, setMeasuredHeight] = useState<number>(0);
 
   useEffect(() => {
+    if (isMobile) return;
     const front = frontMeasureRef.current;
     const back = backMeasureRef.current;
     if (!front || !back) return;
@@ -107,11 +111,12 @@ export function InteractiveProtocolCard({
     ro.observe(front);
     ro.observe(back);
     return () => ro.disconnect();
-  }, [protocol, frontExtra]);
+  }, [isMobile, protocol, frontExtra]);
 
   useEffect(() => {
+    if (isMobile) return;
     if (measuredHeight > 0) onMeasureHeight?.(measuredHeight);
-  }, [measuredHeight, onMeasureHeight]);
+  }, [isMobile, measuredHeight, onMeasureHeight]);
 
   const effectiveHeight = forcedHeight ?? measuredHeight;
 
@@ -261,6 +266,68 @@ export function InteractiveProtocolCard({
     boxShadow:
       "0 24px 48px -16px hsl(0 0% 0% / 0.55), 0 12px 24px -10px hsl(0 0% 0% / 0.4), 0 4px 8px -2px hsl(0 0% 0% / 0.25), inset 0 1px 0 hsl(0 0% 100% / 0.1), inset 0 -1px 0 hsl(0 0% 0% / 0.3)",
   };
+
+  if (isMobile) {
+    return (
+      <div className={`relative pt-6 pb-4 select-none ${dimmed ? "opacity-60 grayscale-[20%]" : ""}`}>
+        <CardStackBackdrop />
+
+        <div
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          className="sr-only"
+        >
+          {liveMessage}
+        </div>
+
+        <div className="relative rounded-2xl overflow-hidden border border-border" style={surfaceStyle}>
+          {!flipped ? (
+            <div
+              role="button"
+              tabIndex={0}
+              aria-pressed={false}
+              aria-label={ariaLabel}
+              onClick={() => setFlipped(true)}
+              onKeyDown={onKeyDown}
+            >
+              <CardFront
+                protocol={protocol}
+                showChevron={false}
+                pulse={false}
+                shimmer={false}
+                animateStats={false}
+                frontExtra={frontExtra}
+              />
+            </div>
+          ) : (
+            <>
+              <BackContent protocol={protocol} onClose={() => setFlipped(false)} extraAction={backExtraAction} />
+              {onOpen && (
+                <div className="px-4 pb-4 -mt-2">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onOpen();
+                    }}
+                    className="inline-flex w-full items-center justify-center gap-1.5 rounded-full px-4 py-2 text-[11px] font-extrabold uppercase tracking-wider text-primary-foreground shadow-lg"
+                    style={{
+                      backgroundImage:
+                        "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.85) 50%, hsl(var(--primary) / 0.95) 100%)",
+                      boxShadow:
+                        "0 6px 18px -4px hsl(var(--primary) / 0.55), 0 2px 6px -2px hsl(var(--primary) / 0.4)",
+                    }}
+                  >
+                    {openLabel} →
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
