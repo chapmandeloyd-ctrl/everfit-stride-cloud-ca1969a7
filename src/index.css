@@ -120,6 +120,41 @@ Light Theme 1: Clean & Athletic — warm white base, bold red accents, crisp con
 }
 
 @layer utilities {
+  @keyframes macro-icon-float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-2px);
+    }
+  }
+
+  @keyframes macro-icon-breathe {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.03);
+    }
+  }
+
+  @keyframes macro-pill-glint {
+    0%, 100% {
+      transform: translateX(-140%);
+      opacity: 0;
+    }
+    18% {
+      opacity: 0;
+    }
+    42% {
+      transform: translateX(260%);
+      opacity: 1;
+    }
+    60% {
+      opacity: 0;
+    }
+  }
+
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;

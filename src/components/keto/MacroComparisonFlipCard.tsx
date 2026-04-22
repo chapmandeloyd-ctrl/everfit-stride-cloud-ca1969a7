@@ -188,48 +188,75 @@ export function MacroComparisonFlipCard({
               <span className="text-xs font-bold w-12" style={{ color: c }}>
                 {t.abbreviation}
               </span>
-              {/* 3D embossed pill — outer shadow + inner highlights */}
               <div
-                className="relative flex-1 h-3.5 rounded-full overflow-hidden flex"
+                className="relative flex-1 h-6 rounded-full px-[2px] py-[2px]"
                 style={{
-                  boxShadow:
-                    "0 2px 4px -1px hsl(0 0% 0% / 0.35), 0 1px 2px hsl(0 0% 0% / 0.25), inset 0 1px 1px hsl(0 0% 100% / 0.18), inset 0 -1px 1px hsl(0 0% 0% / 0.35)",
+                  background: `linear-gradient(180deg, ${c}2f 0%, ${c}1a 100%)`,
+                  boxShadow: [
+                    `0 10px 16px -10px ${c}a6`,
+                    "0 5px 10px -6px hsl(0 0% 0% / 0.28)",
+                    "inset 0 1px 0 hsl(0 0% 100% / 0.5)",
+                    "inset 0 -1px 0 hsl(0 0% 0% / 0.12)",
+                  ].join(", "),
                 }}
               >
-                {/* Fat segment — colored, glossy */}
                 <div
-                  className="h-full"
-                  style={{
-                    width: `${fatW}%`,
-                    background: `linear-gradient(180deg, ${c} 0%, ${c} 45%, ${c}cc 100%)`,
-                  }}
-                />
-                {/* Protein segment — mid grey, raised */}
-                <div
-                  className="h-full"
-                  style={{
-                    width: `${protW}%`,
-                    background:
-                      "linear-gradient(180deg, hsl(var(--muted-foreground) / 0.45) 0%, hsl(var(--muted-foreground) / 0.3) 100%)",
-                  }}
-                />
-                {/* Carb segment — darker grey, deeper */}
-                <div
-                  className="h-full"
-                  style={{
-                    width: `${carbW}%`,
-                    background:
-                      "linear-gradient(180deg, hsl(var(--muted-foreground) / 0.7) 0%, hsl(var(--muted-foreground) / 0.55) 100%)",
-                  }}
-                />
-                {/* Top gloss highlight — sits over the entire pill */}
-                <div
-                  className="pointer-events-none absolute inset-x-0 top-0 h-1/2 rounded-t-full"
+                  className="relative h-full rounded-full overflow-hidden flex"
                   style={{
                     background:
-                      "linear-gradient(180deg, hsl(0 0% 100% / 0.28) 0%, hsl(0 0% 100% / 0) 100%)",
+                      "linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--secondary)) 100%)",
+                    boxShadow:
+                      "inset 0 1px 1px hsl(0 0% 100% / 0.75), inset 0 -2px 3px hsl(0 0% 0% / 0.22)",
                   }}
-                />
+                >
+                  <div
+                    className="relative h-full"
+                    style={{
+                      width: `${fatW}%`,
+                      background: `linear-gradient(180deg, ${c}cc 0%, ${c} 42%, ${c}d9 100%)`,
+                      boxShadow: `inset 0 1px 0 ${c}66, inset 0 -2px 3px hsl(0 0% 0% / 0.18)`,
+                    }}
+                  >
+                    <div
+                      className="pointer-events-none absolute inset-x-[8%] top-[2px] h-[40%] rounded-full"
+                      style={{
+                        background:
+                          "linear-gradient(180deg, hsl(0 0% 100% / 0.34) 0%, hsl(0 0% 100% / 0) 100%)",
+                      }}
+                    />
+                    <div
+                      className="pointer-events-none absolute inset-y-0 -left-1 w-10 rounded-full animate-[macro-pill-glint_3.8s_ease-in-out_infinite]"
+                      style={{
+                        background:
+                          "linear-gradient(90deg, hsl(0 0% 100% / 0) 0%, hsl(0 0% 100% / 0.18) 50%, hsl(0 0% 100% / 0) 100%)",
+                        filter: "blur(3px)",
+                      }}
+                    />
+                  </div>
+                  <div
+                    className="h-full"
+                    style={{
+                      width: `${protW}%`,
+                      background:
+                        "linear-gradient(180deg, hsl(var(--muted-foreground) / 0.24) 0%, hsl(var(--muted-foreground) / 0.38) 100%)",
+                    }}
+                  />
+                  <div
+                    className="h-full"
+                    style={{
+                      width: `${carbW}%`,
+                      background:
+                        "linear-gradient(180deg, hsl(var(--muted-foreground) / 0.42) 0%, hsl(var(--muted-foreground) / 0.58) 100%)",
+                    }}
+                  />
+                  <div
+                    className="pointer-events-none absolute inset-x-[4px] top-[1px] h-[42%] rounded-full"
+                    style={{
+                      background:
+                        "linear-gradient(180deg, hsl(0 0% 100% / 0.45) 0%, hsl(0 0% 100% / 0) 100%)",
+                    }}
+                  />
+                </div>
               </div>
               <span className="text-[11px] text-muted-foreground w-24 text-right tabular-nums">
                 <span style={{ color: c }}>{t.fat_pct}%F</span> {t.protein_pct}%P {t.carbs_pct}%C
@@ -453,28 +480,47 @@ function SquircleIcon({
   children: React.ReactNode;
 }) {
   return (
-    <div
-      className="relative h-9 w-9 rounded-[10px] flex items-center justify-center shrink-0"
-      style={{
-        background: `linear-gradient(160deg, ${themeColor} 0%, ${themeColor}e6 50%, ${themeColor}b3 100%)`,
-        boxShadow: [
-          `0 6px 14px -4px ${themeColor}80`,
-          "0 2px 4px hsl(0 0% 0% / 0.25)",
-          "inset 0 1px 0 hsl(0 0% 100% / 0.45)",
-          "inset 0 -2px 3px hsl(0 0% 0% / 0.25)",
-          `inset 0 0 0 1px ${themeColor}`,
-        ].join(", "),
-      }}
-    >
-      {/* Top gloss highlight */}
+    <div className="relative h-14 w-14 shrink-0 animate-[macro-icon-float_3.2s_ease-in-out_infinite]">
       <div
-        className="pointer-events-none absolute inset-x-1 top-1 h-1/2 rounded-[7px]"
+        className="absolute inset-0 rounded-[22px]"
         style={{
-          background:
-            "linear-gradient(180deg, hsl(0 0% 100% / 0.3) 0%, hsl(0 0% 100% / 0) 100%)",
+          background: `linear-gradient(180deg, ${themeColor}40 0%, ${themeColor}2b 100%)`,
+          boxShadow: [
+            `0 14px 28px -14px ${themeColor}b3`,
+            "0 8px 18px -12px hsl(0 0% 0% / 0.3)",
+            "inset 0 1px 0 hsl(0 0% 100% / 0.7)",
+          ].join(", "),
         }}
       />
-      <div className="relative">{children}</div>
+      <div
+        className="absolute inset-[6px] rounded-[18px] flex items-center justify-center animate-[macro-icon-breathe_2.6s_ease-in-out_infinite]"
+        style={{
+          background: `linear-gradient(180deg, ${themeColor}f2 0%, ${themeColor} 55%, ${themeColor}d9 100%)`,
+          boxShadow: [
+            `0 12px 18px -10px ${themeColor}d9`,
+            "0 6px 10px -6px hsl(0 0% 0% / 0.35)",
+            "inset 0 2px 2px hsl(0 0% 100% / 0.18)",
+            "inset 0 -3px 4px hsl(0 0% 0% / 0.22)",
+          ].join(", "),
+        }}
+      >
+        <span
+          className="absolute inset-0 rounded-[18px] opacity-60 animate-[macro-icon-breathe_2.6s_ease-in-out_infinite]"
+          aria-hidden
+          style={{
+            background: `linear-gradient(180deg, ${themeColor}d9 0%, ${themeColor}b3 100%)`,
+            filter: "blur(1px)",
+          }}
+        />
+        <div
+          className="pointer-events-none absolute inset-x-2 top-1 h-[42%] rounded-[14px]"
+          style={{
+            background:
+              "linear-gradient(180deg, hsl(0 0% 100% / 0.26) 0%, hsl(0 0% 100% / 0) 100%)",
+          }}
+        />
+        <div className="relative text-primary-foreground drop-shadow-[0_2px_6px_hsl(0_0%_0%_/_0.35)]">{children}</div>
+      </div>
     </div>
   );
 }
