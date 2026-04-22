@@ -106,10 +106,37 @@ function toColor({ r, g, b }: RGB) {
   return rgb(r, g, b);
 }
 
+/**
+ * Replace characters that the WinAnsi encoding (used by pdf-lib's standard
+ * Helvetica fallback) can't encode. Inter, when it loads, handles all of
+ * these natively — but if the CDN fetch fails we silently fall back to
+ * Helvetica and would otherwise crash on "≤", "—", smart quotes, etc.
+ * Always run user-facing strings through this before measuring or drawing.
+ */
+function safeText(input: string): string {
+  if (!input) return "";
+  return input
+    .replace(/\u2264/g, "<=")  // ≤
+    .replace(/\u2265/g, ">=")  // ≥
+    .replace(/\u2260/g, "!=")  // ≠
+    .replace(/\u2248/g, "~")   // ≈
+    .replace(/\u00B1/g, "+/-") // ±
+    .replace(/\u2212/g, "-")   // −
+    .replace(/[\u2013\u2014]/g, "-")          // – —
+    .replace(/[\u2018\u2019\u201A\u2032]/g, "'") // ‘ ’ ‚ ′
+    .replace(/[\u201C\u201D\u201E\u2033]/g, '"') // “ ” „ ″
+    .replace(/\u2026/g, "...") // …
+    .replace(/\u00B7/g, "·" /* keep middle dot, WinAnsi has it */)
+    .replace(/[\u2022\u25CF]/g, "•" /* WinAnsi bullet */)
+    .replace(/\u00A0/g, " ")   // nbsp
+    // Strip anything else outside the WinAnsi-safe range as a last resort.
+    .replace(/[^\x09\x0A\x0D\x20-\x7E\xA0-\xFF\u20AC\u2022\u00B7]/g, "");
+}
+
 /** Word-wrap that respects existing line breaks in the input. */
 function wrapText(text: string, font: PDFFont, size: number, maxWidth: number): string[] {
   const out: string[] = [];
-  const paragraphs = text.split(/\n/);
+  const paragraphs = safeText(text).split(/\n/);
   for (const paragraph of paragraphs) {
     if (!paragraph.trim()) {
       out.push("");
