@@ -388,7 +388,10 @@ function FullHeightPreviewExtra({ protocol, animate }: { protocol: DemoProtocol;
 
 function TapBrowseHint() {
   return (
-    <span className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-primary/40 bg-background/85 px-3 py-1 text-center text-[10px] font-extrabold uppercase tracking-wider text-primary shadow-md backdrop-blur animate-[tap-hint-pulse_2.4s_ease-in-out_infinite]">
+    <span
+      className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-primary/40 bg-background/85 px-3 py-1 text-center text-[10px] font-extrabold uppercase tracking-wider text-primary shadow-md backdrop-blur animate-[tap-hint-tilt_3.6s_ease-in-out_infinite] will-change-transform"
+      style={{ transformStyle: "preserve-3d" }}
+    >
       <span className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-primary animate-pulse" />
       <span className="truncate">Tap for details · Swipe to browse</span>
     </span>
