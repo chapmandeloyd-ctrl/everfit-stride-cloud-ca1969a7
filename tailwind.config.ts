@@ -115,6 +115,24 @@ export default {
             boxShadow: "0 0 0 8px hsl(var(--primary) / 0)",
           },
         },
+        "tap-hint-tilt": {
+          "0%, 100%": {
+            transform: "perspective(600px) rotateX(0deg) rotateY(0deg) translateY(0)",
+            boxShadow: "0 4px 12px -2px hsl(var(--primary) / 0.25)",
+          },
+          "20%": {
+            transform: "perspective(600px) rotateX(6deg) rotateY(-8deg) translateY(-2px)",
+            boxShadow: "0 8px 18px -4px hsl(var(--primary) / 0.45)",
+          },
+          "50%": {
+            transform: "perspective(600px) rotateX(-4deg) rotateY(8deg) translateY(-3px)",
+            boxShadow: "0 10px 22px -6px hsl(var(--primary) / 0.5)",
+          },
+          "80%": {
+            transform: "perspective(600px) rotateX(3deg) rotateY(-4deg) translateY(-1px)",
+            boxShadow: "0 6px 14px -4px hsl(var(--primary) / 0.35)",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -122,6 +140,7 @@ export default {
         "vibes-sway": "vibes-sway 1.2s ease-in-out infinite",
         "fade-in": "fade-in 0.35s ease-out",
         "tap-hint-pulse": "tap-hint-pulse 2.4s ease-in-out infinite",
+        "tap-hint-tilt": "tap-hint-tilt 3.6s ease-in-out infinite",
       },
     },
   },
