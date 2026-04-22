@@ -298,11 +298,6 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
                     dimmed={isLocked}
                   />
                 </div>
-                {isCurrent && !isLocked && (
-                  <div className="absolute top-3 left-3 z-30 rounded-full bg-primary px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-primary-foreground shadow-lg">
-                    Current
-                  </div>
-                )}
               </div>
             </div>
           );
