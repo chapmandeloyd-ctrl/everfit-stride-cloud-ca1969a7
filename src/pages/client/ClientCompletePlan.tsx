@@ -306,21 +306,26 @@ export default function ClientCompletePlan() {
 
         {/* PROTOCOL DETAIL CARD — Single structured premium card */}
         <div className="px-5 space-y-4">
-          {/* HERO — Premium 3D card with category gradient + icon */}
-          <PremiumPlanCard
-            icon={heroIcon}
-            accentColorClass={heroAccentClass}
-            iconGradient={heroIconGradient}
-            surfaceTintGradient={heroSurfaceTint}
-            eyebrow={heroEyebrow}
-            subEyebrow={heroSubEyebrow}
-            title={protocol.name}
-            titleSuffix={titleSuffix}
-            stats={[
-              { value: `${protocol.fast_target_hours}h`, label: "Fast", accentClass: heroAccentClass },
-              { value: durationLabel, label: "Duration" },
-              { value: getDifficultyLabel(protocol.difficulty_level), label: "Level" },
-            ]}
+          {/* HERO — Interactive flip card (tap for details, tilt on hover/touch) */}
+          <InteractiveProtocolCard
+            protocol={{
+              id: protocol.id ?? "active-plan",
+              icon: heroIcon,
+              accentColorClass: heroAccentClass,
+              iconGradient: heroIconGradient,
+              surfaceTintGradient: heroSurfaceTint,
+              eyebrow: heroEyebrow,
+              subEyebrow: heroSubEyebrow,
+              title: protocol.name,
+              titleSuffix: titleSuffix,
+              stats: [
+                { value: `${protocol.fast_target_hours}h`, label: "Fast", accentClass: heroAccentClass },
+                { value: durationLabel, label: "Duration" },
+                { value: getDifficultyLabel(protocol.difficulty_level), label: "Level" },
+              ],
+              status: "current",
+              content: protocolContent,
+            } as DemoProtocol}
           />
 
           {/* BLOCK 2 — HOW THIS PROTOCOL WORKS */}
