@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
+import { ChevronDown } from "lucide-react";
 import {
   CardStackBackdrop,
   CardFront,
