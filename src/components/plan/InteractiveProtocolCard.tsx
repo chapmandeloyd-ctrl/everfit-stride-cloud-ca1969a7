@@ -201,6 +201,15 @@ export function InteractiveProtocolCard({
       <CardStackBackdrop />
 
       <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {liveMessage}
+      </div>
+
+      <div
         className="relative rounded-2xl group"
         style={innerStyle}
         onPointerDown={onDown}
