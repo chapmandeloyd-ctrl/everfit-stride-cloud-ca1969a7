@@ -96,6 +96,7 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
   const didSwipeRef = useRef(false);
   const topCardRef = useRef<HTMLDivElement | null>(null);
   const [stackHeight, setStackHeight] = useState<number>(0);
+  const [detailsOpen, setDetailsOpen] = useState(false);
 
   const total = slides.length;
   const SWIPE_THRESHOLD = 90; // px to commit a swipe
@@ -110,6 +111,7 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
         dragXRef.current = 0;
         setDragX(0);
         setIsAnimating(false);
+        setDetailsOpen(false);
       }, 280);
     },
     [total],
