@@ -34,6 +34,7 @@ export function InteractiveProtocolCard({
   const tiltRef = useRef<HTMLDivElement>(null);
   const [tilt, setTilt] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const startX = useRef<number | null>(null);
+  const startY = useRef<number | null>(null);
   const moved = useRef(false);
 
   const onTiltMove = (e: ReactPointerEvent<HTMLDivElement>) => {
@@ -52,14 +53,25 @@ export function InteractiveProtocolCard({
 
   const onDown = (e: ReactPointerEvent<HTMLDivElement>) => {
     startX.current = e.clientX;
+    startY.current = e.clientY;
     moved.current = false;
   };
   const onMoveCheck = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (startX.current !== null && Math.abs(e.clientX - startX.current) > 8) moved.current = true;
+    if (startX.current === null || startY.current === null) return;
+    const deltaX = Math.abs(e.clientX - startX.current);
+    const deltaY = Math.abs(e.clientY - startY.current);
+    if (deltaX > 8 || deltaY > 8) moved.current = true;
   };
   const onUp = () => {
     if (!moved.current) setFlipped((f) => !f);
     startX.current = null;
+    startY.current = null;
+  };
+
+  const onCancel = () => {
+    moved.current = true;
+    startX.current = null;
+    startY.current = null;
   };
 
   const innerStyle: CSSProperties = {
@@ -96,6 +108,7 @@ export function InteractiveProtocolCard({
           onPointerDown={onDown}
           onPointerMove={onMoveCheck}
           onPointerUp={onUp}
+          onPointerCancel={onCancel}
         >
           <CardFront protocol={protocol} showChevron={false} animateStats={!flipped} />
         </div>
