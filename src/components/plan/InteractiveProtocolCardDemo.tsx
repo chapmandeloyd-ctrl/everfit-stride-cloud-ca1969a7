@@ -316,34 +316,49 @@ function DifficultyExtra({ protocol }: { protocol: DemoProtocol }) {
     Expert: 5,
   };
   const dots = levelMap[levelLabel] ?? 3;
+  const meters = [
+    { label: "Hunger", value: Math.min(5, dots + 1) },
+    { label: "Mental load", value: dots },
+    { label: "Recovery cost", value: Math.max(1, dots - 1) },
+  ];
   return (
-    <div className="flex items-center justify-between gap-3">
-      <div>
-        <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">Intensity</p>
-        <div className="flex items-center gap-1">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <span
-              key={i}
-              className={`h-2 w-2 rounded-full ${
-                i <= dots
-                  ? `bg-gradient-to-br ${protocol.iconGradient}`
-                  : "bg-muted"
-              }`}
-              style={i <= dots ? { boxShadow: "0 1px 2px hsl(0 0% 0% / 0.3)" } : undefined}
-            />
+    <div className="space-y-3">
+      <div
+        className="rounded-xl border border-border/60 p-3"
+        style={{ background: "linear-gradient(145deg, hsl(var(--muted) / 0.7), hsl(var(--muted) / 0.25))" }}
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Intensity</p>
+            <p className="text-base font-black mt-0.5">{levelLabel}</p>
+          </div>
+          <div
+            className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 border border-border/60"
+            style={{ background: "linear-gradient(145deg, hsl(var(--muted) / 0.7), hsl(var(--muted) / 0.3))" }}
+          >
+            <Activity className={`h-3 w-3 ${protocol.accentColorClass}`} />
+            <span className="text-[10px] font-extrabold uppercase tracking-wider">Recommended ✓</span>
+          </div>
+        </div>
+        <div className="mt-3 space-y-2">
+          {meters.map((m) => (
+            <div key={m.label} className="flex items-center gap-3">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground w-24">{m.label}</span>
+              <div className="flex-1 flex items-center gap-1">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <span
+                    key={i}
+                    className={`h-1.5 flex-1 rounded-full ${
+                      i <= m.value ? `bg-gradient-to-r ${protocol.iconGradient}` : "bg-muted"
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
           ))}
         </div>
-        <p className="text-[10px] font-extrabold mt-1">{levelLabel}</p>
       </div>
-      <div
-        className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 border border-border/60"
-        style={{
-          background: "linear-gradient(145deg, hsl(var(--muted) / 0.7), hsl(var(--muted) / 0.3))",
-        }}
-      >
-        <Activity className={`h-3 w-3 ${protocol.accentColorClass}`} />
-        <span className="text-[10px] font-extrabold uppercase tracking-wider">Recommended ✓</span>
-      </div>
+      <FeelChipsExtra protocol={protocol} />
     </div>
   );
 }
