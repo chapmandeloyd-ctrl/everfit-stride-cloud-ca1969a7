@@ -612,6 +612,12 @@ export async function exportBrandedPdf(options: BrandedPdfOptions): Promise<Uint
     }
   }
 
+  const branding = options.branding ?? {};
+  const resolvedLabel =
+    (branding.documentLabelOverride && branding.documentLabelOverride.trim().length > 0)
+      ? branding.documentLabelOverride
+      : options.documentLabel;
+
   const ctx: Ctx = {
     doc,
     page: doc.addPage([PAGE_WIDTH, PAGE_HEIGHT]),
@@ -620,8 +626,10 @@ export async function exportBrandedPdf(options: BrandedPdfOptions): Promise<Uint
     fontBold,
     logo,
     accent,
-    documentLabel: options.documentLabel,
+    documentLabel: resolvedLabel,
     clientName: options.clientName,
+    showLogo: branding.showLogo !== false,
+    footerText: branding.footerText ?? null,
   };
   drawHeader(ctx);
   drawFooter(ctx);
