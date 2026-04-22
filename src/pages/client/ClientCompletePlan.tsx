@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   ArrowLeft, Clock, Utensils, Droplets, Users,
-  TrendingUp, Lightbulb, Zap, Sparkles, Loader2, Check, Info,
+  TrendingUp, Lightbulb, Zap, Sparkles, Loader2, Check,
   Flame, Brain, AlertTriangle, CalendarDays, Shield
 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -246,7 +246,6 @@ export default function ClientCompletePlan() {
   const config = protocol.category ? CATEGORY_CONFIG[protocol.category] : undefined;
   const Icon = config?.icon;
   const protocolContent = getProtocolCardContent(protocol.fast_target_hours, isQuickPlan);
-  const maxPct = Math.max(ketoType.fat_pct, ketoType.protein_pct, ketoType.carbs_pct);
 
   // Resolve hero card visuals — protocols use category, quick plans use tier
   const quickTier = isQuickPlan ? getTierForLevel(protocol.min_level_required ?? 1) : null;
