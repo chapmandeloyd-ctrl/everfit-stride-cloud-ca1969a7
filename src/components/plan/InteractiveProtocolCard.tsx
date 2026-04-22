@@ -37,14 +37,15 @@ export function InteractiveProtocolCard({
   const moved = useRef(false);
 
   const onTiltMove = (e: ReactPointerEvent<HTMLDivElement>) => {
+    // Skip tilt entirely on touch — it fights vertical scroll and causes jank.
+    if (e.pointerType === "touch") return;
     const el = tiltRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
     const px = (e.clientX - rect.left) / rect.width;
     const py = (e.clientY - rect.top) / rect.height;
-    const intensity = e.pointerType === "touch" ? 1.4 : 1;
-    const rx = (py - 0.5) * -8 * intensity;
-    const ry = (px - 0.5) * 10 * intensity;
+    const rx = (py - 0.5) * -8;
+    const ry = (px - 0.5) * 10;
     setTilt({ x: rx, y: ry });
   };
   const onTiltLeave = () => setTilt({ x: 0, y: 0 });
