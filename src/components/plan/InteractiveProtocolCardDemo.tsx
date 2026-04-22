@@ -1,7 +1,6 @@
 import { memo, useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
 import { Lock, ShieldCheck, ChevronRight, ChevronLeft, RotateCcw, AlertTriangle, Brain, CalendarClock, ListChecks, Sparkles, Flame, Zap, BrainCircuit, Quote, Activity, type LucideIcon } from "lucide-react";
 import type { ProtocolCardContent } from "@/lib/protocolCardContent";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 export interface DemoStat {
   value: string;
@@ -285,10 +284,6 @@ function CoachQuoteExtra({ protocol }: { protocol: DemoProtocol }) {
     "Stay consistent — the middle is where it changes you.";
   return (
     <div className="space-y-3">
-      {/* Reserved quote area now holds the tap hint so lower content and dots stay clear */}
-      <div className="flex min-h-[92px] items-center justify-center px-2" aria-label="Interaction hint">
-        <TapBrowseHint />
-      </div>
       <div
         className="rounded-xl border border-border/60 p-3"
         style={{ background: "linear-gradient(145deg, hsl(var(--muted) / 0.55), hsl(var(--muted) / 0.2))" }}
@@ -388,26 +383,6 @@ function FullHeightPreviewExtra({ protocol, animate }: { protocol: DemoProtocol;
         </div>
       </div>
     </div>
-  );
-}
-
-function TapBrowseHint() {
-  const isMobile = useIsMobile();
-  const label = isMobile ? "Tap for details · Swipe to browse" : "Tap for details";
-  return (
-    <span
-      className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-primary/60 px-3 py-1 text-center text-[10px] font-extrabold uppercase tracking-wider text-primary-foreground shadow-lg animate-[tap-hint-tilt_3.6s_ease-in-out_infinite] will-change-transform"
-      style={{
-        transformStyle: "preserve-3d",
-        backgroundImage:
-          "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.85) 50%, hsl(var(--primary) / 0.95) 100%)",
-        boxShadow:
-          "0 6px 18px -4px hsl(var(--primary) / 0.55), 0 2px 6px -2px hsl(var(--primary) / 0.4)",
-      }}
-    >
-      <span className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-primary-foreground animate-pulse" />
-      <span className="truncate">{label}</span>
-    </span>
   );
 }
 
@@ -530,7 +505,6 @@ export const CardFront = memo(function CardFront({
                     {protocol.content.coachWarning?.[0] ?? protocol.content.mentalReality?.[0] ?? "Stay consistent and let the middle phase pass."}
                   </p>
                 </div>
-                {frontExtra !== "coachQuote" && <div className="flex justify-center"><TapBrowseHint /></div>}
               </div>
             </div>
           )}
