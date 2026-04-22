@@ -517,13 +517,14 @@ function renderKeyValue(ctx: Ctx, s: Extract<PdfSection, { type: "keyValue" }>) 
         color: toColor(SOFT_FILL),
       });
     }
-    ctx.page.drawText(row.label, {
+    ctx.page.drawText(safeText(row.label), {
       x: MARGIN + 12, y: y + 7,
       size: 10, font: ctx.fontBold,
       color: toColor(INK),
     });
-    const valueW = ctx.fontRegular.widthOfTextAtSize(row.value, 10);
-    ctx.page.drawText(row.value, {
+    const valueStr = safeText(row.value);
+    const valueW = ctx.fontRegular.widthOfTextAtSize(valueStr, 10);
+    ctx.page.drawText(valueStr, {
       x: PAGE_WIDTH - MARGIN - 12 - valueW, y: y + 7,
       size: 10, font: ctx.fontRegular,
       color: toColor(MUTED),
