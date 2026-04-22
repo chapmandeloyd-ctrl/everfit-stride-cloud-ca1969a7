@@ -52,6 +52,7 @@ export function InteractiveProtocolCard({
   const moved = useRef(false);
   const frameRef = useRef<number | null>(null);
   const pendingTiltRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const activePointerId = useRef<number | null>(null);
 
   useEffect(() => {
     return () => {
@@ -90,33 +91,58 @@ export function InteractiveProtocolCard({
     setTilt({ x: 0, y: 0 });
   };
 
+  const resetPress = () => {
+    activePointerId.current = null;
+    startX.current = null;
+    startY.current = null;
+    moved.current = false;
+  };
+
+  const isInteractiveTarget = (target: EventTarget | null) =>
+    target instanceof Element && Boolean(target.closest("button, a, input, select, textarea, label, [data-no-flip]"));
+
   const onDown = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if ((e.pointerType === "mouse" && e.button !== 0) || isInteractiveTarget(e.target)) return;
+    activePointerId.current = e.pointerId;
     startX.current = e.clientX;
     startY.current = e.clientY;
     moved.current = false;
+    e.currentTarget.setPointerCapture(e.pointerId);
   };
   const onMoveCheck = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (startX.current === null || startY.current === null) return;
+    if (activePointerId.current !== e.pointerId || startX.current === null || startY.current === null) return;
     const deltaX = Math.abs(e.clientX - startX.current);
     const deltaY = Math.abs(e.clientY - startY.current);
     if (deltaX > flipCancelHorizontalPx || deltaY > flipCancelVerticalPx) moved.current = true;
   };
-  const onUp = () => {
-    if (!moved.current) setFlipped((f) => !f);
-    startX.current = null;
-    startY.current = null;
+  const onUp = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (activePointerId.current !== e.pointerId) return;
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    }
+    if (!moved.current && !isInteractiveTarget(e.target)) {
+      setFlipped((f) => !f);
+    }
+    if (e.pointerType === "touch") onTiltLeave();
+    resetPress();
   };
 
-  const onCancel = () => {
+  const onCancel = (e?: ReactPointerEvent<HTMLDivElement>) => {
+    if (e && activePointerId.current !== e.pointerId) return;
+    if (e && e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    }
     moved.current = true;
-    startX.current = null;
-    startY.current = null;
+    if (e?.pointerType === "touch") onTiltLeave();
+    resetPress();
   };
 
   const innerStyle: CSSProperties = {
     transformStyle: "preserve-3d",
-    transition: flipped ? "transform 0.7s cubic-bezier(0.22, 1, 0.36, 1)" : "transform 0.18s ease-out",
-    transform: flipped ? "rotateY(180deg)" : `rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
+    WebkitTransformStyle: "preserve-3d",
+    willChange: "transform",
+    transition: flipped ? "transform 0.5s cubic-bezier(0.22, 1, 0.36, 1)" : "transform 0.14s ease-out",
+    transform: flipped ? "translateZ(0) rotateY(180deg)" : `translateZ(0) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
     minHeight: 320,
   };
 
@@ -139,15 +165,19 @@ export function InteractiveProtocolCard({
     >
       <CardStackBackdrop />
 
-      <div className="relative rounded-2xl group" style={innerStyle}>
+      <div
+        className="relative rounded-2xl group"
+        style={innerStyle}
+        onPointerDown={onDown}
+        onPointerMove={onMoveCheck}
+        onPointerUp={onUp}
+        onPointerCancel={onCancel}
+        onLostPointerCapture={onCancel}
+      >
         {/* FRONT */}
         <div
           className="absolute inset-0 overflow-hidden rounded-2xl border border-border cursor-pointer"
-          style={{ backfaceVisibility: "hidden", ...surfaceStyle }}
-          onPointerDown={onDown}
-          onPointerMove={onMoveCheck}
-          onPointerUp={onUp}
-          onPointerCancel={onCancel}
+          style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden", ...surfaceStyle }}
         >
           <CardFront protocol={protocol} showChevron={false} animateStats={!flipped} />
         </div>
@@ -157,7 +187,8 @@ export function InteractiveProtocolCard({
           className="relative overflow-hidden rounded-2xl border border-border"
           style={{
             backfaceVisibility: "hidden",
-            transform: "rotateY(180deg)",
+            WebkitBackfaceVisibility: "hidden",
+            transform: "translateZ(0) rotateY(180deg)",
             ...surfaceStyle,
           }}
         >
