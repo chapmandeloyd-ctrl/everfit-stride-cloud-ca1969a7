@@ -199,11 +199,17 @@ export function InteractiveProtocolCard({
         onPointerUp={onUp}
         onPointerCancel={onCancel}
         onClickCapture={onClickCapture}
+        role="button"
+        tabIndex={0}
+        aria-pressed={flipped}
+        aria-label={ariaLabel}
+        onKeyDown={onKeyDown}
       >
         {/* FRONT */}
         <div
           className="absolute inset-0 overflow-hidden rounded-2xl border border-border cursor-pointer"
           style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden", pointerEvents: flipped ? "none" : "auto", ...surfaceStyle }}
+          aria-hidden={flipped}
         >
           <CardFront protocol={protocol} showChevron={false} animateStats={!flipped} frontExtra={frontExtra} />
         </div>
@@ -218,6 +224,7 @@ export function InteractiveProtocolCard({
             transform: "translateZ(0) rotateY(180deg)",
             ...surfaceStyle,
           }}
+          aria-hidden={!flipped}
         >
           <BackContent protocol={protocol} onClose={() => setFlipped(false)} />
           {onOpen && (
