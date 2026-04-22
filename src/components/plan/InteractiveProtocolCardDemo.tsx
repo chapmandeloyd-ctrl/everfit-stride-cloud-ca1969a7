@@ -398,7 +398,7 @@ function CardFront({
         </div>
       )}
 
-      <div className="relative flex h-full min-h-[640px] flex-col p-6">
+      <div className="relative flex h-full flex-col p-6">
         <div className="flex items-center gap-3 mb-4">
           <div
             className={`relative h-14 w-14 rounded-2xl flex items-center justify-center bg-gradient-to-br ${protocol.iconGradient}`}
