@@ -538,7 +538,7 @@ export function CardFront({
 
 /* -------- back content (timeline + benefits + phases) -------- */
 
-function BackContent({ protocol, onClose }: { protocol: DemoProtocol; onClose?: () => void }) {
+export function BackContent({ protocol, onClose }: { protocol: DemoProtocol; onClose?: () => void }) {
   const { content, accentColorClass, surfaceTintGradient } = protocol;
   return (
     <div className="relative h-full overflow-hidden">
