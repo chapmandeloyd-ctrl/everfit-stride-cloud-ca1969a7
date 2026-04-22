@@ -157,23 +157,6 @@ export function ProtocolDetailSections({ protocol }: ProtocolDetailSectionsProps
         </SectionCard>
       )}
 
-      {/* Built For */}
-      {content.builtFor && content.builtFor.length > 0 && (
-        <SectionCard>
-          <div className="flex items-center gap-2 mb-3">
-            <ListChecks className={`h-4 w-4 ${accentColorClass}`} />
-            <h3 className="text-xs font-extrabold uppercase tracking-wider">Built For</h3>
-          </div>
-          <ul className="space-y-2">
-            {content.builtFor.map((b, i) => (
-              <li key={i} className="flex items-start gap-2.5 text-sm">
-                <span className={`mt-1.5 h-1.5 w-1.5 rounded-full bg-gradient-to-br ${iconGradient} flex-shrink-0`} />
-                <span className="text-muted-foreground leading-snug">{b}</span>
-              </li>
-            ))}
-          </ul>
-        </SectionCard>
-      )}
     </div>
   );
 }
