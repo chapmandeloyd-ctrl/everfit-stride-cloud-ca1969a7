@@ -293,12 +293,9 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
                   </button>
                 )}
                 <div className={isLocked ? "opacity-60" : ""}>
-                  <InteractiveProtocolCard
+                  <ProtocolCardStatic
                     protocol={buildDemoProtocol(entry, isLocked)}
                     dimmed={isLocked}
-                    flipped={isTopFlipped}
-                    onFlippedChange={setIsTopFlipped}
-                    disableTapToFlip
                   />
                 </div>
                 {isCurrent && !isLocked && (
