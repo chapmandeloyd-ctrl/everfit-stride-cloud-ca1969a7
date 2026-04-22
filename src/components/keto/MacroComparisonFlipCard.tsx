@@ -279,7 +279,7 @@ export function MacroComparisonFlipCard({
       </div>
 
       {/* Tap hint */}
-      <div className="mt-5 flex justify-center">
+      <div className="mt-8 mb-2 flex justify-center">
         <span
           className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-primary-foreground"
           style={{
