@@ -538,24 +538,39 @@ export function CardFront({
 
 /* -------- back content (timeline + benefits + phases) -------- */
 
-export function BackContent({ protocol, onClose }: { protocol: DemoProtocol; onClose?: () => void }) {
+export interface BackContentProps {
+  protocol: DemoProtocol;
+  onClose?: () => void;
+  /**
+   * Optional element rendered inside the back-face header row, between the
+   * "Inside the protocol" eyebrow and the "Flip" pill. Used by consumers
+   * (e.g. keto card) to add a contextual action like "Export as PDF" without
+   * polluting the shared component with feature-specific logic.
+   */
+  extraAction?: React.ReactNode;
+}
+
+export function BackContent({ protocol, onClose, extraAction }: BackContentProps) {
   const { content, accentColorClass, surfaceTintGradient } = protocol;
   return (
     <div className="relative h-full overflow-hidden">
       <CardSurfaceOverlays surfaceTintGradient={surfaceTintGradient} />
       <div className="relative p-6 space-y-6 max-h-[640px] overflow-y-auto">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <span className={`text-[10px] font-extrabold uppercase tracking-[0.18em] ${accentColorClass}`}>
             Inside the protocol
           </span>
-          {onClose && (
-            <button
-              onClick={onClose}
-              className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground"
-            >
-              <RotateCcw className="h-3 w-3" /> Flip
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {extraAction}
+            {onClose && (
+              <button
+                onClick={onClose}
+                className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground"
+              >
+                <RotateCcw className="h-3 w-3" /> Flip
+              </button>
+            )}
+          </div>
         </div>
 
         {/* How This Protocol Works */}
