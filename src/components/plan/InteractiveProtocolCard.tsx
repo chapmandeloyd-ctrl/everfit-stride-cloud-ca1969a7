@@ -14,6 +14,18 @@ export interface InteractiveProtocolCardProps {
   onOpen?: () => void;
   /** Label for the optional Open button on the back face. */
   openLabel?: string;
+  /**
+   * Pixels of horizontal travel allowed before a press is treated as a swipe
+   * (and therefore NOT a flip). Lower = more sensitive / easier to cancel a flip.
+   * Default: 8.
+   */
+  flipCancelHorizontalPx?: number;
+  /**
+   * Pixels of vertical travel allowed before a press is treated as a scroll
+   * (and therefore NOT a flip). Lower = scroll wins more easily, fewer accidental flips.
+   * Default: 8.
+   */
+  flipCancelVerticalPx?: number;
 }
 
 /**
@@ -29,6 +41,8 @@ export function InteractiveProtocolCard({
   dimmed,
   onOpen,
   openLabel = "Open plan",
+  flipCancelHorizontalPx = 8,
+  flipCancelVerticalPx = 8,
 }: InteractiveProtocolCardProps) {
   const [flipped, setFlipped] = useState(false);
   const tiltRef = useRef<HTMLDivElement>(null);
@@ -85,7 +99,7 @@ export function InteractiveProtocolCard({
     if (startX.current === null || startY.current === null) return;
     const deltaX = Math.abs(e.clientX - startX.current);
     const deltaY = Math.abs(e.clientY - startY.current);
-    if (deltaX > 8 || deltaY > 8) moved.current = true;
+    if (deltaX > flipCancelHorizontalPx || deltaY > flipCancelVerticalPx) moved.current = true;
   };
   const onUp = () => {
     if (!moved.current) setFlipped((f) => !f);
