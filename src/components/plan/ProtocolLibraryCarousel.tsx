@@ -277,7 +277,7 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
       </div>
 
       {/* Position indicator — always below the card, never overlaps */}
-      <div className="mt-4 flex items-center justify-center gap-2 text-xs text-muted-foreground">
+      <div className="relative z-10 mt-4 flex items-center justify-center gap-2 text-xs text-muted-foreground">
         <span className="font-medium tabular-nums">
           {topIndex + 1} / {total}
         </span>
