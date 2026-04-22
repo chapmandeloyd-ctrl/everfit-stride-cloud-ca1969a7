@@ -283,7 +283,7 @@ function renderHero(ctx: Ctx, s: Extract<PdfSection, { type: "hero" }>) {
 
   if (s.eyebrow) {
     ensureSpace(ctx, 14);
-    ctx.page.drawText(s.eyebrow.toUpperCase(), {
+    ctx.page.drawText(safeText(s.eyebrow.toUpperCase()), {
       x: MARGIN,
       y: ctx.cursorY - 10,
       size: 9,
@@ -294,7 +294,7 @@ function renderHero(ctx: Ctx, s: Extract<PdfSection, { type: "hero" }>) {
   }
 
   ensureSpace(ctx, 32);
-  ctx.page.drawText(s.title, {
+  ctx.page.drawText(safeText(s.title), {
     x: MARGIN,
     y: ctx.cursorY - 28,
     size: 28,
