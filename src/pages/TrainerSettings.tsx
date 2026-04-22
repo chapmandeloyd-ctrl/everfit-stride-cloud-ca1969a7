@@ -10,6 +10,7 @@ import { OnboardingPreviewSection } from "@/components/settings/OnboardingPrevie
 import { WelcomeCardEditor } from "@/components/settings/WelcomeCardEditor";
 import { FastingCardEditor } from "@/components/settings/FastingCardEditor";
 import { DefaultDashboardLayoutEditor } from "@/components/settings/DefaultDashboardLayoutEditor";
+import { PdfBrandingEditor } from "@/components/settings/PdfBrandingEditor";
 import { useState } from "react";
 
 export default function TrainerSettings() {
@@ -87,6 +88,9 @@ export default function TrainerSettings() {
 
         {/* Default Dashboard Layout for New Clients */}
         <DefaultDashboardLayoutEditor />
+
+        {/* PDF Export Branding (applies to all client PDF exports) */}
+        <PdfBrandingEditor />
 
         {/* Onboarding Flows Preview */}
         <OnboardingPreviewSection />
