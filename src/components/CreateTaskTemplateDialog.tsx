@@ -51,7 +51,7 @@ export function CreateTaskTemplateDialog({ open, onOpenChange }: CreateTaskTempl
   const [formQuestions, setFormQuestions] = useState<FormQuestion[]>([]);
 
   const form = useForm<TaskTemplateForm>({
-    resolver: zodResolver(taskTemplateSchema as any) as any,
+    resolver: zodResolver(taskTemplateSchema),
     defaultValues: {
       name: "",
       task_type: "general",

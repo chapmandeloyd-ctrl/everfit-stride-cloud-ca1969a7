@@ -48,7 +48,7 @@ export function EditTaskTemplateDialog({ template, open, onOpenChange }: EditTas
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
 
   const form = useForm<TaskTemplateForm>({
-    resolver: zodResolver(taskTemplateSchema as any) as any,
+    resolver: zodResolver(taskTemplateSchema),
     defaultValues: {
       name: template.name,
       task_type: template.task_type,
