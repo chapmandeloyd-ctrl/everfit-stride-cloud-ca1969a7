@@ -53,6 +53,12 @@ export interface InteractiveProtocolCardProps {
    * any one feature.
    */
   backExtraAction?: React.ReactNode;
+  /** Optional controlled flip state for parent-managed interactions. */
+  flipped?: boolean;
+  /** Called whenever the card requests a flip state change. */
+  onFlippedChange?: (next: boolean) => void;
+  /** Disable the built-in front-face tap/click flip handling. */
+  disableTapToFlip?: boolean;
 }
 
 function isLowMemoryDevice() {
@@ -84,12 +90,16 @@ export function InteractiveProtocolCard({
   forcedHeight,
   onMeasureHeight,
   backExtraAction,
+  flipped: controlledFlipped,
+  onFlippedChange,
+  disableTapToFlip = false,
 }: InteractiveProtocolCardProps) {
   const isMobileViewport = typeof window !== "undefined" ? window.innerWidth < 1024 : false;
   const isMobile = useIsMobile() || isMobileViewport;
   const reduceMotionWork = useMemo(() => isLowMemoryDevice(), []);
   const disableHeavyInteractions = isMobile || reduceMotionWork;
-  const [flipped, setFlipped] = useState(false);
+  const [internalFlipped, setInternalFlipped] = useState(false);
+  const flipped = controlledFlipped ?? internalFlipped;
   const tiltRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
   const startX = useRef<number | null>(null);
@@ -202,7 +212,13 @@ export function InteractiveProtocolCard({
     applyTiltTransform(pendingTiltRef.current);
   };
 
-  const handleClose = useCallback(() => setFlipped(false), []);
+  const setFlipped = useCallback((next: boolean | ((prev: boolean) => boolean)) => {
+    const resolved = typeof next === "function" ? (next as (prev: boolean) => boolean)(flipped) : next;
+    if (controlledFlipped === undefined) setInternalFlipped(resolved);
+    onFlippedChange?.(resolved);
+  }, [controlledFlipped, flipped, onFlippedChange]);
+
+  const handleClose = useCallback(() => setFlipped(false), [setFlipped]);
   const handleOpen = useCallback((e?: React.SyntheticEvent) => {
     e?.stopPropagation();
     onOpen?.();
@@ -232,7 +248,7 @@ export function InteractiveProtocolCard({
 
   const onMobileFrontPointerUp = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (activePointerId.current !== e.pointerId) return;
-    const shouldFlip = !moved.current;
+    const shouldFlip = !disableTapToFlip && !moved.current;
     resetPress();
     if (shouldFlip) setFlipped(true);
   };
@@ -286,6 +302,7 @@ export function InteractiveProtocolCard({
       suppressClickRef.current = false;
       return;
     }
+    if (disableTapToFlip) return;
     setFlipped((f) => !f);
   };
 
@@ -293,6 +310,7 @@ export function InteractiveProtocolCard({
     if (isInteractiveTarget(e.target)) return;
     if (e.key === " " || e.key === "Enter") {
       e.preventDefault();
+      if (disableTapToFlip) return;
       setFlipped((f) => !f);
     } else if (e.key === "Escape" && flipped) {
       e.preventDefault();

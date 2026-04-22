@@ -86,6 +86,7 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
   );
 
   const [topIndex, setTopIndex] = useState(0);
+  const [isTopFlipped, setIsTopFlipped] = useState(false);
   const [dragX, setDragX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -105,6 +106,7 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
       setDragX(direction * 600);
       window.setTimeout(() => {
         setTopIndex((prev) => (total === 0 ? 0 : (prev + 1) % total));
+        setIsTopFlipped(false);
         setDragX(0);
         setIsAnimating(false);
       }, 280);
@@ -194,6 +196,10 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
     return () => ro.disconnect();
   }, [topIndex]);
 
+  useEffect(() => {
+    setIsTopFlipped(false);
+  }, [topIndex]);
+
   if (total === 0) return null;
 
   // Subtle rotation as user drags (Tinder feel).
@@ -276,6 +282,9 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
                   <InteractiveProtocolCard
                     protocol={buildDemoProtocol(entry, isLocked)}
                     dimmed={isLocked}
+                    flipped={isTopFlipped}
+                    onFlippedChange={setIsTopFlipped}
+                    disableTapToFlip={didSwipeRef.current || isDragging}
                   />
                 </div>
                 {isCurrent && !isLocked && (
