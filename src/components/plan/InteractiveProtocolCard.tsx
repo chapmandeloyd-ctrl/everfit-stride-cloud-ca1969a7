@@ -212,7 +212,6 @@ export function InteractiveProtocolCard({
     applyTiltTransform(pendingTiltRef.current);
   };
 
-  const handleClose = useCallback(() => setFlipped(false), []);
   const setFlipped = useCallback((next: boolean | ((prev: boolean) => boolean)) => {
     const resolved = typeof next === "function" ? (next as (prev: boolean) => boolean)(flipped) : next;
     if (controlledFlipped === undefined) setInternalFlipped(resolved);
