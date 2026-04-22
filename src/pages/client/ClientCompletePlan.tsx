@@ -20,7 +20,8 @@ import { getProtocolCardContent } from "@/lib/protocolCardContent";
 import { getTierForLevel } from "@/lib/quickPlanTierConfig";
 import { usePlanSynergy } from "@/hooks/usePlanSynergy";
 import { useMemo, useEffect } from "react";
-import { PremiumPlanCard } from "@/components/plan/PremiumPlanCard";
+import { InteractiveProtocolCard } from "@/components/plan/InteractiveProtocolCard";
+import type { DemoProtocol } from "@/components/plan/InteractiveProtocolCardDemo";
 
 function generateWeeklyProgression(durationDays: number, fastTargetHours: number) {
   const weeks = Math.ceil(durationDays / 7);
