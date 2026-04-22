@@ -162,6 +162,15 @@ export function InteractiveProtocolCard({
   const ariaLabel = flipped
     ? `${protocolName} details. Press Enter, Space, or Escape to return to summary.`
     : `${protocolName} summary card. Press Enter or Space to view details.`;
+  const [hasFlipped, setHasFlipped] = useState(false);
+  useEffect(() => {
+    if (flipped) setHasFlipped(true);
+  }, [flipped]);
+  const liveMessage = !hasFlipped
+    ? ""
+    : flipped
+      ? `${protocolName} details shown.`
+      : `${protocolName} summary shown.`;
 
   const innerStyle: CSSProperties = {
     transformStyle: "preserve-3d",
