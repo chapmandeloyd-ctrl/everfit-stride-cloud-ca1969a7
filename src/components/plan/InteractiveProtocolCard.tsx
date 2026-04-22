@@ -179,6 +179,16 @@ export function InteractiveProtocolCard({
       ? `${protocolName} details shown.`
       : `${protocolName} summary shown.`;
 
+  // Visible flip toast (mirrors the screen-reader announcement so sighted users
+  // also see the state change). Auto-hides after a short delay.
+  const [visibleFlipToast, setVisibleFlipToast] = useState("");
+  useEffect(() => {
+    if (!hasFlipped) return;
+    setVisibleFlipToast(flipped ? "Showing details" : "Showing summary");
+    const t = window.setTimeout(() => setVisibleFlipToast(""), 1600);
+    return () => window.clearTimeout(t);
+  }, [flipped, hasFlipped]);
+
   // One-time touch hint: announced the first time a touch interaction starts on this card.
   const [touchHint, setTouchHint] = useState("");
   const touchHintShownRef = useRef(false);
@@ -218,6 +228,27 @@ export function InteractiveProtocolCard({
         className="sr-only"
       >
         {liveMessage}
+      </div>
+
+      {/* Visible flip toast — small pill at the top-center of the card */}
+      <div
+        aria-hidden="true"
+        className={`pointer-events-none absolute top-2 left-1/2 -translate-x-1/2 z-30 transition-all duration-200 ${
+          visibleFlipToast ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-1"
+        }`}
+      >
+        {visibleFlipToast && (
+          <div
+            className="rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-primary-foreground shadow-lg"
+            style={{
+              backgroundImage:
+                "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.85) 100%)",
+              boxShadow: "0 6px 18px -4px hsl(var(--primary) / 0.55)",
+            }}
+          >
+            {visibleFlipToast}
+          </div>
+        )}
       </div>
 
       <div
