@@ -235,8 +235,55 @@ export function InteractiveKetoTypeCard({
   flipCancelVerticalPx,
   forcedHeight,
   onMeasureHeight,
+  clientName,
+  coachRead,
+  hideExportPdf = false,
 }: InteractiveKetoTypeCardProps) {
   const palette = paletteFromHex(themeColor || ketoType.color);
+  const { toast } = useToast();
+  const [exporting, setExporting] = useState(false);
+
+  const handleExport = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      await exportKetoPlanPdf({
+        ketoType,
+        themeColor: themeColor || ketoType.color || null,
+        clientName,
+        coachRead,
+      });
+      toast({
+        title: "Plan exported",
+        description: "Your keto plan PDF is downloading.",
+      });
+    } catch (err) {
+      console.error("[keto export] failed", err);
+      toast({
+        title: "Export failed",
+        description: "We couldn't generate your PDF. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const exportAction = hideExportPdf ? undefined : (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        handleExport();
+      }}
+      disabled={exporting}
+      className="inline-flex items-center gap-1 rounded-full border border-border/70 bg-background/60 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-foreground/80 hover:text-foreground hover:bg-background disabled:opacity-60 transition-colors"
+      aria-label="Export plan as PDF"
+    >
+      <FileDown className="h-3 w-3" />
+      {exporting ? "Exporting…" : "Export PDF"}
+    </button>
+  );
 
   const protocol: DemoProtocol = {
     id: `keto-${ketoType.abbreviation.toLowerCase()}`,
@@ -267,6 +314,7 @@ export function InteractiveKetoTypeCard({
       flipCancelVerticalPx={flipCancelVerticalPx}
       forcedHeight={forcedHeight}
       onMeasureHeight={onMeasureHeight}
+      backExtraAction={exportAction}
     />
   );
 }
