@@ -84,6 +84,7 @@ import ClientQuickPlanDetail from "./pages/client/ClientQuickPlanDetail";
 import ClientProtocolDetail from "./pages/client/ClientProtocolDetail";
 import ClientCompletePlan from "./pages/client/ClientCompletePlan";
 import ClientProtocolCardDemo from "./pages/client/ClientProtocolCardDemo";
+import ClientKetoTypeCardDemo from "./pages/client/ClientKetoTypeCardDemo";
 import ClientFastComplete from "./pages/client/ClientFastComplete";
 import ClientVibes from "./pages/client/ClientVibes";
 import ClientLabs from "./pages/client/ClientLabs";
@@ -230,6 +231,8 @@ const App = () => (
           <Route path="/client/protocol-card-demo" element={<ProtectedRoute allowedRoles={["client"]}><ClientProtocolCardDemo /></ProtectedRoute>} />
           {/* Trainer-accessible alias for previewing the protocol card demo without impersonation */}
           <Route path="/protocol-card-demo" element={<ClientProtocolCardDemo />} />
+          <Route path="/client/keto-type-card-demo" element={<ProtectedRoute allowedRoles={["client"]}><ClientKetoTypeCardDemo /></ProtectedRoute>} />
+          <Route path="/keto-type-card-demo" element={<ClientKetoTypeCardDemo />} />
           <Route path="/client/fast-complete" element={<ProtectedRoute allowedRoles={["client"]}><ClientFastComplete /></ProtectedRoute>} />
           <Route path="/client/vibes" element={<ProtectedRoute allowedRoles={["client"]}><ClientVibes /></ProtectedRoute>} />
           <Route path="/client/labs" element={<ProtectedRoute allowedRoles={["client"]}><ClientLabs /></ProtectedRoute>} />
