@@ -8564,6 +8564,47 @@ export type Database = {
           },
         ]
       }
+      trainer_pdf_branding: {
+        Row: {
+          accent_color: string
+          created_at: string
+          document_label_override: string | null
+          footer_text: string | null
+          id: string
+          show_logo: boolean
+          trainer_id: string
+          updated_at: string
+        }
+        Insert: {
+          accent_color?: string
+          created_at?: string
+          document_label_override?: string | null
+          footer_text?: string | null
+          id?: string
+          show_logo?: boolean
+          trainer_id: string
+          updated_at?: string
+        }
+        Update: {
+          accent_color?: string
+          created_at?: string
+          document_label_override?: string | null
+          footer_text?: string | null
+          id?: string
+          show_logo?: boolean
+          trainer_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trainer_pdf_branding_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trainer_vacations: {
         Row: {
           created_at: string

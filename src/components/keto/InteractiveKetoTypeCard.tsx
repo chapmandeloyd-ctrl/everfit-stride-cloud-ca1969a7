@@ -2,6 +2,7 @@ import { Flame, FileDown } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { exportKetoPlanPdf } from "@/lib/pdf/exportKetoPlan";
+import { useClientPdfBranding } from "@/hooks/useTrainerPdfBranding";
 import {
   InteractiveProtocolCard,
   type InteractiveProtocolCardProps,
@@ -242,6 +243,7 @@ export function InteractiveKetoTypeCard({
   const palette = paletteFromHex(themeColor || ketoType.color);
   const { toast } = useToast();
   const [exporting, setExporting] = useState(false);
+  const { branding } = useClientPdfBranding();
 
   const handleExport = async () => {
     if (exporting) return;
@@ -252,6 +254,14 @@ export function InteractiveKetoTypeCard({
         themeColor: themeColor || ketoType.color || null,
         clientName,
         coachRead,
+        // Trainer's saved branding wins over the keto type's color so every
+        // exported document looks the same regardless of which type is active.
+        brandingAccentHex: branding.accent_color,
+        branding: {
+          showLogo: branding.show_logo,
+          footerText: branding.footer_text,
+          documentLabelOverride: branding.document_label_override,
+        },
       });
       toast({
         title: "Plan exported",

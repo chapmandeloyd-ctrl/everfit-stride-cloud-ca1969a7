@@ -53,6 +53,18 @@ export interface BrandedPdfOptions {
   sections: PdfSection[];
   /** Optional document subject metadata. */
   subject?: string;
+  /**
+   * Trainer-controlled branding. When omitted, defaults are used (logo on,
+   * brand red, KSOM-360 wordmark, default footer right text). Pulled from
+   * the trainer_pdf_branding table at the call site.
+   */
+  branding?: {
+    showLogo?: boolean;
+    /** Custom footer-left line that REPLACES "Prepared for ..." when set. */
+    footerText?: string | null;
+    /** Replaces the small uppercase eyebrow in the header when set. */
+    documentLabelOverride?: string | null;
+  };
 }
 
 /* ------------------------------- constants ------------------------------- */
@@ -171,15 +183,17 @@ interface Ctx {
   accent: RGB;
   documentLabel: string;
   clientName?: string | null;
+  showLogo: boolean;
+  footerText?: string | null;
 }
 
 function drawHeader(ctx: Ctx) {
-  const { page, fontRegular, fontBold, logo, accent, documentLabel } = ctx;
+  const { page, fontRegular, fontBold, logo, accent, documentLabel, showLogo } = ctx;
   const top = PAGE_HEIGHT - 28;
 
   // Logo + wordmark (left)
   let wordmarkX = MARGIN;
-  if (logo) {
+  if (showLogo && logo) {
     const targetH = 28;
     const aspect = logo.width / logo.height;
     const targetW = targetH * aspect;
@@ -193,7 +207,7 @@ function drawHeader(ctx: Ctx) {
   }
   page.drawText("KSOM-360", {
     x: wordmarkX,
-    y: top - (logo ? 19 : 18),
+    y: top - (showLogo && logo ? 19 : 18),
     size: 13,
     font: fontBold,
     color: toColor(BRAND_RED),
@@ -236,7 +250,7 @@ function drawHeader(ctx: Ctx) {
 }
 
 function drawFooter(ctx: Ctx) {
-  const { page, fontRegular, clientName } = ctx;
+  const { page, fontRegular, clientName, footerText } = ctx;
   const y = 22;
   page.drawRectangle({
     x: MARGIN,
@@ -245,7 +259,12 @@ function drawFooter(ctx: Ctx) {
     height: 0.5,
     color: toColor(HAIRLINE),
   });
-  const left = safeText(clientName ? `Prepared for ${clientName}` : "Prepared by KSOM-360");
+  const leftRaw = footerText && footerText.trim().length > 0
+    ? footerText
+    : clientName
+      ? `Prepared for ${clientName}`
+      : "Prepared by KSOM-360";
+  const left = safeText(leftRaw);
   page.drawText(left, {
     x: MARGIN,
     y,
@@ -593,6 +612,12 @@ export async function exportBrandedPdf(options: BrandedPdfOptions): Promise<Uint
     }
   }
 
+  const branding = options.branding ?? {};
+  const resolvedLabel =
+    (branding.documentLabelOverride && branding.documentLabelOverride.trim().length > 0)
+      ? branding.documentLabelOverride
+      : options.documentLabel;
+
   const ctx: Ctx = {
     doc,
     page: doc.addPage([PAGE_WIDTH, PAGE_HEIGHT]),
@@ -601,8 +626,10 @@ export async function exportBrandedPdf(options: BrandedPdfOptions): Promise<Uint
     fontBold,
     logo,
     accent,
-    documentLabel: options.documentLabel,
+    documentLabel: resolvedLabel,
     clientName: options.clientName,
+    showLogo: branding.showLogo !== false,
+    footerText: branding.footerText ?? null,
   };
   drawHeader(ctx);
   drawFooter(ctx);
