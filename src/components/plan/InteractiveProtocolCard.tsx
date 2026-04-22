@@ -116,6 +116,13 @@ export function InteractiveProtocolCard({
     startX.current = e.clientX;
     startY.current = e.clientY;
     moved.current = false;
+    if (e.pointerType === "touch" && !touchHintShownRef.current) {
+      touchHintShownRef.current = true;
+      setTouchHint(
+        `${protocolName} card. Tap to flip between summary and details. Swipe vertically to scroll the page.`
+      );
+      window.setTimeout(() => setTouchHint(""), 4000);
+    }
   };
   const onMoveCheck = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (activePointerId.current !== e.pointerId || startX.current === null || startY.current === null) return;
