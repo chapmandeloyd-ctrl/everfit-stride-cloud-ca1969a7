@@ -189,7 +189,7 @@ export function InteractiveProtocolCard({
           className="absolute inset-0 overflow-hidden rounded-2xl border border-border cursor-pointer"
           style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden", pointerEvents: flipped ? "none" : "auto", ...surfaceStyle }}
         >
-          <CardFront protocol={protocol} showChevron={false} animateStats={!flipped} />
+          <CardFront protocol={protocol} showChevron={false} animateStats={!flipped} frontExtra={frontExtra} />
         </div>
 
         {/* BACK */}
