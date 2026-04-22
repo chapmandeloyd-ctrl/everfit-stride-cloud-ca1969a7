@@ -33,6 +33,18 @@ export interface InteractiveProtocolCardProps {
    * Default: 8.
    */
   flipCancelVerticalPx?: number;
+  /**
+   * Optional fixed height (px) for the flip container. When provided, overrides
+   * the auto-measured height. Use this to make a list of cards uniform height
+   * (parent measures each card via `onMeasureHeight` and feeds back the max).
+   */
+  forcedHeight?: number;
+  /**
+   * Called whenever the card's natural (auto-measured) height changes.
+   * Parent can collect these from sibling cards and re-render with `forcedHeight`
+   * set to the max so all cards in a list end up the same height.
+   */
+  onMeasureHeight?: (heightPx: number) => void;
 }
 
 /**
