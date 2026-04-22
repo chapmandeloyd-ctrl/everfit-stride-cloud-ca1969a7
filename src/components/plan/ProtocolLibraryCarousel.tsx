@@ -86,7 +86,6 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
   );
 
   const [topIndex, setTopIndex] = useState(0);
-  const [isTopFlipped, setIsTopFlipped] = useState(false);
   const [dragX, setDragX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -108,7 +107,6 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
       setDragX(direction * 600);
       window.setTimeout(() => {
         setTopIndex((prev) => (total === 0 ? 0 : (prev + 1) % total));
-        setIsTopFlipped(false);
         dragXRef.current = 0;
         setDragX(0);
         setIsAnimating(false);
@@ -121,7 +119,7 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
     target instanceof Element && Boolean(target.closest("button, a, input, select, textarea, label, [data-no-flip]"));
 
   const handlePointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (isInteractiveTarget(e.target) || isTopFlipped) return;
+    if (isInteractiveTarget(e.target)) return;
     if (isAnimating) return;
     startXRef.current = e.clientX;
     startYRef.current = e.clientY;
