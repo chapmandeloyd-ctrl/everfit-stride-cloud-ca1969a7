@@ -595,7 +595,7 @@ export async function exportBrandedPdf(options: BrandedPdfOptions): Promise<Uint
 
   // Trigger download.
   if (typeof window !== "undefined" && typeof document !== "undefined") {
-    const blob = new Blob([bytes], { type: "application/pdf" });
+    const blob = new Blob([bytes as BlobPart], { type: "application/pdf" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
