@@ -115,6 +115,7 @@ import CardStylesPreview from "./pages/client/CardStylesPreview";
 import NotificationCenter from "./pages/NotificationCenter";
 import ResetPassword from "./pages/ResetPassword";
 import CheckoutTest from "./pages/CheckoutTest";
+import SynergyCardDemo from "./pages/SynergyCardDemo";
 
 const queryClient = new QueryClient();
 
@@ -133,6 +134,7 @@ const App = () => (
           <Route path="/unsubscribe" element={<Unsubscribe />} />
           <Route path="/checkout-test" element={<CheckoutTest />} />
           <Route path="/portal-mockup" element={<PortalMockup />} />
+          <Route path="/synergy-card-demo" element={<SynergyCardDemo />} />
           
           {/* Trainer Routes */}
           <Route path="/" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerDashboard /></ProtectedRoute>} />
