@@ -24,6 +24,7 @@ import { InteractiveProtocolCard } from "@/components/plan/InteractiveProtocolCa
 import type { DemoProtocol } from "@/components/plan/InteractiveProtocolCardDemo";
 import { InteractiveKetoTypeCard } from "@/components/keto/InteractiveKetoTypeCard";
 import { MacroComparisonFlipCard } from "@/components/keto/MacroComparisonFlipCard";
+import { buildSynergyProtocol } from "@/lib/synergyDemoContent";
 
 function generateWeeklyProgression(durationDays: number, fastTargetHours: number) {
   const weeks = Math.ceil(durationDays / 7);
@@ -373,45 +374,18 @@ export default function ClientCompletePlan() {
               themeColor={themeColor}
             />
           )}
-        </div>
 
-        {/* ═══════════════════════════════════════════ */}
-        {/* PROTOCOL + KETO SYNERGY (AI Summary)       */}
-        {/* ═══════════════════════════════════════════ */}
-        <div className="px-5 mt-10">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="h-px flex-1 bg-border" />
-            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-              Protocol + Keto Synergy
-            </span>
-            <div className="h-px flex-1 bg-border" />
-          </div>
-        </div>
-
-        <div className="px-5">
-          {synergyLoading ? (
-            <Card>
-              <CardContent className="p-5 flex items-center justify-center gap-3">
-                <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                <span className="text-sm text-muted-foreground">Building your metabolic blueprint...</span>
-              </CardContent>
-            </Card>
-          ) : synergy?.synergy_text ? (
-            <Card>
-              <CardContent className="p-5">
-                <SectionHeader
-                  title="Protocol + Keto Synergy"
-                  icon={<Sparkles className="h-4 w-4 text-primary" />}
-                />
-                <p className="text-[11px] text-muted-foreground uppercase tracking-wide font-medium mb-3 -mt-1">
-                  {protocol.name} × {ketoType.abbreviation}
-                </p>
-                <p className="text-[13px] text-muted-foreground leading-relaxed">
-                  {structured ? structured.keto_synergy : synergy.synergy_text}
-                </p>
-              </CardContent>
-            </Card>
-          ) : null}
+          {/* Protocol + Keto Synergy — rich interactive card */}
+          <InteractiveProtocolCard
+            protocol={buildSynergyProtocol({
+              protocolName: protocol.name,
+              ketoAbbr: ketoType.abbreviation,
+              fastHours: Math.round(protocol.fast_target_hours ?? 72),
+              proteinPct: Math.round(ketoType.protein_pct ?? 30),
+              themeColor,
+            })}
+            frontExtra="timelineAndChips"
+          />
         </div>
 
         {/* ═══════════════════════════════════════════ */}
