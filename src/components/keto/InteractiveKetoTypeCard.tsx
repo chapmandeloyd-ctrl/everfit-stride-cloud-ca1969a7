@@ -224,6 +224,8 @@ export function InteractiveKetoTypeCard({
   isCurrent = true,
   flipCancelHorizontalPx,
   flipCancelVerticalPx,
+  forcedHeight,
+  onMeasureHeight,
 }: InteractiveKetoTypeCardProps) {
   const palette = paletteFromHex(themeColor || ketoType.color);
 
@@ -254,6 +256,8 @@ export function InteractiveKetoTypeCard({
       openLabel={openLabel}
       flipCancelHorizontalPx={flipCancelHorizontalPx}
       flipCancelVerticalPx={flipCancelVerticalPx}
+      forcedHeight={forcedHeight}
+      onMeasureHeight={onMeasureHeight}
     />
   );
 }
