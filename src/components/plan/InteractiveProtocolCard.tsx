@@ -116,6 +116,13 @@ export function InteractiveProtocolCard({
     startX.current = e.clientX;
     startY.current = e.clientY;
     moved.current = false;
+    if (e.pointerType === "touch" && !touchHintShownRef.current) {
+      touchHintShownRef.current = true;
+      setTouchHint(
+        `${protocolName} card. Tap to flip between summary and details. Swipe vertically to scroll the page.`
+      );
+      window.setTimeout(() => setTouchHint(""), 4000);
+    }
   };
   const onMoveCheck = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (activePointerId.current !== e.pointerId || startX.current === null || startY.current === null) return;
@@ -172,6 +179,10 @@ export function InteractiveProtocolCard({
       ? `${protocolName} details shown.`
       : `${protocolName} summary shown.`;
 
+  // One-time touch hint: announced the first time a touch interaction starts on this card.
+  const [touchHint, setTouchHint] = useState("");
+  const touchHintShownRef = useRef(false);
+
   const innerStyle: CSSProperties = {
     transformStyle: "preserve-3d",
     WebkitTransformStyle: "preserve-3d",
@@ -207,6 +218,15 @@ export function InteractiveProtocolCard({
         className="sr-only"
       >
         {liveMessage}
+      </div>
+
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {touchHint}
       </div>
 
       <div
