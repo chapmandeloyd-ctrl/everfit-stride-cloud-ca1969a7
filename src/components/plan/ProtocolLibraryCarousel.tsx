@@ -1,4 +1,4 @@
-import { useMemo, useState, useRef, useCallback, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
+import { useMemo, useState, useRef, useCallback, useEffect, useLayoutEffect, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
 import { Lock } from "lucide-react";
 import { toast } from "sonner";
 import { InteractiveProtocolCard } from "@/components/plan/InteractiveProtocolCard";
@@ -92,6 +92,8 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
   const startXRef = useRef<number | null>(null);
   const startYRef = useRef<number | null>(null);
   const lockedAxisRef = useRef<"x" | "y" | null>(null);
+  const topCardRef = useRef<HTMLDivElement | null>(null);
+  const [stackHeight, setStackHeight] = useState<number>(0);
 
   const total = slides.length;
   const SWIPE_THRESHOLD = 90; // px to commit a swipe
@@ -167,6 +169,21 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
 
   if (total === 0) return null;
 
+  // Measure the visible top card so the stack container grows to match it.
+  // Re-measures whenever the top card changes (different content height).
+  useLayoutEffect(() => {
+    const el = topCardRef.current;
+    if (!el) return;
+    const measure = () => {
+      const h = el.getBoundingClientRect().height;
+      if (h > 0) setStackHeight((prev) => (Math.abs(prev - h) > 1 ? h : prev));
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [topIndex]);
+
   // Subtle rotation as user drags (Tinder feel).
   const rotation = Math.max(-12, Math.min(12, dragX / 14));
 
@@ -174,73 +191,92 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
     <div className="px-5">
       <div
         className="relative w-full select-none"
-        style={{ touchAction: "pan-y", minHeight: 460 }}
+        style={{
+          touchAction: "pan-y",
+          height: stackHeight > 0 ? stackHeight : undefined,
+          minHeight: stackHeight > 0 ? undefined : 360,
+        }}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
       >
-        {/* Render in reverse so the top card sits visually on top */}
+        {/* Background ghost cards (depth illusion) — pure visual, no pointer events. */}
         {stack
-          .slice()
+          .slice(1)
           .reverse()
-          .map(({ slide, offset }) => {
-            const { entry, isLocked, isCurrent } = slide;
-            const isTop = offset === 0;
-
-            const transform = isTop
-              ? `translate3d(${dragX}px, 0, 0) rotate(${rotation}deg)`
-              : `translate3d(0, 0, 0) scale(${1 - offset * 0.04})`;
-
-            const style: CSSProperties = {
-              transform,
-              transition: isTop && !isDragging ? "transform 280ms cubic-bezier(0.22, 1, 0.36, 1)" : "none",
-              zIndex: STACK_DEPTH - offset,
-              opacity: isTop ? 1 : 0,
-              pointerEvents: isTop ? "auto" : "none",
-            };
-
+          .map(({ offset }) => {
+            const scale = 1 - offset * 0.035;
+            const translateY = offset * 6;
             return (
               <div
-                key={`${entry.key}-${offset}`}
-                className="absolute inset-x-0 top-0"
-                style={style}
-              >
-                <div className="relative">
-                  {isLocked && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toast(`Unlocks at Level ${entry.minLevelRequired}`, {
-                          description: "Keep up your streak to unlock this protocol.",
-                        });
-                      }}
-                      className="absolute top-3 right-3 z-30 flex items-center gap-1.5 rounded-full bg-foreground/85 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-background shadow-lg backdrop-blur-sm"
-                      aria-label={`Locked — unlocks at level ${entry.minLevelRequired}`}
-                    >
-                      <Lock className="w-3 h-3" />
-                      Lvl {entry.minLevelRequired}
-                    </button>
-                  )}
-                  <div className={isLocked ? "opacity-60" : ""}>
-                    <InteractiveProtocolCard
-                      protocol={buildDemoProtocol(entry, isLocked)}
-                      dimmed={isLocked}
-                    />
-                  </div>
-                  {isCurrent && !isLocked && (
-                    <div className="absolute top-3 left-3 z-30 rounded-full bg-primary px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-primary-foreground shadow-lg">
-                      Current
-                    </div>
-                  )}
-                </div>
-              </div>
+                key={`ghost-${offset}`}
+                aria-hidden
+                className="absolute inset-0 rounded-2xl border border-border bg-card"
+                style={{
+                  transform: `translate3d(0, ${translateY}px, 0) scale(${scale})`,
+                  zIndex: STACK_DEPTH - offset,
+                  boxShadow: "0 12px 24px -16px hsl(0 0% 0% / 0.5)",
+                  opacity: 0.6 - offset * 0.15,
+                  pointerEvents: "none",
+                }}
+              />
             );
           })}
+
+        {/* Top (active) card — only one rendered with InteractiveProtocolCard */}
+        {(() => {
+          const top = stack[0];
+          if (!top) return null;
+          const { entry, isLocked, isCurrent } = top;
+          const transform = `translate3d(${dragX}px, 0, 0) rotate(${rotation}deg)`;
+          const style: CSSProperties = {
+            transform,
+            transition: isDragging ? "none" : "transform 280ms cubic-bezier(0.22, 1, 0.36, 1)",
+            zIndex: STACK_DEPTH + 1,
+          };
+          return (
+            <div
+              ref={topCardRef}
+              key={entry.key}
+              className="absolute inset-x-0 top-0"
+              style={style}
+            >
+              <div className="relative">
+                {isLocked && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toast(`Unlocks at Level ${entry.minLevelRequired}`, {
+                        description: "Keep up your streak to unlock this protocol.",
+                      });
+                    }}
+                    className="absolute top-3 right-3 z-30 flex items-center gap-1.5 rounded-full bg-foreground/85 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-background shadow-lg backdrop-blur-sm"
+                    aria-label={`Locked — unlocks at level ${entry.minLevelRequired}`}
+                  >
+                    <Lock className="w-3 h-3" />
+                    Lvl {entry.minLevelRequired}
+                  </button>
+                )}
+                <div className={isLocked ? "opacity-60" : ""}>
+                  <InteractiveProtocolCard
+                    protocol={buildDemoProtocol(entry, isLocked)}
+                    dimmed={isLocked}
+                  />
+                </div>
+                {isCurrent && !isLocked && (
+                  <div className="absolute top-3 left-3 z-30 rounded-full bg-primary px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-primary-foreground shadow-lg">
+                    Current
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
-      {/* Pagination dots + position indicator */}
+      {/* Position indicator — always below the card, never overlaps */}
       <div className="mt-4 flex items-center justify-center gap-2 text-xs text-muted-foreground">
         <span className="font-medium tabular-nums">
           {topIndex + 1} / {total}
