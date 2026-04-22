@@ -616,43 +616,25 @@ export default function ClientCompletePlan() {
 
         <div className="px-5">
           {synergyLoading ? (
-            <Card className="border-primary/20 bg-primary/5">
+            <Card>
               <CardContent className="p-5 flex items-center justify-center gap-3">
                 <Loader2 className="h-4 w-4 animate-spin text-primary" />
                 <span className="text-sm text-muted-foreground">Building your metabolic blueprint...</span>
               </CardContent>
             </Card>
           ) : synergy?.synergy_text ? (
-            <Card
-              className="overflow-hidden relative"
-              style={{ borderColor: `${themeColor}40` }}
-            >
-              <div className="absolute inset-x-0 top-0 h-1" style={{ background: `linear-gradient(90deg, ${themeColor}, hsl(var(--primary)), ${themeColor})` }} />
-              <div className="absolute inset-y-0 left-0 w-1" style={{ backgroundColor: themeColor }} />
-              <CardContent className="p-5 pl-6 pt-5">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="h-8 w-8 rounded-full flex items-center justify-center" style={{ backgroundColor: `${themeColor}15` }}>
-                    <Sparkles className="h-4 w-4" style={{ color: themeColor }} />
-                  </div>
-                  <div>
-                    <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color: themeColor }}>
-                      Protocol + Keto Synergy
-                    </h3>
-                    <p className="text-[10px] text-muted-foreground">
-                      {protocol.name} × {ketoType.abbreviation}
-                    </p>
-                  </div>
-                </div>
-
-                {structured ? (
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {structured.keto_synergy}
-                  </p>
-                ) : (
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {synergy.synergy_text}
-                  </p>
-                )}
+            <Card>
+              <CardContent className="p-5">
+                <SectionHeader
+                  title="Protocol + Keto Synergy"
+                  icon={<Sparkles className="h-4 w-4 text-primary" />}
+                />
+                <p className="text-[11px] text-muted-foreground uppercase tracking-wide font-medium mb-3 -mt-1">
+                  {protocol.name} × {ketoType.abbreviation}
+                </p>
+                <p className="text-[13px] text-muted-foreground leading-relaxed">
+                  {structured ? structured.keto_synergy : synergy.synergy_text}
+                </p>
               </CardContent>
             </Card>
           ) : null}
