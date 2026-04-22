@@ -158,12 +158,9 @@ export function MacroComparisonFlipCard({
     <div className="p-5">
       {/* Header */}
       <div className="flex items-center gap-2 mb-4">
-        <div
-          className="h-7 w-7 rounded-full flex items-center justify-center"
-          style={{ background: `linear-gradient(135deg, ${themeColor}, ${themeColor}99)` }}
-        >
-          <BarChart3 className="h-3.5 w-3.5 text-black" />
-        </div>
+        <SquircleIcon themeColor={themeColor}>
+          <BarChart3 className="h-4 w-4 text-white" strokeWidth={2.5} />
+        </SquircleIcon>
         <span
           className="text-[11px] font-bold uppercase tracking-wider"
           style={{ color: themeColor }}
@@ -274,12 +271,9 @@ export function MacroComparisonFlipCard({
     <div className="p-5 space-y-4">
       {/* Header */}
       <div className="flex items-center gap-2">
-        <div
-          className="h-7 w-7 rounded-full flex items-center justify-center"
-          style={{ background: `linear-gradient(135deg, ${themeColor}, ${themeColor}99)` }}
-        >
-          <Sparkles className="h-3.5 w-3.5 text-black" />
-        </div>
+        <SquircleIcon themeColor={themeColor}>
+          <Sparkles className="h-4 w-4 text-white" strokeWidth={2.5} />
+        </SquircleIcon>
         <span
           className="text-[11px] font-bold uppercase tracking-wider"
           style={{ color: themeColor }}
@@ -443,6 +437,44 @@ function DecoderRow({ label, detail }: { label: string; detail: string }) {
         <span className="text-[12px] font-bold text-foreground">{label}</span>
         <span className="text-[12px] text-muted-foreground"> — {detail}</span>
       </div>
+    </div>
+  );
+}
+
+/**
+ * 3D embossed squircle icon container — matches the flame app-icon look.
+ * Layered gradients, inset highlight on top, soft drop shadow below.
+ */
+function SquircleIcon({
+  themeColor,
+  children,
+}: {
+  themeColor: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      className="relative h-9 w-9 rounded-[10px] flex items-center justify-center shrink-0"
+      style={{
+        background: `linear-gradient(160deg, ${themeColor} 0%, ${themeColor}e6 50%, ${themeColor}b3 100%)`,
+        boxShadow: [
+          `0 6px 14px -4px ${themeColor}80`,
+          "0 2px 4px hsl(0 0% 0% / 0.25)",
+          "inset 0 1px 0 hsl(0 0% 100% / 0.45)",
+          "inset 0 -2px 3px hsl(0 0% 0% / 0.25)",
+          `inset 0 0 0 1px ${themeColor}`,
+        ].join(", "),
+      }}
+    >
+      {/* Top gloss highlight */}
+      <div
+        className="pointer-events-none absolute inset-x-1 top-1 h-1/2 rounded-[7px]"
+        style={{
+          background:
+            "linear-gradient(180deg, hsl(0 0% 100% / 0.3) 0%, hsl(0 0% 100% / 0) 100%)",
+        }}
+      />
+      <div className="relative">{children}</div>
     </div>
   );
 }
