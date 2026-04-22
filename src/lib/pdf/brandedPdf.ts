@@ -342,8 +342,9 @@ function renderMacros(ctx: Ctx, s: Extract<PdfSection, { type: "macros" }>) {
       color: toColor(ctx.accent),
     });
     const valueSize = 22;
-    const valueW = ctx.fontBold.widthOfTextAtSize(tile.value, valueSize);
-    ctx.page.drawText(tile.value, {
+    const valueStr = safeText(tile.value);
+    const valueW = ctx.fontBold.widthOfTextAtSize(valueStr, valueSize);
+    ctx.page.drawText(valueStr, {
       x: x + (tileW - valueW) / 2,
       y: y + tileH - 30,
       size: valueSize,
@@ -351,7 +352,7 @@ function renderMacros(ctx: Ctx, s: Extract<PdfSection, { type: "macros" }>) {
       color: toColor(INK),
     });
     const labelSize = 8;
-    const label = tile.label.toUpperCase();
+    const label = safeText(tile.label.toUpperCase());
     const labelW = ctx.fontBold.widthOfTextAtSize(label, labelSize);
     ctx.page.drawText(label, {
       x: x + (tileW - labelW) / 2,
@@ -362,8 +363,9 @@ function renderMacros(ctx: Ctx, s: Extract<PdfSection, { type: "macros" }>) {
     });
     if (tile.detail) {
       const detailSize = 8;
-      const detailW = ctx.fontRegular.widthOfTextAtSize(tile.detail, detailSize);
-      ctx.page.drawText(tile.detail, {
+      const detailStr = safeText(tile.detail);
+      const detailW = ctx.fontRegular.widthOfTextAtSize(detailStr, detailSize);
+      ctx.page.drawText(detailStr, {
         x: x + (tileW - detailW) / 2,
         y: y + 8,
         size: detailSize,
@@ -378,7 +380,7 @@ function renderMacros(ctx: Ctx, s: Extract<PdfSection, { type: "macros" }>) {
 
 function renderHeading(ctx: Ctx, s: Extract<PdfSection, { type: "heading" }>) {
   ensureSpace(ctx, 22);
-  ctx.page.drawText(s.text.toUpperCase(), {
+  ctx.page.drawText(safeText(s.text.toUpperCase()), {
     x: MARGIN,
     y: ctx.cursorY - 12,
     size: 10,
