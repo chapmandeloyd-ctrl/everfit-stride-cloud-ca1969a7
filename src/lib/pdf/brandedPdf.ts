@@ -205,7 +205,7 @@ function drawHeader(ctx: Ctx) {
     month: "long",
     day: "numeric",
   });
-  const eyebrow = documentLabel.toUpperCase();
+  const eyebrow = safeText(documentLabel.toUpperCase());
   const eyebrowSize = 8;
   const eyebrowW = fontBold.widthOfTextAtSize(eyebrow, eyebrowSize);
   page.drawText(eyebrow, {
@@ -215,8 +215,9 @@ function drawHeader(ctx: Ctx) {
     font: fontBold,
     color: toColor(MUTED),
   });
-  const dateW = fontRegular.widthOfTextAtSize(date, 9);
-  page.drawText(date, {
+  const safeDate = safeText(date);
+  const dateW = fontRegular.widthOfTextAtSize(safeDate, 9);
+  page.drawText(safeDate, {
     x: PAGE_WIDTH - MARGIN - dateW,
     y: top - 22,
     size: 9,
@@ -244,7 +245,7 @@ function drawFooter(ctx: Ctx) {
     height: 0.5,
     color: toColor(HAIRLINE),
   });
-  const left = clientName ? `Prepared for ${clientName}` : "Prepared by KSOM-360";
+  const left = safeText(clientName ? `Prepared for ${clientName}` : "Prepared by KSOM-360");
   page.drawText(left, {
     x: MARGIN,
     y,
