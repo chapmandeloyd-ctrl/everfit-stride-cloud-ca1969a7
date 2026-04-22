@@ -106,10 +106,37 @@ function toColor({ r, g, b }: RGB) {
   return rgb(r, g, b);
 }
 
+/**
+ * Replace characters that the WinAnsi encoding (used by pdf-lib's standard
+ * Helvetica fallback) can't encode. Inter, when it loads, handles all of
+ * these natively — but if the CDN fetch fails we silently fall back to
+ * Helvetica and would otherwise crash on "≤", "—", smart quotes, etc.
+ * Always run user-facing strings through this before measuring or drawing.
+ */
+function safeText(input: string): string {
+  if (!input) return "";
+  return input
+    .replace(/\u2264/g, "<=")  // ≤
+    .replace(/\u2265/g, ">=")  // ≥
+    .replace(/\u2260/g, "!=")  // ≠
+    .replace(/\u2248/g, "~")   // ≈
+    .replace(/\u00B1/g, "+/-") // ±
+    .replace(/\u2212/g, "-")   // −
+    .replace(/[\u2013\u2014]/g, "-")          // – —
+    .replace(/[\u2018\u2019\u201A\u2032]/g, "'") // ‘ ’ ‚ ′
+    .replace(/[\u201C\u201D\u201E\u2033]/g, '"') // “ ” „ ″
+    .replace(/\u2026/g, "...") // …
+    .replace(/\u00B7/g, "·" /* keep middle dot, WinAnsi has it */)
+    .replace(/[\u2022\u25CF]/g, "•" /* WinAnsi bullet */)
+    .replace(/\u00A0/g, " ")   // nbsp
+    // Strip anything else outside the WinAnsi-safe range as a last resort.
+    .replace(/[^\x09\x0A\x0D\x20-\x7E\xA0-\xFF\u20AC\u2022\u00B7]/g, "");
+}
+
 /** Word-wrap that respects existing line breaks in the input. */
 function wrapText(text: string, font: PDFFont, size: number, maxWidth: number): string[] {
   const out: string[] = [];
-  const paragraphs = text.split(/\n/);
+  const paragraphs = safeText(text).split(/\n/);
   for (const paragraph of paragraphs) {
     if (!paragraph.trim()) {
       out.push("");
@@ -178,7 +205,7 @@ function drawHeader(ctx: Ctx) {
     month: "long",
     day: "numeric",
   });
-  const eyebrow = documentLabel.toUpperCase();
+  const eyebrow = safeText(documentLabel.toUpperCase());
   const eyebrowSize = 8;
   const eyebrowW = fontBold.widthOfTextAtSize(eyebrow, eyebrowSize);
   page.drawText(eyebrow, {
@@ -188,8 +215,9 @@ function drawHeader(ctx: Ctx) {
     font: fontBold,
     color: toColor(MUTED),
   });
-  const dateW = fontRegular.widthOfTextAtSize(date, 9);
-  page.drawText(date, {
+  const safeDate = safeText(date);
+  const dateW = fontRegular.widthOfTextAtSize(safeDate, 9);
+  page.drawText(safeDate, {
     x: PAGE_WIDTH - MARGIN - dateW,
     y: top - 22,
     size: 9,
@@ -217,7 +245,7 @@ function drawFooter(ctx: Ctx) {
     height: 0.5,
     color: toColor(HAIRLINE),
   });
-  const left = clientName ? `Prepared for ${clientName}` : "Prepared by KSOM-360";
+  const left = safeText(clientName ? `Prepared for ${clientName}` : "Prepared by KSOM-360");
   page.drawText(left, {
     x: MARGIN,
     y,
@@ -256,7 +284,7 @@ function renderHero(ctx: Ctx, s: Extract<PdfSection, { type: "hero" }>) {
 
   if (s.eyebrow) {
     ensureSpace(ctx, 14);
-    ctx.page.drawText(s.eyebrow.toUpperCase(), {
+    ctx.page.drawText(safeText(s.eyebrow.toUpperCase()), {
       x: MARGIN,
       y: ctx.cursorY - 10,
       size: 9,
@@ -267,7 +295,7 @@ function renderHero(ctx: Ctx, s: Extract<PdfSection, { type: "hero" }>) {
   }
 
   ensureSpace(ctx, 32);
-  ctx.page.drawText(s.title, {
+  ctx.page.drawText(safeText(s.title), {
     x: MARGIN,
     y: ctx.cursorY - 28,
     size: 28,
@@ -315,8 +343,9 @@ function renderMacros(ctx: Ctx, s: Extract<PdfSection, { type: "macros" }>) {
       color: toColor(ctx.accent),
     });
     const valueSize = 22;
-    const valueW = ctx.fontBold.widthOfTextAtSize(tile.value, valueSize);
-    ctx.page.drawText(tile.value, {
+    const valueStr = safeText(tile.value);
+    const valueW = ctx.fontBold.widthOfTextAtSize(valueStr, valueSize);
+    ctx.page.drawText(valueStr, {
       x: x + (tileW - valueW) / 2,
       y: y + tileH - 30,
       size: valueSize,
@@ -324,7 +353,7 @@ function renderMacros(ctx: Ctx, s: Extract<PdfSection, { type: "macros" }>) {
       color: toColor(INK),
     });
     const labelSize = 8;
-    const label = tile.label.toUpperCase();
+    const label = safeText(tile.label.toUpperCase());
     const labelW = ctx.fontBold.widthOfTextAtSize(label, labelSize);
     ctx.page.drawText(label, {
       x: x + (tileW - labelW) / 2,
@@ -335,8 +364,9 @@ function renderMacros(ctx: Ctx, s: Extract<PdfSection, { type: "macros" }>) {
     });
     if (tile.detail) {
       const detailSize = 8;
-      const detailW = ctx.fontRegular.widthOfTextAtSize(tile.detail, detailSize);
-      ctx.page.drawText(tile.detail, {
+      const detailStr = safeText(tile.detail);
+      const detailW = ctx.fontRegular.widthOfTextAtSize(detailStr, detailSize);
+      ctx.page.drawText(detailStr, {
         x: x + (tileW - detailW) / 2,
         y: y + 8,
         size: detailSize,
@@ -351,7 +381,7 @@ function renderMacros(ctx: Ctx, s: Extract<PdfSection, { type: "macros" }>) {
 
 function renderHeading(ctx: Ctx, s: Extract<PdfSection, { type: "heading" }>) {
   ensureSpace(ctx, 22);
-  ctx.page.drawText(s.text.toUpperCase(), {
+  ctx.page.drawText(safeText(s.text.toUpperCase()), {
     x: MARGIN,
     y: ctx.cursorY - 12,
     size: 10,
@@ -488,13 +518,14 @@ function renderKeyValue(ctx: Ctx, s: Extract<PdfSection, { type: "keyValue" }>) 
         color: toColor(SOFT_FILL),
       });
     }
-    ctx.page.drawText(row.label, {
+    ctx.page.drawText(safeText(row.label), {
       x: MARGIN + 12, y: y + 7,
       size: 10, font: ctx.fontBold,
       color: toColor(INK),
     });
-    const valueW = ctx.fontRegular.widthOfTextAtSize(row.value, 10);
-    ctx.page.drawText(row.value, {
+    const valueStr = safeText(row.value);
+    const valueW = ctx.fontRegular.widthOfTextAtSize(valueStr, 10);
+    ctx.page.drawText(valueStr, {
       x: PAGE_WIDTH - MARGIN - 12 - valueW, y: y + 7,
       size: 10, font: ctx.fontRegular,
       color: toColor(MUTED),
