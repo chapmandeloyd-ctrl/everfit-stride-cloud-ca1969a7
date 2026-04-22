@@ -1,4 +1,7 @@
-import { Flame } from "lucide-react";
+import { Flame, FileDown } from "lucide-react";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { exportKetoPlanPdf } from "@/lib/pdf/exportKetoPlan";
 import {
   InteractiveProtocolCard,
   type InteractiveProtocolCardProps,
@@ -37,6 +40,12 @@ export interface InteractiveKetoTypeCardProps {
   forcedHeight?: InteractiveProtocolCardProps["forcedHeight"];
   /** Pass-through: emits the auto-measured height for parent to collect. */
   onMeasureHeight?: InteractiveProtocolCardProps["onMeasureHeight"];
+  /** Client display name pulled into the PDF footer ("Prepared for ..."). */
+  clientName?: string | null;
+  /** Optional pull-quote shown in the PDF "Coach Read" block. */
+  coachRead?: string | null;
+  /** Hide the back-face "Export PDF" chip. Default: false (button is shown). */
+  hideExportPdf?: boolean;
 }
 
 /* ----------------------------- color mapping ----------------------------- */
