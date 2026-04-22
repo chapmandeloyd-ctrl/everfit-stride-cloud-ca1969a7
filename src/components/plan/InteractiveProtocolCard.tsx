@@ -57,7 +57,7 @@ export interface InteractiveProtocolCardProps {
   flipped?: boolean;
   /** Called whenever the card requests a flip state change. */
   onFlippedChange?: (next: boolean) => void;
-  /** Disable the built-in front-face tap/click flip handling. */
+  /** Disable the built-in front-face tap/click flip handling. Defaults to true (flip is off app-wide). */
   disableTapToFlip?: boolean;
 }
 
@@ -92,7 +92,7 @@ export function InteractiveProtocolCard({
   backExtraAction,
   flipped: controlledFlipped,
   onFlippedChange,
-  disableTapToFlip = false,
+  disableTapToFlip = true,
 }: InteractiveProtocolCardProps) {
   const isMobileViewport = typeof window !== "undefined" ? window.innerWidth < 1024 : false;
   const isMobile = useIsMobile() || isMobileViewport;
