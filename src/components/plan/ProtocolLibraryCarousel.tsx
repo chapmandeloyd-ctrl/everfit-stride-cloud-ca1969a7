@@ -167,8 +167,6 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
     return arr;
   }, [slides, topIndex, total]);
 
-  if (total === 0) return null;
-
   // Measure the visible top card so the stack container grows to match it.
   // Re-measures whenever the top card changes (different content height).
   useLayoutEffect(() => {
@@ -183,6 +181,8 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
     ro.observe(el);
     return () => ro.disconnect();
   }, [topIndex]);
+
+  if (total === 0) return null;
 
   // Subtle rotation as user drags (Tinder feel).
   const rotation = Math.max(-12, Math.min(12, dragX / 14));
@@ -228,7 +228,7 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
         {(() => {
           const top = stack[0];
           if (!top) return null;
-          const { entry, isLocked, isCurrent } = top;
+          const { entry, isLocked, isCurrent } = top.slide;
           const transform = `translate3d(${dragX}px, 0, 0) rotate(${rotation}deg)`;
           const style: CSSProperties = {
             transform,
