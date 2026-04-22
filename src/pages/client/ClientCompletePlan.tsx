@@ -24,6 +24,7 @@ import { InteractiveProtocolCard } from "@/components/plan/InteractiveProtocolCa
 import type { DemoProtocol } from "@/components/plan/InteractiveProtocolCardDemo";
 import { InteractiveKetoTypeCard } from "@/components/keto/InteractiveKetoTypeCard";
 import { MacroComparisonFlipCard } from "@/components/keto/MacroComparisonFlipCard";
+import { buildSynergyProtocol } from "@/lib/synergyDemoContent";
 
 function generateWeeklyProgression(durationDays: number, fastTargetHours: number) {
   const weeks = Math.ceil(durationDays / 7);
