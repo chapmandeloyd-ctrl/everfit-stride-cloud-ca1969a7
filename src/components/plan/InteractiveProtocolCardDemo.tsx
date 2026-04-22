@@ -928,7 +928,7 @@ function ComboCard({ protocols, frontExtra = "none" }: { protocols: DemoProtocol
           </div>
 
           {/* tap hint */}
-          <div className="absolute bottom-5 left-0 right-0 flex justify-center pointer-events-none">
+          <div className="absolute -bottom-3 left-0 right-0 flex justify-center pointer-events-none z-10">
             <span
               className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-background/85 backdrop-blur px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-primary shadow-md animate-[tap-hint-pulse_2.4s_ease-in-out_infinite]"
             >
