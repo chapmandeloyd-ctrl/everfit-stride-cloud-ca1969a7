@@ -931,9 +931,11 @@ function ComboCard({ protocols, frontExtra = "none" }: { protocols: DemoProtocol
     <div
       ref={tiltRef}
       className="relative pt-6 pb-4 select-none"
-      style={{ perspective: "1400px" }}
+      style={{ perspective: "1400px", touchAction: "pan-y" }}
       onPointerMove={onTiltMove}
       onPointerLeave={onTiltLeave}
+      onPointerCancel={onTiltLeave}
+      onPointerUp={(e) => { if (e.pointerType === "touch") onTiltLeave(); }}
     >
       <CardStackBackdrop />
       <div
