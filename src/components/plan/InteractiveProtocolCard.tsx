@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
+import { ChevronDown } from "lucide-react";
 import {
   CardStackBackdrop,
   CardFront,
@@ -335,6 +336,34 @@ export function InteractiveProtocolCard({
   // Visible flip toast (mirrors the screen-reader announcement so sighted users
   // also see the state change). Auto-hides after a short delay.
   const [visibleFlipToast, setVisibleFlipToast] = useState("");
+
+  // Inline "Show details" expander (replaces the old back-of-card flip).
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const renderInlineDetails = () =>
+    detailsOpen ? (
+      <div className="mt-3 rounded-2xl overflow-hidden border border-border" style={surfaceStyle}>
+        <BackContent protocol={protocol} extraAction={backExtraAction} />
+      </div>
+    ) : null;
+  const renderDetailsToggle = () => (
+    <div className="mt-2 flex justify-center">
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          setDetailsOpen((v) => !v);
+        }}
+        className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card/80 px-4 py-1.5 text-[11px] font-bold uppercase tracking-wider text-foreground hover:bg-muted/60 transition-colors"
+        aria-expanded={detailsOpen}
+      >
+        {detailsOpen ? "Hide details" : "Show details"}
+        <ChevronDown
+          className={`h-3.5 w-3.5 transition-transform ${detailsOpen ? "rotate-180" : ""}`}
+        />
+      </button>
+    </div>
+  );
+
   useEffect(() => {
     if (!hasFlipped) return;
     setVisibleFlipToast(flipped ? "Showing details" : "Showing summary");
@@ -378,49 +407,17 @@ export function InteractiveProtocolCard({
         </div>
 
         <div className="relative rounded-2xl overflow-hidden border border-border" style={surfaceStyle}>
-          {!flipped ? (
-            <div
-              role="button"
-              tabIndex={0}
-              aria-pressed={false}
-              aria-label={ariaLabel}
-                onPointerDown={onMobileFrontPointerDown}
-                onPointerMove={onMobileFrontPointerMove}
-                onPointerUp={onMobileFrontPointerUp}
-                onPointerCancel={onMobileFrontPointerCancel}
-              onKeyDown={onKeyDown}
-            >
-              <CardFront
-                protocol={protocol}
-                showChevron={false}
-                pulse={false}
-                shimmer={false}
-                animateStats={false}
-                frontExtra={frontExtra}
-              />
-            </div>
-          ) : (
-            <>
-              <BackContent protocol={protocol} onClose={handleClose} extraAction={backExtraAction} />
-              {onOpen && (
-                <div className="px-4 pb-4 -mt-2">
-                  <button
-                    onClick={handleOpen}
-                    className="inline-flex w-full items-center justify-center gap-1.5 rounded-full px-4 py-2 text-[11px] font-extrabold uppercase tracking-wider text-primary-foreground shadow-lg"
-                    style={{
-                      backgroundImage:
-                        "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.85) 50%, hsl(var(--primary) / 0.95) 100%)",
-                      boxShadow:
-                        "0 6px 18px -4px hsl(var(--primary) / 0.55), 0 2px 6px -2px hsl(var(--primary) / 0.4)",
-                    }}
-                  >
-                    {openLabel} →
-                  </button>
-                </div>
-              )}
-            </>
-          )}
+          <CardFront
+            protocol={protocol}
+            showChevron={false}
+            pulse={false}
+            shimmer={false}
+            animateStats={false}
+            frontExtra={frontExtra}
+          />
         </div>
+        {renderDetailsToggle()}
+        {renderInlineDetails()}
       </div>
     );
   }
@@ -504,65 +501,23 @@ export function InteractiveProtocolCard({
       <div
         ref={innerRef}
         className="relative rounded-2xl group"
-        style={innerStyle}
-        onPointerDown={onDown}
-        onPointerMove={onMoveCheck}
-        onPointerUp={onUp}
-        onPointerCancel={onCancel}
-        onClickCapture={onClickCapture}
-        role="button"
-        tabIndex={0}
-        aria-pressed={flipped}
-        aria-label={ariaLabel}
-        onKeyDown={onKeyDown}
       >
-        {/* FRONT */}
         <div
-          className="absolute inset-0 overflow-hidden rounded-2xl border border-border cursor-pointer"
-          style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden", pointerEvents: flipped ? "none" : "auto", ...surfaceStyle }}
-          aria-hidden={flipped}
+          className="relative overflow-hidden rounded-2xl border border-border"
+          style={surfaceStyle}
         >
           <CardFront
             protocol={protocol}
             showChevron={false}
             pulse={!disableHeavyInteractions}
             shimmer={!disableHeavyInteractions}
-            animateStats={!disableHeavyInteractions && !flipped}
+            animateStats={!disableHeavyInteractions}
             frontExtra={frontExtra}
           />
         </div>
-
-        {/* BACK */}
-        <div
-          className="relative overflow-hidden rounded-2xl border border-border"
-          style={{
-            backfaceVisibility: "hidden",
-            WebkitBackfaceVisibility: "hidden",
-            pointerEvents: flipped ? "auto" : "none",
-            transform: "translateZ(0) rotateY(180deg)",
-            ...surfaceStyle,
-          }}
-          aria-hidden={!flipped}
-        >
-          <BackContent protocol={protocol} onClose={handleClose} extraAction={backExtraAction} />
-          {onOpen && (
-            <div className="absolute bottom-3 left-0 right-0 flex justify-center">
-              <button
-                onClick={handleOpen}
-                className="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[11px] font-extrabold uppercase tracking-wider text-primary-foreground shadow-lg"
-                style={{
-                  backgroundImage:
-                    "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.85) 50%, hsl(var(--primary) / 0.95) 100%)",
-                  boxShadow:
-                    "0 6px 18px -4px hsl(var(--primary) / 0.55), 0 2px 6px -2px hsl(var(--primary) / 0.4)",
-                }}
-              >
-                {openLabel} →
-              </button>
-            </div>
-          )}
-        </div>
       </div>
+      {renderDetailsToggle()}
+      {renderInlineDetails()}
     </div>
   );
 }
