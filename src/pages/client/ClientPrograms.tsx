@@ -17,7 +17,9 @@ import {
   LEVEL_TIERS,
   getTierForLevel,
 } from "@/lib/quickPlanTierConfig";
-import { PremiumPlanCard } from "@/components/plan/PremiumPlanCard";
+import { InteractiveProtocolCard } from "@/components/plan/InteractiveProtocolCard";
+import type { DemoProtocol } from "@/components/plan/InteractiveProtocolCardDemo";
+import { getProtocolCardContent } from "@/lib/protocolCardContent";
 
 interface FastingProtocol {
   id: string;
