@@ -1,7 +1,7 @@
-import { useMemo, useState, useRef, useCallback, useEffect, useLayoutEffect, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
+import { useMemo, useState, useRef, useCallback, useLayoutEffect, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
 import { Lock } from "lucide-react";
 import { toast } from "sonner";
-import { InteractiveProtocolCard } from "@/components/plan/InteractiveProtocolCard";
+import { ProtocolCardStatic } from "@/components/plan/ProtocolCardStatic";
 import type { DemoProtocol } from "@/components/plan/InteractiveProtocolCardDemo";
 import { CATEGORY_CONFIG, getDifficultyLabel } from "@/lib/fastingCategoryConfig";
 import { getProtocolCardContent } from "@/lib/protocolCardContent";
