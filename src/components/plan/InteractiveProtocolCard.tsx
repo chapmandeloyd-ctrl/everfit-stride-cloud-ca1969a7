@@ -1,4 +1,4 @@
-import { useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
 import {
   CardStackBackdrop,
   CardFront,
@@ -36,6 +36,16 @@ export function InteractiveProtocolCard({
   const startX = useRef<number | null>(null);
   const startY = useRef<number | null>(null);
   const moved = useRef(false);
+  const frameRef = useRef<number | null>(null);
+  const pendingTiltRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+
+  useEffect(() => {
+    return () => {
+      if (frameRef.current !== null) {
+        cancelAnimationFrame(frameRef.current);
+      }
+    };
+  }, []);
 
   const onTiltMove = (e: ReactPointerEvent<HTMLDivElement>) => {
     // Skip tilt entirely on touch — it fights vertical scroll and causes jank.
@@ -47,9 +57,24 @@ export function InteractiveProtocolCard({
     const py = (e.clientY - rect.top) / rect.height;
     const rx = (py - 0.5) * -8;
     const ry = (px - 0.5) * 10;
-    setTilt({ x: rx, y: ry });
+
+    pendingTiltRef.current = { x: rx, y: ry };
+
+    if (frameRef.current !== null) return;
+
+    frameRef.current = requestAnimationFrame(() => {
+      frameRef.current = null;
+      setTilt(pendingTiltRef.current);
+    });
   };
-  const onTiltLeave = () => setTilt({ x: 0, y: 0 });
+  const onTiltLeave = () => {
+    if (frameRef.current !== null) {
+      cancelAnimationFrame(frameRef.current);
+      frameRef.current = null;
+    }
+    pendingTiltRef.current = { x: 0, y: 0 };
+    setTilt({ x: 0, y: 0 });
+  };
 
   const onDown = (e: ReactPointerEvent<HTMLDivElement>) => {
     startX.current = e.clientX;
