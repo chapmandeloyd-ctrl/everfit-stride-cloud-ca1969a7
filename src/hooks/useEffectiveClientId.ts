@@ -1,4 +1,5 @@
 import { useAuth } from "@/hooks/useAuth";
+import { useImpersonation } from "@/hooks/useImpersonation";
 
 /**
  * Returns the effective client ID for client-side pages.
@@ -7,8 +8,8 @@ import { useAuth } from "@/hooks/useAuth";
  */
 export function useEffectiveClientId() {
   const { user, userRole, loading } = useAuth();
-
-  const impersonatedId = localStorage.getItem("impersonatedClientId");
+  const { impersonatedClientId } = useImpersonation();
+  const impersonatedId = impersonatedClientId;
 
   if (!user) return undefined;
 

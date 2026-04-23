@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
+import { useImpersonation } from "@/hooks/useImpersonation";
 
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { getDietStylePreset } from "@/lib/dietStyles";
@@ -909,6 +910,8 @@ function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; 
 }
 
 export default function ClientDashboard() {
+  const { isImpersonating } = useImpersonation();
+
   const { user } = useAuth();
   const clientId = useEffectiveClientId();
   const navigate = useNavigate();
@@ -1001,7 +1004,6 @@ export default function ClientDashboard() {
 
   // Check if profile is complete, redirect to onboarding if not
   // Skip this check when a trainer is impersonating/previewing a client
-  const isImpersonating = !!localStorage.getItem("impersonatedClientId");
   const { data: profile } = useQuery({
     queryKey: ["profile-check", clientId],
     queryFn: async () => {

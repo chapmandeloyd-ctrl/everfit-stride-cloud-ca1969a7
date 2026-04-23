@@ -7,6 +7,7 @@ import { Badge } from "./ui/badge";
 import { Input } from "./ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
+import { useImpersonation } from "@/hooks/useImpersonation";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -29,6 +30,7 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user, signOut } = useAuth();
+  const { setImpersonatedClientId } = useImpersonation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   // Fetch user profile for avatar
@@ -63,7 +65,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   });
 
   const handleSwitchToClientView = (clientId: string) => {
-    localStorage.setItem("impersonatedClientId", clientId);
+    setImpersonatedClientId(clientId);
     queryClient.clear();
     navigate("/client/dashboard");
   };

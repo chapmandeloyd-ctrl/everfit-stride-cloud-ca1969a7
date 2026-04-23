@@ -1,6 +1,8 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useReducer, useCallback, useEffect, ReactNode } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useSearchParams } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+
+const IMPERSONATION_STORAGE_KEY = "impersonatedClientId";
 
 interface ImpersonationContextType {
   /** The effective client ID to use — either the impersonated client or the logged-in user */
@@ -22,17 +24,24 @@ const ImpersonationContext = createContext<ImpersonationContextType>({
 
 export function ImpersonationProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  const [impersonatedClientId, setImpersonatedClientId] = useState<string | null>(() => {
-    return localStorage.getItem("impersonatedClientId");
-  });
+  const location = useLocation();
+  const [, forceSync] = useReducer((count: number) => count + 1, 0);
+
+  const impersonatedClientId = localStorage.getItem(IMPERSONATION_STORAGE_KEY);
 
   useEffect(() => {
-    if (impersonatedClientId) {
-      localStorage.setItem("impersonatedClientId", impersonatedClientId);
+    forceSync();
+  }, [location.key]);
+
+  const setImpersonatedClientId = useCallback((id: string | null) => {
+    if (id) {
+      localStorage.setItem(IMPERSONATION_STORAGE_KEY, id);
     } else {
-      localStorage.removeItem("impersonatedClientId");
+      localStorage.removeItem(IMPERSONATION_STORAGE_KEY);
     }
-  }, [impersonatedClientId]);
+
+    forceSync();
+  }, []);
 
   const effectiveClientId = impersonatedClientId || user?.id;
 

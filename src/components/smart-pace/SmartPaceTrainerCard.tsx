@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { SmartPaceAdminPanel } from "./SmartPaceAdminPanel";
 import type { SmartPaceGoal } from "@/lib/smartPaceEngine";
+import { useImpersonation } from "@/hooks/useImpersonation";
 
 interface Props {
   clientId: string;
@@ -31,6 +32,7 @@ export function SmartPaceTrainerCard({ clientId, trainerId }: Props) {
   const qc = useQueryClient();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { setImpersonatedClientId } = useImpersonation();
   const draftKey = `smart-pace-draft:${clientId}`;
 
   const { data: settings } = useQuery({
@@ -367,7 +369,7 @@ export function SmartPaceTrainerCard({ clientId, trainerId }: Props) {
             <Button
               variant="outline"
               onClick={() => {
-                localStorage.setItem("impersonatedClientId", clientId);
+                setImpersonatedClientId(clientId);
                 navigate("/client/pace", { state: { returnTo: `/clients/${clientId}` } });
               }}
             >
@@ -376,7 +378,7 @@ export function SmartPaceTrainerCard({ clientId, trainerId }: Props) {
             <Button
               variant="outline"
               onClick={() => {
-                localStorage.setItem("impersonatedClientId", clientId);
+                setImpersonatedClientId(clientId);
                 navigate("/client/dashboard", { state: { returnTo: `/clients/${clientId}` } });
               }}
             >
