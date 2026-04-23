@@ -143,6 +143,8 @@ export function AIWorkoutBuilderDialog({
     setWorkoutResult(null);
     setSuggestions([]);
     setAddedSuggestions(new Set());
+    setExplanation(null);
+    setExplanationOpen(false);
 
     try {
       const { data, error } = await supabase.functions.invoke("ai-workout-builder", {
@@ -171,6 +173,49 @@ export function AIWorkoutBuilderDialog({
       toast.error(err?.message || "Failed to generate workout");
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const handleToggleExplanation = async () => {
+    // Already loaded — just toggle open/closed
+    if (explanation) {
+      setExplanationOpen((v) => !v);
+      return;
+    }
+    if (!workoutResult) return;
+
+    setExplanationOpen(true);
+    setExplanationLoading(true);
+    try {
+      // Send a compact summary of the workout for the AI to explain
+      const summary = {
+        name: workoutResult.workout_name,
+        category: workoutResult.category,
+        difficulty: workoutResult.difficulty,
+        sections: workoutResult.sections.map((s) => ({
+          block: s.section_name,
+          type: s.section_type,
+          rounds: s.rounds,
+          exercises: s.exercises.map((e) => `${e.exercise_name} (${e.sets}×${e.reps_or_time}, rest ${e.rest_seconds}s)`),
+        })),
+      };
+
+      const { data, error } = await supabase.functions.invoke("ai-workout-builder", {
+        body: {
+          mode: "explain_workout",
+          prompt: JSON.stringify(summary, null, 2),
+        },
+      });
+
+      if (error) throw error;
+      const text = data?.result?.explanation || "No explanation returned.";
+      setExplanation(text);
+    } catch (err: any) {
+      console.error("Explanation error:", err);
+      toast.error(err?.message || "Failed to generate explanation");
+      setExplanation("Could not generate explanation. Try again.");
+    } finally {
+      setExplanationLoading(false);
     }
   };
 
