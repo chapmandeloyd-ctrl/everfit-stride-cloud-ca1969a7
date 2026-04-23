@@ -317,10 +317,12 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
             exit={{ clipPath: "circle(40% at 50% 50%)" }}
             transition={{ duration: 0.6, ease: [0.32, 0.72, 0, 1] }}
             drag="y"
+            dragMomentum={false}
+            dragDirectionLock
             dragConstraints={{ top: 0, bottom: 0 }}
-            dragElastic={0.4}
+            dragElastic={0.12}
             onDragEnd={handleDragEnd}
-            style={{ y: dragY }}
+            style={{ y: dragY, touchAction: "none" }}
           >
             {scene.cloudflare_video_id ? (
               <CloudflareStreamPlayer
@@ -446,10 +448,12 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
             <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-8 pb-24">
               <motion.div
                 drag="y"
+                dragMomentum={false}
+                dragDirectionLock
                 dragConstraints={{ top: 0, bottom: 0 }}
-                dragElastic={0.7}
+                dragElastic={0.12}
                 onDragEnd={handleDragEnd}
-                style={{ y: dragY, scale: circleScale }}
+                style={{ y: dragY, scale: circleScale, touchAction: "none" }}
                 className="relative aspect-square w-[58%] max-w-[260px] rounded-full overflow-hidden cursor-grab active:cursor-grabbing touch-none"
               >
                 {/* Crisp white ring with soft outer glow */}
