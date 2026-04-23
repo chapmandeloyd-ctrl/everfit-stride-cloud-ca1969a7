@@ -1,0 +1,632 @@
+import { useState, useMemo } from "react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Sparkles, Loader2, Calendar, ArrowRight, ArrowLeft, Check, Dumbbell } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+
+interface AIProgramBuilderDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onProgramCreated?: () => void;
+}
+
+type Step = "setup" | "generating" | "preview";
+
+interface ScheduleItem {
+  week_number: number;
+  day_of_week: number;
+  workout_name: string;
+  notes?: string;
+}
+
+interface GeneratedProgram {
+  program_name: string;
+  program_description: string;
+  schedule: ScheduleItem[];
+}
+
+const DAY_LABELS = ["", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const DAYS_FULL = [
+  { value: 1, label: "Monday" },
+  { value: 2, label: "Tuesday" },
+  { value: 3, label: "Wednesday" },
+  { value: 4, label: "Thursday" },
+  { value: 5, label: "Friday" },
+  { value: 6, label: "Saturday" },
+  { value: 7, label: "Sunday" },
+];
+
+export function AIProgramBuilderDialog({ open, onOpenChange, onProgramCreated }: AIProgramBuilderDialogProps) {
+  const { user } = useAuth();
+  const { toast } = useToast();
+
+  const [step, setStep] = useState<Step>("setup");
+  const [prompt, setPrompt] = useState("");
+  const [selectedWorkoutIds, setSelectedWorkoutIds] = useState<string[]>([]);
+  const [weeks, setWeeks] = useState("6");
+  const [daysPerWeek, setDaysPerWeek] = useState("4");
+  const [progression, setProgression] = useState<"linear" | "wave" | "none">("linear");
+  const [restStrategy, setRestStrategy] = useState<"auto" | "fixed">("auto");
+  const [fixedPattern, setFixedPattern] = useState<number[]>([1, 3, 5]);
+
+  // Output destination
+  const [saveAsTemplate, setSaveAsTemplate] = useState(true);
+  const [assignToClient, setAssignToClient] = useState(false);
+  const [clientId, setClientId] = useState<string>("");
+  const [startDate, setStartDate] = useState(new Date().toISOString().split("T")[0]);
+
+  const [generated, setGenerated] = useState<GeneratedProgram | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Fetch trainer's workouts
+  const { data: workouts } = useQuery({
+    queryKey: ["program-builder-workouts", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("workout_plans")
+        .select("id, name, category, difficulty")
+        .eq("trainer_id", user?.id)
+        .eq("is_template", false)
+        .is("client_owner_id", null)
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id && open,
+  });
+
+  // Fetch trainer's clients
+  const { data: clients } = useQuery({
+    queryKey: ["program-builder-clients", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("trainer_clients")
+        .select("client_id, profiles!trainer_clients_client_id_fkey(id, full_name)")
+        .eq("trainer_id", user?.id);
+      if (error) throw error;
+      return (data || []).map((row: any) => ({
+        id: row.profiles?.id,
+        name: row.profiles?.full_name || "Unnamed",
+      })).filter((c: any) => c.id);
+    },
+    enabled: !!user?.id && open,
+  });
+
+  const selectedWorkouts = useMemo(
+    () => (workouts || []).filter((w) => selectedWorkoutIds.includes(w.id)),
+    [workouts, selectedWorkoutIds]
+  );
+
+  const reset = () => {
+    setStep("setup");
+    setPrompt("");
+    setSelectedWorkoutIds([]);
+    setWeeks("6");
+    setDaysPerWeek("4");
+    setProgression("linear");
+    setRestStrategy("auto");
+    setFixedPattern([1, 3, 5]);
+    setSaveAsTemplate(true);
+    setAssignToClient(false);
+    setClientId("");
+    setGenerated(null);
+  };
+
+  const handleClose = (next: boolean) => {
+    if (!next) reset();
+    onOpenChange(next);
+  };
+
+  const toggleWorkout = (id: string) => {
+    setSelectedWorkoutIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  const togglePatternDay = (day: number) => {
+    setFixedPattern((prev) =>
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day].sort()
+    );
+  };
+
+  const canGenerate =
+    prompt.trim().length > 0 &&
+    selectedWorkoutIds.length >= 1 &&
+    (restStrategy === "auto" || fixedPattern.length === parseInt(daysPerWeek));
+
+  const handleGenerate = async () => {
+    setStep("generating");
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-workout-builder", {
+        body: {
+          mode: "build_program",
+          prompt,
+          workouts: selectedWorkouts.map((w) => ({
+            name: w.name,
+            category: w.category,
+            difficulty: w.difficulty,
+          })),
+          weeks: parseInt(weeks),
+          days_per_week: parseInt(daysPerWeek),
+          progression,
+          rest_strategy: restStrategy,
+          fixed_pattern: restStrategy === "fixed"
+            ? fixedPattern.map((d) => DAYS_FULL.find((x) => x.value === d)?.label).filter(Boolean)
+            : undefined,
+        },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      if (!data?.result?.schedule) throw new Error("AI did not return a schedule");
+
+      setGenerated(data.result);
+      setStep("preview");
+    } catch (err: any) {
+      console.error("Program generation error:", err);
+      toast({
+        title: "Generation failed",
+        description: err?.message || "Try again or refine your prompt",
+        variant: "destructive",
+      });
+      setStep("setup");
+    }
+  };
+
+  const handleSave = async () => {
+    if (!generated || !user) return;
+    if (!saveAsTemplate && !assignToClient) {
+      toast({ title: "Pick at least one destination", variant: "destructive" });
+      return;
+    }
+    if (assignToClient && !clientId) {
+      toast({ title: "Pick a client to assign to", variant: "destructive" });
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      // Map workout_name → workout_plan_id
+      const nameToId = new Map(selectedWorkouts.map((w) => [w.name.toLowerCase(), w.id]));
+
+      // 1) Save program template (if requested)
+      let programId: string | null = null;
+      if (saveAsTemplate) {
+        const { data: program, error: progError } = await supabase
+          .from("programs" as any)
+          .insert({
+            trainer_id: user.id,
+            name: generated.program_name,
+            description: generated.program_description,
+            duration_weeks: parseInt(weeks),
+            days_per_week: parseInt(daysPerWeek),
+            status: "active",
+          } as any)
+          .select()
+          .single();
+        if (progError) throw progError;
+        programId = (program as any).id;
+
+        // Insert program_workouts rows
+        const programWorkouts = generated.schedule
+          .map((s, idx) => {
+            const wid = nameToId.get(s.workout_name.toLowerCase());
+            if (!wid) return null;
+            return {
+              program_id: programId,
+              workout_id: wid,
+              week_number: s.week_number,
+              day_of_week: s.day_of_week,
+              order_index: idx,
+              notes: s.notes || null,
+            };
+          })
+          .filter(Boolean);
+
+        if (programWorkouts.length > 0) {
+          const { error: pwError } = await supabase
+            .from("program_workouts" as any)
+            .insert(programWorkouts as any);
+          if (pwError) throw pwError;
+        }
+      }
+
+      // 2) Assign to client (if requested) — write client_workouts with scheduled_date
+      let assignedCount = 0;
+      if (assignToClient && clientId) {
+        const start = new Date(startDate);
+        // Align start to the chosen weekday of the first scheduled day if possible
+        const startDow = start.getDay() === 0 ? 7 : start.getDay(); // 1..7 (Mon=1)
+
+        const assignments = generated.schedule
+          .map((s) => {
+            const wid = nameToId.get(s.workout_name.toLowerCase());
+            if (!wid) return null;
+            // Days from start = (week-1)*7 + (day_of_week - startDow), wrap negatives
+            const weekOffset = (s.week_number - 1) * 7;
+            let dayDelta = s.day_of_week - startDow;
+            if (dayDelta < 0) dayDelta += 7;
+            const date = new Date(start);
+            date.setDate(date.getDate() + weekOffset + dayDelta);
+            return {
+              client_id: clientId,
+              workout_plan_id: wid,
+              assigned_by: user.id,
+              scheduled_date: date.toISOString().split("T")[0],
+              notes: s.notes || null,
+            };
+          })
+          .filter(Boolean);
+
+        if (assignments.length > 0) {
+          const { error: cwError } = await supabase
+            .from("client_workouts")
+            .insert(assignments as any);
+          if (cwError) throw cwError;
+          assignedCount = assignments.length;
+        }
+      }
+
+      const parts: string[] = [];
+      if (saveAsTemplate) parts.push("saved as template");
+      if (assignedCount > 0) parts.push(`${assignedCount} workouts assigned`);
+      toast({
+        title: "Program created",
+        description: parts.join(" • "),
+      });
+
+      onProgramCreated?.();
+      handleClose(false);
+    } catch (err: any) {
+      console.error("Save program error:", err);
+      toast({
+        title: "Save failed",
+        description: err?.message || "Could not save program",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Group preview by week
+  const scheduleByWeek = useMemo(() => {
+    if (!generated) return new Map<number, ScheduleItem[]>();
+    const map = new Map<number, ScheduleItem[]>();
+    generated.schedule.forEach((s) => {
+      const arr = map.get(s.week_number) || [];
+      arr.push(s);
+      map.set(s.week_number, arr);
+    });
+    map.forEach((arr) => arr.sort((a, b) => a.day_of_week - b.day_of_week));
+    return map;
+  }, [generated]);
+
+  return (
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-primary" />
+            AI Program Builder
+          </DialogTitle>
+          <DialogDescription>
+            Turn your selected workouts into a multi-week schedule with progression and rest days.
+          </DialogDescription>
+        </DialogHeader>
+
+        {step === "setup" && (
+          <ScrollArea className="flex-1 pr-4 -mr-4">
+            <div className="space-y-5">
+              {/* Prompt */}
+              <div className="space-y-2">
+                <Label>Goal / Description</Label>
+                <Textarea
+                  placeholder="e.g. 6-week strength block for an intermediate lifter focused on hypertrophy with conditioning on light days"
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  rows={3}
+                />
+              </div>
+
+              {/* Workout selection */}
+              <div className="space-y-2">
+                <Label>
+                  Select Workouts ({selectedWorkoutIds.length} selected)
+                </Label>
+                <div className="border rounded-md max-h-48 overflow-y-auto p-2 space-y-1">
+                  {(workouts || []).length === 0 ? (
+                    <p className="text-sm text-muted-foreground p-3 text-center">
+                      No workouts found. Create some first.
+                    </p>
+                  ) : (
+                    (workouts || []).map((w) => (
+                      <label
+                        key={w.id}
+                        className="flex items-center gap-3 p-2 hover:bg-muted rounded cursor-pointer"
+                      >
+                        <Checkbox
+                          checked={selectedWorkoutIds.includes(w.id)}
+                          onCheckedChange={() => toggleWorkout(w.id)}
+                        />
+                        <Dumbbell className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <span className="flex-1 text-sm font-medium truncate">{w.name}</span>
+                        {w.category && (
+                          <Badge variant="outline" className="text-xs">{w.category}</Badge>
+                        )}
+                      </label>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Duration</Label>
+                  <Select value={weeks} onValueChange={setWeeks}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {[4, 5, 6, 7, 8].map((w) => (
+                        <SelectItem key={w} value={String(w)}>{w} weeks</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Days / Week</Label>
+                  <Select value={daysPerWeek} onValueChange={setDaysPerWeek}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {[2, 3, 4, 5, 6].map((d) => (
+                        <SelectItem key={d} value={String(d)}>{d} days</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Progression */}
+              <div className="space-y-2">
+                <Label>Progression Style</Label>
+                <RadioGroup value={progression} onValueChange={(v: any) => setProgression(v)}>
+                  <div className="flex items-start gap-3 p-3 border rounded-md">
+                    <RadioGroupItem value="linear" id="linear" className="mt-0.5" />
+                    <label htmlFor="linear" className="flex-1 cursor-pointer">
+                      <div className="font-medium text-sm">Linear</div>
+                      <div className="text-xs text-muted-foreground">Add reps/sets/load each week</div>
+                    </label>
+                  </div>
+                  <div className="flex items-start gap-3 p-3 border rounded-md">
+                    <RadioGroupItem value="wave" id="wave" className="mt-0.5" />
+                    <label htmlFor="wave" className="flex-1 cursor-pointer">
+                      <div className="font-medium text-sm">Wave / Undulating</div>
+                      <div className="text-xs text-muted-foreground">Cycle hard / medium / easy weeks</div>
+                    </label>
+                  </div>
+                  <div className="flex items-start gap-3 p-3 border rounded-md">
+                    <RadioGroupItem value="none" id="none" className="mt-0.5" />
+                    <label htmlFor="none" className="flex-1 cursor-pointer">
+                      <div className="font-medium text-sm">None — just rotate</div>
+                      <div className="text-xs text-muted-foreground">Keep workouts consistent week to week</div>
+                    </label>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              {/* Rest day strategy */}
+              <div className="space-y-2">
+                <Label>Rest Day Placement</Label>
+                <RadioGroup value={restStrategy} onValueChange={(v: any) => setRestStrategy(v)}>
+                  <div className="flex items-start gap-3 p-3 border rounded-md">
+                    <RadioGroupItem value="auto" id="auto" className="mt-0.5" />
+                    <label htmlFor="auto" className="flex-1 cursor-pointer">
+                      <div className="font-medium text-sm">Auto-placed by AI</div>
+                      <div className="text-xs text-muted-foreground">AI spaces rest days for optimal recovery</div>
+                    </label>
+                  </div>
+                  <div className="flex items-start gap-3 p-3 border rounded-md">
+                    <RadioGroupItem value="fixed" id="fixed" className="mt-0.5" />
+                    <div className="flex-1">
+                      <label htmlFor="fixed" className="cursor-pointer">
+                        <div className="font-medium text-sm">Fixed weekly pattern</div>
+                        <div className="text-xs text-muted-foreground mb-2">Pick exactly {daysPerWeek} training days</div>
+                      </label>
+                      {restStrategy === "fixed" && (
+                        <div className="flex flex-wrap gap-1.5 mt-2">
+                          {DAYS_FULL.map((d) => (
+                            <button
+                              key={d.value}
+                              type="button"
+                              onClick={() => togglePatternDay(d.value)}
+                              className={`px-3 py-1 rounded-md text-xs font-medium border transition ${
+                                fixedPattern.includes(d.value)
+                                  ? "bg-primary text-primary-foreground border-primary"
+                                  : "bg-background hover:bg-muted"
+                              }`}
+                            >
+                              {d.label.slice(0, 3)}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      {restStrategy === "fixed" && fixedPattern.length !== parseInt(daysPerWeek) && (
+                        <p className="text-xs text-destructive mt-2">
+                          Selected {fixedPattern.length}, need {daysPerWeek}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </RadioGroup>
+              </div>
+            </div>
+          </ScrollArea>
+        )}
+
+        {step === "generating" && (
+          <div className="flex-1 flex flex-col items-center justify-center py-12 gap-4">
+            <Loader2 className="h-10 w-10 animate-spin text-primary" />
+            <div className="text-center">
+              <p className="font-medium">Designing your program…</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                GPT-5 is scheduling {selectedWorkoutIds.length} workouts across {weeks} weeks
+              </p>
+            </div>
+          </div>
+        )}
+
+        {step === "preview" && generated && (
+          <ScrollArea className="flex-1 pr-4 -mr-4">
+            <div className="space-y-4">
+              <div className="p-4 bg-muted/50 rounded-md border">
+                <h3 className="font-semibold text-lg">{generated.program_name}</h3>
+                <p className="text-sm text-muted-foreground mt-1">{generated.program_description}</p>
+              </div>
+
+              <div className="space-y-3">
+                {Array.from(scheduleByWeek.entries()).map(([wk, items]) => (
+                  <div key={wk} className="border rounded-md overflow-hidden">
+                    <div className="bg-muted px-3 py-2 font-medium text-sm flex items-center gap-2">
+                      <Calendar className="h-3.5 w-3.5" />
+                      Week {wk}
+                      <Badge variant="secondary" className="ml-auto text-xs">
+                        {items.length} {items.length === 1 ? "session" : "sessions"}
+                      </Badge>
+                    </div>
+                    <div className="divide-y">
+                      {items.map((s, i) => (
+                        <div key={i} className="px-3 py-2 flex items-center gap-3 text-sm">
+                          <Badge variant="outline" className="w-12 justify-center text-xs shrink-0">
+                            {DAY_LABELS[s.day_of_week]}
+                          </Badge>
+                          <Dumbbell className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                          <span className="font-medium flex-1 truncate">{s.workout_name}</span>
+                          {s.notes && (
+                            <span className="text-xs text-muted-foreground italic truncate max-w-[40%]">
+                              {s.notes}
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <Separator />
+
+              {/* Output destination */}
+              <div className="space-y-3">
+                <Label className="text-sm font-semibold">Where should this go?</Label>
+
+                <label className="flex items-start gap-3 p-3 border rounded-md cursor-pointer hover:bg-muted/50">
+                  <Checkbox
+                    checked={saveAsTemplate}
+                    onCheckedChange={(c) => setSaveAsTemplate(!!c)}
+                    className="mt-0.5"
+                  />
+                  <div className="flex-1">
+                    <div className="font-medium text-sm">Save as Program Template</div>
+                    <div className="text-xs text-muted-foreground">Reusable for any future client</div>
+                  </div>
+                </label>
+
+                <label className="flex items-start gap-3 p-3 border rounded-md cursor-pointer hover:bg-muted/50">
+                  <Checkbox
+                    checked={assignToClient}
+                    onCheckedChange={(c) => setAssignToClient(!!c)}
+                    className="mt-0.5"
+                  />
+                  <div className="flex-1 space-y-2">
+                    <div>
+                      <div className="font-medium text-sm">Assign to a client now</div>
+                      <div className="text-xs text-muted-foreground">Schedules workouts on their calendar</div>
+                    </div>
+                    {assignToClient && (
+                      <div className="grid grid-cols-2 gap-2 pt-1">
+                        <Select value={clientId} onValueChange={setClientId}>
+                          <SelectTrigger><SelectValue placeholder="Choose client" /></SelectTrigger>
+                          <SelectContent>
+                            {(clients || []).map((c: any) => (
+                              <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Input
+                          type="date"
+                          value={startDate}
+                          onChange={(e) => setStartDate(e.target.value)}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </label>
+              </div>
+            </div>
+          </ScrollArea>
+        )}
+
+        <DialogFooter className="flex-col sm:flex-row gap-2">
+          {step === "setup" && (
+            <>
+              <Button variant="outline" onClick={() => handleClose(false)} className="sm:flex-1">
+                Cancel
+              </Button>
+              <Button
+                onClick={handleGenerate}
+                disabled={!canGenerate}
+                className="sm:flex-1 gap-2"
+              >
+                <Sparkles className="h-4 w-4" />
+                Generate Program
+              </Button>
+            </>
+          )}
+          {step === "preview" && (
+            <>
+              <Button
+                variant="outline"
+                onClick={() => setStep("setup")}
+                className="sm:flex-1 gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Refine
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleGenerate}
+                disabled={isSaving}
+                className="sm:flex-1"
+              >
+                Regenerate
+              </Button>
+              <Button
+                onClick={handleSave}
+                disabled={isSaving || (!saveAsTemplate && !assignToClient)}
+                className="sm:flex-1 gap-2"
+              >
+                {isSaving ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Check className="h-4 w-4" />
+                )}
+                Save Program
+              </Button>
+            </>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
