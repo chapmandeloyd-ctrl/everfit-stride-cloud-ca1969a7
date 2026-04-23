@@ -19,8 +19,11 @@ export function PortalEntry({ onSelectCategory }: PortalEntryProps) {
   const categories: Array<"Focus" | "Sleep" | "Escape" | "Breath"> = ["Focus", "Sleep", "Escape", "Breath"];
   const [videoReady, setVideoReady] = useState(false);
   const [showButtons, setShowButtons] = useState(false);
+  const [needsTap, setNeedsTap] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const revealTimeoutRef = useRef<number | null>(null);
+  // Cache-bust the iframe src so a stuck/failed first load can be retried
+  const [iframeKey, setIframeKey] = useState(0);
 
   useEffect(() => {
     // Cloudflare Stream handles buffering + adaptive bitrate. We just reveal
@@ -43,6 +46,16 @@ export function PortalEntry({ onSelectCategory }: PortalEntryProps) {
     setVideoReady(true);
     if (revealTimeoutRef.current) window.clearTimeout(revealTimeoutRef.current);
     revealTimeoutRef.current = window.setTimeout(() => setShowButtons(true), 1200);
+    // If autoplay was blocked by the browser (common on iOS Safari without
+    // a prior gesture), the iframe still loads but the video stays paused.
+    // Surface a tap-to-play affordance after a short grace period.
+    window.setTimeout(() => setNeedsTap(true), 2000);
+  };
+
+  const handleTapToPlay = () => {
+    setNeedsTap(false);
+    // Force-reload the Stream iframe — the user gesture allows autoplay to succeed
+    setIframeKey((k) => k + 1);
   };
 
   return (
@@ -74,6 +87,7 @@ export function PortalEntry({ onSelectCategory }: PortalEntryProps) {
           including iPhone Safari, with no native <video> crash risk. */}
       <iframe
         ref={iframeRef}
+        key={iframeKey}
         src={`https://${CF_STREAM_SUBDOMAIN}/${CF_STREAM_VIDEO_ID}/iframe?autoplay=true&muted=true&loop=true&controls=false&preload=auto&poster=${encodeURIComponent(
           CF_STREAM_THUMBNAIL,
         )}`}
@@ -179,6 +193,26 @@ export function PortalEntry({ onSelectCategory }: PortalEntryProps) {
               entering orbit
             </div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Tap-to-play fallback — appears if autoplay was blocked (iOS Safari) */}
+      <AnimatePresence>
+        {videoReady && needsTap && (
+          <motion.button
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4 }}
+            onClick={handleTapToPlay}
+            className="absolute inset-0 z-[55] flex flex-col items-center justify-center bg-black/30 backdrop-blur-[2px]"
+            aria-label="Tap to start Earth"
+          >
+            <div className="h-16 w-16 rounded-full bg-white/15 backdrop-blur-xl border border-white/30 flex items-center justify-center mb-3">
+              <div className="w-0 h-0 border-y-[10px] border-y-transparent border-l-[16px] border-l-white ml-1" />
+            </div>
+            <div className="text-white/70 text-[10px] uppercase tracking-[0.4em]">tap to enter</div>
+          </motion.button>
         )}
       </AnimatePresence>
 
