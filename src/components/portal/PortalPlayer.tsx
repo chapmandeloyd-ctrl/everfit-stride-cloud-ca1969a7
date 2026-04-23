@@ -63,7 +63,7 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
   const [panelOpen, setPanelOpen] = useState(false);
   // iOS Safari blocks audio autoplay until a direct user gesture INSIDE this
   // player. The tap that brought us here (PortalEntry button) doesn't count.
-  const [audioBlocked, setAudioBlocked] = useState(false);
+  const [audioUnlocked, setAudioUnlocked] = useState(false);
 
   const dragY = useMotionValue(0);
   const circleScale = useTransform(dragY, [0, 200], [1, 1.15]);
@@ -85,7 +85,15 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
     const audio = audioRef.current;
     if (!audio) return;
 
-    audio.volume = muted ? 0 : volume;
+    // Until the user has tapped to unlock, keep audio element muted so iOS
+    // permits autoplay. Once unlocked, honour the muted/volume state.
+    if (!audioUnlocked) {
+      audio.muted = true;
+      audio.volume = 0;
+    } else {
+      audio.muted = muted;
+      audio.volume = muted ? 0 : volume;
+    }
 
     if (playing && !audioPaused) {
       audio.play().catch(() => {});
@@ -93,7 +101,7 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
     }
 
     audio.pause();
-  }, [audioPaused, muted, playing, volume]);
+  }, [audioPaused, audioUnlocked, muted, playing, volume]);
 
   // Fetch background library + per-category defaults
   const { data: backgrounds = [] } = useQuery({
@@ -148,35 +156,16 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
     syncAudioPlayback();
   }, [syncAudioPlayback, syncVideoPlayback]);
 
-  // Detect whether audio actually started — if not, surface the tap-to-play CTA.
-  useEffect(() => {
-    if (!scene.audio_url) {
-      setAudioBlocked(false);
-      return;
-    }
-    const id = window.setTimeout(() => {
-      const a = audioRef.current;
-      if (a && a.paused && playing && !audioPaused) {
-        setAudioBlocked(true);
-      } else {
-        setAudioBlocked(false);
-      }
-    }, 600);
-    return () => window.clearTimeout(id);
-  }, [audioPaused, playing, scene.audio_url, scene.id]);
-
   const handleUnlockAudio = useCallback(() => {
     const a = audioRef.current;
     if (a) {
       a.muted = false;
       a.volume = muted ? 0 : volume;
-      a.play().then(() => setAudioBlocked(false)).catch(() => {
-        // Last resort: unmute by toggling state and retry
-        setAudioBlocked(false);
-      });
+      a.play().catch(() => {});
     }
     const v = videoRef.current;
     if (v && v.paused) v.play().catch(() => {});
+    setAudioUnlocked(true);
   }, [muted, volume]);
 
   // When the scene's audio source changes (category/scene switch), reload and resume playback
@@ -279,7 +268,7 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
 
       {/* Tap-to-play sound CTA — iOS autoplay-with-audio fallback */}
       <AnimatePresence>
-        {audioBlocked && (
+        {!audioUnlocked && scene.audio_url && (
           <motion.button
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
