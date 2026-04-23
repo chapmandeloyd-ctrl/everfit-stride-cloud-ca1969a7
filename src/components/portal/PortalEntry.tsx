@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useRef, useEffect } from "react";
 import { X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface PortalEntryProps {
   onSelectCategory: (category: "Focus" | "Sleep" | "Escape" | "Breath") => void;
@@ -9,13 +10,21 @@ interface PortalEntryProps {
 
 export function PortalEntry({ onSelectCategory }: PortalEntryProps) {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const categories: Array<"Focus" | "Sleep" | "Escape" | "Breath"> = ["Focus", "Sleep", "Escape", "Breath"];
   const [videoReady, setVideoReady] = useState(false);
   const [showButtons, setShowButtons] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const revealTimeoutRef = useRef<number | null>(null);
+  const shouldUseStaticHero = isMobile;
 
   useEffect(() => {
+    if (shouldUseStaticHero) {
+      setVideoReady(true);
+      setShowButtons(true);
+      return;
+    }
+
     const el = videoRef.current;
     if (!el) return;
 
@@ -60,7 +69,7 @@ export function PortalEntry({ onSelectCategory }: PortalEntryProps) {
       el.currentTime = 0;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [shouldUseStaticHero]);
 
   return (
     <div className="fixed inset-0 bg-black overflow-hidden z-50">
@@ -73,24 +82,32 @@ export function PortalEntry({ onSelectCategory }: PortalEntryProps) {
         }}
       />
 
-      {/* Earth video */}
-      <video
-        ref={videoRef}
-        autoPlay
-        loop
-        muted
-        playsInline
-        preload="metadata"
-        poster="/portal/ksom-calm-earth-poster.jpg"
-        disablePictureInPicture
-        disableRemotePlayback
-        controls={false}
-        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[1500ms] ease-out ${
-          videoReady ? "opacity-100" : "opacity-0"
-        }`}
-      >
-        <source src="/portal/ksom-calm-earth-optimized.mp4" type="video/mp4" />
-      </video>
+      {/* Earth hero — static on mobile Safari/iPhone to avoid route crashes */}
+      {shouldUseStaticHero ? (
+        <img
+          src="/portal/ksom-calm-earth-poster.jpg"
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover opacity-100"
+        />
+      ) : (
+        <video
+          ref={videoRef}
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="metadata"
+          poster="/portal/ksom-calm-earth-poster.jpg"
+          disablePictureInPicture
+          disableRemotePlayback
+          controls={false}
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[1500ms] ease-out ${
+            videoReady ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          <source src="/portal/ksom-calm-earth-optimized.mp4" type="video/mp4" />
+        </video>
+      )}
 
       {/* Top vignette to anchor title */}
       <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-none" />
