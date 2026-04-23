@@ -107,6 +107,63 @@ export function AIProgramBuilderDialog({ open, onOpenChange, onProgramCreated }:
 
   const [generated, setGenerated] = useState<GeneratedProgram | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [hasRecoveredDraft, setHasRecoveredDraft] = useState(false);
+
+  // Recover unsaved draft when dialog opens
+  useEffect(() => {
+    if (!open) return;
+    try {
+      const raw = sessionStorage.getItem(DRAFT_STORAGE_KEY);
+      if (!raw) return;
+      const draft: PersistedDraft = JSON.parse(raw);
+      // Expire drafts older than 2 hours
+      if (Date.now() - draft.savedAt > 2 * 60 * 60 * 1000) {
+        sessionStorage.removeItem(DRAFT_STORAGE_KEY);
+        return;
+      }
+      setGenerated(draft.generated);
+      setBuildMode(draft.buildMode);
+      setPrompt(draft.prompt);
+      setWeeks(draft.weeks);
+      setDaysPerWeek(draft.daysPerWeek);
+      setSelectedWorkoutIds(draft.selectedWorkoutIds);
+      setStep("preview");
+      setHasRecoveredDraft(true);
+    } catch {
+      sessionStorage.removeItem(DRAFT_STORAGE_KEY);
+    }
+  }, [open]);
+
+  // Persist generated result so it survives accidental close / navigation
+  useEffect(() => {
+    if (!generated) return;
+    const draft: PersistedDraft = {
+      generated,
+      buildMode,
+      prompt,
+      weeks,
+      daysPerWeek,
+      selectedWorkoutIds,
+      savedAt: Date.now(),
+    };
+    try {
+      sessionStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
+    } catch {
+      // storage full or unavailable — ignore
+    }
+  }, [generated, buildMode, prompt, weeks, daysPerWeek, selectedWorkoutIds]);
+
+  // Warn the user before leaving the page while a generation is mid-flight or unsaved
+  useEffect(() => {
+    if (!open) return;
+    if (step !== "generating" && !generated) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [open, step, generated]);
 
   // Fetch trainer's workouts
   const { data: workouts } = useQuery({
@@ -176,10 +233,29 @@ export function AIProgramBuilderDialog({ open, onOpenChange, onProgramCreated }:
     setAssignToClient(false);
     setClientId("");
     setGenerated(null);
+    setHasRecoveredDraft(false);
+    sessionStorage.removeItem(DRAFT_STORAGE_KEY);
   };
 
   const handleClose = (next: boolean) => {
-    if (!next) reset();
+    if (!next) {
+      // Block close while a generation is actively running
+      if (step === "generating") {
+        toast({
+          title: "Generation in progress",
+          description: "Please wait — closing now would lose your program.",
+        });
+        return;
+      }
+      // Confirm if there's an unsaved generated program
+      if (generated) {
+        const ok = window.confirm(
+          "You have an unsaved program. Close without saving?\n\n(It will still be recoverable next time you open the builder.)"
+        );
+        if (!ok) return;
+      }
+      reset();
+    }
     onOpenChange(next);
   };
 
