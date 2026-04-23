@@ -7,6 +7,9 @@ import { getIconComponent, type TargetType } from "./cardioActivities";
 import { useCardioActivityTypes } from "@/hooks/useCardioActivityTypes";
 import { AddCardioActivityDialog } from "./AddCardioActivityDialog";
 import { EditCardioActivityDialog } from "./EditCardioActivityDialog";
+import { CardioActionsSheet } from "./CardioActionsSheet";
+import { CardioScheduleSheet } from "./CardioScheduleSheet";
+import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 
 interface QuickCardioFlowProps {
   open: boolean;
@@ -28,6 +31,10 @@ export function QuickCardioFlow({ open, onOpenChange, onStart, onMarkComplete }:
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingActivity, setEditingActivity] = useState<{ id: string; name: string; icon_name: string } | null>(null);
   const [activeTimeField, setActiveTimeField] = useState<"hours" | "minutes" | "seconds">("hours");
+  // 3-dots actions / schedule
+  const [actionsFor, setActionsFor] = useState<{ name: string; icon_name: string } | null>(null);
+  const [scheduleFor, setScheduleFor] = useState<{ name: string; icon_name: string } | null>(null);
+  const clientId = useEffectiveClientId();
 
   const { activities, addActivity, updateActivity, deleteActivity } = useCardioActivityTypes();
 
