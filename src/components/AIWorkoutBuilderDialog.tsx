@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, Loader2, Plus, Check, Wand2, Lightbulb } from "lucide-react";
+import { Sparkles, Loader2, Plus, Check, Wand2, Lightbulb, ChevronDown, ChevronUp, Brain } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -116,6 +116,11 @@ export function AIWorkoutBuilderDialog({
   const [suggestions, setSuggestions] = useState<AISuggestion[]>([]);
   const [addedSuggestions, setAddedSuggestions] = useState<Set<string>>(new Set());
 
+  // "Why these exercises?" explanation panel
+  const [explanationOpen, setExplanationOpen] = useState(false);
+  const [explanation, setExplanation] = useState<string | null>(null);
+  const [explanationLoading, setExplanationLoading] = useState(false);
+
   const exerciseNames = exercises?.map((e) => e.name) || [];
 
   const normalize = (s: string) =>
@@ -138,6 +143,8 @@ export function AIWorkoutBuilderDialog({
     setWorkoutResult(null);
     setSuggestions([]);
     setAddedSuggestions(new Set());
+    setExplanation(null);
+    setExplanationOpen(false);
 
     try {
       const { data, error } = await supabase.functions.invoke("ai-workout-builder", {
@@ -166,6 +173,49 @@ export function AIWorkoutBuilderDialog({
       toast.error(err?.message || "Failed to generate workout");
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const handleToggleExplanation = async () => {
+    // Already loaded — just toggle open/closed
+    if (explanation) {
+      setExplanationOpen((v) => !v);
+      return;
+    }
+    if (!workoutResult) return;
+
+    setExplanationOpen(true);
+    setExplanationLoading(true);
+    try {
+      // Send a compact summary of the workout for the AI to explain
+      const summary = {
+        name: workoutResult.workout_name,
+        category: workoutResult.category,
+        difficulty: workoutResult.difficulty,
+        sections: workoutResult.sections.map((s) => ({
+          block: s.section_name,
+          type: s.section_type,
+          rounds: s.rounds,
+          exercises: s.exercises.map((e) => `${e.exercise_name} (${e.sets}×${e.reps_or_time}, rest ${e.rest_seconds}s)`),
+        })),
+      };
+
+      const { data, error } = await supabase.functions.invoke("ai-workout-builder", {
+        body: {
+          mode: "explain_workout",
+          prompt: JSON.stringify(summary, null, 2),
+        },
+      });
+
+      if (error) throw error;
+      const text = data?.result?.explanation || "No explanation returned.";
+      setExplanation(text);
+    } catch (err: any) {
+      console.error("Explanation error:", err);
+      toast.error(err?.message || "Failed to generate explanation");
+      setExplanation("Could not generate explanation. Try again.");
+    } finally {
+      setExplanationLoading(false);
     }
   };
 
@@ -424,6 +474,37 @@ export function AIWorkoutBuilderDialog({
                   >
                     Regenerate
                   </Button>
+                </div>
+
+                {/* Why these exercises? — opt-in collapsible reasoning panel */}
+                <div className="border rounded-lg overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={handleToggleExplanation}
+                    className="w-full flex items-center justify-between gap-2 px-3 py-2 text-xs font-medium hover:bg-muted/50 transition-colors"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Brain className="h-3.5 w-3.5 text-primary" />
+                      Why these exercises?
+                    </span>
+                    {explanationOpen ? (
+                      <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" />
+                    ) : (
+                      <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                    )}
+                  </button>
+                  {explanationOpen && (
+                    <div className="px-3 py-2 border-t bg-muted/20 text-xs text-muted-foreground whitespace-pre-wrap leading-relaxed">
+                      {explanationLoading ? (
+                        <div className="flex items-center gap-2 py-1">
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          <span>Analyzing the workout design...</span>
+                        </div>
+                      ) : (
+                        explanation
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
