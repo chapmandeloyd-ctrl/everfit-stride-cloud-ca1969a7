@@ -78,6 +78,7 @@ export function AIProgramBuilderDialog({ open, onOpenChange, onProgramCreated }:
   const { toast } = useToast();
 
   const [step, setStep] = useState<Step>("setup");
+  const [buildMode, setBuildMode] = useState<"use_existing" | "full_build">("use_existing");
   const [prompt, setPrompt] = useState("");
   const [selectedWorkoutIds, setSelectedWorkoutIds] = useState<string[]>([]);
   const [weeks, setWeeks] = useState("6");
@@ -112,6 +113,21 @@ export function AIProgramBuilderDialog({ open, onOpenChange, onProgramCreated }:
     enabled: !!user?.id && open,
   });
 
+  // Fetch trainer's exercise library (used by full-build mode)
+  const { data: exercises } = useQuery({
+    queryKey: ["program-builder-exercises", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("exercises")
+        .select("id, name")
+        .eq("trainer_id", user?.id)
+        .order("name");
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user?.id && open && buildMode === "full_build",
+  });
+
   // Fetch trainer's clients
   const { data: clients } = useQuery({
     queryKey: ["program-builder-clients", user?.id],
@@ -136,6 +152,7 @@ export function AIProgramBuilderDialog({ open, onOpenChange, onProgramCreated }:
 
   const reset = () => {
     setStep("setup");
+    setBuildMode("use_existing");
     setPrompt("");
     setSelectedWorkoutIds([]);
     setWeeks("6");
