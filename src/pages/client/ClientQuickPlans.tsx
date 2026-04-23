@@ -214,6 +214,16 @@ export default function ClientQuickPlans() {
                         {isLocked && gating?.lockMessage && (
                           <p className="text-[10px] text-muted-foreground/70 mt-1">{gating.lockMessage}</p>
                         )}
+                        {isLocked && gating?.lockReason === "level_locked" && (
+                          <div className="mt-3">
+                            <LockProgress
+                              current={context.currentLevel}
+                              required={plan.min_level_required || 1}
+                              label="Level"
+                              size="xs"
+                            />
+                          </div>
+                        )}
                         {isOptional && (
                           <Badge variant="outline" className="text-[10px] mt-1">Optional Tool</Badge>
                         )}
