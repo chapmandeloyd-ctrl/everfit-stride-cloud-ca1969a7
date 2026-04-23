@@ -398,6 +398,9 @@ export function AIProgramBuilderDialog({ open, onOpenChange, onProgramCreated }:
       }
 
       const parts: string[] = [];
+      if (buildMode === "full_build" && generated.workouts) {
+        parts.push(`${generated.workouts.length} workouts created`);
+      }
       if (saveAsTemplate) parts.push("saved as template");
       if (assignedCount > 0) parts.push(`${assignedCount} workouts assigned`);
       toast({
