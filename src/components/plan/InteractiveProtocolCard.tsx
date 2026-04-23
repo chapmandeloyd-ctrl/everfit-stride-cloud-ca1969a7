@@ -400,6 +400,7 @@ export function InteractiveProtocolCard({
             shimmer={false}
             animateStats={false}
             frontExtra={frontExtra}
+            dimmed={dimmed}
           />
         </div>
         {renderDetailSections()}
@@ -498,6 +499,7 @@ export function InteractiveProtocolCard({
             shimmer={!disableHeavyInteractions}
             animateStats={!disableHeavyInteractions}
             frontExtra={frontExtra}
+            dimmed={dimmed}
           />
         </div>
       </div>
