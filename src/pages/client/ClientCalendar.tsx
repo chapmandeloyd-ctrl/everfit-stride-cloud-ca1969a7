@@ -616,5 +616,38 @@ function AgendaCard({
     );
   }
 
+  if (item.kind === "cardio") {
+    const c = item.data;
+    const iconName = cardioIconMap?.get(String(c.activity_type).toLowerCase()) || "activity";
+    const Icon = getIconComponent(iconName);
+    const activityLabel = String(c.activity_type)
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (s) => s.toUpperCase());
+    return (
+      <Card className="p-3 flex items-center gap-3 border-rose-500/30 bg-rose-500/5">
+        <div className="h-9 w-9 rounded-full bg-rose-500/20 text-rose-500 flex items-center justify-center shrink-0">
+          <Icon className="h-5 w-5" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="font-medium text-sm truncate">{activityLabel}</div>
+          <div className="text-xs text-muted-foreground">Quick Cardio</div>
+        </div>
+        <Badge variant="outline" className="text-[10px] border-rose-500/40 text-rose-500">Cardio</Badge>
+        {onDeleteCardio && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDeleteCardio(c.id);
+            }}
+            className="h-8 w-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0 transition-colors"
+            aria-label="Remove cardio from calendar"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        )}
+      </Card>
+    );
+  }
+
   return null;
 }
