@@ -222,7 +222,7 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
   const rotation = Math.max(-12, Math.min(12, dragX / 14));
 
   return (
-    <div className="px-5">
+    <div>
       <div
         className="relative w-full select-none"
         style={{
