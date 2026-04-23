@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, CheckCircle2, Circle, Trophy, Swords, MapPin, Clock, Target, CalendarClock, Flame } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, CheckCircle2, Circle, Trophy, Swords, MapPin, Clock, Target, CalendarClock, Flame, Activity } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
@@ -121,6 +121,23 @@ export function ClientCalendarTab({ clientId, trainerId }: ClientCalendarTabProp
     enabled: !!clientId,
   });
 
+  const { data: scheduledCardio } = useQuery({
+    queryKey: ["cc-calendar-cardio", clientId, format(monthStart, "yyyy-MM")],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("cardio_sessions")
+        .select("id, activity_type, target_type, target_value, scheduled_date, status")
+        .eq("client_id", clientId)
+        .eq("status", "scheduled")
+        .gte("scheduled_date", format(monthStart, "yyyy-MM-dd"))
+        .lte("scheduled_date", format(monthEnd, "yyyy-MM-dd"))
+        .order("scheduled_date");
+      if (error) throw error;
+      return data as any[];
+    },
+    enabled: !!clientId,
+  });
+
   const { data: goalCountdowns } = useQuery({
     queryKey: ["cc-calendar-goals", clientId, format(monthStart, "yyyy-MM")],
     queryFn: async () => {
@@ -171,6 +188,8 @@ export function ClientCalendarTab({ clientId, trainerId }: ClientCalendarTabProp
   };
   const getAppointmentsForDay = (day: Date) =>
     appointments?.filter((a: any) => a.start_time && isSameDay(parseISO(a.start_time), day)) || [];
+  const getCardioForDay = (day: Date) =>
+    scheduledCardio?.filter((c: any) => c.scheduled_date && isSameDay(parseISO(c.scheduled_date), day)) || [];
   const getGoalsForDay = (day: Date) =>
     goalCountdowns?.filter((g: any) => g.end_date && isSameDay(parseISO(g.end_date), day)) || [];
   const getScoreForDay = (day: Date) => {
@@ -189,9 +208,10 @@ export function ClientCalendarTab({ clientId, trainerId }: ClientCalendarTabProp
   const selectedDayHabits = selectedDay ? getHabitsForDay(selectedDay) : [];
   const selectedDaySportEvents = selectedDay ? getSportEventsForDay(selectedDay) : [];
   const selectedDayAppointments = selectedDay ? getAppointmentsForDay(selectedDay) : [];
+  const selectedDayCardio = selectedDay ? getCardioForDay(selectedDay) : [];
   const selectedDayGoals = selectedDay ? getGoalsForDay(selectedDay) : [];
   const selectedDayScore = selectedDay ? getScoreForDay(selectedDay) : null;
-  const hasSelectedDayEvents = selectedDayWorkouts.length + selectedDayTasks.length + selectedDayHabits.length + selectedDaySportEvents.length + selectedDayAppointments.length + selectedDayGoals.length > 0;
+  const hasSelectedDayEvents = selectedDayWorkouts.length + selectedDayTasks.length + selectedDayHabits.length + selectedDaySportEvents.length + selectedDayAppointments.length + selectedDayCardio.length + selectedDayGoals.length > 0;
 
   return (
     <div className="space-y-6">
@@ -231,12 +251,13 @@ export function ClientCalendarTab({ clientId, trainerId }: ClientCalendarTabProp
               const dayHabits = getHabitsForDay(day);
               const daySportEvents = getSportEventsForDay(day);
               const dayAppointments = getAppointmentsForDay(day);
+              const dayCardio = getCardioForDay(day);
               const dayGoals = getGoalsForDay(day);
               const dayScore = getScoreForDay(day);
               const isCurrentMonth = isSameMonth(day, currentDate);
               const isToday = isSameDay(day, new Date());
               const isSelected = selectedDay && isSameDay(day, selectedDay);
-              const hasEvents = dayWorkouts.length + dayTasks.length + dayHabits.length + daySportEvents.length + dayAppointments.length + dayGoals.length > 0;
+              const hasEvents = dayWorkouts.length + dayTasks.length + dayHabits.length + daySportEvents.length + dayAppointments.length + dayCardio.length + dayGoals.length > 0;
               const heatBg = showHeatmap && isCurrentMonth ? heatmapClass(dayScore) : "";
 
               return (
@@ -330,6 +351,20 @@ export function ClientCalendarTab({ clientId, trainerId }: ClientCalendarTabProp
                         </div>
                       </div>
                     ))}
+                    {dayCardio.map((cardio: any) => {
+                      const label = (cardio.activity_type || "Cardio").replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase());
+                      return (
+                        <div
+                          key={cardio.id}
+                          className="w-full text-left text-xs p-1.5 rounded bg-rose-500/20 text-rose-900 dark:text-rose-200"
+                        >
+                          <div className="font-medium truncate flex items-center gap-1">
+                            <Activity className="h-3 w-3 shrink-0" />
+                            {label}
+                          </div>
+                        </div>
+                      );
+                    })}
                     {dayGoals.map((goal: any) => (
                       <div
                         key={goal.id}
@@ -372,6 +407,10 @@ export function ClientCalendarTab({ clientId, trainerId }: ClientCalendarTabProp
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 rounded bg-teal-500/20"></div>
               <span className="text-sm text-muted-foreground">Appointment</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded bg-rose-500/20"></div>
+              <span className="text-sm text-muted-foreground">Cardio</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 rounded bg-fuchsia-500/20"></div>
@@ -517,6 +556,30 @@ export function ClientCalendarTab({ clientId, trainerId }: ClientCalendarTabProp
                         <p className="text-xs text-muted-foreground mt-1">
                           <Clock className="h-3 w-3 inline mr-1" />
                           {workout.workout_plans.duration_minutes} min
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+
+                {selectedDayCardio.map((cardio: any) => {
+                  const label = (cardio.activity_type || "Cardio").replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase());
+                  const target = cardio.target_value
+                    ? cardio.target_type === "distance"
+                      ? `${cardio.target_value} mi target`
+                      : `${cardio.target_value} min target`
+                    : null;
+                  return (
+                    <div key={cardio.id} className="p-3 rounded-lg border bg-rose-500/10 border-rose-500/30">
+                      <div className="flex items-center gap-2">
+                        <Activity className="h-4 w-4 text-rose-500" />
+                        <span className="font-medium text-sm">{label}</span>
+                        <Badge variant="outline" className="text-xs ml-auto">Cardio</Badge>
+                      </div>
+                      {target && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          <Clock className="h-3 w-3 inline mr-1" />
+                          {target}
                         </p>
                       )}
                     </div>
