@@ -449,6 +449,33 @@ export default function WorkoutDetail() {
     setIsPlaying(false);
   };
 
+  const handleDeleteSchedule = async () => {
+    if (!clientWorkout?.id) {
+      setConfirmDeleteOpen(false);
+      return;
+    }
+    try {
+      const { error } = await supabase
+        .from("client_workouts")
+        .delete()
+        .eq("id", clientWorkout.id);
+      if (error) throw error;
+      toast("Workout removed from your calendar");
+      queryClient.invalidateQueries({ queryKey: ["agenda-workouts"] });
+      queryClient.invalidateQueries({ queryKey: ["client-workout-for-plan"] });
+      navigate("/client/calendar");
+    } catch (err: any) {
+      toast.error(err?.message ?? "Couldn't delete");
+    } finally {
+      setConfirmDeleteOpen(false);
+    }
+  };
+
+  const handleEditWorkout = () => {
+    // Edit in WOD Builder, in place — pass workout plan id so builder can hydrate.
+    navigate(`/client/wod-builder?editId=${id}`);
+  };
+
   if (isLoading) {
     return (
       <DashboardLayout>
