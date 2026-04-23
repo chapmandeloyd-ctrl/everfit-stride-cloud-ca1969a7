@@ -180,20 +180,37 @@ function ExerciseRow({
       </Select>
       {item.target_type === "time" ? (
         <>
-          <Select value={String(item.time_seconds || 30)} onValueChange={(v) => onUpdate(item.id, { time_seconds: parseInt(v) })}>
-            <SelectTrigger className="h-9 w-28 text-sm"><SelectValue /></SelectTrigger>
-            <SelectContent>{TIME_OPTIONS.map((o) => (<SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>))}</SelectContent>
-          </Select>
+          <div className="flex flex-col items-start gap-0.5">
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground leading-none">Work</span>
+            <Select value={String(item.time_seconds || 30)} onValueChange={(v) => onUpdate(item.id, { time_seconds: parseInt(v) })}>
+              <SelectTrigger className="h-9 w-24 text-sm"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {(item.group_id ? CIRCUIT_TIME_OPTIONS : TIME_OPTIONS).map((o) => (
+                  <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex flex-col items-start gap-0.5">
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground leading-none">Rest</span>
+            <Select value={String(item.rest_seconds)} onValueChange={(v) => onUpdate(item.id, { rest_seconds: parseInt(v) })}>
+              <SelectTrigger className="h-9 w-24 text-sm"><SelectValue /></SelectTrigger>
+              <SelectContent>{REST_OPTIONS.map((o) => (<SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>))}</SelectContent>
+            </Select>
+          </div>
           <Input value={item.target_value} onChange={(e) => onUpdate(item.id, { target_value: e.target.value })} placeholder="reps, tempo, etc" className="h-9 flex-1 text-sm min-w-0" />
         </>
       ) : (
-        <Input value={item.target_value} onChange={(e) => onUpdate(item.id, { target_value: e.target.value })} placeholder="reps, weight, tempo, etc" className="h-9 flex-1 text-sm min-w-0" />
-      )}
-      {item.target_type !== "time" && (
-        <Select value={String(item.rest_seconds)} onValueChange={(v) => onUpdate(item.id, { rest_seconds: parseInt(v) })}>
-          <SelectTrigger className="h-9 w-28 text-sm"><SelectValue /></SelectTrigger>
-          <SelectContent>{REST_OPTIONS.map((o) => (<SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>))}</SelectContent>
-        </Select>
+        <>
+          <Input value={item.target_value} onChange={(e) => onUpdate(item.id, { target_value: e.target.value })} placeholder="reps, weight, tempo, etc" className="h-9 flex-1 text-sm min-w-0" />
+          <div className="flex flex-col items-start gap-0.5">
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground leading-none">Rest</span>
+            <Select value={String(item.rest_seconds)} onValueChange={(v) => onUpdate(item.id, { rest_seconds: parseInt(v) })}>
+              <SelectTrigger className="h-9 w-24 text-sm"><SelectValue /></SelectTrigger>
+              <SelectContent>{REST_OPTIONS.map((o) => (<SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>))}</SelectContent>
+            </Select>
+          </div>
+        </>
       )}
       <div className="ml-auto flex items-center gap-1 shrink-0">
         {onPasteForward && item.exercise_type === "normal" && (
