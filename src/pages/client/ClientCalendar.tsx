@@ -392,6 +392,8 @@ export default function ClientCalendar() {
                         onToggleTask={(id, completed) => toggleTask.mutate({ id, completed })}
                         onOpenWorkout={(id) => navigate(`/client/workouts/${id}`)}
                         onDeleteWorkout={(id, name) => setPendingDelete({ id, name })}
+                        onDeleteCardio={(id) => deleteCardio.mutate(id)}
+                        cardioIconMap={cardioIconMap}
                       />
                     ))}
                 </div>
