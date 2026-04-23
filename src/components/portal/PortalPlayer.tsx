@@ -156,6 +156,28 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
     syncAudioPlayback();
   }, [syncAudioPlayback, syncVideoPlayback]);
 
+  useEffect(() => {
+    const html = document.documentElement;
+    const body = document.body;
+
+    const previousHtmlOverscrollY = html.style.overscrollBehaviorY;
+    const previousBodyOverscrollY = body.style.overscrollBehaviorY;
+    const previousHtmlOverflow = html.style.overflow;
+    const previousBodyOverflow = body.style.overflow;
+
+    html.style.overscrollBehaviorY = "none";
+    body.style.overscrollBehaviorY = "none";
+    html.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+
+    return () => {
+      html.style.overscrollBehaviorY = previousHtmlOverscrollY;
+      body.style.overscrollBehaviorY = previousBodyOverscrollY;
+      html.style.overflow = previousHtmlOverflow;
+      body.style.overflow = previousBodyOverflow;
+    };
+  }, []);
+
   const handleUnlockAudio = useCallback(() => {
     const a = audioRef.current;
     if (a) {
@@ -260,7 +282,7 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
   };
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black overflow-hidden">
+    <div className="fixed inset-0 z-[100] bg-black overflow-hidden overscroll-none">
       {/* Hidden audio layer (independent from video) */}
       {scene.audio_url && (
         <audio ref={audioRef} src={scene.audio_url} loop preload="auto" />
