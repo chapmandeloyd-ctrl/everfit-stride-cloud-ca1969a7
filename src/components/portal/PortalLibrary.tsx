@@ -3,6 +3,17 @@ import { X, Star, Lock, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import type { PortalScene } from "./PortalPlayer";
 import nebulaFocus from "@/assets/portal-nebula-focus.jpg";
+import nebulaSleep from "@/assets/portal-nebula-sleep.jpg";
+import nebulaEscape from "@/assets/portal-nebula-escape.jpg";
+
+function getScenePreview(scene: PortalScene) {
+  if (scene.thumbnail_url) return scene.thumbnail_url;
+
+  const category = scene.category?.toLowerCase();
+  if (category === "sleep") return nebulaSleep;
+  if (category === "escape") return nebulaEscape;
+  return nebulaFocus;
+}
 
 interface PortalLibraryProps {
   scenes: PortalScene[];
@@ -201,24 +212,13 @@ function CircleRow({
           <div
             className={`relative ${w} aspect-square rounded-full overflow-hidden ring-1 ring-white/50 group-hover:ring-white/90 transition-all shadow-[0_0_24px_rgba(255,255,255,0.1)]`}
           >
-            {scene.thumbnail_url ? (
-              <img
-                src={scene.thumbnail_url}
-                alt={scene.name}
-                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-              />
-            ) : (
-              <video
-                src={scene.video_url}
-                muted
-                loop
-                playsInline
-                preload="metadata"
-                disablePictureInPicture
-                disableRemotePlayback
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-            )}
+            <img
+              src={getScenePreview(scene)}
+              alt={scene.name}
+              className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              loading="lazy"
+            />
+            <div className="absolute inset-0 bg-black/20" />
             {scene.is_premium && (
               <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm rounded-full p-1.5">
                 <Lock className="h-3 w-3 text-amber-300" />
@@ -259,24 +259,12 @@ function CardRow({
           className="shrink-0 w-[82vw] max-w-md group"
         >
           <div className="relative aspect-[16/10] rounded-2xl overflow-hidden ring-1 ring-white/10 group-hover:ring-white/30 transition-all">
-            {scene.thumbnail_url ? (
-              <img
-                src={scene.thumbnail_url}
-                alt={scene.name}
-                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-              />
-            ) : (
-              <video
-                src={scene.video_url}
-                muted
-                loop
-                playsInline
-                preload="metadata"
-                disablePictureInPicture
-                disableRemotePlayback
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-            )}
+            <img
+              src={getScenePreview(scene)}
+              alt={scene.name}
+              className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+              loading="lazy"
+            />
             <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
             {scene.is_premium && (
               <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm rounded-full p-1.5">
