@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { mode, prompt, exercise_names, category, difficulty } = await req.json();
+    const { mode, prompt, exercise_names, category, difficulty, workouts, weeks, days_per_week, progression, rest_strategy, fixed_pattern } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
@@ -23,7 +23,7 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-    if (mode !== "explain_workout" && (!exercise_names || exercise_names.length === 0)) {
+    if (mode !== "explain_workout" && mode !== "build_program" && (!exercise_names || exercise_names.length === 0)) {
       return new Response(
         JSON.stringify({ error: "exercise_names is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -53,6 +53,73 @@ Focus on:
 Keep it tight — under 120 words total. Use plain language, no fluff. Format as markdown bullets.`;
       // The frontend passes the workout JSON as the prompt for explanation mode
       userMessage = `Explain the design of this workout:\n\n${prompt}`;
+    } else if (mode === "build_program") {
+      // Multi-week program scheduler — uses GPT-5 for deep reasoning
+      const workoutList = (workouts || []).map((w: any, i: number) =>
+        `${i + 1}. "${w.name}"${w.category ? ` (${w.category})` : ""}${w.difficulty ? ` — ${w.difficulty}` : ""}`
+      ).join("\n");
+
+      const restGuidance = rest_strategy === "fixed" && fixed_pattern
+        ? `Train ONLY on these days of the week: ${fixed_pattern.join(", ")}. All other days are Rest.`
+        : `Auto-place rest days intelligently to maximize recovery. With ${days_per_week} training days/week, space them evenly (e.g. 3 days = Mon/Wed/Fri, 4 days = Mon/Tue/Thu/Fri).`;
+
+      const progressionGuidance = progression === "linear"
+        ? "LINEAR PROGRESSION: Each week, add a small overload note (e.g. '+1 rep per set' or '+5 lb' or 'add 1 set on main lift'). Place the note in the day's notes field."
+        : progression === "wave"
+        ? "WAVE/UNDULATING: Cycle intensity weekly — Week 1 moderate, Week 2 hard, Week 3 easy/recovery, then repeat. Note the intended intensity in each day's notes."
+        : "NO PROGRESSION: Simply rotate the workouts across the schedule. Leave notes empty unless variety guidance is helpful.";
+
+      systemPrompt = `You are an expert strength & conditioning coach designing a multi-week training program for another trainer's client.
+
+CONTEXT:
+- Program length: ${weeks} weeks
+- Training frequency: ${days_per_week} days per week
+- Rest day rule: ${restGuidance}
+- Progression style: ${progressionGuidance}
+
+AVAILABLE WORKOUTS (use ONLY these — do NOT invent new ones, match names EXACTLY):
+${workoutList}
+
+RULES:
+- Every workout_name in your output MUST exactly match one from the list above
+- Distribute the workouts intelligently across the week (avoid two heavy lower-body days back-to-back, alternate push/pull, etc.)
+- Use day_of_week 1=Monday, 2=Tuesday, 3=Wednesday, 4=Thursday, 5=Friday, 6=Saturday, 7=Sunday
+- Only output workout days — rest days are implied by absence
+- Keep notes short and actionable (under 80 chars)
+- The program_name and program_description should reflect the trainer's prompt and the structure you chose`;
+
+      tools = [{
+        type: "function",
+        function: {
+          name: "build_program",
+          description: "Design a multi-week training program schedule",
+          parameters: {
+            type: "object",
+            properties: {
+              program_name: { type: "string" },
+              program_description: { type: "string", description: "Brief 1-2 sentence summary of the program's intent and structure" },
+              schedule: {
+                type: "array",
+                description: "All workout days across all weeks. Skip rest days entirely.",
+                items: {
+                  type: "object",
+                  properties: {
+                    week_number: { type: "number", description: "1-indexed week number" },
+                    day_of_week: { type: "number", description: "1=Mon, 7=Sun" },
+                    workout_name: { type: "string", description: "EXACT match from the available workouts list" },
+                    notes: { type: "string", description: "Optional progression/intensity note for this day" },
+                  },
+                  required: ["week_number", "day_of_week", "workout_name"],
+                  additionalProperties: false,
+                },
+              },
+            },
+            required: ["program_name", "program_description", "schedule"],
+            additionalProperties: false,
+          },
+        },
+      }];
+      toolChoice = { type: "function", function: { name: "build_program" } };
     } else if (mode === "suggest_exercise") {
       systemPrompt = `You are an expert fitness coach building workouts. The trainer wants exercise suggestions.
 
