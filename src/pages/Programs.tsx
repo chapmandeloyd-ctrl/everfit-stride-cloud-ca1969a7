@@ -4,9 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Calendar, MoreVertical, Trash2 } from "lucide-react";
+import { Plus, Search, Calendar, MoreVertical, Trash2, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { DashboardLayout } from "@/components/DashboardLayout";
+import { AIProgramBuilderDialog } from "@/components/AIProgramBuilderDialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -58,6 +59,7 @@ export default function Programs() {
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [aiBuilderOpen, setAiBuilderOpen] = useState(false);
   const [programName, setProgramName] = useState("");
   const [programDescription, setProgramDescription] = useState("");
   const [durationWeeks, setDurationWeeks] = useState("4");
@@ -141,10 +143,16 @@ export default function Programs() {
               Create multi-week training programs to assign to clients
             </p>
           </div>
-          <Button onClick={() => setCreateDialogOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add New Program
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setAiBuilderOpen(true)} className="gap-2">
+              <Sparkles className="h-4 w-4" />
+              Generate with AI
+            </Button>
+            <Button onClick={() => setCreateDialogOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add New Program
+            </Button>
+          </div>
         </div>
 
         <div className="flex gap-3">

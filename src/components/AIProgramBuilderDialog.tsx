@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Sparkles, Loader2, Calendar, ArrowRight, ArrowLeft, Check, Dumbbell } from "lucide-react";
+import { Sparkles, Loader2, Calendar, ArrowLeft, Check, Dumbbell } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
