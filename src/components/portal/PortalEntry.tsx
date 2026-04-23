@@ -196,6 +196,26 @@ export function PortalEntry({ onSelectCategory }: PortalEntryProps) {
         )}
       </AnimatePresence>
 
+      {/* Tap-to-play fallback — appears if autoplay was blocked (iOS Safari) */}
+      <AnimatePresence>
+        {videoReady && needsTap && (
+          <motion.button
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4 }}
+            onClick={handleTapToPlay}
+            className="absolute inset-0 z-[55] flex flex-col items-center justify-center bg-black/30 backdrop-blur-[2px]"
+            aria-label="Tap to start Earth"
+          >
+            <div className="h-16 w-16 rounded-full bg-white/15 backdrop-blur-xl border border-white/30 flex items-center justify-center mb-3">
+              <div className="w-0 h-0 border-y-[10px] border-y-transparent border-l-[16px] border-l-white ml-1" />
+            </div>
+            <div className="text-white/70 text-[10px] uppercase tracking-[0.4em]">tap to enter</div>
+          </motion.button>
+        )}
+      </AnimatePresence>
+
       {/* Frosted glass buttons — appear AFTER Earth is visible */}
       <AnimatePresence>
         {showButtons && (
