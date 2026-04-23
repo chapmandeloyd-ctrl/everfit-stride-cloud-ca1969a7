@@ -188,6 +188,8 @@ export function ClientCalendarTab({ clientId, trainerId }: ClientCalendarTabProp
   };
   const getAppointmentsForDay = (day: Date) =>
     appointments?.filter((a: any) => a.start_time && isSameDay(parseISO(a.start_time), day)) || [];
+  const getCardioForDay = (day: Date) =>
+    scheduledCardio?.filter((c: any) => c.scheduled_date && isSameDay(parseISO(c.scheduled_date), day)) || [];
   const getGoalsForDay = (day: Date) =>
     goalCountdowns?.filter((g: any) => g.end_date && isSameDay(parseISO(g.end_date), day)) || [];
   const getScoreForDay = (day: Date) => {
@@ -206,9 +208,10 @@ export function ClientCalendarTab({ clientId, trainerId }: ClientCalendarTabProp
   const selectedDayHabits = selectedDay ? getHabitsForDay(selectedDay) : [];
   const selectedDaySportEvents = selectedDay ? getSportEventsForDay(selectedDay) : [];
   const selectedDayAppointments = selectedDay ? getAppointmentsForDay(selectedDay) : [];
+  const selectedDayCardio = selectedDay ? getCardioForDay(selectedDay) : [];
   const selectedDayGoals = selectedDay ? getGoalsForDay(selectedDay) : [];
   const selectedDayScore = selectedDay ? getScoreForDay(selectedDay) : null;
-  const hasSelectedDayEvents = selectedDayWorkouts.length + selectedDayTasks.length + selectedDayHabits.length + selectedDaySportEvents.length + selectedDayAppointments.length + selectedDayGoals.length > 0;
+  const hasSelectedDayEvents = selectedDayWorkouts.length + selectedDayTasks.length + selectedDayHabits.length + selectedDaySportEvents.length + selectedDayAppointments.length + selectedDayCardio.length + selectedDayGoals.length > 0;
 
   return (
     <div className="space-y-6">
