@@ -7,6 +7,7 @@ import { BookingSettingsTab } from "@/components/scheduling/BookingSettingsTab";
 import { AppointmentsTab } from "@/components/scheduling/AppointmentsTab";
 import { SchedulingCalendarTab } from "@/components/scheduling/SchedulingCalendarTab";
 import { GroupClassesTab } from "@/components/scheduling/GroupClassesTab";
+import { AllClientsCalendarTab } from "@/components/scheduling/AllClientsCalendarTab";
 
 export default function Scheduling() {
   return (
@@ -22,6 +23,7 @@ export default function Scheduling() {
         <Tabs defaultValue="calendar" className="space-y-4">
           <TabsList className="flex-wrap">
             <TabsTrigger value="calendar">Calendar</TabsTrigger>
+            <TabsTrigger value="all-clients">All Clients</TabsTrigger>
             <TabsTrigger value="appointments">Appointments</TabsTrigger>
             <TabsTrigger value="classes">Group Classes</TabsTrigger>
             <TabsTrigger value="types">Appointment Types</TabsTrigger>
@@ -32,6 +34,9 @@ export default function Scheduling() {
 
           <TabsContent value="calendar">
             <SchedulingCalendarTab />
+          </TabsContent>
+          <TabsContent value="all-clients">
+            <AllClientsCalendarTab />
           </TabsContent>
           <TabsContent value="appointments">
             <AppointmentsTab />
