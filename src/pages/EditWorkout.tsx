@@ -992,11 +992,39 @@ export default function EditWorkout() {
             <Button variant="outline" size="icon" className="h-7 w-7" onClick={duplicateSelected} disabled={!anySelected}><Copy className="h-3.5 w-3.5" /></Button>
             <Button variant="outline" size="icon" className="h-7 w-7" onClick={deleteSelected} disabled={!anySelected}><Trash2 className="h-3.5 w-3.5" /></Button>
             <div className="flex-1" />
+            <Button
+              variant="default"
+              size="sm"
+              className="text-xs h-7 gap-1"
+              onClick={() => setShowBlockPicker(true)}
+            >
+              <Plus className="h-3.5 w-3.5" />
+              ADD BLOCK
+            </Button>
             <Button variant="outline" size="sm" className="text-xs h-7" onClick={addRest}>
               <Timer className="h-3.5 w-3.5 mr-1" />
               ADD REST
             </Button>
           </div>
+
+          {/* Active block indicator */}
+          {activeBlockId && (() => {
+            const ab = groups.find((g) => g.id === activeBlockId);
+            if (!ab) return null;
+            const bt = getBlockType(ab.block_type || "custom");
+            const label = ab.block_type === "custom" && ab.custom_name ? ab.custom_name : bt.label;
+            return (
+              <div className="flex items-center justify-between gap-2 px-4 py-2 bg-primary/10 border-b border-primary/30">
+                <span className="text-xs text-foreground">
+                  <span className="mr-1">{bt.emoji}</span>
+                  Adding to <span className="font-bold">{label}</span> — pick exercises on the right.
+                </span>
+                <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => setActiveBlockId(null)}>
+                  Done with block
+                </Button>
+              </div>
+            );
+          })()}
 
           {/* Exercise List */}
           <ScrollArea className="flex-1">
@@ -1009,8 +1037,12 @@ export default function EditWorkout() {
             {exerciseItems.length === 0 && (
               <div className="flex flex-col items-center justify-center py-20 text-center">
                 <div className="mb-3 text-5xl opacity-30">💪</div>
-                <p className="text-sm text-muted-foreground font-medium">Workouts require at least one exercise</p>
-                <p className="text-xs text-muted-foreground mt-1">Click an exercise from the library to add it</p>
+                <p className="text-sm text-muted-foreground font-medium">Start by adding a block</p>
+                <p className="text-xs text-muted-foreground mt-1 mb-4">Pick a block type (Warm-Up, Working Sets, Conditioning…) then add exercises into it.</p>
+                <Button size="sm" onClick={() => setShowBlockPicker(true)} className="gap-1.5">
+                  <Plus className="h-4 w-4" />
+                  Add Block
+                </Button>
               </div>
             )}
           </ScrollArea>
