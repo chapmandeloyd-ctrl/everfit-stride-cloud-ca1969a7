@@ -13,6 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { Sparkles, Loader2, Calendar, ArrowLeft, Check, Dumbbell, Wand2, Library, ChevronDown } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -121,6 +122,7 @@ interface PersistedDraft {
 export function AIProgramBuilderDialog({ open, onOpenChange, onProgramCreated }: AIProgramBuilderDialogProps) {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const [step, setStep] = useState<Step>("setup");
   const [buildMode, setBuildMode] = useState<"use_existing" | "full_build">("use_existing");
@@ -368,6 +370,7 @@ export function AIProgramBuilderDialog({ open, onOpenChange, onProgramCreated }:
     try {
       // Map workout_name → workout_plan_id
       const nameToId = new Map(selectedWorkouts.map((w) => [w.name.toLowerCase(), w.id]));
+      const createdWorkoutIds: string[] = [];
 
       // FULL-BUILD MODE: First create the AI-generated workouts in the library
       if (buildMode === "full_build" && generated.workouts && generated.workouts.length > 0) {
@@ -441,6 +444,7 @@ export function AIProgramBuilderDialog({ open, onOpenChange, onProgramCreated }:
 
           // Register in nameToId so schedule can link to it
           nameToId.set(w.name.toLowerCase(), plan.id);
+          createdWorkoutIds.push(plan.id);
         }
       }
 
@@ -539,6 +543,12 @@ export function AIProgramBuilderDialog({ open, onOpenChange, onProgramCreated }:
 
       onProgramCreated?.();
       handleClose(false);
+
+      if (createdWorkoutIds.length === 1) {
+        navigate(`/workouts/${createdWorkoutIds[0]}`);
+      } else if (createdWorkoutIds.length > 1) {
+        navigate("/workouts");
+      }
     } catch (err: any) {
       console.error("Save program error:", err);
       toast({
