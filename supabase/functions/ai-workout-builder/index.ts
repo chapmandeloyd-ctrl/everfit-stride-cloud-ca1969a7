@@ -29,8 +29,25 @@ serve(async (req) => {
     let systemPrompt: string;
     let tools: any[] | undefined;
     let toolChoice: any | undefined;
+    let modelOverride: string | undefined;
+    let userMessage = prompt;
 
-    if (mode === "suggest_exercise") {
+    if (mode === "explain_workout") {
+      // Lightweight reasoning summary — uses gpt-5-mini for speed/cost
+      modelOverride = "openai/gpt-5-mini";
+      systemPrompt = `You are an expert fitness coach explaining workout design choices to another trainer.
+
+Given a workout the AI just built, explain in 3-5 short bullet points WHY these exercises and groupings make sense together.
+Focus on:
+- Movement balance (push/pull, upper/lower, anterior/posterior)
+- Energy system progression (warm-up → strength → conditioning → cooldown)
+- Why specific supersets or circuits were paired
+- Recovery and sequencing logic
+
+Keep it tight — under 120 words total. Use plain language, no fluff. Format as markdown bullets.`;
+      // The frontend passes the workout JSON as the prompt for explanation mode
+      userMessage = `Explain the design of this workout:\n\n${prompt}`;
+    } else if (mode === "suggest_exercise") {
       systemPrompt = `You are an expert fitness coach building workouts. The trainer wants exercise suggestions.
 
 Available exercises in their library: ${exerciseList}
@@ -174,13 +191,12 @@ Pick the most appropriate block_label for each section based on its purpose. The
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "openai/gpt-5",
+        model: modelOverride || "openai/gpt-5",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: prompt },
+          { role: "user", content: userMessage },
         ],
-        tools,
-        tool_choice: toolChoice,
+        ...(tools ? { tools, tool_choice: toolChoice } : {}),
       }),
     });
 
@@ -203,6 +219,15 @@ Pick the most appropriate block_label for each section based on its purpose. The
     }
 
     const data = await response.json();
+
+    // Explanation mode returns plain text, not a tool call
+    if (mode === "explain_workout") {
+      const text = data.choices?.[0]?.message?.content || "";
+      return new Response(JSON.stringify({ result: { explanation: text }, mode }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
 
     if (!toolCall?.function?.arguments) {
