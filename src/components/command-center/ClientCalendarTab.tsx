@@ -121,6 +121,23 @@ export function ClientCalendarTab({ clientId, trainerId }: ClientCalendarTabProp
     enabled: !!clientId,
   });
 
+  const { data: scheduledCardio } = useQuery({
+    queryKey: ["cc-calendar-cardio", clientId, format(monthStart, "yyyy-MM")],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("cardio_sessions")
+        .select("id, activity_type, target_type, target_value, scheduled_date, status")
+        .eq("client_id", clientId)
+        .eq("status", "scheduled")
+        .gte("scheduled_date", format(monthStart, "yyyy-MM-dd"))
+        .lte("scheduled_date", format(monthEnd, "yyyy-MM-dd"))
+        .order("scheduled_date");
+      if (error) throw error;
+      return data as any[];
+    },
+    enabled: !!clientId,
+  });
+
   const { data: goalCountdowns } = useQuery({
     queryKey: ["cc-calendar-goals", clientId, format(monthStart, "yyyy-MM")],
     queryFn: async () => {
