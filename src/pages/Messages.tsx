@@ -36,6 +36,13 @@ export default function Messages() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const prefillState = (location.state as {
+    prefillMessage?: string;
+    lockedPlanName?: string | null;
+    lockedPlanReason?: string;
+  } | null) ?? null;
   const [selectedConversation, setSelectedConversation] = useState<ConversationDisplay | null>(null);
   const [messageText, setMessageText] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
