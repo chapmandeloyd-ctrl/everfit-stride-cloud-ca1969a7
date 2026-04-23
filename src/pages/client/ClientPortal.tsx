@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { PortalPlayer, type PortalScene } from "@/components/portal/PortalPlayer";
 import { PortalEntry } from "@/components/portal/PortalEntry";
 import { PortalLibrary } from "@/components/portal/PortalLibrary";
@@ -20,6 +21,7 @@ const DEFAULT_BREATH_EXERCISE =
   BREATHING_EXERCISES.find((e) => e.id === "ocean-wave") ?? BREATHING_EXERCISES[0];
 
 export default function ClientPortal() {
+  const { loading: authLoading, userRole } = useAuth();
   const [activeScene, setActiveScene] = useState<PortalScene | null>(null);
   const [breathOpen, setBreathOpen] = useState(false);
   const [breathStage, setBreathStage] = useState<BreathStage>("preview");
@@ -42,6 +44,9 @@ export default function ClientPortal() {
       if (error) throw error;
       return data as PortalScene[];
     },
+    // Don't fetch until auth is fully settled — prevents the flash-and-bounce
+    // that happens during trainer impersonation when auth re-resolves on mount.
+    enabled: !authLoading && !!userRole,
   });
 
   const findFirstInCategory = (category: EntryCategory) =>
