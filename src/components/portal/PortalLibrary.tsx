@@ -213,7 +213,9 @@ function CircleRow({
                 muted
                 loop
                 playsInline
-                autoPlay
+                preload="metadata"
+                disablePictureInPicture
+                disableRemotePlayback
                 className="absolute inset-0 w-full h-full object-cover"
               />
             )}
@@ -269,7 +271,9 @@ function CardRow({
                 muted
                 loop
                 playsInline
-                autoPlay
+                preload="metadata"
+                disablePictureInPicture
+                disableRemotePlayback
                 className="absolute inset-0 w-full h-full object-cover"
               />
             )}
