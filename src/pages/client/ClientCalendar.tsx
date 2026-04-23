@@ -250,6 +250,12 @@ export default function ClientCalendar() {
       push(format(d, "yyyy-MM-dd"), { kind: "goal", id: g.id, date: d, data: g });
     });
 
+    scheduledCardio?.forEach((c: any) => {
+      if (!c.scheduled_date) return;
+      const d = parseISO(c.scheduled_date);
+      push(format(d, "yyyy-MM-dd"), { kind: "cardio", id: c.id, date: d, data: c });
+    });
+
     // Habits — expand each into the days they occur within the window
     if (habits) {
       for (let i = 0; i <= differenceInCalendarDays(rangeEnd, rangeStart); i++) {
@@ -272,7 +278,7 @@ export default function ClientCalendar() {
     }
 
     return map;
-  }, [workouts, tasks, habits, sportEvents, appointments, goals, rangeStart, rangeEnd]);
+  }, [workouts, tasks, habits, sportEvents, appointments, goals, scheduledCardio, rangeStart, rangeEnd]);
 
   // List of all days in range (for headers, even empty)
   const allDays = useMemo(() => {
