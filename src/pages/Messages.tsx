@@ -11,6 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { format, parseISO, isToday, isYesterday, isSameDay } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { CreateGroupDialog } from "@/components/CreateGroupDialog";
