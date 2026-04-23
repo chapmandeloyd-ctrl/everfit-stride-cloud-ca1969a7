@@ -765,6 +765,29 @@ export function AIProgramBuilderDialog({ open, onOpenChange, onProgramCreated }:
         {step === "preview" && generated && (
           <ScrollArea className="flex-1 pr-4 -mr-4">
             <div className="space-y-4">
+              {hasRecoveredDraft && (
+                <div className="p-3 rounded-md border border-primary/30 bg-primary/5 text-sm flex items-start gap-2">
+                  <Sparkles className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                  <div className="flex-1">
+                    <div className="font-medium">Recovered your last program</div>
+                    <div className="text-xs text-muted-foreground">
+                      Your previous generation was restored. Save it below or refine it again.
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      sessionStorage.removeItem(DRAFT_STORAGE_KEY);
+                      setHasRecoveredDraft(false);
+                      reset();
+                    }}
+                    className="h-7 text-xs"
+                  >
+                    Discard
+                  </Button>
+                </div>
+              )}
               <div className="p-4 bg-muted/50 rounded-md border">
                 <h3 className="font-semibold text-lg">{generated.program_name}</h3>
                 <p className="text-sm text-muted-foreground mt-1">{generated.program_description}</p>
