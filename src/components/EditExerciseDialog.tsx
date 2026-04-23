@@ -275,6 +275,14 @@ export function EditExerciseDialog({ open, onOpenChange, exercise }: EditExercis
           video_url: videoUrl,
           image_url: imageUrl,
           is_unilateral: formData.is_unilateral,
+          ...(newCloudflareVideoId !== undefined
+            ? {
+                cloudflare_video_id: newCloudflareVideoId,
+                cloudflare_migration_status: newCloudflareVideoId ? "done" : "not_applicable",
+                cloudflare_migrated_at: newCloudflareVideoId ? new Date().toISOString() : null,
+                cloudflare_migration_error: null,
+              }
+            : {}),
         })
         .eq("id", exercise.id)
         .select()
