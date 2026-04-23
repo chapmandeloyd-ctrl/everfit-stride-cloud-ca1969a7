@@ -7,6 +7,9 @@ import { getIconComponent, type TargetType } from "./cardioActivities";
 import { useCardioActivityTypes } from "@/hooks/useCardioActivityTypes";
 import { AddCardioActivityDialog } from "./AddCardioActivityDialog";
 import { EditCardioActivityDialog } from "./EditCardioActivityDialog";
+import { CardioActionsSheet } from "./CardioActionsSheet";
+import { CardioScheduleSheet } from "./CardioScheduleSheet";
+import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 
 interface QuickCardioFlowProps {
   open: boolean;
@@ -28,6 +31,10 @@ export function QuickCardioFlow({ open, onOpenChange, onStart, onMarkComplete }:
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingActivity, setEditingActivity] = useState<{ id: string; name: string; icon_name: string } | null>(null);
   const [activeTimeField, setActiveTimeField] = useState<"hours" | "minutes" | "seconds">("hours");
+  // 3-dots actions / schedule
+  const [actionsFor, setActionsFor] = useState<{ name: string; icon_name: string } | null>(null);
+  const [scheduleFor, setScheduleFor] = useState<{ name: string; icon_name: string } | null>(null);
+  const clientId = useEffectiveClientId();
 
   const { activities, addActivity, updateActivity, deleteActivity } = useCardioActivityTypes();
 
@@ -140,7 +147,7 @@ export function QuickCardioFlow({ open, onOpenChange, onStart, onMarkComplete }:
                       <div className="h-8 w-px bg-white/30" />
                       <div
                         className="flex items-center justify-center w-10 h-12 cursor-pointer hover:bg-black/10 transition-colors"
-                        onClick={(e) => { e.stopPropagation(); handleSelectActivity(act); }}
+                        onClick={(e) => { e.stopPropagation(); setActionsFor(act); }}
                       >
                         <MoreVertical className="h-4 w-4 text-white" />
                       </div>
@@ -321,6 +328,38 @@ export function QuickCardioFlow({ open, onOpenChange, onStart, onMarkComplete }:
         onSave={(id, name, iconName, iconUrl) => updateActivity.mutate({ id, name, iconName, iconUrl })}
         onDelete={(id) => deleteActivity.mutate(id)}
       />
+
+      <CardioActionsSheet
+        open={!!actionsFor}
+        onOpenChange={(v) => { if (!v) setActionsFor(null); }}
+        activityName={actionsFor?.name ?? ""}
+        onSchedule={() => {
+          if (actionsFor) {
+            setScheduleFor(actionsFor);
+            setActionsFor(null);
+          }
+        }}
+        onStartNow={() => {
+          if (actionsFor) {
+            handleSelectActivity(actionsFor);
+            setActionsFor(null);
+          }
+        }}
+      />
+
+      {clientId && scheduleFor && (
+        <CardioScheduleSheet
+          open={!!scheduleFor}
+          onOpenChange={(v) => { if (!v) setScheduleFor(null); }}
+          clientId={clientId}
+          activityType={scheduleFor.name.toLowerCase().replace(/\s+/g, "_")}
+          activityName={scheduleFor.name}
+          onScheduled={() => {
+            setScheduleFor(null);
+            resetAndClose();
+          }}
+        />
+      )}
     </>
   );
 }
