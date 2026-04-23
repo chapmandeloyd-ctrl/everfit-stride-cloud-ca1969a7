@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useNavigate, Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { useImpersonation } from "@/hooks/useImpersonation";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -28,6 +29,7 @@ function hasCachedSession(): boolean | null {
 export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
   const { user, userRole, loading } = useAuth();
   const navigate = useNavigate();
+  const { isImpersonating } = useImpersonation();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -57,8 +59,7 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
   }
 
   // Allow trainers to access client routes while impersonating a client
-  const impersonatedClientId = localStorage.getItem("impersonatedClientId");
-  const isTrainerImpersonatingClient = userRole === "trainer" && !!impersonatedClientId;
+  const isTrainerImpersonatingClient = userRole === "trainer" && isImpersonating;
 
   if (allowedRoles?.includes("client") && isTrainerImpersonatingClient) {
     return <>{children}</>;
