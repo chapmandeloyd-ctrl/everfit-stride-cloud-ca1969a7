@@ -429,6 +429,26 @@ export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEn
             </Card>
           ))}
 
+          {viewData.cardio.map((c: any) => {
+            const iconName = cardioIconMap.get(String(c.activity_type).toLowerCase()) || "activity";
+            const Icon = getIconComponent(iconName);
+            const label = String(c.activity_type).replace(/_/g, " ").replace(/\b\w/g, (s) => s.toUpperCase());
+            return (
+              <Card key={c.id} className="overflow-hidden">
+                <div className="relative h-56 bg-gradient-to-br from-rose-500/20 to-rose-500/5">
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Icon className="h-16 w-16 text-rose-400/30" />
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                    <p className="text-xs font-semibold text-white/70 uppercase tracking-wider">Quick Cardio</p>
+                    <p className="text-lg font-bold text-white">{label}</p>
+                  </div>
+                </div>
+              </Card>
+            );
+          })}
+
           {isRestDay && trainingEnabled && (
             <Card className="overflow-hidden">
               {restDayCard?.image_url ? (
