@@ -339,11 +339,16 @@ export function InteractiveProtocolCard({
 
   // Detail sections rendered as separate stacked card containers below the main
   // protocol card — matches the original always-visible layout.
-  const renderDetailSections = () => (
-    <div data-no-flip>
-      <ProtocolDetailSections protocol={protocol} />
-    </div>
-  );
+  // Locked cards (dimmed) hide their detail sections entirely so the library
+  // only reveals full info once a plan is active/scheduled.
+  const renderDetailSections = () => {
+    if (dimmed) return null;
+    return (
+      <div data-no-flip>
+        <ProtocolDetailSections protocol={protocol} />
+      </div>
+    );
+  };
 
   useEffect(() => {
     if (!hasFlipped) return;
