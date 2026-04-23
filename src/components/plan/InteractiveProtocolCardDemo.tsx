@@ -1,7 +1,7 @@
 import { memo, useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
 import { Lock, ShieldCheck, ChevronRight, ChevronLeft, RotateCcw, AlertTriangle, Brain, CalendarClock, ListChecks, Sparkles, Flame, Zap, BrainCircuit, Quote, Activity, type LucideIcon } from "lucide-react";
 import type { ProtocolCardContent } from "@/lib/protocolCardContent";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { LockedPlanPopover } from "@/components/LockedPlanPopover";
 
 export interface DemoStat {
   value: string;
@@ -453,19 +453,17 @@ export const CardFront = memo(function CardFront({
             </span>
           )}
           {(protocol.status === "locked" || dimmed) && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span className="inline-flex items-center gap-1.5 text-muted-foreground cursor-help">
-                    <Lock className="h-4 w-4" />
-                    <span className="text-[10px] font-semibold uppercase tracking-wider">Locked</span>
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent side="top" className="max-w-[200px]">
-                  <p className="text-xs">Message your trainer to unlock this plan</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <LockedPlanPopover message="This plan is locked. Message your trainer to request access.">
+              <button
+                type="button"
+                data-no-flip
+                className="inline-flex items-center gap-1.5 text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+                aria-label="Locked — tap for unlock options"
+              >
+                <Lock className="h-4 w-4" />
+                <span className="text-[10px] font-semibold uppercase tracking-wider">Locked</span>
+              </button>
+            </LockedPlanPopover>
           )}
         </div>
 
