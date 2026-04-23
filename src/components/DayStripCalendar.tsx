@@ -233,8 +233,8 @@ export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEn
   const viewDate = selectedDate || today;
   const viewData = getDayData(viewDate);
   const isViewingToday = isToday(viewDate);
-  const isRestDay = viewData.workouts.length === 0 && viewData.sportEvents.length === 0;
-  const hasAnything = viewData.workouts.length > 0 || viewData.sportEvents.length > 0 || viewData.tasks.length > 0 || viewData.habits.length > 0;
+  const isRestDay = viewData.workouts.length === 0 && viewData.sportEvents.length === 0 && viewData.cardio.length === 0;
+  const hasAnything = viewData.workouts.length > 0 || viewData.sportEvents.length > 0 || viewData.tasks.length > 0 || viewData.habits.length > 0 || viewData.cardio.length > 0;
 
   // Month calendar days for history sheet
   const monthDays = useMemo(() => {
