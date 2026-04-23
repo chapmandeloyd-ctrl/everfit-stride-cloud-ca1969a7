@@ -125,6 +125,38 @@ export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEn
     enabled: !!clientId && tasksEnabled,
   });
 
+  const { data: cardio } = useQuery({
+    queryKey: ["day-strip-cardio", clientId, startDate, endDate],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("cardio_sessions" as any)
+        .select("id, activity_type, target_type, target_value, scheduled_date, status")
+        .eq("client_id", clientId)
+        .eq("status", "scheduled")
+        .gte("scheduled_date", startDate)
+        .lte("scheduled_date", endDate);
+      if (error) throw error;
+      return data as any[];
+    },
+    enabled: !!clientId,
+  });
+
+  const { data: cardioTypes } = useQuery({
+    queryKey: ["day-strip-cardio-types"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("cardio_activity_types")
+        .select("name, icon_name");
+      if (error) throw error;
+      return data as { name: string; icon_name: string }[];
+    },
+  });
+  const cardioIconMap = useMemo(() => {
+    const m = new Map<string, string>();
+    cardioTypes?.forEach((t) => m.set(t.name.toLowerCase(), t.icon_name));
+    return m;
+  }, [cardioTypes]);
+
   // Fetch custom cards
   const { data: restDayCard } = useQuery({
     queryKey: ["day-strip-rest-card", clientId],
