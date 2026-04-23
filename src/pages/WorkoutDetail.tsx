@@ -655,6 +655,63 @@ export default function WorkoutDetail() {
           </Card>
         )}
       </div>
+
+      {isClient && effectiveClientId && id && (
+        <>
+          <PostBuildChoiceSheet
+            open={postBuildOpen}
+            onOpenChange={setPostBuildOpen}
+            onStartNow={async () => {
+              unlockAudioForMobile();
+              await createActiveSession();
+              setIsPlaying(true);
+            }}
+            onSaveForLater={() => {
+              toast("Saved to your library");
+              navigate("/client/my-workouts");
+            }}
+            onSchedule={() => setScheduleOpen(true)}
+          />
+
+          <WorkoutActionsSheet
+            open={actionsOpen}
+            onOpenChange={setActionsOpen}
+            onMove={() => setScheduleOpen(true)}
+            onEdit={handleEditWorkout}
+            onDelete={() => setConfirmDeleteOpen(true)}
+            canMoveOrDelete={!!clientWorkout?.id}
+          />
+
+          <WorkoutScheduleSheet
+            open={scheduleOpen}
+            onOpenChange={setScheduleOpen}
+            clientId={effectiveClientId}
+            workoutPlanId={id}
+            existingClientWorkoutId={clientWorkout?.id ?? null}
+            initialDate={clientWorkout?.scheduled_date ? new Date(clientWorkout.scheduled_date + "T00:00:00") : new Date()}
+          />
+
+          <AlertDialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete this workout?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will remove "{workout?.name}" from your calendar. This cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleDeleteSchedule}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </>
+      )}
     </Layout>
   );
 }
