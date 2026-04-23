@@ -147,7 +147,7 @@ export function QuickCardioFlow({ open, onOpenChange, onStart, onMarkComplete }:
                       <div className="h-8 w-px bg-white/30" />
                       <div
                         className="flex items-center justify-center w-10 h-12 cursor-pointer hover:bg-black/10 transition-colors"
-                        onClick={(e) => { e.stopPropagation(); handleSelectActivity(act); }}
+                        onClick={(e) => { e.stopPropagation(); setActionsFor(act); }}
                       >
                         <MoreVertical className="h-4 w-4 text-white" />
                       </div>
