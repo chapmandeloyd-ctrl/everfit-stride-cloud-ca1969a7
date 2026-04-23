@@ -3,11 +3,12 @@ import { format, addDays, isToday, isSameDay, isBefore, startOfDay, startOfMonth
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { Dumbbell, Swords, Trophy, CheckSquare, Droplets, MapPin, History, ArrowLeft } from "lucide-react";
+import { Dumbbell, Swords, Trophy, CheckSquare, Droplets, MapPin, History, ArrowLeft, Activity } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { DayStripPastSnapshot } from "@/components/DayStripPastSnapshot";
+import { getIconComponent } from "@/components/cardio/cardioActivities";
 
 interface DayStripCalendarProps {
   clientId: string;
@@ -22,6 +23,7 @@ interface DayData {
   sportEvents: any[];
   tasks: any[];
   habits: any[];
+  cardio: any[];
 }
 
 export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEnabled, onDateChange }: DayStripCalendarProps) {
@@ -123,6 +125,38 @@ export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEn
     enabled: !!clientId && tasksEnabled,
   });
 
+  const { data: cardio } = useQuery({
+    queryKey: ["day-strip-cardio", clientId, startDate, endDate],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("cardio_sessions" as any)
+        .select("id, activity_type, target_type, target_value, scheduled_date, status")
+        .eq("client_id", clientId)
+        .eq("status", "scheduled")
+        .gte("scheduled_date", startDate)
+        .lte("scheduled_date", endDate);
+      if (error) throw error;
+      return data as any[];
+    },
+    enabled: !!clientId,
+  });
+
+  const { data: cardioTypes } = useQuery({
+    queryKey: ["day-strip-cardio-types"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("cardio_activity_types")
+        .select("name, icon_name");
+      if (error) throw error;
+      return data as { name: string; icon_name: string }[];
+    },
+  });
+  const cardioIconMap = useMemo(() => {
+    const m = new Map<string, string>();
+    cardioTypes?.forEach((t) => m.set(t.name.toLowerCase(), t.icon_name));
+    return m;
+  }, [cardioTypes]);
+
   // Fetch custom cards
   const { data: restDayCard } = useQuery({
     queryKey: ["day-strip-rest-card", clientId],
@@ -167,13 +201,14 @@ export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEn
         const startDay = new Date(h.start_date + "T00:00:00").getDay();
         return date.getDay() === startDay;
       }) || [],
+      cardio: cardio?.filter((c: any) => c.scheduled_date === dateStr) || [],
     };
   }
 
   function hasDots(date: Date) {
     const data = getDayData(date);
     return {
-      hasWorkout: data.workouts.length > 0,
+      hasWorkout: data.workouts.length > 0 || data.cardio.length > 0,
       hasSport: data.sportEvents.length > 0,
       hasTask: data.tasks.length > 0 || data.habits.length > 0,
     };
@@ -198,8 +233,8 @@ export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEn
   const viewDate = selectedDate || today;
   const viewData = getDayData(viewDate);
   const isViewingToday = isToday(viewDate);
-  const isRestDay = viewData.workouts.length === 0 && viewData.sportEvents.length === 0;
-  const hasAnything = viewData.workouts.length > 0 || viewData.sportEvents.length > 0 || viewData.tasks.length > 0 || viewData.habits.length > 0;
+  const isRestDay = viewData.workouts.length === 0 && viewData.sportEvents.length === 0 && viewData.cardio.length === 0;
+  const hasAnything = viewData.workouts.length > 0 || viewData.sportEvents.length > 0 || viewData.tasks.length > 0 || viewData.habits.length > 0 || viewData.cardio.length > 0;
 
   // Month calendar days for history sheet
   const monthDays = useMemo(() => {
@@ -393,6 +428,26 @@ export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEn
               </div>
             </Card>
           ))}
+
+          {viewData.cardio.map((c: any) => {
+            const iconName = cardioIconMap.get(String(c.activity_type).toLowerCase()) || "activity";
+            const Icon = getIconComponent(iconName);
+            const label = String(c.activity_type).replace(/_/g, " ").replace(/\b\w/g, (s) => s.toUpperCase());
+            return (
+              <Card key={c.id} className="overflow-hidden">
+                <div className="relative h-56 bg-gradient-to-br from-rose-500/20 to-rose-500/5">
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Icon className="h-16 w-16 text-rose-400/30" />
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                    <p className="text-xs font-semibold text-white/70 uppercase tracking-wider">Quick Cardio</p>
+                    <p className="text-lg font-bold text-white">{label}</p>
+                  </div>
+                </div>
+              </Card>
+            );
+          })}
 
           {isRestDay && trainingEnabled && (
             <Card className="overflow-hidden">

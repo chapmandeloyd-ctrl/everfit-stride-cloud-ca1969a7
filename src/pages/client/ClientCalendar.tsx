@@ -16,6 +16,7 @@ import {
   Flame,
   Trash2,
 } from "lucide-react";
+import { getIconComponent } from "@/components/cardio/cardioActivities";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -46,7 +47,8 @@ type AgendaItem =
   | { kind: "habit"; id: string; date: Date; data: any }
   | { kind: "sport"; id: string; date: Date; data: any }
   | { kind: "appointment"; id: string; date: Date; data: any }
-  | { kind: "goal"; id: string; date: Date; data: any };
+  | { kind: "goal"; id: string; date: Date; data: any }
+  | { kind: "cardio"; id: string; date: Date; data: any };
 
 const RANGE_BEFORE_DAYS = 14;
 const RANGE_AFTER_DAYS = 60;
@@ -174,6 +176,41 @@ export default function ClientCalendar() {
     enabled: !!clientId,
   });
 
+  // Scheduled cardio sessions
+  const { data: scheduledCardio } = useQuery({
+    queryKey: ["agenda-cardio", clientId, startStr, endStr],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("cardio_sessions" as any)
+        .select("id, activity_type, target_type, target_value, scheduled_date, status")
+        .eq("client_id", clientId!)
+        .eq("status", "scheduled")
+        .gte("scheduled_date", startStr)
+        .lte("scheduled_date", endStr)
+        .order("scheduled_date");
+      if (error) throw error;
+      return data as any[];
+    },
+    enabled: !!clientId,
+  });
+
+  // Cardio activity icon lookup (by activity name)
+  const { data: cardioTypes } = useQuery({
+    queryKey: ["agenda-cardio-types"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("cardio_activity_types")
+        .select("name, icon_name");
+      if (error) throw error;
+      return data as { name: string; icon_name: string }[];
+    },
+  });
+  const cardioIconMap = useMemo(() => {
+    const m = new Map<string, string>();
+    cardioTypes?.forEach((t) => m.set(t.name.toLowerCase(), t.icon_name));
+    return m;
+  }, [cardioTypes]);
+
   // Build day-grouped map
   const grouped = useMemo(() => {
     const map = new Map<string, AgendaItem[]>();
@@ -213,6 +250,12 @@ export default function ClientCalendar() {
       push(format(d, "yyyy-MM-dd"), { kind: "goal", id: g.id, date: d, data: g });
     });
 
+    scheduledCardio?.forEach((c: any) => {
+      if (!c.scheduled_date) return;
+      const d = parseISO(c.scheduled_date);
+      push(format(d, "yyyy-MM-dd"), { kind: "cardio", id: c.id, date: d, data: c });
+    });
+
     // Habits — expand each into the days they occur within the window
     if (habits) {
       for (let i = 0; i <= differenceInCalendarDays(rangeEnd, rangeStart); i++) {
@@ -235,7 +278,7 @@ export default function ClientCalendar() {
     }
 
     return map;
-  }, [workouts, tasks, habits, sportEvents, appointments, goals, rangeStart, rangeEnd]);
+  }, [workouts, tasks, habits, sportEvents, appointments, goals, scheduledCardio, rangeStart, rangeEnd]);
 
   // List of all days in range (for headers, even empty)
   const allDays = useMemo(() => {
@@ -289,6 +332,19 @@ export default function ClientCalendar() {
       toast({ title: "Couldn't delete", description: e.message, variant: "destructive" }),
   });
 
+  const deleteCardio = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("cardio_sessions" as any).delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["agenda-cardio"] });
+      toast({ title: "Cardio removed from calendar" });
+    },
+    onError: (e: Error) =>
+      toast({ title: "Couldn't delete", description: e.message, variant: "destructive" }),
+  });
+
   return (
     <ClientLayout>
       {/* Sticky header */}
@@ -336,6 +392,8 @@ export default function ClientCalendar() {
                         onToggleTask={(id, completed) => toggleTask.mutate({ id, completed })}
                         onOpenWorkout={(id) => navigate(`/client/workouts/${id}`)}
                         onDeleteWorkout={(id, name) => setPendingDelete({ id, name })}
+                        onDeleteCardio={(id) => deleteCardio.mutate(id)}
+                        cardioIconMap={cardioIconMap}
                       />
                     ))}
                 </div>
@@ -373,11 +431,15 @@ function AgendaCard({
   onToggleTask,
   onOpenWorkout,
   onDeleteWorkout,
+  onDeleteCardio,
+  cardioIconMap,
 }: {
   item: AgendaItem;
   onToggleTask: (id: string, completed: boolean) => void;
   onOpenWorkout: (workoutPlanId: string) => void;
   onDeleteWorkout?: (clientWorkoutId: string, name: string) => void;
+  onDeleteCardio?: (id: string) => void;
+  cardioIconMap?: Map<string, string>;
 }) {
   if (item.kind === "workout") {
     const w = item.data;
@@ -550,6 +612,39 @@ function AgendaCard({
           <div className="text-xs text-muted-foreground">Goal deadline</div>
         </div>
         <Flame className="h-4 w-4 text-orange-500 shrink-0" />
+      </Card>
+    );
+  }
+
+  if (item.kind === "cardio") {
+    const c = item.data;
+    const iconName = cardioIconMap?.get(String(c.activity_type).toLowerCase()) || "activity";
+    const Icon = getIconComponent(iconName);
+    const activityLabel = String(c.activity_type)
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (s) => s.toUpperCase());
+    return (
+      <Card className="p-3 flex items-center gap-3 border-rose-500/30 bg-rose-500/5">
+        <div className="h-9 w-9 rounded-full bg-rose-500/20 text-rose-500 flex items-center justify-center shrink-0">
+          <Icon className="h-5 w-5" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="font-medium text-sm truncate">{activityLabel}</div>
+          <div className="text-xs text-muted-foreground">Quick Cardio</div>
+        </div>
+        <Badge variant="outline" className="text-[10px] border-rose-500/40 text-rose-500">Cardio</Badge>
+        {onDeleteCardio && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDeleteCardio(c.id);
+            }}
+            className="h-8 w-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0 transition-colors"
+            aria-label="Remove cardio from calendar"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        )}
       </Card>
     );
   }
