@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Sparkles, Loader2, Calendar, ArrowLeft, Check, Dumbbell } from "lucide-react";
+import { Sparkles, Loader2, Calendar, ArrowLeft, Check, Dumbbell, Wand2, Library } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -31,10 +31,35 @@ interface ScheduleItem {
   notes?: string;
 }
 
+interface GeneratedSectionExercise {
+  exercise_name: string;
+  sets: number;
+  reps_or_time: string;
+  rest_seconds: number;
+  notes?: string;
+}
+
+interface GeneratedSection {
+  block_label: string;
+  section_name: string;
+  section_type: "straight_set" | "superset" | "circuit";
+  rounds: number;
+  exercises: GeneratedSectionExercise[];
+}
+
+interface GeneratedWorkout {
+  name: string;
+  description: string;
+  category: string;
+  difficulty: string;
+  sections: GeneratedSection[];
+}
+
 interface GeneratedProgram {
   program_name: string;
   program_description: string;
   schedule: ScheduleItem[];
+  workouts?: GeneratedWorkout[]; // present in full-build mode
 }
 
 const DAY_LABELS = ["", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
