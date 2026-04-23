@@ -475,6 +475,37 @@ export function AIWorkoutBuilderDialog({
                     Regenerate
                   </Button>
                 </div>
+
+                {/* Why these exercises? — opt-in collapsible reasoning panel */}
+                <div className="border rounded-lg overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={handleToggleExplanation}
+                    className="w-full flex items-center justify-between gap-2 px-3 py-2 text-xs font-medium hover:bg-muted/50 transition-colors"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Brain className="h-3.5 w-3.5 text-primary" />
+                      Why these exercises?
+                    </span>
+                    {explanationOpen ? (
+                      <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" />
+                    ) : (
+                      <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                    )}
+                  </button>
+                  {explanationOpen && (
+                    <div className="px-3 py-2 border-t bg-muted/20 text-xs text-muted-foreground whitespace-pre-wrap leading-relaxed">
+                      {explanationLoading ? (
+                        <div className="flex items-center gap-2 py-1">
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          <span>Analyzing the workout design...</span>
+                        </div>
+                      ) : (
+                        explanation
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </TabsContent>
