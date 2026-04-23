@@ -176,7 +176,20 @@ export default function ClientQuickPlans() {
                               Quick Plan
                             </span>
                           </div>
-                          {isLocked && <Lock className="h-4 w-4 text-muted-foreground" />}
+                          {isLocked && (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span className="inline-flex items-center gap-1.5 text-muted-foreground cursor-help">
+                                    <Lock className="h-4 w-4" />
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="max-w-[220px]">
+                                  <p className="text-xs">{gating?.lockMessage || "Message your trainer to unlock this plan"}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
                           {isCoachApproved && (
                             <Badge variant="outline" className="text-[10px] border-primary/30 text-primary">
                               <ShieldCheck className="h-3 w-3 mr-1" /> Coach Approved
