@@ -104,6 +104,7 @@ import Scheduling from "./pages/Scheduling";
 import TrainerSettings from "./pages/TrainerSettings";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { FastingRouteGuard } from "./components/FastingRouteGuard";
+import { ImpersonationProvider } from "./hooks/useImpersonation";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import GuardianSummary from "./pages/GuardianSummary";
 import StudioProgramDetail from "./pages/StudioProgramDetail";
@@ -126,6 +127,7 @@ const App = () => (
       <Sonner />
       
       <BrowserRouter>
+        <ImpersonationProvider>
         <Routes>
           <Route path="/auth" element={<Auth />} />
           <Route path="/reset-password" element={<ResetPassword />} />
@@ -253,6 +255,7 @@ const App = () => (
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        </ImpersonationProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
