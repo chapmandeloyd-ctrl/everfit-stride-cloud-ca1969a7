@@ -483,10 +483,49 @@ export default function EditWorkout() {
   const getExerciseById = (eid: string) => exercises?.find((e: any) => e.id === eid);
 
   const addExercise = (exerciseId: string) => {
-    setExerciseItems((prev) => [...prev, {
-      id: crypto.randomUUID(), exercise_id: exerciseId, sets: 3, target_type: "text" as const, target_value: "", time_seconds: 30, rest_seconds: 30, exercise_type: "normal" as const, selected: false, group_id: null,
-      detail_fields: [] as DetailField[], weight_lbs: "", tempo: "", rpe: "", distance: "", band: "",
+    const newItem: WorkoutExercise = {
+      id: crypto.randomUUID(),
+      exercise_id: exerciseId,
+      sets: activeBlockId ? 1 : 3,
+      target_type: "text" as const,
+      target_value: "",
+      time_seconds: 30,
+      rest_seconds: activeBlockId ? 15 : 30,
+      exercise_type: "normal" as const,
+      selected: false,
+      group_id: activeBlockId,
+      detail_fields: [] as DetailField[],
+      weight_lbs: "",
+      tempo: "",
+      rpe: "",
+      distance: "",
+      band: "",
+    };
+    if (activeBlockId) {
+      // Insert after the last existing item of this block (or at end if none yet)
+      setExerciseItems((prev) => {
+        const lastIdx = prev.map((p, i) => p.group_id === activeBlockId ? i : -1).filter(i => i >= 0).pop();
+        if (lastIdx === undefined) return [...prev, newItem];
+        const next = [...prev];
+        next.splice(lastIdx + 1, 0, newItem);
+        return next;
+      });
+    } else {
+      setExerciseItems((prev) => [...prev, newItem]);
+    }
+  };
+
+  const createBlock = (blockType: { id: string; label: string }, customName?: string, blockKind: "superset" | "circuit" = "circuit") => {
+    const newGroupId = crypto.randomUUID();
+    setGroups((prev) => [...prev, {
+      id: newGroupId,
+      type: blockKind,
+      sets: 3,
+      block_type: blockType.id,
+      custom_name: customName,
     }]);
+    setActiveBlockId(newGroupId);
+    toast({ title: `${customName || blockType.label} block added`, description: "Now add exercises to this block." });
   };
 
   const addRest = () => {
