@@ -39,6 +39,12 @@ export interface ClientGatingContext {
   lowestFactor: ScoreFactor;
   upcomingGameOrPractice: boolean;
   overriddenPlanIds: Set<string>;
+  /**
+   * Current consistency-streak length in days. Used by the gating engine
+   * to surface "Streak X/Y" progress on stability-locked plans.
+   * Defaults to 0 if unknown.
+   */
+  currentStreak?: number;
 }
 
 export type LockReason =
@@ -58,6 +64,31 @@ export interface PlanGatingResult {
   lockMessage: string | null;
   isCoachApproved: boolean;
   isOptionalTool: boolean;
+  /**
+   * Structured progress toward unlocking this plan. The gating engine
+   * picks the most relevant criterion (level, streak, or score stability)
+   * so the UI can render a single progress chip without having to branch
+   * on lockReason itself.
+   *
+   * `null` (or omitted) when no quantitative progress applies — e.g.
+   * coach approval, engine-mode mismatch, or youth safety.
+   */
+  unlockProgress?: UnlockProgress | null;
+}
+
+export type UnlockCriterion = "level" | "streak" | "score_stability";
+
+export interface UnlockProgress {
+  /** Which criterion the chip should display. */
+  criterion: UnlockCriterion;
+  /** Short label, e.g. "Level", "Streak", "Strong days". */
+  label: string;
+  /** Current numeric value (clamped ≥ 0). */
+  current: number;
+  /** Target numeric value to unlock. */
+  required: number;
+  /** Optional unit suffix shown after numbers, e.g. "d" for days. */
+  unit?: string;
 }
 
 // ─── Lock reason copy ───────────────────────────────────
@@ -79,6 +110,56 @@ function getLockMessage(reason: LockReason, minLevel?: number): string | null {
     default:
       return null;
   }
+}
+
+// ─── Unlock-progress helpers ────────────────────────────
+
+/** Required streak length (days) we use for "stability"-style locks. */
+const STABILITY_STREAK_TARGET_DAYS = 7;
+
+/** Build a Level X / Y progress chip. */
+function levelProgress(currentLevel: number, requiredLevel: number): UnlockProgress {
+  return {
+    criterion: "level",
+    label: "Level",
+    current: Math.max(0, currentLevel),
+    required: Math.max(1, requiredLevel),
+  };
+}
+
+/** Build a Streak X / Y (days) progress chip. */
+function streakProgress(currentStreak: number, requiredDays = STABILITY_STREAK_TARGET_DAYS): UnlockProgress {
+  return {
+    criterion: "streak",
+    label: "Streak",
+    current: Math.max(0, currentStreak),
+    required: Math.max(1, requiredDays),
+    unit: "d",
+  };
+}
+
+/** Build a "Strong days last 14" chip from needs-support deficits. */
+function scoreStabilityProgress(needsSupportLast14: number): UnlockProgress {
+  // Translate "needs_support days" into "stable days" out of 14.
+  const stableDays = Math.max(0, 14 - needsSupportLast14);
+  return {
+    criterion: "score_stability",
+    label: "Stable days",
+    current: stableDays,
+    required: 14,
+    unit: "d",
+  };
+}
+
+/**
+ * Decides which criterion to surface for a stability-style lock.
+ * Prefers showing a streak chip when the client has any streak data,
+ * otherwise falls back to score stability over the last 14 days.
+ */
+function pickStabilityProgress(ctx: ClientGatingContext): UnlockProgress {
+  const hasStreakData = typeof ctx.currentStreak === "number";
+  if (hasStreakData) return streakProgress(ctx.currentStreak ?? 0);
+  return scoreStabilityProgress(ctx.needsSupportDaysLast14);
 }
 
 // ─── Core gating evaluation ─────────────────────────────
@@ -174,6 +255,7 @@ export function evaluatePlanGating(
       lockMessage: getLockMessage("level_locked", plan.min_level_required),
       isCoachApproved: false,
       isOptionalTool,
+      unlockProgress: levelProgress(ctx.currentLevel, plan.min_level_required),
     };
   }
 
@@ -186,6 +268,8 @@ export function evaluatePlanGating(
       lockMessage: `Locked — designed for Levels ${plan.min_level_required}–${plan.max_level_allowed}`,
       isCoachApproved: false,
       isOptionalTool,
+      // No forward progress — client has surpassed the upper bound.
+      unlockProgress: null,
     };
   }
 
@@ -202,6 +286,7 @@ export function evaluatePlanGating(
       lockMessage: getLockMessage("stability_locked"),
       isCoachApproved: false,
       isOptionalTool,
+      unlockProgress: pickStabilityProgress(ctx),
     };
   }
 
@@ -218,6 +303,8 @@ export function evaluatePlanGating(
       lockMessage: getLockMessage("stability_locked"),
       isCoachApproved: false,
       isOptionalTool,
+      // Always score-stability here — the rule is literally about needs-support days.
+      unlockProgress: scoreStabilityProgress(ctx.needsSupportDaysLast14),
     };
   }
 
@@ -235,6 +322,11 @@ export function evaluatePlanGating(
       lockMessage: "Locked — requires Level 5+, Strong scores, and stability",
       isCoachApproved: false,
       isOptionalTool,
+      // Multi-criterion lock — surface whichever gap is biggest.
+      unlockProgress:
+        ctx.currentLevel < 5
+          ? levelProgress(ctx.currentLevel, 5)
+          : pickStabilityProgress(ctx),
     };
   }
 
@@ -253,6 +345,10 @@ export function evaluatePlanGating(
       lockMessage: "Locked — requires Level 4+ with Strong status",
       isCoachApproved: false,
       isOptionalTool,
+      unlockProgress:
+        ctx.currentLevel < 4
+          ? levelProgress(ctx.currentLevel, 4)
+          : pickStabilityProgress(ctx),
     };
   }
 
@@ -271,6 +367,7 @@ export function evaluatePlanGating(
       lockMessage: "Temporarily locked — sleep recovery needed",
       isCoachApproved: false,
       isOptionalTool,
+      unlockProgress: pickStabilityProgress(ctx),
     };
   }
 

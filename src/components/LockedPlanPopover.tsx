@@ -23,6 +23,7 @@ interface LockedPlanPopoverProps {
     current: number;
     required: number;
     label?: string;
+    unit?: string;
   };
 }
 
@@ -70,6 +71,7 @@ export function LockedPlanPopover({
               current={progress.current}
               required={progress.required}
               label={progress.label}
+              unit={progress.unit}
             />
           </div>
         )}

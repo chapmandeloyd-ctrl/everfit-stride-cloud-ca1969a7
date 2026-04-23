@@ -60,7 +60,7 @@ export default function ClientQuickPlans() {
   const clientId = useEffectiveClientId();
   const navigate = useNavigate();
   const [lockedMessage, setLockedMessage] = useState<string | null>(null);
-  const { evaluatePlan, isReady, context } = usePlanGating();
+  const { evaluatePlan, isReady } = usePlanGating();
 
   const { data: plans, isLoading } = useQuery({
     queryKey: ["quick-fasting-plans"],
@@ -182,11 +182,12 @@ export default function ClientQuickPlans() {
                               message={gating?.lockMessage || "Message your trainer to unlock this plan."}
                               planName={plan.name}
                               progress={
-                                gating?.lockReason === "level_locked"
+                                gating?.unlockProgress
                                   ? {
-                                      current: context.currentLevel,
-                                      required: plan.min_level_required || 1,
-                                      label: "Level",
+                                      current: gating.unlockProgress.current,
+                                      required: gating.unlockProgress.required,
+                                      label: gating.unlockProgress.label,
+                                      unit: gating.unlockProgress.unit,
                                     }
                                   : undefined
                               }
@@ -214,12 +215,13 @@ export default function ClientQuickPlans() {
                         {isLocked && gating?.lockMessage && (
                           <p className="text-[10px] text-muted-foreground/70 mt-1">{gating.lockMessage}</p>
                         )}
-                        {isLocked && gating?.lockReason === "level_locked" && (
+                        {isLocked && gating?.unlockProgress && (
                           <div className="mt-3">
                             <LockProgress
-                              current={context.currentLevel}
-                              required={plan.min_level_required || 1}
-                              label="Level"
+                              current={gating.unlockProgress.current}
+                              required={gating.unlockProgress.required}
+                              label={gating.unlockProgress.label}
+                              unit={gating.unlockProgress.unit}
                               size="xs"
                             />
                           </div>
