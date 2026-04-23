@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -73,6 +73,18 @@ const DAYS_FULL = [
   { value: 7, label: "Sunday" },
 ];
 
+const DRAFT_STORAGE_KEY = "ai-program-builder-draft";
+
+interface PersistedDraft {
+  generated: GeneratedProgram;
+  buildMode: "use_existing" | "full_build";
+  prompt: string;
+  weeks: string;
+  daysPerWeek: string;
+  selectedWorkoutIds: string[];
+  savedAt: number;
+}
+
 export function AIProgramBuilderDialog({ open, onOpenChange, onProgramCreated }: AIProgramBuilderDialogProps) {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -95,6 +107,63 @@ export function AIProgramBuilderDialog({ open, onOpenChange, onProgramCreated }:
 
   const [generated, setGenerated] = useState<GeneratedProgram | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [hasRecoveredDraft, setHasRecoveredDraft] = useState(false);
+
+  // Recover unsaved draft when dialog opens
+  useEffect(() => {
+    if (!open) return;
+    try {
+      const raw = sessionStorage.getItem(DRAFT_STORAGE_KEY);
+      if (!raw) return;
+      const draft: PersistedDraft = JSON.parse(raw);
+      // Expire drafts older than 2 hours
+      if (Date.now() - draft.savedAt > 2 * 60 * 60 * 1000) {
+        sessionStorage.removeItem(DRAFT_STORAGE_KEY);
+        return;
+      }
+      setGenerated(draft.generated);
+      setBuildMode(draft.buildMode);
+      setPrompt(draft.prompt);
+      setWeeks(draft.weeks);
+      setDaysPerWeek(draft.daysPerWeek);
+      setSelectedWorkoutIds(draft.selectedWorkoutIds);
+      setStep("preview");
+      setHasRecoveredDraft(true);
+    } catch {
+      sessionStorage.removeItem(DRAFT_STORAGE_KEY);
+    }
+  }, [open]);
+
+  // Persist generated result so it survives accidental close / navigation
+  useEffect(() => {
+    if (!generated) return;
+    const draft: PersistedDraft = {
+      generated,
+      buildMode,
+      prompt,
+      weeks,
+      daysPerWeek,
+      selectedWorkoutIds,
+      savedAt: Date.now(),
+    };
+    try {
+      sessionStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
+    } catch {
+      // storage full or unavailable — ignore
+    }
+  }, [generated, buildMode, prompt, weeks, daysPerWeek, selectedWorkoutIds]);
+
+  // Warn the user before leaving the page while a generation is mid-flight or unsaved
+  useEffect(() => {
+    if (!open) return;
+    if (step !== "generating" && !generated) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [open, step, generated]);
 
   // Fetch trainer's workouts
   const { data: workouts } = useQuery({
@@ -164,10 +233,29 @@ export function AIProgramBuilderDialog({ open, onOpenChange, onProgramCreated }:
     setAssignToClient(false);
     setClientId("");
     setGenerated(null);
+    setHasRecoveredDraft(false);
+    sessionStorage.removeItem(DRAFT_STORAGE_KEY);
   };
 
   const handleClose = (next: boolean) => {
-    if (!next) reset();
+    if (!next) {
+      // Block close while a generation is actively running
+      if (step === "generating") {
+        toast({
+          title: "Generation in progress",
+          description: "Please wait — closing now would lose your program.",
+        });
+        return;
+      }
+      // Confirm if there's an unsaved generated program
+      if (generated) {
+        const ok = window.confirm(
+          "You have an unsaved program. Close without saving?\n\n(It will still be recoverable next time you open the builder.)"
+        );
+        if (!ok) return;
+      }
+      reset();
+    }
     onOpenChange(next);
   };
 
@@ -407,6 +495,10 @@ export function AIProgramBuilderDialog({ open, onOpenChange, onProgramCreated }:
         title: "Program created",
         description: parts.join(" • "),
       });
+
+      // Clear the draft now that it's safely saved
+      sessionStorage.removeItem(DRAFT_STORAGE_KEY);
+      setHasRecoveredDraft(false);
 
       onProgramCreated?.();
       handleClose(false);
@@ -673,6 +765,29 @@ export function AIProgramBuilderDialog({ open, onOpenChange, onProgramCreated }:
         {step === "preview" && generated && (
           <ScrollArea className="flex-1 pr-4 -mr-4">
             <div className="space-y-4">
+              {hasRecoveredDraft && (
+                <div className="p-3 rounded-md border border-primary/30 bg-primary/5 text-sm flex items-start gap-2">
+                  <Sparkles className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                  <div className="flex-1">
+                    <div className="font-medium">Recovered your last program</div>
+                    <div className="text-xs text-muted-foreground">
+                      Your previous generation was restored. Save it below or refine it again.
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      sessionStorage.removeItem(DRAFT_STORAGE_KEY);
+                      setHasRecoveredDraft(false);
+                      reset();
+                    }}
+                    className="h-7 text-xs"
+                  >
+                    Discard
+                  </Button>
+                </div>
+              )}
               <div className="p-4 bg-muted/50 rounded-md border">
                 <h3 className="font-semibold text-lg">{generated.program_name}</h3>
                 <p className="text-sm text-muted-foreground mt-1">{generated.program_description}</p>
