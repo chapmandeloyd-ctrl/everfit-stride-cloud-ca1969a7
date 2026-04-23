@@ -176,6 +176,41 @@ export default function ClientCalendar() {
     enabled: !!clientId,
   });
 
+  // Scheduled cardio sessions
+  const { data: scheduledCardio } = useQuery({
+    queryKey: ["agenda-cardio", clientId, startStr, endStr],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("cardio_sessions" as any)
+        .select("id, activity_type, target_type, target_value, scheduled_date, status")
+        .eq("client_id", clientId!)
+        .eq("status", "scheduled")
+        .gte("scheduled_date", startStr)
+        .lte("scheduled_date", endStr)
+        .order("scheduled_date");
+      if (error) throw error;
+      return data as any[];
+    },
+    enabled: !!clientId,
+  });
+
+  // Cardio activity icon lookup (by activity name)
+  const { data: cardioTypes } = useQuery({
+    queryKey: ["agenda-cardio-types"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("cardio_activity_types")
+        .select("name, icon_name");
+      if (error) throw error;
+      return data as { name: string; icon_name: string }[];
+    },
+  });
+  const cardioIconMap = useMemo(() => {
+    const m = new Map<string, string>();
+    cardioTypes?.forEach((t) => m.set(t.name.toLowerCase(), t.icon_name));
+    return m;
+  }, [cardioTypes]);
+
   // Build day-grouped map
   const grouped = useMemo(() => {
     const map = new Map<string, AgendaItem[]>();
