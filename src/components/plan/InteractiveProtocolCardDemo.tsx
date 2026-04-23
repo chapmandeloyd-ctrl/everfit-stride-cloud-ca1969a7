@@ -393,6 +393,7 @@ export const CardFront = memo(function CardFront({
   shimmer = true,
   animateStats = true,
   frontExtra = "none",
+  dimmed = false,
 }: {
   protocol: DemoProtocol;
   showChevron?: boolean;
@@ -400,6 +401,7 @@ export const CardFront = memo(function CardFront({
   shimmer?: boolean;
   animateStats?: boolean;
   frontExtra?: FrontExtraVariant;
+  dimmed?: boolean;
 }) {
   const Icon = protocol.icon;
   return (
@@ -449,9 +451,9 @@ export const CardFront = memo(function CardFront({
               <ShieldCheck className="h-3 w-3" /> Current
             </span>
           )}
-          {protocol.status === "locked" && (
+          {(protocol.status === "locked" || dimmed) && (
             <span className="inline-flex items-center gap-1.5 text-muted-foreground">
-              <Lock className="h-3.5 w-3.5" />
+              <Lock className="h-4 w-4" />
               <span className="text-[10px] font-semibold uppercase tracking-wider">Locked</span>
             </span>
           )}
