@@ -8,68 +8,42 @@ interface PortalEntryProps {
   onSelectCategory: (category: "Focus" | "Sleep" | "Escape" | "Breath") => void;
 }
 
+// Cloudflare Stream — adaptive bitrate, global CDN, instant start on mobile
+const CF_STREAM_VIDEO_ID = "85540f98da2a784c61adeee613d82061";
+const CF_STREAM_SUBDOMAIN = "customer-33brxqrbc8olytg8.cloudflarestream.com";
+const CF_STREAM_THUMBNAIL = `https://${CF_STREAM_SUBDOMAIN}/${CF_STREAM_VIDEO_ID}/thumbnails/thumbnail.jpg`;
+
 export function PortalEntry({ onSelectCategory }: PortalEntryProps) {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const categories: Array<"Focus" | "Sleep" | "Escape" | "Breath"> = ["Focus", "Sleep", "Escape", "Breath"];
   const [videoReady, setVideoReady] = useState(false);
   const [showButtons, setShowButtons] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   const revealTimeoutRef = useRef<number | null>(null);
-  const shouldUseStaticHero = isMobile;
 
   useEffect(() => {
-    if (shouldUseStaticHero) {
-      setVideoReady(true);
-      setShowButtons(true);
-      return;
-    }
-
-    const el = videoRef.current;
-    if (!el) return;
-
-    el.muted = true;
-
+    // Cloudflare Stream handles buffering + adaptive bitrate. We just reveal
+    // when the iframe has loaded, with a hard fallback so the UI never hangs.
     const reveal = () => {
       setVideoReady(true);
-      // Give the user ~1.2s to actually see Earth before buttons fade in
       revealTimeoutRef.current = window.setTimeout(() => setShowButtons(true), 1200);
     };
 
-    const tryPlay = () => {
-      el.play()
-        .then(reveal)
-        .catch(() => {
-          // Autoplay blocked — still reveal so the user can interact
-          reveal();
-        });
-    };
-
-    if (el.readyState >= 3) {
-      tryPlay();
-    } else {
-      el.addEventListener("canplay", tryPlay, { once: true });
-      el.addEventListener("loadeddata", tryPlay, { once: true });
-    }
-
-    // Hard fallback: never leave the user staring at a black screen for >3.5s
-    const fallback = setTimeout(() => {
-      if (!videoReady) {
-        setVideoReady(true);
-        setTimeout(() => setShowButtons(true), 600);
-      }
-    }, 3500);
+    const fallback = window.setTimeout(reveal, 2500);
 
     return () => {
-      clearTimeout(fallback);
+      window.clearTimeout(fallback);
       if (revealTimeoutRef.current) window.clearTimeout(revealTimeoutRef.current);
-      el.removeEventListener("canplay", tryPlay);
-      el.removeEventListener("loadeddata", tryPlay);
-      el.pause();
-      el.currentTime = 0;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shouldUseStaticHero]);
+  }, []);
+
+  const handleIframeLoad = () => {
+    setVideoReady(true);
+    if (revealTimeoutRef.current) window.clearTimeout(revealTimeoutRef.current);
+    revealTimeoutRef.current = window.setTimeout(() => setShowButtons(true), 1200);
+  };
 
   return (
     <div className="fixed inset-0 bg-black overflow-hidden z-50">
@@ -82,32 +56,41 @@ export function PortalEntry({ onSelectCategory }: PortalEntryProps) {
         }}
       />
 
-      {/* Earth hero — static on mobile Safari/iPhone to avoid route crashes */}
-      {shouldUseStaticHero ? (
-        <img
-          src="/portal/ksom-calm-earth-poster.jpg"
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover opacity-100"
-        />
-      ) : (
-        <video
-          ref={videoRef}
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="metadata"
-          poster="/portal/ksom-calm-earth-poster.jpg"
-          disablePictureInPicture
-          disableRemotePlayback
-          controls={false}
-          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[1500ms] ease-out ${
-            videoReady ? "opacity-100" : "opacity-0"
-          }`}
-        >
-          <source src="/portal/ksom-calm-earth-optimized.mp4" type="video/mp4" />
-        </video>
-      )}
+      {/* Poster — instant paint while Cloudflare Stream warms up */}
+      <img
+        src={CF_STREAM_THUMBNAIL}
+        alt=""
+        aria-hidden
+        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[1500ms] ease-out ${
+          videoReady ? "opacity-0" : "opacity-100"
+        }`}
+        onError={(e) => {
+          // Fall back to bundled poster if Cloudflare thumbnail isn't ready yet
+          (e.currentTarget as HTMLImageElement).src = "/portal/ksom-calm-earth-poster.jpg";
+        }}
+      />
+
+      {/* Earth hero — Cloudflare Stream adaptive HLS player. Works on every device,
+          including iPhone Safari, with no native <video> crash risk. */}
+      <iframe
+        ref={iframeRef}
+        src={`https://${CF_STREAM_SUBDOMAIN}/${CF_STREAM_VIDEO_ID}/iframe?autoplay=true&muted=true&loop=true&controls=false&preload=auto&poster=${encodeURIComponent(
+          CF_STREAM_THUMBNAIL,
+        )}`}
+        onLoad={handleIframeLoad}
+        allow="autoplay; encrypted-media; picture-in-picture"
+        allowFullScreen={false}
+        loading="eager"
+        title="KSOM Calm Earth"
+        className={`absolute inset-0 w-full h-full border-0 pointer-events-none transition-opacity duration-[1500ms] ease-out ${
+          videoReady ? "opacity-100" : "opacity-0"
+        }`}
+        style={{
+          // Slightly upscale to hide Cloudflare's thin letterbox on some aspect ratios
+          transform: isMobile ? "scale(1.15)" : "scale(1.05)",
+          transformOrigin: "center center",
+        }}
+      />
 
       {/* Top vignette to anchor title */}
       <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-none" />
