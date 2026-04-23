@@ -451,19 +451,62 @@ export function AIProgramBuilderDialog({ open, onOpenChange, onProgramCreated }:
         {step === "setup" && (
           <ScrollArea className="flex-1 pr-4 -mr-4">
             <div className="space-y-5">
+              {/* Mode toggle */}
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setBuildMode("use_existing")}
+                  className={`p-3 rounded-md border text-left transition ${
+                    buildMode === "use_existing"
+                      ? "border-primary bg-primary/5 ring-1 ring-primary"
+                      : "hover:bg-muted/50"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 font-medium text-sm">
+                    <Library className="h-4 w-4" />
+                    Use my workouts
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    Schedule workouts from your library
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBuildMode("full_build")}
+                  className={`p-3 rounded-md border text-left transition ${
+                    buildMode === "full_build"
+                      ? "border-primary bg-primary/5 ring-1 ring-primary"
+                      : "hover:bg-muted/50"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 font-medium text-sm">
+                    <Wand2 className="h-4 w-4" />
+                    Let AI build everything
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    AI invents workouts + schedule from one prompt
+                  </div>
+                </button>
+              </div>
+
               {/* Prompt */}
               <div className="space-y-2">
                 <Label>Goal / Description</Label>
                 <Textarea
-                  placeholder="e.g. 6-week strength block for an intermediate lifter focused on hypertrophy with conditioning on light days"
+                  placeholder={
+                    buildMode === "full_build"
+                      ? "e.g. Push / Pull / Legs split for an intermediate lifter, 4 weeks, focus on hypertrophy"
+                      : "e.g. 6-week strength block using my existing workouts, conditioning on light days"
+                  }
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
                   rows={3}
                 />
               </div>
 
-              {/* Workout selection */}
-              <div className="space-y-2">
+              {/* Workout selection (use_existing mode only) */}
+              {buildMode === "use_existing" ? (
+                <div className="space-y-2">
                 <Label>
                   Select Workouts ({selectedWorkoutIds.length} selected)
                 </Label>
@@ -491,7 +534,25 @@ export function AIProgramBuilderDialog({ open, onOpenChange, onProgramCreated }:
                     ))
                   )}
                 </div>
-              </div>
+                </div>
+              ) : (
+                <div className="p-3 rounded-md border bg-muted/30 text-sm">
+                  <div className="flex items-start gap-2">
+                    <Wand2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                    <div>
+                      <div className="font-medium">AI will design the workouts for you</div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Using your exercise library ({(exercises || []).length} exercises). New workouts will be saved to your library so you can edit and reuse them.
+                      </div>
+                      {(exercises || []).length === 0 && (
+                        <div className="text-xs text-destructive mt-2">
+                          No exercises in your library. Add some first on the Exercises page.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
