@@ -58,6 +58,31 @@ export interface PlanGatingResult {
   lockMessage: string | null;
   isCoachApproved: boolean;
   isOptionalTool: boolean;
+  /**
+   * Optional structured progress toward unlocking this plan. The gating
+   * engine picks the most relevant criterion (level, streak, or score
+   * stability) so the UI can render a single progress chip without
+   * having to branch on lockReason itself.
+   *
+   * `null` when no quantitative progress applies (e.g. coach approval,
+   * engine-mode mismatch, youth safety).
+   */
+  unlockProgress: UnlockProgress | null;
+}
+
+export type UnlockCriterion = "level" | "streak" | "score_stability";
+
+export interface UnlockProgress {
+  /** Which criterion the chip should display. */
+  criterion: UnlockCriterion;
+  /** Short label, e.g. "Level", "Streak", "Strong days". */
+  label: string;
+  /** Current numeric value (clamped ≥ 0). */
+  current: number;
+  /** Target numeric value to unlock. */
+  required: number;
+  /** Optional unit suffix shown after numbers, e.g. "d" for days. */
+  unit?: string;
 }
 
 // ─── Lock reason copy ───────────────────────────────────
