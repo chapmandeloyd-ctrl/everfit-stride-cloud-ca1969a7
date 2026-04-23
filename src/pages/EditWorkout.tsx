@@ -1119,6 +1119,12 @@ export default function EditWorkout() {
         }}
       />
 
+      <BlockTypePicker
+        open={showBlockPicker}
+        onOpenChange={setShowBlockPicker}
+        onSelect={(bt, customName) => createBlock(bt, customName, "circuit")}
+      />
+
       {/* Detail Fields Sheet */}
       {editingDetailFieldsId && (() => {
         const ex = exerciseItems.find((e) => e.id === editingDetailFieldsId);
