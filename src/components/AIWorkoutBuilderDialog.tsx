@@ -53,6 +53,7 @@ interface AISuggestion {
 }
 
 interface AISection {
+  block_label?: string;
   section_name: string;
   section_type: "straight_set" | "superset" | "circuit";
   rounds: number;
@@ -90,7 +91,9 @@ const sanitizeWorkoutResult = (r: AIWorkoutResult): AIWorkoutResult => ({
   description: sanitizeName(r.description),
   sections: r.sections.map(sec => ({
     ...sec,
-    section_name: sanitizeName(sec.section_name),
+    // Force section_name to match the predefined block_label so it maps to a real block type
+    // and never shows as "Custom Block".
+    section_name: sanitizeName(sec.block_label || sec.section_name),
     exercises: sec.exercises.map(ex => ({ ...ex, exercise_name: sanitizeName(ex.exercise_name) })),
   })),
 });

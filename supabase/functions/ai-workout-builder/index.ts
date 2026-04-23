@@ -83,7 +83,23 @@ RULES:
 - Set appropriate sets, reps/time, and rest periods
 - Category hint: ${category || "general"}
 - Difficulty hint: ${difficulty || "intermediate"}
-- Group related exercises into supersets or circuits when it makes sense`;
+- Group related exercises into supersets or circuits when it makes sense
+
+BLOCK NAMING — CRITICAL:
+You MUST use ONLY these exact block_label values for every section. Do NOT invent names like "Custom Block", "Block 1", "Section A", or anything not in this list:
+  • "Warm-Up"            — light prep movements
+  • "Working Sets"       — main strength / hypertrophy work
+  • "Power / Explosive"  — plyos, Olympic lifts, speed
+  • "Conditioning"       — HIIT, intervals, sprints
+  • "Accessory / Isolation" — targeted muscle work
+  • "Cool Down / Mobility" — stretching, recovery
+  • "Finisher"           — short high-intensity burnout
+  • "Skill / Drill"      — sport-specific technique
+  • "Circuit"            — cycle through with minimal rest
+  • "Superset"           — two exercises back-to-back
+  • "Interval"           — timed work/rest periods
+
+Pick the most appropriate block_label for each section based on its purpose. The section_name field should match block_label EXACTLY (no extra words, no numbering).`;
 
       tools = [{
         type: "function",
@@ -102,7 +118,24 @@ RULES:
                 items: {
                   type: "object",
                   properties: {
-                    section_name: { type: "string", description: "Descriptive name like 'Warm-Up', 'Upper Body Push', 'Chest & Shoulders Superset', 'Core Finisher Circuit', 'Cool Down'. NEVER use generic names like 'Custom Block', 'Block 1', 'Section 1', or 'Group A'. Always describe the muscle group, movement pattern, or purpose." },
+                    block_label: {
+                      type: "string",
+                      enum: [
+                        "Warm-Up",
+                        "Working Sets",
+                        "Power / Explosive",
+                        "Conditioning",
+                        "Accessory / Isolation",
+                        "Cool Down / Mobility",
+                        "Finisher",
+                        "Skill / Drill",
+                        "Circuit",
+                        "Superset",
+                        "Interval",
+                      ],
+                      description: "MUST be one of the trainer's predefined block types — exact match required.",
+                    },
+                    section_name: { type: "string", description: "Should equal block_label exactly. Do NOT invent custom names." },
                     section_type: { type: "string", enum: ["straight_set", "superset", "circuit"] },
                     rounds: { type: "number", description: "Number of rounds for supersets/circuits, 1 for straight sets" },
                     exercises: {
@@ -121,7 +154,7 @@ RULES:
                       },
                     },
                   },
-                  required: ["section_name", "section_type", "rounds", "exercises"],
+                  required: ["block_label", "section_name", "section_type", "rounds", "exercises"],
                   additionalProperties: false,
                 },
               },
@@ -141,7 +174,7 @@ RULES:
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "openai/gpt-5",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: prompt },
