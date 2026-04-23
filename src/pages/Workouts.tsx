@@ -431,6 +431,12 @@ export default function Workouts() {
           workoutName={workoutToTemplate.name}
         />
       )}
+
+      <AIProgramBuilderDialog
+        open={programBuilderOpen}
+        onOpenChange={setProgramBuilderOpen}
+        onProgramCreated={() => queryClient.invalidateQueries({ queryKey: ["workout-plans"] })}
+      />
     </DashboardLayout>
   );
 }
