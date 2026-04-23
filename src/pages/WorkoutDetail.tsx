@@ -41,6 +41,12 @@ export default function WorkoutDetail() {
   const [isPlaying, setIsPlaying] = useState(searchParams.get("start") === "true");
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [activeStartedAt, setActiveStartedAt] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const fromBuilder = searchParams.get("fromBuilder") === "true";
+  const [postBuildOpen, setPostBuildOpen] = useState(fromBuilder);
+  const [actionsOpen, setActionsOpen] = useState(false);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [resumeData, setResumeData] = useState<{
     stepIdx: number;
     setLogs: Record<string, any>;
