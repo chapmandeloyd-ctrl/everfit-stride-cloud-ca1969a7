@@ -16,6 +16,8 @@ import {
   Flame,
   Trash2,
 } from "lucide-react";
+import { getIconComponent } from "@/components/cardio/cardioActivities";
+import { useCardioActivityTypes } from "@/hooks/useCardioActivityTypes";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -46,7 +48,8 @@ type AgendaItem =
   | { kind: "habit"; id: string; date: Date; data: any }
   | { kind: "sport"; id: string; date: Date; data: any }
   | { kind: "appointment"; id: string; date: Date; data: any }
-  | { kind: "goal"; id: string; date: Date; data: any };
+  | { kind: "goal"; id: string; date: Date; data: any }
+  | { kind: "cardio"; id: string; date: Date; data: any };
 
 const RANGE_BEFORE_DAYS = 14;
 const RANGE_AFTER_DAYS = 60;
