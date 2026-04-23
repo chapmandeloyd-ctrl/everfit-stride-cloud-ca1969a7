@@ -185,30 +185,35 @@ export function AIProgramBuilderDialog({ open, onOpenChange, onProgramCreated }:
 
   const canGenerate =
     prompt.trim().length > 0 &&
-    selectedWorkoutIds.length >= 1 &&
+    (buildMode === "full_build"
+      ? (exercises || []).length > 0
+      : selectedWorkoutIds.length >= 1) &&
     (restStrategy === "auto" || fixedPattern.length === parseInt(daysPerWeek));
 
   const handleGenerate = async () => {
     setStep("generating");
     try {
-      const { data, error } = await supabase.functions.invoke("ai-workout-builder", {
-        body: {
-          mode: "build_program",
-          prompt,
-          workouts: selectedWorkouts.map((w) => ({
-            name: w.name,
-            category: w.category,
-            difficulty: w.difficulty,
-          })),
-          weeks: parseInt(weeks),
-          days_per_week: parseInt(daysPerWeek),
-          progression,
-          rest_strategy: restStrategy,
-          fixed_pattern: restStrategy === "fixed"
-            ? fixedPattern.map((d) => DAYS_FULL.find((x) => x.value === d)?.label).filter(Boolean)
-            : undefined,
-        },
-      });
+      const body: any = {
+        mode: buildMode === "full_build" ? "build_full_program" : "build_program",
+        prompt,
+        weeks: parseInt(weeks),
+        days_per_week: parseInt(daysPerWeek),
+        progression,
+        rest_strategy: restStrategy,
+        fixed_pattern: restStrategy === "fixed"
+          ? fixedPattern.map((d) => DAYS_FULL.find((x) => x.value === d)?.label).filter(Boolean)
+          : undefined,
+      };
+      if (buildMode === "full_build") {
+        body.exercise_names = (exercises || []).map((e: any) => e.name);
+      } else {
+        body.workouts = selectedWorkouts.map((w) => ({
+          name: w.name,
+          category: w.category,
+          difficulty: w.difficulty,
+        }));
+      }
+      const { data, error } = await supabase.functions.invoke("ai-workout-builder", { body });
 
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
