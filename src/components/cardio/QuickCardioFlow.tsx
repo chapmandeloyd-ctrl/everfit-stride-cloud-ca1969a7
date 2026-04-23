@@ -328,6 +328,38 @@ export function QuickCardioFlow({ open, onOpenChange, onStart, onMarkComplete }:
         onSave={(id, name, iconName, iconUrl) => updateActivity.mutate({ id, name, iconName, iconUrl })}
         onDelete={(id) => deleteActivity.mutate(id)}
       />
+
+      <CardioActionsSheet
+        open={!!actionsFor}
+        onOpenChange={(v) => { if (!v) setActionsFor(null); }}
+        activityName={actionsFor?.name ?? ""}
+        onSchedule={() => {
+          if (actionsFor) {
+            setScheduleFor(actionsFor);
+            setActionsFor(null);
+          }
+        }}
+        onStartNow={() => {
+          if (actionsFor) {
+            handleSelectActivity(actionsFor);
+            setActionsFor(null);
+          }
+        }}
+      />
+
+      {clientId && scheduleFor && (
+        <CardioScheduleSheet
+          open={!!scheduleFor}
+          onOpenChange={(v) => { if (!v) setScheduleFor(null); }}
+          clientId={clientId}
+          activityType={scheduleFor.name.toLowerCase().replace(/\s+/g, "_")}
+          activityName={scheduleFor.name}
+          onScheduled={() => {
+            setScheduleFor(null);
+            resetAndClose();
+          }}
+        />
+      )}
     </>
   );
 }
