@@ -9,6 +9,7 @@ import { getProtocolCardContent } from "@/lib/protocolCardContent";
 import { getTierForLevel } from "@/lib/quickPlanTierConfig";
 import { Zap } from "lucide-react";
 import type { LibraryEntry } from "@/hooks/useProtocolLibrary";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ProtocolLibraryCarouselProps {
   entries: LibraryEntry[];
@@ -279,20 +280,29 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
             >
               <div ref={topCardInnerRef} className="relative">
                 {isLocked && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toast(`Unlocks at Level ${entry.minLevelRequired}`, {
-                        description: "Keep up your streak to unlock this protocol.",
-                      });
-                    }}
-                    className="absolute top-3 right-3 z-30 flex items-center gap-1.5 rounded-full bg-foreground/85 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-background shadow-lg backdrop-blur-sm"
-                    aria-label={`Locked — unlocks at level ${entry.minLevelRequired}`}
-                  >
-                    <Lock className="w-3 h-3" />
-                    Lvl {entry.minLevelRequired}
-                  </button>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toast(`Unlocks at Level ${entry.minLevelRequired}`, {
+                              description: "Keep up your streak to unlock this protocol.",
+                            });
+                          }}
+                          className="absolute top-3 right-3 z-30 flex items-center gap-1.5 rounded-full bg-foreground/85 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-background shadow-lg backdrop-blur-sm"
+                          aria-label={`Locked — unlocks at level ${entry.minLevelRequired}`}
+                        >
+                          <Lock className="w-3 h-3" />
+                          Lvl {entry.minLevelRequired}
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-[220px]">
+                        <p className="text-xs">Unlocks at Level {entry.minLevelRequired}. Keep up your streak to unlock this protocol.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 )}
                 <div className={isLocked ? "opacity-60" : ""}>
                   <ProtocolCardStatic
