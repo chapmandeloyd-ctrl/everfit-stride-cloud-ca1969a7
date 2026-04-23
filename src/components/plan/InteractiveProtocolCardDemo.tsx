@@ -453,7 +453,10 @@ export const CardFront = memo(function CardFront({
             </span>
           )}
           {(protocol.status === "locked" || dimmed) && (
-            <LockedPlanPopover message="This plan is locked. Message your trainer to request access.">
+            <LockedPlanPopover
+              message="This plan is locked. Message your trainer to request access."
+              planName={protocol.title}
+            >
               <button
                 type="button"
                 data-no-flip

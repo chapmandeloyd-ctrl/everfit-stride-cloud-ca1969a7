@@ -179,6 +179,7 @@ export default function ClientQuickPlans() {
                           {isLocked && (
                             <LockedPlanPopover
                               message={gating?.lockMessage || "Message your trainer to unlock this plan."}
+                              planName={plan.name}
                             >
                               <button
                                 type="button"

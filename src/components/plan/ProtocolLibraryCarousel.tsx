@@ -283,6 +283,7 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
                   <div className="absolute top-3 right-3 z-30" data-no-flip>
                     <LockedPlanPopover
                       message={`Unlocks at Level ${entry.minLevelRequired}. Keep up your streak — or message your trainer to unlock it sooner.`}
+                      planName={entry.name}
                     >
                       <button
                         type="button"
