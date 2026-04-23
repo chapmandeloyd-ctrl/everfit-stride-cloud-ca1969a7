@@ -562,6 +562,30 @@ export function ClientCalendarTab({ clientId, trainerId }: ClientCalendarTabProp
                   );
                 })}
 
+                {selectedDayCardio.map((cardio: any) => {
+                  const label = (cardio.activity_type || "Cardio").replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase());
+                  const target = cardio.target_value
+                    ? cardio.target_type === "distance"
+                      ? `${cardio.target_value} mi target`
+                      : `${cardio.target_value} min target`
+                    : null;
+                  return (
+                    <div key={cardio.id} className="p-3 rounded-lg border bg-rose-500/10 border-rose-500/30">
+                      <div className="flex items-center gap-2">
+                        <Activity className="h-4 w-4 text-rose-500" />
+                        <span className="font-medium text-sm">{label}</span>
+                        <Badge variant="outline" className="text-xs ml-auto">Cardio</Badge>
+                      </div>
+                      {target && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          <Clock className="h-3 w-3 inline mr-1" />
+                          {target}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+
                 {selectedDayTasks.map((task) => {
                   const isCompleted = !!task.completed_at;
                   return (
