@@ -65,15 +65,15 @@ export interface PlanGatingResult {
   isCoachApproved: boolean;
   isOptionalTool: boolean;
   /**
-   * Optional structured progress toward unlocking this plan. The gating
-   * engine picks the most relevant criterion (level, streak, or score
-   * stability) so the UI can render a single progress chip without
-   * having to branch on lockReason itself.
+   * Structured progress toward unlocking this plan. The gating engine
+   * picks the most relevant criterion (level, streak, or score stability)
+   * so the UI can render a single progress chip without having to branch
+   * on lockReason itself.
    *
-   * `null` when no quantitative progress applies (e.g. coach approval,
-   * engine-mode mismatch, youth safety).
+   * `null` (or omitted) when no quantitative progress applies — e.g.
+   * coach approval, engine-mode mismatch, or youth safety.
    */
-  unlockProgress: UnlockProgress | null;
+  unlockProgress?: UnlockProgress | null;
 }
 
 export type UnlockCriterion = "level" | "streak" | "score_stability";
