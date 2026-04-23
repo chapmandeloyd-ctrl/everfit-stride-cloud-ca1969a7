@@ -53,6 +53,128 @@ Focus on:
 Keep it tight — under 120 words total. Use plain language, no fluff. Format as markdown bullets.`;
       // The frontend passes the workout JSON as the prompt for explanation mode
       userMessage = `Explain the design of this workout:\n\n${prompt}`;
+    } else if (mode === "build_full_program") {
+      // End-to-end: invent workouts AND schedule them. Uses GPT-5 for deep reasoning.
+      const restGuidance = rest_strategy === "fixed" && fixed_pattern
+        ? `Train ONLY on these days of the week: ${fixed_pattern.join(", ")}. All other days are Rest.`
+        : `Auto-place rest days intelligently to maximize recovery. With ${days_per_week} training days/week, space them evenly.`;
+
+      const progressionGuidance = progression === "linear"
+        ? "LINEAR PROGRESSION: Each week, add a small overload note (e.g. '+1 rep per set' or '+5 lb' or 'add 1 set on main lift') in the day's notes."
+        : progression === "wave"
+        ? "WAVE/UNDULATING: Cycle intensity weekly — Week 1 moderate, Week 2 hard, Week 3 easy/recovery, then repeat. Note intended intensity in each day's notes."
+        : "NO PROGRESSION: Rotate the workouts across the schedule. Leave notes empty unless variety guidance is helpful.";
+
+      systemPrompt = `You are an expert strength & conditioning coach designing a full multi-week training program from scratch for another trainer.
+
+CONTEXT:
+- Program length: ${weeks} weeks
+- Training frequency: ${days_per_week} days per week
+- Rest day rule: ${restGuidance}
+- Progression style: ${progressionGuidance}
+
+AVAILABLE EXERCISES (use ONLY these — match names EXACTLY):
+${exerciseList}
+
+YOUR TASK:
+1. Invent a small set of distinct workout templates (typically 2-5 unique workouts, e.g. "Push Day", "Pull Day", "Leg Day"). Each workout is REUSED across the weeks.
+2. Build each workout with proper structure: warm-up → main work → accessory → cooldown when appropriate.
+3. Then schedule those workouts across ${weeks} weeks at ${days_per_week} sessions/week.
+
+RULES:
+- Every exercise_name MUST exactly match one from the AVAILABLE EXERCISES list
+- Workout names should be descriptive and unique (e.g. "Push Day A", "Pull Day", "Lower Body Power")
+- Every workout_name in the schedule MUST exactly match one of the workouts you defined
+- Use day_of_week 1=Monday … 7=Sunday
+- Only output workout days — rest days are implied by absence
+- Keep daily notes short and actionable (under 80 chars)
+
+BLOCK NAMING — use ONLY these exact section_name / block_label values:
+"Warm-Up", "Working Sets", "Power / Explosive", "Conditioning", "Accessory / Isolation", "Cool Down / Mobility", "Finisher", "Skill / Drill", "Circuit", "Superset", "Interval"`;
+
+      tools = [{
+        type: "function",
+        function: {
+          name: "build_full_program",
+          description: "Invent workouts AND schedule them across multiple weeks",
+          parameters: {
+            type: "object",
+            properties: {
+              program_name: { type: "string" },
+              program_description: { type: "string", description: "Brief 1-2 sentence summary" },
+              workouts: {
+                type: "array",
+                description: "The unique workout templates that will be reused across the schedule",
+                items: {
+                  type: "object",
+                  properties: {
+                    name: { type: "string", description: "Unique workout name (e.g. 'Push Day A')" },
+                    description: { type: "string" },
+                    category: { type: "string" },
+                    difficulty: { type: "string", enum: ["beginner", "intermediate", "advanced"] },
+                    sections: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          block_label: {
+                            type: "string",
+                            enum: [
+                              "Warm-Up", "Working Sets", "Power / Explosive", "Conditioning",
+                              "Accessory / Isolation", "Cool Down / Mobility", "Finisher",
+                              "Skill / Drill", "Circuit", "Superset", "Interval",
+                            ],
+                          },
+                          section_name: { type: "string" },
+                          section_type: { type: "string", enum: ["straight_set", "superset", "circuit"] },
+                          rounds: { type: "number" },
+                          exercises: {
+                            type: "array",
+                            items: {
+                              type: "object",
+                              properties: {
+                                exercise_name: { type: "string" },
+                                sets: { type: "number" },
+                                reps_or_time: { type: "string" },
+                                rest_seconds: { type: "number" },
+                                notes: { type: "string" },
+                              },
+                              required: ["exercise_name", "sets", "reps_or_time", "rest_seconds"],
+                              additionalProperties: false,
+                            },
+                          },
+                        },
+                        required: ["block_label", "section_name", "section_type", "rounds", "exercises"],
+                        additionalProperties: false,
+                      },
+                    },
+                  },
+                  required: ["name", "description", "category", "difficulty", "sections"],
+                  additionalProperties: false,
+                },
+              },
+              schedule: {
+                type: "array",
+                description: "All workout days across all weeks. Skip rest days.",
+                items: {
+                  type: "object",
+                  properties: {
+                    week_number: { type: "number" },
+                    day_of_week: { type: "number", description: "1=Mon, 7=Sun" },
+                    workout_name: { type: "string", description: "EXACT match from workouts[].name" },
+                    notes: { type: "string" },
+                  },
+                  required: ["week_number", "day_of_week", "workout_name"],
+                  additionalProperties: false,
+                },
+              },
+            },
+            required: ["program_name", "program_description", "workouts", "schedule"],
+            additionalProperties: false,
+          },
+        },
+      }];
+      toolChoice = { type: "function", function: { name: "build_full_program" } };
     } else if (mode === "build_program") {
       // Multi-week program scheduler — uses GPT-5 for deep reasoning
       const workoutList = (workouts || []).map((w: any, i: number) =>
