@@ -57,16 +57,14 @@ export function MacroComparisonFlipCard({
 
   useEffect(() => {
     const front = frontMeasureRef.current;
-    const back = backMeasureRef.current;
-    if (!front || !back) return;
+    if (!front) return;
     const update = () => {
-      const next = Math.max(front.scrollHeight, back.scrollHeight);
+      const next = front.scrollHeight;
       setMeasuredHeight((prev) => (Math.abs(prev - next) > 0.5 ? next : prev));
     };
     update();
     const ro = new ResizeObserver(update);
     ro.observe(front);
-    ro.observe(back);
     return () => ro.disconnect();
   }, [items, activeId]);
 
