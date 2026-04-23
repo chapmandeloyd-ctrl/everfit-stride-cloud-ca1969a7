@@ -251,12 +251,13 @@ export function ClientCalendarTab({ clientId, trainerId }: ClientCalendarTabProp
               const dayHabits = getHabitsForDay(day);
               const daySportEvents = getSportEventsForDay(day);
               const dayAppointments = getAppointmentsForDay(day);
+              const dayCardio = getCardioForDay(day);
               const dayGoals = getGoalsForDay(day);
               const dayScore = getScoreForDay(day);
               const isCurrentMonth = isSameMonth(day, currentDate);
               const isToday = isSameDay(day, new Date());
               const isSelected = selectedDay && isSameDay(day, selectedDay);
-              const hasEvents = dayWorkouts.length + dayTasks.length + dayHabits.length + daySportEvents.length + dayAppointments.length + dayGoals.length > 0;
+              const hasEvents = dayWorkouts.length + dayTasks.length + dayHabits.length + daySportEvents.length + dayAppointments.length + dayCardio.length + dayGoals.length > 0;
               const heatBg = showHeatmap && isCurrentMonth ? heatmapClass(dayScore) : "";
 
               return (
