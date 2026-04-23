@@ -17,14 +17,20 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    if (!prompt || !exercise_names || exercise_names.length === 0) {
+    if (!prompt) {
       return new Response(
-        JSON.stringify({ error: "prompt and exercise_names are required" }),
+        JSON.stringify({ error: "prompt is required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    if (mode !== "explain_workout" && (!exercise_names || exercise_names.length === 0)) {
+      return new Response(
+        JSON.stringify({ error: "exercise_names is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const exerciseList = exercise_names.join(", ");
+    const exerciseList = (exercise_names || []).join(", ");
 
     let systemPrompt: string;
     let tools: any[] | undefined;
