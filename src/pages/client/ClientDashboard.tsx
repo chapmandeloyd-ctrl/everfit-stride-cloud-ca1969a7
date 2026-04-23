@@ -1617,6 +1617,13 @@ export default function ClientDashboard() {
     return false;
   }) || [];
 
+  // Today's scheduled cardio (not yet started)
+  const todaysScheduledCardio = (todayCardioSessions || []).filter((s: any) => {
+    if (s.status !== "scheduled") return false;
+    if (!s.scheduled_date) return false;
+    return isToday(parseISO(s.scheduled_date));
+  });
+
   const hasSportEvents = (todaySportEvents?.length || 0) > 0;
   const hasNoPlanEver = !clientWorkouts || clientWorkouts.length === 0;
   const isRestDay = todaysWorkouts.length === 0 && !hasSportEvents;
