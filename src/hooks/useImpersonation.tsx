@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer, useCallback, ReactNode } from "react";
+import { createContext, useContext, useReducer, useCallback, useEffect, ReactNode } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "react-router-dom";
 
@@ -28,6 +28,10 @@ export function ImpersonationProvider({ children }: { children: ReactNode }) {
   const [, forceSync] = useReducer((count: number) => count + 1, 0);
 
   const impersonatedClientId = localStorage.getItem(IMPERSONATION_STORAGE_KEY);
+
+  useEffect(() => {
+    forceSync();
+  }, [location.key]);
 
   const setImpersonatedClientId = useCallback((id: string | null) => {
     if (id) {
