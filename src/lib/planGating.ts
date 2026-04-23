@@ -39,6 +39,12 @@ export interface ClientGatingContext {
   lowestFactor: ScoreFactor;
   upcomingGameOrPractice: boolean;
   overriddenPlanIds: Set<string>;
+  /**
+   * Current consistency-streak length in days. Used by the gating engine
+   * to surface "Streak X/Y" progress on stability-locked plans.
+   * Defaults to 0 if unknown.
+   */
+  currentStreak?: number;
 }
 
 export type LockReason =
