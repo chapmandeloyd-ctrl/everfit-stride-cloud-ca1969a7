@@ -25,11 +25,13 @@ import { ClientTasksTab } from "@/components/command-center/ClientTasksTab";
 import { ClientCalendarTab } from "@/components/command-center/ClientCalendarTab";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AUTH_URL } from "@/lib/appUrl";
+import { useImpersonation } from "@/hooks/useImpersonation";
 
 export default function ClientCommandCenter() {
   const { clientId } = useParams<{ clientId: string }>();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { setImpersonatedClientId } = useImpersonation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [credentialsOpen, setCredentialsOpen] = useState(false);
@@ -203,7 +205,7 @@ export default function ClientCommandCenter() {
               className="gap-2"
               onClick={() => {
                 if (!clientId) return;
-                localStorage.setItem("impersonatedClientId", clientId);
+                setImpersonatedClientId(clientId);
                 queryClient.clear();
                 navigate("/client/health/reminders", {
                   state: { returnTo: `/clients/${clientId}` },

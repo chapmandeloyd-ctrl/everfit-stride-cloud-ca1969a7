@@ -12,6 +12,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
+import { useImpersonation } from "@/hooks/useImpersonation";
 import { useAppUpdate } from "@/hooks/useAppUpdate";
 import { useHealthReminders } from "@/hooks/useHealthReminders";
 import logoSrc from "@/assets/logo.png";
@@ -30,6 +31,7 @@ interface ClientLayoutProps {
 
 export function ClientLayout({ children }: ClientLayoutProps) {
   const { user, userRole, signOut } = useAuth();
+  const { setImpersonatedClientId } = useImpersonation();
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
@@ -104,7 +106,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
   const isOnMessages = location.pathname === "/client/messages";
 
   const handleBackToTrainer = () => {
-    localStorage.removeItem("impersonatedClientId");
+    setImpersonatedClientId(null);
     queryClient.clear();
     navigate(location.state?.returnTo || "/");
   };
