@@ -13,6 +13,7 @@ export function PortalEntry({ onSelectCategory }: PortalEntryProps) {
   const [videoReady, setVideoReady] = useState(false);
   const [showButtons, setShowButtons] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const revealTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     const el = videoRef.current;
@@ -23,7 +24,7 @@ export function PortalEntry({ onSelectCategory }: PortalEntryProps) {
     const reveal = () => {
       setVideoReady(true);
       // Give the user ~1.2s to actually see Earth before buttons fade in
-      setTimeout(() => setShowButtons(true), 1200);
+      revealTimeoutRef.current = window.setTimeout(() => setShowButtons(true), 1200);
     };
 
     const tryPlay = () => {
@@ -52,8 +53,11 @@ export function PortalEntry({ onSelectCategory }: PortalEntryProps) {
 
     return () => {
       clearTimeout(fallback);
+      if (revealTimeoutRef.current) window.clearTimeout(revealTimeoutRef.current);
       el.removeEventListener("canplay", tryPlay);
       el.removeEventListener("loadeddata", tryPlay);
+      el.pause();
+      el.currentTime = 0;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -64,6 +64,32 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
   const circleScale = useTransform(dragY, [0, 200], [1, 1.15]);
   const hintOpacity = useTransform(dragY, [0, 80], [1, 0]);
 
+  const syncVideoPlayback = useCallback(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (playing && !audioPaused) {
+      video.play().catch(() => {});
+      return;
+    }
+
+    video.pause();
+  }, [audioPaused, playing]);
+
+  const syncAudioPlayback = useCallback(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    audio.volume = muted ? 0 : volume;
+
+    if (playing && !audioPaused) {
+      audio.play().catch(() => {});
+      return;
+    }
+
+    audio.pause();
+  }, [audioPaused, muted, playing, volume]);
+
   // Fetch background library + per-category defaults
   const { data: backgrounds = [] } = useQuery({
     queryKey: ["portal-backgrounds-client"],
@@ -113,34 +139,31 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
 
   // Sync video play state + try to start audio (browsers may block until user gesture)
   useEffect(() => {
-    const v = videoRef.current;
-    const a = audioRef.current;
-    const shouldPlay = playing && !audioPaused;
-    if (a) a.volume = muted ? 0 : volume;
-    if (!v) return;
-    if (shouldPlay) {
-      v.play().catch(() => {});
-      a?.play().catch(() => {});
-    } else {
-      v.pause();
-      a?.pause();
-    }
-  }, [playing, audioPaused]);
+    syncVideoPlayback();
+    syncAudioPlayback();
+  }, [syncAudioPlayback, syncVideoPlayback]);
 
   // When the scene's audio source changes (category/scene switch), reload and resume playback
   useEffect(() => {
-    const a = audioRef.current;
-    if (!a) return;
-    a.volume = muted ? 0 : volume;
-    // Force reload of new src then play
-    try { a.load(); } catch {}
-    if (playing && !audioPaused) {
-      a.play().catch(() => {});
+    const audio = audioRef.current;
+    const video = videoRef.current;
+
+    if (audio) {
+      audio.pause();
+      audio.currentTime = 0;
+      audio.volume = muted ? 0 : volume;
+      try { audio.load(); } catch {}
     }
-    // Also nudge the video to play in case React swapped the element
-    const v = videoRef.current;
-    if (v && playing && !audioPaused) v.play().catch(() => {});
-  }, [scene.audio_url, scene.video_url]);
+
+    if (video) {
+      video.pause();
+      video.currentTime = 0;
+      try { video.load(); } catch {}
+    }
+
+    syncAudioPlayback();
+    syncVideoPlayback();
+  }, [muted, scene.audio_url, scene.video_url, syncAudioPlayback, syncVideoPlayback, volume]);
 
   // Volume sync
   useEffect(() => {
@@ -157,6 +180,9 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
         a.volume = muted ? 0 : volume;
         a.play().catch(() => {});
       }
+      if (videoRef.current && videoRef.current.paused && playing && !audioPaused) {
+        videoRef.current.play().catch(() => {});
+      }
     };
     window.addEventListener("pointerdown", tryPlayAudio, { once: true });
     window.addEventListener("touchstart", tryPlayAudio, { once: true });
@@ -164,7 +190,24 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
       window.removeEventListener("pointerdown", tryPlayAudio);
       window.removeEventListener("touchstart", tryPlayAudio);
     };
-  }, [playing, muted, volume]);
+  }, [audioPaused, muted, playing, volume]);
+
+  useEffect(() => {
+    return () => {
+      const audio = audioRef.current;
+      const video = videoRef.current;
+
+      if (audio) {
+        audio.pause();
+        audio.currentTime = 0;
+      }
+
+      if (video) {
+        video.pause();
+        video.currentTime = 0;
+      }
+    };
+  }, []);
 
   // Timer
   useEffect(() => {
@@ -221,6 +264,9 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
               loop={scene.loop_video}
               muted
               playsInline
+              preload="auto"
+              disablePictureInPicture
+              disableRemotePlayback
               className="absolute inset-0 w-full h-full object-cover object-bottom"
             />
             {/* Vignette for cinematic feel */}
@@ -347,6 +393,9 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
                   loop={scene.loop_video}
                   muted
                   playsInline
+                  preload="auto"
+                  disablePictureInPicture
+                  disableRemotePlayback
                   className="absolute inset-0 w-full h-full object-cover pointer-events-none"
                 />
               </motion.div>
