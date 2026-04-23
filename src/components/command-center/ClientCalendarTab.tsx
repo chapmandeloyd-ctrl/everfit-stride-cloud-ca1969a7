@@ -409,6 +409,10 @@ export function ClientCalendarTab({ clientId, trainerId }: ClientCalendarTabProp
               <span className="text-sm text-muted-foreground">Appointment</span>
             </div>
             <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded bg-rose-500/20"></div>
+              <span className="text-sm text-muted-foreground">Cardio</span>
+            </div>
+            <div className="flex items-center gap-2">
               <div className="w-4 h-4 rounded bg-fuchsia-500/20"></div>
               <span className="text-sm text-muted-foreground">Goal deadline</span>
             </div>
