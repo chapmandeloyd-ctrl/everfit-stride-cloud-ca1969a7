@@ -1,15 +1,18 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
 import { useNavigate } from "react-router-dom";
 
 type UserRole = "trainer" | "client" | null;
+export type Profile = Tables<"profiles">;
 
 const TOKEN_REFRESH_INTERVAL = 4 * 60 * 1000;
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [userRole, setUserRole] = useState<UserRole>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -37,11 +40,12 @@ export function useAuth() {
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .select("role")
+        .select("*")
         .eq("id", userId)
         .single();
 
       if (!error && data) {
+        setProfile(data as Profile);
         setUserRole(data.role as UserRole);
       }
     } catch (error) {
@@ -58,6 +62,7 @@ export function useAuth() {
 
       if (event === "SIGNED_OUT" || !nextSession) {
         localStorage.removeItem("impersonatedClientId");
+        setProfile(null);
         setUserRole(null);
         setLoading(false);
         stopTokenRefresh();
@@ -105,9 +110,18 @@ export function useAuth() {
     stopTokenRefresh();
     localStorage.removeItem("impersonatedClientId");
     await supabase.auth.signOut();
+    setProfile(null);
     setUserRole(null);
     navigate("/auth");
   };
 
-  return { user, session, userRole, loading, signOut };
+  return {
+    user,
+    session,
+    profile,
+    userRole,
+    loading,
+    signOut,
+    isTrainer: profile?.role === "trainer",
+  };
 }
