@@ -332,6 +332,19 @@ export default function ClientCalendar() {
       toast({ title: "Couldn't delete", description: e.message, variant: "destructive" }),
   });
 
+  const deleteCardio = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("cardio_sessions" as any).delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["agenda-cardio"] });
+      toast({ title: "Cardio removed from calendar" });
+    },
+    onError: (e: Error) =>
+      toast({ title: "Couldn't delete", description: e.message, variant: "destructive" }),
+  });
+
   return (
     <ClientLayout>
       {/* Sticky header */}
