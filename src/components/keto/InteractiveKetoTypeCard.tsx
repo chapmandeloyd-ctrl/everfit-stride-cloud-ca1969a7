@@ -47,6 +47,8 @@ export interface InteractiveKetoTypeCardProps {
   coachRead?: string | null;
   /** Hide the back-face "Export PDF" chip. Default: false (button is shown). */
   hideExportPdf?: boolean;
+  /** Visually dim the card (e.g. when locked in the library). Hides detail sections. */
+  dimmed?: boolean;
 }
 
 /* ----------------------------- color mapping ----------------------------- */
@@ -239,6 +241,7 @@ export function InteractiveKetoTypeCard({
   clientName,
   coachRead,
   hideExportPdf = false,
+  dimmed = false,
 }: InteractiveKetoTypeCardProps) {
   const palette = paletteFromHex(themeColor || ketoType.color);
   const { toast } = useToast();
@@ -325,6 +328,7 @@ export function InteractiveKetoTypeCard({
       forcedHeight={forcedHeight}
       onMeasureHeight={onMeasureHeight}
       backExtraAction={exportAction}
+      dimmed={dimmed}
     />
   );
 }
