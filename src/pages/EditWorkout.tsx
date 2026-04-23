@@ -83,6 +83,10 @@ const TIME_OPTIONS = [
   { value: "3600", label: "60 min" },
 ];
 
+// Inside circuits/supersets, work intervals should be in seconds — not minutes.
+// This prevents the common mis-pick of "15 min" when "15 sec" was intended.
+const CIRCUIT_TIME_OPTIONS = TIME_OPTIONS.filter((o) => parseInt(o.value) <= 120);
+
 function ExerciseRow({
   item,
   exerciseInfo,
