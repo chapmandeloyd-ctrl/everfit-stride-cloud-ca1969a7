@@ -2,7 +2,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Filter, Clock, Users, Copy, Edit, Trash2, BookTemplate, Dumbbell } from "lucide-react";
+import { Plus, Search, Filter, Clock, Users, Copy, Edit, Trash2, BookTemplate, Dumbbell, Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,6 +13,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useToast } from "@/hooks/use-toast";
 
 import { SaveAsTemplateDialog } from "@/components/SaveAsTemplateDialog";
+import { AIProgramBuilderDialog } from "@/components/AIProgramBuilderDialog";
 
 const workoutTemplates = [
   {
@@ -86,6 +87,7 @@ export default function Workouts() {
   const [workoutToDelete, setWorkoutToDelete] = useState<string | null>(null);
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
   const [workoutToTemplate, setWorkoutToTemplate] = useState<{ id: string; name: string } | null>(null);
+  const [programBuilderOpen, setProgramBuilderOpen] = useState(false);
 
   // Fetch workout plans from database
   const { data: workoutPlans, isLoading } = useQuery({
@@ -249,6 +251,10 @@ export default function Workouts() {
             <Button variant="outline" onClick={() => navigate("/workout-templates")}>
               <BookTemplate className="h-4 w-4 mr-2" />
               Templates
+            </Button>
+            <Button variant="outline" onClick={() => setProgramBuilderOpen(true)} className="gap-2">
+              <Sparkles className="h-4 w-4" />
+              AI Program Builder
             </Button>
             <Button size="lg" className="gap-2" onClick={() => navigate("/workouts/create")}>
               <Plus className="h-4 w-4" />
