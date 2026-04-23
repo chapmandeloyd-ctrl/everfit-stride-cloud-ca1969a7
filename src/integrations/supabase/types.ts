@@ -484,6 +484,7 @@ export type Database = {
       }
       breathing_exercise_videos: {
         Row: {
+          cloudflare_video_id: string | null
           created_at: string
           exercise_id: string
           id: string
@@ -492,6 +493,7 @@ export type Database = {
           video_url: string
         }
         Insert: {
+          cloudflare_video_id?: string | null
           created_at?: string
           exercise_id: string
           id?: string
@@ -500,6 +502,7 @@ export type Database = {
           video_url: string
         }
         Update: {
+          cloudflare_video_id?: string | null
           created_at?: string
           exercise_id?: string
           id?: string
@@ -6457,6 +6460,7 @@ export type Database = {
           audio_url: string | null
           audio_volume: number
           category: string
+          cloudflare_video_id: string | null
           created_at: string
           description: string | null
           id: string
@@ -6477,6 +6481,7 @@ export type Database = {
           audio_url?: string | null
           audio_volume?: number
           category?: string
+          cloudflare_video_id?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -6497,6 +6502,7 @@ export type Database = {
           audio_url?: string | null
           audio_volume?: number
           category?: string
+          cloudflare_video_id?: string | null
           created_at?: string
           description?: string | null
           id?: string
