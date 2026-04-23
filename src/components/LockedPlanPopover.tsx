@@ -15,6 +15,8 @@ interface LockedPlanPopoverProps {
   ctaLabel?: string;
   /** Tooltip side. Defaults to "top". */
   side?: "top" | "bottom" | "left" | "right";
+  /** Name of the locked plan — used to pre-fill the message composer. */
+  planName?: string;
 }
 
 /**
@@ -28,6 +30,7 @@ export function LockedPlanPopover({
   ctaPath = "/client/messages",
   ctaLabel = "Message to unlock",
   side = "top",
+  planName,
 }: LockedPlanPopoverProps) {
   const navigate = useNavigate();
 
@@ -58,7 +61,15 @@ export function LockedPlanPopover({
           className="w-full gap-1.5"
           onClick={(e) => {
             e.stopPropagation();
-            navigate(ctaPath);
+            navigate(ctaPath, {
+              state: {
+                prefillMessage: planName
+                  ? `Hi! I'd like to unlock "${planName}". ${message} Can you help me get access?`
+                  : `Hi! I'd like to unlock this plan. ${message} Can you help me get access?`,
+                lockedPlanName: planName ?? null,
+                lockedPlanReason: message,
+              },
+            });
           }}
         >
           <MessageSquare className="h-3.5 w-3.5" />

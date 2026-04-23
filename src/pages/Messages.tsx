@@ -11,6 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { format, parseISO, isToday, isYesterday, isSameDay } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { CreateGroupDialog } from "@/components/CreateGroupDialog";
@@ -35,6 +36,13 @@ export default function Messages() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const prefillState = (location.state as {
+    prefillMessage?: string;
+    lockedPlanName?: string | null;
+    lockedPlanReason?: string;
+  } | null) ?? null;
   const [selectedConversation, setSelectedConversation] = useState<ConversationDisplay | null>(null);
   const [messageText, setMessageText] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -347,6 +355,27 @@ export default function Messages() {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  // Pre-fill composer when navigated from a "Message to unlock" CTA.
+  // Auto-selects the first direct (trainer) conversation and seeds messageText.
+  useEffect(() => {
+    if (!prefillState?.prefillMessage) return;
+    if (!conversations || conversations.length === 0) return;
+    if (selectedConversation) {
+      // Already in a convo — just seed the text once.
+      setMessageText((prev) => prev || prefillState.prefillMessage!);
+      navigate(location.pathname, { replace: true, state: null });
+      return;
+    }
+    const trainerDm =
+      conversations.find((c) => c.type === "direct") ?? conversations[0];
+    if (trainerDm) {
+      setSelectedConversation(trainerDm);
+      setShowMobileChat(true);
+      setMessageText(prefillState.prefillMessage);
+      navigate(location.pathname, { replace: true, state: null });
+    }
+  }, [prefillState, conversations, selectedConversation, navigate, location.pathname]);
 
   // Send message
   const sendMutation = useMutation({
