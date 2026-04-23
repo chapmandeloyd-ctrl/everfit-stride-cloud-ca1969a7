@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { mode, prompt, exercise_names, category, difficulty } = await req.json();
+    const { mode, prompt, exercise_names, category, difficulty, workouts, weeks, days_per_week, progression, rest_strategy, fixed_pattern } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
@@ -23,7 +23,7 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-    if (mode !== "explain_workout" && (!exercise_names || exercise_names.length === 0)) {
+    if (mode !== "explain_workout" && mode !== "build_program" && (!exercise_names || exercise_names.length === 0)) {
       return new Response(
         JSON.stringify({ error: "exercise_names is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
