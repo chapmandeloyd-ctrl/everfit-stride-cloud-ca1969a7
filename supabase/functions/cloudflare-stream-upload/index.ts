@@ -31,19 +31,28 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Use Cloudflare Stream "copy from URL" endpoint — pulls the file server-side
+    // Step 1: Fetch the source file ourselves (avoids origin range-request requirement)
+    const fileRes = await fetch(sourceUrl);
+    if (!fileRes.ok) {
+      return new Response(
+        JSON.stringify({ error: `Failed to fetch source: ${fileRes.status}` }),
+        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+    const fileBlob = await fileRes.blob();
+
+    // Step 2: Upload as multipart/form-data to Cloudflare Stream basic upload endpoint
+    const formData = new FormData();
+    formData.append("file", fileBlob, `${name}.mp4`);
+
     const cfRes = await fetch(
-      `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/stream/copy`,
+      `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/stream`,
       {
         method: "POST",
         headers: {
           Authorization: `Bearer ${API_TOKEN}`,
-          "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          url: sourceUrl,
-          meta: { name },
-        }),
+        body: formData,
       },
     );
 
