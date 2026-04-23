@@ -42,6 +42,7 @@ import { DayStripCalendar } from "@/components/DayStripCalendar";
 import { QuickCardioFlow } from "@/components/cardio/QuickCardioFlow";
 import { CardioDetailSheet } from "@/components/cardio/CardioDetailSheet";
 import { SwipeToDeleteCardioRow } from "@/components/cardio/SwipeToDeleteCardioRow";
+import { getIconComponent as getCardioIconComponent } from "@/components/cardio/cardioActivities";
 import { SwipeToDeleteWorkoutRow } from "@/components/workout/SwipeToDeleteWorkoutRow";
 import { SwipeToDeleteTaskRow } from "@/components/tasks/SwipeToDeleteTaskRow";
 import { SpeedDialFAB } from "@/components/SpeedDialFAB";
@@ -1626,12 +1627,12 @@ export default function ClientDashboard() {
 
   const hasSportEvents = (todaySportEvents?.length || 0) > 0;
   const hasNoPlanEver = !clientWorkouts || clientWorkouts.length === 0;
-  const isRestDay = todaysWorkouts.length === 0 && !hasSportEvents;
+  const isRestDay = todaysWorkouts.length === 0 && !hasSportEvents && todaysScheduledCardio.length === 0;
   // Show the trainer's universal Welcome Card on any rest day for clients
   // without a custom rest-day card. Falls back to defaults so it appears
   // for every new client even before the trainer customizes it.
   const showWelcomeCard = isRestDay && !restDayCard?.image_url && !restDayCard?.message;
-  const totalCards = todaysWorkouts.length + (todaySportEvents?.length || 0);
+  const totalCards = todaysWorkouts.length + (todaySportEvents?.length || 0) + todaysScheduledCardio.length;
   const hasMultiple = totalCards > 1;
 
   // Attach scroll listener
@@ -1963,6 +1964,62 @@ export default function ClientDashboard() {
                               </Button>
                             </CardContent>
                           </Card>
+                          );
+                        })}
+                        {todaysScheduledCardio.map((session: any) => {
+                          const activityLabel = String(session.activity_type)
+                            .replace(/_/g, " ")
+                            .replace(/\b\w/g, (s: string) => s.toUpperCase());
+                          const CardioIcon = getCardioIconComponent(session.activity_type);
+                          const targetText = session.target_value && session.target_type && session.target_type !== "none"
+                            ? session.target_type === "time"
+                              ? `${Math.round(session.target_value / 60)} min target`
+                              : session.target_type === "distance"
+                                ? `${session.target_value} mi target`
+                                : null
+                            : null;
+                          return (
+                            <Card
+                              key={session.id}
+                              className={`overflow-hidden cursor-pointer hover:shadow-md transition-all duration-300 shrink-0 snap-center ${hasMultiple ? "w-full min-w-full" : "w-full"}`}
+                              onClick={() => openCardioSession({
+                                id: session.id,
+                                activity_type: session.activity_type,
+                                target_type: session.target_type,
+                                target_value: session.target_value,
+                              })}
+                            >
+                              <div className="relative h-56 bg-gradient-to-br from-rose-500/20 to-rose-500/5">
+                                <div className="w-full h-full flex items-center justify-center">
+                                  <CardioIcon className="h-16 w-16 text-rose-400/30" />
+                                </div>
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                                <div className="absolute bottom-0 left-0 right-0 p-4">
+                                  <p className="text-xs font-semibold text-white/70 uppercase tracking-wider">Quick Cardio</p>
+                                  <p className="text-lg font-bold text-white">{activityLabel}</p>
+                                  {targetText && (
+                                    <p className="text-sm text-white/80 mt-0.5">{targetText}</p>
+                                  )}
+                                </div>
+                              </div>
+                              <CardContent className="p-3">
+                                <Button
+                                  className="w-full bg-rose-500 hover:bg-rose-600 text-white"
+                                  size="lg"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    openCardioSession({
+                                      id: session.id,
+                                      activity_type: session.activity_type,
+                                      target_type: session.target_type,
+                                      target_value: session.target_value,
+                                    });
+                                  }}
+                                >
+                                  Start Cardio
+                                </Button>
+                              </CardContent>
+                            </Card>
                           );
                         })}
                         {todaySportEvents?.map((event: any) => {
