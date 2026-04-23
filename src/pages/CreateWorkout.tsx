@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { CreateFromTemplateDialog } from "@/components/CreateFromTemplateDialog";
 import { SortableGroupHeader } from "@/components/workout/SortableGroupHeader";
 import { getBlockType } from "@/lib/workoutBlockTypes";
+import { BlockTypePicker } from "@/components/workout/BlockTypePicker";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
@@ -435,6 +436,8 @@ export default function CreateWorkout() {
   const [editingDetailFieldsId, setEditingDetailFieldsId] = useState<string | null>(null);
   const [editingDetailValue, setEditingDetailValue] = useState<{ id: string; field: DetailField } | null>(null);
   const [pasteForwardSourceId, setPasteForwardSourceId] = useState<string | null>(null);
+  const [showBlockPicker, setShowBlockPicker] = useState(false);
+  const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -530,14 +533,14 @@ export default function CreateWorkout() {
     const newItem: WorkoutExercise = {
       id: crypto.randomUUID(),
       exercise_id: exerciseId,
-      sets: 3,
+      sets: activeBlockId ? 1 : 3,
       target_type: "text",
       target_value: "",
       time_seconds: 30,
-      rest_seconds: 30,
+      rest_seconds: activeBlockId ? 15 : 30,
       exercise_type: "normal",
       selected: false,
-      group_id: null,
+      group_id: activeBlockId,
       detail_fields: [],
       weight_lbs: "",
       tempo: "",
@@ -546,7 +549,38 @@ export default function CreateWorkout() {
       band: "",
       is_unilateral: !!ex?.is_unilateral,
     };
-    setExerciseItems((prev) => [...prev, newItem]);
+    if (activeBlockId) {
+      setExerciseItems((prev) => {
+        const indices = prev.map((p, i) => p.group_id === activeBlockId ? i : -1).filter(i => i >= 0);
+        const lastIdx = indices.length ? indices[indices.length - 1] : undefined;
+        if (lastIdx === undefined) return [...prev, newItem];
+        const next = [...prev];
+        next.splice(lastIdx + 1, 0, newItem);
+        return next;
+      });
+    } else {
+      setExerciseItems((prev) => [...prev, newItem]);
+    }
+  };
+
+  const createBlock = (
+    blockType: { id: string; label: string },
+    customName?: string,
+    blockKind: "superset" | "circuit" = "circuit",
+  ) => {
+    const newGroupId = crypto.randomUUID();
+    setGroups((prev) => [...prev, {
+      id: newGroupId,
+      type: blockKind,
+      sets: 3,
+      block_type: blockType.id,
+      custom_name: customName,
+    }]);
+    setActiveBlockId(newGroupId);
+    toast({
+      title: `${customName || blockType.label} block added`,
+      description: "Now add exercises to this block.",
+    });
   };
 
   const addRest = () => {
