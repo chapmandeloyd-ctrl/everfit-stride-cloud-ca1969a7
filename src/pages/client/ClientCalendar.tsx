@@ -431,11 +431,15 @@ function AgendaCard({
   onToggleTask,
   onOpenWorkout,
   onDeleteWorkout,
+  onDeleteCardio,
+  cardioIconMap,
 }: {
   item: AgendaItem;
   onToggleTask: (id: string, completed: boolean) => void;
   onOpenWorkout: (workoutPlanId: string) => void;
   onDeleteWorkout?: (clientWorkoutId: string, name: string) => void;
+  onDeleteCardio?: (id: string) => void;
+  cardioIconMap?: Map<string, string>;
 }) {
   if (item.kind === "workout") {
     const w = item.data;
