@@ -659,7 +659,7 @@ export default function WorkoutDetail() {
   );
 }
 
-function WorkoutDetailHeader({ workout, id, isClient, inProgressSession, onResume, onStartFresh, onBack }: {
+function WorkoutDetailHeader({ workout, id, isClient, inProgressSession, onResume, onStartFresh, onBack, onOpenActions }: {
   workout: any;
   id: string;
   isClient: boolean;
@@ -667,6 +667,7 @@ function WorkoutDetailHeader({ workout, id, isClient, inProgressSession, onResum
   onResume: () => void;
   onStartFresh: () => void;
   onBack: () => void;
+  onOpenActions?: () => void;
 }) {
   const { isSaved, toggleSave } = useSavedWorkouts();
   const saved = isSaved(id);
@@ -696,6 +697,17 @@ function WorkoutDetailHeader({ workout, id, isClient, inProgressSession, onResum
           className="shrink-0"
         >
           <Bookmark className={`h-5 w-5 ${saved ? "fill-primary text-primary" : "text-muted-foreground"}`} />
+        </Button>
+      )}
+      {onOpenActions && (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onOpenActions}
+          className="shrink-0"
+          aria-label="More actions"
+        >
+          <MoreVertical className="h-5 w-5" />
         </Button>
       )}
       {inProgressSession && isClient ? (
