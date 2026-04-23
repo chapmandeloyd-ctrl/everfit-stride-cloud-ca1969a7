@@ -457,13 +457,24 @@ export default function CreateWorkout() {
     const groupIds = [...new Set(exerciseItems.filter(i => i.group_id).map(i => i.group_id!))];
     const ungrouped = exerciseItems.filter(i => !i.group_id && i.exercise_type === "normal");
     const restItems = exerciseItems.filter(i => i.exercise_type === "rest");
+    const repsFromTarget = (tv: string): number => {
+      if (!tv) return 0;
+      const m = String(tv).match(/(\d+)/);
+      return m ? parseInt(m[1], 10) : 0;
+    };
+    const workSecondsFor = (item: WorkoutExercise, fallback = 40): number => {
+      if (item.target_type === "time") return item.time_seconds || fallback;
+      const reps = repsFromTarget(item.target_value);
+      if (reps > 0) return Math.max(20, Math.round(reps * 3.5));
+      return fallback;
+    };
 
     // Ungrouped (straight sets): (duration_seconds || 30 + rest_seconds || 30) * sets
     for (const item of ungrouped) {
       const sets = item.sets || 1;
-      const workPerSet = item.target_type === "time" ? (item.time_seconds || 30) : 30;
+      const workPerSet = workSecondsFor(item, 40);
       const rest = item.rest_seconds || 30;
-      totalSeconds += (workPerSet + rest) * sets;
+      totalSeconds += (workPerSet + rest + 3) * sets;
     }
 
     // Grouped circuits/supersets: exercise duration * rounds + rest_between_rounds * (rounds - 1)
@@ -476,10 +487,12 @@ export default function CreateWorkout() {
       const restBetweenRounds = groupRestItem?.rest_seconds || 60;
 
       for (const item of groupItems) {
-        const workPerRound = item.target_type === "time" ? (item.time_seconds || 45) : 45;
+        const workPerRound = workSecondsFor(item, 40);
         totalSeconds += workPerRound * rounds;
         // Add exercise-level rest within each round
         totalSeconds += (item.rest_seconds || 0) * rounds;
+        // Per-exercise transition padding (3-2-1 / hand-off cues)
+        totalSeconds += 3 * rounds;
       }
       totalSeconds += restBetweenRounds * Math.max(0, rounds - 1);
     }
