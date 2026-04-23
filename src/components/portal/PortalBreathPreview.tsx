@@ -148,13 +148,22 @@ export function PortalBreathPreview({
       const a = audioRef.current;
       if (a && a.paused && !audioPaused) a.play().catch(() => {});
     };
-    window.addEventListener("pointerdown", tryPlay);
-    window.addEventListener("touchstart", tryPlay);
+    window.addEventListener("pointerdown", tryPlay, { once: true });
+    window.addEventListener("touchstart", tryPlay, { once: true });
     return () => {
       window.removeEventListener("pointerdown", tryPlay);
       window.removeEventListener("touchstart", tryPlay);
     };
   }, [audioPaused]);
+
+  useEffect(() => {
+    return () => {
+      const audio = audioRef.current;
+      if (!audio) return;
+      audio.pause();
+      audio.currentTime = 0;
+    };
+  }, []);
 
   const formatTime = (s: number) => {
     const m = Math.floor(s / 60);
