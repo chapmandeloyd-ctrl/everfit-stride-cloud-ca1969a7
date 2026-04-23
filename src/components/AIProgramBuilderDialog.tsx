@@ -10,7 +10,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Sparkles, Loader2, Calendar, ArrowLeft, Check, Dumbbell, Wand2, Library } from "lucide-react";
+import { Sparkles, Loader2, Calendar, ArrowLeft, Check, Dumbbell, Wand2, Library, ChevronDown } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -792,6 +793,85 @@ export function AIProgramBuilderDialog({ open, onOpenChange, onProgramCreated }:
                 <h3 className="font-semibold text-lg">{generated.program_name}</h3>
                 <p className="text-sm text-muted-foreground mt-1">{generated.program_description}</p>
               </div>
+
+              {/* Workouts the AI invented (full-build mode only) */}
+              {buildMode === "full_build" && generated.workouts && generated.workouts.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm font-semibold">
+                      Workouts AI created ({generated.workouts.length})
+                    </Label>
+                    <Badge variant="secondary" className="text-xs">
+                      Will be saved to your library
+                    </Badge>
+                  </div>
+                  <div className="space-y-2">
+                    {generated.workouts.map((w, idx) => {
+                      const totalExercises = (w.sections || []).reduce(
+                        (sum, s) => sum + (s.exercises?.length || 0),
+                        0
+                      );
+                      return (
+                        <Collapsible key={idx} className="border rounded-md">
+                          <CollapsibleTrigger className="w-full px-3 py-2.5 flex items-center gap-2 text-sm hover:bg-muted/50 transition">
+                            <Dumbbell className="h-4 w-4 text-primary shrink-0" />
+                            <div className="flex-1 text-left min-w-0">
+                              <div className="font-medium truncate">{w.name}</div>
+                              <div className="text-xs text-muted-foreground">
+                                {totalExercises} exercises • {w.sections?.length || 0} blocks
+                                {w.difficulty && ` • ${w.difficulty}`}
+                              </div>
+                            </div>
+                            <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0 transition-transform [[data-state=open]>&]:rotate-180" />
+                          </CollapsibleTrigger>
+                          <CollapsibleContent className="border-t bg-muted/20">
+                            {w.description && (
+                              <p className="px-3 pt-2 text-xs text-muted-foreground italic">
+                                {w.description}
+                              </p>
+                            )}
+                            <div className="p-3 space-y-3">
+                              {(w.sections || []).map((sec, sIdx) => (
+                                <div key={sIdx} className="space-y-1.5">
+                                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                    <span>{sec.block_label || sec.section_name}</span>
+                                    {sec.section_type !== "straight_set" && (
+                                      <Badge variant="outline" className="text-[10px] py-0 h-4">
+                                        {sec.section_type}
+                                      </Badge>
+                                    )}
+                                    {sec.rounds > 1 && (
+                                      <span className="text-[10px]">× {sec.rounds} rounds</span>
+                                    )}
+                                  </div>
+                                  <div className="space-y-1 pl-1">
+                                    {(sec.exercises || []).map((ex, eIdx) => (
+                                      <div
+                                        key={eIdx}
+                                        className="flex items-center gap-2 text-xs py-1 border-b border-border/40 last:border-0"
+                                      >
+                                        <span className="font-medium flex-1 truncate">
+                                          {ex.exercise_name}
+                                        </span>
+                                        <span className="text-muted-foreground tabular-nums shrink-0">
+                                          {ex.sets} × {ex.reps_or_time}
+                                        </span>
+                                        <span className="text-muted-foreground tabular-nums shrink-0 w-12 text-right">
+                                          {ex.rest_seconds}s rest
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </CollapsibleContent>
+                        </Collapsible>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-3">
                 {Array.from(scheduleByWeek.entries()).map(([wk, items]) => (
