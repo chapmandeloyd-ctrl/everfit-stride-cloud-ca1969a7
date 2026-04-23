@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, Loader2, Plus, Check, Wand2, Lightbulb } from "lucide-react";
+import { Sparkles, Loader2, Plus, Check, Wand2, Lightbulb, ChevronDown, ChevronUp, Brain } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -115,6 +115,11 @@ export function AIWorkoutBuilderDialog({
   // Exercise suggestions
   const [suggestions, setSuggestions] = useState<AISuggestion[]>([]);
   const [addedSuggestions, setAddedSuggestions] = useState<Set<string>>(new Set());
+
+  // "Why these exercises?" explanation panel
+  const [explanationOpen, setExplanationOpen] = useState(false);
+  const [explanation, setExplanation] = useState<string | null>(null);
+  const [explanationLoading, setExplanationLoading] = useState(false);
 
   const exerciseNames = exercises?.map((e) => e.name) || [];
 
