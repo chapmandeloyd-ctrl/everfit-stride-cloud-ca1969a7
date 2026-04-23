@@ -21,6 +21,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ManageExerciseAlternativesDialog } from "@/components/ManageExerciseAlternativesDialog";
 import { cn } from "@/lib/utils";
+import { ExerciseVideoPlayer } from "@/components/exercise/ExerciseVideoPlayer";
 
 interface Exercise {
   id: string;
@@ -30,6 +31,7 @@ interface Exercise {
   equipment: string | null;
   image_url: string | null;
   video_url: string | null;
+  cloudflare_video_id?: string | null;
 }
 
 interface ExerciseCardProps {
