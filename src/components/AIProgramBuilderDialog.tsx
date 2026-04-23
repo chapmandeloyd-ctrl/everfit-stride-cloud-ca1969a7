@@ -63,6 +63,38 @@ interface GeneratedProgram {
   workouts?: GeneratedWorkout[]; // present in full-build mode
 }
 
+const estimateSecondsFromPrescription = (prescription?: string) => {
+  if (!prescription) return 45;
+
+  const lower = prescription.toLowerCase().trim();
+  const firstNumber = Number((lower.match(/\d+/) || [""])[0]);
+
+  if (lower.includes("min")) return firstNumber > 0 ? firstNumber * 60 : 60;
+  if (lower.includes("sec") || /\b\d+s\b/.test(lower)) return firstNumber > 0 ? firstNumber : 45;
+
+  if (firstNumber > 0) {
+    return Math.min(120, Math.max(25, firstNumber * 6));
+  }
+
+  return 45;
+};
+
+const estimateWorkoutDurationMinutes = (workout: GeneratedWorkout) => {
+  const totalSeconds = (workout.sections || []).reduce((sectionTotal, section) => {
+    const exerciseSeconds = (section.exercises || []).reduce((exerciseTotal, exercise) => {
+      const perSetSeconds = estimateSecondsFromPrescription(exercise.reps_or_time);
+      const sets = Math.max(1, exercise.sets || 1);
+      const restSeconds = Math.max(0, exercise.rest_seconds || 0);
+      return exerciseTotal + sets * perSetSeconds + Math.max(0, sets - 1) * restSeconds;
+    }, 0);
+
+    return sectionTotal + exerciseSeconds;
+  }, 0);
+
+  if (totalSeconds <= 0) return 45;
+  return Math.min(180, Math.max(15, Math.ceil(totalSeconds / 60)));
+};
+
 const DAY_LABELS = ["", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const DAYS_FULL = [
   { value: 1, label: "Monday" },
@@ -345,6 +377,8 @@ export function AIProgramBuilderDialog({ open, onOpenChange, onProgramCreated }:
         );
 
         for (const w of generated.workouts) {
+          const estimatedDurationMinutes = estimateWorkoutDurationMinutes(w);
+
           // Insert workout_plan
           const { data: plan, error: planErr } = await supabase
             .from("workout_plans")
@@ -353,6 +387,8 @@ export function AIProgramBuilderDialog({ open, onOpenChange, onProgramCreated }:
               description: w.description,
               category: w.category,
               difficulty: w.difficulty,
+              duration_minutes: estimatedDurationMinutes,
+              is_template: false,
               trainer_id: user.id,
             } as any)
             .select()
