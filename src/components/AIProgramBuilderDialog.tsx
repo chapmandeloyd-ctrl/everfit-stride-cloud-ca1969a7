@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -72,6 +72,18 @@ const DAYS_FULL = [
   { value: 6, label: "Saturday" },
   { value: 7, label: "Sunday" },
 ];
+
+const DRAFT_STORAGE_KEY = "ai-program-builder-draft";
+
+interface PersistedDraft {
+  generated: GeneratedProgram;
+  buildMode: "use_existing" | "full_build";
+  prompt: string;
+  weeks: string;
+  daysPerWeek: string;
+  selectedWorkoutIds: string[];
+  savedAt: number;
+}
 
 export function AIProgramBuilderDialog({ open, onOpenChange, onProgramCreated }: AIProgramBuilderDialogProps) {
   const { user } = useAuth();
