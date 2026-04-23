@@ -14,7 +14,12 @@ import {
   ChevronRight,
   Target,
   Flame,
+  Trash2,
 } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -267,6 +272,23 @@ export default function ClientCalendar() {
     onError: (e: Error) => toast({ title: "Couldn't update", description: e.message, variant: "destructive" }),
   });
 
+  // Delete a scheduled workout (client_workouts row)
+  const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null);
+  const deleteWorkout = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("client_workouts").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["agenda-workouts"] });
+      queryClient.invalidateQueries({ queryKey: ["schedule-conflicts"] });
+      toast({ title: "Workout removed from calendar" });
+      setPendingDelete(null);
+    },
+    onError: (e: Error) =>
+      toast({ title: "Couldn't delete", description: e.message, variant: "destructive" }),
+  });
+
   return (
     <ClientLayout>
       {/* Sticky header */}
@@ -313,6 +335,7 @@ export default function ClientCalendar() {
                         item={item}
                         onToggleTask={(id, completed) => toggleTask.mutate({ id, completed })}
                         onOpenWorkout={(id) => navigate(`/client/workouts/${id}`)}
+                        onDeleteWorkout={(id, name) => setPendingDelete({ id, name })}
                       />
                     ))}
                 </div>
@@ -321,6 +344,26 @@ export default function ClientCalendar() {
           );
         })}
       </div>
+
+      <AlertDialog open={!!pendingDelete} onOpenChange={(o) => !o && setPendingDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove from calendar?</AlertDialogTitle>
+            <AlertDialogDescription>
+              "{pendingDelete?.name}" will be removed from this day. The workout itself stays in your library.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => pendingDelete && deleteWorkout.mutate(pendingDelete.id)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </ClientLayout>
   );
 }
@@ -329,10 +372,12 @@ function AgendaCard({
   item,
   onToggleTask,
   onOpenWorkout,
+  onDeleteWorkout,
 }: {
   item: AgendaItem;
   onToggleTask: (id: string, completed: boolean) => void;
   onOpenWorkout: (workoutPlanId: string) => void;
+  onDeleteWorkout?: (clientWorkoutId: string, name: string) => void;
 }) {
   if (item.kind === "workout") {
     const w = item.data;
@@ -372,6 +417,18 @@ function AgendaCard({
             )}
           </div>
         </div>
+        {!completed && !isTrainerAssigned && onDeleteWorkout && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDeleteWorkout(w.id, w.workout_plans?.name ?? "Workout");
+            }}
+            className="h-8 w-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0 transition-colors"
+            aria-label="Remove from calendar"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        )}
         <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
       </Card>
     );
