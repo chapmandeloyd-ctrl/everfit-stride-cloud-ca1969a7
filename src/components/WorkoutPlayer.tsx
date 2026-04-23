@@ -593,17 +593,28 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
 
   const totalEstimatedSeconds = sections.reduce((acc, s) => {
     const isGrouped = ["superset", "circuit"].includes(s.section_type);
+    // Estimate work time per exercise:
+    //   • timed exercise → use duration_seconds
+    //   • rep-based     → use reps × 3.5s (closer to real cadence) with a 40s floor
+    //   • unknown       → 40s default
+    const workSecondsFor = (ex: any): number => {
+      if (ex.duration_seconds && ex.duration_seconds > 0) return ex.duration_seconds;
+      if (ex.reps && ex.reps > 0) return Math.max(20, Math.round(ex.reps * 3.5));
+      return 40;
+    };
     if (isGrouped) {
-      s.exercises.forEach((ex) => { acc += (ex.duration_seconds || 45) * s.rounds; });
+      s.exercises.forEach((ex) => { acc += workSecondsFor(ex) * s.rounds; });
       // Sum rest for non-last exercises (last exercise's rest acts as between-rounds rest)
       const exRestTotal = s.exercises.slice(0, -1).reduce((sum, ex) => sum + (ex.rest_seconds || 0), 0);
       acc += exRestTotal * s.rounds;
       const lastExRest = s.exercises[s.exercises.length - 1]?.rest_seconds || 0;
       const betweenRoundsRest = s.rest_between_rounds_seconds || lastExRest || 60;
       acc += betweenRoundsRest * Math.max(0, s.rounds - 1);
+      // Transition padding: ~3s per exercise per round for 3-2-1 / hand-off cues
+      acc += s.exercises.length * s.rounds * 3;
     } else {
       s.exercises.forEach((ex) => {
-        acc += ((ex.duration_seconds || 30) + (ex.rest_seconds || 30)) * (ex.sets || 1);
+        acc += (workSecondsFor(ex) + (ex.rest_seconds || 30) + 3) * (ex.sets || 1);
       });
     }
     return acc;

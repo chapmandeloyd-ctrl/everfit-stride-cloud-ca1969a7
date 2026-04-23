@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { CreateFromTemplateDialog } from "@/components/CreateFromTemplateDialog";
 import { SortableGroupHeader } from "@/components/workout/SortableGroupHeader";
 import { getBlockType } from "@/lib/workoutBlockTypes";
+import { BlockTypePicker } from "@/components/workout/BlockTypePicker";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
@@ -435,6 +436,8 @@ export default function CreateWorkout() {
   const [editingDetailFieldsId, setEditingDetailFieldsId] = useState<string | null>(null);
   const [editingDetailValue, setEditingDetailValue] = useState<{ id: string; field: DetailField } | null>(null);
   const [pasteForwardSourceId, setPasteForwardSourceId] = useState<string | null>(null);
+  const [showBlockPicker, setShowBlockPicker] = useState(false);
+  const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -454,13 +457,24 @@ export default function CreateWorkout() {
     const groupIds = [...new Set(exerciseItems.filter(i => i.group_id).map(i => i.group_id!))];
     const ungrouped = exerciseItems.filter(i => !i.group_id && i.exercise_type === "normal");
     const restItems = exerciseItems.filter(i => i.exercise_type === "rest");
+    const repsFromTarget = (tv: string): number => {
+      if (!tv) return 0;
+      const m = String(tv).match(/(\d+)/);
+      return m ? parseInt(m[1], 10) : 0;
+    };
+    const workSecondsFor = (item: WorkoutExercise, fallback = 40): number => {
+      if (item.target_type === "time") return item.time_seconds || fallback;
+      const reps = repsFromTarget(item.target_value);
+      if (reps > 0) return Math.max(20, Math.round(reps * 3.5));
+      return fallback;
+    };
 
     // Ungrouped (straight sets): (duration_seconds || 30 + rest_seconds || 30) * sets
     for (const item of ungrouped) {
       const sets = item.sets || 1;
-      const workPerSet = item.target_type === "time" ? (item.time_seconds || 30) : 30;
+      const workPerSet = workSecondsFor(item, 40);
       const rest = item.rest_seconds || 30;
-      totalSeconds += (workPerSet + rest) * sets;
+      totalSeconds += (workPerSet + rest + 3) * sets;
     }
 
     // Grouped circuits/supersets: exercise duration * rounds + rest_between_rounds * (rounds - 1)
@@ -473,10 +487,12 @@ export default function CreateWorkout() {
       const restBetweenRounds = groupRestItem?.rest_seconds || 60;
 
       for (const item of groupItems) {
-        const workPerRound = item.target_type === "time" ? (item.time_seconds || 45) : 45;
+        const workPerRound = workSecondsFor(item, 40);
         totalSeconds += workPerRound * rounds;
         // Add exercise-level rest within each round
         totalSeconds += (item.rest_seconds || 0) * rounds;
+        // Per-exercise transition padding (3-2-1 / hand-off cues)
+        totalSeconds += 3 * rounds;
       }
       totalSeconds += restBetweenRounds * Math.max(0, rounds - 1);
     }
@@ -530,14 +546,14 @@ export default function CreateWorkout() {
     const newItem: WorkoutExercise = {
       id: crypto.randomUUID(),
       exercise_id: exerciseId,
-      sets: 3,
+      sets: activeBlockId ? 1 : 3,
       target_type: "text",
       target_value: "",
       time_seconds: 30,
-      rest_seconds: 30,
+      rest_seconds: activeBlockId ? 15 : 30,
       exercise_type: "normal",
       selected: false,
-      group_id: null,
+      group_id: activeBlockId,
       detail_fields: [],
       weight_lbs: "",
       tempo: "",
@@ -546,7 +562,38 @@ export default function CreateWorkout() {
       band: "",
       is_unilateral: !!ex?.is_unilateral,
     };
-    setExerciseItems((prev) => [...prev, newItem]);
+    if (activeBlockId) {
+      setExerciseItems((prev) => {
+        const indices = prev.map((p, i) => p.group_id === activeBlockId ? i : -1).filter(i => i >= 0);
+        const lastIdx = indices.length ? indices[indices.length - 1] : undefined;
+        if (lastIdx === undefined) return [...prev, newItem];
+        const next = [...prev];
+        next.splice(lastIdx + 1, 0, newItem);
+        return next;
+      });
+    } else {
+      setExerciseItems((prev) => [...prev, newItem]);
+    }
+  };
+
+  const createBlock = (
+    blockType: { id: string; label: string },
+    customName?: string,
+    blockKind: "superset" | "circuit" = "circuit",
+  ) => {
+    const newGroupId = crypto.randomUUID();
+    setGroups((prev) => [...prev, {
+      id: newGroupId,
+      type: blockKind,
+      sets: 3,
+      block_type: blockType.id,
+      custom_name: customName,
+    }]);
+    setActiveBlockId(newGroupId);
+    toast({
+      title: `${customName || blockType.label} block added`,
+      description: "Now add exercises to this block.",
+    });
   };
 
   const addRest = () => {
@@ -1150,11 +1197,44 @@ export default function CreateWorkout() {
               <Trash2 className="h-3.5 w-3.5" />
             </Button>
             <div className="flex-1" />
+            <Button
+              variant="default"
+              size="sm"
+              className="text-xs h-7 gap-1"
+              onClick={() => setShowBlockPicker(true)}
+            >
+              <Plus className="h-3.5 w-3.5" />
+              ADD BLOCK
+            </Button>
             <Button variant="outline" size="sm" className="text-xs h-7" onClick={addRest}>
               <Timer className="h-3.5 w-3.5 mr-1" />
               ADD REST
             </Button>
           </div>
+
+          {/* Active block indicator */}
+          {activeBlockId && (() => {
+            const ab = groups.find((g) => g.id === activeBlockId);
+            if (!ab) return null;
+            const bt = getBlockType(ab.block_type || "custom");
+            const label = ab.block_type === "custom" && ab.custom_name ? ab.custom_name : bt.label;
+            return (
+              <div className="flex items-center justify-between gap-2 px-4 py-2 bg-primary/10 border-b border-primary/30">
+                <span className="text-xs text-foreground">
+                  <span className="mr-1">{bt.emoji}</span>
+                  Adding to <span className="font-bold">{label}</span> — pick exercises on the right.
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 text-xs"
+                  onClick={() => setActiveBlockId(null)}
+                >
+                  Done with block
+                </Button>
+              </div>
+            );
+          })()}
 
           {/* Exercise List */}
           <ScrollArea className="flex-1">
@@ -1167,12 +1247,14 @@ export default function CreateWorkout() {
             {exerciseItems.length === 0 && (
               <div className="flex flex-col items-center justify-center py-20 text-center">
                 <div className="mb-3 text-5xl opacity-30">💪</div>
-                <p className="text-sm text-muted-foreground font-medium">
-                  Workouts require at least one exercise
+                <p className="text-sm text-muted-foreground font-medium">Start by adding a block</p>
+                <p className="text-xs text-muted-foreground mt-1 mb-4">
+                  Pick a block type (Warm-Up, Working Sets, Conditioning…) then add exercises into it.
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Click an exercise from the library to add it
-                </p>
+                <Button size="sm" onClick={() => setShowBlockPicker(true)} className="gap-1.5">
+                  <Plus className="h-4 w-4" />
+                  Add Block
+                </Button>
               </div>
             )}
           </ScrollArea>
@@ -1284,6 +1366,12 @@ export default function CreateWorkout() {
         onAddExercises={(items) => {
           setExerciseItems((prev) => [...prev, ...items.map(i => ({ ...i, detail_fields: (i as any).detail_fields || [], weight_lbs: (i as any).weight_lbs || "", tempo: (i as any).tempo || "", rpe: (i as any).rpe || "", distance: (i as any).distance || "", band: (i as any).band || "", is_unilateral: (i as any).is_unilateral ?? false }))]);
         }}
+      />
+
+      <BlockTypePicker
+        open={showBlockPicker}
+        onOpenChange={setShowBlockPicker}
+        onSelect={(bt, customName) => createBlock(bt, customName, "circuit")}
       />
 
       {/* Detail Fields Sheet */}

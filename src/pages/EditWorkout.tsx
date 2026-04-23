@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SortableGroupHeader } from "@/components/workout/SortableGroupHeader";
 import { getBlockType, getBlockTypeFromSectionName } from "@/lib/workoutBlockTypes";
+import { BlockTypePicker } from "@/components/workout/BlockTypePicker";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
@@ -324,6 +325,8 @@ export default function EditWorkout() {
   const [editingDetailFieldsId, setEditingDetailFieldsId] = useState<string | null>(null);
   const [editingDetailValue, setEditingDetailValue] = useState<{ id: string; field: DetailField } | null>(null);
   const [pasteForwardSourceId, setPasteForwardSourceId] = useState<string | null>(null);
+  const [showBlockPicker, setShowBlockPicker] = useState(false);
+  const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -420,12 +423,24 @@ export default function EditWorkout() {
     const groupIds = [...new Set(exerciseItems.filter(i => i.group_id).map(i => i.group_id!))];
     const ungrouped = exerciseItems.filter(i => !i.group_id && i.exercise_type === "normal");
     const restItems = exerciseItems.filter(i => i.exercise_type === "rest");
+    // Estimate work for non-time targets: parse "10" or "10-12" reps from target_value, else 40s default
+    const repsFromTarget = (tv: string): number => {
+      if (!tv) return 0;
+      const m = String(tv).match(/(\d+)/);
+      return m ? parseInt(m[1], 10) : 0;
+    };
+    const workSecondsFor = (item: WorkoutExercise, fallback = 40): number => {
+      if (item.target_type === "time") return item.time_seconds || fallback;
+      const reps = repsFromTarget(item.target_value);
+      if (reps > 0) return Math.max(20, Math.round(reps * 3.5));
+      return fallback;
+    };
 
     for (const item of ungrouped) {
       const sets = item.sets || 1;
-      const workPerSet = item.target_type === "time" ? (item.time_seconds || 30) : 30;
+      const workPerSet = workSecondsFor(item, 40);
       const rest = item.rest_seconds || 30;
-      totalSeconds += (workPerSet + rest) * sets;
+      totalSeconds += (workPerSet + rest + 3) * sets;
     }
 
     for (const groupId of groupIds) {
@@ -436,9 +451,11 @@ export default function EditWorkout() {
       const restBetweenRounds = groupRestItem?.rest_seconds || 60;
 
       for (const item of groupItems) {
-        const workPerRound = item.target_type === "time" ? (item.time_seconds || 45) : 45;
+        const workPerRound = workSecondsFor(item, 40);
         totalSeconds += workPerRound * rounds;
         totalSeconds += (item.rest_seconds || 0) * rounds;
+        // Per-exercise transition padding (3-2-1 / hand-off)
+        totalSeconds += 3 * rounds;
       }
       totalSeconds += restBetweenRounds * Math.max(0, rounds - 1);
     }
@@ -480,10 +497,49 @@ export default function EditWorkout() {
   const getExerciseById = (eid: string) => exercises?.find((e: any) => e.id === eid);
 
   const addExercise = (exerciseId: string) => {
-    setExerciseItems((prev) => [...prev, {
-      id: crypto.randomUUID(), exercise_id: exerciseId, sets: 3, target_type: "text" as const, target_value: "", time_seconds: 30, rest_seconds: 30, exercise_type: "normal" as const, selected: false, group_id: null,
-      detail_fields: [] as DetailField[], weight_lbs: "", tempo: "", rpe: "", distance: "", band: "",
+    const newItem: WorkoutExercise = {
+      id: crypto.randomUUID(),
+      exercise_id: exerciseId,
+      sets: activeBlockId ? 1 : 3,
+      target_type: "text" as const,
+      target_value: "",
+      time_seconds: 30,
+      rest_seconds: activeBlockId ? 15 : 30,
+      exercise_type: "normal" as const,
+      selected: false,
+      group_id: activeBlockId,
+      detail_fields: [] as DetailField[],
+      weight_lbs: "",
+      tempo: "",
+      rpe: "",
+      distance: "",
+      band: "",
+    };
+    if (activeBlockId) {
+      // Insert after the last existing item of this block (or at end if none yet)
+      setExerciseItems((prev) => {
+        const lastIdx = prev.map((p, i) => p.group_id === activeBlockId ? i : -1).filter(i => i >= 0).pop();
+        if (lastIdx === undefined) return [...prev, newItem];
+        const next = [...prev];
+        next.splice(lastIdx + 1, 0, newItem);
+        return next;
+      });
+    } else {
+      setExerciseItems((prev) => [...prev, newItem]);
+    }
+  };
+
+  const createBlock = (blockType: { id: string; label: string }, customName?: string, blockKind: "superset" | "circuit" = "circuit") => {
+    const newGroupId = crypto.randomUUID();
+    setGroups((prev) => [...prev, {
+      id: newGroupId,
+      type: blockKind,
+      sets: 3,
+      block_type: blockType.id,
+      custom_name: customName,
     }]);
+    setActiveBlockId(newGroupId);
+    toast({ title: `${customName || blockType.label} block added`, description: "Now add exercises to this block." });
   };
 
   const addRest = () => {
@@ -950,11 +1006,39 @@ export default function EditWorkout() {
             <Button variant="outline" size="icon" className="h-7 w-7" onClick={duplicateSelected} disabled={!anySelected}><Copy className="h-3.5 w-3.5" /></Button>
             <Button variant="outline" size="icon" className="h-7 w-7" onClick={deleteSelected} disabled={!anySelected}><Trash2 className="h-3.5 w-3.5" /></Button>
             <div className="flex-1" />
+            <Button
+              variant="default"
+              size="sm"
+              className="text-xs h-7 gap-1"
+              onClick={() => setShowBlockPicker(true)}
+            >
+              <Plus className="h-3.5 w-3.5" />
+              ADD BLOCK
+            </Button>
             <Button variant="outline" size="sm" className="text-xs h-7" onClick={addRest}>
               <Timer className="h-3.5 w-3.5 mr-1" />
               ADD REST
             </Button>
           </div>
+
+          {/* Active block indicator */}
+          {activeBlockId && (() => {
+            const ab = groups.find((g) => g.id === activeBlockId);
+            if (!ab) return null;
+            const bt = getBlockType(ab.block_type || "custom");
+            const label = ab.block_type === "custom" && ab.custom_name ? ab.custom_name : bt.label;
+            return (
+              <div className="flex items-center justify-between gap-2 px-4 py-2 bg-primary/10 border-b border-primary/30">
+                <span className="text-xs text-foreground">
+                  <span className="mr-1">{bt.emoji}</span>
+                  Adding to <span className="font-bold">{label}</span> — pick exercises on the right.
+                </span>
+                <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => setActiveBlockId(null)}>
+                  Done with block
+                </Button>
+              </div>
+            );
+          })()}
 
           {/* Exercise List */}
           <ScrollArea className="flex-1">
@@ -967,8 +1051,12 @@ export default function EditWorkout() {
             {exerciseItems.length === 0 && (
               <div className="flex flex-col items-center justify-center py-20 text-center">
                 <div className="mb-3 text-5xl opacity-30">💪</div>
-                <p className="text-sm text-muted-foreground font-medium">Workouts require at least one exercise</p>
-                <p className="text-xs text-muted-foreground mt-1">Click an exercise from the library to add it</p>
+                <p className="text-sm text-muted-foreground font-medium">Start by adding a block</p>
+                <p className="text-xs text-muted-foreground mt-1 mb-4">Pick a block type (Warm-Up, Working Sets, Conditioning…) then add exercises into it.</p>
+                <Button size="sm" onClick={() => setShowBlockPicker(true)} className="gap-1.5">
+                  <Plus className="h-4 w-4" />
+                  Add Block
+                </Button>
               </div>
             )}
           </ScrollArea>
@@ -1043,6 +1131,12 @@ export default function EditWorkout() {
         onAddExercises={(items) => {
           setExerciseItems((prev) => [...prev, ...items.map(i => ({ ...i, detail_fields: (i as any).detail_fields || [], weight_lbs: (i as any).weight_lbs || "", tempo: (i as any).tempo || "", rpe: (i as any).rpe || "", distance: (i as any).distance || "", band: (i as any).band || "" }))]);
         }}
+      />
+
+      <BlockTypePicker
+        open={showBlockPicker}
+        onOpenChange={setShowBlockPicker}
+        onSelect={(bt, customName) => createBlock(bt, customName, "circuit")}
       />
 
       {/* Detail Fields Sheet */}
