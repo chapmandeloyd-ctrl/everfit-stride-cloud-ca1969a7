@@ -728,6 +728,7 @@ export type Database = {
           duration_seconds: number | null
           heart_rate_avg: number | null
           id: string
+          scheduled_date: string | null
           started_at: string | null
           status: string
           target_type: string
@@ -744,6 +745,7 @@ export type Database = {
           duration_seconds?: number | null
           heart_rate_avg?: number | null
           id?: string
+          scheduled_date?: string | null
           started_at?: string | null
           status?: string
           target_type?: string
@@ -760,6 +762,7 @@ export type Database = {
           duration_seconds?: number | null
           heart_rate_avg?: number | null
           id?: string
+          scheduled_date?: string | null
           started_at?: string | null
           status?: string
           target_type?: string
