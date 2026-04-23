@@ -10,9 +10,10 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import {
   format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth,
-  startOfWeek, endOfWeek, addMonths, isToday, parseISO,
+  startOfWeek, endOfWeek, addMonths, isToday, parseISO, isAfter, isBefore,
 } from "date-fns";
 import { cn } from "@/lib/utils";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface Props {
   open: boolean;
@@ -35,12 +36,28 @@ export function WorkoutScheduleSheet({
 }: Props) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [selected, setSelected] = useState<Date>(initialDate ?? new Date());
-  const [pendingConflict, setPendingConflict] = useState<{ date: Date; existing: any[] } | null>(null);
+  const [mode, setMode] = useState<"days" | "range">("days");
+  // Multi-day pick (keys = yyyy-MM-dd)
+  const [selectedDays, setSelectedDays] = useState<Set<string>>(() => {
+    const init = initialDate ?? new Date();
+    return new Set([format(init, "yyyy-MM-dd")]);
+  });
+  // Range picker
+  const [rangeStart, setRangeStart] = useState<Date | null>(null);
+  const [rangeEnd, setRangeEnd] = useState<Date | null>(null);
+  // Days the user has explicitly unchecked in the conflict dialog (yyyy-MM-dd)
+  const [excluded, setExcluded] = useState<Set<string>>(new Set());
+  const [confirming, setConfirming] = useState(false);
   const todayMonthRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (open && initialDate) setSelected(initialDate);
+    if (open && initialDate) {
+      setSelectedDays(new Set([format(initialDate, "yyyy-MM-dd")]));
+      setRangeStart(null);
+      setRangeEnd(null);
+      setExcluded(new Set());
+      setMode("days");
+    }
   }, [open, initialDate]);
 
   // Months: from current month going forward; clients can also tap past dates
@@ -82,57 +99,121 @@ export function WorkoutScheduleSheet({
     return m;
   }, [existingWorkouts]);
 
+  // Compute the resolved list of selected dates (range expanded into individual days)
+  const resolvedDates = useMemo(() => {
+    if (mode === "range" && rangeStart && rangeEnd) {
+      const [a, b] = isAfter(rangeStart, rangeEnd) ? [rangeEnd, rangeStart] : [rangeStart, rangeEnd];
+      return eachDayOfInterval({ start: a, end: b });
+    }
+    return Array.from(selectedDays).sort().map((s) => parseISO(s));
+  }, [mode, rangeStart, rangeEnd, selectedDays]);
+
+  const finalDates = useMemo(
+    () => resolvedDates.filter((d) => !excluded.has(format(d, "yyyy-MM-dd"))),
+    [resolvedDates, excluded],
+  );
+
   const scheduleMutation = useMutation({
-    mutationFn: async (date: Date) => {
-      const dateStr = format(date, "yyyy-MM-dd");
+    mutationFn: async (dates: Date[]) => {
+      if (dates.length === 0) throw new Error("Pick at least one day");
+      // If editing an existing entry: move it to the FIRST date, then duplicate to the rest.
+      const [first, ...rest] = dates;
       if (existingClientWorkoutId) {
-        // Move existing entry
-        const { error } = await supabase
+        const { error: moveErr } = await supabase
           .from("client_workouts")
-          .update({ scheduled_date: dateStr })
+          .update({ scheduled_date: format(first, "yyyy-MM-dd") })
           .eq("id", existingClientWorkoutId);
-        if (error) throw error;
-        return { id: existingClientWorkoutId, date };
+        if (moveErr) throw moveErr;
+      } else {
+        const { error: insertErr } = await supabase
+          .from("client_workouts")
+          .insert({
+            client_id: clientId,
+            workout_plan_id: workoutPlanId,
+            assigned_by: clientId,
+            scheduled_date: format(first, "yyyy-MM-dd"),
+          });
+        if (insertErr) throw insertErr;
       }
-      // Create new self-scheduled entry (assigned_by = client_id => self)
-      const { data, error } = await supabase
-        .from("client_workouts")
-        .insert({
+      if (rest.length > 0) {
+        const rows = rest.map((d) => ({
           client_id: clientId,
           workout_plan_id: workoutPlanId,
           assigned_by: clientId,
-          scheduled_date: dateStr,
-        })
-        .select("id")
-        .single();
-      if (error) throw error;
-      return { id: data.id, date };
+          scheduled_date: format(d, "yyyy-MM-dd"),
+        }));
+        const { error: bulkErr } = await supabase.from("client_workouts").insert(rows);
+        if (bulkErr) throw bulkErr;
+      }
+      return { firstDate: first, count: dates.length };
     },
-    onSuccess: ({ date }) => {
+    onSuccess: ({ firstDate, count }) => {
       queryClient.invalidateQueries({ queryKey: ["agenda-workouts"] });
       queryClient.invalidateQueries({ queryKey: ["client-workout-for-plan"] });
       queryClient.invalidateQueries({ queryKey: ["schedule-conflicts"] });
-      toast({ title: "Workout scheduled", description: format(date, "EEEE, MMMM d") });
-      onScheduled?.(date);
+      toast({
+        title: count === 1 ? "Workout scheduled" : `Scheduled on ${count} days`,
+        description: count === 1 ? format(firstDate, "EEEE, MMMM d") : `Starting ${format(firstDate, "MMM d")}`,
+      });
+      onScheduled?.(firstDate);
       onOpenChange(false);
-      setPendingConflict(null);
+      setConfirming(false);
     },
     onError: (err: Error) => {
       toast({ title: "Couldn't schedule", description: err.message, variant: "destructive" });
     },
   });
 
+  const conflictsByDate = useMemo(() => {
+    const out = new Map<string, any[]>();
+    resolvedDates.forEach((d) => {
+      const k = format(d, "yyyy-MM-dd");
+      const c = (workoutsByDay.get(k) ?? []).filter((w) => w.id !== existingClientWorkoutId);
+      if (c.length > 0) out.set(k, c);
+    });
+    return out;
+  }, [resolvedDates, workoutsByDay, existingClientWorkoutId]);
+
   const handleMove = () => {
-    if (!selected) return;
-    const dateStr = format(selected, "yyyy-MM-dd");
-    const conflicts = (workoutsByDay.get(dateStr) ?? []).filter(
-      (w) => w.id !== existingClientWorkoutId
-    );
-    if (conflicts.length > 0) {
-      setPendingConflict({ date: selected, existing: conflicts });
+    if (resolvedDates.length === 0) return;
+    if (conflictsByDate.size > 0) {
+      // Reset exclusions so the user starts fresh per save
+      setExcluded(new Set());
+      setConfirming(true);
       return;
     }
-    scheduleMutation.mutate(selected);
+    scheduleMutation.mutate(resolvedDates);
+  };
+
+  const toggleDay = (day: Date) => {
+    if (mode === "range") {
+      // First tap sets start, second sets end, third resets to a new start
+      if (!rangeStart || (rangeStart && rangeEnd)) {
+        setRangeStart(day);
+        setRangeEnd(null);
+      } else {
+        setRangeEnd(day);
+      }
+    } else {
+      const k = format(day, "yyyy-MM-dd");
+      setSelectedDays((prev) => {
+        const next = new Set(prev);
+        if (next.has(k)) next.delete(k);
+        else next.add(k);
+        return next;
+      });
+    }
+  };
+
+  const isDaySelected = (day: Date) => {
+    if (mode === "range") {
+      if (rangeStart && rangeEnd) {
+        const [a, b] = isAfter(rangeStart, rangeEnd) ? [rangeEnd, rangeStart] : [rangeStart, rangeEnd];
+        return !isBefore(day, a) && !isAfter(day, b);
+      }
+      return rangeStart ? isSameDay(day, rangeStart) : false;
+    }
+    return selectedDays.has(format(day, "yyyy-MM-dd"));
   };
 
   const renderMonth = (monthDate: Date) => {
