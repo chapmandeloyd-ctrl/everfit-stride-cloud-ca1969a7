@@ -3,11 +3,12 @@ import { format, addDays, isToday, isSameDay, isBefore, startOfDay, startOfMonth
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { Dumbbell, Swords, Trophy, CheckSquare, Droplets, MapPin, History, ArrowLeft } from "lucide-react";
+import { Dumbbell, Swords, Trophy, CheckSquare, Droplets, MapPin, History, ArrowLeft, Activity } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { DayStripPastSnapshot } from "@/components/DayStripPastSnapshot";
+import { getIconComponent } from "@/components/cardio/cardioActivities";
 
 interface DayStripCalendarProps {
   clientId: string;
@@ -22,6 +23,7 @@ interface DayData {
   sportEvents: any[];
   tasks: any[];
   habits: any[];
+  cardio: any[];
 }
 
 export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEnabled, onDateChange }: DayStripCalendarProps) {
