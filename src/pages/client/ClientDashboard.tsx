@@ -42,6 +42,7 @@ import { DayStripCalendar } from "@/components/DayStripCalendar";
 import { QuickCardioFlow } from "@/components/cardio/QuickCardioFlow";
 import { CardioDetailSheet } from "@/components/cardio/CardioDetailSheet";
 import { SwipeToDeleteCardioRow } from "@/components/cardio/SwipeToDeleteCardioRow";
+import { getIconComponent as getCardioIconComponent } from "@/components/cardio/cardioActivities";
 import { SwipeToDeleteWorkoutRow } from "@/components/workout/SwipeToDeleteWorkoutRow";
 import { SwipeToDeleteTaskRow } from "@/components/tasks/SwipeToDeleteTaskRow";
 import { SpeedDialFAB } from "@/components/SpeedDialFAB";
