@@ -351,6 +351,20 @@ export function ClientCalendarTab({ clientId, trainerId }: ClientCalendarTabProp
                         </div>
                       </div>
                     ))}
+                    {dayCardio.map((cardio: any) => {
+                      const label = (cardio.activity_type || "Cardio").replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase());
+                      return (
+                        <div
+                          key={cardio.id}
+                          className="w-full text-left text-xs p-1.5 rounded bg-rose-500/20 text-rose-900 dark:text-rose-200"
+                        >
+                          <div className="font-medium truncate flex items-center gap-1">
+                            <Activity className="h-3 w-3 shrink-0" />
+                            {label}
+                          </div>
+                        </div>
+                      );
+                    })}
                     {dayGoals.map((goal: any) => (
                       <div
                         key={goal.id}
