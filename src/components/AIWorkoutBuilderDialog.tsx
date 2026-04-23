@@ -53,6 +53,7 @@ interface AISuggestion {
 }
 
 interface AISection {
+  block_label?: string;
   section_name: string;
   section_type: "straight_set" | "superset" | "circuit";
   rounds: number;
