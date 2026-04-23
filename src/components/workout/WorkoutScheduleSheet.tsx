@@ -243,14 +243,14 @@ export function WorkoutScheduleSheet({
         <div className="grid grid-cols-7 gap-y-2">
           {days.map((day) => {
             const inMonth = isSameMonth(day, monthDate);
-            const isSel = isSameDay(day, selected);
+            const isSel = isDaySelected(day);
             const today = isToday(day);
             const dateStr = format(day, "yyyy-MM-dd");
             const hasWorkout = (workoutsByDay.get(dateStr) ?? []).length > 0;
             return (
               <button
                 key={day.toISOString()}
-                onClick={() => inMonth && setSelected(day)}
+                onClick={() => inMonth && toggleDay(day)}
                 disabled={!inMonth}
                 className={cn(
                   "relative h-10 w-10 mx-auto rounded-full flex items-center justify-center text-sm transition-colors",
