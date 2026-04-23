@@ -9,6 +9,7 @@ import { getProtocolCardContent } from "@/lib/protocolCardContent";
 import { getTierForLevel } from "@/lib/quickPlanTierConfig";
 import { Zap } from "lucide-react";
 import type { LibraryEntry } from "@/hooks/useProtocolLibrary";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ProtocolLibraryCarouselProps {
   entries: LibraryEntry[];
