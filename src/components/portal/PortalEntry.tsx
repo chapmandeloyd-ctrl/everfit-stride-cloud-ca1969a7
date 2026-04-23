@@ -2,7 +2,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useRef, useEffect } from "react";
 import { X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 interface PortalEntryProps {
   onSelectCategory: (category: "Focus" | "Sleep" | "Escape" | "Breath") => void;
@@ -10,21 +9,13 @@ interface PortalEntryProps {
 
 export function PortalEntry({ onSelectCategory }: PortalEntryProps) {
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
   const categories: Array<"Focus" | "Sleep" | "Escape" | "Breath"> = ["Focus", "Sleep", "Escape", "Breath"];
   const [videoReady, setVideoReady] = useState(false);
   const [showButtons, setShowButtons] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const revealTimeoutRef = useRef<number | null>(null);
-  const shouldUseStaticHero = isMobile;
 
   useEffect(() => {
-    if (shouldUseStaticHero) {
-      setVideoReady(true);
-      setShowButtons(true);
-      return;
-    }
-
     const el = videoRef.current;
     if (!el) return;
 
@@ -69,7 +60,7 @@ export function PortalEntry({ onSelectCategory }: PortalEntryProps) {
       el.currentTime = 0;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shouldUseStaticHero]);
+  }, []);
 
   return (
     <div className="fixed inset-0 bg-black overflow-hidden z-50">
