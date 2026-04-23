@@ -17,11 +17,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { formatDistanceToNow, format } from 'date-fns';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { useImpersonation } from '@/hooks/useImpersonation';
 
 export default function TrainerClientHealth() {
   const { clientId } = useParams<{ clientId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { setImpersonatedClientId } = useImpersonation();
   const [showDebug, setShowDebug] = useState(false);
   const queryClient = useQueryClient();
   
@@ -120,7 +122,7 @@ export default function TrainerClientHealth() {
             size="sm"
             onClick={() => {
               if (!clientId) return;
-              localStorage.setItem('impersonatedClientId', clientId);
+              setImpersonatedClientId(clientId);
               queryClient.clear();
               navigate('/client/health/reminders', {
                 state: { returnTo: `/clients/${clientId}/health` },

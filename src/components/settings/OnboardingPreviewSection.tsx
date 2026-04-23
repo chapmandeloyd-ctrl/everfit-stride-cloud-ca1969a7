@@ -12,6 +12,7 @@ import EngineIntroStep from "@/components/onboarding/EngineIntroStep";
 import EngineQuestionsStep from "@/components/onboarding/EngineQuestionsStep";
 import type { EngineMode } from "@/lib/engineConfig";
 import { useCreateDemoClient } from "@/hooks/useCreateDemoClient";
+import { useImpersonation } from "@/hooks/useImpersonation";
 
 const ENGINE_LABELS: Record<EngineMode, { label: string; color: string }> = {
   metabolic: { label: "KSOM-360", color: "text-blue-400" },
@@ -27,12 +28,13 @@ export function OnboardingPreviewSection() {
   const [previewStep, setPreviewStep] = useState(0);
   const [isLiveMode, setIsLiveMode] = useState(false);
   const navigate = useNavigate();
+  const { setImpersonatedClientId } = useImpersonation();
   const createDemoClient = useCreateDemoClient();
 
   const handleGoLive = (engine: EngineMode) => {
     createDemoClient.mutate(engine, {
       onSuccess: (data) => {
-        localStorage.setItem("impersonatedClientId", data.client.id);
+        setImpersonatedClientId(data.client.id);
         navigate("/client/onboarding", { state: { engineMode: engine } });
       },
     });
