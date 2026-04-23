@@ -268,7 +268,7 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
 
       {/* Tap-to-play sound CTA — iOS autoplay-with-audio fallback */}
       <AnimatePresence>
-        {audioBlocked && (
+        {!audioUnlocked && scene.audio_url && (
           <motion.button
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
