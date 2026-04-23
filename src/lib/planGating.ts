@@ -112,6 +112,56 @@ function getLockMessage(reason: LockReason, minLevel?: number): string | null {
   }
 }
 
+// ─── Unlock-progress helpers ────────────────────────────
+
+/** Required streak length (days) we use for "stability"-style locks. */
+const STABILITY_STREAK_TARGET_DAYS = 7;
+
+/** Build a Level X / Y progress chip. */
+function levelProgress(currentLevel: number, requiredLevel: number): UnlockProgress {
+  return {
+    criterion: "level",
+    label: "Level",
+    current: Math.max(0, currentLevel),
+    required: Math.max(1, requiredLevel),
+  };
+}
+
+/** Build a Streak X / Y (days) progress chip. */
+function streakProgress(currentStreak: number, requiredDays = STABILITY_STREAK_TARGET_DAYS): UnlockProgress {
+  return {
+    criterion: "streak",
+    label: "Streak",
+    current: Math.max(0, currentStreak),
+    required: Math.max(1, requiredDays),
+    unit: "d",
+  };
+}
+
+/** Build a "Strong days last 14" chip from needs-support deficits. */
+function scoreStabilityProgress(needsSupportLast14: number): UnlockProgress {
+  // Translate "needs_support days" into "stable days" out of 14.
+  const stableDays = Math.max(0, 14 - needsSupportLast14);
+  return {
+    criterion: "score_stability",
+    label: "Stable days",
+    current: stableDays,
+    required: 14,
+    unit: "d",
+  };
+}
+
+/**
+ * Decides which criterion to surface for a stability-style lock.
+ * Prefers showing a streak chip when the client has any streak data,
+ * otherwise falls back to score stability over the last 14 days.
+ */
+function pickStabilityProgress(ctx: ClientGatingContext): UnlockProgress {
+  const hasStreakData = typeof ctx.currentStreak === "number";
+  if (hasStreakData) return streakProgress(ctx.currentStreak ?? 0);
+  return scoreStabilityProgress(ctx.needsSupportDaysLast14);
+}
+
 // ─── Core gating evaluation ─────────────────────────────
 
 export function evaluatePlanGating(
