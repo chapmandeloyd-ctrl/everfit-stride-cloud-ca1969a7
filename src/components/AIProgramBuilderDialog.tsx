@@ -248,6 +248,77 @@ export function AIProgramBuilderDialog({ open, onOpenChange, onProgramCreated }:
       // Map workout_name → workout_plan_id
       const nameToId = new Map(selectedWorkouts.map((w) => [w.name.toLowerCase(), w.id]));
 
+      // FULL-BUILD MODE: First create the AI-generated workouts in the library
+      if (buildMode === "full_build" && generated.workouts && generated.workouts.length > 0) {
+        // Build exercise name → id lookup from trainer's library
+        const exerciseNameToId = new Map(
+          (exercises || []).map((e: any) => [e.name.toLowerCase(), e.id])
+        );
+
+        for (const w of generated.workouts) {
+          // Insert workout_plan
+          const { data: plan, error: planErr } = await supabase
+            .from("workout_plans")
+            .insert({
+              name: w.name,
+              description: w.description,
+              category: w.category,
+              difficulty: w.difficulty,
+              trainer_id: user.id,
+            } as any)
+            .select()
+            .single();
+          if (planErr) throw planErr;
+
+          // Insert sections + exercises
+          for (let sIdx = 0; sIdx < (w.sections || []).length; sIdx++) {
+            const sec = w.sections[sIdx];
+            const { data: section, error: secErr } = await supabase
+              .from("workout_sections")
+              .insert({
+                workout_plan_id: plan.id,
+                name: sec.section_name || sec.block_label,
+                section_type: sec.section_type,
+                order_index: sIdx,
+                rounds: sec.rounds || 1,
+              } as any)
+              .select()
+              .single();
+            if (secErr) throw secErr;
+
+            const exerciseRows = (sec.exercises || [])
+              .map((ex, exIdx) => {
+                const exId = exerciseNameToId.get(ex.exercise_name.toLowerCase());
+                if (!exId) return null;
+                const isTime = /sec|min|s$/i.test(ex.reps_or_time);
+                return {
+                  workout_plan_id: plan.id,
+                  section_id: section.id,
+                  exercise_id: exId,
+                  order_index: exIdx,
+                  sets: ex.sets,
+                  reps: isTime ? null : null,
+                  duration_seconds: isTime ? parseInt(ex.reps_or_time) || null : null,
+                  rest_seconds: ex.rest_seconds,
+                  notes: ex.notes || ex.reps_or_time || "",
+                  exercise_type: "normal",
+                };
+              })
+              .filter(Boolean);
+
+            if (exerciseRows.length > 0) {
+              const { error: exErr } = await supabase
+                .from("workout_plan_exercises")
+                .insert(exerciseRows as any);
+              if (exErr) throw exErr;
+            }
+          }
+
+          // Register in nameToId so schedule can link to it
+          nameToId.set(w.name.toLowerCase(), plan.id);
+        }
+      }
+
       // 1) Save program template (if requested)
       let programId: string | null = null;
       if (saveAsTemplate) {
