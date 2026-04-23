@@ -662,7 +662,9 @@ export function AIProgramBuilderDialog({ open, onOpenChange, onProgramCreated }:
             <div className="text-center">
               <p className="font-medium">Designing your program…</p>
               <p className="text-sm text-muted-foreground mt-1">
-                GPT-5 is scheduling {selectedWorkoutIds.length} workouts across {weeks} weeks
+                {buildMode === "full_build"
+                  ? `GPT-5 is inventing workouts and scheduling ${weeks} weeks`
+                  : `GPT-5 is scheduling ${selectedWorkoutIds.length} workouts across ${weeks} weeks`}
               </p>
             </div>
           </div>
