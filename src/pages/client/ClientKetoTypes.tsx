@@ -1,13 +1,11 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Lock, Zap } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Zap } from "lucide-react";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { ClientLayout } from "@/components/ClientLayout";
-import { KetoTypeCard } from "@/components/keto/KetoTypeCard";
-import { useState, useEffect } from "react";
+import { InteractiveKetoTypeCard } from "@/components/keto/InteractiveKetoTypeCard";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { PlanLockedDialog } from "@/components/PlanLockedDialog";
 
 interface KetoCategory {
@@ -32,6 +30,8 @@ interface KetoType {
   color: string;
   category_id: string;
   order_index: number;
+  how_it_works: string | null;
+  built_for: string[] | null;
 }
 
 export default function ClientKetoTypes() {
@@ -93,12 +93,25 @@ export default function ClientKetoTypes() {
   });
 
   const activeKetoTypeId = activeAssignment?.keto_type_id;
-  const activeKetoType = activeAssignment?.keto_types as KetoType | null;
 
   const grouped = categories?.map((cat) => ({
     category: cat,
     items: ketoTypes?.filter((t) => t.category_id === cat.id) || [],
   })).filter((g) => g.items.length > 0) || [];
+
+  // Collect each card's auto-measured height, then feed back the max so all
+  // cards in the list end up the same height (no dead space, no clipping).
+  const [heights, setHeights] = useState<Record<string, number>>({});
+  const tallest = useMemo(() => {
+    const vals = Object.values(heights);
+    return vals.length ? Math.max(...vals) : 0;
+  }, [heights]);
+  const makeOnMeasure = useCallback(
+    (key: string) => (h: number) => {
+      setHeights((prev) => (prev[key] === h ? prev : { ...prev, [key]: h }));
+    },
+    []
+  );
 
   return (
     <ClientLayout>
@@ -114,33 +127,6 @@ export default function ClientKetoTypes() {
             Choose your nutrition framework. Each type controls what you eat — your fasting protocol controls when.
           </p>
         </div>
-
-        {/* Current Keto Type Banner */}
-        {activeKetoType && (
-          <Card
-            className="overflow-hidden cursor-pointer"
-            style={{ backgroundColor: `${activeKetoType.color}08`, borderColor: `${activeKetoType.color}25` }}
-            onClick={() => navigate(`/client/keto-types/${activeKetoType.id}`)}
-          >
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-1">
-                <Zap className="h-3.5 w-3.5" style={{ color: activeKetoType.color }} />
-                <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: activeKetoType.color }}>
-                  Your Current Keto Type
-                </span>
-              </div>
-              <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-black" style={{ color: activeKetoType.color }}>
-                  {activeKetoType.abbreviation}
-                </span>
-                <span className="text-base text-muted-foreground">{activeKetoType.name}</span>
-              </div>
-              {activeKetoType.subtitle && (
-                <p className="text-sm text-muted-foreground mt-0.5">{activeKetoType.subtitle}</p>
-              )}
-            </CardContent>
-          </Card>
-        )}
 
         {isLoading ? (
           <div className="flex justify-center py-12">
@@ -165,28 +151,43 @@ export default function ClientKetoTypes() {
                 </h2>
               </div>
 
-              {/* Keto type cards */}
-              {group.items.map((kt) => (
-                <KetoTypeCard
-                  key={kt.id}
-                  abbreviation={kt.abbreviation}
-                  name={kt.name}
-                  subtitle={kt.subtitle}
-                  fat_pct={kt.fat_pct}
-                  protein_pct={kt.protein_pct}
-                  carbs_pct={kt.carbs_pct}
-                  difficulty={kt.difficulty}
-                  color={kt.color}
-                  isActive={kt.id === activeKetoTypeId}
-                  onClick={() => {
-                    if (kt.id === activeKetoTypeId) {
-                      navigate(`/client/keto-types/${kt.id}`);
-                    } else {
-                      setShowLocked(true);
+              {/* Keto type cards — full interactive design.
+                  Active card shows everything; locked cards are dimmed and
+                  hide their detail sections (consistent with protocol library). */}
+              {group.items.map((kt) => {
+                const isActive = kt.id === activeKetoTypeId;
+                return (
+                  <InteractiveKetoTypeCard
+                    key={kt.id}
+                    ketoType={{
+                      abbreviation: kt.abbreviation,
+                      name: kt.name,
+                      subtitle: kt.subtitle,
+                      description: kt.description,
+                      difficulty: kt.difficulty,
+                      fat_pct: kt.fat_pct,
+                      protein_pct: kt.protein_pct,
+                      carbs_pct: kt.carbs_pct,
+                      carb_limit_grams: kt.carb_limit_grams,
+                      how_it_works: kt.how_it_works,
+                      built_for: kt.built_for,
+                      color: kt.color,
+                    }}
+                    themeColor={kt.color}
+                    isCurrent={isActive}
+                    dimmed={!isActive}
+                    hideExportPdf={!isActive}
+                    onOpen={
+                      isActive
+                        ? () => navigate(`/client/keto-types/${kt.id}`)
+                        : () => setShowLocked(true)
                     }
-                  }}
-                />
-              ))}
+                    openLabel={isActive ? "Open keto details" : "Locked — message your trainer"}
+                    onMeasureHeight={makeOnMeasure(kt.id)}
+                    forcedHeight={tallest > 0 ? tallest : undefined}
+                  />
+                );
+              })}
             </div>
           ))
         ) : (
