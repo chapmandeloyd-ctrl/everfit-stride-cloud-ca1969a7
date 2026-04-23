@@ -201,13 +201,14 @@ export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEn
         const startDay = new Date(h.start_date + "T00:00:00").getDay();
         return date.getDay() === startDay;
       }) || [],
+      cardio: cardio?.filter((c: any) => c.scheduled_date === dateStr) || [],
     };
   }
 
   function hasDots(date: Date) {
     const data = getDayData(date);
     return {
-      hasWorkout: data.workouts.length > 0,
+      hasWorkout: data.workouts.length > 0 || data.cardio.length > 0,
       hasSport: data.sportEvents.length > 0,
       hasTask: data.tasks.length > 0 || data.habits.length > 0,
     };
