@@ -10,6 +10,7 @@ import { getTierForLevel } from "@/lib/quickPlanTierConfig";
 import { Zap } from "lucide-react";
 import type { LibraryEntry } from "@/hooks/useProtocolLibrary";
 import { LockedPlanPopover } from "@/components/LockedPlanPopover";
+import { LockProgress } from "@/components/LockProgress";
 
 interface ProtocolLibraryCarouselProps {
   entries: LibraryEntry[];
@@ -284,6 +285,11 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
                     <LockedPlanPopover
                       message={`Unlocks at Level ${entry.minLevelRequired}. Keep up your streak — or message your trainer to unlock it sooner.`}
                       planName={entry.name}
+                      progress={{
+                        current: currentLevel,
+                        required: entry.minLevelRequired,
+                        label: "Level",
+                      }}
                     >
                       <button
                         type="button"
@@ -303,6 +309,18 @@ export function ProtocolLibraryCarousel({ entries, currentLevel, selectedKey }: 
                     dimmed={isLocked}
                   />
                 </div>
+                {isLocked && (
+                  <div
+                    className="absolute inset-x-3 bottom-3 z-20 rounded-lg bg-background/85 backdrop-blur-md border border-border/60 px-3 py-2 shadow-md pointer-events-none"
+                    data-no-flip
+                  >
+                    <LockProgress
+                      current={currentLevel}
+                      required={entry.minLevelRequired}
+                      label="Level"
+                    />
+                  </div>
+                )}
               </div>
             </div>
           );

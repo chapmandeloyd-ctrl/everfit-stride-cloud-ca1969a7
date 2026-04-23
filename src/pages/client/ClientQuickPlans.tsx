@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LockedPlanPopover } from "@/components/LockedPlanPopover";
+import { LockProgress } from "@/components/LockProgress";
 import { ArrowLeft, Clock, Hourglass, UtensilsCrossed, Lock, ShieldCheck, ChevronRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -60,6 +61,7 @@ export default function ClientQuickPlans() {
   const navigate = useNavigate();
   const [lockedMessage, setLockedMessage] = useState<string | null>(null);
   const { evaluatePlan, isReady } = usePlanGating();
+  const { context } = usePlanGating();
 
   const { data: plans, isLoading } = useQuery({
     queryKey: ["quick-fasting-plans"],
@@ -180,6 +182,15 @@ export default function ClientQuickPlans() {
                             <LockedPlanPopover
                               message={gating?.lockMessage || "Message your trainer to unlock this plan."}
                               planName={plan.name}
+                              progress={
+                                gating?.lockReason === "level_locked"
+                                  ? {
+                                      current: context.currentLevel,
+                                      required: plan.min_level_required || 1,
+                                      label: "Level",
+                                    }
+                                  : undefined
+                              }
                             >
                               <button
                                 type="button"
