@@ -153,7 +153,7 @@ export default function ClientPortal() {
   // Active scene → cinematic player. Library can be opened from inside the player.
   if (activeScene) {
     return (
-      <>
+      <div className="fixed inset-0 bg-black z-[99]">
         <PortalPlayer
           scene={activeScene}
           onBack={() => setActiveScene(null)}
@@ -181,9 +181,13 @@ export default function ClientPortal() {
             }}
           />
         )}
-      </>
+      </div>
     );
   }
 
-  return <PortalEntry onSelectCategory={handleSelectCategory} />;
+  return (
+    <div className="fixed inset-0 bg-black">
+      <PortalEntry onSelectCategory={handleSelectCategory} />
+    </div>
+  );
 }

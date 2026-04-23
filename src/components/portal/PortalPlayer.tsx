@@ -61,6 +61,9 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
   const [elapsed, setElapsed] = useState(0);
   const [volumeOpen, setVolumeOpen] = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
+  // iOS Safari blocks audio autoplay until a direct user gesture INSIDE this
+  // player. The tap that brought us here (PortalEntry button) doesn't count.
+  const [audioBlocked, setAudioBlocked] = useState(false);
 
   const dragY = useMotionValue(0);
   const circleScale = useTransform(dragY, [0, 200], [1, 1.15]);
@@ -144,6 +147,37 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
     syncVideoPlayback();
     syncAudioPlayback();
   }, [syncAudioPlayback, syncVideoPlayback]);
+
+  // Detect whether audio actually started — if not, surface the tap-to-play CTA.
+  useEffect(() => {
+    if (!scene.audio_url) {
+      setAudioBlocked(false);
+      return;
+    }
+    const id = window.setTimeout(() => {
+      const a = audioRef.current;
+      if (a && a.paused && playing && !audioPaused) {
+        setAudioBlocked(true);
+      } else {
+        setAudioBlocked(false);
+      }
+    }, 600);
+    return () => window.clearTimeout(id);
+  }, [audioPaused, playing, scene.audio_url, scene.id]);
+
+  const handleUnlockAudio = useCallback(() => {
+    const a = audioRef.current;
+    if (a) {
+      a.muted = false;
+      a.volume = muted ? 0 : volume;
+      a.play().then(() => setAudioBlocked(false)).catch(() => {
+        // Last resort: unmute by toggling state and retry
+        setAudioBlocked(false);
+      });
+    }
+    const v = videoRef.current;
+    if (v && v.paused) v.play().catch(() => {});
+  }, [muted, volume]);
 
   // When the scene's audio source changes (category/scene switch), reload and resume playback
   useEffect(() => {
@@ -243,6 +277,24 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
         <audio ref={audioRef} src={scene.audio_url} loop preload="auto" />
       )}
 
+      {/* Tap-to-play sound CTA — iOS autoplay-with-audio fallback */}
+      <AnimatePresence>
+        {audioBlocked && (
+          <motion.button
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            onClick={handleUnlockAudio}
+            className="absolute z-[120] left-1/2 -translate-x-1/2 top-[max(env(safe-area-inset-top,0px),16px)] mt-14 flex items-center gap-2 px-4 py-2 rounded-full bg-white/15 backdrop-blur-xl border border-white/30 text-white text-[11px] uppercase tracking-[0.3em] hover:bg-white/25 active:scale-95 transition-all"
+            aria-label="Tap to play sound"
+          >
+            <Volume2 className="h-3.5 w-3.5" />
+            <span>Tap for sound</span>
+          </motion.button>
+        )}
+      </AnimatePresence>
+
       {/* Video — always rendered, scales between circle and full-screen */}
       <AnimatePresence mode="wait">
         {immersive ? (
@@ -313,9 +365,9 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
           <motion.div
             key="preview"
             className="absolute inset-0 flex flex-col"
-            initial={{ opacity: 0 }}
+            initial={{ opacity: 1 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            exit={{ opacity: 1 }}
           >
             {/* Galaxy nebula background, by category (or scene/category override) */}
             <div className="absolute inset-0 bg-black overflow-hidden">
