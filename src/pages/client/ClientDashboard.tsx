@@ -1502,7 +1502,7 @@ export default function ClientDashboard() {
     enabled: !!clientId,
   });
 
-  // Fetch today's completed cardio sessions
+  // Fetch today's cardio sessions (in-progress, completed today, OR scheduled for today)
   const { data: todayCardioSessions } = useQuery({
     queryKey: ["cardio-sessions-today", clientId],
     queryFn: async () => {
@@ -1511,7 +1511,7 @@ export default function ClientDashboard() {
         .from("cardio_sessions" as any)
         .select("*")
         .eq("client_id", clientId)
-        .or(`created_at.gte.${today}T00:00:00,completed_at.gte.${today}T00:00:00,status.eq.in_progress`)
+        .or(`created_at.gte.${today}T00:00:00,completed_at.gte.${today}T00:00:00,status.eq.in_progress,and(status.eq.scheduled,scheduled_date.eq.${today})`)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data as any[];
