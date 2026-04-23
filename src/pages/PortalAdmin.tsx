@@ -45,6 +45,7 @@ interface Scene {
   override_nebula_id: string | null;
   override_horizon_id: string | null;
   override_show_horizon: boolean | null;
+  cloudflare_video_id: string | null;
 }
 
 interface BackgroundLite {
@@ -141,6 +142,26 @@ export default function PortalAdmin() {
       const { data } = supabase.storage.from(bucket).getPublicUrl(path);
       setForm((f) => ({ ...f, [field]: data.publicUrl }));
       toast.success("Uploaded");
+
+      // For video uploads, also forward to Cloudflare Stream so the client
+      // plays from the global CDN. Fire-and-forget — UI doesn't block.
+      if (field === "video_url" && file.type.startsWith("video/")) {
+        toast.info("Optimizing for global delivery…");
+        try {
+          const { data: cfData, error: cfErr } = await supabase.functions.invoke(
+            "cloudflare-stream-upload",
+            { body: { url: data.publicUrl, name: file.name.replace(/\.[^.]+$/, "") } },
+          );
+          if (cfErr) throw cfErr;
+          if (cfData?.video_id) {
+            setForm((f) => ({ ...f, cloudflare_video_id: cfData.video_id } as any));
+            toast.success("Cloudflare-ready ✓");
+          }
+        } catch (cfErr: any) {
+          console.error("[cloudflare] forward failed", cfErr);
+          toast.warning("Saved to storage; Cloudflare upload will retry on next save");
+        }
+      }
     } catch (e: any) {
       toast.error(e.message);
     } finally {
@@ -172,6 +193,7 @@ export default function PortalAdmin() {
             override_nebula_id: form.override_nebula_id ?? null,
             override_horizon_id: form.override_horizon_id ?? null,
             override_show_horizon: form.override_show_horizon ?? null,
+            cloudflare_video_id: form.cloudflare_video_id ?? null,
           } as any)
           .eq("id", editing.id);
         if (error) throw error;
@@ -192,6 +214,7 @@ export default function PortalAdmin() {
           override_nebula_id: form.override_nebula_id ?? null,
           override_horizon_id: form.override_horizon_id ?? null,
           override_show_horizon: form.override_show_horizon ?? null,
+          cloudflare_video_id: form.cloudflare_video_id ?? null,
         } as any);
         if (error) throw error;
       }

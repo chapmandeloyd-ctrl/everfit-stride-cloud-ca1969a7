@@ -10,6 +10,7 @@ import nebulaSleep from "@/assets/portal-nebula-sleep.jpg";
 import nebulaEscape from "@/assets/portal-nebula-escape.jpg";
 import { Starfield } from "./Starfield";
 import { PortalControlPanel } from "./PortalControlPanel";
+import { CloudflareStreamPlayer } from "./CloudflareStreamPlayer";
 
 function builtInNebulaFor(category: string): string {
   const c = category?.toLowerCase();
@@ -29,6 +30,7 @@ export interface PortalScene {
   audio_volume: number;
   loop_video: boolean;
   is_premium: boolean;
+  cloudflare_video_id?: string | null;
   override_nebula_id?: string | null;
   override_horizon_id?: string | null;
   override_show_horizon?: boolean | null;
@@ -257,18 +259,27 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
             onDragEnd={handleDragEnd}
             style={{ y: dragY }}
           >
-            <video
-              ref={videoRef}
-              src={scene.video_url}
-              autoPlay
-              loop={scene.loop_video}
-              muted
-              playsInline
-              preload="auto"
-              disablePictureInPicture
-              disableRemotePlayback
-              className="absolute inset-0 w-full h-full object-cover object-bottom"
-            />
+            {scene.cloudflare_video_id ? (
+              <CloudflareStreamPlayer
+                videoId={scene.cloudflare_video_id}
+                fallbackUrl={scene.thumbnail_url ?? undefined}
+                scale={1.05}
+                className="absolute inset-0"
+              />
+            ) : (
+              <video
+                ref={videoRef}
+                src={scene.video_url}
+                autoPlay
+                loop={scene.loop_video}
+                muted
+                playsInline
+                preload="auto"
+                disablePictureInPicture
+                disableRemotePlayback
+                className="absolute inset-0 w-full h-full object-cover object-bottom"
+              />
+            )}
             {/* Vignette for cinematic feel */}
             <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/60 pointer-events-none" />
 
@@ -386,18 +397,27 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
                       "inset 0 0 0 1.5px rgba(255,255,255,0.95), 0 0 40px 6px rgba(255,255,255,0.18), 0 0 80px 12px rgba(255,255,255,0.08)",
                   }}
                 />
-                <video
-                  ref={videoRef}
-                  src={scene.video_url}
-                  autoPlay
-                  loop={scene.loop_video}
-                  muted
-                  playsInline
-                  preload="auto"
-                  disablePictureInPicture
-                  disableRemotePlayback
-                  className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-                />
+                {scene.cloudflare_video_id ? (
+                  <CloudflareStreamPlayer
+                    videoId={scene.cloudflare_video_id}
+                    fallbackUrl={scene.thumbnail_url ?? undefined}
+                    scale={1.05}
+                    className="absolute inset-0"
+                  />
+                ) : (
+                  <video
+                    ref={videoRef}
+                    src={scene.video_url}
+                    autoPlay
+                    loop={scene.loop_video}
+                    muted
+                    playsInline
+                    preload="auto"
+                    disablePictureInPicture
+                    disableRemotePlayback
+                    className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                  />
+                )}
               </motion.div>
 
               {/* Title directly under circle */}
