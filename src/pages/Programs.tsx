@@ -318,6 +318,12 @@ export default function Programs() {
           </DialogContent>
         </Dialog>
       </div>
+
+      <AIProgramBuilderDialog
+        open={aiBuilderOpen}
+        onOpenChange={setAiBuilderOpen}
+        onProgramCreated={() => queryClient.invalidateQueries({ queryKey: ["programs"] })}
+      />
     </DashboardLayout>
   );
 }
