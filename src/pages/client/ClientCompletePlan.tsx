@@ -25,7 +25,6 @@ import type { DemoProtocol } from "@/components/plan/InteractiveProtocolCardDemo
 import { InteractiveKetoTypeCard } from "@/components/keto/InteractiveKetoTypeCard";
 import { MacroComparisonFlipCard } from "@/components/keto/MacroComparisonFlipCard";
 import { buildSynergyProtocol } from "@/lib/synergyDemoContent";
-import { DeviceTelemetryButton } from "@/components/debug/DeviceTelemetryButton";
 import { ProtocolLibraryCarousel } from "@/components/plan/ProtocolLibraryCarousel";
 import { useProtocolLibrary } from "@/hooks/useProtocolLibrary";
 
@@ -431,7 +430,6 @@ export default function ClientCompletePlan() {
           </Button>
         </div>
       </div>
-      <DeviceTelemetryButton />
     </ClientLayout>
   );
 }
