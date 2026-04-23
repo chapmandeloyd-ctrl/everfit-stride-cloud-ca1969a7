@@ -554,6 +554,7 @@ export default function WorkoutDetail() {
           onResume={() => { unlockAudioForMobile(); handleResume(); }}
           onStartFresh={async () => { unlockAudioForMobile(); await createActiveSession(); setIsPlaying(true); }}
           onBack={() => navigate(-1)}
+          onOpenActions={isClient ? () => setActionsOpen(true) : undefined}
         />
 
 
