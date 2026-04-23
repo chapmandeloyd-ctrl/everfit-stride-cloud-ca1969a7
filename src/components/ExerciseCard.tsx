@@ -21,6 +21,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ManageExerciseAlternativesDialog } from "@/components/ManageExerciseAlternativesDialog";
 import { cn } from "@/lib/utils";
+import { ExerciseVideoPlayer } from "@/components/exercise/ExerciseVideoPlayer";
 
 interface Exercise {
   id: string;
@@ -30,6 +31,7 @@ interface Exercise {
   equipment: string | null;
   image_url: string | null;
   video_url: string | null;
+  cloudflare_video_id?: string | null;
 }
 
 interface ExerciseCardProps {
@@ -246,9 +248,16 @@ export function ExerciseCard({ exercise, onEdit, selectionMode, isSelected, onTo
           <DialogHeader className="p-6 pb-2">
             <DialogTitle>{exercise.name}</DialogTitle>
           </DialogHeader>
-          {embedUrl && (
+          {(exercise.cloudflare_video_id || embedUrl) && (
             <div className="w-full aspect-video">
-              {isDirectVideo ? (
+              {exercise.cloudflare_video_id ? (
+                <ExerciseVideoPlayer
+                  cloudflareVideoId={exercise.cloudflare_video_id}
+                  fallbackUrl={exercise.video_url}
+                  controls
+                  className="bg-black"
+                />
+              ) : isDirectVideo ? (
                 <video
                   src={embedUrl}
                   controls

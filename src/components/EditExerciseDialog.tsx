@@ -213,10 +213,31 @@ export function EditExerciseDialog({ open, onOpenChange, exercise }: EditExercis
 
       setIsUploading(true);
       setUploadProgress(null);
+      let newCloudflareVideoId: string | null | undefined = undefined;
       try {
         // Upload new video if file is selected
         if (videoFile && user?.id && videoSourceType === "upload") {
           videoUrl = await uploadVideo(videoFile, user.id, "exercise-videos", setUploadProgress);
+          // Fire-and-forget forward to Cloudflare Stream so playback comes from
+          // the global CDN. If it fails we still save the Supabase URL.
+          try {
+            toast({ title: "Optimizing for global delivery…" });
+            const { data: cfData, error: cfErr } = await supabase.functions.invoke(
+              "cloudflare-stream-upload",
+              { body: { url: videoUrl, name: (formData.name || "exercise").slice(0, 60) } },
+            );
+            if (cfErr) throw cfErr;
+            if (cfData?.video_id) {
+              newCloudflareVideoId = cfData.video_id;
+              toast({ title: "Cloudflare-ready ✓" });
+            }
+          } catch (cfErr) {
+            console.error("[cloudflare] forward failed", cfErr);
+            // non-fatal — exercise still gets saved with Supabase URL
+          }
+        }
+        if (removeVideo) {
+          newCloudflareVideoId = null;
         }
       } finally {
         setIsUploading(false);
@@ -254,6 +275,14 @@ export function EditExerciseDialog({ open, onOpenChange, exercise }: EditExercis
           video_url: videoUrl,
           image_url: imageUrl,
           is_unilateral: formData.is_unilateral,
+          ...(newCloudflareVideoId !== undefined
+            ? {
+                cloudflare_video_id: newCloudflareVideoId,
+                cloudflare_migration_status: newCloudflareVideoId ? "done" : "not_applicable",
+                cloudflare_migrated_at: newCloudflareVideoId ? new Date().toISOString() : null,
+                cloudflare_migration_error: null,
+              }
+            : {}),
         })
         .eq("id", exercise.id)
         .select()
