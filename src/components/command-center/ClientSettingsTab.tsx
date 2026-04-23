@@ -605,6 +605,44 @@ export function ClientSettingsTab({ clientId, trainerId }: ClientSettingsTabProp
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-1">
+          {(() => {
+            const workoutKeys = [
+              "training_enabled",
+              "on_demand_enabled",
+              "client_wod_builder_enabled",
+              "workout_comments_enabled",
+            ] as const;
+            const allOff = workoutKeys.every(
+              (k) => (settings?.[k as keyof typeof settings] as boolean) === false
+            );
+            return (
+              <div className="mb-3 rounded-lg border border-destructive/30 bg-destructive/5 p-4 flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-lg flex items-center justify-center bg-destructive/10 text-destructive">
+                    <Dumbbell className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <Label className="text-base font-semibold">Disable all workouts</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Master switch — turns off Training, On-Demand, WOD Builder, and Workout Comments at once.
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  checked={allOff}
+                  onCheckedChange={(checked) => {
+                    const newValue = !checked; // checked = "all disabled" → features = false
+                    workoutKeys.forEach((k) =>
+                      toggleMutation.mutate({ key: k, value: newValue })
+                    );
+                    toast({
+                      title: checked ? "All workouts disabled" : "Workouts re-enabled",
+                    });
+                  }}
+                />
+              </div>
+            );
+          })()}
           {FEATURES.map((feature, index) => {
             const Icon = feature.icon;
             const isEnabled = settings?.[feature.key as keyof typeof settings] as boolean ?? true;
