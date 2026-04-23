@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Sparkles, Loader2, Calendar, ArrowLeft, Check, Dumbbell } from "lucide-react";
+import { Sparkles, Loader2, Calendar, ArrowLeft, Check, Dumbbell, Wand2, Library } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -31,10 +31,35 @@ interface ScheduleItem {
   notes?: string;
 }
 
+interface GeneratedSectionExercise {
+  exercise_name: string;
+  sets: number;
+  reps_or_time: string;
+  rest_seconds: number;
+  notes?: string;
+}
+
+interface GeneratedSection {
+  block_label: string;
+  section_name: string;
+  section_type: "straight_set" | "superset" | "circuit";
+  rounds: number;
+  exercises: GeneratedSectionExercise[];
+}
+
+interface GeneratedWorkout {
+  name: string;
+  description: string;
+  category: string;
+  difficulty: string;
+  sections: GeneratedSection[];
+}
+
 interface GeneratedProgram {
   program_name: string;
   program_description: string;
   schedule: ScheduleItem[];
+  workouts?: GeneratedWorkout[]; // present in full-build mode
 }
 
 const DAY_LABELS = ["", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -53,6 +78,7 @@ export function AIProgramBuilderDialog({ open, onOpenChange, onProgramCreated }:
   const { toast } = useToast();
 
   const [step, setStep] = useState<Step>("setup");
+  const [buildMode, setBuildMode] = useState<"use_existing" | "full_build">("use_existing");
   const [prompt, setPrompt] = useState("");
   const [selectedWorkoutIds, setSelectedWorkoutIds] = useState<string[]>([]);
   const [weeks, setWeeks] = useState("6");
@@ -87,6 +113,21 @@ export function AIProgramBuilderDialog({ open, onOpenChange, onProgramCreated }:
     enabled: !!user?.id && open,
   });
 
+  // Fetch trainer's exercise library (used by full-build mode)
+  const { data: exercises } = useQuery({
+    queryKey: ["program-builder-exercises", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("exercises")
+        .select("id, name")
+        .eq("trainer_id", user?.id)
+        .order("name");
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user?.id && open && buildMode === "full_build",
+  });
+
   // Fetch trainer's clients
   const { data: clients } = useQuery({
     queryKey: ["program-builder-clients", user?.id],
@@ -111,6 +152,7 @@ export function AIProgramBuilderDialog({ open, onOpenChange, onProgramCreated }:
 
   const reset = () => {
     setStep("setup");
+    setBuildMode("use_existing");
     setPrompt("");
     setSelectedWorkoutIds([]);
     setWeeks("6");
@@ -143,30 +185,35 @@ export function AIProgramBuilderDialog({ open, onOpenChange, onProgramCreated }:
 
   const canGenerate =
     prompt.trim().length > 0 &&
-    selectedWorkoutIds.length >= 1 &&
+    (buildMode === "full_build"
+      ? (exercises || []).length > 0
+      : selectedWorkoutIds.length >= 1) &&
     (restStrategy === "auto" || fixedPattern.length === parseInt(daysPerWeek));
 
   const handleGenerate = async () => {
     setStep("generating");
     try {
-      const { data, error } = await supabase.functions.invoke("ai-workout-builder", {
-        body: {
-          mode: "build_program",
-          prompt,
-          workouts: selectedWorkouts.map((w) => ({
-            name: w.name,
-            category: w.category,
-            difficulty: w.difficulty,
-          })),
-          weeks: parseInt(weeks),
-          days_per_week: parseInt(daysPerWeek),
-          progression,
-          rest_strategy: restStrategy,
-          fixed_pattern: restStrategy === "fixed"
-            ? fixedPattern.map((d) => DAYS_FULL.find((x) => x.value === d)?.label).filter(Boolean)
-            : undefined,
-        },
-      });
+      const body: any = {
+        mode: buildMode === "full_build" ? "build_full_program" : "build_program",
+        prompt,
+        weeks: parseInt(weeks),
+        days_per_week: parseInt(daysPerWeek),
+        progression,
+        rest_strategy: restStrategy,
+        fixed_pattern: restStrategy === "fixed"
+          ? fixedPattern.map((d) => DAYS_FULL.find((x) => x.value === d)?.label).filter(Boolean)
+          : undefined,
+      };
+      if (buildMode === "full_build") {
+        body.exercise_names = (exercises || []).map((e: any) => e.name);
+      } else {
+        body.workouts = selectedWorkouts.map((w) => ({
+          name: w.name,
+          category: w.category,
+          difficulty: w.difficulty,
+        }));
+      }
+      const { data, error } = await supabase.functions.invoke("ai-workout-builder", { body });
 
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
@@ -200,6 +247,77 @@ export function AIProgramBuilderDialog({ open, onOpenChange, onProgramCreated }:
     try {
       // Map workout_name → workout_plan_id
       const nameToId = new Map(selectedWorkouts.map((w) => [w.name.toLowerCase(), w.id]));
+
+      // FULL-BUILD MODE: First create the AI-generated workouts in the library
+      if (buildMode === "full_build" && generated.workouts && generated.workouts.length > 0) {
+        // Build exercise name → id lookup from trainer's library
+        const exerciseNameToId = new Map(
+          (exercises || []).map((e: any) => [e.name.toLowerCase(), e.id])
+        );
+
+        for (const w of generated.workouts) {
+          // Insert workout_plan
+          const { data: plan, error: planErr } = await supabase
+            .from("workout_plans")
+            .insert({
+              name: w.name,
+              description: w.description,
+              category: w.category,
+              difficulty: w.difficulty,
+              trainer_id: user.id,
+            } as any)
+            .select()
+            .single();
+          if (planErr) throw planErr;
+
+          // Insert sections + exercises
+          for (let sIdx = 0; sIdx < (w.sections || []).length; sIdx++) {
+            const sec = w.sections[sIdx];
+            const { data: section, error: secErr } = await supabase
+              .from("workout_sections")
+              .insert({
+                workout_plan_id: plan.id,
+                name: sec.section_name || sec.block_label,
+                section_type: sec.section_type,
+                order_index: sIdx,
+                rounds: sec.rounds || 1,
+              } as any)
+              .select()
+              .single();
+            if (secErr) throw secErr;
+
+            const exerciseRows = (sec.exercises || [])
+              .map((ex, exIdx) => {
+                const exId = exerciseNameToId.get(ex.exercise_name.toLowerCase());
+                if (!exId) return null;
+                const isTime = /sec|min|s$/i.test(ex.reps_or_time);
+                return {
+                  workout_plan_id: plan.id,
+                  section_id: section.id,
+                  exercise_id: exId,
+                  order_index: exIdx,
+                  sets: ex.sets,
+                  reps: isTime ? null : null,
+                  duration_seconds: isTime ? parseInt(ex.reps_or_time) || null : null,
+                  rest_seconds: ex.rest_seconds,
+                  notes: ex.notes || ex.reps_or_time || "",
+                  exercise_type: "normal",
+                };
+              })
+              .filter(Boolean);
+
+            if (exerciseRows.length > 0) {
+              const { error: exErr } = await supabase
+                .from("workout_plan_exercises")
+                .insert(exerciseRows as any);
+              if (exErr) throw exErr;
+            }
+          }
+
+          // Register in nameToId so schedule can link to it
+          nameToId.set(w.name.toLowerCase(), plan.id);
+        }
+      }
 
       // 1) Save program template (if requested)
       let programId: string | null = null;
@@ -280,6 +398,9 @@ export function AIProgramBuilderDialog({ open, onOpenChange, onProgramCreated }:
       }
 
       const parts: string[] = [];
+      if (buildMode === "full_build" && generated.workouts) {
+        parts.push(`${generated.workouts.length} workouts created`);
+      }
       if (saveAsTemplate) parts.push("saved as template");
       if (assignedCount > 0) parts.push(`${assignedCount} workouts assigned`);
       toast({
@@ -330,19 +451,62 @@ export function AIProgramBuilderDialog({ open, onOpenChange, onProgramCreated }:
         {step === "setup" && (
           <ScrollArea className="flex-1 pr-4 -mr-4">
             <div className="space-y-5">
+              {/* Mode toggle */}
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setBuildMode("use_existing")}
+                  className={`p-3 rounded-md border text-left transition ${
+                    buildMode === "use_existing"
+                      ? "border-primary bg-primary/5 ring-1 ring-primary"
+                      : "hover:bg-muted/50"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 font-medium text-sm">
+                    <Library className="h-4 w-4" />
+                    Use my workouts
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    Schedule workouts from your library
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBuildMode("full_build")}
+                  className={`p-3 rounded-md border text-left transition ${
+                    buildMode === "full_build"
+                      ? "border-primary bg-primary/5 ring-1 ring-primary"
+                      : "hover:bg-muted/50"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 font-medium text-sm">
+                    <Wand2 className="h-4 w-4" />
+                    Let AI build everything
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    AI invents workouts + schedule from one prompt
+                  </div>
+                </button>
+              </div>
+
               {/* Prompt */}
               <div className="space-y-2">
                 <Label>Goal / Description</Label>
                 <Textarea
-                  placeholder="e.g. 6-week strength block for an intermediate lifter focused on hypertrophy with conditioning on light days"
+                  placeholder={
+                    buildMode === "full_build"
+                      ? "e.g. Push / Pull / Legs split for an intermediate lifter, 4 weeks, focus on hypertrophy"
+                      : "e.g. 6-week strength block using my existing workouts, conditioning on light days"
+                  }
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
                   rows={3}
                 />
               </div>
 
-              {/* Workout selection */}
-              <div className="space-y-2">
+              {/* Workout selection (use_existing mode only) */}
+              {buildMode === "use_existing" ? (
+                <div className="space-y-2">
                 <Label>
                   Select Workouts ({selectedWorkoutIds.length} selected)
                 </Label>
@@ -370,7 +534,25 @@ export function AIProgramBuilderDialog({ open, onOpenChange, onProgramCreated }:
                     ))
                   )}
                 </div>
-              </div>
+                </div>
+              ) : (
+                <div className="p-3 rounded-md border bg-muted/30 text-sm">
+                  <div className="flex items-start gap-2">
+                    <Wand2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                    <div>
+                      <div className="font-medium">AI will design the workouts for you</div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Using your exercise library ({(exercises || []).length} exercises). New workouts will be saved to your library so you can edit and reuse them.
+                      </div>
+                      {(exercises || []).length === 0 && (
+                        <div className="text-xs text-destructive mt-2">
+                          No exercises in your library. Add some first on the Exercises page.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -480,7 +662,9 @@ export function AIProgramBuilderDialog({ open, onOpenChange, onProgramCreated }:
             <div className="text-center">
               <p className="font-medium">Designing your program…</p>
               <p className="text-sm text-muted-foreground mt-1">
-                GPT-5 is scheduling {selectedWorkoutIds.length} workouts across {weeks} weeks
+                {buildMode === "full_build"
+                  ? `GPT-5 is inventing workouts and scheduling ${weeks} weeks`
+                  : `GPT-5 is scheduling ${selectedWorkoutIds.length} workouts across ${weeks} weeks`}
               </p>
             </div>
           </div>
