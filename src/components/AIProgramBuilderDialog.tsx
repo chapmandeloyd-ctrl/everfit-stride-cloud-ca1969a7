@@ -496,6 +496,10 @@ export function AIProgramBuilderDialog({ open, onOpenChange, onProgramCreated }:
         description: parts.join(" • "),
       });
 
+      // Clear the draft now that it's safely saved
+      sessionStorage.removeItem(DRAFT_STORAGE_KEY);
+      setHasRecoveredDraft(false);
+
       onProgramCreated?.();
       handleClose(false);
     } catch (err: any) {
