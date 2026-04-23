@@ -73,32 +73,24 @@ export function PortalEntry({ onSelectCategory }: PortalEntryProps) {
         }}
       />
 
-      {/* Earth hero — static on mobile Safari/iPhone to avoid route crashes */}
-      {shouldUseStaticHero ? (
-        <img
-          src="/portal/ksom-calm-earth-poster.jpg"
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover opacity-100"
-        />
-      ) : (
-        <video
-          ref={videoRef}
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="metadata"
-          poster="/portal/ksom-calm-earth-poster.jpg"
-          disablePictureInPicture
-          disableRemotePlayback
-          controls={false}
-          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[1500ms] ease-out ${
-            videoReady ? "opacity-100" : "opacity-0"
-          }`}
-        >
-          <source src="/portal/ksom-calm-earth-optimized.mp4" type="video/mp4" />
-        </video>
-      )}
+      {/* Earth hero video */}
+      <video
+        ref={videoRef}
+        autoPlay
+        loop
+        muted
+        playsInline
+        preload="metadata"
+        poster="/portal/ksom-calm-earth-poster.jpg"
+        disablePictureInPicture
+        disableRemotePlayback
+        controls={false}
+        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[1500ms] ease-out ${
+          videoReady ? "opacity-100" : "opacity-0"
+        }`}
+      >
+        <source src="/portal/ksom-calm-earth-optimized.mp4" type="video/mp4" />
+      </video>
 
       {/* Top vignette to anchor title */}
       <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-none" />
