@@ -2,6 +2,7 @@ import { Lock, MessageSquare } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
+import { LockProgress } from "@/components/LockProgress";
 import type { ReactNode } from "react";
 
 interface LockedPlanPopoverProps {
@@ -17,6 +18,12 @@ interface LockedPlanPopoverProps {
   side?: "top" | "bottom" | "left" | "right";
   /** Name of the locked plan — used to pre-fill the message composer. */
   planName?: string;
+  /** Optional unlock progress (e.g. current level vs required). */
+  progress?: {
+    current: number;
+    required: number;
+    label?: string;
+  };
 }
 
 /**
@@ -31,6 +38,7 @@ export function LockedPlanPopover({
   ctaLabel = "Message to unlock",
   side = "top",
   planName,
+  progress,
 }: LockedPlanPopoverProps) {
   const navigate = useNavigate();
 
@@ -56,6 +64,15 @@ export function LockedPlanPopover({
             <p className="text-xs leading-relaxed">{message}</p>
           </div>
         </div>
+        {progress && (
+          <div className="mb-3">
+            <LockProgress
+              current={progress.current}
+              required={progress.required}
+              label={progress.label}
+            />
+          </div>
+        )}
         <Button
           size="sm"
           className="w-full gap-1.5"
