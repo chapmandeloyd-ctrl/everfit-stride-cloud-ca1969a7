@@ -128,7 +128,7 @@ export function MacroComparisonFlipCard({
       suppressClickRef.current = false;
       return;
     }
-    setFlipped((f) => !f);
+    // Tap-to-flip disabled — front face is the only view.
   };
 
   const innerStyle: CSSProperties = {
@@ -278,19 +278,6 @@ export function MacroComparisonFlipCard({
         })}
       </div>
 
-      {/* Tap hint */}
-      <div className="mt-14 mb-3 flex justify-center">
-        <span
-          className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-primary-foreground"
-          style={{
-            backgroundImage:
-              "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.85) 100%)",
-            boxShadow: "0 6px 18px -4px hsl(var(--primary) / 0.55)",
-          }}
-        >
-          Tap for Decoder →
-        </span>
-      </div>
     </div>
   );
 
