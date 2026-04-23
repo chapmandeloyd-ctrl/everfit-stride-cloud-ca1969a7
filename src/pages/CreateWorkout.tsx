@@ -542,6 +542,15 @@ export default function CreateWorkout() {
   const getExerciseById = (id: string) => exercises?.find((e) => e.id === id);
 
   const addExercise = (exerciseId: string) => {
+    if (!activeBlockId) {
+      toast({
+        title: "Add a block first",
+        description: "Create a block (Warm-Up, Working Sets, Circuit, etc.) before adding exercises.",
+        variant: "destructive",
+      });
+      setShowBlockPicker(true);
+      return;
+    }
     const ex = exercises?.find((e) => e.id === exerciseId);
     const newItem: WorkoutExercise = {
       id: crypto.randomUUID(),
