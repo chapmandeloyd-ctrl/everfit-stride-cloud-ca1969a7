@@ -356,6 +356,27 @@ export default function Messages() {
     }
   }, [messages]);
 
+  // Pre-fill composer when navigated from a "Message to unlock" CTA.
+  // Auto-selects the first direct (trainer) conversation and seeds messageText.
+  useEffect(() => {
+    if (!prefillState?.prefillMessage) return;
+    if (!conversations || conversations.length === 0) return;
+    if (selectedConversation) {
+      // Already in a convo — just seed the text once.
+      setMessageText((prev) => prev || prefillState.prefillMessage!);
+      navigate(location.pathname, { replace: true, state: null });
+      return;
+    }
+    const trainerDm =
+      conversations.find((c) => c.type === "direct") ?? conversations[0];
+    if (trainerDm) {
+      setSelectedConversation(trainerDm);
+      setShowMobileChat(true);
+      setMessageText(prefillState.prefillMessage);
+      navigate(location.pathname, { replace: true, state: null });
+    }
+  }, [prefillState, conversations, selectedConversation, navigate, location.pathname]);
+
   // Send message
   const sendMutation = useMutation({
     mutationFn: async (payload: { content?: string; image_url?: string; file_url?: string; file_name?: string }) => {
