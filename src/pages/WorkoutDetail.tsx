@@ -13,6 +13,7 @@ import { useSavedWorkouts } from "@/hooks/useSavedWorkouts";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
+import { useImpersonation } from "@/hooks/useImpersonation";
 import { WorkoutPlayer, unlockAudioForMobile } from "@/components/WorkoutPlayer";
 import { WorkoutSummary } from "@/components/WorkoutSummary";
 import { awardBadges } from "@/hooks/useBadgeAwarder";
@@ -37,6 +38,7 @@ export default function WorkoutDetail() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, userRole } = useAuth();
+  const { isImpersonating } = useImpersonation();
   const effectiveClientId = useEffectiveClientId();
   const [isPlaying, setIsPlaying] = useState(searchParams.get("start") === "true");
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
@@ -63,7 +65,6 @@ export default function WorkoutDetail() {
   } | null>(null);
   const progressSaveInFlightRef = useRef(false);
   const pendingStartRef = useRef(false);
-  const isImpersonating = !!localStorage.getItem("impersonatedClientId");
   const isClient = userRole === "client" || isImpersonating;
 
   // Fetch client_workout record for this workout plan
