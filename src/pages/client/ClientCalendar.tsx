@@ -272,6 +272,23 @@ export default function ClientCalendar() {
     onError: (e: Error) => toast({ title: "Couldn't update", description: e.message, variant: "destructive" }),
   });
 
+  // Delete a scheduled workout (client_workouts row)
+  const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null);
+  const deleteWorkout = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("client_workouts").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["agenda-workouts"] });
+      queryClient.invalidateQueries({ queryKey: ["schedule-conflicts"] });
+      toast({ title: "Workout removed from calendar" });
+      setPendingDelete(null);
+    },
+    onError: (e: Error) =>
+      toast({ title: "Couldn't delete", description: e.message, variant: "destructive" }),
+  });
+
   return (
     <ClientLayout>
       {/* Sticky header */}
@@ -318,6 +335,7 @@ export default function ClientCalendar() {
                         item={item}
                         onToggleTask={(id, completed) => toggleTask.mutate({ id, completed })}
                         onOpenWorkout={(id) => navigate(`/client/workouts/${id}`)}
+                        onDeleteWorkout={(id, name) => setPendingDelete({ id, name })}
                       />
                     ))}
                 </div>
@@ -326,6 +344,26 @@ export default function ClientCalendar() {
           );
         })}
       </div>
+
+      <AlertDialog open={!!pendingDelete} onOpenChange={(o) => !o && setPendingDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove from calendar?</AlertDialogTitle>
+            <AlertDialogDescription>
+              "{pendingDelete?.name}" will be removed from this day. The workout itself stays in your library.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => pendingDelete && deleteWorkout.mutate(pendingDelete.id)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </ClientLayout>
   );
 }
