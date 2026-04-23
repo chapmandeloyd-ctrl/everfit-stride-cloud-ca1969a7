@@ -277,6 +277,24 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
         <audio ref={audioRef} src={scene.audio_url} loop preload="auto" />
       )}
 
+      {/* Tap-to-play sound CTA — iOS autoplay-with-audio fallback */}
+      <AnimatePresence>
+        {audioBlocked && (
+          <motion.button
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            onClick={handleUnlockAudio}
+            className="absolute z-[120] left-1/2 -translate-x-1/2 top-[max(env(safe-area-inset-top,0px),16px)] mt-14 flex items-center gap-2 px-4 py-2 rounded-full bg-white/15 backdrop-blur-xl border border-white/30 text-white text-[11px] uppercase tracking-[0.3em] hover:bg-white/25 active:scale-95 transition-all"
+            aria-label="Tap to play sound"
+          >
+            <Volume2 className="h-3.5 w-3.5" />
+            <span>Tap for sound</span>
+          </motion.button>
+        )}
+      </AnimatePresence>
+
       {/* Video — always rendered, scales between circle and full-screen */}
       <AnimatePresence mode="wait">
         {immersive ? (
@@ -347,9 +365,9 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
           <motion.div
             key="preview"
             className="absolute inset-0 flex flex-col"
-            initial={{ opacity: 0 }}
+            initial={{ opacity: 1 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            exit={{ opacity: 1 }}
           >
             {/* Galaxy nebula background, by category (or scene/category override) */}
             <div className="absolute inset-0 bg-black overflow-hidden">
