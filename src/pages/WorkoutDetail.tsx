@@ -16,6 +16,15 @@ import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { WorkoutPlayer, unlockAudioForMobile } from "@/components/WorkoutPlayer";
 import { WorkoutSummary } from "@/components/WorkoutSummary";
 import { awardBadges } from "@/hooks/useBadgeAwarder";
+import { MoreVertical } from "lucide-react";
+import { WorkoutActionsSheet } from "@/components/workout/WorkoutActionsSheet";
+import { WorkoutScheduleSheet } from "@/components/workout/WorkoutScheduleSheet";
+import { PostBuildChoiceSheet } from "@/components/workout/PostBuildChoiceSheet";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface CompletionData {
   setLogs: Record<string, { reps: string; weight: string; completed: boolean }>;
@@ -32,6 +41,12 @@ export default function WorkoutDetail() {
   const [isPlaying, setIsPlaying] = useState(searchParams.get("start") === "true");
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [activeStartedAt, setActiveStartedAt] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const fromBuilder = searchParams.get("fromBuilder") === "true";
+  const [postBuildOpen, setPostBuildOpen] = useState(fromBuilder);
+  const [actionsOpen, setActionsOpen] = useState(false);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [resumeData, setResumeData] = useState<{
     stepIdx: number;
     setLogs: Record<string, any>;
@@ -434,6 +449,33 @@ export default function WorkoutDetail() {
     setIsPlaying(false);
   };
 
+  const handleDeleteSchedule = async () => {
+    if (!clientWorkout?.id) {
+      setConfirmDeleteOpen(false);
+      return;
+    }
+    try {
+      const { error } = await supabase
+        .from("client_workouts")
+        .delete()
+        .eq("id", clientWorkout.id);
+      if (error) throw error;
+      toast("Workout removed from your calendar");
+      queryClient.invalidateQueries({ queryKey: ["agenda-workouts"] });
+      queryClient.invalidateQueries({ queryKey: ["client-workout-for-plan"] });
+      navigate("/client/calendar");
+    } catch (err: any) {
+      toast.error(err?.message ?? "Couldn't delete");
+    } finally {
+      setConfirmDeleteOpen(false);
+    }
+  };
+
+  const handleEditWorkout = () => {
+    // Edit in WOD Builder, in place — pass workout plan id so builder can hydrate.
+    navigate(`/client/wod-builder?editId=${id}`);
+  };
+
   if (isLoading) {
     return (
       <DashboardLayout>
@@ -512,6 +554,7 @@ export default function WorkoutDetail() {
           onResume={() => { unlockAudioForMobile(); handleResume(); }}
           onStartFresh={async () => { unlockAudioForMobile(); await createActiveSession(); setIsPlaying(true); }}
           onBack={() => navigate(-1)}
+          onOpenActions={isClient ? () => setActionsOpen(true) : undefined}
         />
 
 
@@ -612,11 +655,68 @@ export default function WorkoutDetail() {
           </Card>
         )}
       </div>
+
+      {isClient && effectiveClientId && id && (
+        <>
+          <PostBuildChoiceSheet
+            open={postBuildOpen}
+            onOpenChange={setPostBuildOpen}
+            onStartNow={async () => {
+              unlockAudioForMobile();
+              await createActiveSession();
+              setIsPlaying(true);
+            }}
+            onSaveForLater={() => {
+              toast("Saved to your library");
+              navigate("/client/my-workouts");
+            }}
+            onSchedule={() => setScheduleOpen(true)}
+          />
+
+          <WorkoutActionsSheet
+            open={actionsOpen}
+            onOpenChange={setActionsOpen}
+            onMove={() => setScheduleOpen(true)}
+            onEdit={handleEditWorkout}
+            onDelete={() => setConfirmDeleteOpen(true)}
+            canMoveOrDelete={!!clientWorkout?.id}
+          />
+
+          <WorkoutScheduleSheet
+            open={scheduleOpen}
+            onOpenChange={setScheduleOpen}
+            clientId={effectiveClientId}
+            workoutPlanId={id}
+            existingClientWorkoutId={clientWorkout?.id ?? null}
+            initialDate={clientWorkout?.scheduled_date ? new Date(clientWorkout.scheduled_date + "T00:00:00") : new Date()}
+          />
+
+          <AlertDialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete this workout?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will remove "{workout?.name}" from your calendar. This cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleDeleteSchedule}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </>
+      )}
     </Layout>
   );
 }
 
-function WorkoutDetailHeader({ workout, id, isClient, inProgressSession, onResume, onStartFresh, onBack }: {
+function WorkoutDetailHeader({ workout, id, isClient, inProgressSession, onResume, onStartFresh, onBack, onOpenActions }: {
   workout: any;
   id: string;
   isClient: boolean;
@@ -624,6 +724,7 @@ function WorkoutDetailHeader({ workout, id, isClient, inProgressSession, onResum
   onResume: () => void;
   onStartFresh: () => void;
   onBack: () => void;
+  onOpenActions?: () => void;
 }) {
   const { isSaved, toggleSave } = useSavedWorkouts();
   const saved = isSaved(id);
@@ -653,6 +754,17 @@ function WorkoutDetailHeader({ workout, id, isClient, inProgressSession, onResum
           className="shrink-0"
         >
           <Bookmark className={`h-5 w-5 ${saved ? "fill-primary text-primary" : "text-muted-foreground"}`} />
+        </Button>
+      )}
+      {onOpenActions && (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onOpenActions}
+          className="shrink-0"
+          aria-label="More actions"
+        >
+          <MoreVertical className="h-5 w-5" />
         </Button>
       )}
       {inProgressSession && isClient ? (

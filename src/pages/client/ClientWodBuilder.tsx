@@ -470,7 +470,7 @@ export default function ClientWodBuilder() {
       );
 
       toast.success("Workout saved to favorites!");
-      navigate(`/client/workouts/${planId}`);
+      navigate(`/client/workouts/${planId}?fromBuilder=true`);
     } catch (err) {
       console.error("Failed to save WOD:", err);
       toast.error("Failed to save workout");
