@@ -3664,6 +3664,10 @@ export type Database = {
       exercises: {
         Row: {
           category: string | null
+          cloudflare_migrated_at: string | null
+          cloudflare_migration_error: string | null
+          cloudflare_migration_status: string
+          cloudflare_video_id: string | null
           created_at: string
           description: string | null
           duration_minutes: number | null
@@ -3679,6 +3683,10 @@ export type Database = {
         }
         Insert: {
           category?: string | null
+          cloudflare_migrated_at?: string | null
+          cloudflare_migration_error?: string | null
+          cloudflare_migration_status?: string
+          cloudflare_video_id?: string | null
           created_at?: string
           description?: string | null
           duration_minutes?: number | null
@@ -3694,6 +3702,10 @@ export type Database = {
         }
         Update: {
           category?: string | null
+          cloudflare_migrated_at?: string | null
+          cloudflare_migration_error?: string | null
+          cloudflare_migration_status?: string
+          cloudflare_video_id?: string | null
           created_at?: string
           description?: string | null
           duration_minutes?: number | null
@@ -6284,6 +6296,7 @@ export type Database = {
       }
       ondemand_workouts: {
         Row: {
+          cloudflare_video_id: string | null
           created_at: string
           description: string | null
           id: string
@@ -6296,6 +6309,7 @@ export type Database = {
           workout_plan_id: string | null
         }
         Insert: {
+          cloudflare_video_id?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -6308,6 +6322,7 @@ export type Database = {
           workout_plan_id?: string | null
         }
         Update: {
+          cloudflare_video_id?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -9208,6 +9223,7 @@ export type Database = {
         Row: {
           category: string
           client_owner_id: string | null
+          cloudflare_video_id: string | null
           created_at: string
           description: string | null
           difficulty: Database["public"]["Enums"]["workout_difficulty"]
@@ -9227,6 +9243,7 @@ export type Database = {
         Insert: {
           category: string
           client_owner_id?: string | null
+          cloudflare_video_id?: string | null
           created_at?: string
           description?: string | null
           difficulty: Database["public"]["Enums"]["workout_difficulty"]
@@ -9246,6 +9263,7 @@ export type Database = {
         Update: {
           category?: string
           client_owner_id?: string | null
+          cloudflare_video_id?: string | null
           created_at?: string
           description?: string | null
           difficulty?: Database["public"]["Enums"]["workout_difficulty"]
