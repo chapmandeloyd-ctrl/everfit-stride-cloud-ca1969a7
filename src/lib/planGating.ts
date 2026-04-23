@@ -255,6 +255,7 @@ export function evaluatePlanGating(
       lockMessage: getLockMessage("level_locked", plan.min_level_required),
       isCoachApproved: false,
       isOptionalTool,
+      unlockProgress: levelProgress(ctx.currentLevel, plan.min_level_required),
     };
   }
 
@@ -267,6 +268,8 @@ export function evaluatePlanGating(
       lockMessage: `Locked — designed for Levels ${plan.min_level_required}–${plan.max_level_allowed}`,
       isCoachApproved: false,
       isOptionalTool,
+      // No forward progress — client has surpassed the upper bound.
+      unlockProgress: null,
     };
   }
 
@@ -283,6 +286,7 @@ export function evaluatePlanGating(
       lockMessage: getLockMessage("stability_locked"),
       isCoachApproved: false,
       isOptionalTool,
+      unlockProgress: pickStabilityProgress(ctx),
     };
   }
 
@@ -299,6 +303,8 @@ export function evaluatePlanGating(
       lockMessage: getLockMessage("stability_locked"),
       isCoachApproved: false,
       isOptionalTool,
+      // Always score-stability here — the rule is literally about needs-support days.
+      unlockProgress: scoreStabilityProgress(ctx.needsSupportDaysLast14),
     };
   }
 
@@ -316,6 +322,11 @@ export function evaluatePlanGating(
       lockMessage: "Locked — requires Level 5+, Strong scores, and stability",
       isCoachApproved: false,
       isOptionalTool,
+      // Multi-criterion lock — surface whichever gap is biggest.
+      unlockProgress:
+        ctx.currentLevel < 5
+          ? levelProgress(ctx.currentLevel, 5)
+          : pickStabilityProgress(ctx),
     };
   }
 
@@ -334,6 +345,10 @@ export function evaluatePlanGating(
       lockMessage: "Locked — requires Level 4+ with Strong status",
       isCoachApproved: false,
       isOptionalTool,
+      unlockProgress:
+        ctx.currentLevel < 4
+          ? levelProgress(ctx.currentLevel, 4)
+          : pickStabilityProgress(ctx),
     };
   }
 
@@ -352,6 +367,7 @@ export function evaluatePlanGating(
       lockMessage: "Temporarily locked — sleep recovery needed",
       isCoachApproved: false,
       isOptionalTool,
+      unlockProgress: pickStabilityProgress(ctx),
     };
   }
 
