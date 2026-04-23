@@ -4,6 +4,7 @@ import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { useEngineMode } from "@/hooks/useEngineMode";
 import { useEngineScores } from "@/hooks/useEngineScores";
 import { useLevelProgression } from "@/hooks/useLevelProgression";
+import { useConsistencyStreak } from "@/hooks/useConsistencyStreak";
 import {
   evaluatePlanGating,
   type PlanGatingMetadata,
@@ -18,6 +19,7 @@ export function usePlanGating() {
   const { engineMode } = useEngineMode();
   const { data: scores } = useEngineScores();
   const { progression } = useLevelProgression();
+  const { data: streak } = useConsistencyStreak();
 
   // Fetch overrides for this client
   const { data: overrides = [] } = useQuery({
@@ -108,6 +110,7 @@ export function usePlanGating() {
     lowestFactor: primaryScore?.lowestFactor?.factor ?? "sleep",
     upcomingGameOrPractice: false, // could be connected to sport schedule
     overriddenPlanIds,
+    currentStreak: streak?.currentStreak ?? 0,
   };
 
   function evaluatePlan(plan: PlanGatingMetadata): PlanGatingResult {

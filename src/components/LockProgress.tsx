@@ -8,6 +8,8 @@ interface LockProgressProps {
   required: number;
   /** Optional unit label shown next to the numbers. Defaults to "Level". */
   label?: string;
+  /** Optional unit suffix appended to numbers, e.g. "d" for days. */
+  unit?: string;
   /** Optional className passthrough. */
   className?: string;
   /** Visual size — "sm" (default) for inside cards, "xs" for tight chips. */
@@ -26,6 +28,7 @@ export function LockProgress({
   current,
   required,
   label = "Level",
+  unit,
   className,
   size = "sm",
 }: LockProgressProps) {
@@ -49,10 +52,10 @@ export function LockProgress({
       <div className={cn("flex items-center justify-between mb-1", textSize)}>
         <span className="inline-flex items-center gap-1 font-semibold uppercase tracking-wider text-muted-foreground">
           <TrendingUp className={size === "xs" ? "h-2.5 w-2.5" : "h-3 w-3"} />
-          {label} {safeCurrent}/{safeRequired}
+          {label} {safeCurrent}{unit ?? ""}/{safeRequired}{unit ?? ""}
         </span>
         <span className="font-bold text-foreground/80">
-          {remaining === 0 ? "Ready" : `${remaining} to go`}
+          {remaining === 0 ? "Ready" : `${remaining}${unit ?? ""} to go`}
         </span>
       </div>
       <div className={cn("w-full rounded-full bg-muted overflow-hidden", barHeight)}>
