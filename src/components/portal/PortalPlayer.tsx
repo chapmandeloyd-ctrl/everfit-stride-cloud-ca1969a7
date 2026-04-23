@@ -61,6 +61,9 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
   const [elapsed, setElapsed] = useState(0);
   const [volumeOpen, setVolumeOpen] = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
+  // iOS Safari blocks audio autoplay until a direct user gesture INSIDE this
+  // player. The tap that brought us here (PortalEntry button) doesn't count.
+  const [audioBlocked, setAudioBlocked] = useState(false);
 
   const dragY = useMotionValue(0);
   const circleScale = useTransform(dragY, [0, 200], [1, 1.15]);
@@ -144,6 +147,37 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
     syncVideoPlayback();
     syncAudioPlayback();
   }, [syncAudioPlayback, syncVideoPlayback]);
+
+  // Detect whether audio actually started — if not, surface the tap-to-play CTA.
+  useEffect(() => {
+    if (!scene.audio_url) {
+      setAudioBlocked(false);
+      return;
+    }
+    const id = window.setTimeout(() => {
+      const a = audioRef.current;
+      if (a && a.paused && playing && !audioPaused) {
+        setAudioBlocked(true);
+      } else {
+        setAudioBlocked(false);
+      }
+    }, 600);
+    return () => window.clearTimeout(id);
+  }, [audioPaused, playing, scene.audio_url, scene.id]);
+
+  const handleUnlockAudio = useCallback(() => {
+    const a = audioRef.current;
+    if (a) {
+      a.muted = false;
+      a.volume = muted ? 0 : volume;
+      a.play().then(() => setAudioBlocked(false)).catch(() => {
+        // Last resort: unmute by toggling state and retry
+        setAudioBlocked(false);
+      });
+    }
+    const v = videoRef.current;
+    if (v && v.paused) v.play().catch(() => {});
+  }, [muted, volume]);
 
   // When the scene's audio source changes (category/scene switch), reload and resume playback
   useEffect(() => {
