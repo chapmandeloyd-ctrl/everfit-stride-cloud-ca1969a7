@@ -72,7 +72,7 @@ export default function ClientCalendar() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("client_workouts")
-        .select("*, workout_plans(id, name, category, duration_minutes, difficulty)")
+        .select("id, scheduled_date, completed_at, assigned_by, client_id, workout_plans(id, name, category, duration_minutes, difficulty)")
         .eq("client_id", clientId!)
         .gte("scheduled_date", startStr)
         .lte("scheduled_date", endStr)
