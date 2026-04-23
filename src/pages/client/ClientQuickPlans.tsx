@@ -60,7 +60,7 @@ export default function ClientQuickPlans() {
   const clientId = useEffectiveClientId();
   const navigate = useNavigate();
   const [lockedMessage, setLockedMessage] = useState<string | null>(null);
-  const { evaluatePlan, isReady, context } = usePlanGating();
+  const { evaluatePlan, isReady } = usePlanGating();
 
   const { data: plans, isLoading } = useQuery({
     queryKey: ["quick-fasting-plans"],
