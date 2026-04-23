@@ -16,6 +16,15 @@ import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { WorkoutPlayer, unlockAudioForMobile } from "@/components/WorkoutPlayer";
 import { WorkoutSummary } from "@/components/WorkoutSummary";
 import { awardBadges } from "@/hooks/useBadgeAwarder";
+import { MoreVertical } from "lucide-react";
+import { WorkoutActionsSheet } from "@/components/workout/WorkoutActionsSheet";
+import { WorkoutScheduleSheet } from "@/components/workout/WorkoutScheduleSheet";
+import { PostBuildChoiceSheet } from "@/components/workout/PostBuildChoiceSheet";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface CompletionData {
   setLogs: Record<string, { reps: string; weight: string; completed: boolean }>;
