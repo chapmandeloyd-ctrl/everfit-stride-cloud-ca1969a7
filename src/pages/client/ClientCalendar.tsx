@@ -17,7 +17,6 @@ import {
   Trash2,
 } from "lucide-react";
 import { getIconComponent } from "@/components/cardio/cardioActivities";
-import { useCardioActivityTypes } from "@/hooks/useCardioActivityTypes";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
