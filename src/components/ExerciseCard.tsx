@@ -248,9 +248,16 @@ export function ExerciseCard({ exercise, onEdit, selectionMode, isSelected, onTo
           <DialogHeader className="p-6 pb-2">
             <DialogTitle>{exercise.name}</DialogTitle>
           </DialogHeader>
-          {embedUrl && (
+          {(exercise.cloudflare_video_id || embedUrl) && (
             <div className="w-full aspect-video">
-              {isDirectVideo ? (
+              {exercise.cloudflare_video_id ? (
+                <ExerciseVideoPlayer
+                  cloudflareVideoId={exercise.cloudflare_video_id}
+                  fallbackUrl={exercise.video_url}
+                  controls
+                  className="bg-black"
+                />
+              ) : isDirectVideo ? (
                 <video
                   src={embedUrl}
                   controls
