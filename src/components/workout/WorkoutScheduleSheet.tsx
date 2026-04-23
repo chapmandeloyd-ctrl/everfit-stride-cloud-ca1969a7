@@ -286,7 +286,7 @@ export function WorkoutScheduleSheet({
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetContent side="bottom" className="h-[92vh] p-0 flex flex-col rounded-t-2xl">
-          {/* Top bar: Cancel / Today / Move */}
+          {/* Top bar: Cancel / Title / Schedule */}
           <div className="flex items-center justify-between px-4 py-3 border-b bg-background">
             <button
               onClick={() => onOpenChange(false)}
@@ -296,15 +296,41 @@ export function WorkoutScheduleSheet({
             </button>
             <SheetHeader className="flex-1">
               <SheetTitle className="text-center text-base font-semibold">
-                {isToday(selected) ? "Today" : format(selected, "MMM d")}
+                {finalDates.length === 0
+                  ? "Pick days"
+                  : finalDates.length === 1
+                    ? (isToday(finalDates[0]) ? "Today" : format(finalDates[0], "MMM d"))
+                    : `${finalDates.length} days selected`}
               </SheetTitle>
             </SheetHeader>
             <button
               onClick={handleMove}
-              disabled={scheduleMutation.isPending}
+              disabled={scheduleMutation.isPending || resolvedDates.length === 0}
               className="text-base text-primary font-semibold disabled:opacity-40"
             >
               {existingClientWorkoutId ? "Move" : "Schedule"}
+            </button>
+          </div>
+
+          {/* Mode toggle: Pick days vs Pick range */}
+          <div className="flex gap-2 px-4 py-2 border-b bg-background">
+            <button
+              onClick={() => { setMode("days"); setRangeStart(null); setRangeEnd(null); }}
+              className={cn(
+                "flex-1 text-xs font-medium py-1.5 rounded-full transition-colors",
+                mode === "days" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
+              )}
+            >
+              Tap days
+            </button>
+            <button
+              onClick={() => { setMode("range"); setSelectedDays(new Set()); }}
+              className={cn(
+                "flex-1 text-xs font-medium py-1.5 rounded-full transition-colors",
+                mode === "range" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
+              )}
+            >
+              Pick a range
             </button>
           </div>
 
@@ -315,28 +341,58 @@ export function WorkoutScheduleSheet({
         </SheetContent>
       </Sheet>
 
-      <AlertDialog open={!!pendingConflict} onOpenChange={(o) => !o && setPendingConflict(null)}>
+      <AlertDialog open={confirming} onOpenChange={(o) => !o && setConfirming(false)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Day already has a workout</AlertDialogTitle>
+            <AlertDialogTitle>
+              {conflictsByDate.size === 1 ? "Day already has a workout" : `${conflictsByDate.size} days have workouts`}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              {pendingConflict && (
-                <>
-                  You already have{" "}
-                  <span className="font-semibold">
-                    "{pendingConflict.existing[0]?.workout_plans?.name ?? "a workout"}"
-                  </span>{" "}
-                  scheduled on {format(pendingConflict.date, "EEEE, MMMM d")}. Add another?
-                </>
-              )}
+              Uncheck any day you don't want to add another workout to. Checked days will get this workout added.
             </AlertDialogDescription>
           </AlertDialogHeader>
+          <div className="max-h-64 overflow-y-auto space-y-2 py-2">
+            {Array.from(conflictsByDate.entries()).map(([dateStr, items]) => {
+              const isOff = excluded.has(dateStr);
+              return (
+                <label
+                  key={dateStr}
+                  className="flex items-start gap-3 p-2 rounded-md hover:bg-muted cursor-pointer"
+                >
+                  <Checkbox
+                    checked={!isOff}
+                    onCheckedChange={(c) => {
+                      setExcluded((prev) => {
+                        const next = new Set(prev);
+                        if (c) next.delete(dateStr);
+                        else next.add(dateStr);
+                        return next;
+                      });
+                    }}
+                    className="mt-0.5"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium">
+                      {format(parseISO(dateStr), "EEEE, MMM d")}
+                    </div>
+                    <div className="text-xs text-muted-foreground truncate">
+                      Already has: {items.map((i: any) => i.workout_plans?.name ?? "Workout").join(", ")}
+                    </div>
+                  </div>
+                </label>
+              );
+            })}
+          </div>
+          <div className="text-xs text-muted-foreground">
+            Will schedule on <span className="font-semibold text-foreground">{finalDates.length}</span> day{finalDates.length === 1 ? "" : "s"}.
+          </div>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => pendingConflict && scheduleMutation.mutate(pendingConflict.date)}
+              onClick={() => finalDates.length > 0 && scheduleMutation.mutate(finalDates)}
+              disabled={finalDates.length === 0}
             >
-              Add anyway
+              Confirm
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
