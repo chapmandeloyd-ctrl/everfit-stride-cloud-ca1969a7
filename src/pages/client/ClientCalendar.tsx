@@ -372,10 +372,12 @@ function AgendaCard({
   item,
   onToggleTask,
   onOpenWorkout,
+  onDeleteWorkout,
 }: {
   item: AgendaItem;
   onToggleTask: (id: string, completed: boolean) => void;
   onOpenWorkout: (workoutPlanId: string) => void;
+  onDeleteWorkout?: (clientWorkoutId: string, name: string) => void;
 }) {
   if (item.kind === "workout") {
     const w = item.data;
@@ -415,6 +417,18 @@ function AgendaCard({
             )}
           </div>
         </div>
+        {!completed && !isTrainerAssigned && onDeleteWorkout && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDeleteWorkout(w.id, w.workout_plans?.name ?? "Workout");
+            }}
+            className="h-8 w-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0 transition-colors"
+            aria-label="Remove from calendar"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        )}
         <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
       </Card>
     );
