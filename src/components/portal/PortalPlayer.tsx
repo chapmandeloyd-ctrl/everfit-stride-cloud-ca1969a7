@@ -10,7 +10,6 @@ import nebulaSleep from "@/assets/portal-nebula-sleep.jpg";
 import nebulaEscape from "@/assets/portal-nebula-escape.jpg";
 import { Starfield } from "./Starfield";
 import { PortalControlPanel } from "./PortalControlPanel";
-import { CloudflareStreamPlayer } from "./CloudflareStreamPlayer";
 
 function builtInNebulaFor(category: string): string {
   const c = category?.toLowerCase();
@@ -30,7 +29,6 @@ export interface PortalScene {
   audio_volume: number;
   loop_video: boolean;
   is_premium: boolean;
-  cloudflare_video_id?: string | null;
   override_nebula_id?: string | null;
   override_horizon_id?: string | null;
   override_show_horizon?: boolean | null;
@@ -61,9 +59,6 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
   const [elapsed, setElapsed] = useState(0);
   const [volumeOpen, setVolumeOpen] = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
-  // iOS Safari blocks audio autoplay until a direct user gesture INSIDE this
-  // player. The tap that brought us here (PortalEntry button) doesn't count.
-  const [audioUnlocked, setAudioUnlocked] = useState(false);
 
   const dragY = useMotionValue(0);
   const circleScale = useTransform(dragY, [0, 200], [1, 1.15]);
@@ -85,15 +80,7 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
     const audio = audioRef.current;
     if (!audio) return;
 
-    // Until the user has tapped to unlock, keep audio element muted so iOS
-    // permits autoplay. Once unlocked, honour the muted/volume state.
-    if (!audioUnlocked) {
-      audio.muted = true;
-      audio.volume = 0;
-    } else {
-      audio.muted = muted;
-      audio.volume = muted ? 0 : volume;
-    }
+    audio.volume = muted ? 0 : volume;
 
     if (playing && !audioPaused) {
       audio.play().catch(() => {});
@@ -101,7 +88,7 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
     }
 
     audio.pause();
-  }, [audioPaused, audioUnlocked, muted, playing, volume]);
+  }, [audioPaused, muted, playing, volume]);
 
   // Fetch background library + per-category defaults
   const { data: backgrounds = [] } = useQuery({
@@ -155,40 +142,6 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
     syncVideoPlayback();
     syncAudioPlayback();
   }, [syncAudioPlayback, syncVideoPlayback]);
-
-  useEffect(() => {
-    const html = document.documentElement;
-    const body = document.body;
-
-    const previousHtmlOverscrollY = html.style.overscrollBehaviorY;
-    const previousBodyOverscrollY = body.style.overscrollBehaviorY;
-    const previousHtmlOverflow = html.style.overflow;
-    const previousBodyOverflow = body.style.overflow;
-
-    html.style.overscrollBehaviorY = "none";
-    body.style.overscrollBehaviorY = "none";
-    html.style.overflow = "hidden";
-    body.style.overflow = "hidden";
-
-    return () => {
-      html.style.overscrollBehaviorY = previousHtmlOverscrollY;
-      body.style.overscrollBehaviorY = previousBodyOverscrollY;
-      html.style.overflow = previousHtmlOverflow;
-      body.style.overflow = previousBodyOverflow;
-    };
-  }, []);
-
-  const handleUnlockAudio = useCallback(() => {
-    const a = audioRef.current;
-    if (a) {
-      a.muted = false;
-      a.volume = muted ? 0 : volume;
-      a.play().catch(() => {});
-    }
-    const v = videoRef.current;
-    if (v && v.paused) v.play().catch(() => {});
-    setAudioUnlocked(true);
-  }, [muted, volume]);
 
   // When the scene's audio source changes (category/scene switch), reload and resume playback
   useEffect(() => {
@@ -282,29 +235,11 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
   };
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black overflow-hidden overscroll-none">
+    <div className="fixed inset-0 z-[100] bg-black overflow-hidden">
       {/* Hidden audio layer (independent from video) */}
       {scene.audio_url && (
         <audio ref={audioRef} src={scene.audio_url} loop preload="auto" />
       )}
-
-      {/* Tap-to-play sound CTA — iOS autoplay-with-audio fallback */}
-      <AnimatePresence>
-        {!audioUnlocked && scene.audio_url && (
-          <motion.button
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            onClick={handleUnlockAudio}
-            className="absolute z-[120] left-1/2 -translate-x-1/2 top-[max(env(safe-area-inset-top,0px),16px)] mt-14 flex items-center gap-2 px-4 py-2 rounded-full bg-white/15 backdrop-blur-xl border border-white/30 text-white text-[11px] uppercase tracking-[0.3em] hover:bg-white/25 active:scale-95 transition-all"
-            aria-label="Tap to play sound"
-          >
-            <Volume2 className="h-3.5 w-3.5" />
-            <span>Tap for sound</span>
-          </motion.button>
-        )}
-      </AnimatePresence>
 
       {/* Video — always rendered, scales between circle and full-screen */}
       <AnimatePresence mode="wait">
@@ -317,34 +252,23 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
             exit={{ clipPath: "circle(40% at 50% 50%)" }}
             transition={{ duration: 0.6, ease: [0.32, 0.72, 0, 1] }}
             drag="y"
-            dragMomentum={false}
-            dragDirectionLock
             dragConstraints={{ top: 0, bottom: 0 }}
-            dragElastic={0.12}
+            dragElastic={0.4}
             onDragEnd={handleDragEnd}
-            style={{ y: dragY, touchAction: "none" }}
+            style={{ y: dragY }}
           >
-            {scene.cloudflare_video_id ? (
-              <CloudflareStreamPlayer
-                videoId={scene.cloudflare_video_id}
-                fallbackUrl={scene.thumbnail_url ?? undefined}
-                scale={1.05}
-                className="absolute inset-0"
-              />
-            ) : (
-              <video
-                ref={videoRef}
-                src={scene.video_url}
-                autoPlay
-                loop={scene.loop_video}
-                muted
-                playsInline
-                preload="auto"
-                disablePictureInPicture
-                disableRemotePlayback
-                className="absolute inset-0 w-full h-full object-cover object-bottom"
-              />
-            )}
+            <video
+              ref={videoRef}
+              src={scene.video_url}
+              autoPlay
+              loop={scene.loop_video}
+              muted
+              playsInline
+              preload="auto"
+              disablePictureInPicture
+              disableRemotePlayback
+              className="absolute inset-0 w-full h-full object-cover object-bottom"
+            />
             {/* Vignette for cinematic feel */}
             <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/60 pointer-events-none" />
 
@@ -378,9 +302,9 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
           <motion.div
             key="preview"
             className="absolute inset-0 flex flex-col"
-            initial={{ opacity: 1 }}
+            initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
           >
             {/* Galaxy nebula background, by category (or scene/category override) */}
             <div className="absolute inset-0 bg-black overflow-hidden">
@@ -448,12 +372,10 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
             <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-8 pb-24">
               <motion.div
                 drag="y"
-                dragMomentum={false}
-                dragDirectionLock
                 dragConstraints={{ top: 0, bottom: 0 }}
-                dragElastic={0.12}
+                dragElastic={0.7}
                 onDragEnd={handleDragEnd}
-                style={{ y: dragY, scale: circleScale, touchAction: "none" }}
+                style={{ y: dragY, scale: circleScale }}
                 className="relative aspect-square w-[58%] max-w-[260px] rounded-full overflow-hidden cursor-grab active:cursor-grabbing touch-none"
               >
                 {/* Crisp white ring with soft outer glow */}
@@ -464,27 +386,18 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
                       "inset 0 0 0 1.5px rgba(255,255,255,0.95), 0 0 40px 6px rgba(255,255,255,0.18), 0 0 80px 12px rgba(255,255,255,0.08)",
                   }}
                 />
-                {scene.cloudflare_video_id ? (
-                  <CloudflareStreamPlayer
-                    videoId={scene.cloudflare_video_id}
-                    fallbackUrl={scene.thumbnail_url ?? undefined}
-                    scale={1.05}
-                    className="absolute inset-0"
-                  />
-                ) : (
-                  <video
-                    ref={videoRef}
-                    src={scene.video_url}
-                    autoPlay
-                    loop={scene.loop_video}
-                    muted
-                    playsInline
-                    preload="auto"
-                    disablePictureInPicture
-                    disableRemotePlayback
-                    className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-                  />
-                )}
+                <video
+                  ref={videoRef}
+                  src={scene.video_url}
+                  autoPlay
+                  loop={scene.loop_video}
+                  muted
+                  playsInline
+                  preload="auto"
+                  disablePictureInPicture
+                  disableRemotePlayback
+                  className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                />
               </motion.div>
 
               {/* Title directly under circle */}

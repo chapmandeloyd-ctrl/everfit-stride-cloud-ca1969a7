@@ -261,12 +261,10 @@ export function PortalBreathPreview({
         <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-8 pb-24">
           <motion.div
             drag="y"
-            dragMomentum={false}
-            dragDirectionLock
             dragConstraints={{ top: 0, bottom: 0 }}
-            dragElastic={0.12}
+            dragElastic={0.7}
             onDragEnd={handleDragEnd}
-            style={{ y: dragY, scale: circleScale, touchAction: "none" }}
+            style={{ y: dragY, scale: circleScale }}
             className="relative aspect-square w-[58%] max-w-[260px] rounded-full overflow-hidden cursor-grab active:cursor-grabbing touch-none"
           >
             {/* Crisp white ring with soft outer glow — matches PortalPlayer */}
