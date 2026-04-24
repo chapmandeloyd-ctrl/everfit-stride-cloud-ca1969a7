@@ -1741,11 +1741,15 @@ export default function ClientDashboard() {
         {/* In-App Notifications — surfaced above the weight tracker so coaching alerts get seen first */}
         <InAppNotifications />
 
-        {/* Smart Pace Tracker — primary weight goal banner (replaces legacy GoalCard when enabled) */}
-        <div className="space-y-2">
-          <h2 className="text-lg font-bold text-foreground px-1">KSOM-360 Smart Weight Tracker</h2>
-          <SmartPaceBanner />
-        </div>
+        {/* Smart Pace Tracker — primary weight goal banner.
+            Hidden here when a fast is active because the FastingProtocolCard
+            renders it directly above the timer. */}
+        {!fastingState?.active_fast_start_at && (
+          <div className="space-y-2">
+            <h2 className="text-lg font-bold text-foreground px-1">KSOM-360 Smart Weight Tracker</h2>
+            <SmartPaceBanner />
+          </div>
+        )}
         <SmartPaceCatchUpModal />
 
         {/* Today's Coaching */}
