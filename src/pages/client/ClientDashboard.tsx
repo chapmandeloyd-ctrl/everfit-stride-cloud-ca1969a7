@@ -577,7 +577,13 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
   if (isFasting && featureSettings.active_fast_start_at && featureSettings.active_fast_target_hours) {
 
     return (
-      <Card className="overflow-hidden border-primary/20 shadow-lg relative">
+      <div className="space-y-3">
+        {/* Smart Weight Tracker shown above the active fasting timer */}
+        <div className="space-y-2">
+          <h2 className="text-lg font-bold text-foreground px-1">KSOM-360 Smart Weight Tracker</h2>
+          <SmartPaceBanner />
+        </div>
+        <Card className="overflow-hidden border-primary/20 shadow-lg relative">
         {/* Lion card background */}
         <div
           className="absolute inset-0 bg-cover bg-center"
@@ -661,7 +667,8 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
             }}
           />
         </CardContent>
-      </Card>
+        </Card>
+      </div>
     );
   }
 
@@ -1734,11 +1741,15 @@ export default function ClientDashboard() {
         {/* In-App Notifications — surfaced above the weight tracker so coaching alerts get seen first */}
         <InAppNotifications />
 
-        {/* Smart Pace Tracker — primary weight goal banner (replaces legacy GoalCard when enabled) */}
-        <div className="space-y-2">
-          <h2 className="text-lg font-bold text-foreground px-1">KSOM-360 Smart Weight Tracker</h2>
-          <SmartPaceBanner />
-        </div>
+        {/* Smart Pace Tracker — primary weight goal banner.
+            Hidden here when a fast is active because the FastingProtocolCard
+            renders it directly above the timer. */}
+        {!fastingState?.active_fast_start_at && (
+          <div className="space-y-2">
+            <h2 className="text-lg font-bold text-foreground px-1">KSOM-360 Smart Weight Tracker</h2>
+            <SmartPaceBanner />
+          </div>
+        )}
         <SmartPaceCatchUpModal />
 
         {/* Today's Coaching */}
