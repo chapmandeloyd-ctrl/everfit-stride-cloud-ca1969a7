@@ -1,6 +1,6 @@
 import { ClientLayout } from "@/components/ClientLayout";
 import { Card, CardContent } from "@/components/ui/card";
-import { ChevronRight, Settings, Clock, Star, Bookmark, Dumbbell, Play, Upload, Trash2, Info } from "lucide-react";
+import { ChevronRight, Settings, Clock, Star, Bookmark, Upload, Trash2, Info } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
@@ -9,7 +9,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
-import { useSavedWorkouts } from "@/hooks/useSavedWorkouts";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
