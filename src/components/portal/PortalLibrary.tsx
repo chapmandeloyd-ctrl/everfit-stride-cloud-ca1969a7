@@ -289,26 +289,58 @@ function LoopingVideo({ src }: { src: string }) {
     const el = ref.current;
     if (!el) return;
     el.muted = true;
+    el.defaultMuted = true;
+    el.setAttribute("muted", "");
+    el.setAttribute("playsinline", "");
+    el.setAttribute("webkit-playsinline", "");
+
     const tryPlay = () => {
       const p = el.play();
       if (p && typeof p.catch === "function") {
         p.catch(() => {
-          /* Autoplay may be blocked until first user gesture; ignore */
+          // Autoplay blocked. Force a frame paint by seeking a hair forward
+          // so the circle isn't blank until first user gesture.
+          try {
+            el.currentTime = 0.01;
+          } catch {}
         });
       }
     };
+
+    // Force the browser to actually fetch the video bytes.
+    try {
+      el.load();
+    } catch {}
+
     if (el.readyState >= 2) {
       tryPlay();
     } else {
-      el.addEventListener("loadeddata", tryPlay, { once: true });
-      return () => el.removeEventListener("loadeddata", tryPlay);
+      const onReady = () => tryPlay();
+      el.addEventListener("loadeddata", onReady, { once: true });
+      el.addEventListener("canplay", onReady, { once: true });
     }
+
+    // If iOS pauses the video when scrolled offscreen, resume on visibility.
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting && el.paused) {
+            tryPlay();
+          }
+        }
+      },
+      { threshold: 0.1 }
+    );
+    io.observe(el);
+
+    return () => {
+      io.disconnect();
+    };
   }, [src]);
 
   return (
     <video
       ref={ref}
-      src={src}
       muted
       loop
       playsInline
@@ -317,6 +349,8 @@ function LoopingVideo({ src }: { src: string }) {
       disablePictureInPicture
       disableRemotePlayback
       className="absolute inset-0 w-full h-full object-cover"
-    />
+    >
+      <source src={src} type="video/mp4" />
+    </video>
   );
 }
