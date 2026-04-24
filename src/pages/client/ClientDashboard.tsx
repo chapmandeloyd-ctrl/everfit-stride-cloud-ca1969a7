@@ -583,6 +583,7 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
           <h2 className="text-lg font-bold text-foreground px-1">KSOM-360 Smart Weight Tracker</h2>
           <SmartPaceBanner />
         </div>
+        <h2 className="text-lg font-bold text-foreground px-1">KSOM-360 Fasting Timer</h2>
         <Card className="overflow-hidden border-primary/20 shadow-lg relative">
         {/* Lion card background */}
         <div
