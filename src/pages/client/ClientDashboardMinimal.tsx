@@ -1,6 +1,5 @@
 import { ClientLayout } from "@/components/ClientLayout";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Scale, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
@@ -76,14 +75,6 @@ export default function ClientDashboardMinimal() {
             <ChevronRight className="h-5 w-5 text-muted-foreground" />
           </CardContent>
         </Card>
-
-        <Button
-          variant="outline"
-          className="w-full"
-          onClick={() => navigate("/client/health")}
-        >
-          Open Weight Tracker
-        </Button>
       </div>
     </ClientLayout>
   );
