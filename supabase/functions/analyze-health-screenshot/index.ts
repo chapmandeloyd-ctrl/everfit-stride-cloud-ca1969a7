@@ -231,32 +231,39 @@ serve(async (req) => {
             content: [
               {
                 type: 'text',
-                text: `You are an expert at reading health app screenshots (Apple Health, Fitbit, Garmin, Samsung Health, etc.).
-Analyze this screenshot and extract health metrics you can see.
+                text: `You are an expert at reading health & fitness app screenshots from ANY source.
+This image could be from Trainerize, Apple Health, Fitbit, Garmin Connect, Samsung Health,
+Whoop, Oura, MyFitnessPal, Lose It!, a smart scale app, or even a handwritten note.
+Do NOT assume it's Apple Health — read whatever labels and numbers are visible.
+
+Extract any of these 5 metrics that you can see on screen:
 
 MAPPING RULES for data_type:
-- "Steps" or step count → steps
-- "Active Calories" or "Active Energy" or "Move" → active_energy
-- "Calories Burned" or total calories → calories_burned
-- "Active Energy" or "Active Calories" or "Move" → active_energy
-- "Resting Energy" or "Basal Energy Burned" → resting_energy
-- "Dietary Energy" or "Food Energy" or calories eaten/consumed → dietary_energy
-                - "Sleep" duration → sleep (value in HOURS as decimal, e.g. 7.5)
-- "Weight" → weight (value in lbs)
-- "Caloric Intake" or food calories → caloric_intake
-- "Dietary Energy" → dietary_energy (this is Apple's name for calories consumed/eaten)
-                - "Workouts" → workout (count of workouts shown)
+- "Steps", "Step Count", "Daily Steps" → steps (integer)
+- "Body Weight", "Weight", "Current Weight" → weight (in lbs; convert from kg if needed: kg × 2.2046)
+- "Sleep", "Sleep Duration", "Time Asleep" → sleep (HOURS as decimal, e.g. "6h 56m" = 6.93, "7h 30m" = 7.5)
+- "Caloric Burn", "Calories Burned", "Total Calories", "Energy Burned",
+  "Active Calories" / "Active Energy" / "Move" → active_energy
+- "Resting Energy", "Basal Energy Burned", "BMR" → resting_energy
+- "Caloric Intake", "Calories Consumed", "Calories Eaten",
+  "Dietary Energy", "Food Energy", "Food Calories" → dietary_energy
+- "Workouts" count → workout
 
-IMPORTANT: Apple Health shows "Active Energy" and "Resting Energy" separately. 
-- Map "Active Energy" → active_energy
-- Map "Resting Energy" → resting_energy  
-- Map "Basal Energy Burned" → resting_energy
-- Map "Dietary Energy" / "Food Energy" → dietary_energy
-- Do NOT combine them into one entry.
+TRAINERIZE NOTE: Trainerize typically shows tiles labeled exactly:
+"Body Weight", "Steps", "Sleep", "Caloric Burn", "Caloric Intake".
+When you see "Caloric Burn" treat it as a single total → calories_burned.
+When you see "Caloric Intake" → caloric_intake.
+Do NOT split Trainerize's "Caloric Burn" into active + resting.
 
-Extract exact numbers shown on screen. Convert minutes to hours for sleep (e.g. 7h 30m = 7.5).
-Skip any metrics not in the mapping above.
-Today's date is ${new Date().toISOString().split('T')[0]}.`
+APPLE HEALTH NOTE: Apple shows "Active Energy" and "Resting Energy" separately.
+Keep them separate (active_energy + resting_energy) — the server sums them.
+
+General rules:
+- Extract exact numbers shown on screen.
+- Convert sleep "Xh Ym" to decimal hours.
+- Convert kg → lbs for weight.
+- Skip any metric not in the mapping above (HR, blood pressure, distance, etc.).
+- Today's date is ${new Date().toISOString().split('T')[0]}.`
               },
               {
                 type: 'image_url',

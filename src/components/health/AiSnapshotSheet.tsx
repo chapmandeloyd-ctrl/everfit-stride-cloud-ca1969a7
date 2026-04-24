@@ -89,7 +89,8 @@ export function AiSnapshotSheet({ open, onOpenChange, clientId }: Props) {
             AI Snapshot
           </SheetTitle>
           <SheetDescription>
-            Upload a screenshot of your Apple Health Summary and we'll auto-fill your metrics.
+            Snap or upload a screenshot from Trainerize, Apple Health, Fitbit, Garmin, Whoop —
+            any tracker. We'll auto-fill your Body Weight, Steps, Sleep, Caloric Burn, and Caloric Intake.
           </SheetDescription>
         </SheetHeader>
 
