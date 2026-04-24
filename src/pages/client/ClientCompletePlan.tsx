@@ -205,24 +205,35 @@ export default function ClientCompletePlan() {
 
   const startFastMutation = useMutation({
     mutationFn: async () => {
+      if (!clientId) throw new Error("No client selected");
       const targetHours = protocol?.fast_target_hours || 16;
-      const { error } = await supabase
+      const startedAt = new Date().toISOString();
+      const { data, error } = await supabase
         .from("client_feature_settings")
         .update({
-          active_fast_start_at: new Date().toISOString(),
+          active_fast_start_at: startedAt,
           active_fast_target_hours: targetHours,
           last_fast_ended_at: null,
+          eating_window_ends_at: null,
         })
-        .eq("client_id", clientId!);
+        .eq("client_id", clientId)
+        .select("client_id, active_fast_start_at")
+        .maybeSingle();
       if (error) throw error;
+      if (!data?.active_fast_start_at) throw new Error("Fast timer could not be started.");
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting"] });
+      queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["my-feature-settings", clientId] });
       toast({ title: "Fast Started! 🔥", description: "Your fasting timer is now running." });
       navigate("/client/dashboard");
     },
-    onError: () => {
-      toast({ title: "Error", description: "Could not start fast.", variant: "destructive" });
+    onError: (error) => {
+      toast({
+        title: "Timer didn't start",
+        description: error instanceof Error ? error.message : "Could not start fast.",
+        variant: "destructive"
+      });
     },
   });
 
