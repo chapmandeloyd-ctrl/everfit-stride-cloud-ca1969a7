@@ -606,6 +606,32 @@ export function ClientSettingsTab({ clientId, trainerId }: ClientSettingsTabProp
         </CardHeader>
         <CardContent className="space-y-1">
           {(() => {
+            // Minimal Mode: keep ONLY fasting + body metrics (weight tracker) on
+            const keepOnInMinimal = ["fasting_enabled", "body_metrics_enabled"] as const;
+            const allFeatureKeys = FEATURES.map((f) => f.key);
+            const extraKeys = [
+              "on_demand_enabled",
+              "client_wod_builder_enabled",
+              "ai_suggestions_enabled",
+              "insights_enabled",
+              "homework_enabled",
+              "daily_checkin_enabled",
+              "parent_link_enabled",
+              "smart_pace_enabled",
+              "pace_enabled",
+              "nudge_enabled",
+            ] as const;
+            const allKeys = [
+              ...new Set<string>([...allFeatureKeys, ...extraKeys]),
+            ];
+            const minimalActive =
+              keepOnInMinimal.every(
+                (k) => (settings?.[k as keyof typeof settings] as boolean) === true
+              ) &&
+              allKeys
+                .filter((k) => !keepOnInMinimal.includes(k as any))
+                .every((k) => (settings?.[k as keyof typeof settings] as boolean) === false);
+
             const workoutKeys = [
               "training_enabled",
               "on_demand_enabled",
@@ -616,6 +642,37 @@ export function ClientSettingsTab({ clientId, trainerId }: ClientSettingsTabProp
               (k) => (settings?.[k as keyof typeof settings] as boolean) === false
             );
             return (
+              <>
+                <div className="mb-3 rounded-lg border border-primary/40 bg-primary/5 p-4 flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-lg flex items-center justify-center bg-primary/10 text-primary">
+                      <Clock className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <Label className="text-base font-semibold">Minimal Mode (Fasting + Weight only)</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Hides everything except the Fasting timer and Weight tracker. Reverses on toggle off.
+                      </p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={minimalActive}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        allKeys.forEach((k) => {
+                          const value = keepOnInMinimal.includes(k as any);
+                          toggleMutation.mutate({ key: k, value });
+                        });
+                        toast({ title: "Minimal Mode on", description: "Only Fasting + Weight visible to client." });
+                      } else {
+                        allKeys.forEach((k) =>
+                          toggleMutation.mutate({ key: k, value: true })
+                        );
+                        toast({ title: "Minimal Mode off", description: "All features re-enabled." });
+                      }
+                    }}
+                  />
+                </div>
               <div className="mb-3 rounded-lg border border-destructive/30 bg-destructive/5 p-4 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 rounded-lg flex items-center justify-center bg-destructive/10 text-destructive">
@@ -641,6 +698,7 @@ export function ClientSettingsTab({ clientId, trainerId }: ClientSettingsTabProp
                   }}
                 />
               </div>
+              </>
             );
           })()}
           {FEATURES.map((feature, index) => {
