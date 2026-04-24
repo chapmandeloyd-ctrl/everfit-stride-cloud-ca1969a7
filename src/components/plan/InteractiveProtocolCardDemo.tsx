@@ -100,10 +100,22 @@ export function CardSurfaceOverlays({ surfaceTintGradient }: { surfaceTintGradie
 /* -------- count-up hook -------- */
 
 function useCountUp(target: number, durationMs = 900, start = true) {
-  const [value, setValue] = useState(0);
+  // Initialize at the target so stat tiles show the real number on first
+  // paint and never flash "0%" while waiting for the RAF tick to land.
+  const [value, setValue] = useState(target);
+  const hasAnimatedRef = useRef(false);
   useEffect(() => {
     if (!start) return;
+    // Only run the count-up once per target. Re-mounts and parent re-renders
+    // should not yank the number back to 0 and re-animate (which previously
+    // caused the visible "0%" flicker).
+    if (hasAnimatedRef.current) {
+      setValue(target);
+      return;
+    }
+    hasAnimatedRef.current = true;
     let raf = 0;
+    setValue(0);
     const t0 = performance.now();
     const tick = (t: number) => {
       const p = Math.min(1, (t - t0) / durationMs);
