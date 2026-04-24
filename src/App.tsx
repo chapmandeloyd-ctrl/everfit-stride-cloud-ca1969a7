@@ -206,26 +206,26 @@ const App = () => (
           <Route path="/client/on-demand" element={<Navigate to="/client/dashboard" replace />} />
           <Route path="/client/resource-collection/:id" element={<Navigate to="/client/dashboard" replace />} />
           <Route path="/client/health" element={<ProtectedRoute allowedRoles={["client"]}><ClientHealth /></ProtectedRoute>} />
-          <Route path="/client/health-connect" element={<ProtectedRoute allowedRoles={["client"]}><ClientHealthConnect /></ProtectedRoute>} />
-          <Route path="/client/health-reminders" element={<ProtectedRoute allowedRoles={["client"]}><ClientHealthReminders /></ProtectedRoute>} />
-          <Route path="/client/badges" element={<ProtectedRoute allowedRoles={["client"]}><ClientBadges /></ProtectedRoute>} />
-          <Route path="/client/habits" element={<ProtectedRoute allowedRoles={["client"]}><ClientHabits /></ProtectedRoute>} />
-          <Route path="/client/habits/:id" element={<ProtectedRoute allowedRoles={["client"]}><ClientHabitDetail /></ProtectedRoute>} />
-          <Route path="/client/macro-setup" element={<ProtectedRoute allowedRoles={["client"]}><ClientMacroSetup /></ProtectedRoute>} />
-          <Route path="/client/log-meal" element={<ProtectedRoute allowedRoles={["client"]}><ClientLogMeal /></ProtectedRoute>} />
-          <Route path="/client/recipes/:id" element={<ProtectedRoute allowedRoles={["client"]}><ClientRecipeDetail /></ProtectedRoute>} />
+          <Route path="/client/health-connect" element={<Navigate to="/client/health" replace />} />
+          <Route path="/client/health-reminders" element={<Navigate to="/client/health" replace />} />
+          <Route path="/client/badges" element={<Navigate to="/client/dashboard" replace />} />
+          <Route path="/client/habits" element={<Navigate to="/client/dashboard" replace />} />
+          <Route path="/client/habits/:id" element={<Navigate to="/client/dashboard" replace />} />
+          <Route path="/client/macro-setup" element={<Navigate to="/client/dashboard" replace />} />
+          <Route path="/client/log-meal" element={<Navigate to="/client/dashboard" replace />} />
+          <Route path="/client/recipes/:id" element={<Navigate to="/client/dashboard" replace />} />
           <Route path="/client/keto-types" element={<ProtectedRoute allowedRoles={["client"]}><ClientKetoTypes /></ProtectedRoute>} />
           <Route path="/client/keto-types/:id" element={<ProtectedRoute allowedRoles={["client"]}><ClientKetoTypeDetail /></ProtectedRoute>} />
           <Route path="/client/card-styles" element={<ProtectedRoute allowedRoles={["client", "trainer"]}><CardStylesPreview /></ProtectedRoute>} />
-          <Route path="/client/workouts/:id" element={<ProtectedRoute allowedRoles={["client"]}><WorkoutDetail /></ProtectedRoute>} />
-          <Route path="/client/workout-session/:sessionId" element={<ProtectedRoute allowedRoles={["client"]}><ClientWorkoutSession /></ProtectedRoute>} />
-          <Route path="/client/messages" element={<ProtectedRoute allowedRoles={["client"]}><Messages /></ProtectedRoute>} />
-          <Route path="/client/booking" element={<ProtectedRoute allowedRoles={["client"]}><ClientBooking /></ProtectedRoute>} />
-          <Route path="/client/appointments" element={<ProtectedRoute allowedRoles={["client"]}><ClientAppointments /></ProtectedRoute>} />
-          <Route path="/client/sports" element={<ProtectedRoute allowedRoles={["client"]}><ClientSportsProfile /></ProtectedRoute>} />
-          <Route path="/client/cardio-player" element={<ProtectedRoute allowedRoles={["client"]}><ClientCardioPlayer /></ProtectedRoute>} />
-          <Route path="/client/wod-builder" element={<ProtectedRoute allowedRoles={["client"]}><ClientWodBuilder /></ProtectedRoute>} />
-          <Route path="/client/my-workouts" element={<ProtectedRoute allowedRoles={["client"]}><ClientMyWorkouts /></ProtectedRoute>} />
+          <Route path="/client/workouts/:id" element={<Navigate to="/client/dashboard" replace />} />
+          <Route path="/client/workout-session/:sessionId" element={<Navigate to="/client/dashboard" replace />} />
+          <Route path="/client/messages" element={<Navigate to="/client/dashboard" replace />} />
+          <Route path="/client/booking" element={<Navigate to="/client/dashboard" replace />} />
+          <Route path="/client/appointments" element={<Navigate to="/client/dashboard" replace />} />
+          <Route path="/client/sports" element={<Navigate to="/client/dashboard" replace />} />
+          <Route path="/client/cardio-player" element={<Navigate to="/client/dashboard" replace />} />
+          <Route path="/client/wod-builder" element={<Navigate to="/client/dashboard" replace />} />
+          <Route path="/client/my-workouts" element={<Navigate to="/client/dashboard" replace />} />
           <Route path="/client/programs" element={<ProtectedRoute allowedRoles={["client"]}><FastingRouteGuard><ClientPrograms /></FastingRouteGuard></ProtectedRoute>} />
           <Route path="/client/choose-protocol" element={<ProtectedRoute allowedRoles={["client"]}><ClientChooseProtocol /></ProtectedRoute>} />
           <Route path="/client/quick-plans" element={<ProtectedRoute allowedRoles={["client"]}><FastingRouteGuard><ClientQuickPlans /></FastingRouteGuard></ProtectedRoute>} />
