@@ -85,6 +85,7 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
   const [showVerifyPin, setShowVerifyPin] = useState(false);
   const [showCompletion, setShowCompletion] = useState(false);
   const liveActivity = useLiveActivity();
+  const { toast } = useToast();
 
   const { data: featureSettings } = useQuery({
     queryKey: ["my-feature-settings-fasting", clientId],
@@ -262,22 +263,34 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
 
   const startFastMutation = useMutation({
     mutationFn: async () => {
+      if (!clientId) throw new Error("No client selected");
       const targetHours = activeProtocol?.fast_target_hours || featureSettings?.active_fast_target_hours || 16;
-      const { error, count } = await supabase
+      const startedAt = new Date().toISOString();
+      const { data, error } = await supabase
         .from("client_feature_settings")
         .update({
-          active_fast_start_at: new Date().toISOString(),
+          active_fast_start_at: startedAt,
           active_fast_target_hours: targetHours,
           last_fast_ended_at: null,
+          eating_window_ends_at: null,
         })
-        .eq("client_id", clientId);
+        .eq("client_id", clientId)
+        .select("client_id, active_fast_start_at, active_fast_target_hours")
+        .maybeSingle();
       if (error) throw error;
+      if (!data?.active_fast_start_at || !data?.active_fast_target_hours) {
+        throw new Error("Fast timer could not be started.");
+      }
+
+      return {
+        targetHours: data.active_fast_target_hours,
+      };
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting"] });
+    onSuccess: ({ targetHours }) => {
+      queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["my-feature-settings", clientId] });
       queryClient.invalidateQueries({ queryKey: ["fasting-profile-data"] });
       // Start Live Activity for lock screen timer
-      const targetHours = activeProtocol?.fast_target_hours || featureSettings?.active_fast_target_hours || 16;
       const totalSeconds = targetHours * 3600;
       liveActivity.start({
         activityType: 'fasting',
@@ -293,6 +306,11 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
     },
     onError: (err) => {
       console.error("Start fast error:", err);
+      toast({
+        title: "Timer didn't start",
+        description: err instanceof Error ? err.message : "Please try again.",
+        variant: "destructive",
+      });
     },
   });
 

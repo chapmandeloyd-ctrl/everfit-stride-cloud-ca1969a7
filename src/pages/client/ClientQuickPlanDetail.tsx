@@ -135,6 +135,7 @@ export default function ClientQuickPlanDetail() {
   const selectPlanMutation = useMutation({
     mutationFn: async ({ startNow }: { startNow: boolean }) => {
       if (!plan) throw new Error("No plan");
+      if (!clientId) throw new Error("No client selected");
       const updates: Record<string, any> = {
         selected_quick_plan_id: plan.id,
         selected_protocol_id: null,
@@ -146,21 +147,25 @@ export default function ClientQuickPlanDetail() {
         updates.last_fast_ended_at = null;
         updates.eating_window_ends_at = null;
       }
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("client_feature_settings")
         .update(updates)
-        .eq("client_id", clientId);
+        .eq("client_id", clientId)
+        .select("client_id, active_fast_start_at")
+        .maybeSingle();
       if (error) throw error;
+      if (!data) throw new Error("Plan could not be saved.");
+      if (startNow && !data.active_fast_start_at) throw new Error("Fast timer could not be started.");
     },
     onSuccess: (_, { startNow }) => {
-      queryClient.invalidateQueries({ queryKey: ["my-feature-settings"] });
-      queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting"] });
+      queryClient.invalidateQueries({ queryKey: ["my-feature-settings", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting", clientId] });
       queryClient.invalidateQueries({ queryKey: ["fasting-gate-state"] });
       queryClient.invalidateQueries({ queryKey: ["fasting-profile-data"] });
       toast.success(startNow ? "Fast started!" : "Plan saved!");
       navigate("/client/dashboard");
     },
-    onError: () => toast.error("Failed to select plan"),
+    onError: (error) => toast.error(error instanceof Error ? error.message : "Failed to select plan"),
   });
 
   if (isLoading || !plan) {

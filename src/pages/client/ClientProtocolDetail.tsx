@@ -80,6 +80,7 @@ export default function ClientProtocolDetail() {
 
   const selectProtocolMutation = useMutation({
     mutationFn: async ({ protocolId, startNow }: { protocolId: string; startNow: boolean }) => {
+      if (!clientId) throw new Error("No client selected");
       const today = format(new Date(), "yyyy-MM-dd");
       const updates: Record<string, any> = {
         selected_protocol_id: protocolId,
@@ -92,15 +93,19 @@ export default function ClientProtocolDetail() {
         updates.last_fast_ended_at = null;
         updates.eating_window_ends_at = null;
       }
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("client_feature_settings")
         .update(updates)
-        .eq("client_id", clientId);
+        .eq("client_id", clientId)
+        .select("client_id, active_fast_start_at")
+        .maybeSingle();
       if (error) throw error;
+      if (!data) throw new Error("Protocol could not be saved.");
+      if (startNow && !data.active_fast_start_at) throw new Error("Fast timer could not be started.");
     },
     onSuccess: (_, { startNow }) => {
-      queryClient.invalidateQueries({ queryKey: ["my-feature-settings"] });
-      queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting"] });
+      queryClient.invalidateQueries({ queryKey: ["my-feature-settings", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting", clientId] });
       queryClient.invalidateQueries({ queryKey: ["fasting-gate-state"] });
       queryClient.invalidateQueries({ queryKey: ["fasting-profile-data"] });
       if (startNow) {
@@ -110,7 +115,7 @@ export default function ClientProtocolDetail() {
       }
       navigate("/client/dashboard");
     },
-    onError: () => toast.error("Failed to select protocol"),
+    onError: (error) => toast.error(error instanceof Error ? error.message : "Failed to select protocol"),
   });
 
   if (isLoading || !protocol) {
