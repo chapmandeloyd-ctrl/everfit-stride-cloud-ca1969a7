@@ -86,7 +86,6 @@ import ClientCompletePlan from "./pages/client/ClientCompletePlan";
 import ClientProtocolCardDemo from "./pages/client/ClientProtocolCardDemo";
 import ClientKetoTypeCardDemo from "./pages/client/ClientKetoTypeCardDemo";
 import ClientFastComplete from "./pages/client/ClientFastComplete";
-import ClientVibes from "./pages/client/ClientVibes";
 import ClientLabs from "./pages/client/ClientLabs";
 import ClientDiamondLab from "./pages/client/ClientDiamondLab";
 import ClientHoopsLab from "./pages/client/ClientHoopsLab";
@@ -95,9 +94,6 @@ import ClientShootingSession from "./pages/client/ClientShootingSession";
 import ClientWorkoutHistory from "./pages/ClientWorkoutHistory";
 import ClientWorkoutSession from "./pages/client/ClientWorkoutSession";
 import ClientMyWorkouts from "./pages/client/ClientMyWorkouts";
-import VibesAdmin from "./pages/VibesAdmin";
-import ClientPortal from "./pages/client/ClientPortal";
-import PortalAdmin from "./pages/PortalAdmin";
 import AllClientWorkouts from "./pages/AllClientWorkouts";
 import ClientCommandCenter from "./pages/ClientCommandCenter";
 import Scheduling from "./pages/Scheduling";
@@ -238,19 +234,16 @@ const App = () => (
           <Route path="/client/keto-type-card-demo" element={<ProtectedRoute allowedRoles={["client"]}><ClientKetoTypeCardDemo /></ProtectedRoute>} />
           <Route path="/keto-type-card-demo" element={<ClientKetoTypeCardDemo />} />
           <Route path="/client/fast-complete" element={<ProtectedRoute allowedRoles={["client"]}><ClientFastComplete /></ProtectedRoute>} />
-          <Route path="/client/vibes" element={<ProtectedRoute allowedRoles={["client"]}><ClientVibes /></ProtectedRoute>} />
+          <Route path="/client/vibes" element={<Navigate to="/client/dashboard" replace />} />
           <Route path="/client/labs" element={<Navigate to="/client/dashboard" replace />} />
           <Route path="/client/labs/diamond" element={<Navigate to="/client/dashboard" replace />} />
           <Route path="/client/labs/diamond/session" element={<Navigate to="/client/dashboard" replace />} />
           <Route path="/client/labs/hoops" element={<Navigate to="/client/dashboard" replace />} />
           <Route path="/client/labs/hoops/session" element={<Navigate to="/client/dashboard" replace />} />
           
-          {/* Trainer: Vibes Admin */}
-          <Route path="/vibes-admin" element={<ProtectedRoute allowedRoles={["trainer"]}><VibesAdmin /></ProtectedRoute>} />
-
-          {/* Portal (Beta) — new immersive experience */}
-          <Route path="/client/portal" element={<ProtectedRoute allowedRoles={["client", "trainer"]}><ClientPortal /></ProtectedRoute>} />
-          <Route path="/portal-admin" element={<ProtectedRoute allowedRoles={["trainer"]}><PortalAdmin /></ProtectedRoute>} />
+          <Route path="/vibes-admin" element={<Navigate to="/settings" replace />} />
+          <Route path="/client/portal" element={<Navigate to="/client/dashboard" replace />} />
+          <Route path="/portal-admin" element={<Navigate to="/settings" replace />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
