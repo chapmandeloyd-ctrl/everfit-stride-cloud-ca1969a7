@@ -107,12 +107,6 @@ const FEATURES = [
     description: "Show synced sport schedule events (games, practices) on the client's dashboard",
     icon: Activity,
   },
-  {
-    key: "restore_enabled",
-    label: "Restore",
-    description: "Enable the Restore recovery hub (soundscapes, breathing, guided sessions, sleep)",
-    icon: Activity,
-  },
 ] as const;
 
 // Strict Mode sub-settings shown when fasting is enabled
@@ -1132,7 +1126,6 @@ function DashboardLayoutSection({ clientId, trainerId, settings }: { clientId: s
   // Feature flag restrictions
   if (!settings?.training_enabled) disabledCards["workouts"] = "Training disabled";
   if (!settings?.fasting_enabled && !engineConfig.fastingDisabled) disabledCards["fasting"] = "Fasting disabled";
-  if (!settings?.restore_enabled) disabledCards["restore"] = "Restore disabled";
   if (!settings?.tasks_enabled) {
     disabledCards["tasks"] = "Tasks disabled";
     disabledCards["habits"] = "Tasks disabled";

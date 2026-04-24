@@ -3,7 +3,7 @@ import fastingCardBgImg from "@/assets/fasting-timer-bg.jpg";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Bell, Dumbbell, CheckCircle2, Circle, UtensilsCrossed, Footprints, ChevronRight, Smartphone, X, Plus, Pencil, Swords, Trophy, MapPin, Check, Activity, ScanBarcode, Camera, PenLine, MessageCircle, Clock, Sparkles, ArrowRight, CalendarDays, BarChart3 } from "lucide-react";
+import { Bell, Dumbbell, CheckCircle2, Circle, UtensilsCrossed, Footprints, ChevronRight, Smartphone, X, Plus, Pencil, Swords, Trophy, MapPin, Check, Activity, ScanBarcode, Camera, PenLine, MessageCircle, Clock, ArrowRight, CalendarDays, BarChart3 } from "lucide-react";
 import { getDifficultyLabel, getDurationLabel } from "@/lib/fastingCategoryConfig";
 import { useAuth } from "@/hooks/useAuth";
 import { differenceInCalendarDays, isToday, isBefore, startOfDay, parseISO, format } from "date-fns";
@@ -2135,24 +2135,7 @@ export default function ClientDashboard() {
               ) : null;
 
             case "restore":
-              return settings.restore_enabled ? (
-                <Card
-                  key="restore"
-                  className="overflow-hidden border-primary/20 shadow-md cursor-pointer hover:shadow-lg transition-shadow"
-                  onClick={() => navigate("/client/vibes")}
-                >
-                  <CardContent className="px-5 py-5 flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                      <Sparkles className="h-6 w-6 text-primary" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-sm font-bold">Restore</h3>
-                      <p className="text-xs text-muted-foreground">Soundscapes, breathing & guided recovery</p>
-                    </div>
-                    <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />
-                  </CardContent>
-                </Card>
-              ) : null;
+              return null;
 
             case "engine_cards":
               return null;
