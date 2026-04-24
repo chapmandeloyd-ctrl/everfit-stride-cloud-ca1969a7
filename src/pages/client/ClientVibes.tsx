@@ -15,6 +15,7 @@ import { RestoreQuickStart } from "@/components/vibes/RestoreQuickStart";
 import { RestoreModuleGrid, type RestoreModule } from "@/components/vibes/RestoreModuleGrid";
 import { RestoreBreathingTab } from "@/components/vibes/RestoreBreathingTab";
 import { RestoreSleepTab } from "@/components/vibes/RestoreSleepTab";
+import { RestorePlaybackTest } from "@/components/vibes/RestorePlaybackTest";
 
 import { BreathingPlayer } from "@/components/vibes/BreathingPlayer";
 import { type BreathingExercise } from "@/lib/breathingExercises";
@@ -135,6 +136,7 @@ export default function ClientVibes() {
           {/* HOME VIEW */}
           {view.type === "home" && (
             <div className="space-y-8">
+              <RestorePlaybackTest />
               {/* Portal Beta tile — for A/B testing the new immersive experience */}
               <button
                 onClick={() => navigate("/client/portal")}
