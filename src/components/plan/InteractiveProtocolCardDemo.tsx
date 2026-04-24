@@ -100,10 +100,17 @@ export function CardSurfaceOverlays({ surfaceTintGradient }: { surfaceTintGradie
 /* -------- count-up hook -------- */
 
 function useCountUp(target: number, durationMs = 900, start = true) {
-  const [value, setValue] = useState(0);
+  // Initialize at the target so the value is correct on first paint and
+  // never flashes "0" (which previously made stat tiles read "0%" until the
+  // RAF tick landed — visible in screenshots and on slow renders).
+  const [value, setValue] = useState(target);
   useEffect(() => {
-    if (!start) return;
+    if (!start) {
+      setValue(target);
+      return;
+    }
     let raf = 0;
+    setValue(0);
     const t0 = performance.now();
     const tick = (t: number) => {
       const p = Math.min(1, (t - t0) / durationMs);
