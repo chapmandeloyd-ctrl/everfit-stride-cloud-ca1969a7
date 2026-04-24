@@ -78,7 +78,7 @@ import { CoachingCard } from "@/components/dashboard/CoachingCard";
 import { WelcomeCard } from "@/components/client/WelcomeCard";
 
 // Fasting Program Card sub-component
-function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; navigate: (path: string) => void }) {
+export function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; navigate: (path: string) => void }) {
   const queryClient = useQueryClient();
   const [now, setNow] = useState(new Date());
   const [showCreatePin, setShowCreatePin] = useState(false);
