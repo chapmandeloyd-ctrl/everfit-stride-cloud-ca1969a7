@@ -238,12 +238,12 @@ const App = () => (
           <Route path="/client/keto-type-card-demo" element={<ProtectedRoute allowedRoles={["client"]}><ClientKetoTypeCardDemo /></ProtectedRoute>} />
           <Route path="/keto-type-card-demo" element={<ClientKetoTypeCardDemo />} />
           <Route path="/client/fast-complete" element={<ProtectedRoute allowedRoles={["client"]}><ClientFastComplete /></ProtectedRoute>} />
-          <Route path="/client/vibes" element={<ProtectedRoute allowedRoles={["client"]}><ClientVibes /></ProtectedRoute>} />
-          <Route path="/client/labs" element={<ProtectedRoute allowedRoles={["client"]}><ClientLabs /></ProtectedRoute>} />
-          <Route path="/client/labs/diamond" element={<ProtectedRoute allowedRoles={["client"]}><ClientDiamondLab /></ProtectedRoute>} />
-          <Route path="/client/labs/diamond/session" element={<ProtectedRoute allowedRoles={["client"]}><ClientBattingSession /></ProtectedRoute>} />
-          <Route path="/client/labs/hoops" element={<ProtectedRoute allowedRoles={["client"]}><ClientHoopsLab /></ProtectedRoute>} />
-          <Route path="/client/labs/hoops/session" element={<ProtectedRoute allowedRoles={["client"]}><ClientShootingSession /></ProtectedRoute>} />
+          <Route path="/client/vibes" element={<Navigate to="/client/dashboard" replace />} />
+          <Route path="/client/labs" element={<Navigate to="/client/dashboard" replace />} />
+          <Route path="/client/labs/diamond" element={<Navigate to="/client/dashboard" replace />} />
+          <Route path="/client/labs/diamond/session" element={<Navigate to="/client/dashboard" replace />} />
+          <Route path="/client/labs/hoops" element={<Navigate to="/client/dashboard" replace />} />
+          <Route path="/client/labs/hoops/session" element={<Navigate to="/client/dashboard" replace />} />
           
           {/* Trainer: Vibes Admin */}
           <Route path="/vibes-admin" element={<ProtectedRoute allowedRoles={["trainer"]}><VibesAdmin /></ProtectedRoute>} />
