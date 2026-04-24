@@ -238,7 +238,7 @@ const App = () => (
           <Route path="/client/keto-type-card-demo" element={<ProtectedRoute allowedRoles={["client"]}><ClientKetoTypeCardDemo /></ProtectedRoute>} />
           <Route path="/keto-type-card-demo" element={<ClientKetoTypeCardDemo />} />
           <Route path="/client/fast-complete" element={<ProtectedRoute allowedRoles={["client"]}><ClientFastComplete /></ProtectedRoute>} />
-          <Route path="/client/vibes" element={<Navigate to="/client/dashboard" replace />} />
+          <Route path="/client/vibes" element={<ProtectedRoute allowedRoles={["client"]}><ClientVibes /></ProtectedRoute>} />
           <Route path="/client/labs" element={<Navigate to="/client/dashboard" replace />} />
           <Route path="/client/labs/diamond" element={<Navigate to="/client/dashboard" replace />} />
           <Route path="/client/labs/diamond/session" element={<Navigate to="/client/dashboard" replace />} />
