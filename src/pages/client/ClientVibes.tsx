@@ -1,10 +1,9 @@
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { ClientLayout } from "@/components/ClientLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAudioMixer } from "@/hooks/useAudioMixer";
-import { preloadAudioUrls } from "@/lib/vibesMixer";
 import { VibesHomeTab } from "@/components/vibes/VibesHomeTab";
 import { VibesSoundsTab } from "@/components/vibes/VibesSoundsTab";
 import { VibesMixesTab } from "@/components/vibes/VibesMixesTab";
@@ -49,13 +48,6 @@ export default function ClientVibes() {
     },
   });
 
-  useEffect(() => {
-    if (sounds.length > 0) {
-      const urls = sounds.map((s: any) => s.audio_url).filter(Boolean);
-      preloadAudioUrls(urls);
-    }
-  }, [sounds]);
-
   const { data: categories = [] } = useQuery({
     queryKey: ["vibes-categories-client"],
     queryFn: async () => {
@@ -64,10 +56,6 @@ export default function ClientVibes() {
       return data;
     },
   });
-
-  useEffect(() => {
-    mixer.restoreFromStorage();
-  }, []);
 
   useEffect(() => {
     const slug = searchParams.get("mix");
