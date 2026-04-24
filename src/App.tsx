@@ -20,7 +20,7 @@ import TaskLibrary from "./pages/TaskLibrary";
 import Auth from "./pages/Auth";
 import Unsubscribe from "./pages/Unsubscribe";
 import PortalMockup from "./pages/PortalMockup";
-import ClientDashboard from "./pages/client/ClientDashboard";
+import ClientDashboard from "./pages/client/ClientDashboardMinimal";
 import ClientSmartPace from "./pages/client/ClientSmartPace";
 import SmartPacePreview from "./pages/SmartPacePreview";
 import ClientDailyScore from "./pages/client/ClientDailyScore";
