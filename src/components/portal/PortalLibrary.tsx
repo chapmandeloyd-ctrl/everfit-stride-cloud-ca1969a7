@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { X, Star, Lock, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import type { PortalScene } from "./PortalPlayer";
@@ -208,16 +208,7 @@ function CircleRow({
                 className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />
             ) : (
-              <video
-                src={scene.video_url}
-                muted
-                loop
-                playsInline
-                preload="metadata"
-                disablePictureInPicture
-                disableRemotePlayback
-                className="absolute inset-0 w-full h-full object-cover"
-              />
+              <LoopingVideo src={scene.video_url} />
             )}
             {scene.is_premium && (
               <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm rounded-full p-1.5">
@@ -266,16 +257,7 @@ function CardRow({
                 className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
               />
             ) : (
-              <video
-                src={scene.video_url}
-                muted
-                loop
-                playsInline
-                preload="metadata"
-                disablePictureInPicture
-                disableRemotePlayback
-                className="absolute inset-0 w-full h-full object-cover"
-              />
+              <LoopingVideo src={scene.video_url} />
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
             {scene.is_premium && (
@@ -292,5 +274,49 @@ function CardRow({
         </button>
       ))}
     </div>
+  );
+}
+
+/**
+ * LoopingVideo — silent, auto-playing, looped preview thumbnail.
+ * Mobile Safari requires muted + playsInline + an explicit play() call
+ * triggered after the element mounts; otherwise the frame stays blank.
+ */
+function LoopingVideo({ src }: { src: string }) {
+  const ref = useRef<HTMLVideoElement | null>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.muted = true;
+    const tryPlay = () => {
+      const p = el.play();
+      if (p && typeof p.catch === "function") {
+        p.catch(() => {
+          /* Autoplay may be blocked until first user gesture; ignore */
+        });
+      }
+    };
+    if (el.readyState >= 2) {
+      tryPlay();
+    } else {
+      el.addEventListener("loadeddata", tryPlay, { once: true });
+      return () => el.removeEventListener("loadeddata", tryPlay);
+    }
+  }, [src]);
+
+  return (
+    <video
+      ref={ref}
+      src={src}
+      muted
+      loop
+      playsInline
+      autoPlay
+      preload="auto"
+      disablePictureInPicture
+      disableRemotePlayback
+      className="absolute inset-0 w-full h-full object-cover"
+    />
   );
 }
