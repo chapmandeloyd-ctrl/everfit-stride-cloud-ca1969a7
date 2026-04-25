@@ -1055,7 +1055,11 @@ function SynergyContent({
 
       {/* ---------- Synergy primer + Start CTA ---------- */}
       {(() => {
-        const primer = SYNERGY_PRIMER[ketoId] ?? SYNERGY_PRIMER.skd;
+        const basePrimer = SYNERGY_PRIMER[ketoId] ?? SYNERGY_PRIMER.skd;
+        const primer = {
+          headline: basePrimer.headline.replace(/14h/g, `${fastHours}h`),
+          bullets: basePrimer.bullets,
+        };
         return (
           <div className="mt-8">
             <div
@@ -1111,8 +1115,8 @@ function SynergyContent({
                 navigate("/client/dashboard");
                 // Confirm with toast on arrival.
                 setTimeout(() => {
-                  toast.success(`${SAMPLE.fastHours}h fast started`, {
-                    description: `${keto.name} (${keto.abbr}) plan locked in · begins now`,
+                  toast.success(`${fastHours}h fast started`, {
+                    description: `${planName} · ${keto.name} (${keto.abbr}) locked in · begins now`,
                     duration: 4000,
                   });
                 }, 100);
@@ -1124,7 +1128,7 @@ function SynergyContent({
               className="text-[10px] uppercase tracking-[0.25em] text-center mt-2"
               style={{ color: MUTED }}
             >
-              {SAMPLE.fastHours}h × {keto.abbr} · begins now
+              {fastHours}h × {keto.abbr} · begins now
             </p>
           </div>
         );
