@@ -1033,6 +1033,12 @@ function SynergyContent({ ketoId, withCoach }: { ketoId: string; withCoach: "tra
                 color: BLACK,
                 border: `1px solid ${GOLD}`,
               }}
+              onClick={() => {
+                toast.success(`${SAMPLE.fastHours}h fast started`, {
+                  description: `${keto.name} (${keto.abbr}) plan locked in · begins now`,
+                  duration: 4000,
+                });
+              }}
             >
               Start Your Fast
             </button>
