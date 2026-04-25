@@ -139,6 +139,14 @@ export default {
             boxShadow: "0 6px 14px -4px hsl(var(--primary) / 0.35)",
           },
         },
+        float: {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-6px)" },
+        },
+        glow: {
+          "0%, 100%": { filter: "drop-shadow(0 0 4px rgba(255,255,255,0.4))", transform: "scale(1)" },
+          "50%": { filter: "drop-shadow(0 0 14px rgba(255,255,255,0.85))", transform: "scale(1.08)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
