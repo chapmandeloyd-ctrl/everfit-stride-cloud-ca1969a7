@@ -1,4 +1,4 @@
-import { Smartphone, Camera, PencilLine } from "lucide-react";
+import { Smartphone, PencilLine } from "lucide-react";
 import { ActivitySummary } from "@/components/health/ActivitySummary";
 import { useNativeHealth } from "@/hooks/useNativeHealth";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,13 @@ import { ManualTrackingSheet } from "@/components/health/ManualTrackingSheet";
 interface Props {
   clientId: string;
 }
+
+/**
+ * TEMPORARY — AI Snapshot button hidden on the dashboard while we
+ * iterate on the new Start Here flow. The sheet itself is preserved
+ * so it can be re-enabled by flipping SHOW_AI_SNAPSHOT back to true.
+ */
+const SHOW_AI_SNAPSHOT = false;
 
 export function MyProgressSection({ clientId }: Props) {
   const { isNative, permissionGranted } = useNativeHealth();
@@ -34,15 +41,17 @@ export function MyProgressSection({ clientId }: Props) {
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <Button
-            variant="outline"
-            className="h-14 text-base font-semibold justify-center gap-2"
-            onClick={() => setSnapshotOpen(true)}
-          >
-            <Camera className="h-5 w-5" />
-            AI Snapshot
-          </Button>
+        <div className={SHOW_AI_SNAPSHOT ? "grid grid-cols-2 gap-3" : "grid grid-cols-1 gap-3"}>
+          {SHOW_AI_SNAPSHOT && (
+            <Button
+              variant="outline"
+              className="h-14 text-base font-semibold justify-center gap-2"
+              onClick={() => setSnapshotOpen(true)}
+            >
+              <PencilLine className="h-5 w-5" />
+              AI Snapshot
+            </Button>
+          )}
           <Button
             variant="outline"
             className="h-14 text-base font-semibold justify-center gap-2"
