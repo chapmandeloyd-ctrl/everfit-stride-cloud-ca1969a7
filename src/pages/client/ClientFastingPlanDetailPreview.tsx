@@ -60,10 +60,10 @@ const SYNERGY_COPY: Record<string, { intro: string; bullets: string[] }> = {
 
 const MEAL_TIMELINE = [
   { window: "8:00 PM – 10:00 AM", label: "Fast", tone: "fast", text: "Water, black coffee, electrolytes. No cream, no sweeteners." },
-  { window: "10:00 AM", label: "Break-Fast", tone: "meal", text: "3 eggs scrambled in butter, ½ avocado, sea salt." },
-  { window: "1:30 PM", label: "Lunch", tone: "meal", text: "Grilled salmon, leafy greens, olive oil + lemon." },
-  { window: "4:30 PM", label: "Snack", tone: "snack", text: "Macadamia nuts or a small fat bomb." },
-  { window: "7:30 PM", label: "Dinner", tone: "meal", text: "Ribeye, roasted broccoli in ghee, mineral water." },
+  { window: "10:00 AM", label: "Break-Fast", tone: "meal", text: "3 eggs scrambled in butter, ½ avocado, sea salt.", cal: 480, fat: 38, carbs: 6, protein: 24 },
+  { window: "1:30 PM", label: "Lunch", tone: "meal", text: "Grilled salmon, leafy greens, olive oil + lemon.", cal: 560, fat: 40, carbs: 8, protein: 42 },
+  { window: "4:30 PM", label: "Snack", tone: "snack", text: "Macadamia nuts or a small fat bomb.", cal: 220, fat: 22, carbs: 3, protein: 3 },
+  { window: "7:30 PM", label: "Dinner", tone: "meal", text: "Ribeye, roasted broccoli in ghee, mineral water.", cal: 720, fat: 52, carbs: 9, protein: 55 },
 ];
 
 /* ---------- HERO — GOLD NUMERAL ---------- */
