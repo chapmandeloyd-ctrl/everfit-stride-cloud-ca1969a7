@@ -978,6 +978,72 @@ function SynergyContent({ ketoId, withCoach }: { ketoId: string; withCoach: "tra
           </>
         );
       })()}
+
+      {/* ---------- Synergy primer + Start CTA ---------- */}
+      {(() => {
+        const primer = SYNERGY_PRIMER[ketoId] ?? SYNERGY_PRIMER.skd;
+        return (
+          <div className="mt-8">
+            <div
+              className="p-5 mb-4"
+              style={{
+                background: SURFACE,
+                border: `1px solid ${GOLD}55`,
+              }}
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <Sparkles size={12} style={{ color: GOLD }} />
+                <span
+                  className="text-[9px] uppercase tracking-[0.3em]"
+                  style={{ color: GOLD }}
+                >
+                  Why this combo works
+                </span>
+              </div>
+              <p
+                className="font-serif text-lg leading-snug mb-4"
+                style={{ color: IVORY }}
+              >
+                {primer.headline}
+              </p>
+              <ul className="space-y-2">
+                {primer.bullets.map((b, i) => (
+                  <li
+                    key={i}
+                    className="flex items-start gap-2 text-sm"
+                    style={{ color: MUTED }}
+                  >
+                    <span
+                      aria-hidden
+                      className="inline-block rounded-full mt-1.5"
+                      style={{ width: 5, height: 5, background: GOLD, flexShrink: 0 }}
+                    />
+                    <span>{b}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <button
+              type="button"
+              className="w-full py-4 text-sm uppercase tracking-[0.3em] font-serif transition active:scale-[0.99]"
+              style={{
+                background: GOLD,
+                color: BLACK,
+                border: `1px solid ${GOLD}`,
+              }}
+            >
+              Start Your Fast
+            </button>
+            <p
+              className="text-[10px] uppercase tracking-[0.25em] text-center mt-2"
+              style={{ color: MUTED }}
+            >
+              {SAMPLE.fastHours}h × {keto.abbr} · begins now
+            </p>
+          </div>
+        );
+      })()}
     </div>
   );
 }
