@@ -936,10 +936,12 @@ export default function ClientFastingPlanDetailPreview() {
           <ChevronLeft size={22} />
         </button>
         <div
-          className="text-[10px] uppercase tracking-[0.35em]"
+          className="text-[10px] uppercase tracking-[0.35em] flex items-baseline gap-1.5"
           style={{ color: GOLD }}
         >
-          Protocol
+          <span style={{ color: MUTED }}>Part 1</span>
+          <span style={{ color: `${GOLD}66` }}>·</span>
+          <span>Protocol</span>
         </div>
         <div style={{ width: 22 }} />
       </header>
