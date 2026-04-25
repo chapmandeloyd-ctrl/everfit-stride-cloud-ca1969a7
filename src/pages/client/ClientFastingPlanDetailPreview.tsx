@@ -60,10 +60,10 @@ const SYNERGY_COPY: Record<string, { intro: string; bullets: string[] }> = {
 
 const MEAL_TIMELINE = [
   { window: "8:00 PM – 10:00 AM", label: "Fast", tone: "fast", text: "Water, black coffee, electrolytes. No cream, no sweeteners." },
-  { window: "10:00 AM", label: "Break-Fast", tone: "meal", text: "3 eggs scrambled in butter, ½ avocado, sea salt." },
-  { window: "1:30 PM", label: "Lunch", tone: "meal", text: "Grilled salmon, leafy greens, olive oil + lemon." },
-  { window: "4:30 PM", label: "Snack", tone: "snack", text: "Macadamia nuts or a small fat bomb." },
-  { window: "7:30 PM", label: "Dinner", tone: "meal", text: "Ribeye, roasted broccoli in ghee, mineral water." },
+  { window: "10:00 AM", label: "Break-Fast", tone: "meal", text: "3 eggs scrambled in butter, ½ avocado, sea salt.", cal: 480, fat: 38, carbs: 6, protein: 24 },
+  { window: "1:30 PM", label: "Lunch", tone: "meal", text: "Grilled salmon, leafy greens, olive oil + lemon.", cal: 560, fat: 40, carbs: 8, protein: 42 },
+  { window: "4:30 PM", label: "Snack", tone: "snack", text: "Macadamia nuts or a small fat bomb.", cal: 220, fat: 22, carbs: 3, protein: 3 },
+  { window: "7:30 PM", label: "Dinner", tone: "meal", text: "Ribeye, roasted broccoli in ghee, mineral water.", cal: 720, fat: 52, carbs: 9, protein: 55 },
 ];
 
 /* ---------- HERO — GOLD NUMERAL ---------- */
@@ -482,6 +482,65 @@ function SynergyContent({ ketoId, withCoach }: { ketoId: string; withCoach: "tra
             <p className="text-xs leading-relaxed" style={{ color: MUTED }}>
               {m.text}
             </p>
+
+            {m.tone !== "fast" && m.cal != null && (
+              <div className="mt-3 pt-3" style={{ borderTop: `1px solid ${GOLD}1f` }}>
+                {/* Calorie headline */}
+                <div className="flex items-baseline justify-between mb-2">
+                  <span
+                    className="text-[9px] uppercase tracking-[0.25em]"
+                    style={{ color: GOLD }}
+                  >
+                    Macros
+                  </span>
+                  <div className="flex items-baseline gap-1">
+                    <span className="font-serif text-base" style={{ color: IVORY }}>
+                      {m.cal}
+                    </span>
+                    <span className="text-[9px] uppercase tracking-[0.2em]" style={{ color: MUTED }}>
+                      cal
+                    </span>
+                  </div>
+                </div>
+
+                {/* Macro squares */}
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { key: "F", label: "Fat", value: m.fat, dot: "#E8C77A" },
+                    { key: "C", label: "Carbs", value: m.carbs, dot: "#7DB6E8" },
+                    { key: "P", label: "Protein", value: m.protein, dot: "#9B7DD9" },
+                  ].map((macro) => (
+                    <div
+                      key={macro.key}
+                      className="p-2 text-center"
+                      style={{
+                        background: SURFACE_2,
+                        border: `1px solid ${GOLD}14`,
+                      }}
+                    >
+                      <div className="flex items-center justify-center gap-1 mb-1">
+                        <span
+                          className="inline-block rounded-full"
+                          style={{ width: 5, height: 5, background: macro.dot }}
+                        />
+                        <span
+                          className="text-[8px] uppercase tracking-[0.2em]"
+                          style={{ color: MUTED }}
+                        >
+                          {macro.label}
+                        </span>
+                      </div>
+                      <div className="font-serif text-sm" style={{ color: IVORY }}>
+                        {macro.value}
+                        <span className="text-[9px] ml-0.5" style={{ color: MUTED }}>
+                          g
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         ))}
       </div>
