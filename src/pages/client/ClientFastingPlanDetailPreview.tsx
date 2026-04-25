@@ -58,6 +58,40 @@ const SYNERGY_COPY: Record<string, { intro: string; bullets: string[] }> = {
   dirty: { intro: "Dirty keto allows processed keto-friendly foods. Useful as a transition tool but not the long-term play.", bullets: ["Convenience over food quality","Watch sodium and seed oils","Plan to graduate to SKD"] },
 };
 
+/* ---------- SYNERGY PRIMER (above Start button) ----------
+ * Editorial coach voice. Dynamic per protocol + keto type.
+ * Headline + 3 micro-bullets — the user's last beat before they commit.
+ */
+const SYNERGY_PRIMER: Record<
+  string,
+  { headline: string; bullets: [string, string, string] }
+> = {
+  skd: {
+    headline: "Your 14h fast + Standard Keto, working as one.",
+    bullets: ["Steady all-day energy", "Easier fasts by week two", "Faster fat-adaptation"],
+  },
+  hpkd: {
+    headline: "Your 14h fast + High-Protein Keto protect lean mass while you burn fat.",
+    bullets: ["Muscle stays on", "Stronger lifts in the window", "Highest satiety of any keto"],
+  },
+  ckd: {
+    headline: "Your 14h fast + Cyclical Keto give you keto's burn with a weekly carb reload.",
+    bullets: ["Train hard on refeed days", "Strict ketosis the rest of the week", "Best for athletes"],
+  },
+  tkd: {
+    headline: "Your 14h fast + Targeted Keto fuel your workouts without breaking ketosis.",
+    bullets: ["Pre-workout carbs only", "Power on demand", "Built for performance days"],
+  },
+  lazy: {
+    headline: "Your 14h fast + Lazy Keto keep it simple — one rule, real results.",
+    bullets: ["Track carbs, ignore the rest", "Highest adherence", "Perfect first month"],
+  },
+  dirty: {
+    headline: "Your 14h fast + Dirty Keto get you started today, no meal-prep required.",
+    bullets: ["Convenience-first", "Watch sodium + seed oils", "Plan to graduate to SKD"],
+  },
+};
+
 const MEAL_TIMELINE = [
   { window: "8:00 PM – 10:00 AM", label: "Fast", tone: "fast", text: "Water, black coffee, electrolytes. No cream, no sweeteners." },
   { window: "10:00 AM", label: "Break-Fast", tone: "meal", text: "3 eggs scrambled in butter, ½ avocado, sea salt.", cal: 480, fat: 38, carbs: 6, protein: 24 },
