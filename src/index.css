@@ -56,6 +56,13 @@ Light Theme 1: Clean & Athletic — warm white base, bold red accents, crisp con
     --chart-3: 142 76% 36%;
     --chart-4: 0 0% 55%;
     --chart-5: 0 0% 75%;
+
+    /* Daily Rings palette — locked. Used by MultiSegmentRing + GoalCard.
+       Inspired by Trainerize's 4-ring system, tuned for our gold brand. */
+    --ring-fasting: 43 65% 52%;   /* Signature gold */
+    --ring-weight: 28 92% 58%;    /* Warm orange */
+    --ring-activity: 142 55% 50%; /* Vibrant green */
+    --ring-sleep: 353 85% 68%;    /* Coral pink */
   }
 
   .dark {
