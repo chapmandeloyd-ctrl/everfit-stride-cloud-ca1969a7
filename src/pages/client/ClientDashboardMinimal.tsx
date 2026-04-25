@@ -10,6 +10,10 @@ import { DailyRingsPinnedHeader } from "@/components/rings/DailyRingsCard";
  * Minimal client dashboard — Fasting + Smart Pace + Health tracking tiles.
  * Workouts, meals, habits, etc. are intentionally hidden.
  */
+// TEMP: hide the weight / health tracker on the dashboard.
+// Flip back to true to restore the Health Dashboard section.
+const SHOW_WEIGHT_TRACKER = false;
+
 export default function ClientDashboardMinimal() {
   const clientId = useEffectiveClientId();
   const navigate = useNavigate();
@@ -28,7 +32,7 @@ export default function ClientDashboardMinimal() {
 
         {/* Health tracking — AI Snapshot + Manual + 5 tiles
             (Body Weight, Steps, Sleep, Caloric Burn, Caloric Intake) */}
-        {clientId && <MyProgressSection clientId={clientId} />}
+        {SHOW_WEIGHT_TRACKER && clientId && <MyProgressSection clientId={clientId} />}
       </div>
     </ClientLayout>
   );
