@@ -42,10 +42,10 @@ const RINGS: RingDef[] = [
     label: "Weight",
     goal: "Log a check-in",
     icon: Scale,
-    // Bright polished gold
-    strokeClass: "[stroke:hsl(46_80%_62%)]",
-    bgClass: "[background-color:hsl(46_80%_62%)]",
-    textClass: "[color:hsl(46_80%_62%)]",
+    // Pure white
+    strokeClass: "[stroke:hsl(0_0%_100%)]",
+    bgClass: "[background-color:hsl(0_0%_100%)]",
+    textClass: "[color:hsl(0_0%_100%)]",
   },
   {
     key: "activity",
@@ -62,19 +62,19 @@ const RINGS: RingDef[] = [
     label: "Sleep",
     goal: "Sleep 6.5h or more",
     icon: Moon,
-    // Pale champagne
-    strokeClass: "[stroke:hsl(40_45%_75%)]",
-    bgClass: "[background-color:hsl(40_45%_75%)]",
-    textClass: "[color:hsl(40_45%_75%)]",
+    // Moonlight silver
+    strokeClass: "[stroke:hsl(213_18%_72%)]",
+    bgClass: "[background-color:hsl(213_18%_72%)]",
+    textClass: "[color:hsl(213_18%_72%)]",
   },
 ];
 
 // Mocked: today user has completed Fasting + Activity (2 of 4)
 const TODAY_COMPLETED: Record<RingKey, boolean> = {
   fasting: true,
-  weight: false,
+  weight: true,
   activity: true,
-  sleep: false,
+  sleep: true,
 };
 
 // Mocked per-day completions for the weekday strip
