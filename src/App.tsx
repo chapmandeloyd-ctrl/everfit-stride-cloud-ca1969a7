@@ -72,8 +72,6 @@ import ClientMacroSetup from "./pages/client/ClientMacroSetup";
 import ClientLogMeal from "./pages/client/ClientLogMeal";
 import ClientCoaching from "./pages/client/ClientCoaching";
 import ClientProfile from "./pages/client/ClientProfile";
-import ClientStages from "./pages/client/ClientStages";
-import ClientStagesCards from "./pages/client/ClientStagesCards";
 import ClientStagesTimeline from "./pages/client/ClientStagesTimeline";
 import ClientSportsProfile from "./pages/client/ClientSportsProfile";
 import ClientBooking from "./pages/client/ClientBooking";
@@ -191,9 +189,7 @@ const App = () => (
           <Route path="/client/daily-score" element={<ProtectedRoute allowedRoles={["client"]}><ClientDailyScore /></ProtectedRoute>} />
           <Route path="/client/coaching" element={<Navigate to="/client/dashboard" replace />} />
           <Route path="/client/profile" element={<ProtectedRoute allowedRoles={["client"]}><ClientProfile /></ProtectedRoute>} />
-          <Route path="/client/stages" element={<ProtectedRoute allowedRoles={["client"]}><ClientStages /></ProtectedRoute>} />
-          <Route path="/client/stages/cards" element={<ProtectedRoute allowedRoles={["client"]}><ClientStagesCards /></ProtectedRoute>} />
-          <Route path="/client/stages/timeline" element={<ProtectedRoute allowedRoles={["client"]}><ClientStagesTimeline /></ProtectedRoute>} />
+          <Route path="/client/stages" element={<ProtectedRoute allowedRoles={["client"]}><ClientStagesTimeline /></ProtectedRoute>} />
           <Route path="/client/onboarding" element={<ProtectedRoute allowedRoles={["client"]}><ClientOnboarding /></ProtectedRoute>} />
           <Route path="/client/workouts" element={<Navigate to="/client/dashboard" replace />} />
           <Route path="/client/progress" element={<Navigate to="/client/dashboard" replace />} />
