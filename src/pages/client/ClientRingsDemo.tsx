@@ -32,36 +32,40 @@ const RINGS: RingDef[] = [
     label: "Fasting",
     goal: "Fast 10h or more",
     icon: Clock,
-    strokeClass: "stroke-orange-500",
-    bgClass: "bg-orange-500",
-    textClass: "text-orange-500",
+    // Deep antique gold
+    strokeClass: "[stroke:hsl(38_75%_42%)]",
+    bgClass: "[background-color:hsl(38_75%_42%)]",
+    textClass: "[color:hsl(38_75%_42%)]",
   },
   {
     key: "weight",
     label: "Weight",
     goal: "Log a check-in",
     icon: Scale,
-    strokeClass: "stroke-purple-500",
-    bgClass: "bg-purple-500",
-    textClass: "text-purple-500",
+    // Rich gold
+    strokeClass: "[stroke:hsl(43_85%_52%)]",
+    bgClass: "[background-color:hsl(43_85%_52%)]",
+    textClass: "[color:hsl(43_85%_52%)]",
   },
   {
     key: "activity",
     label: "Activity",
     goal: "Hit your step goal",
     icon: Activity,
-    strokeClass: "stroke-emerald-500",
-    bgClass: "bg-emerald-500",
-    textClass: "text-emerald-500",
+    // Bright champagne gold
+    strokeClass: "[stroke:hsl(48_95%_60%)]",
+    bgClass: "[background-color:hsl(48_95%_60%)]",
+    textClass: "[color:hsl(48_95%_60%)]",
   },
   {
     key: "sleep",
     label: "Sleep",
     goal: "Sleep 6.5h or more",
     icon: Moon,
-    strokeClass: "stroke-sky-500",
-    bgClass: "bg-sky-500",
-    textClass: "text-sky-500",
+    // Pale rose gold
+    strokeClass: "[stroke:hsl(35_60%_70%)]",
+    bgClass: "[background-color:hsl(35_60%_70%)]",
+    textClass: "[color:hsl(35_60%_70%)]",
   },
 ];
 
@@ -71,6 +75,17 @@ const TODAY_COMPLETED: Record<RingKey, boolean> = {
   weight: false,
   activity: true,
   sleep: false,
+};
+
+// Mocked per-day completions for the weekday strip
+const WEEK_COMPLETED: Record<number, Record<RingKey, boolean>> = {
+  0: { fasting: false, weight: false, activity: false, sleep: false }, // Sun
+  1: { fasting: true,  weight: false, activity: false, sleep: false }, // Mon
+  2: { fasting: true,  weight: false, activity: false, sleep: false }, // Tue
+  3: { fasting: false, weight: false, activity: false, sleep: false }, // Wed
+  4: { fasting: false, weight: false, activity: false, sleep: false }, // Thu
+  5: { fasting: true,  weight: true,  activity: false, sleep: false }, // Fri (today demo)
+  6: { fasting: false, weight: false, activity: false, sleep: false }, // Sat
 };
 
 function buildSegments(completed: Record<RingKey, boolean>): RingSegment[] {
@@ -128,17 +143,30 @@ function WeekStrip() {
   const days = Array.from({ length: 7 }, (_, i) => addDays(start, i));
   return (
     <div className="flex justify-between px-1">
-      {days.map((d) => {
+      {days.map((d, i) => {
         const isToday = format(d, "yyyy-MM-dd") === format(today, "yyyy-MM-dd");
+        const dayCompleted = WEEK_COMPLETED[i] ?? {
+          fasting: false, weight: false, activity: false, sleep: false,
+        };
+        const segs = buildSegments(dayCompleted);
         return (
           <div
             key={d.toISOString()}
-            className={cn(
-              "text-[11px] font-bold uppercase tracking-widest",
-              isToday ? "text-foreground" : "text-muted-foreground/60"
-            )}
+            className="flex flex-col items-center gap-2"
           >
-            {format(d, "EEE")}
+            <span
+              className={cn(
+                "text-[11px] font-bold uppercase tracking-widest",
+                isToday ? "text-foreground" : "text-muted-foreground/60"
+              )}
+            >
+              {format(d, "EEE")}
+            </span>
+            <MultiSegmentRing
+              segments={segs}
+              size={26}
+              strokeWidth={4}
+            />
           </div>
         );
       })}
