@@ -122,7 +122,7 @@ function GoalCard({ ring, completed }: { ring: RingDef; completed: boolean }) {
   );
 }
 
-function WeekStrip() {
+export function DailyRingsWeekStrip() {
   const today = new Date();
   const start = startOfWeek(today, { weekStartsOn: 0 });
   const days = Array.from({ length: 7 }, (_, i) => addDays(start, i));
@@ -162,7 +162,6 @@ export function DailyRingsCard() {
   const count = segments.filter((s) => s.completed).length;
   return (
     <div className="rounded-3xl bg-black p-6 space-y-6 border border-daily-ring-fasting/20">
-      <WeekStrip />
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 pt-2">
           <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-daily-ring-fasting">
