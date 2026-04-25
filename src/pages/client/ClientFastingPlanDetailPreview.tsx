@@ -396,7 +396,7 @@ function SectionTitle({ kicker, title }: { kicker: string; title: string }) {
   const partMatch = kicker.match(/^(Part\s+\d+)\s*·\s*(.+)$/i);
   return (
     <div className="px-5 mb-4">
-      <div className="text-[10px] uppercase tracking-[0.35em] mb-2 flex items-baseline gap-1.5" style={{ color: GOLD }}>
+      <div className="text-[10px] uppercase tracking-[0.35em] mb-2 flex items-baseline justify-center gap-1.5" style={{ color: GOLD }}>
         {partMatch ? (
           <>
             <span style={{ color: MUTED }}>{partMatch[1]}</span>
