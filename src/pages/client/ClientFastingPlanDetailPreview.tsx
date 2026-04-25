@@ -786,13 +786,52 @@ function SynergyContent({ ketoId, withCoach }: { ketoId: string; withCoach: "tra
                 </div>
               ))}
             </div>
-      <div key={ketoId} className="space-y-3">
+      <div key={`${ketoId}-${rail}`} className="relative">
+        {/* continuous dotted rail spanning the entire timeline */}
+        <div
+          aria-hidden
+          className="absolute top-2 bottom-2"
+          style={{
+            left: 5,
+            width: 0,
+            borderLeft: `2px dotted ${GOLD}55`,
+          }}
+        />
+        <div className="space-y-3">
         {plan.meals.map((m, i) => (
           (() => {
             const isMealChanged = isComparingToBaseline && changedIdx.has(i);
+            const dotColor =
+              m.tone === "fast"
+                ? GOLD
+                : m.label.toLowerCase().includes("snack")
+                ? "#E8C77A"
+                : "#7DB6E8";
             return (
+          <div key={i} className="relative pl-6">
+            {/* dot on the rail */}
+            <span
+              aria-hidden
+              className="absolute rounded-full"
+              style={{
+                left: 0,
+                top: rail === 2 ? 22 : 14,
+                width: 12,
+                height: 12,
+                background: BLACK,
+                border: `2px solid ${dotColor}`,
+                boxShadow: `0 0 0 3px ${BLACK}`,
+              }}
+            />
+            {rail === 2 && (
+              <div
+                className="text-[9px] uppercase tracking-[0.25em] mb-1"
+                style={{ color: MUTED }}
+              >
+                {m.window}
+              </div>
+            )}
           <div
-            key={i}
             className="p-4"
             style={{
               background: SURFACE,
