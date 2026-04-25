@@ -222,6 +222,30 @@ function getChangedMealIndices(ketoId: string): Set<number> {
   return changed;
 }
 
+/** Format a signed delta like "+18g" or "−10g" (uses real minus sign). */
+function fmtDelta(n: number, suffix = "g"): string {
+  if (n === 0) return `0${suffix}`;
+  if (n > 0) return `+${n}${suffix}`;
+  return `−${Math.abs(n)}${suffix}`;
+}
+
+/** Compute per-meal macro deltas (target − baseline) for a given keto vs. assigned. */
+function getMealDelta(
+  baselineKetoId: string,
+  targetKetoId: string,
+  mealIdx: number,
+): { fat: number; carbs: number; protein: number; cal: number } | null {
+  const base = MEAL_PLANS[baselineKetoId]?.meals[mealIdx];
+  const tgt = MEAL_PLANS[targetKetoId]?.meals[mealIdx];
+  if (!base || !tgt || base.cal == null || tgt.cal == null) return null;
+  return {
+    fat: (tgt.fat ?? 0) - (base.fat ?? 0),
+    carbs: (tgt.carbs ?? 0) - (base.carbs ?? 0),
+    protein: (tgt.protein ?? 0) - (base.protein ?? 0),
+    cal: (tgt.cal ?? 0) - (base.cal ?? 0),
+  };
+}
+
 /* ---------- HERO — GOLD NUMERAL ---------- */
 function Hero() {
   return (
@@ -621,6 +645,19 @@ function SynergyContent({ ketoId, withCoach }: { ketoId: string; withCoach: "tra
         const plan = MEAL_PLANS[ketoId] ?? MEAL_PLANS.skd;
         const change = CHANGE_HIGHLIGHTS[ketoId];
         const changedIdx = getChangedMealIndices(ketoId);
+        // Compare against the user's assigned keto type (not always SKD).
+        const assignedKeto = KETO_TYPES.find((k) => k.assigned)!;
+        const assignedId = assignedKeto.id;
+        const isAssigned = ketoId === assignedId;
+        const basePlan = MEAL_PLANS[assignedId] ?? MEAL_PLANS.skd;
+        const dayDelta = isAssigned
+          ? null
+          : {
+              cal: plan.totals.cal - basePlan.totals.cal,
+              fat: plan.totals.fat - basePlan.totals.fat,
+              carbs: plan.totals.carbs - basePlan.totals.carbs,
+              protein: plan.totals.protein - basePlan.totals.protein,
+            };
         return (
           <>
             {/* "What changed" callout — only when not on baseline SKD */}
@@ -652,6 +689,44 @@ function SynergyContent({ ketoId, withCoach }: { ketoId: string; withCoach: "tra
                     </li>
                   ))}
                 </ul>
+              </div>
+            )}
+
+            {/* Daily delta strip (B) — headline of the whole-day shift */}
+            {dayDelta && (
+              <div
+                className="mb-3 p-3"
+                style={{
+                  background: SURFACE_2,
+                  border: `1px dashed ${GOLD}55`,
+                }}
+              >
+                <div className="text-[8px] uppercase tracking-[0.3em] mb-2" style={{ color: GOLD }}>
+                  Switching {assignedKeto.abbr} → {keto.abbr} · daily shift
+                </div>
+                <div className="grid grid-cols-4 gap-2 text-center">
+                  {[
+                    { label: "Cal", value: fmtDelta(dayDelta.cal, ""), n: dayDelta.cal, dot: GOLD },
+                    { label: "Fat", value: fmtDelta(dayDelta.fat), n: dayDelta.fat, dot: "#E8C77A" },
+                    { label: "Carbs", value: fmtDelta(dayDelta.carbs), n: dayDelta.carbs, dot: "#7DB6E8" },
+                    { label: "Protein", value: fmtDelta(dayDelta.protein), n: dayDelta.protein, dot: "#9B7DD9" },
+                  ].map((d) => (
+                    <div key={d.label}>
+                      <div className="flex items-center justify-center gap-1 mb-1">
+                        <span className="inline-block rounded-full" style={{ width: 5, height: 5, background: d.dot }} />
+                        <span className="text-[8px] uppercase tracking-[0.2em]" style={{ color: MUTED }}>
+                          {d.label}
+                        </span>
+                      </div>
+                      <div
+                        className="font-serif text-sm"
+                        style={{ color: d.n === 0 ? MUTED : IVORY, opacity: d.n === 0 ? 0.6 : 1 }}
+                      >
+                        {d.value}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
@@ -700,18 +775,46 @@ function SynergyContent({ ketoId, withCoach }: { ketoId: string; withCoach: "tra
                 <span className="font-serif text-sm" style={{ color: IVORY }}>
                   {m.label}
                 </span>
-                {changedIdx.has(i) && (
-                  <span
-                    className="text-[8px] uppercase tracking-[0.2em] px-1.5 py-0.5"
-                    style={{
-                      background: `${GOLD}22`,
-                      color: GOLD,
-                      border: `1px solid ${GOLD}66`,
-                    }}
-                  >
-                    Changed
-                  </span>
-                )}
+                {changedIdx.has(i) && (() => {
+                  const md = getMealDelta(assignedId, ketoId, i);
+                  if (!md) return null;
+                  // Pick the 1-2 most significant macro deltas (by absolute g)
+                  const candidates = [
+                    { key: "carbs", val: md.carbs, label: "carbs" },
+                    { key: "fat", val: md.fat, label: "fat" },
+                    { key: "protein", val: md.protein, label: "protein" },
+                  ]
+                    .filter((c) => c.val !== 0)
+                    .sort((a, b) => Math.abs(b.val) - Math.abs(a.val))
+                    .slice(0, 2);
+                  if (candidates.length === 0) {
+                    return (
+                      <span
+                        className="text-[8px] uppercase tracking-[0.2em] px-1.5 py-0.5"
+                        style={{
+                          background: `${GOLD}22`,
+                          color: GOLD,
+                          border: `1px solid ${GOLD}66`,
+                        }}
+                      >
+                        Swapped
+                      </span>
+                    );
+                  }
+                  const text = candidates.map((c) => `${fmtDelta(c.val)} ${c.label}`).join(" · ");
+                  return (
+                    <span
+                      className="text-[8px] uppercase tracking-[0.18em] px-1.5 py-0.5 whitespace-nowrap"
+                      style={{
+                        background: `${GOLD}22`,
+                        color: GOLD,
+                        border: `1px solid ${GOLD}66`,
+                      }}
+                    >
+                      {text}
+                    </span>
+                  );
+                })()}
               </div>
               <span className="text-[10px] uppercase tracking-[0.2em]" style={{ color: MUTED }}>
                 {m.window}
