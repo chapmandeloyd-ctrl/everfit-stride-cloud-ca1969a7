@@ -280,14 +280,16 @@ function KetoTabsAll({ active, setActive }: { active: string; setActive: (id: st
 function KetoTabsAssignedExplore({ active, setActive }: { active: string; setActive: (id: string) => void }) {
   const assigned = KETO_TYPES.find((k) => k.assigned)!;
   const explore = KETO_TYPES.filter((k) => !k.assigned);
+  const assignedActive = active === assigned.id;
   return (
     <div className="px-5 mb-5">
       <button
         onClick={() => setActive(assigned.id)}
         className="w-full text-left px-5 py-4 mb-3 transition"
         style={{
-          background: active === assigned.id ? `${GOLD}14` : SURFACE,
-          border: `1px solid ${active === assigned.id ? GOLD : `${GOLD}33`}`,
+          background: assignedActive ? `${GOLD}14` : SURFACE,
+          border: `1px solid ${assignedActive ? GOLD : `${GOLD}22`}`,
+          opacity: assignedActive ? 1 : 0.75,
         }}
       >
         <div className="flex items-center justify-between">
