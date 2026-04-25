@@ -68,6 +68,12 @@ export default {
           "4": "hsl(var(--chart-4))",
           "5": "hsl(var(--chart-5))",
         },
+        "daily-ring": {
+          fasting: "hsl(var(--ring-fasting))",
+          weight: "hsl(var(--ring-weight))",
+          activity: "hsl(var(--ring-activity))",
+          sleep: "hsl(var(--ring-sleep))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

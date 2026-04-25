@@ -32,40 +32,40 @@ const RINGS: RingDef[] = [
     label: "Fasting",
     goal: "Fast 10h or more",
     icon: Clock,
-    // Signature warm gold (matches screenshot)
-    strokeClass: "[stroke:hsl(43_65%_52%)]",
-    bgClass: "[background-color:hsl(43_65%_52%)]",
-    textClass: "[color:hsl(43_65%_52%)]",
+    // Token: --ring-fasting (Signature gold)
+    strokeClass: "stroke-daily-ring-fasting",
+    bgClass: "bg-daily-ring-fasting",
+    textClass: "text-daily-ring-fasting",
   },
   {
     key: "weight",
     label: "Weight",
     goal: "Log a check-in",
     icon: Scale,
-    // Trainerize orange
-    strokeClass: "[stroke:hsl(28_92%_58%)]",
-    bgClass: "[background-color:hsl(28_92%_58%)]",
-    textClass: "[color:hsl(28_92%_58%)]",
+    // Token: --ring-weight (Warm orange)
+    strokeClass: "stroke-daily-ring-weight",
+    bgClass: "bg-daily-ring-weight",
+    textClass: "text-daily-ring-weight",
   },
   {
     key: "activity",
     label: "Activity",
     goal: "Hit your step goal",
     icon: Activity,
-    // Trainerize green
-    strokeClass: "[stroke:hsl(142_55%_50%)]",
-    bgClass: "[background-color:hsl(142_55%_50%)]",
-    textClass: "[color:hsl(142_55%_50%)]",
+    // Token: --ring-activity (Vibrant green)
+    strokeClass: "stroke-daily-ring-activity",
+    bgClass: "bg-daily-ring-activity",
+    textClass: "text-daily-ring-activity",
   },
   {
     key: "sleep",
     label: "Sleep",
     goal: "Sleep 6.5h or more",
     icon: Moon,
-    // Trainerize coral red/pink
-    strokeClass: "[stroke:hsl(353_85%_68%)]",
-    bgClass: "[background-color:hsl(353_85%_68%)]",
-    textClass: "[color:hsl(353_85%_68%)]",
+    // Token: --ring-sleep (Coral pink)
+    strokeClass: "stroke-daily-ring-sleep",
+    bgClass: "bg-daily-ring-sleep",
+    textClass: "text-daily-ring-sleep",
   },
 ];
 
@@ -115,7 +115,7 @@ function GoalCard({ ring, completed }: { ring: RingDef; completed: boolean }) {
           />
         </div>
         {completed && (
-          <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full [background-color:hsl(43_65%_52%)] border-2 border-black flex items-center justify-center">
+          <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-daily-ring-fasting border-2 border-black flex items-center justify-center">
             <div className="h-1.5 w-1.5 rounded-full bg-black" />
           </div>
         )}
@@ -157,7 +157,7 @@ function WeekStrip() {
             <span
               className={cn(
                 "text-[11px] font-bold uppercase tracking-[0.18em]",
-                isToday ? "[color:hsl(43_65%_52%)]" : "text-white/40"
+                isToday ? "text-daily-ring-fasting" : "text-white/40"
               )}
             >
               {format(d, "EEE")}
@@ -179,11 +179,11 @@ function OptionA() {
   const segments = buildSegments(TODAY_COMPLETED);
   const count = segments.filter((s) => s.completed).length;
   return (
-    <div className="rounded-3xl bg-black p-6 space-y-6 border border-[hsl(43_65%_52%)]/20">
+    <div className="rounded-3xl bg-black p-6 space-y-6 border border-daily-ring-fasting/20">
       <WeekStrip />
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 pt-2">
-          <p className="text-[11px] font-bold uppercase tracking-[0.2em] [color:hsl(43_65%_52%)]">
+          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-daily-ring-fasting">
             {format(new Date(), "MMMM d, yyyy")}
           </p>
           <h2 className="text-3xl font-serif mt-2 leading-tight text-white">
