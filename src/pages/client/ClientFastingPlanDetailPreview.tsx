@@ -482,6 +482,65 @@ function SynergyContent({ ketoId, withCoach }: { ketoId: string; withCoach: "tra
             <p className="text-xs leading-relaxed" style={{ color: MUTED }}>
               {m.text}
             </p>
+
+            {m.tone !== "fast" && m.cal != null && (
+              <div className="mt-3 pt-3" style={{ borderTop: `1px solid ${GOLD}1f` }}>
+                {/* Calorie headline */}
+                <div className="flex items-baseline justify-between mb-2">
+                  <span
+                    className="text-[9px] uppercase tracking-[0.25em]"
+                    style={{ color: GOLD }}
+                  >
+                    Macros
+                  </span>
+                  <div className="flex items-baseline gap-1">
+                    <span className="font-serif text-base" style={{ color: IVORY }}>
+                      {m.cal}
+                    </span>
+                    <span className="text-[9px] uppercase tracking-[0.2em]" style={{ color: MUTED }}>
+                      cal
+                    </span>
+                  </div>
+                </div>
+
+                {/* Macro squares */}
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { key: "F", label: "Fat", value: m.fat, dot: "#E8C77A" },
+                    { key: "C", label: "Carbs", value: m.carbs, dot: "#7DB6E8" },
+                    { key: "P", label: "Protein", value: m.protein, dot: "#9B7DD9" },
+                  ].map((macro) => (
+                    <div
+                      key={macro.key}
+                      className="p-2 text-center"
+                      style={{
+                        background: SURFACE_2,
+                        border: `1px solid ${GOLD}14`,
+                      }}
+                    >
+                      <div className="flex items-center justify-center gap-1 mb-1">
+                        <span
+                          className="inline-block rounded-full"
+                          style={{ width: 5, height: 5, background: macro.dot }}
+                        />
+                        <span
+                          className="text-[8px] uppercase tracking-[0.2em]"
+                          style={{ color: MUTED }}
+                        >
+                          {macro.label}
+                        </span>
+                      </div>
+                      <div className="font-serif text-sm" style={{ color: IVORY }}>
+                        {macro.value}
+                        <span className="text-[9px] ml-0.5" style={{ color: MUTED }}>
+                          g
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         ))}
       </div>
