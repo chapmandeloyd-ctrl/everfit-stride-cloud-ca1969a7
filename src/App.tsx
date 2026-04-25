@@ -85,6 +85,7 @@ import ClientProtocolDetail from "./pages/client/ClientProtocolDetail";
 import ClientCompletePlan from "./pages/client/ClientCompletePlan";
 import ClientProtocolCardDemo from "./pages/client/ClientProtocolCardDemo";
 import ClientKetoTypeCardDemo from "./pages/client/ClientKetoTypeCardDemo";
+import ClientFastingPlansPreview from "./pages/client/ClientFastingPlansPreview";
 import ClientFastComplete from "./pages/client/ClientFastComplete";
 import ClientLabs from "./pages/client/ClientLabs";
 import ClientDiamondLab from "./pages/client/ClientDiamondLab";
@@ -233,6 +234,8 @@ const App = () => (
           <Route path="/protocol-card-demo" element={<ClientProtocolCardDemo />} />
           <Route path="/client/keto-type-card-demo" element={<ProtectedRoute allowedRoles={["client"]}><ClientKetoTypeCardDemo /></ProtectedRoute>} />
           <Route path="/keto-type-card-demo" element={<ClientKetoTypeCardDemo />} />
+          <Route path="/client/fasting-plans-preview" element={<ProtectedRoute allowedRoles={["client", "trainer"]}><ClientFastingPlansPreview /></ProtectedRoute>} />
+          <Route path="/fasting-plans-preview" element={<ClientFastingPlansPreview />} />
           <Route path="/client/fast-complete" element={<ProtectedRoute allowedRoles={["client"]}><ClientFastComplete /></ProtectedRoute>} />
           <Route path="/client/vibes" element={<Navigate to="/client/dashboard" replace />} />
           <Route path="/client/labs" element={<Navigate to="/client/dashboard" replace />} />
