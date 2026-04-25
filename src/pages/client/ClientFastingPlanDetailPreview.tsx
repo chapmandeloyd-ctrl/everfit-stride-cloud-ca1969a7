@@ -793,6 +793,19 @@ function SynergyContent({ ketoId, withCoach }: { ketoId: string; withCoach: "tra
                 : "#7DB6E8";
             return (
           <div key={i} className="relative pl-6">
+            {/* dot on the rail — vertically centered on the entire row (label + card) */}
+            <span
+              aria-hidden
+              className="absolute rounded-full top-1/2 -translate-y-1/2"
+              style={{
+                left: 0,
+                width: 12,
+                height: 12,
+                background: BLACK,
+                border: `2px solid ${dotColor}`,
+                boxShadow: `0 0 0 3px ${BLACK}`,
+              }}
+            />
             <div
               className="text-[9px] uppercase tracking-[0.25em] mb-1"
               style={{ color: MUTED }}
@@ -800,7 +813,7 @@ function SynergyContent({ ketoId, withCoach }: { ketoId: string; withCoach: "tra
               {m.window}
             </div>
           <div
-            className="p-4 relative"
+            className="p-4"
             style={{
               background: SURFACE,
               border: `1px solid ${
@@ -812,19 +825,6 @@ function SynergyContent({ ketoId, withCoach }: { ketoId: string; withCoach: "tra
               }`,
             }}
           >
-            {/* dot on the rail — vertically centered on the card */}
-            <span
-              aria-hidden
-              className="absolute rounded-full top-1/2 -translate-y-1/2"
-              style={{
-                left: -19,
-                width: 12,
-                height: 12,
-                background: BLACK,
-                border: `2px solid ${dotColor}`,
-                boxShadow: `0 0 0 3px ${BLACK}`,
-              }}
-            />
             <div className="flex items-baseline justify-between mb-1">
               <div className="flex items-center gap-2">
                 <span className="font-serif text-sm" style={{ color: IVORY }}>
