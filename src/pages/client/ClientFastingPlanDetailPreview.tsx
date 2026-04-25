@@ -773,9 +773,12 @@ function SynergyContent({ ketoId, withCoach }: { ketoId: string; withCoach: "tra
           aria-hidden
           className="absolute top-0 bottom-0"
           style={{
-            left: 5,
-            width: 0,
-            borderLeft: `2px dotted ${GOLD}99`,
+            left: 4,
+            width: 4,
+            backgroundImage: `radial-gradient(circle, ${GOLD} 1.6px, transparent 1.8px)`,
+            backgroundSize: "4px 8px",
+            backgroundRepeat: "repeat-y",
+            backgroundPosition: "center top",
           }}
         />
         <div className="space-y-3">
