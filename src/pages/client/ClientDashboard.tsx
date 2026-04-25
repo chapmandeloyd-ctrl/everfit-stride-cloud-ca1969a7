@@ -77,6 +77,8 @@ import { useLiveActivity } from "@/hooks/useLiveActivity";
 import { CoachingCard } from "@/components/dashboard/CoachingCard";
 import { WelcomeCard } from "@/components/client/WelcomeCard";
 
+const SHOW_WEIGHT_TRACKER = false;
+
 // Fasting Program Card sub-component
 export function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; navigate: (path: string) => void }) {
   const queryClient = useQueryClient();
@@ -578,11 +580,12 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
 
     return (
       <div className="space-y-3">
-        {/* Smart Weight Tracker shown above the active fasting timer */}
-        <div className="space-y-2">
-          <h2 className="text-lg font-bold text-foreground px-1">KSOM-360 Smart Weight Tracker</h2>
-          <SmartPaceBanner allowRender />
-        </div>
+        {SHOW_WEIGHT_TRACKER && (
+          <div className="space-y-2">
+            <h2 className="text-lg font-bold text-foreground px-1">KSOM-360 Smart Weight Tracker</h2>
+            <SmartPaceBanner allowRender />
+          </div>
+        )}
         <h2 className="text-lg font-bold text-foreground px-1">KSOM-360 Fasting Timer</h2>
         <Card className="overflow-hidden border-primary/20 shadow-lg relative">
         {/* Lion card background */}
@@ -2482,7 +2485,7 @@ export default function ClientDashboard() {
               ) : null;
 
             case "progress":
-              return settings.body_metrics_enabled && clientId ? (
+              return SHOW_WEIGHT_TRACKER && settings.body_metrics_enabled && clientId ? (
                 <MyProgressSection key="progress" clientId={clientId} />
               ) : null;
 
