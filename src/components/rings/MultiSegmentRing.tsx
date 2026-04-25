@@ -39,14 +39,14 @@ export function MultiSegmentRing({
       viewBox={`0 0 ${size} ${size}`}
       className={cn("-rotate-90", className)}
     >
-      {/* Background ring */}
+      {/* Background ring — visible grey track (Zero-style) */}
       <circle
         cx={size / 2}
         cy={size / 2}
         r={radius}
         fill="none"
         strokeWidth={strokeWidth}
-        className="stroke-muted/40"
+        className="stroke-white/15"
       />
       {completedCount > 0 &&
         segments.map((seg, i) => {
