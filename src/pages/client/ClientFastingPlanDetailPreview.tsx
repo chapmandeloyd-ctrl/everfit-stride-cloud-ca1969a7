@@ -222,6 +222,30 @@ function getChangedMealIndices(ketoId: string): Set<number> {
   return changed;
 }
 
+/** Format a signed delta like "+18g" or "−10g" (uses real minus sign). */
+function fmtDelta(n: number, suffix = "g"): string {
+  if (n === 0) return `0${suffix}`;
+  if (n > 0) return `+${n}${suffix}`;
+  return `−${Math.abs(n)}${suffix}`;
+}
+
+/** Compute per-meal macro deltas (target − baseline) for a given keto vs. assigned. */
+function getMealDelta(
+  baselineKetoId: string,
+  targetKetoId: string,
+  mealIdx: number,
+): { fat: number; carbs: number; protein: number; cal: number } | null {
+  const base = MEAL_PLANS[baselineKetoId]?.meals[mealIdx];
+  const tgt = MEAL_PLANS[targetKetoId]?.meals[mealIdx];
+  if (!base || !tgt || base.cal == null || tgt.cal == null) return null;
+  return {
+    fat: (tgt.fat ?? 0) - (base.fat ?? 0),
+    carbs: (tgt.carbs ?? 0) - (base.carbs ?? 0),
+    protein: (tgt.protein ?? 0) - (base.protein ?? 0),
+    cal: (tgt.cal ?? 0) - (base.cal ?? 0),
+  };
+}
+
 /* ---------- HERO — GOLD NUMERAL ---------- */
 function Hero() {
   return (
