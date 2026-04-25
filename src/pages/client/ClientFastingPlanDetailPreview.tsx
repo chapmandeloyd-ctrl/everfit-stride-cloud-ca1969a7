@@ -279,7 +279,7 @@ function KetoTabsAll({ active, setActive }: { active: string; setActive: (id: st
 /* ---------- KETO TABS — VARIANT B: ASSIGNED + EXPLORE ---------- */
 function KetoTabsAssignedExplore({ active, setActive }: { active: string; setActive: (id: string) => void }) {
   const assigned = KETO_TYPES.find((k) => k.assigned)!;
-  const explore = KETO_TYPES.filter((k) => !k.assigned).slice(0, 3);
+  const explore = KETO_TYPES.filter((k) => !k.assigned);
   return (
     <div className="px-5 mb-5">
       <button
@@ -309,23 +309,33 @@ function KetoTabsAssignedExplore({ active, setActive }: { active: string; setAct
         className="text-[9px] uppercase tracking-[0.3em] mb-2 pl-1"
         style={{ color: MUTED }}
       >
-        Explore Pairings
+        Explore Pairings · {explore.length} more
       </div>
-      <div className="flex gap-2 overflow-x-auto -mx-5 px-5 scrollbar-none">
+      <div className="grid grid-cols-2 gap-2">
         {explore.map((k) => {
           const isActive = k.id === active;
           return (
             <button
               key={k.id}
               onClick={() => setActive(k.id)}
-              className="shrink-0 px-4 py-2 font-serif text-sm"
+              className="text-left px-3 py-3 transition"
               style={{
-                background: isActive ? GOLD : "transparent",
-                color: isActive ? BLACK : IVORY,
-                border: `1px solid ${isActive ? GOLD : `${GOLD}44`}`,
+                background: isActive ? `${GOLD}18` : SURFACE,
+                border: `1px solid ${isActive ? GOLD : `${GOLD}33`}`,
               }}
             >
-              {k.abbr}
+              <div
+                className="font-serif text-base leading-none mb-1"
+                style={{ color: isActive ? GOLD : IVORY }}
+              >
+                {k.abbr}
+              </div>
+              <div
+                className="text-[10px] uppercase tracking-[0.15em] truncate"
+                style={{ color: MUTED }}
+              >
+                {k.name}
+              </div>
             </button>
           );
         })}
@@ -524,22 +534,10 @@ export default function ClientFastingPlanDetailPreview() {
       <Hero />
       <EatingWindow />
 
-      {/* ============ KETO TABS — 3 VARIANTS ============ */}
-      <VariantHeader n={1} label="Keto Tabs · All Types (scrollable)" />
-      <DemoBlock tabsVariant="all" coachVariant="trainer" defaultActive="skd" />
-
-      <VariantHeader n={2} label="Keto Tabs · Assigned + Explore" />
-      <DemoBlock tabsVariant="explore" coachVariant="trainer" defaultActive="skd" />
-
-      <VariantHeader n={3} label="Keto Tabs · Top 3 Most Relevant" />
-      <DemoBlock tabsVariant="top3" coachVariant="trainer" defaultActive="skd" />
-
-      {/* ============ COACH ATTRIBUTION — 2 VARIANTS ============ */}
-      <VariantHeader n={4} label="Coach · Assigned Trainer" />
-      <DemoBlock tabsVariant="top3" coachVariant="trainer" defaultActive="hpkd" />
-
-      <VariantHeader n={5} label="Coach · KSOM-360 Nutrition Team" />
-      <DemoBlock tabsVariant="top3" coachVariant="brand" defaultActive="hpkd" />
+      {/* Locked: Assigned + Explore (all keto types) · Coach Trainer */}
+      <div className="mt-6">
+        <DemoBlock tabsVariant="explore" coachVariant="trainer" defaultActive="skd" />
+      </div>
     </div>
   );
 }
