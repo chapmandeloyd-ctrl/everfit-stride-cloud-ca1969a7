@@ -587,18 +587,14 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
           </div>
         )}
         <h2 className="text-lg font-bold text-foreground px-1">KSOM-360 Fasting Timer</h2>
-        <button
-          type="button"
-          onClick={() => navigate("/client/timer-designs")}
-          className="w-full text-left text-xs font-bold px-3 py-2 rounded-lg border border-amber-500/40 bg-amber-50 text-amber-800 hover:bg-amber-100 transition"
-        >
-          ✨ Preview 4 new white/gold timer designs →
-        </button>
         <Card className="overflow-hidden border-primary/20 shadow-lg relative">
         {/* Lion card background */}
         <div
           className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${fastingCardBgImg})` }}
+          style={{
+            backgroundImage: `url(${fastingCardBgImg})`,
+            filter: "sepia(1) saturate(2.5) hue-rotate(-5deg) brightness(0.95)",
+          }}
         />
         {/* Dark overlay for text readability */}
         <div className="absolute inset-0 bg-black/60" />
