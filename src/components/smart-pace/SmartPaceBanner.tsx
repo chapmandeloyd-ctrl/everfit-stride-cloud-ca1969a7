@@ -14,7 +14,7 @@ const MAX_HINT_VIEWS = 3;
  * Dashboard banner — replaces the old GoalCard when smart_pace_enabled = true.
  * Severity-driven visuals.
  */
-export function SmartPaceBanner() {
+export function SmartPaceBanner({ allowRender = false }: { allowRender?: boolean } = {}) {
   const { data } = useSmartPace();
   const [flipView, setFlipView] = useState<"none" | "journal" | "why">("none");
   const [showColorHint, setShowColorHint] = useState(false);
@@ -32,6 +32,7 @@ export function SmartPaceBanner() {
     }
   }, [data?.enabled, data?.goal?.id]);
 
+  if (!allowRender) return null;
   if (!data?.enabled || !data.goal) return null;
 
   const { goal, todayTargetLbs, debtLbs, creditLbs, status, progressPct, reason, projectedDate, cappedAt } =
