@@ -208,10 +208,10 @@ const CHANGE_HIGHLIGHTS: Record<string, { headline: string; swaps: string[] }> =
   },
 };
 
-/** Compare a plan to SKD baseline; returns the indices of meals whose text differs. */
-function getChangedMealIndices(ketoId: string): Set<number> {
-  if (ketoId === "skd") return new Set();
-  const base = MEAL_PLANS.skd.meals;
+/** Compare a plan to the user's assigned baseline; returns indices of changed meals. */
+function getChangedMealIndices(ketoId: string, baselineKetoId: string): Set<number> {
+  if (ketoId === baselineKetoId) return new Set();
+  const base = (MEAL_PLANS[baselineKetoId] ?? MEAL_PLANS.skd).meals;
   const target = (MEAL_PLANS[ketoId] ?? MEAL_PLANS.skd).meals;
   const changed = new Set<number>();
   target.forEach((m, i) => {
