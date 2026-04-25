@@ -159,6 +159,69 @@ const MEAL_PLANS: Record<string, { totals: { cal: number; fat: number; carbs: nu
   },
 };
 
+/* ---------- WHAT CHANGED — per-keto headline + swap notes ----------
+ * Surfaced as a gold callout above the timeline whenever the user picks
+ * a non-default keto type, so the swap is obvious at a glance.
+ */
+const CHANGE_HIGHLIGHTS: Record<string, { headline: string; swaps: string[] }> = {
+  skd: { headline: "", swaps: [] }, // baseline — no callout
+  hpkd: {
+    headline: "Protein-led refeed",
+    swaps: [
+      "Break-Fast: +1 egg & turkey sausage for MPS",
+      "Lunch: chicken thigh swap → +15g protein",
+      "Snack: nuts → Greek yogurt + chia",
+      "Dinner: 8 oz ribeye instead of 6 oz",
+    ],
+  },
+  ckd: {
+    headline: "Strict day (refeed rotates weekly)",
+    swaps: [
+      "Break-Fast: bacon added for higher fat",
+      "Lunch: beef patty + mayo replaces salmon",
+      "Snack: pecans + olives for variety",
+    ],
+  },
+  tkd: {
+    headline: "Targeted carbs around training",
+    swaps: [
+      "Break-Fast: smoked salmon for lean protein",
+      "Lunch: chicken breast (lower fat) to leave room",
+      "Snack → Pre-Workout: banana + almond butter (+22g carbs)",
+    ],
+  },
+  lazy: {
+    headline: "Simpler plate — track carbs only",
+    swaps: [
+      "Lunch: rotisserie chicken + ranch (no measuring)",
+      "Snack: cheese + almonds (grab & go)",
+      "Dinner: same ribeye, looser fat target",
+    ],
+  },
+  dirty: {
+    headline: "Convenience-first, still under 20g carbs",
+    swaps: [
+      "Break-Fast: fast-food sausage & egg patty",
+      "Lunch: bunless double cheeseburger",
+      "Snack: pork rinds + string cheese",
+    ],
+  },
+};
+
+/** Compare a plan to SKD baseline; returns the indices of meals whose text differs. */
+function getChangedMealIndices(ketoId: string): Set<number> {
+  if (ketoId === "skd") return new Set();
+  const base = MEAL_PLANS.skd.meals;
+  const target = (MEAL_PLANS[ketoId] ?? MEAL_PLANS.skd).meals;
+  const changed = new Set<number>();
+  target.forEach((m, i) => {
+    const b = base[i];
+    if (!b) return;
+    if (b.text !== m.text || b.label !== m.label) changed.add(i);
+  });
+  return changed;
+}
+
 /* ---------- HERO — GOLD NUMERAL ---------- */
 function Hero() {
   return (
