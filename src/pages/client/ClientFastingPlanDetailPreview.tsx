@@ -913,7 +913,7 @@ function DemoBlock({
   const [active, setActive] = useState(defaultActive);
   return (
     <div className="pt-4 pb-8" style={{ background: SURFACE_2 }}>
-      <SectionTitle kicker="Nutrition" title="Recommendations" />
+      <SectionTitle kicker="Part 2 · Keto Type" title="Recommendations" />
       {tabsVariant === "all" && <KetoTabsAll active={active} setActive={setActive} />}
       {tabsVariant === "explore" && <KetoTabsAssignedExplore active={active} setActive={setActive} />}
       {tabsVariant === "top3" && <KetoTabsTop3 active={active} setActive={setActive} />}
