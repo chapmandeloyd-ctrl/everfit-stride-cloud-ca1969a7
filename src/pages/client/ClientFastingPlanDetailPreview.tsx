@@ -648,7 +648,10 @@ function SynergyContent({ ketoId, withCoach }: { ketoId: string; withCoach: "tra
         const assignedKeto = KETO_TYPES.find((k) => k.assigned)!;
         const assignedId = assignedKeto.id;
         const isAssigned = ketoId === assignedId;
-        const changedIdx = getChangedMealIndices(ketoId, assignedId);
+        const isComparingToBaseline = ketoId !== assignedId;
+        const changedIdx = isComparingToBaseline
+          ? getChangedMealIndices(ketoId, assignedId)
+          : new Set<number>();
         const basePlan = MEAL_PLANS[assignedId] ?? MEAL_PLANS.skd;
         const dayDelta = isAssigned
           ? null
@@ -661,7 +664,7 @@ function SynergyContent({ ketoId, withCoach }: { ketoId: string; withCoach: "tra
         return (
           <>
             {/* "What changed" callout — only when not on baseline SKD */}
-            {change && change.headline && (
+            {!isAssigned && change && change.headline && (
               <div
                 className="mb-3 p-4"
                 style={{
@@ -754,8 +757,11 @@ function SynergyContent({ ketoId, withCoach }: { ketoId: string; withCoach: "tra
                 </div>
               ))}
             </div>
-      <div className="space-y-3">
+      <div key={ketoId} className="space-y-3">
         {plan.meals.map((m, i) => (
+          (() => {
+            const isMealChanged = isComparingToBaseline && changedIdx.has(i);
+            return (
           <div
             key={i}
             className="p-4"
@@ -764,7 +770,7 @@ function SynergyContent({ ketoId, withCoach }: { ketoId: string; withCoach: "tra
               border: `1px solid ${
                 m.tone === "fast"
                   ? `${GOLD}55`
-                  : changedIdx.has(i)
+                  : isMealChanged
                   ? GOLD
                   : `${GOLD}22`
               }`,
@@ -775,7 +781,7 @@ function SynergyContent({ ketoId, withCoach }: { ketoId: string; withCoach: "tra
                 <span className="font-serif text-sm" style={{ color: IVORY }}>
                   {m.label}
                 </span>
-                {changedIdx.has(i) && (() => {
+                {isMealChanged && (() => {
                   const md = getMealDelta(assignedId, ketoId, i);
                   if (!md) return null;
                   // Pick the 1-2 most significant macro deltas (by absolute g)
@@ -883,6 +889,8 @@ function SynergyContent({ ketoId, withCoach }: { ketoId: string; withCoach: "tra
               </div>
             )}
           </div>
+            );
+          })()
         ))}
       </div>
           </>
