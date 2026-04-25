@@ -2,6 +2,12 @@ import { Clock, Scale, Activity, Moon } from "lucide-react";
 import { format, addDays, startOfWeek, isFuture } from "date-fns";
 import { useState } from "react";
 import { MultiSegmentRing, RingSegment } from "@/components/rings/MultiSegmentRing";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { cn } from "@/lib/utils";
 
 /**
@@ -137,7 +143,7 @@ function DayDetailPanel({
   const segs = buildSegments(completed);
   const count = segs.filter((s) => s.completed).length;
   return (
-    <div className="px-4 pb-4 pt-2 animate-in fade-in slide-in-from-top-2 duration-200">
+    <div className="px-4 pb-6 pt-2">
       <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-4">
         <div className="flex items-center gap-4">
           <MultiSegmentRing segments={segs} size={56} strokeWidth={9} />
@@ -209,59 +215,74 @@ export function DailyRingsPinnedHeader() {
       : null;
 
   return (
-    <div className="sticky top-0 z-30 -mx-4 -mt-4 mb-2 bg-black border-b border-white/10 shadow-lg shadow-black/40">
-      <div className="px-4 pt-3 pb-3">
-        <div className="flex justify-between px-1">
-          {days.map((d, i) => {
-            const isToday =
-              format(d, "yyyy-MM-dd") === format(today, "yyyy-MM-dd");
-            const isSelected = selectedIdx === i;
-            const future = isFuture(d) && !isToday;
-            const dayCompleted =
-              WEEK_COMPLETED[i] ?? {
-                fasting: false,
-                weight: false,
-                activity: false,
-                sleep: false,
-              };
-            const segs = buildSegments(dayCompleted);
-            return (
-              <button
-                key={d.toISOString()}
-                type="button"
-                disabled={future}
-                onClick={() =>
-                  setSelectedIdx((prev) => (prev === i ? null : i))
-                }
-                className={cn(
-                  "flex flex-col items-center gap-1.5 rounded-lg px-1.5 py-1 transition-colors",
-                  isSelected && "bg-white/15",
-                  future && "opacity-40 cursor-not-allowed"
-                )}
-                aria-label={`View rings for ${format(d, "EEEE, MMM d")}`}
-              >
-                <span
+    <>
+      <div className="sticky top-0 z-30 -mx-4 -mt-4 mb-2 bg-black border-b border-white/10 shadow-lg shadow-black/40">
+        <div className="px-4 pt-3 pb-3">
+          <div className="flex justify-between px-1">
+            {days.map((d, i) => {
+              const isToday =
+                format(d, "yyyy-MM-dd") === format(today, "yyyy-MM-dd");
+              const isSelected = selectedIdx === i;
+              const future = isFuture(d) && !isToday;
+              const dayCompleted =
+                WEEK_COMPLETED[i] ?? {
+                  fasting: false,
+                  weight: false,
+                  activity: false,
+                  sleep: false,
+                };
+              const segs = buildSegments(dayCompleted);
+              return (
+                <button
+                  key={d.toISOString()}
+                  type="button"
+                  disabled={future}
+                  onClick={() => setSelectedIdx(i)}
                   className={cn(
-                    "text-[11px] font-bold uppercase tracking-[0.18em]",
-                    isToday
-                      ? "text-daily-ring-fasting"
-                      : isSelected
-                      ? "text-white"
-                      : "text-white/70"
+                    "flex flex-col items-center gap-1.5 rounded-lg px-1.5 py-1 transition-colors",
+                    isSelected && "bg-white/15",
+                    future && "opacity-40 cursor-not-allowed"
                   )}
+                  aria-label={`View rings for ${format(d, "EEEE, MMM d")}`}
                 >
-                  {format(d, "EEE")}
-                </span>
-                <MultiSegmentRing segments={segs} size={26} strokeWidth={4} />
-              </button>
-            );
-          })}
+                  <span
+                    className={cn(
+                      "text-[11px] font-bold uppercase tracking-[0.18em]",
+                      isToday
+                        ? "text-daily-ring-fasting"
+                        : isSelected
+                        ? "text-white"
+                        : "text-white/70"
+                    )}
+                  >
+                    {format(d, "EEE")}
+                  </span>
+                  <MultiSegmentRing segments={segs} size={26} strokeWidth={4} />
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
-      {selectedDate && selectedCompleted && (
-        <DayDetailPanel date={selectedDate} completed={selectedCompleted} />
-      )}
-    </div>
+
+      <Drawer
+        open={selectedIdx !== null}
+        onOpenChange={(open) => {
+          if (!open) setSelectedIdx(null);
+        }}
+      >
+        <DrawerContent className="bg-black border-white/10 text-white">
+          <DrawerHeader className="sr-only">
+            <DrawerTitle>
+              {selectedDate ? format(selectedDate, "EEEE, MMM d") : "Day detail"}
+            </DrawerTitle>
+          </DrawerHeader>
+          {selectedDate && selectedCompleted && (
+            <DayDetailPanel date={selectedDate} completed={selectedCompleted} />
+          )}
+        </DrawerContent>
+      </Drawer>
+    </>
   );
 }
 
