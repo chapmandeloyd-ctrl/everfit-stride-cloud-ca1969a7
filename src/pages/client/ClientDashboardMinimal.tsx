@@ -4,6 +4,15 @@ import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { FastingProtocolCard } from "./ClientDashboard";
 import { SmartPaceBanner } from "@/components/smart-pace/SmartPaceBanner";
 import { MyProgressSection } from "@/components/MyProgressSection";
+import { StartHereDemoGallery } from "@/components/start-here/StartHereDemoGallery";
+
+/**
+ * TEMPORARY — while we design the new "Start Here" empty state,
+ * the lion fasting timer + Smart Pace tracker are hidden so we can
+ * iterate on themes in isolation. Flip this back to `false` to restore
+ * the production dashboard.
+ */
+const SHOW_START_HERE_DEMOS = true;
 
 /**
  * Minimal client dashboard — Fasting + Smart Pace + Health tracking tiles.
@@ -12,6 +21,17 @@ import { MyProgressSection } from "@/components/MyProgressSection";
 export default function ClientDashboardMinimal() {
   const clientId = useEffectiveClientId();
   const navigate = useNavigate();
+
+  if (SHOW_START_HERE_DEMOS) {
+    return (
+      <ClientLayout>
+        <div className="p-4 space-y-6 pb-24">
+          <StartHereDemoGallery />
+          {clientId && <MyProgressSection clientId={clientId} />}
+        </div>
+      </ClientLayout>
+    );
+  }
 
   return (
     <ClientLayout>
