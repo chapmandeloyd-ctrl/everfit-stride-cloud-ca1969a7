@@ -323,7 +323,7 @@ function KetoTabsAssignedExplore({ active, setActive }: { active: string; setAct
               className="text-left px-3 py-3 transition"
               style={{
                 background: isActive ? `${GOLD}18` : SURFACE,
-                border: `1px solid ${isActive ? GOLD : `${GOLD}33`}`,
+                border: `1px solid ${isActive ? GOLD : "hsl(0 0% 14%)"}`,
               }}
             >
               <div
