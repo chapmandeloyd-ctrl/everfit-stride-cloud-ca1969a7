@@ -392,10 +392,20 @@ function EatingWindow() {
    ================================================================= */
 
 function SectionTitle({ kicker, title }: { kicker: string; title: string }) {
+  // If kicker contains a "Part N ·" prefix, render that prefix in muted grey
+  const partMatch = kicker.match(/^(Part\s+\d+)\s*·\s*(.+)$/i);
   return (
     <div className="px-5 mb-4">
-      <div className="text-[10px] uppercase tracking-[0.35em] mb-2" style={{ color: GOLD }}>
-        {kicker}
+      <div className="text-[10px] uppercase tracking-[0.35em] mb-2 flex items-baseline gap-1.5" style={{ color: GOLD }}>
+        {partMatch ? (
+          <>
+            <span style={{ color: MUTED }}>{partMatch[1]}</span>
+            <span style={{ color: `${GOLD}66` }}>·</span>
+            <span>{partMatch[2]}</span>
+          </>
+        ) : (
+          kicker
+        )}
       </div>
       <h2 className="font-serif text-3xl leading-[1]" style={{ color: IVORY }}>
         {title}
