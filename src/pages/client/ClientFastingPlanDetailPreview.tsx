@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, Sparkles } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 /**
  * Editorial Black & Gold — Fasting Plan Detail (TOP HALF).
@@ -1031,6 +1032,12 @@ function SynergyContent({ ketoId, withCoach }: { ketoId: string; withCoach: "tra
                 background: GOLD,
                 color: BLACK,
                 border: `1px solid ${GOLD}`,
+              }}
+              onClick={() => {
+                toast.success(`${SAMPLE.fastHours}h fast started`, {
+                  description: `${keto.name} (${keto.abbr}) plan locked in · begins now`,
+                  duration: 4000,
+                });
               }}
             >
               Start Your Fast
