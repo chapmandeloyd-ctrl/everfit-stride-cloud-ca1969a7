@@ -42,30 +42,30 @@ const RINGS: RingDef[] = [
     label: "Weight",
     goal: "Log a check-in",
     icon: Scale,
-    // Pure white
-    strokeClass: "[stroke:hsl(0_0%_100%)]",
-    bgClass: "[background-color:hsl(0_0%_100%)]",
-    textClass: "[color:hsl(0_0%_100%)]",
+    // Trainerize orange
+    strokeClass: "[stroke:hsl(28_92%_58%)]",
+    bgClass: "[background-color:hsl(28_92%_58%)]",
+    textClass: "[color:hsl(28_92%_58%)]",
   },
   {
     key: "activity",
     label: "Activity",
     goal: "Hit your step goal",
     icon: Activity,
-    // Deep antique gold
-    strokeClass: "[stroke:hsl(38_55%_38%)]",
-    bgClass: "[background-color:hsl(38_55%_38%)]",
-    textClass: "[color:hsl(38_55%_38%)]",
+    // Trainerize green
+    strokeClass: "[stroke:hsl(142_55%_50%)]",
+    bgClass: "[background-color:hsl(142_55%_50%)]",
+    textClass: "[color:hsl(142_55%_50%)]",
   },
   {
     key: "sleep",
     label: "Sleep",
     goal: "Sleep 6.5h or more",
     icon: Moon,
-    // Moonlight silver
-    strokeClass: "[stroke:hsl(213_18%_72%)]",
-    bgClass: "[background-color:hsl(213_18%_72%)]",
-    textClass: "[color:hsl(213_18%_72%)]",
+    // Trainerize coral red/pink
+    strokeClass: "[stroke:hsl(353_85%_68%)]",
+    bgClass: "[background-color:hsl(353_85%_68%)]",
+    textClass: "[color:hsl(353_85%_68%)]",
   },
 ];
 
