@@ -621,6 +621,7 @@ function KetoTabsTop3({ active, setActive }: { active: string; setActive: (id: s
 function SynergyContent({ ketoId, withCoach }: { ketoId: string; withCoach: "trainer" | "brand" | "none" }) {
   const keto = KETO_TYPES.find((k) => k.id === ketoId)!;
   const copy = SYNERGY_COPY[ketoId] ?? SYNERGY_COPY.skd;
+  const navigate = useNavigate();
   return (
     <div className="px-5">
       {withCoach !== "none" && (
