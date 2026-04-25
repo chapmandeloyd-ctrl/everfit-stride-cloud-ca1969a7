@@ -581,7 +581,7 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
         {/* Smart Weight Tracker shown above the active fasting timer */}
         <div className="space-y-2">
           <h2 className="text-lg font-bold text-foreground px-1">KSOM-360 Smart Weight Tracker</h2>
-          <SmartPaceBanner />
+          <SmartPaceBanner allowRender />
         </div>
         <h2 className="text-lg font-bold text-foreground px-1">KSOM-360 Fasting Timer</h2>
         <Card className="overflow-hidden border-primary/20 shadow-lg relative">
