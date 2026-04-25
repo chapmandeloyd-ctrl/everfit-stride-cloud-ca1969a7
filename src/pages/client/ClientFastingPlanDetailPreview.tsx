@@ -913,7 +913,7 @@ function DemoBlock({
   const [active, setActive] = useState(defaultActive);
   return (
     <div className="pt-4 pb-8" style={{ background: SURFACE_2 }}>
-      <SectionTitle kicker="Nutrition" title="Recommendations" />
+      <SectionTitle kicker="Part 2 · Keto Type" title="Recommendations" />
       {tabsVariant === "all" && <KetoTabsAll active={active} setActive={setActive} />}
       {tabsVariant === "explore" && <KetoTabsAssignedExplore active={active} setActive={setActive} />}
       {tabsVariant === "top3" && <KetoTabsTop3 active={active} setActive={setActive} />}
@@ -936,10 +936,12 @@ export default function ClientFastingPlanDetailPreview() {
           <ChevronLeft size={22} />
         </button>
         <div
-          className="text-[10px] uppercase tracking-[0.35em]"
+          className="text-[10px] uppercase tracking-[0.35em] flex items-baseline gap-1.5"
           style={{ color: GOLD }}
         >
-          Protocol
+          <span style={{ color: MUTED }}>Part 1</span>
+          <span style={{ color: `${GOLD}66` }}>·</span>
+          <span>Protocol</span>
         </div>
         <div style={{ width: 22 }} />
       </header>
