@@ -80,6 +80,7 @@ import ClientAppointments from "./pages/client/ClientAppointments";
 import ClientRecipeDetail from "./pages/client/ClientRecipeDetail";
 import ClientPrograms from "./pages/client/ClientPrograms";
 import ClientChooseProtocol from "./pages/client/ClientChooseProtocol";
+import ClientBeginReset from "./pages/client/ClientBeginReset";
 import ClientQuickPlans from "./pages/client/ClientQuickPlans";
 import ClientQuickPlanDetail from "./pages/client/ClientQuickPlanDetail";
 import ClientProtocolDetail from "./pages/client/ClientProtocolDetail";
