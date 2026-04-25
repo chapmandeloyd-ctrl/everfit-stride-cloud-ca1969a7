@@ -1387,25 +1387,17 @@ function SynergyContent({
 
             <button
               type="button"
+              disabled={startFastMutation.isPending || !clientId || !planId}
               className="w-full py-4 text-sm uppercase tracking-[0.3em] font-serif transition active:scale-[0.99]"
               style={{
                 background: GOLD,
                 color: BLACK,
                 border: `1px solid ${GOLD}`,
+                opacity: startFastMutation.isPending ? 0.6 : 1,
               }}
-              onClick={() => {
-                // Navigate to Start Here (client home) so user can see the live timer.
-                navigate("/client/dashboard");
-                // Confirm with toast on arrival.
-                setTimeout(() => {
-                  toast.success(`${fastHours}h fast started`, {
-                    description: `${planName} · ${keto.name} (${keto.abbr}) locked in · begins now`,
-                    duration: 4000,
-                  });
-                }, 100);
-              }}
+              onClick={() => startFastMutation.mutate()}
             >
-              Start Your Fast
+              {startFastMutation.isPending ? "Starting…" : "Start Your Fast"}
             </button>
             <p
               className="text-[10px] uppercase tracking-[0.25em] text-center mt-2"
