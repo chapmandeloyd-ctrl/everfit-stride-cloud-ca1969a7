@@ -869,9 +869,6 @@ function SynergyContent({ ketoId, withCoach }: { ketoId: string; withCoach: "tra
                   );
                 })()}
               </div>
-              <span className="text-[10px] uppercase tracking-[0.2em]" style={{ color: MUTED }}>
-                {m.window}
-              </span>
             </div>
             <p className="text-xs leading-relaxed" style={{ color: MUTED }}>
               {m.text}
