@@ -22,7 +22,6 @@ import Unsubscribe from "./pages/Unsubscribe";
 import PortalMockup from "./pages/PortalMockup";
 import ClientDashboard from "./pages/client/ClientDashboardMinimal";
 import ClientRingsDemo from "./pages/client/ClientRingsDemo";
-import TimerDesignsPreview from "./pages/client/TimerDesignsPreview";
 import ClientSmartPace from "./pages/client/ClientSmartPace";
 import SmartPacePreview from "./pages/SmartPacePreview";
 import ClientDailyScore from "./pages/client/ClientDailyScore";
@@ -139,7 +138,6 @@ const App = () => (
           <Route path="/portal-mockup" element={<PortalMockup />} />
           <Route path="/synergy-card-demo" element={<SynergyCardDemo />} />
           <Route path="/client/rings-demo" element={<ClientRingsDemo />} />
-          <Route path="/client/timer-designs" element={<TimerDesignsPreview />} />
           
           {/* Trainer Routes */}
           <Route path="/" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerDashboard /></ProtectedRoute>} />
