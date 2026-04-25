@@ -49,8 +49,20 @@ function LionCard({
 }: {
   eyebrow: string;
   name: string;
-  desc: string | null;
+  desc: unknown;
 }) {
+  // description may be a string OR a JSON object (e.g. { subtitle, focus, ... })
+  let descText: string | null = null;
+  if (typeof desc === "string") {
+    descText = desc;
+  } else if (desc && typeof desc === "object") {
+    const d = desc as Record<string, unknown>;
+    descText =
+      (typeof d.subtitle === "string" && d.subtitle) ||
+      (typeof d.focus === "string" && d.focus) ||
+      (typeof d.who_for === "string" && d.who_for) ||
+      null;
+  }
   return (
     <button
       className="relative w-full text-left overflow-hidden p-5 transition active:scale-[0.99]"
@@ -76,9 +88,9 @@ function LionCard({
         >
           {name}
         </h3>
-        {desc && (
+        {descText && (
           <p className="text-xs leading-relaxed line-clamp-2" style={{ color: MUTED }}>
-            {desc}
+            {descText}
           </p>
         )}
       </div>
