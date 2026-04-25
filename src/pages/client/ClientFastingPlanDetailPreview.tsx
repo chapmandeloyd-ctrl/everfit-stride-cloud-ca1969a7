@@ -2,8 +2,9 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { ChevronLeft, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 
 /**
  * Editorial Black & Gold — Fasting Plan Detail (TOP HALF).
