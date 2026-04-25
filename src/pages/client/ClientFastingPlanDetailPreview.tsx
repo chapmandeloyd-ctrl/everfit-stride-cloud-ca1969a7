@@ -1,7 +1,9 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ChevronLeft, Sparkles } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 /**
  * Editorial Black & Gold — Fasting Plan Detail (TOP HALF).
@@ -25,6 +27,59 @@ const SAMPLE = {
   description:
     "Start skipping breakfast, and don't snack in the evening after dinner. Include a variety of healthy whole foods at each meal.",
 };
+
+/* ---------- LIVE PLAN TYPE ---------- */
+interface PlanView {
+  eyebrow: string;
+  name: string;
+  numeral: string;
+  fastHours: number;
+  eatHours: number;
+  description: string;
+  opensAt: string;
+  closesAt: string;
+}
+
+const TIER_EYEBROW: Record<string, string> = {
+  low: "Beginner Window",
+  medium: "Intermediate Window",
+  high: "Advanced Window",
+  extreme: "Extended Fast",
+};
+
+function pickDescription(desc: unknown): string {
+  if (typeof desc === "string") return desc;
+  if (desc && typeof desc === "object") {
+    const d = desc as Record<string, unknown>;
+    return (
+      (typeof d.how_it_works === "string" && d.how_it_works) ||
+      (typeof d.subtitle === "string" && d.subtitle) ||
+      (typeof d.focus === "string" && d.focus) ||
+      ""
+    );
+  }
+  return "";
+}
+
+function pickWindowTimes(desc: unknown): { opensAt: string; closesAt: string } {
+  let opens = "10:00 AM";
+  let closes = "8:00 PM";
+  if (desc && typeof desc === "object") {
+    const d = desc as Record<string, unknown>;
+    const ds = d.daily_structure as Record<string, unknown> | undefined;
+    if (ds && typeof ds === "object") {
+      if (typeof ds.break_fast === "string") {
+        // e.g. "11:00 AM–12:00 PM" → opens at start
+        opens = ds.break_fast.split(/[–-]/)[0].trim();
+      }
+      if (typeof ds.stop_eating === "string") {
+        const parts = ds.stop_eating.split(/[–-]/);
+        closes = (parts[1] || parts[0]).trim();
+      }
+    }
+  }
+  return { opensAt: opens, closesAt: closes };
+}
 
 /* ---------- KETO TYPES (mock library) ---------- */
 const KETO_TYPES = [
@@ -282,7 +337,7 @@ function getMealDelta(
 }
 
 /* ---------- HERO — GOLD NUMERAL ---------- */
-function Hero() {
+function Hero({ plan }: { plan: PlanView }) {
   return (
     <div className="relative overflow-hidden px-5 pt-8 pb-8">
       <div
@@ -295,33 +350,33 @@ function Hero() {
           lineHeight: 0.85,
         }}
       >
-        {SAMPLE.numeral}
+        {plan.numeral}
       </div>
       <div
         className="relative text-[10px] uppercase tracking-[0.35em] mb-3"
         style={{ color: GOLD }}
       >
-        {SAMPLE.eyebrow}
+        {plan.eyebrow}
       </div>
       <h1
         className="relative font-serif text-5xl leading-[0.95] mb-4"
         style={{ color: IVORY }}
       >
-        {SAMPLE.name}
+        {plan.name}
       </h1>
       <p className="relative text-sm leading-relaxed mb-5" style={{ color: MUTED }}>
-        {SAMPLE.description}
+        {plan.description}
       </p>
       <div className="relative flex items-center gap-3">
         <span className="font-serif text-lg" style={{ color: IVORY }}>
-          {SAMPLE.fastHours}h
+          {plan.fastHours}h
         </span>
         <span className="text-[10px] uppercase tracking-[0.3em]" style={{ color: MUTED }}>
           fasting
         </span>
         <span style={{ color: `${GOLD}66` }}>·</span>
         <span className="font-serif text-lg" style={{ color: IVORY }}>
-          {SAMPLE.eatHours}h
+          {plan.eatHours}h
         </span>
         <span className="text-[10px] uppercase tracking-[0.3em]" style={{ color: MUTED }}>
           eating
@@ -332,12 +387,12 @@ function Hero() {
 }
 
 /* ---------- WHEEL PICKER ---------- */
-function WheelPicker() {
+function WheelPicker({ opensAt, closesAt }: { opensAt: string; closesAt: string }) {
   return (
     <div className="mt-5">
       <div className="grid grid-cols-2 gap-3 mb-4">
-        <TimeColumn label="opens at" value="10:00 AM" />
-        <TimeColumn label="closes at" value="8:00 PM" />
+        <TimeColumn label="opens at" value={opensAt} />
+        <TimeColumn label="closes at" value={closesAt} />
       </div>
       <div
         className="relative overflow-hidden py-2"
@@ -399,7 +454,7 @@ function TimeColumn({ label, value }: { label: string; value: string }) {
 }
 
 /* ---------- EATING WINDOW BLOCK ---------- */
-function EatingWindow() {
+function EatingWindow({ plan }: { plan: PlanView }) {
   return (
     <div
       className="mx-5 mt-2 p-5"
@@ -412,12 +467,12 @@ function EatingWindow() {
         Eating Window
       </div>
       <div className="text-center font-serif text-5xl" style={{ color: IVORY }}>
-        {SAMPLE.eatHours}
+        {plan.eatHours}
         <span className="text-2xl ml-1" style={{ color: GOLD_SOFT }}>
           h
         </span>
       </div>
-      <WheelPicker />
+      <WheelPicker opensAt={plan.opensAt} closesAt={plan.closesAt} />
     </div>
   );
 }
@@ -1085,6 +1140,89 @@ function DemoBlock({
 
 export default function ClientFastingPlanDetailPreview() {
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const planType = (params.get("type") ?? "quick") as "quick" | "program";
+  const planId = params.get("id");
+
+  const { data: quickPlan } = useQuery({
+    queryKey: ["fasting-detail-quick", planId],
+    enabled: planType === "quick" && !!planId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("quick_fasting_plans")
+        .select("id, name, fast_hours, intensity_tier, description")
+        .eq("id", planId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: program } = useQuery({
+    queryKey: ["fasting-detail-program", planId],
+    enabled: planType === "program" && !!planId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("fasting_protocols")
+        .select(
+          "id, name, description, duration_days, intensity_tier, fast_target_hours",
+        )
+        .eq("id", planId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const plan: PlanView = useMemo(() => {
+    if (planType === "quick" && quickPlan) {
+      const fast = quickPlan.fast_hours ?? 14;
+      const eat = Math.max(0, 24 - fast);
+      const { opensAt, closesAt } = pickWindowTimes(quickPlan.description);
+      return {
+        eyebrow: TIER_EYEBROW[quickPlan.intensity_tier ?? "low"] ?? "Fasting Window",
+        name: quickPlan.name,
+        numeral: String(fast),
+        fastHours: fast,
+        eatHours: eat,
+        description:
+          pickDescription(quickPlan.description) ||
+          "A curated KSOM fasting window.",
+        opensAt,
+        closesAt,
+      };
+    }
+    if (planType === "program" && program) {
+      const fast = program.fast_target_hours ?? 16;
+      const eat = Math.max(0, 24 - fast);
+      return {
+        eyebrow:
+          program.duration_days && program.duration_days > 0
+            ? `${program.duration_days}-Day Program`
+            : "Structured Program",
+        name: program.name,
+        numeral: String(program.duration_days ?? fast),
+        fastHours: fast,
+        eatHours: eat,
+        description:
+          pickDescription(program.description) ||
+          "A structured KSOM fasting program.",
+        opensAt: "10:00 AM",
+        closesAt: "8:00 PM",
+      };
+    }
+    // Fallback to the original Easy Start+ sample (for direct visits without an id)
+    return {
+      eyebrow: SAMPLE.eyebrow,
+      name: SAMPLE.name,
+      numeral: SAMPLE.numeral,
+      fastHours: SAMPLE.fastHours,
+      eatHours: SAMPLE.eatHours,
+      description: SAMPLE.description,
+      opensAt: "10:00 AM",
+      closesAt: "8:00 PM",
+    };
+  }, [planType, quickPlan, program]);
 
   return (
     <div className="min-h-screen pb-24" style={{ background: BLACK }}>
@@ -1107,8 +1245,8 @@ export default function ClientFastingPlanDetailPreview() {
         <div style={{ width: 22 }} />
       </header>
 
-      <Hero />
-      <EatingWindow />
+      <Hero plan={plan} />
+      <EatingWindow plan={plan} />
 
       {/* Locked: Assigned + Explore (all keto types) · Coach Trainer */}
       <div className="mt-6">
