@@ -1,4 +1,5 @@
 import lionLogo from "@/assets/logo.png";
+import { useNavigate } from "react-router-dom";
 
 /**
  * Variant 3 — Editorial Black & Gold
@@ -7,6 +8,7 @@ import lionLogo from "@/assets/logo.png";
  * filling the background (inspired by variant 1).
  */
 export function StartHereBlackGold() {
+  const navigate = useNavigate();
   return (
     <div
       className="relative px-6 py-16 text-center overflow-hidden"
@@ -59,6 +61,8 @@ export function StartHereBlackGold() {
         </div>
 
         <button
+          type="button"
+          onClick={() => navigate("/client/choose-protocol")}
           className="inline-flex items-center justify-center px-10 py-3 font-medium text-sm tracking-widest uppercase transition active:scale-95"
           style={{
             background: "transparent",
