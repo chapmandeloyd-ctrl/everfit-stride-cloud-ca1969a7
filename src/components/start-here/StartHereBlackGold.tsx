@@ -3,15 +3,28 @@ import lionLogo from "@/assets/logo.png";
 /**
  * Variant 3 — Editorial Black & Gold
  * Pure black, ivory serif-feel headline, gold outlined CTA.
- * High-end magazine spread vibe.
+ * High-end magazine spread vibe with a faint gold lion watermark
+ * filling the background (inspired by variant 1).
  */
 export function StartHereBlackGold() {
   return (
     <div
-      className="relative px-6 py-14 text-center overflow-hidden"
+      className="relative px-6 py-16 text-center overflow-hidden"
       style={{ background: "hsl(0 0% 4%)" }}
     >
-      {/* Gold lion mark */}
+      {/* Faint gold lion watermark filling the card */}
+      <img
+        src={lionLogo}
+        alt=""
+        aria-hidden
+        className="absolute inset-0 m-auto w-72 h-72 object-contain pointer-events-none"
+        style={{
+          filter: "sepia(1) hue-rotate(-15deg) saturate(2.5) brightness(1.2)",
+          opacity: 0.08,
+        }}
+      />
+
+      {/* Foreground gold lion mark */}
       <img
         src={lionLogo}
         alt=""
