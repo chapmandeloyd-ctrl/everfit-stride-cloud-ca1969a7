@@ -1,6 +1,6 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ChevronLeft, Sparkles } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
