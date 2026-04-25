@@ -17,10 +17,10 @@ export function StartHereBlackGold() {
         src={lionLogo}
         alt=""
         aria-hidden
-        className="absolute inset-0 m-auto w-72 h-72 object-contain pointer-events-none"
+        className="absolute inset-0 m-auto w-[120%] h-[120%] object-contain pointer-events-none"
         style={{
           filter: "sepia(1) hue-rotate(-15deg) saturate(2.5) brightness(1.2)",
-          opacity: 0.08,
+          opacity: 0.1,
         }}
       />
 
