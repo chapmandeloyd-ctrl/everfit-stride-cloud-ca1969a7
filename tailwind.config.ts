@@ -68,7 +68,7 @@ export default {
           "4": "hsl(var(--chart-4))",
           "5": "hsl(var(--chart-5))",
         },
-        ring: {
+        "daily-ring": {
           fasting: "hsl(var(--ring-fasting))",
           weight: "hsl(var(--ring-weight))",
           activity: "hsl(var(--ring-activity))",
