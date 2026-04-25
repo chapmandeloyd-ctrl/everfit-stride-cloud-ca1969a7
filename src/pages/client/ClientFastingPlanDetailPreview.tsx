@@ -957,9 +957,11 @@ function SynergyContent({ ketoId, withCoach }: { ketoId: string; withCoach: "tra
               </div>
             )}
           </div>
+          </div>
             );
           })()
         ))}
+      </div>
       </div>
           </>
         );
