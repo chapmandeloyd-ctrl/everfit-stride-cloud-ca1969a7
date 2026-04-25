@@ -644,11 +644,11 @@ function SynergyContent({ ketoId, withCoach }: { ketoId: string; withCoach: "tra
       {(() => {
         const plan = MEAL_PLANS[ketoId] ?? MEAL_PLANS.skd;
         const change = CHANGE_HIGHLIGHTS[ketoId];
-        const changedIdx = getChangedMealIndices(ketoId);
         // Compare against the user's assigned keto type (not always SKD).
         const assignedKeto = KETO_TYPES.find((k) => k.assigned)!;
         const assignedId = assignedKeto.id;
         const isAssigned = ketoId === assignedId;
+        const changedIdx = getChangedMealIndices(ketoId, assignedId);
         const basePlan = MEAL_PLANS[assignedId] ?? MEAL_PLANS.skd;
         const dayDelta = isAssigned
           ? null
