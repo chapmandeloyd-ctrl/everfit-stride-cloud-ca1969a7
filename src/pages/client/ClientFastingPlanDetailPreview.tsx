@@ -627,7 +627,7 @@ function KetoTabsAssignedExplore({ active, setActive }: { active: string; setAct
 }
 
 /* ---------- KETO TABS — VARIANT C: TOP 3 RELEVANT ---------- */
-function KetoTabsTop3({ active, setActive }: { active: string; setActive: (id: string) => void }) {
+function KetoTabsTop3({ active, setActive, fastHours }: { active: string; setActive: (id: string) => void; fastHours: number }) {
   const top3 = [...KETO_TYPES].sort((a, b) => b.matchScore - a.matchScore).slice(0, 3);
   return (
     <div className="px-5 mb-5">
@@ -635,7 +635,7 @@ function KetoTabsTop3({ active, setActive }: { active: string; setActive: (id: s
         className="text-[9px] uppercase tracking-[0.3em] mb-2 pl-1"
         style={{ color: MUTED }}
       >
-        Best Pairings for {SAMPLE.fastHours}h
+        Best Pairings for {fastHours}h
       </div>
       <div className="grid grid-cols-3 gap-2">
         {top3.map((k) => {
@@ -673,9 +673,26 @@ function KetoTabsTop3({ active, setActive }: { active: string; setActive: (id: s
 }
 
 /* ---------- SYNERGY CONTENT BLOCK ---------- */
-function SynergyContent({ ketoId, withCoach }: { ketoId: string; withCoach: "trainer" | "brand" | "none" }) {
+function SynergyContent({
+  ketoId,
+  withCoach,
+  fastHours,
+  planName,
+}: {
+  ketoId: string;
+  withCoach: "trainer" | "brand" | "none";
+  fastHours: number;
+  planName: string;
+}) {
   const keto = KETO_TYPES.find((k) => k.id === ketoId)!;
-  const copy = SYNERGY_COPY[ketoId] ?? SYNERGY_COPY.skd;
+  const baseCopy = SYNERGY_COPY[ketoId] ?? SYNERGY_COPY.skd;
+  // Rewrite hardcoded "14h" / "14-hour" references to the live plan's hours.
+  const copy = {
+    intro: baseCopy.intro
+      .replace(/14-hour/g, `${fastHours}-hour`)
+      .replace(/14h/g, `${fastHours}h`),
+    bullets: baseCopy.bullets,
+  };
   const navigate = useNavigate();
   return (
     <div className="px-5">
@@ -723,7 +740,7 @@ function SynergyContent({ ketoId, withCoach }: { ketoId: string; withCoach: "tra
       )}
 
       <div className="text-[10px] uppercase tracking-[0.3em] mb-2" style={{ color: GOLD }}>
-        {SAMPLE.fastHours}h × {keto.abbr} — Why it works
+        {fastHours}h × {keto.abbr} — Why it works
       </div>
       <p className="text-sm leading-relaxed mb-5" style={{ color: IVORY, opacity: 0.85 }}>
         {copy.intro}
@@ -1038,7 +1055,11 @@ function SynergyContent({ ketoId, withCoach }: { ketoId: string; withCoach: "tra
 
       {/* ---------- Synergy primer + Start CTA ---------- */}
       {(() => {
-        const primer = SYNERGY_PRIMER[ketoId] ?? SYNERGY_PRIMER.skd;
+        const basePrimer = SYNERGY_PRIMER[ketoId] ?? SYNERGY_PRIMER.skd;
+        const primer = {
+          headline: basePrimer.headline.replace(/14h/g, `${fastHours}h`),
+          bullets: basePrimer.bullets,
+        };
         return (
           <div className="mt-8">
             <div
@@ -1094,8 +1115,8 @@ function SynergyContent({ ketoId, withCoach }: { ketoId: string; withCoach: "tra
                 navigate("/client/dashboard");
                 // Confirm with toast on arrival.
                 setTimeout(() => {
-                  toast.success(`${SAMPLE.fastHours}h fast started`, {
-                    description: `${keto.name} (${keto.abbr}) plan locked in · begins now`,
+                  toast.success(`${fastHours}h fast started`, {
+                    description: `${planName} · ${keto.name} (${keto.abbr}) locked in · begins now`,
                     duration: 4000,
                   });
                 }, 100);
@@ -1107,7 +1128,7 @@ function SynergyContent({ ketoId, withCoach }: { ketoId: string; withCoach: "tra
               className="text-[10px] uppercase tracking-[0.25em] text-center mt-2"
               style={{ color: MUTED }}
             >
-              {SAMPLE.fastHours}h × {keto.abbr} · begins now
+              {fastHours}h × {keto.abbr} · begins now
             </p>
           </div>
         );
@@ -1121,10 +1142,14 @@ function DemoBlock({
   tabsVariant,
   coachVariant,
   defaultActive,
+  fastHours,
+  planName,
 }: {
   tabsVariant: "all" | "explore" | "top3";
   coachVariant: "trainer" | "brand" | "none";
   defaultActive: string;
+  fastHours: number;
+  planName: string;
 }) {
   const [active, setActive] = useState(defaultActive);
   return (
@@ -1132,8 +1157,8 @@ function DemoBlock({
       <SectionTitle kicker="Part 2 · Keto Type" title="Recommendations" />
       {tabsVariant === "all" && <KetoTabsAll active={active} setActive={setActive} />}
       {tabsVariant === "explore" && <KetoTabsAssignedExplore active={active} setActive={setActive} />}
-      {tabsVariant === "top3" && <KetoTabsTop3 active={active} setActive={setActive} />}
-      <SynergyContent ketoId={active} withCoach={coachVariant} />
+      {tabsVariant === "top3" && <KetoTabsTop3 active={active} setActive={setActive} fastHours={fastHours} />}
+      <SynergyContent ketoId={active} withCoach={coachVariant} fastHours={fastHours} planName={planName} />
     </div>
   );
 }
@@ -1250,7 +1275,13 @@ export default function ClientFastingPlanDetailPreview() {
 
       {/* Locked: Assigned + Explore (all keto types) · Coach Trainer */}
       <div className="mt-6">
-        <DemoBlock tabsVariant="explore" coachVariant="trainer" defaultActive="skd" />
+        <DemoBlock
+          tabsVariant="explore"
+          coachVariant="trainer"
+          defaultActive="skd"
+          fastHours={plan.fastHours}
+          planName={plan.name}
+        />
       </div>
     </div>
   );
