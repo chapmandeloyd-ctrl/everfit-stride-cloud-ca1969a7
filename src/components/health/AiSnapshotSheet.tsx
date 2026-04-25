@@ -63,7 +63,10 @@ export function AiSnapshotSheet({ open, onOpenChange, clientId }: Props) {
           ? `Imported ${count} metric${count === 1 ? "" : "s"} from your screenshot`
           : "Snapshot processed",
       );
+      queryClient.invalidateQueries({ queryKey: ["health-activity-metrics"] });
       queryClient.invalidateQueries({ queryKey: ["activity-summary"] });
+      queryClient.invalidateQueries({ queryKey: ["weight-entries"] });
+      queryClient.invalidateQueries({ queryKey: ["latest-weight-minimal"] });
       reset();
       onOpenChange(false);
     } catch (err: any) {
