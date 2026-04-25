@@ -1,4 +1,4 @@
-import { Clock, Scale, Activity, Moon } from "lucide-react";
+import { Clock, Scale, Activity, Moon, ChevronDown } from "lucide-react";
 import { format, addDays, startOfWeek, isFuture } from "date-fns";
 import { useState } from "react";
 import { MultiSegmentRing, RingSegment } from "@/components/rings/MultiSegmentRing";
@@ -133,7 +133,12 @@ function GoalCard({ ring, completed }: { ring: RingDef; completed: boolean }) {
  * Drop-down panel showing the ring breakdown for the selected day.
  * Renders directly under the pinned weekday strip.
  */
-function DayDetailPanel({
+/**
+ * Full-height day detail — mirrors the main DailyRingsCard layout
+ * (date headline, big ring, "X of 4 Rings", message, full goals grid).
+ * Rendered inside a bottom Drawer that fills ~92% of the viewport.
+ */
+function DayDetailFull({
   date,
   completed,
 }: {
@@ -143,50 +148,42 @@ function DayDetailPanel({
   const segs = buildSegments(completed);
   const count = segs.filter((s) => s.completed).length;
   return (
-    <div className="px-4 pb-6 pt-2">
-      <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-4">
-        <div className="flex items-center gap-4">
-          <MultiSegmentRing segments={segs} size={56} strokeWidth={9} />
-          <div className="flex-1 min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/50">
-              {format(date, "EEEE")}
-            </p>
-            <p className="text-base font-bold text-white leading-tight">
-              {format(date, "MMM d")} — {count} of 4 rings
-            </p>
-          </div>
+    <div className="flex flex-col h-full overflow-y-auto">
+      {/* Swipe-down hint */}
+      <div className="flex flex-col items-center gap-1 pt-2 pb-3 text-white/40">
+        <ChevronDown className="h-4 w-4 animate-bounce" />
+        <span className="text-[10px] font-bold uppercase tracking-[0.18em]">
+          Swipe down to dismiss
+        </span>
+      </div>
+
+      {/* Headline + big ring */}
+      <div className="px-6 pt-2 pb-4 flex items-start justify-between gap-4">
+        <div className="flex-1 pt-2">
+          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-daily-ring-fasting">
+            {format(date, "MMMM d, yyyy")}
+          </p>
+          <h2 className="text-3xl font-serif mt-2 leading-tight text-white">
+            <span className="text-white/50">{count} of 4</span>
+            <br />
+            Rings
+          </h2>
+          <p className="text-sm text-white/60 mt-3 max-w-[200px]">
+            {count === 4
+              ? "Perfect day — every ring closed!"
+              : count > 0
+              ? "You're making great progress — let's do this!"
+              : "A fresh start. One ring at a time."}
+          </p>
         </div>
-        <div className="grid grid-cols-2 gap-x-3 gap-y-2 mt-3">
-          {RINGS.map((r) => {
-            const Icon = r.icon;
-            const done = completed[r.key];
-            return (
-              <div key={r.key} className="flex items-center gap-2">
-                <div
-                  className={cn(
-                    "h-6 w-6 rounded-full flex items-center justify-center shrink-0",
-                    done ? r.bgClass : "bg-white/5 border border-white/10"
-                  )}
-                >
-                  <Icon
-                    className={cn(
-                      "h-3 w-3",
-                      done ? "text-black" : "text-white/40"
-                    )}
-                  />
-                </div>
-                <span
-                  className={cn(
-                    "text-xs",
-                    done ? "text-white" : "text-white/40"
-                  )}
-                >
-                  {r.label}
-                </span>
-              </div>
-            );
-          })}
-        </div>
+        <MultiSegmentRing segments={segs} size={130} strokeWidth={20} />
+      </div>
+
+      {/* Goals grid */}
+      <div className="grid grid-cols-2 gap-x-4 gap-y-6 px-6 pt-2 pb-10">
+        {RINGS.map((r) => (
+          <GoalCard key={r.key} ring={r} completed={completed[r.key]} />
+        ))}
       </div>
     </div>
   );
@@ -271,14 +268,14 @@ export function DailyRingsPinnedHeader() {
           if (!open) setSelectedIdx(null);
         }}
       >
-        <DrawerContent className="bg-black border-white/10 text-white">
+        <DrawerContent className="bg-black border-white/10 text-white h-[92vh] max-h-[92vh] mt-0">
           <DrawerHeader className="sr-only">
             <DrawerTitle>
               {selectedDate ? format(selectedDate, "EEEE, MMM d") : "Day detail"}
             </DrawerTitle>
           </DrawerHeader>
           {selectedDate && selectedCompleted && (
-            <DayDetailPanel date={selectedDate} completed={selectedCompleted} />
+            <DayDetailFull date={selectedDate} completed={selectedCompleted} />
           )}
         </DrawerContent>
       </Drawer>
