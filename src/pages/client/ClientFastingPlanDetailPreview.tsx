@@ -208,10 +208,10 @@ const CHANGE_HIGHLIGHTS: Record<string, { headline: string; swaps: string[] }> =
   },
 };
 
-/** Compare a plan to SKD baseline; returns the indices of meals whose text differs. */
-function getChangedMealIndices(ketoId: string): Set<number> {
-  if (ketoId === "skd") return new Set();
-  const base = MEAL_PLANS.skd.meals;
+/** Compare a plan to the user's assigned baseline; returns indices of changed meals. */
+function getChangedMealIndices(ketoId: string, baselineKetoId: string): Set<number> {
+  if (ketoId === baselineKetoId) return new Set();
+  const base = (MEAL_PLANS[baselineKetoId] ?? MEAL_PLANS.skd).meals;
   const target = (MEAL_PLANS[ketoId] ?? MEAL_PLANS.skd).meals;
   const changed = new Set<number>();
   target.forEach((m, i) => {
@@ -644,11 +644,11 @@ function SynergyContent({ ketoId, withCoach }: { ketoId: string; withCoach: "tra
       {(() => {
         const plan = MEAL_PLANS[ketoId] ?? MEAL_PLANS.skd;
         const change = CHANGE_HIGHLIGHTS[ketoId];
-        const changedIdx = getChangedMealIndices(ketoId);
         // Compare against the user's assigned keto type (not always SKD).
         const assignedKeto = KETO_TYPES.find((k) => k.assigned)!;
         const assignedId = assignedKeto.id;
         const isAssigned = ketoId === assignedId;
+        const changedIdx = getChangedMealIndices(ketoId, assignedId);
         const basePlan = MEAL_PLANS[assignedId] ?? MEAL_PLANS.skd;
         const dayDelta = isAssigned
           ? null
