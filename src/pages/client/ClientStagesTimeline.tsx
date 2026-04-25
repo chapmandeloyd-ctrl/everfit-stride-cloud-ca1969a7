@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { ClientLayout } from "@/components/ClientLayout";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, ChevronDown } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Card } from "@/components/ui/card";
+import { ChevronDown } from "lucide-react";
 import {
   ENRICHED_STAGES,
   getStageForElapsedHours,
@@ -13,25 +12,42 @@ import { useActiveFastElapsed } from "@/hooks/useActiveFastElapsed";
 import { cn } from "@/lib/utils";
 
 export default function ClientStagesTimeline() {
-  const navigate = useNavigate();
   const { isFasting, elapsedHours } = useActiveFastElapsed();
   const currentStage = isFasting ? getStageForElapsedHours(elapsedHours) : null;
   const [openId, setOpenId] = useState<string | null>(currentStage?.id ?? null);
+  const heroStage = currentStage ?? ENRICHED_STAGES[0];
 
   return (
     <ClientLayout>
-      <div className="max-w-2xl mx-auto px-4 py-4 animate-fade-in">
-        <div className="flex items-center gap-2 mb-4">
-          <Button size="icon" variant="ghost" onClick={() => navigate("/client/stages")}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="text-xl font-bold">Your Journey</h1>
-            <p className="text-xs text-muted-foreground">
-              Tap any stage to explore what's happening in your body.
-            </p>
+      <div className="max-w-2xl mx-auto px-4 py-6 space-y-5 animate-fade-in">
+        <header className="space-y-1">
+          <h1 className="text-2xl font-bold tracking-tight">Fasting Stages</h1>
+          <p className="text-sm text-muted-foreground">
+            12 metabolic stages your body moves through as you fast.
+          </p>
+        </header>
+
+        {/* Live current-stage hero */}
+        <Card
+          className="overflow-hidden border-0 p-5 text-white relative"
+          style={{
+            background: `linear-gradient(135deg, ${heroStage.fromColor}, ${heroStage.toColor})`,
+          }}
+        >
+          <div className="flex items-center gap-4 relative z-10">
+            <AnimatedStageIcon stage={heroStage} size="lg" active />
+            <div className="flex-1 min-w-0">
+              <p className="text-xs uppercase tracking-wider opacity-80">
+                {isFasting ? "You are here" : "Preview"}
+              </p>
+              <h2 className="text-xl font-bold leading-tight">{heroStage.friendlyTitle}</h2>
+              <p className="text-sm opacity-90 mt-0.5">
+                {heroStage.label} · {heroStage.rangeLabel}
+              </p>
+            </div>
           </div>
-        </div>
+          <p className="text-sm opacity-95 mt-4 relative z-10">{heroStage.summary}</p>
+        </Card>
 
         <div className="relative">
           <div className="absolute left-[34px] top-4 bottom-4 w-px bg-gradient-to-b from-border via-border to-transparent" />
