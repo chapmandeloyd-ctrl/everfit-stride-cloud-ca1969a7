@@ -554,8 +554,36 @@ function SynergyContent({ ketoId, withCoach }: { ketoId: string; withCoach: "tra
       <div className="text-[10px] uppercase tracking-[0.3em] mb-3" style={{ color: GOLD }}>
         Daily Meal Timeline
       </div>
+      {(() => {
+        const plan = MEAL_PLANS[ketoId] ?? MEAL_PLANS.skd;
+        return (
+          <>
+            {/* Daily totals strip — updates per keto type */}
+            <div
+              className="mb-3 p-3 grid grid-cols-4 gap-2 text-center"
+              style={{ background: SURFACE, border: `1px solid ${GOLD}33` }}
+            >
+              {[
+                { label: "Cal", value: plan.totals.cal, dot: GOLD },
+                { label: "Fat", value: `${plan.totals.fat}g`, dot: "#E8C77A" },
+                { label: "Carbs", value: `${plan.totals.carbs}g`, dot: "#7DB6E8" },
+                { label: "Protein", value: `${plan.totals.protein}g`, dot: "#9B7DD9" },
+              ].map((t) => (
+                <div key={t.label}>
+                  <div className="flex items-center justify-center gap-1 mb-1">
+                    <span className="inline-block rounded-full" style={{ width: 5, height: 5, background: t.dot }} />
+                    <span className="text-[8px] uppercase tracking-[0.2em]" style={{ color: MUTED }}>
+                      {t.label}
+                    </span>
+                  </div>
+                  <div className="font-serif text-sm" style={{ color: IVORY }}>
+                    {t.value}
+                  </div>
+                </div>
+              ))}
+            </div>
       <div className="space-y-3">
-        {MEAL_TIMELINE.map((m, i) => (
+        {plan.meals.map((m, i) => (
           <div
             key={i}
             className="p-4"
@@ -637,6 +665,9 @@ function SynergyContent({ ketoId, withCoach }: { ketoId: string; withCoach: "tra
           </div>
         ))}
       </div>
+          </>
+        );
+      })()}
     </div>
   );
 }
