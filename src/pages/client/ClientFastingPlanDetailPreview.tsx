@@ -645,6 +645,19 @@ function SynergyContent({ ketoId, withCoach }: { ketoId: string; withCoach: "tra
         const plan = MEAL_PLANS[ketoId] ?? MEAL_PLANS.skd;
         const change = CHANGE_HIGHLIGHTS[ketoId];
         const changedIdx = getChangedMealIndices(ketoId);
+        // Compare against the user's assigned keto type (not always SKD).
+        const assignedKeto = KETO_TYPES.find((k) => k.assigned)!;
+        const assignedId = assignedKeto.id;
+        const isAssigned = ketoId === assignedId;
+        const basePlan = MEAL_PLANS[assignedId] ?? MEAL_PLANS.skd;
+        const dayDelta = isAssigned
+          ? null
+          : {
+              cal: plan.totals.cal - basePlan.totals.cal,
+              fat: plan.totals.fat - basePlan.totals.fat,
+              carbs: plan.totals.carbs - basePlan.totals.carbs,
+              protein: plan.totals.protein - basePlan.totals.protein,
+            };
         return (
           <>
             {/* "What changed" callout — only when not on baseline SKD */}
@@ -676,6 +689,44 @@ function SynergyContent({ ketoId, withCoach }: { ketoId: string; withCoach: "tra
                     </li>
                   ))}
                 </ul>
+              </div>
+            )}
+
+            {/* Daily delta strip (B) — headline of the whole-day shift */}
+            {dayDelta && (
+              <div
+                className="mb-3 p-3"
+                style={{
+                  background: SURFACE_2,
+                  border: `1px dashed ${GOLD}55`,
+                }}
+              >
+                <div className="text-[8px] uppercase tracking-[0.3em] mb-2" style={{ color: GOLD }}>
+                  Switching {assignedKeto.abbr} → {keto.abbr} · daily shift
+                </div>
+                <div className="grid grid-cols-4 gap-2 text-center">
+                  {[
+                    { label: "Cal", value: fmtDelta(dayDelta.cal, ""), n: dayDelta.cal, dot: GOLD },
+                    { label: "Fat", value: fmtDelta(dayDelta.fat), n: dayDelta.fat, dot: "#E8C77A" },
+                    { label: "Carbs", value: fmtDelta(dayDelta.carbs), n: dayDelta.carbs, dot: "#7DB6E8" },
+                    { label: "Protein", value: fmtDelta(dayDelta.protein), n: dayDelta.protein, dot: "#9B7DD9" },
+                  ].map((d) => (
+                    <div key={d.label}>
+                      <div className="flex items-center justify-center gap-1 mb-1">
+                        <span className="inline-block rounded-full" style={{ width: 5, height: 5, background: d.dot }} />
+                        <span className="text-[8px] uppercase tracking-[0.2em]" style={{ color: MUTED }}>
+                          {d.label}
+                        </span>
+                      </div>
+                      <div
+                        className="font-serif text-sm"
+                        style={{ color: d.n === 0 ? MUTED : IVORY, opacity: d.n === 0 ? 0.6 : 1 }}
+                      >
+                        {d.value}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
