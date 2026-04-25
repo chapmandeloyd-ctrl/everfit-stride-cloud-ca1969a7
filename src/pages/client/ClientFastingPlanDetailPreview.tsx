@@ -1142,10 +1142,14 @@ function DemoBlock({
   tabsVariant,
   coachVariant,
   defaultActive,
+  fastHours,
+  planName,
 }: {
   tabsVariant: "all" | "explore" | "top3";
   coachVariant: "trainer" | "brand" | "none";
   defaultActive: string;
+  fastHours: number;
+  planName: string;
 }) {
   const [active, setActive] = useState(defaultActive);
   return (
@@ -1153,8 +1157,8 @@ function DemoBlock({
       <SectionTitle kicker="Part 2 · Keto Type" title="Recommendations" />
       {tabsVariant === "all" && <KetoTabsAll active={active} setActive={setActive} />}
       {tabsVariant === "explore" && <KetoTabsAssignedExplore active={active} setActive={setActive} />}
-      {tabsVariant === "top3" && <KetoTabsTop3 active={active} setActive={setActive} />}
-      <SynergyContent ketoId={active} withCoach={coachVariant} />
+      {tabsVariant === "top3" && <KetoTabsTop3 active={active} setActive={setActive} fastHours={fastHours} />}
+      <SynergyContent ketoId={active} withCoach={coachVariant} fastHours={fastHours} planName={planName} />
     </div>
   );
 }
@@ -1271,7 +1275,13 @@ export default function ClientFastingPlanDetailPreview() {
 
       {/* Locked: Assigned + Explore (all keto types) · Coach Trainer */}
       <div className="mt-6">
-        <DemoBlock tabsVariant="explore" coachVariant="trainer" defaultActive="skd" />
+        <DemoBlock
+          tabsVariant="explore"
+          coachVariant="trainer"
+          defaultActive="skd"
+          fastHours={plan.fastHours}
+          planName={plan.name}
+        />
       </div>
     </div>
   );
