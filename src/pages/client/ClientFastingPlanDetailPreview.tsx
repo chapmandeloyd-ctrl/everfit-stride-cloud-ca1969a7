@@ -627,7 +627,7 @@ function KetoTabsAssignedExplore({ active, setActive }: { active: string; setAct
 }
 
 /* ---------- KETO TABS — VARIANT C: TOP 3 RELEVANT ---------- */
-function KetoTabsTop3({ active, setActive }: { active: string; setActive: (id: string) => void }) {
+function KetoTabsTop3({ active, setActive, fastHours }: { active: string; setActive: (id: string) => void; fastHours: number }) {
   const top3 = [...KETO_TYPES].sort((a, b) => b.matchScore - a.matchScore).slice(0, 3);
   return (
     <div className="px-5 mb-5">
@@ -635,7 +635,7 @@ function KetoTabsTop3({ active, setActive }: { active: string; setActive: (id: s
         className="text-[9px] uppercase tracking-[0.3em] mb-2 pl-1"
         style={{ color: MUTED }}
       >
-        Best Pairings for {SAMPLE.fastHours}h
+        Best Pairings for {fastHours}h
       </div>
       <div className="grid grid-cols-3 gap-2">
         {top3.map((k) => {
