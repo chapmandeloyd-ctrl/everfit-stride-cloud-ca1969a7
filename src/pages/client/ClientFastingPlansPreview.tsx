@@ -46,10 +46,12 @@ function LionCard({
   eyebrow,
   name,
   desc,
+  onClick,
 }: {
   eyebrow: string;
   name: string;
   desc: unknown;
+  onClick?: () => void;
 }) {
   // description may be a string OR a JSON object (e.g. { subtitle, focus, ... })
   let descText: string | null = null;
@@ -65,6 +67,8 @@ function LionCard({
   }
   return (
     <button
+      type="button"
+      onClick={onClick}
       className="relative w-full text-left overflow-hidden p-5 transition active:scale-[0.99]"
       style={{ background: CARD_BG, border: `1px solid ${GOLD}30` }}
     >
@@ -206,6 +210,11 @@ export default function ClientFastingPlansPreview() {
                   eyebrow={`${recommended.fast_hours}hr fasting`}
                   name={recommended.name}
                   desc={recommended.description ?? "Balanced window for most lifestyles."}
+                  onClick={() =>
+                    navigate(
+                      `/client/fasting-plan-detail-preview?type=quick&id=${recommended.id}`,
+                    )
+                  }
                 />
               </section>
             )}
@@ -223,6 +232,11 @@ export default function ClientFastingPlansPreview() {
                         eyebrow={`${p.fast_hours}hr fasting`}
                         name={p.name}
                         desc={p.description}
+                        onClick={() =>
+                          navigate(
+                            `/client/fasting-plan-detail-preview?type=quick&id=${p.id}`,
+                          )
+                        }
                       />
                     ))}
                   </div>
@@ -250,6 +264,11 @@ export default function ClientFastingPlansPreview() {
                     eyebrow={eyebrow}
                     name={p.name}
                     desc={p.description}
+                    onClick={() =>
+                      navigate(
+                        `/client/fasting-plan-detail-preview?type=program&id=${p.id}`,
+                      )
+                    }
                   />
                 );
               })}
