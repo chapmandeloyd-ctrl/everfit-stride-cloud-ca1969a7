@@ -4,7 +4,6 @@ import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { FastingProtocolCard } from "./ClientDashboard";
 import { SmartPaceBanner } from "@/components/smart-pace/SmartPaceBanner";
 import { MyProgressSection } from "@/components/MyProgressSection";
-import { StartHereDemoGallery } from "@/components/start-here/StartHereDemoGallery";
 import { DailyRingsPinnedHeader } from "@/components/rings/DailyRingsCard";
 
 /**
