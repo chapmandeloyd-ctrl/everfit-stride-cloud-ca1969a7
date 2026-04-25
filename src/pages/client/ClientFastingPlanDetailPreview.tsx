@@ -159,6 +159,69 @@ const MEAL_PLANS: Record<string, { totals: { cal: number; fat: number; carbs: nu
   },
 };
 
+/* ---------- WHAT CHANGED — per-keto headline + swap notes ----------
+ * Surfaced as a gold callout above the timeline whenever the user picks
+ * a non-default keto type, so the swap is obvious at a glance.
+ */
+const CHANGE_HIGHLIGHTS: Record<string, { headline: string; swaps: string[] }> = {
+  skd: { headline: "", swaps: [] }, // baseline — no callout
+  hpkd: {
+    headline: "Protein-led refeed",
+    swaps: [
+      "Break-Fast: +1 egg & turkey sausage for MPS",
+      "Lunch: chicken thigh swap → +15g protein",
+      "Snack: nuts → Greek yogurt + chia",
+      "Dinner: 8 oz ribeye instead of 6 oz",
+    ],
+  },
+  ckd: {
+    headline: "Strict day (refeed rotates weekly)",
+    swaps: [
+      "Break-Fast: bacon added for higher fat",
+      "Lunch: beef patty + mayo replaces salmon",
+      "Snack: pecans + olives for variety",
+    ],
+  },
+  tkd: {
+    headline: "Targeted carbs around training",
+    swaps: [
+      "Break-Fast: smoked salmon for lean protein",
+      "Lunch: chicken breast (lower fat) to leave room",
+      "Snack → Pre-Workout: banana + almond butter (+22g carbs)",
+    ],
+  },
+  lazy: {
+    headline: "Simpler plate — track carbs only",
+    swaps: [
+      "Lunch: rotisserie chicken + ranch (no measuring)",
+      "Snack: cheese + almonds (grab & go)",
+      "Dinner: same ribeye, looser fat target",
+    ],
+  },
+  dirty: {
+    headline: "Convenience-first, still under 20g carbs",
+    swaps: [
+      "Break-Fast: fast-food sausage & egg patty",
+      "Lunch: bunless double cheeseburger",
+      "Snack: pork rinds + string cheese",
+    ],
+  },
+};
+
+/** Compare a plan to SKD baseline; returns the indices of meals whose text differs. */
+function getChangedMealIndices(ketoId: string): Set<number> {
+  if (ketoId === "skd") return new Set();
+  const base = MEAL_PLANS.skd.meals;
+  const target = (MEAL_PLANS[ketoId] ?? MEAL_PLANS.skd).meals;
+  const changed = new Set<number>();
+  target.forEach((m, i) => {
+    const b = base[i];
+    if (!b) return;
+    if (b.text !== m.text || b.label !== m.label) changed.add(i);
+  });
+  return changed;
+}
+
 /* ---------- HERO — GOLD NUMERAL ---------- */
 function Hero() {
   return (
@@ -556,8 +619,42 @@ function SynergyContent({ ketoId, withCoach }: { ketoId: string; withCoach: "tra
       </div>
       {(() => {
         const plan = MEAL_PLANS[ketoId] ?? MEAL_PLANS.skd;
+        const change = CHANGE_HIGHLIGHTS[ketoId];
+        const changedIdx = getChangedMealIndices(ketoId);
         return (
           <>
+            {/* "What changed" callout — only when not on baseline SKD */}
+            {change && change.headline && (
+              <div
+                className="mb-3 p-4"
+                style={{
+                  background: `${GOLD}10`,
+                  border: `1px solid ${GOLD}55`,
+                }}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles size={12} style={{ color: GOLD }} />
+                  <span
+                    className="text-[9px] uppercase tracking-[0.3em]"
+                    style={{ color: GOLD }}
+                  >
+                    What changed for {keto.abbr}
+                  </span>
+                </div>
+                <div className="font-serif text-base mb-2" style={{ color: IVORY }}>
+                  {change.headline}
+                </div>
+                <ul className="space-y-1">
+                  {change.swaps.map((s, i) => (
+                    <li key={i} className="flex items-start gap-2 text-xs" style={{ color: MUTED }}>
+                      <span style={{ color: GOLD }}>→</span>
+                      <span>{s}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             {/* Daily totals strip — updates per keto type */}
             <div
               className="mb-3 p-3 grid grid-cols-4 gap-2 text-center"
@@ -589,13 +686,33 @@ function SynergyContent({ ketoId, withCoach }: { ketoId: string; withCoach: "tra
             className="p-4"
             style={{
               background: SURFACE,
-              border: `1px solid ${m.tone === "fast" ? `${GOLD}55` : `${GOLD}22`}`,
+              border: `1px solid ${
+                m.tone === "fast"
+                  ? `${GOLD}55`
+                  : changedIdx.has(i)
+                  ? GOLD
+                  : `${GOLD}22`
+              }`,
             }}
           >
             <div className="flex items-baseline justify-between mb-1">
-              <span className="font-serif text-sm" style={{ color: IVORY }}>
-                {m.label}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="font-serif text-sm" style={{ color: IVORY }}>
+                  {m.label}
+                </span>
+                {changedIdx.has(i) && (
+                  <span
+                    className="text-[8px] uppercase tracking-[0.2em] px-1.5 py-0.5"
+                    style={{
+                      background: `${GOLD}22`,
+                      color: GOLD,
+                      border: `1px solid ${GOLD}66`,
+                    }}
+                  >
+                    Changed
+                  </span>
+                )}
+              </div>
               <span className="text-[10px] uppercase tracking-[0.2em]" style={{ color: MUTED }}>
                 {m.window}
               </span>
