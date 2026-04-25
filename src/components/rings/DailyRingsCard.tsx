@@ -209,7 +209,7 @@ export function DailyRingsPinnedHeader() {
       : null;
 
   return (
-    <div className="sticky top-0 z-30 -mx-4 -mt-4 mb-2 bg-background/95 backdrop-blur-md border-b border-white/5">
+    <div className="sticky top-0 z-30 -mx-4 -mt-4 mb-2 bg-black border-b border-white/10 shadow-lg shadow-black/40">
       <div className="px-4 pt-3 pb-3">
         <div className="flex justify-between px-1">
           {days.map((d, i) => {
@@ -235,7 +235,7 @@ export function DailyRingsPinnedHeader() {
                 }
                 className={cn(
                   "flex flex-col items-center gap-1.5 rounded-lg px-1.5 py-1 transition-colors",
-                  isSelected && "bg-white/10",
+                  isSelected && "bg-white/15",
                   future && "opacity-40 cursor-not-allowed"
                 )}
                 aria-label={`View rings for ${format(d, "EEEE, MMM d")}`}
@@ -247,7 +247,7 @@ export function DailyRingsPinnedHeader() {
                       ? "text-daily-ring-fasting"
                       : isSelected
                       ? "text-white"
-                      : "text-white/40"
+                      : "text-white/70"
                   )}
                 >
                   {format(d, "EEE")}
