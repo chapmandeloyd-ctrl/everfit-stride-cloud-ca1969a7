@@ -1,6 +1,6 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ChevronLeft, Sparkles } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -386,75 +386,297 @@ function Hero({ plan }: { plan: PlanView }) {
   );
 }
 
-/* ---------- WHEEL PICKER ---------- */
-function WheelPicker({ opensAt, closesAt }: { opensAt: string; closesAt: string }) {
+/* ---------- TIME PARSING / FORMATTING HELPERS ---------- */
+type Period = "AM" | "PM";
+interface TimeParts {
+  hour: number; // 1-12
+  minute: number; // 0-59
+  period: Period;
+}
+
+function parseTime(str: string): TimeParts {
+  // accepts "10:00 AM", "8:00 PM", "10 AM", "10:30AM"
+  const m = str.trim().match(/^(\d{1,2})(?::(\d{2}))?\s*(AM|PM)$/i);
+  if (!m) return { hour: 10, minute: 0, period: "AM" };
+  let hour = parseInt(m[1], 10);
+  if (hour < 1) hour = 12;
+  if (hour > 12) hour = 12;
+  const minute = m[2] ? parseInt(m[2], 10) : 0;
+  const period = (m[3].toUpperCase() === "PM" ? "PM" : "AM") as Period;
+  return { hour, minute, period };
+}
+
+function formatTime({ hour, minute, period }: TimeParts): string {
+  return `${hour}:${minute.toString().padStart(2, "0")} ${period}`;
+}
+
+/** Convert TimeParts to minutes-of-day (0-1439). */
+function toMinutes({ hour, minute, period }: TimeParts): number {
+  const h24 = period === "AM" ? (hour === 12 ? 0 : hour) : hour === 12 ? 12 : hour + 12;
+  return h24 * 60 + minute;
+}
+
+/** Convert minutes-of-day back to TimeParts (wraps at 24h). */
+function fromMinutes(total: number): TimeParts {
+  const m = ((total % 1440) + 1440) % 1440;
+  const h24 = Math.floor(m / 60);
+  const minute = m % 60;
+  const period: Period = h24 >= 12 ? "PM" : "AM";
+  let hour = h24 % 12;
+  if (hour === 0) hour = 12;
+  return { hour, minute, period };
+}
+
+/* ---------- WHEEL PICKER (interactive) ---------- */
+const WHEEL_ITEM_HEIGHT = 36;
+
+function WheelPicker({
+  opensAt,
+  closesAt,
+  eatHours,
+  onChange,
+}: {
+  opensAt: string;
+  closesAt: string;
+  eatHours: number;
+  onChange: (next: { opensAt: string; closesAt: string }) => void;
+}) {
+  // Which side is being edited
+  const [editing, setEditing] = useState<"opens" | "closes">("opens");
+
+  // Live editable state — initialised from props, then driven by the wheels.
+  const [opens, setOpens] = useState<TimeParts>(() => parseTime(opensAt));
+  const [closes, setCloses] = useState<TimeParts>(() => parseTime(closesAt));
+
+  // Re-sync when the underlying plan changes (user picked a different lion card)
+  useEffect(() => {
+    setOpens(parseTime(opensAt));
+    setCloses(parseTime(closesAt));
+  }, [opensAt, closesAt]);
+
+  const active = editing === "opens" ? opens : closes;
+
+  const updateActive = (next: TimeParts) => {
+    if (editing === "opens") {
+      setOpens(next);
+      // Keep window length constant: closes = opens + eatHours
+      const nextCloses = fromMinutes(toMinutes(next) + eatHours * 60);
+      setCloses(nextCloses);
+      onChange({ opensAt: formatTime(next), closesAt: formatTime(nextCloses) });
+    } else {
+      setCloses(next);
+      const nextOpens = fromMinutes(toMinutes(next) - eatHours * 60);
+      setOpens(nextOpens);
+      onChange({ opensAt: formatTime(nextOpens), closesAt: formatTime(next) });
+    }
+  };
+
+  const HOURS = Array.from({ length: 12 }, (_, i) => i + 1); // 1..12
+  const MINUTES = Array.from({ length: 60 }, (_, i) => i); // 0..59
+  const PERIODS: Period[] = ["AM", "PM"];
+
   return (
     <div className="mt-5">
       <div className="grid grid-cols-2 gap-3 mb-4">
-        <TimeColumn label="opens at" value={opensAt} />
-        <TimeColumn label="closes at" value={closesAt} />
+        <TimeColumn
+          label="opens at"
+          value={formatTime(opens)}
+          active={editing === "opens"}
+          onClick={() => setEditing("opens")}
+        />
+        <TimeColumn
+          label="closes at"
+          value={formatTime(closes)}
+          active={editing === "closes"}
+          onClick={() => setEditing("closes")}
+        />
       </div>
       <div
         className="relative overflow-hidden py-2"
         style={{ background: SURFACE_2, border: `1px solid ${GOLD}22` }}
       >
         <div className="grid grid-cols-3 text-center font-serif">
-          <Wheel items={["9", "10", "11"]} active={1} />
-          <Wheel items={["59", "00", "01"]} active={1} />
-          <Wheel items={["", "AM", "PM"]} active={1} />
+          <Wheel
+            items={HOURS.map((h) => String(h))}
+            activeIndex={HOURS.indexOf(active.hour)}
+            onChangeIndex={(i) => updateActive({ ...active, hour: HOURS[i] })}
+          />
+          <Wheel
+            items={MINUTES.map((m) => m.toString().padStart(2, "0"))}
+            activeIndex={MINUTES.indexOf(active.minute)}
+            onChangeIndex={(i) => updateActive({ ...active, minute: MINUTES[i] })}
+          />
+          <Wheel
+            items={PERIODS}
+            activeIndex={PERIODS.indexOf(active.period)}
+            onChangeIndex={(i) => updateActive({ ...active, period: PERIODS[i] })}
+          />
         </div>
         <div
-          className="absolute left-3 right-3 top-1/2 -translate-y-1/2 h-10 pointer-events-none"
+          className="absolute left-3 right-3 top-1/2 -translate-y-1/2 pointer-events-none"
           style={{
+            height: WHEEL_ITEM_HEIGHT,
             borderTop: `1px solid ${GOLD}55`,
             borderBottom: `1px solid ${GOLD}55`,
           }}
         />
       </div>
+      <div
+        className="text-center text-[9px] uppercase tracking-[0.3em] mt-3"
+        style={{ color: MUTED }}
+      >
+        Editing {editing === "opens" ? "open time" : "close time"} · scroll to adjust
+      </div>
     </div>
   );
 }
 
-function Wheel({ items, active }: { items: string[]; active: number }) {
-  return (
-    <div className="flex flex-col items-center gap-1 py-2 text-lg">
-      {items.map((it, i) => (
-        <div
-          key={i}
-          style={{
-            color: i === active ? IVORY : MUTED,
-            opacity: i === active ? 1 : 0.4,
-            fontWeight: i === active ? 600 : 400,
-          }}
-        >
-          {it || " "}
-        </div>
-      ))}
-    </div>
-  );
-}
+/** Touch / wheel scrollable column with snap. */
+function Wheel({
+  items,
+  activeIndex,
+  onChangeIndex,
+}: {
+  items: string[];
+  activeIndex: number;
+  onChangeIndex: (i: number) => void;
+}) {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const settleTimer = useRef<number | null>(null);
+  const isUserScrolling = useRef(false);
 
-function TimeColumn({ label, value }: { label: string; value: string }) {
+  // Sync external activeIndex → scroll position (when not actively scrolling)
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (isUserScrolling.current) return;
+    el.scrollTo({ top: activeIndex * WHEEL_ITEM_HEIGHT, behavior: "smooth" });
+  }, [activeIndex]);
+
+  const handleScroll = () => {
+    const el = ref.current;
+    if (!el) return;
+    isUserScrolling.current = true;
+    if (settleTimer.current) window.clearTimeout(settleTimer.current);
+    settleTimer.current = window.setTimeout(() => {
+      const idx = Math.round(el.scrollTop / WHEEL_ITEM_HEIGHT);
+      const clamped = Math.max(0, Math.min(items.length - 1, idx));
+      // Snap exactly
+      el.scrollTo({ top: clamped * WHEEL_ITEM_HEIGHT, behavior: "smooth" });
+      isUserScrolling.current = false;
+      if (clamped !== activeIndex) onChangeIndex(clamped);
+    }, 120);
+  };
+
+  // Tap on a row to jump to it
+  const tapTo = (i: number) => {
+    const el = ref.current;
+    if (!el) return;
+    el.scrollTo({ top: i * WHEEL_ITEM_HEIGHT, behavior: "smooth" });
+    if (i !== activeIndex) onChangeIndex(i);
+  };
+
+  // Wheel/trackpad support
+  const handleWheel = (e: React.WheelEvent) => {
+    if (Math.abs(e.deltaY) < 2) return;
+    const dir = e.deltaY > 0 ? 1 : -1;
+    const next = Math.max(0, Math.min(items.length - 1, activeIndex + dir));
+    if (next !== activeIndex) onChangeIndex(next);
+  };
+
+  // Visible viewport = 3 items tall; pad with one blank above/below so the
+  // selected (centered) row aligns under the gold horizontal rails.
+  const viewportHeight = WHEEL_ITEM_HEIGHT * 3;
+
   return (
     <div
-      className="px-4 py-3"
-      style={{ background: SURFACE_2, border: `1px solid ${GOLD}22` }}
+      ref={ref}
+      onScroll={handleScroll}
+      onWheel={handleWheel}
+      className="overflow-y-scroll scrollbar-none touch-pan-y"
+      style={{
+        height: viewportHeight,
+        scrollSnapType: "y mandatory",
+        WebkitOverflowScrolling: "touch",
+        scrollbarWidth: "none",
+      }}
+    >
+      {/* top spacer to allow first item to center */}
+      <div style={{ height: WHEEL_ITEM_HEIGHT }} />
+      {items.map((it, i) => {
+        const isActive = i === activeIndex;
+        return (
+          <button
+            type="button"
+            key={`${it}-${i}`}
+            onClick={() => tapTo(i)}
+            className="block w-full text-lg select-none"
+            style={{
+              height: WHEEL_ITEM_HEIGHT,
+              lineHeight: `${WHEEL_ITEM_HEIGHT}px`,
+              scrollSnapAlign: "center",
+              color: isActive ? IVORY : MUTED,
+              opacity: isActive ? 1 : 0.4,
+              fontWeight: isActive ? 600 : 400,
+              background: "transparent",
+            }}
+          >
+            {it}
+          </button>
+        );
+      })}
+      {/* bottom spacer */}
+      <div style={{ height: WHEEL_ITEM_HEIGHT }} />
+    </div>
+  );
+}
+
+function TimeColumn({
+  label,
+  value,
+  active,
+  onClick,
+}: {
+  label: string;
+  value: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="px-4 py-3 text-left transition"
+      style={{
+        background: SURFACE_2,
+        border: `1px solid ${active ? GOLD : `${GOLD}22`}`,
+        boxShadow: active ? `inset 0 0 0 1px ${GOLD}55` : "none",
+      }}
     >
       <div
         className="text-[10px] uppercase tracking-[0.25em] mb-1"
-        style={{ color: MUTED }}
+        style={{ color: active ? GOLD : MUTED }}
       >
         {label}
       </div>
       <div className="font-serif text-xl" style={{ color: IVORY }}>
         {value}
       </div>
-    </div>
+    </button>
   );
 }
 
 /* ---------- EATING WINDOW BLOCK ---------- */
 function EatingWindow({ plan }: { plan: PlanView }) {
+  // Live, user-editable times for this plan. Re-init when plan changes.
+  const [times, setTimes] = useState({
+    opensAt: plan.opensAt,
+    closesAt: plan.closesAt,
+  });
+  useEffect(() => {
+    setTimes({ opensAt: plan.opensAt, closesAt: plan.closesAt });
+  }, [plan.opensAt, plan.closesAt]);
+
   return (
     <div
       className="mx-5 mt-2 p-5"
@@ -472,7 +694,12 @@ function EatingWindow({ plan }: { plan: PlanView }) {
           h
         </span>
       </div>
-      <WheelPicker opensAt={plan.opensAt} closesAt={plan.closesAt} />
+      <WheelPicker
+        opensAt={times.opensAt}
+        closesAt={times.closesAt}
+        eatHours={plan.eatHours}
+        onChange={setTimes}
+      />
     </div>
   );
 }
