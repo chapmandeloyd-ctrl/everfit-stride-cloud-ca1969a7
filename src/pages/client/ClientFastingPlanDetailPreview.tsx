@@ -912,11 +912,15 @@ function SynergyContent({
   withCoach,
   fastHours,
   planName,
+  planType,
+  planId,
 }: {
   ketoId: string;
   withCoach: "trainer" | "brand" | "none";
   fastHours: number;
   planName: string;
+  planType: "quick" | "program";
+  planId: string | null;
 }) {
   const keto = KETO_TYPES.find((k) => k.id === ketoId)!;
   const baseCopy = SYNERGY_COPY[ketoId] ?? SYNERGY_COPY.skd;
@@ -928,6 +932,51 @@ function SynergyContent({
     bullets: baseCopy.bullets,
   };
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const clientId = useEffectiveClientId();
+
+  const startFastMutation = useMutation({
+    mutationFn: async () => {
+      if (!clientId) throw new Error("Not signed in");
+      if (!planId) throw new Error("No plan selected");
+      const updates: Record<string, unknown> = {
+        active_fast_target_hours: fastHours,
+        active_fast_start_at: new Date().toISOString(),
+        last_fast_ended_at: null,
+        eating_window_ends_at: null,
+      };
+      if (planType === "quick") {
+        updates.selected_quick_plan_id = planId;
+        updates.selected_protocol_id = null;
+        updates.protocol_start_date = null;
+      } else {
+        updates.selected_protocol_id = planId;
+        updates.selected_quick_plan_id = null;
+        updates.protocol_start_date = new Date().toISOString().slice(0, 10);
+      }
+      const { data, error } = await supabase
+        .from("client_feature_settings")
+        .update(updates)
+        .eq("client_id", clientId)
+        .select("client_id, active_fast_start_at")
+        .maybeSingle();
+      if (error) throw error;
+      if (!data?.active_fast_start_at) throw new Error("Fast timer could not be started.");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["my-feature-settings", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["fasting-gate-state"] });
+      queryClient.invalidateQueries({ queryKey: ["fasting-profile-data"] });
+      toast.success(`${fastHours}h fast started`, {
+        description: `${planName} · ${keto.name} (${keto.abbr}) · begins now`,
+        duration: 4000,
+      });
+      navigate("/client/dashboard");
+    },
+    onError: (e) =>
+      toast.error(e instanceof Error ? e.message : "Could not start fast"),
+  });
   return (
     <div className="px-5">
       {withCoach !== "none" && (
