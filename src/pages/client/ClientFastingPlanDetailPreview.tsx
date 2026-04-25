@@ -1035,10 +1035,15 @@ function SynergyContent({ ketoId, withCoach }: { ketoId: string; withCoach: "tra
                 border: `1px solid ${GOLD}`,
               }}
               onClick={() => {
-                toast.success(`${SAMPLE.fastHours}h fast started`, {
-                  description: `${keto.name} (${keto.abbr}) plan locked in · begins now`,
-                  duration: 4000,
-                });
+                // Navigate to Start Here (client home) so user can see the live timer.
+                navigate("/client/dashboard");
+                // Confirm with toast on arrival.
+                setTimeout(() => {
+                  toast.success(`${SAMPLE.fastHours}h fast started`, {
+                    description: `${keto.name} (${keto.abbr}) plan locked in · begins now`,
+                    duration: 4000,
+                  });
+                }, 100);
               }}
             >
               Start Your Fast
