@@ -5,7 +5,7 @@ import { FastingProtocolCard } from "./ClientDashboard";
 import { SmartPaceBanner } from "@/components/smart-pace/SmartPaceBanner";
 import { MyProgressSection } from "@/components/MyProgressSection";
 import { StartHereDemoGallery } from "@/components/start-here/StartHereDemoGallery";
-import { DailyRingsCard } from "@/components/rings/DailyRingsCard";
+import { DailyRingsCard, DailyRingsPinnedHeader } from "@/components/rings/DailyRingsCard";
 
 /**
  * TEMPORARY — while we design the new "Start Here" empty state,
@@ -27,6 +27,7 @@ export default function ClientDashboardMinimal() {
     return (
       <ClientLayout>
         <div className="p-4 space-y-6 pb-24">
+          <DailyRingsPinnedHeader />
           <DailyRingsCard />
           <StartHereDemoGallery />
           {clientId && <MyProgressSection clientId={clientId} />}
@@ -38,6 +39,9 @@ export default function ClientDashboardMinimal() {
   return (
     <ClientLayout>
       <div className="p-4 space-y-4 pb-24">
+        {/* Pinned weekday strip — always visible at top */}
+        <DailyRingsPinnedHeader />
+
         {/* Daily Rings — Zero-style 4-ring tracker (mocked completion for now) */}
         <DailyRingsCard />
 

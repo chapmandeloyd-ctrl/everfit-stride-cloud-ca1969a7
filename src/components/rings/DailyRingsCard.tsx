@@ -1,5 +1,6 @@
 import { Clock, Scale, Activity, Moon } from "lucide-react";
-import { format, addDays, startOfWeek } from "date-fns";
+import { format, addDays, startOfWeek, isFuture } from "date-fns";
+import { useState } from "react";
 import { MultiSegmentRing, RingSegment } from "@/components/rings/MultiSegmentRing";
 import { cn } from "@/lib/utils";
 
@@ -122,37 +123,144 @@ function GoalCard({ ring, completed }: { ring: RingDef; completed: boolean }) {
   );
 }
 
-export function DailyRingsWeekStrip() {
+/**
+ * Drop-down panel showing the ring breakdown for the selected day.
+ * Renders directly under the pinned weekday strip.
+ */
+function DayDetailPanel({
+  date,
+  completed,
+}: {
+  date: Date;
+  completed: Record<RingKey, boolean>;
+}) {
+  const segs = buildSegments(completed);
+  const count = segs.filter((s) => s.completed).length;
+  return (
+    <div className="px-4 pb-4 pt-2 animate-in fade-in slide-in-from-top-2 duration-200">
+      <div className="rounded-2xl bg-white/[0.04] border border-white/10 p-4">
+        <div className="flex items-center gap-4">
+          <MultiSegmentRing segments={segs} size={56} strokeWidth={9} />
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/50">
+              {format(date, "EEEE")}
+            </p>
+            <p className="text-base font-bold text-white leading-tight">
+              {format(date, "MMM d")} — {count} of 4 rings
+            </p>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-x-3 gap-y-2 mt-3">
+          {RINGS.map((r) => {
+            const Icon = r.icon;
+            const done = completed[r.key];
+            return (
+              <div key={r.key} className="flex items-center gap-2">
+                <div
+                  className={cn(
+                    "h-6 w-6 rounded-full flex items-center justify-center shrink-0",
+                    done ? r.bgClass : "bg-white/5 border border-white/10"
+                  )}
+                >
+                  <Icon
+                    className={cn(
+                      "h-3 w-3",
+                      done ? "text-black" : "text-white/40"
+                    )}
+                  />
+                </div>
+                <span
+                  className={cn(
+                    "text-xs",
+                    done ? "text-white" : "text-white/40"
+                  )}
+                >
+                  {r.label}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Pinned weekday strip (sticky at top of dashboard).
+ * Tap a day → drops down a panel with that day's ring status.
+ * Tap the same day again → collapses.
+ */
+export function DailyRingsPinnedHeader() {
   const today = new Date();
   const start = startOfWeek(today, { weekStartsOn: 0 });
   const days = Array.from({ length: 7 }, (_, i) => addDays(start, i));
+  const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
+
+  const selectedDate = selectedIdx != null ? days[selectedIdx] : null;
+  const selectedCompleted =
+    selectedIdx != null
+      ? WEEK_COMPLETED[selectedIdx] ?? {
+          fasting: false,
+          weight: false,
+          activity: false,
+          sleep: false,
+        }
+      : null;
+
   return (
-    <div className="flex justify-between px-1">
-      {days.map((d, i) => {
-        const isToday =
-          format(d, "yyyy-MM-dd") === format(today, "yyyy-MM-dd");
-        const dayCompleted =
-          WEEK_COMPLETED[i] ?? {
-            fasting: false,
-            weight: false,
-            activity: false,
-            sleep: false,
-          };
-        const segs = buildSegments(dayCompleted);
-        return (
-          <div key={d.toISOString()} className="flex flex-col items-center gap-2">
-            <span
-              className={cn(
-                "text-[11px] font-bold uppercase tracking-[0.18em]",
-                isToday ? "text-daily-ring-fasting" : "text-white/40"
-              )}
-            >
-              {format(d, "EEE")}
-            </span>
-            <MultiSegmentRing segments={segs} size={26} strokeWidth={4} />
-          </div>
-        );
-      })}
+    <div className="sticky top-0 z-30 -mx-4 -mt-4 mb-2 bg-background/95 backdrop-blur-md border-b border-white/5">
+      <div className="px-4 pt-3 pb-3">
+        <div className="flex justify-between px-1">
+          {days.map((d, i) => {
+            const isToday =
+              format(d, "yyyy-MM-dd") === format(today, "yyyy-MM-dd");
+            const isSelected = selectedIdx === i;
+            const future = isFuture(d) && !isToday;
+            const dayCompleted =
+              WEEK_COMPLETED[i] ?? {
+                fasting: false,
+                weight: false,
+                activity: false,
+                sleep: false,
+              };
+            const segs = buildSegments(dayCompleted);
+            return (
+              <button
+                key={d.toISOString()}
+                type="button"
+                disabled={future}
+                onClick={() =>
+                  setSelectedIdx((prev) => (prev === i ? null : i))
+                }
+                className={cn(
+                  "flex flex-col items-center gap-1.5 rounded-lg px-1.5 py-1 transition-colors",
+                  isSelected && "bg-white/10",
+                  future && "opacity-40 cursor-not-allowed"
+                )}
+                aria-label={`View rings for ${format(d, "EEEE, MMM d")}`}
+              >
+                <span
+                  className={cn(
+                    "text-[11px] font-bold uppercase tracking-[0.18em]",
+                    isToday
+                      ? "text-daily-ring-fasting"
+                      : isSelected
+                      ? "text-white"
+                      : "text-white/40"
+                  )}
+                >
+                  {format(d, "EEE")}
+                </span>
+                <MultiSegmentRing segments={segs} size={26} strokeWidth={4} />
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      {selectedDate && selectedCompleted && (
+        <DayDetailPanel date={selectedDate} completed={selectedCompleted} />
+      )}
     </div>
   );
 }
