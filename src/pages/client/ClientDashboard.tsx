@@ -587,7 +587,7 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
           </div>
         )}
         <h2 className="text-lg font-bold text-foreground px-1">KSOM-360 Fasting Timer</h2>
-        <Card className="overflow-hidden border-primary/20 shadow-lg relative">
+        <Card className="overflow-hidden border-0 shadow-lg relative">
         {/* Lion card background */}
         <div
           className="absolute inset-0 bg-cover bg-center"
