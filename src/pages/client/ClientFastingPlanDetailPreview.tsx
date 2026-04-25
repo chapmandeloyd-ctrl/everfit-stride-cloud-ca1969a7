@@ -673,9 +673,26 @@ function KetoTabsTop3({ active, setActive, fastHours }: { active: string; setAct
 }
 
 /* ---------- SYNERGY CONTENT BLOCK ---------- */
-function SynergyContent({ ketoId, withCoach }: { ketoId: string; withCoach: "trainer" | "brand" | "none" }) {
+function SynergyContent({
+  ketoId,
+  withCoach,
+  fastHours,
+  planName,
+}: {
+  ketoId: string;
+  withCoach: "trainer" | "brand" | "none";
+  fastHours: number;
+  planName: string;
+}) {
   const keto = KETO_TYPES.find((k) => k.id === ketoId)!;
-  const copy = SYNERGY_COPY[ketoId] ?? SYNERGY_COPY.skd;
+  const baseCopy = SYNERGY_COPY[ketoId] ?? SYNERGY_COPY.skd;
+  // Rewrite hardcoded "14h" / "14-hour" references to the live plan's hours.
+  const copy = {
+    intro: baseCopy.intro
+      .replace(/14-hour/g, `${fastHours}-hour`)
+      .replace(/14h/g, `${fastHours}h`),
+    bullets: baseCopy.bullets,
+  };
   const navigate = useNavigate();
   return (
     <div className="px-5">
@@ -723,7 +740,7 @@ function SynergyContent({ ketoId, withCoach }: { ketoId: string; withCoach: "tra
       )}
 
       <div className="text-[10px] uppercase tracking-[0.3em] mb-2" style={{ color: GOLD }}>
-        {SAMPLE.fastHours}h × {keto.abbr} — Why it works
+        {fastHours}h × {keto.abbr} — Why it works
       </div>
       <p className="text-sm leading-relaxed mb-5" style={{ color: IVORY, opacity: 0.85 }}>
         {copy.intro}
