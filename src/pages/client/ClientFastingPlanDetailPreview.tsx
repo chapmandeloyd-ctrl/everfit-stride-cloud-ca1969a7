@@ -775,18 +775,46 @@ function SynergyContent({ ketoId, withCoach }: { ketoId: string; withCoach: "tra
                 <span className="font-serif text-sm" style={{ color: IVORY }}>
                   {m.label}
                 </span>
-                {changedIdx.has(i) && (
-                  <span
-                    className="text-[8px] uppercase tracking-[0.2em] px-1.5 py-0.5"
-                    style={{
-                      background: `${GOLD}22`,
-                      color: GOLD,
-                      border: `1px solid ${GOLD}66`,
-                    }}
-                  >
-                    Changed
-                  </span>
-                )}
+                {changedIdx.has(i) && (() => {
+                  const md = getMealDelta(assignedId, ketoId, i);
+                  if (!md) return null;
+                  // Pick the 1-2 most significant macro deltas (by absolute g)
+                  const candidates = [
+                    { key: "carbs", val: md.carbs, label: "carbs" },
+                    { key: "fat", val: md.fat, label: "fat" },
+                    { key: "protein", val: md.protein, label: "protein" },
+                  ]
+                    .filter((c) => c.val !== 0)
+                    .sort((a, b) => Math.abs(b.val) - Math.abs(a.val))
+                    .slice(0, 2);
+                  if (candidates.length === 0) {
+                    return (
+                      <span
+                        className="text-[8px] uppercase tracking-[0.2em] px-1.5 py-0.5"
+                        style={{
+                          background: `${GOLD}22`,
+                          color: GOLD,
+                          border: `1px solid ${GOLD}66`,
+                        }}
+                      >
+                        Swapped
+                      </span>
+                    );
+                  }
+                  const text = candidates.map((c) => `${fmtDelta(c.val)} ${c.label}`).join(" · ");
+                  return (
+                    <span
+                      className="text-[8px] uppercase tracking-[0.18em] px-1.5 py-0.5 whitespace-nowrap"
+                      style={{
+                        background: `${GOLD}22`,
+                        color: GOLD,
+                        border: `1px solid ${GOLD}66`,
+                      }}
+                    >
+                      {text}
+                    </span>
+                  );
+                })()}
               </div>
               <span className="text-[10px] uppercase tracking-[0.2em]" style={{ color: MUTED }}>
                 {m.window}
