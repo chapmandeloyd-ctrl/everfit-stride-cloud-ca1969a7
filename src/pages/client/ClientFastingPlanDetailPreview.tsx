@@ -1419,12 +1419,16 @@ function DemoBlock({
   defaultActive,
   fastHours,
   planName,
+  planType,
+  planId,
 }: {
   tabsVariant: "all" | "explore" | "top3";
   coachVariant: "trainer" | "brand" | "none";
   defaultActive: string;
   fastHours: number;
   planName: string;
+  planType: "quick" | "program";
+  planId: string | null;
 }) {
   const [active, setActive] = useState(defaultActive);
   return (
@@ -1433,7 +1437,14 @@ function DemoBlock({
       {tabsVariant === "all" && <KetoTabsAll active={active} setActive={setActive} />}
       {tabsVariant === "explore" && <KetoTabsAssignedExplore active={active} setActive={setActive} />}
       {tabsVariant === "top3" && <KetoTabsTop3 active={active} setActive={setActive} fastHours={fastHours} />}
-      <SynergyContent ketoId={active} withCoach={coachVariant} fastHours={fastHours} planName={planName} />
+      <SynergyContent
+        ketoId={active}
+        withCoach={coachVariant}
+        fastHours={fastHours}
+        planName={planName}
+        planType={planType}
+        planId={planId}
+      />
     </div>
   );
 }
@@ -1556,6 +1567,8 @@ export default function ClientFastingPlanDetailPreview() {
           defaultActive="skd"
           fastHours={plan.fastHours}
           planName={plan.name}
+          planType={planType}
+          planId={planId}
         />
       </div>
     </div>
