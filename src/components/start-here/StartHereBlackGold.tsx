@@ -62,7 +62,7 @@ export function StartHereBlackGold() {
 
         <button
           type="button"
-          onClick={() => navigate("/client/begin-reset")}
+          onClick={() => navigate("/client/fasting-plans-preview")}
           className="inline-flex items-center justify-center px-10 py-3 font-medium text-sm tracking-widest uppercase transition active:scale-95"
           style={{
             background: "transparent",
