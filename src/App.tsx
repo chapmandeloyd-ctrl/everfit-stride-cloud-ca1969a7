@@ -80,6 +80,7 @@ import ClientAppointments from "./pages/client/ClientAppointments";
 import ClientRecipeDetail from "./pages/client/ClientRecipeDetail";
 import ClientPrograms from "./pages/client/ClientPrograms";
 import ClientChooseProtocol from "./pages/client/ClientChooseProtocol";
+import ClientBeginReset from "./pages/client/ClientBeginReset";
 import ClientQuickPlans from "./pages/client/ClientQuickPlans";
 import ClientQuickPlanDetail from "./pages/client/ClientQuickPlanDetail";
 import ClientProtocolDetail from "./pages/client/ClientProtocolDetail";
@@ -228,6 +229,7 @@ const App = () => (
           <Route path="/client/my-workouts" element={<Navigate to="/client/dashboard" replace />} />
           <Route path="/client/programs" element={<ProtectedRoute allowedRoles={["client"]}><FastingRouteGuard><ClientPrograms /></FastingRouteGuard></ProtectedRoute>} />
           <Route path="/client/choose-protocol" element={<ProtectedRoute allowedRoles={["client"]}><ClientChooseProtocol /></ProtectedRoute>} />
+          <Route path="/client/begin-reset" element={<ProtectedRoute allowedRoles={["client"]}><ClientBeginReset /></ProtectedRoute>} />
           <Route path="/client/quick-plans" element={<ProtectedRoute allowedRoles={["client"]}><FastingRouteGuard><ClientQuickPlans /></FastingRouteGuard></ProtectedRoute>} />
           <Route path="/client/quick-plan/:id" element={<ProtectedRoute allowedRoles={["client"]}><FastingRouteGuard><ClientQuickPlanDetail /></FastingRouteGuard></ProtectedRoute>} />
           <Route path="/client/protocol/:id" element={<ProtectedRoute allowedRoles={["client"]}><FastingRouteGuard><ClientProtocolDetail /></FastingRouteGuard></ProtectedRoute>} />
