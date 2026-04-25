@@ -115,7 +115,7 @@ function GoalCard({ ring, completed }: { ring: RingDef; completed: boolean }) {
           />
         </div>
         {completed && (
-          <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full [background-color:hsl(43_65%_52%)] border-2 border-black flex items-center justify-center">
+          <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-daily-ring-fasting border-2 border-black flex items-center justify-center">
             <div className="h-1.5 w-1.5 rounded-full bg-black" />
           </div>
         )}
@@ -157,7 +157,7 @@ function WeekStrip() {
             <span
               className={cn(
                 "text-[11px] font-bold uppercase tracking-[0.18em]",
-                isToday ? "[color:hsl(43_65%_52%)]" : "text-white/40"
+                isToday ? "text-daily-ring-fasting" : "text-white/40"
               )}
             >
               {format(d, "EEE")}
