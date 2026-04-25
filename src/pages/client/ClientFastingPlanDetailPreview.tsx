@@ -619,8 +619,42 @@ function SynergyContent({ ketoId, withCoach }: { ketoId: string; withCoach: "tra
       </div>
       {(() => {
         const plan = MEAL_PLANS[ketoId] ?? MEAL_PLANS.skd;
+        const change = CHANGE_HIGHLIGHTS[ketoId];
+        const changedIdx = getChangedMealIndices(ketoId);
         return (
           <>
+            {/* "What changed" callout — only when not on baseline SKD */}
+            {change && change.headline && (
+              <div
+                className="mb-3 p-4"
+                style={{
+                  background: `${GOLD}10`,
+                  border: `1px solid ${GOLD}55`,
+                }}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles size={12} style={{ color: GOLD }} />
+                  <span
+                    className="text-[9px] uppercase tracking-[0.3em]"
+                    style={{ color: GOLD }}
+                  >
+                    What changed for {keto.abbr}
+                  </span>
+                </div>
+                <div className="font-serif text-base mb-2" style={{ color: IVORY }}>
+                  {change.headline}
+                </div>
+                <ul className="space-y-1">
+                  {change.swaps.map((s, i) => (
+                    <li key={i} className="flex items-start gap-2 text-xs" style={{ color: MUTED }}>
+                      <span style={{ color: GOLD }}>→</span>
+                      <span>{s}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             {/* Daily totals strip — updates per keto type */}
             <div
               className="mb-3 p-3 grid grid-cols-4 gap-2 text-center"
@@ -652,13 +686,33 @@ function SynergyContent({ ketoId, withCoach }: { ketoId: string; withCoach: "tra
             className="p-4"
             style={{
               background: SURFACE,
-              border: `1px solid ${m.tone === "fast" ? `${GOLD}55` : `${GOLD}22`}`,
+              border: `1px solid ${
+                m.tone === "fast"
+                  ? `${GOLD}55`
+                  : changedIdx.has(i)
+                  ? GOLD
+                  : `${GOLD}22`
+              }`,
             }}
           >
             <div className="flex items-baseline justify-between mb-1">
-              <span className="font-serif text-sm" style={{ color: IVORY }}>
-                {m.label}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="font-serif text-sm" style={{ color: IVORY }}>
+                  {m.label}
+                </span>
+                {changedIdx.has(i) && (
+                  <span
+                    className="text-[8px] uppercase tracking-[0.2em] px-1.5 py-0.5"
+                    style={{
+                      background: `${GOLD}22`,
+                      color: GOLD,
+                      border: `1px solid ${GOLD}66`,
+                    }}
+                  >
+                    Changed
+                  </span>
+                )}
+              </div>
               <span className="text-[10px] uppercase tracking-[0.2em]" style={{ color: MUTED }}>
                 {m.window}
               </span>
