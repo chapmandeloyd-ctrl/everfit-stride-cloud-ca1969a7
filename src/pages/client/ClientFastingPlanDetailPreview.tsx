@@ -58,6 +58,40 @@ const SYNERGY_COPY: Record<string, { intro: string; bullets: string[] }> = {
   dirty: { intro: "Dirty keto allows processed keto-friendly foods. Useful as a transition tool but not the long-term play.", bullets: ["Convenience over food quality","Watch sodium and seed oils","Plan to graduate to SKD"] },
 };
 
+/* ---------- SYNERGY PRIMER (above Start button) ----------
+ * Editorial coach voice. Dynamic per protocol + keto type.
+ * Headline + 3 micro-bullets — the user's last beat before they commit.
+ */
+const SYNERGY_PRIMER: Record<
+  string,
+  { headline: string; bullets: [string, string, string] }
+> = {
+  skd: {
+    headline: "Your 14h fast + Standard Keto, working as one.",
+    bullets: ["Steady all-day energy", "Easier fasts by week two", "Faster fat-adaptation"],
+  },
+  hpkd: {
+    headline: "Your 14h fast + High-Protein Keto protect lean mass while you burn fat.",
+    bullets: ["Muscle stays on", "Stronger lifts in the window", "Highest satiety of any keto"],
+  },
+  ckd: {
+    headline: "Your 14h fast + Cyclical Keto give you keto's burn with a weekly carb reload.",
+    bullets: ["Train hard on refeed days", "Strict ketosis the rest of the week", "Best for athletes"],
+  },
+  tkd: {
+    headline: "Your 14h fast + Targeted Keto fuel your workouts without breaking ketosis.",
+    bullets: ["Pre-workout carbs only", "Power on demand", "Built for performance days"],
+  },
+  lazy: {
+    headline: "Your 14h fast + Lazy Keto keep it simple — one rule, real results.",
+    bullets: ["Track carbs, ignore the rest", "Highest adherence", "Perfect first month"],
+  },
+  dirty: {
+    headline: "Your 14h fast + Dirty Keto get you started today, no meal-prep required.",
+    bullets: ["Convenience-first", "Watch sodium + seed oils", "Plan to graduate to SKD"],
+  },
+};
+
 const MEAL_TIMELINE = [
   { window: "8:00 PM – 10:00 AM", label: "Fast", tone: "fast", text: "Water, black coffee, electrolytes. No cream, no sweeteners." },
   { window: "10:00 AM", label: "Break-Fast", tone: "meal", text: "3 eggs scrambled in butter, ½ avocado, sea salt.", cal: 480, fat: 38, carbs: 6, protein: 24 },
@@ -942,6 +976,72 @@ function SynergyContent({ ketoId, withCoach }: { ketoId: string; withCoach: "tra
       </div>
       </div>
           </>
+        );
+      })()}
+
+      {/* ---------- Synergy primer + Start CTA ---------- */}
+      {(() => {
+        const primer = SYNERGY_PRIMER[ketoId] ?? SYNERGY_PRIMER.skd;
+        return (
+          <div className="mt-8">
+            <div
+              className="p-5 mb-4"
+              style={{
+                background: SURFACE,
+                border: `1px solid ${GOLD}55`,
+              }}
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <Sparkles size={12} style={{ color: GOLD }} />
+                <span
+                  className="text-[9px] uppercase tracking-[0.3em]"
+                  style={{ color: GOLD }}
+                >
+                  Why this combo works
+                </span>
+              </div>
+              <p
+                className="font-serif text-lg leading-snug mb-4"
+                style={{ color: IVORY }}
+              >
+                {primer.headline}
+              </p>
+              <ul className="space-y-2">
+                {primer.bullets.map((b, i) => (
+                  <li
+                    key={i}
+                    className="flex items-start gap-2 text-sm"
+                    style={{ color: MUTED }}
+                  >
+                    <span
+                      aria-hidden
+                      className="inline-block rounded-full mt-1.5"
+                      style={{ width: 5, height: 5, background: GOLD, flexShrink: 0 }}
+                    />
+                    <span>{b}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <button
+              type="button"
+              className="w-full py-4 text-sm uppercase tracking-[0.3em] font-serif transition active:scale-[0.99]"
+              style={{
+                background: GOLD,
+                color: BLACK,
+                border: `1px solid ${GOLD}`,
+              }}
+            >
+              Start Your Fast
+            </button>
+            <p
+              className="text-[10px] uppercase tracking-[0.25em] text-center mt-2"
+              style={{ color: MUTED }}
+            >
+              {SAMPLE.fastHours}h × {keto.abbr} · begins now
+            </p>
+          </div>
         );
       })()}
     </div>
