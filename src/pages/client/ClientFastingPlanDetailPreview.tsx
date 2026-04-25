@@ -525,7 +525,7 @@ function WheelPicker({
         className="text-center text-[9px] uppercase tracking-[0.3em] mt-3"
         style={{ color: MUTED }}
       >
-        Editing {editing === "opens" ? "open time" : "close time"} · scroll to adjust
+        Tap a time, then scroll to adjust
       </div>
     </div>
   );
@@ -646,16 +646,22 @@ function TimeColumn({
     <button
       type="button"
       onClick={onClick}
-      className="px-4 py-3 text-left transition"
+      className="relative px-4 py-3 text-left transition"
       style={{
         background: SURFACE_2,
-        border: `1px solid ${active ? GOLD : `${GOLD}22`}`,
-        boxShadow: active ? `inset 0 0 0 1px ${GOLD}55` : "none",
+        border: `1px solid ${GOLD}22`,
       }}
     >
+      {active && (
+        <span
+          aria-hidden
+          className="absolute top-2 right-2 inline-block rounded-full"
+          style={{ width: 6, height: 6, background: GOLD }}
+        />
+      )}
       <div
         className="text-[10px] uppercase tracking-[0.25em] mb-1"
-        style={{ color: active ? GOLD : MUTED }}
+        style={{ color: MUTED }}
       >
         {label}
       </div>
