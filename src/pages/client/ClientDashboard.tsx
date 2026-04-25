@@ -52,7 +52,7 @@ import { BuildWorkoutSheet } from "@/components/workout/BuildWorkoutSheet";
 
 import { ProgramsSelector } from "@/components/ProgramsSelector";
 import { FastingTimer } from "@/components/FastingTimer";
-import { FastingStagesGuide } from "@/components/FastingStagesGuide";
+// FastingStagesGuide moved to /client/stages route (bottom nav)
 import { CreatePinDialog, VerifyPinDialog, HoldToEndButton } from "@/components/FastingPinLock";
 import { FastingCoachTipCard } from "@/components/FastingCoachTipCard";
 import { ProtocolCompletionDialog } from "@/components/ProtocolCompletionDialog";
@@ -648,9 +648,6 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
               End Fast
             </Button>
           )}
-
-          {/* Fasting Stages Educational Guide */}
-          <FastingStagesGuide />
 
           {/* PIN Dialogs */}
           <CreatePinDialog
