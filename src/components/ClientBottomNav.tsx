@@ -1,4 +1,4 @@
-import { Home, User } from "lucide-react";
+import { Home, Activity } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -10,7 +10,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: "Home", to: "/client/dashboard", icon: Home },
-  { label: "You", to: "/client/profile", icon: User },
+  { label: "Stages", to: "/client/stages", icon: Activity },
 ];
 
 export function ClientBottomNav() {

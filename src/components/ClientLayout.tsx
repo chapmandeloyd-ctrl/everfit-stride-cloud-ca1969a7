@@ -158,6 +158,18 @@ export function ClientLayout({ children }: ClientLayoutProps) {
               <MiniPaceRing />
               <NotificationBell />
               <ThemeToggle />
+              <button
+                onClick={() => navigate("/client/profile")}
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center"
+                aria-label="Profile"
+              >
+                <Avatar className="h-8 w-8 border border-border">
+                  <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || "You"} />
+                  <AvatarFallback className="text-xs">
+                    {(profile?.full_name || profile?.email || "U").charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+              </button>
             </div>
           </>
         )}
