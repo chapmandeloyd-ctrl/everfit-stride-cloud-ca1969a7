@@ -650,8 +650,25 @@ function SynergyContent({ ketoId, withCoach }: { ketoId: string; withCoach: "tra
         ))}
       </ul>
 
-      <div className="text-[10px] uppercase tracking-[0.3em] mb-3" style={{ color: GOLD }}>
-        Daily Meal Timeline
+      <div className="flex items-center justify-between mb-3">
+        <div className="text-[10px] uppercase tracking-[0.3em]" style={{ color: GOLD }}>
+          Daily Meal Timeline
+        </div>
+        <div className="flex" style={{ border: `1px solid ${GOLD}55` }}>
+          {[1, 2].map((n) => (
+            <button
+              key={n}
+              onClick={() => setRail(n as 1 | 2)}
+              className="text-[9px] uppercase tracking-[0.2em] px-2 py-1"
+              style={{
+                background: rail === n ? GOLD : "transparent",
+                color: rail === n ? BLACK : GOLD,
+              }}
+            >
+              Rail {n}
+            </button>
+          ))}
+        </div>
       </div>
       {(() => {
         const plan = MEAL_PLANS[ketoId] ?? MEAL_PLANS.skd;
