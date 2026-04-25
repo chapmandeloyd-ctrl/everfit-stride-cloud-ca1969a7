@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, Sparkles } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 /**
  * Editorial Black & Gold — Fasting Plan Detail (TOP HALF).
