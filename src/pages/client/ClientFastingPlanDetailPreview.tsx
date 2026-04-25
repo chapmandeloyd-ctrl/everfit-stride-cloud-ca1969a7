@@ -525,7 +525,7 @@ function WheelPicker({
         className="text-center text-[9px] uppercase tracking-[0.3em] mt-3"
         style={{ color: MUTED }}
       >
-        Editing {editing === "opens" ? "open time" : "close time"} · scroll to adjust
+        Tap a time, then scroll to adjust
       </div>
     </div>
   );
