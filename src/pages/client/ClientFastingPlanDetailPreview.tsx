@@ -2,8 +2,9 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { ChevronLeft, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 
 /**
  * Editorial Black & Gold — Fasting Plan Detail (TOP HALF).
@@ -911,11 +912,15 @@ function SynergyContent({
   withCoach,
   fastHours,
   planName,
+  planType,
+  planId,
 }: {
   ketoId: string;
   withCoach: "trainer" | "brand" | "none";
   fastHours: number;
   planName: string;
+  planType: "quick" | "program";
+  planId: string | null;
 }) {
   const keto = KETO_TYPES.find((k) => k.id === ketoId)!;
   const baseCopy = SYNERGY_COPY[ketoId] ?? SYNERGY_COPY.skd;
@@ -927,6 +932,51 @@ function SynergyContent({
     bullets: baseCopy.bullets,
   };
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const clientId = useEffectiveClientId();
+
+  const startFastMutation = useMutation({
+    mutationFn: async () => {
+      if (!clientId) throw new Error("Not signed in");
+      if (!planId) throw new Error("No plan selected");
+      const updates: Record<string, unknown> = {
+        active_fast_target_hours: fastHours,
+        active_fast_start_at: new Date().toISOString(),
+        last_fast_ended_at: null,
+        eating_window_ends_at: null,
+      };
+      if (planType === "quick") {
+        updates.selected_quick_plan_id = planId;
+        updates.selected_protocol_id = null;
+        updates.protocol_start_date = null;
+      } else {
+        updates.selected_protocol_id = planId;
+        updates.selected_quick_plan_id = null;
+        updates.protocol_start_date = new Date().toISOString().slice(0, 10);
+      }
+      const { data, error } = await supabase
+        .from("client_feature_settings")
+        .update(updates)
+        .eq("client_id", clientId)
+        .select("client_id, active_fast_start_at")
+        .maybeSingle();
+      if (error) throw error;
+      if (!data?.active_fast_start_at) throw new Error("Fast timer could not be started.");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["my-feature-settings", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["fasting-gate-state"] });
+      queryClient.invalidateQueries({ queryKey: ["fasting-profile-data"] });
+      toast.success(`${fastHours}h fast started`, {
+        description: `${planName} · ${keto.name} (${keto.abbr}) · begins now`,
+        duration: 4000,
+      });
+      navigate("/client/dashboard");
+    },
+    onError: (e) =>
+      toast.error(e instanceof Error ? e.message : "Could not start fast"),
+  });
   return (
     <div className="px-5">
       {withCoach !== "none" && (
@@ -1337,25 +1387,17 @@ function SynergyContent({
 
             <button
               type="button"
+              disabled={startFastMutation.isPending || !clientId || !planId}
               className="w-full py-4 text-sm uppercase tracking-[0.3em] font-serif transition active:scale-[0.99]"
               style={{
                 background: GOLD,
                 color: BLACK,
                 border: `1px solid ${GOLD}`,
+                opacity: startFastMutation.isPending ? 0.6 : 1,
               }}
-              onClick={() => {
-                // Navigate to Start Here (client home) so user can see the live timer.
-                navigate("/client/dashboard");
-                // Confirm with toast on arrival.
-                setTimeout(() => {
-                  toast.success(`${fastHours}h fast started`, {
-                    description: `${planName} · ${keto.name} (${keto.abbr}) locked in · begins now`,
-                    duration: 4000,
-                  });
-                }, 100);
-              }}
+              onClick={() => startFastMutation.mutate()}
             >
-              Start Your Fast
+              {startFastMutation.isPending ? "Starting…" : "Start Your Fast"}
             </button>
             <p
               className="text-[10px] uppercase tracking-[0.25em] text-center mt-2"
@@ -1377,12 +1419,16 @@ function DemoBlock({
   defaultActive,
   fastHours,
   planName,
+  planType,
+  planId,
 }: {
   tabsVariant: "all" | "explore" | "top3";
   coachVariant: "trainer" | "brand" | "none";
   defaultActive: string;
   fastHours: number;
   planName: string;
+  planType: "quick" | "program";
+  planId: string | null;
 }) {
   const [active, setActive] = useState(defaultActive);
   return (
@@ -1391,7 +1437,14 @@ function DemoBlock({
       {tabsVariant === "all" && <KetoTabsAll active={active} setActive={setActive} />}
       {tabsVariant === "explore" && <KetoTabsAssignedExplore active={active} setActive={setActive} />}
       {tabsVariant === "top3" && <KetoTabsTop3 active={active} setActive={setActive} fastHours={fastHours} />}
-      <SynergyContent ketoId={active} withCoach={coachVariant} fastHours={fastHours} planName={planName} />
+      <SynergyContent
+        ketoId={active}
+        withCoach={coachVariant}
+        fastHours={fastHours}
+        planName={planName}
+        planType={planType}
+        planId={planId}
+      />
     </div>
   );
 }
@@ -1514,6 +1567,8 @@ export default function ClientFastingPlanDetailPreview() {
           defaultActive="skd"
           fastHours={plan.fastHours}
           planName={plan.name}
+          planType={planType}
+          planId={planId}
         />
       </div>
     </div>
