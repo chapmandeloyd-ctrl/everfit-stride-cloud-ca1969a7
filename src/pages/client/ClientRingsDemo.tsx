@@ -32,40 +32,40 @@ const RINGS: RingDef[] = [
     label: "Fasting",
     goal: "Fast 10h or more",
     icon: Clock,
-    // Deep antique gold
-    strokeClass: "[stroke:hsl(38_75%_42%)]",
-    bgClass: "[background-color:hsl(38_75%_42%)]",
-    textClass: "[color:hsl(38_75%_42%)]",
+    // Signature warm gold (matches screenshot)
+    strokeClass: "[stroke:hsl(43_65%_52%)]",
+    bgClass: "[background-color:hsl(43_65%_52%)]",
+    textClass: "[color:hsl(43_65%_52%)]",
   },
   {
     key: "weight",
     label: "Weight",
     goal: "Log a check-in",
     icon: Scale,
-    // Rich gold
-    strokeClass: "[stroke:hsl(43_85%_52%)]",
-    bgClass: "[background-color:hsl(43_85%_52%)]",
-    textClass: "[color:hsl(43_85%_52%)]",
+    // Bright polished gold
+    strokeClass: "[stroke:hsl(46_80%_62%)]",
+    bgClass: "[background-color:hsl(46_80%_62%)]",
+    textClass: "[color:hsl(46_80%_62%)]",
   },
   {
     key: "activity",
     label: "Activity",
     goal: "Hit your step goal",
     icon: Activity,
-    // Bright champagne gold
-    strokeClass: "[stroke:hsl(48_95%_60%)]",
-    bgClass: "[background-color:hsl(48_95%_60%)]",
-    textClass: "[color:hsl(48_95%_60%)]",
+    // Deep antique gold
+    strokeClass: "[stroke:hsl(38_55%_38%)]",
+    bgClass: "[background-color:hsl(38_55%_38%)]",
+    textClass: "[color:hsl(38_55%_38%)]",
   },
   {
     key: "sleep",
     label: "Sleep",
     goal: "Sleep 6.5h or more",
     icon: Moon,
-    // Pale rose gold
-    strokeClass: "[stroke:hsl(35_60%_70%)]",
-    bgClass: "[background-color:hsl(35_60%_70%)]",
-    textClass: "[color:hsl(35_60%_70%)]",
+    // Pale champagne
+    strokeClass: "[stroke:hsl(40_45%_75%)]",
+    bgClass: "[background-color:hsl(40_45%_75%)]",
+    textClass: "[color:hsl(40_45%_75%)]",
   },
 ];
 
@@ -104,19 +104,19 @@ function GoalCard({ ring, completed }: { ring: RingDef; completed: boolean }) {
         <div
           className={cn(
             "h-12 w-12 rounded-full flex items-center justify-center",
-            completed ? ring.bgClass : "bg-muted"
+            completed ? ring.bgClass : "bg-white/5 border border-white/10"
           )}
         >
           <Icon
             className={cn(
               "h-5 w-5",
-              completed ? "text-white" : "text-muted-foreground"
+              completed ? "text-black" : "text-white/40"
             )}
           />
         </div>
         {completed && (
-          <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-emerald-500 border-2 border-background flex items-center justify-center">
-            <div className="h-1.5 w-1.5 rounded-full bg-background" />
+          <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full [background-color:hsl(43_65%_52%)] border-2 border-black flex items-center justify-center">
+            <div className="h-1.5 w-1.5 rounded-full bg-black" />
           </div>
         )}
       </div>
@@ -124,12 +124,12 @@ function GoalCard({ ring, completed }: { ring: RingDef; completed: boolean }) {
         <p
           className={cn(
             "text-base font-bold",
-            completed ? "text-foreground" : "text-muted-foreground"
+            completed ? "text-white" : "text-white/40"
           )}
         >
           {ring.label}
         </p>
-        <p className="text-xs text-muted-foreground leading-tight mt-0.5">
+        <p className="text-xs text-white/40 leading-tight mt-0.5">
           {ring.goal}
         </p>
       </div>
@@ -156,8 +156,8 @@ function WeekStrip() {
           >
             <span
               className={cn(
-                "text-[11px] font-bold uppercase tracking-widest",
-                isToday ? "text-foreground" : "text-muted-foreground/60"
+                "text-[11px] font-bold uppercase tracking-[0.18em]",
+                isToday ? "[color:hsl(43_65%_52%)]" : "text-white/40"
               )}
             >
               {format(d, "EEE")}
@@ -179,19 +179,19 @@ function OptionA() {
   const segments = buildSegments(TODAY_COMPLETED);
   const count = segments.filter((s) => s.completed).length;
   return (
-    <div className="rounded-3xl bg-card p-6 space-y-6">
+    <div className="rounded-3xl bg-black p-6 space-y-6 border border-[hsl(43_65%_52%)]/20">
       <WeekStrip />
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 pt-2">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+          <p className="text-[11px] font-bold uppercase tracking-[0.2em] [color:hsl(43_65%_52%)]">
             {format(new Date(), "MMMM d, yyyy")}
           </p>
-          <h2 className="text-3xl font-bold mt-2 leading-tight">
-            <span className="text-muted-foreground/70">{count} of 4</span>{" "}
+          <h2 className="text-3xl font-serif mt-2 leading-tight text-white">
+            <span className="text-white/50">{count} of 4</span>{" "}
             <br />
             Rings
           </h2>
-          <p className="text-sm text-muted-foreground mt-3 max-w-[200px]">
+          <p className="text-sm text-white/60 mt-3 max-w-[200px]">
             You're making great progress — let's do this!
           </p>
         </div>
