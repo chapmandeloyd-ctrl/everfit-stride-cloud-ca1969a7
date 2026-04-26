@@ -60,7 +60,27 @@ export function useDailyRings() {
 
       const goals = DEFAULT_GOALS;
 
-      const [fastsRes, checkinsRes, healthRes] = await Promise.all([
+      // Resolve the Weight metric definition so we can read Smart Pace / AI snapshot weigh-ins
+      const { data: weightDef } = await supabase
+        .from("metric_definitions")
+        .select("id")
+        .eq("name", "Weight")
+        .limit(1)
+        .maybeSingle();
+
+      let weightMetricId: string | null = null;
+      if (weightDef?.id) {
+        const { data: cm } = await supabase
+          .from("client_metrics")
+          .select("id")
+          .eq("client_id", clientId!)
+          .eq("metric_definition_id", weightDef.id)
+          .limit(1)
+          .maybeSingle();
+        weightMetricId = cm?.id ?? null;
+      }
+
+      const [fastsRes, checkinsRes, healthRes, weightEntriesRes] = await Promise.all([
         supabase
           .from("fasting_log")
           .select("ended_at, actual_hours, target_hours, status")
@@ -80,6 +100,14 @@ export function useDailyRings() {
           .in("data_type", ["steps", "sleep", "weight"])
           .gte("recorded_at", rangeStart)
           .lte("recorded_at", rangeEnd),
+        weightMetricId
+          ? supabase
+              .from("metric_entries")
+              .select("recorded_at")
+              .eq("client_metric_id", weightMetricId)
+              .gte("recorded_at", rangeStart)
+              .lte("recorded_at", rangeEnd)
+          : Promise.resolve({ data: [] as { recorded_at: string }[] }),
       ]);
 
       // Fasting → mark day if any completed fast that day meets goal
@@ -118,6 +146,13 @@ export function useDailyRings() {
         } else if (row.data_type === "weight") {
           byDate[key].weight = true;
         }
+      }
+
+      // Smart Pace / AI snapshot weigh-ins (canonical weight source) → mark weight ring
+      for (const row of weightEntriesRes.data ?? []) {
+        if (!row.recorded_at) continue;
+        const key = format(new Date(row.recorded_at), "yyyy-MM-dd");
+        if (byDate[key]) byDate[key].weight = true;
       }
 
       for (const [key, steps] of Object.entries(stepsByDay)) {
