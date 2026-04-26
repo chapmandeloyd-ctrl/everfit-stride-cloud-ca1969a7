@@ -63,9 +63,9 @@ export function FastingTimer({ fastStartAt, targetHours, now, demoProgress }: Fa
   // Current active stage
   const currentStage = [...FASTING_STAGES].reverse().find(s => elapsedHours >= s.hour) || FASTING_STAGES[0];
 
-  // SVG dimensions
-  const size = 320;
-  const bandWidth = 44;
+  // SVG dimensions — Zero-style compact (~70% of original 320)
+  const size = 224;
+  const bandWidth = 30;
   const radius = (size - bandWidth) / 2;
   const cx = size / 2;
   const cy = size / 2;
@@ -161,10 +161,10 @@ export function FastingTimer({ fastStartAt, targetHours, now, demoProgress }: Fa
           {/* Progress indicator nub */}
           {progress > 0.005 && (
             <circle
-              cx={indicatorX} cy={indicatorY} r={8}
+              cx={indicatorX} cy={indicatorY} r={6}
               fill={indicatorColor}
               stroke="hsl(var(--background))"
-              strokeWidth={2.5}
+              strokeWidth={2}
               style={{
                 filter: `drop-shadow(0 0 6px ${indicatorColor}99)`,
               }}
@@ -183,10 +183,10 @@ export function FastingTimer({ fastStartAt, targetHours, now, demoProgress }: Fa
               className={cn(
                 "absolute flex items-center justify-center rounded-full text-xs transition-all duration-500",
                 isCurrent
-                  ? "w-8 h-8 -ml-4 -mt-4 scale-110 z-10"
+                  ? "w-6 h-6 -ml-3 -mt-3 scale-110 z-10"
                   : isReached
-                    ? "w-7 h-7 -ml-3.5 -mt-3.5 bg-card/90"
-                    : "w-6 h-6 -ml-3 -mt-3 bg-muted/60 opacity-40"
+                    ? "w-5 h-5 -ml-2.5 -mt-2.5 bg-card/90"
+                    : "w-4 h-4 -ml-2 -mt-2 bg-muted/60 opacity-40"
               )}
               style={{
                 left: pos.cx,
@@ -200,22 +200,22 @@ export function FastingTimer({ fastStartAt, targetHours, now, demoProgress }: Fa
               }}
               title={`${stage.label} (${stage.hour}h) – ${stage.description}`}
             >
-              <span className={cn("text-[11px]", !isReached && "grayscale")}>{stage.icon}</span>
+              <span className={cn("text-[9px]", !isReached && "grayscale")}>{stage.icon}</span>
             </div>
           );
         })}
 
         {/* Center content */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-3xl mb-0.5">{currentStage.icon}</span>
+          <span className="text-xl mb-0.5">{currentStage.icon}</span>
           <span
-            className="text-[11px] font-medium tracking-wide uppercase"
+            className="text-[9px] font-medium tracking-wide uppercase"
             style={{ color: currentStage.color }}
           >
             {currentStage.label}
           </span>
-          <span className="text-4xl font-bold tabular-nums tracking-tight mt-1 text-white drop-shadow-lg">{timeStr}</span>
-          <span className="text-xs text-white/80 font-bold mt-1 uppercase tracking-wider">
+          <span className="text-2xl font-bold tabular-nums tracking-tight mt-0.5 text-white drop-shadow-lg">{timeStr}</span>
+          <span className="text-[10px] text-white/80 font-bold mt-0.5 uppercase tracking-wider">
             Elapsed ({elapsedPct}%)
           </span>
         </div>
