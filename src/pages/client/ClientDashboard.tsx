@@ -650,7 +650,7 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
           </div>
 
           {/* Hero Dynamic Timer */}
-          <div className="py-2">
+          <div className="pt-2 pb-8">
             <FastingTimer
               fastStartAt={featureSettings.active_fast_start_at!}
               targetHours={featureSettings.active_fast_target_hours!}
