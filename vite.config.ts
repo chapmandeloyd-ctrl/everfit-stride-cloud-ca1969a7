@@ -3,6 +3,8 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
+const devServerBuildTimestamp = new Date().toISOString();
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const fileEnv = loadEnv(mode, process.cwd(), "VITE_");
@@ -34,13 +36,13 @@ export default defineConfig(({ mode }) => {
       {
         name: "html-build-timestamp",
         transformIndexHtml(html: string) {
-          return html.replace("__BUILD_TIMESTAMP__", new Date().toISOString());
+          return html.replace("__BUILD_TIMESTAMP__", devServerBuildTimestamp);
         },
       },
     ].filter(Boolean),
     // Inject build timestamp into index.html for cache-busting on native WebView
     define: {
-      __BUILD_TIMESTAMP__: JSON.stringify(new Date().toISOString()),
+      __BUILD_TIMESTAMP__: JSON.stringify(devServerBuildTimestamp),
       ...envDefines,
     },
     build: {
