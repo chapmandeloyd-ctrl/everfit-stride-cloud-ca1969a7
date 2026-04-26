@@ -84,12 +84,12 @@ function pickWindowTimes(desc: unknown): { opensAt: string; closesAt: string } {
 
 /* ---------- KETO TYPES (mock library) ---------- */
 const KETO_TYPES = [
-  { id: "skd", abbr: "SKD", name: "Standard Keto", assigned: true,  matchScore: 95 },
-  { id: "hpkd", abbr: "HPKD", name: "High Protein", assigned: false, matchScore: 88 },
-  { id: "ckd", abbr: "CKD", name: "Cyclical", assigned: false, matchScore: 72 },
-  { id: "tkd", abbr: "TKD", name: "Targeted", assigned: false, matchScore: 65 },
-  { id: "lazy", abbr: "LAZY", name: "Lazy Keto", assigned: false, matchScore: 50 },
-  { id: "dirty", abbr: "DIRTY", name: "Dirty Keto", assigned: false, matchScore: 40 },
+  { id: "skd", abbr: "SKD", name: "Standard Keto", matchScore: 95 },
+  { id: "hpkd", abbr: "HPKD", name: "High Protein", matchScore: 88 },
+  { id: "ckd", abbr: "CKD", name: "Cyclical", matchScore: 72 },
+  { id: "tkd", abbr: "TKD", name: "Targeted", matchScore: 65 },
+  { id: "lazy", abbr: "LAZY", name: "Lazy Keto", matchScore: 50 },
+  { id: "dirty", abbr: "DIRTY", name: "Dirty Keto", matchScore: 40 },
 ];
 
 const SYNERGY_COPY: Record<string, { intro: string; bullets: string[] }> = {
@@ -755,12 +755,13 @@ function VariantHeader({ n, label }: { n: number; label: string }) {
 }
 
 /* ---------- KETO TABS — VARIANT A: ALL TYPES ---------- */
-function KetoTabsAll({ active, setActive }: { active: string; setActive: (id: string) => void }) {
+function KetoTabsAll({ active, setActive, assignedKetoId }: { active: string; setActive: (id: string) => void; assignedKetoId: string }) {
   return (
     <div className="px-5 mb-5">
       <div className="flex gap-2 overflow-x-auto pb-1 -mx-5 px-5 scrollbar-none">
         {KETO_TYPES.map((k) => {
           const isActive = k.id === active;
+          const isAssigned = k.id === assignedKetoId;
           return (
             <button
               key={k.id}
@@ -774,7 +775,7 @@ function KetoTabsAll({ active, setActive }: { active: string; setActive: (id: st
               }}
             >
               {k.abbr}
-              {k.assigned && (
+              {isAssigned && (
                 <span
                   className="ml-2 text-[8px] uppercase tracking-widest"
                   style={{ color: isActive ? BLACK : GOLD, opacity: 0.7 }}
@@ -791,9 +792,9 @@ function KetoTabsAll({ active, setActive }: { active: string; setActive: (id: st
 }
 
 /* ---------- KETO TABS — VARIANT B: ASSIGNED + EXPLORE ---------- */
-function KetoTabsAssignedExplore({ active, setActive }: { active: string; setActive: (id: string) => void }) {
-  const assigned = KETO_TYPES.find((k) => k.assigned)!;
-  const explore = KETO_TYPES.filter((k) => !k.assigned);
+function KetoTabsAssignedExplore({ active, setActive, assignedKetoId }: { active: string; setActive: (id: string) => void; assignedKetoId: string }) {
+  const assigned = KETO_TYPES.find((k) => k.id === assignedKetoId) ?? KETO_TYPES[0];
+  const explore = KETO_TYPES.filter((k) => k.id !== assigned.id);
   const assignedActive = active === assigned.id;
   return (
     <div className="px-5 mb-5">
@@ -861,7 +862,7 @@ function KetoTabsAssignedExplore({ active, setActive }: { active: string; setAct
 }
 
 /* ---------- KETO TABS — VARIANT C: TOP 3 RELEVANT ---------- */
-function KetoTabsTop3({ active, setActive, fastHours }: { active: string; setActive: (id: string) => void; fastHours: number }) {
+function KetoTabsTop3({ active, setActive, fastHours, assignedKetoId }: { active: string; setActive: (id: string) => void; fastHours: number; assignedKetoId: string }) {
   const top3 = [...KETO_TYPES].sort((a, b) => b.matchScore - a.matchScore).slice(0, 3);
   return (
     <div className="px-5 mb-5">
@@ -893,7 +894,7 @@ function KetoTabsTop3({ active, setActive, fastHours }: { active: string; setAct
               <div className="text-[8px] uppercase tracking-[0.2em]" style={{ color: MUTED }}>
                 {k.matchScore}% match
               </div>
-              {k.assigned && (
+              {k.id === assignedKetoId && (
                 <div className="text-[8px] mt-1" style={{ color: GOLD }}>
                   ★ yours
                 </div>
@@ -909,6 +910,7 @@ function KetoTabsTop3({ active, setActive, fastHours }: { active: string; setAct
 /* ---------- SYNERGY CONTENT BLOCK ---------- */
 function SynergyContent({
   ketoId,
+  assignedKetoId,
   withCoach,
   fastHours,
   planName,
@@ -916,6 +918,7 @@ function SynergyContent({
   planId,
 }: {
   ketoId: string;
+  assignedKetoId: string;
   withCoach: "trainer" | "brand" | "none";
   fastHours: number;
   planName: string;
@@ -1045,8 +1048,7 @@ function SynergyContent({
       {(() => {
         const plan = MEAL_PLANS[ketoId] ?? MEAL_PLANS.skd;
         const change = CHANGE_HIGHLIGHTS[ketoId];
-        // Compare against the user's assigned keto type (not always SKD).
-        const assignedKeto = KETO_TYPES.find((k) => k.assigned)!;
+        const assignedKeto = KETO_TYPES.find((k) => k.id === assignedKetoId) ?? KETO_TYPES[0];
         const assignedId = assignedKeto.id;
         const isAssigned = ketoId === assignedId;
         const isComparingToBaseline = ketoId !== assignedId;
@@ -1417,6 +1419,7 @@ function DemoBlock({
   tabsVariant,
   coachVariant,
   defaultActive,
+  assignedKetoId,
   fastHours,
   planName,
   planType,
@@ -1425,6 +1428,7 @@ function DemoBlock({
   tabsVariant: "all" | "explore" | "top3";
   coachVariant: "trainer" | "brand" | "none";
   defaultActive: string;
+  assignedKetoId: string;
   fastHours: number;
   planName: string;
   planType: "quick" | "program";
@@ -1434,11 +1438,12 @@ function DemoBlock({
   return (
     <div className="pt-4 pb-8" style={{ background: SURFACE_2 }}>
       <SectionTitle kicker="Part 2 · Keto Type" title="Recommendations" />
-      {tabsVariant === "all" && <KetoTabsAll active={active} setActive={setActive} />}
-      {tabsVariant === "explore" && <KetoTabsAssignedExplore active={active} setActive={setActive} />}
-      {tabsVariant === "top3" && <KetoTabsTop3 active={active} setActive={setActive} fastHours={fastHours} />}
+      {tabsVariant === "all" && <KetoTabsAll active={active} setActive={setActive} assignedKetoId={assignedKetoId} />}
+      {tabsVariant === "explore" && <KetoTabsAssignedExplore active={active} setActive={setActive} assignedKetoId={assignedKetoId} />}
+      {tabsVariant === "top3" && <KetoTabsTop3 active={active} setActive={setActive} fastHours={fastHours} assignedKetoId={assignedKetoId} />}
       <SynergyContent
         ketoId={active}
+        assignedKetoId={assignedKetoId}
         withCoach={coachVariant}
         fastHours={fastHours}
         planName={planName}
@@ -1452,8 +1457,48 @@ function DemoBlock({
 export default function ClientFastingPlanDetailPreview() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const planType = (params.get("type") ?? "quick") as "quick" | "program";
-  const planId = params.get("id");
+  const clientId = useEffectiveClientId();
+
+  const { data: featureSettings } = useQuery({
+    queryKey: ["fasting-detail-feature-settings", clientId],
+    enabled: !!clientId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("client_feature_settings")
+        .select("selected_protocol_id, selected_quick_plan_id")
+        .eq("client_id", clientId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const routePlanType = params.get("type") as "quick" | "program" | null;
+  const routePlanId = params.get("id");
+  const assignedPlanType = featureSettings?.selected_protocol_id
+    ? "program"
+    : featureSettings?.selected_quick_plan_id
+      ? "quick"
+      : null;
+  const assignedPlanId = featureSettings?.selected_protocol_id ?? featureSettings?.selected_quick_plan_id ?? null;
+
+  const planType = (routePlanType ?? assignedPlanType ?? "quick") as "quick" | "program";
+  const planId = routePlanId ?? assignedPlanId;
+
+  const { data: ketoAssignment } = useQuery({
+    queryKey: ["fasting-detail-keto-assignment", clientId],
+    enabled: !!clientId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("client_keto_assignments")
+        .select("keto_type_id, keto_types(id, abbreviation, name)")
+        .eq("client_id", clientId!)
+        .eq("is_active", true)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const { data: quickPlan } = useQuery({
     queryKey: ["fasting-detail-quick", planId],
@@ -1484,6 +1529,8 @@ export default function ClientFastingPlanDetailPreview() {
       return data;
     },
   });
+
+  const assignedKeto = ketoAssignment?.keto_types as { id: string; abbreviation: string; name: string } | null;
 
   const plan: PlanView = useMemo(() => {
     if (planType === "quick" && quickPlan) {
@@ -1535,6 +1582,8 @@ export default function ClientFastingPlanDetailPreview() {
     };
   }, [planType, quickPlan, program]);
 
+  const defaultKetoId = assignedKeto?.id ? assignedKeto.id.toLowerCase() : "skd";
+
   return (
     <div className="min-h-screen pb-24" style={{ background: BLACK }}>
       <header className="flex items-center justify-between px-5 py-5">
@@ -1564,7 +1613,8 @@ export default function ClientFastingPlanDetailPreview() {
         <DemoBlock
           tabsVariant="explore"
           coachVariant="trainer"
-          defaultActive="skd"
+          defaultActive={defaultKetoId}
+          assignedKetoId={defaultKetoId}
           fastHours={plan.fastHours}
           planName={plan.name}
           planType={planType}
