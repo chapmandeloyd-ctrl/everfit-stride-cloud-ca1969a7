@@ -434,7 +434,9 @@ export default function ClientFastingPlansPreview() {
                   desc={recommended.description ?? "Balanced window for most lifestyles."}
                   bigNumber={recommended.fast_hours}
                   fastHours={recommended.fast_hours}
-                  eatHours={24 - recommended.fast_hours}
+                  eatHours={recommended.fast_hours > 24 ? null : 24 - recommended.fast_hours}
+                  eatValue={recommended.fast_hours > 24 ? +(recommended.fast_hours / 24).toFixed(recommended.fast_hours % 24 === 0 ? 0 : 1) : null}
+                  eatLabel="Days"
                   locked={isLocked && assignedQuickId !== recommended.id}
                   assigned={assignedQuickId === recommended.id}
                   onClick={() =>
@@ -461,7 +463,9 @@ export default function ClientFastingPlansPreview() {
                         desc={p.description}
                         bigNumber={p.fast_hours}
                         fastHours={p.fast_hours}
-                        eatHours={24 - p.fast_hours}
+                        eatHours={p.fast_hours > 24 ? null : 24 - p.fast_hours}
+                        eatValue={p.fast_hours > 24 ? +(p.fast_hours / 24).toFixed(p.fast_hours % 24 === 0 ? 0 : 1) : null}
+                        eatLabel="Days"
                         locked={isLocked && assignedQuickId !== p.id}
                         assigned={assignedQuickId === p.id}
                         onClick={() =>
