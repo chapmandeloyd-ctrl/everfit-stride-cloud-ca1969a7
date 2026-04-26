@@ -23,7 +23,7 @@ export default defineConfig(({ mode }) => {
   );
 
   return {
-    envDir: false,
+    envDir: path.resolve(__dirname, ".lovable-empty-env"),
     server: {
       host: "::",
       port: 8080,
