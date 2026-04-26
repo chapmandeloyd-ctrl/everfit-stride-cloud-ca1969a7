@@ -608,11 +608,9 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
         <Card className="overflow-hidden border-0 shadow-lg relative">
         {/* Lion card background */}
         <div
-          className="absolute inset-0 bg-center bg-no-repeat"
+          className="absolute inset-0 bg-cover bg-center"
           style={{
             backgroundImage: `url(${fastingCardBgImg})`,
-            backgroundSize: "32%",
-            backgroundPosition: "center 58%",
             filter: "sepia(1) saturate(2.5) hue-rotate(-5deg) brightness(0.95)",
           }}
         />
@@ -652,7 +650,7 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
           </div>
 
           {/* Hero Dynamic Timer */}
-          <div className="pt-2 pb-24">
+          <div className="py-2">
             <FastingTimer
               fastStartAt={featureSettings.active_fast_start_at!}
               targetHours={featureSettings.active_fast_target_hours!}
