@@ -844,10 +844,10 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
               <AlertDialogAction
                 onClick={() => {
                   setShowEndEatingWindowConfirm(false);
-                  startFastMutation.mutate();
+                  navigate("/client/choose-protocol");
                 }}
               >
-                Yes, start next fast
+                Yes, choose next fast
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
