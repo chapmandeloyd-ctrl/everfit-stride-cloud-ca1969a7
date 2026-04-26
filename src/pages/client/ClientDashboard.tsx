@@ -939,7 +939,7 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
                 </div>
               )}
               {isCoachAssigned && !isMaintenanceMode && (
-                <Badge className="mt-2 text-[10px] px-2 py-0.5 bg-primary/20 text-primary border border-primary/30 hover:bg-primary/20 font-semibold">
+                <Badge className="mt-2 text-[10px] px-2 py-0.5 bg-amber-400/15 text-amber-300 border border-amber-300/40 hover:bg-amber-400/15 font-semibold uppercase tracking-wider">
                   Coach Assigned
                 </Badge>
               )}
