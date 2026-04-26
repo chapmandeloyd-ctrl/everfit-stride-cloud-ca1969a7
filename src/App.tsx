@@ -88,6 +88,7 @@ import ClientProtocolDetail from "./pages/client/ClientProtocolDetail";
 import ClientProtocolCardDemo from "./pages/client/ClientProtocolCardDemo";
 import ClientKetoTypeCardDemo from "./pages/client/ClientKetoTypeCardDemo";
 import ClientFastingPlansPreview from "./pages/client/ClientFastingPlansPreview";
+import WindowsCardDemo from "./pages/client/WindowsCardDemo";
 import ClientFastingPlanDetailPreview from "./pages/client/ClientFastingPlanDetailPreview";
 import ProtocolStylesPreview from "./pages/preview/ProtocolStylesPreview";
 import ClientFastComplete from "./pages/client/ClientFastComplete";
@@ -246,6 +247,7 @@ const App = () => (
           <Route path="/client/fasting-plan-detail-preview" element={<ProtectedRoute allowedRoles={["client", "trainer"]}><ClientFastingPlanDetailPreview /></ProtectedRoute>} />
           <Route path="/fasting-plan-detail-preview" element={<ClientFastingPlanDetailPreview />} />
           <Route path="/preview/protocol-styles" element={<ProtocolStylesPreview />} />
+          <Route path="/windows-card-demo" element={<WindowsCardDemo />} />
           <Route path="/client/fast-complete" element={<ProtectedRoute allowedRoles={["client"]}><ClientFastComplete /></ProtectedRoute>} />
           <Route path="/client/vibes" element={<Navigate to="/client/dashboard" replace />} />
           <Route path="/client/labs" element={<Navigate to="/client/dashboard" replace />} />
