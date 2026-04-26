@@ -530,7 +530,7 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
   // No protocol or quick plan selected — empty state (but if actively fasting via quick plan, skip to timer)
   if (!hasProtocol && !hasQuickPlan && !isFasting && !hasEatingWindow) {
     // Use per-client image first, then universal trainer fasting card
-    const fastingCardBg = featureSettings?.fasting_card_image_url || universalFastingCard?.image_url || fastingCardBgGoldImg;
+    const fastingCardBg = fastingCardBgGoldImg;
     const fastingCardMsg = fastingSubtitle || universalFastingCard?.message || "Your fasting journey begins soon.";
     return (
       <Card className="overflow-hidden border-primary/20 shadow-lg relative">
@@ -902,7 +902,7 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
   // Not fasting — ready state
   // Gold lion is the universal default background for the premium
   // "Quiet Luxury" Fasting Protocol card per design spec.
-  const fastingCardBg = featureSettings?.fasting_card_image_url || universalFastingCard?.image_url || fastingCardBgGoldImg;
+  const fastingCardBg = fastingCardBgGoldImg;
   const ketoAccent = activeKetoType?.color || '#ef4444';
 
   return (
