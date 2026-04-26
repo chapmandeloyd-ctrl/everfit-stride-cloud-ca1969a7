@@ -1,11 +1,9 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Heart, ChevronDown, ChevronUp, Smartphone } from "lucide-react";
+import { Heart, ChevronDown, ChevronUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useNativeHealth } from "@/hooks/useNativeHealth";
 import { MyProgressSection } from "@/components/MyProgressSection";
-import { cn } from "@/lib/utils";
 
 interface Props {
   clientId: string;
@@ -24,7 +22,6 @@ interface MetricSnapshot {
 export function HealthDashboardCollapsible({ clientId }: Props) {
   const [open, setOpen] = useState(false);
   const { user, loading } = useAuth();
-  const { isNative, permissionGranted } = useNativeHealth();
 
   const { data: metrics } = useQuery({
     queryKey: ["health-activity-metrics", clientId],
@@ -38,9 +35,10 @@ export function HealthDashboardCollapsible({ clientId }: Props) {
         body: { client_id: clientId, mode: "metric_summary" },
       });
       if (response.error) throw response.error;
-      return response.data?.metrics ?? {};
+      return (response.data?.metrics ?? {}) as Record<string, MetricSnapshot>;
     },
-    staleTime: 30_000,
+    refetchOnMount: "always",
+    staleTime: 0,
   });
 
   const stepsRaw = metrics?.["Steps"]?.value;
@@ -58,9 +56,7 @@ export function HealthDashboardCollapsible({ clientId }: Props) {
   const calories =
     calRaw !== undefined && calRaw !== null
       ? `${Math.round(Number(calRaw)).toLocaleString()} cal`
-      : "--";
-
-  const isLive = isNative && permissionGranted;
+      : "-- cal";
 
   return (
     <div className="space-y-3">
@@ -93,22 +89,9 @@ export function HealthDashboardCollapsible({ clientId }: Props) {
             <Heart className="h-5 w-5 text-red-500" />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold uppercase tracking-wide text-foreground">
-                Health Dashboard
-              </span>
-              <span
-                className={cn(
-                  "text-[10px] font-semibold uppercase tracking-wide rounded-full px-1.5 py-0.5 ring-1 inline-flex items-center gap-1",
-                  isLive
-                    ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 ring-emerald-500/30"
-                    : "bg-muted text-muted-foreground ring-border"
-                )}
-              >
-                {isLive && <Smartphone className="h-2.5 w-2.5" />}
-                {isLive ? "Live" : "Manual"}
-              </span>
-            </div>
+            <span className="text-xs font-bold uppercase tracking-wide text-foreground">
+              Health Dashboard
+            </span>
             <p className="text-sm text-muted-foreground truncate">
               {steps} steps · {sleep} sleep · {calories}
             </p>
