@@ -97,6 +97,7 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
   const [showVerifyPin, setShowVerifyPin] = useState(false);
   const [showCompletion, setShowCompletion] = useState(false);
   const [showEndEatingWindowConfirm, setShowEndEatingWindowConfirm] = useState(false);
+  const [showCloseEatingWindowConfirm, setShowCloseEatingWindowConfirm] = useState(false);
   const liveActivity = useLiveActivity();
   const { toast } = useToast();
 
