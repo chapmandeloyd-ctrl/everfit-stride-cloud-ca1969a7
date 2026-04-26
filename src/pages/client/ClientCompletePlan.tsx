@@ -1,70 +1,22 @@
 import { ClientLayout } from "@/components/ClientLayout";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import {
-  ArrowLeft, Clock, Utensils, Droplets, Users,
-  TrendingUp, Lightbulb, Zap, Sparkles, Loader2, Check,
-  Flame, Brain, AlertTriangle, CalendarDays, Shield
+  ArrowLeft, Clock, Zap, Loader2, Check, Shield, Sparkles, Flame, Target, Crown
 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import {
-  CATEGORY_CONFIG,
-  getDifficultyLabel,
-} from "@/lib/fastingCategoryConfig";
-import { PROTOCOL_DETAIL_COPY } from "@/lib/protocolDetailContent";
-import { getProtocolCardContent } from "@/lib/protocolCardContent";
-import { getTierForLevel } from "@/lib/quickPlanTierConfig";
+import { getDifficultyLabel } from "@/lib/fastingCategoryConfig";
 import { usePlanSynergy } from "@/hooks/usePlanSynergy";
-import { useMemo, useEffect } from "react";
-import { InteractiveProtocolCard } from "@/components/plan/InteractiveProtocolCard";
-import type { DemoProtocol } from "@/components/plan/InteractiveProtocolCardDemo";
-import { InteractiveKetoTypeCard } from "@/components/keto/InteractiveKetoTypeCard";
-import { MacroComparisonFlipCard } from "@/components/keto/MacroComparisonFlipCard";
-import { buildSynergyProtocol } from "@/lib/synergyDemoContent";
-import { ProtocolLibraryCarousel } from "@/components/plan/ProtocolLibraryCarousel";
-import { useProtocolLibrary } from "@/hooks/useProtocolLibrary";
-
-function generateWeeklyProgression(durationDays: number, fastTargetHours: number) {
-  const weeks = Math.ceil(durationDays / 7);
-  if (weeks <= 1 || durationDays === 0) return null;
-  const startHours = Math.max(12, fastTargetHours - (weeks - 1));
-  const progression = [];
-  for (let w = 1; w <= weeks; w++) {
-    const fh = Math.min(startHours + (w - 1), fastTargetHours);
-    progression.push({ week: w, fastHours: fh, eatHours: 24 - fh });
-  }
-  return progression;
-}
-
-function getDailySchedule(fastHours: number) {
-  const stopHour = 20;
-  const breakHour = (stopHour + fastHours) % 24;
-  const fmt = (h: number) => {
-    const period = h >= 12 ? "PM" : "AM";
-    const display = h === 0 ? 12 : h > 12 ? h - 12 : h;
-    return `${display}:00 ${period}`;
-  };
-  return { stopEating: fmt(stopHour), breakFast: fmt(breakHour) };
-}
-
-function SectionHeader({ title, icon }: { title: string; icon: React.ReactNode }) {
-  return (
-    <div className="flex items-center gap-2.5 mb-3">
-      {icon}
-      <h3 className="text-sm font-bold uppercase tracking-wide">{title}</h3>
-    </div>
-  );
-}
+import { useEffect, useMemo } from "react";
+import fastingCardBgGoldImg from "@/assets/fasting-timer-bg-gold.png";
 
 interface StructuredSynergy {
   keto_synergy: string;
   how_it_works?: string;
   the_science?: string;
-  adaptation_timeline?: { phase: number; title: string; period: string; detail: string }[];
   built_for?: string[];
   coach_notes?: string[];
   eat_this?: string[];
@@ -78,7 +30,6 @@ export default function ClientCompletePlan() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  // Get feature settings
   const { data: featureSettings } = useQuery({
     queryKey: ["complete-plan-settings", clientId],
     queryFn: async () => {
@@ -93,7 +44,6 @@ export default function ClientCompletePlan() {
     enabled: !!clientId,
   });
 
-  // Get active keto assignment
   const { data: ketoAssignment } = useQuery({
     queryKey: ["complete-plan-keto", clientId],
     queryFn: async () => {
@@ -115,10 +65,6 @@ export default function ClientCompletePlan() {
   const activeProtocolId = protocolId || quickPlanId;
   const ketoTypeId = ketoAssignment?.keto_type_id;
 
-  // Merged protocol library (quick plans + fasting protocols) for the carousel.
-  const { data: library } = useProtocolLibrary(clientId);
-
-  // Fetch protocol data
   const { data: protocol } = useQuery({
     queryKey: ["complete-plan-protocol", activeProtocolId, isQuickPlan],
     queryFn: async (): Promise<any> => {
@@ -129,21 +75,24 @@ export default function ClientCompletePlan() {
           .eq("id", quickPlanId!)
           .single();
         if (error) throw error;
-        return { ...data, fast_target_hours: (data as any).fast_hours, duration_days: 0, category: "general", difficulty_level: (data as any).difficulty_group || "beginner" };
-      } else {
-        const { data, error } = await supabase
-          .from("fasting_protocols")
-          .select("*")
-          .eq("id", protocolId!)
-          .single();
-        if (error) throw error;
-        return { ...data, difficulty_level: (data as any).difficulty_level || "beginner" };
+        return {
+          ...data,
+          fast_target_hours: (data as any).fast_hours,
+          duration_days: 0,
+          difficulty_level: (data as any).intensity_tier || (data as any).difficulty_group || "beginner",
+        };
       }
+      const { data, error } = await supabase
+        .from("fasting_protocols")
+        .select("*")
+        .eq("id", protocolId!)
+        .single();
+      if (error) throw error;
+      return { ...data, difficulty_level: (data as any).difficulty_level || "beginner" };
     },
     enabled: !!activeProtocolId,
   });
 
-  // Fetch keto type data
   const { data: ketoType } = useQuery({
     queryKey: ["complete-plan-keto-type", ketoTypeId],
     queryFn: async () => {
@@ -158,35 +107,18 @@ export default function ClientCompletePlan() {
     enabled: !!ketoTypeId,
   });
 
-  // Fetch all keto types for comparison chart
-  const { data: allKetoTypes } = useQuery({
-    queryKey: ["complete-plan-all-keto"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("keto_types")
-        .select("id, abbreviation, name, fat_pct, protein_pct, carbs_pct, color")
-        .eq("is_active", true)
-        .order("order_index");
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  // Synergy
   const protocolType = protocolId ? "program" : quickPlanId ? "quick_plan" : null;
-  const { data: synergy, isLoading: synergyLoading } = usePlanSynergy(
+  const { data: synergy } = usePlanSynergy(
     protocolType,
     activeProtocolId || null,
     ketoTypeId || null,
   );
 
-  // Realtime: auto-refresh when trainer updates keto_types macros
   useEffect(() => {
     const channel = supabase
-      .channel("keto-types-realtime")
+      .channel("keto-types-realtime-cp")
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "keto_types" }, () => {
         queryClient.invalidateQueries({ queryKey: ["complete-plan-keto-type"] });
-        queryClient.invalidateQueries({ queryKey: ["complete-plan-all-keto"] });
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
@@ -237,11 +169,11 @@ export default function ClientCompletePlan() {
     },
   });
 
-  if (!activeProtocolId || !ketoTypeId) {
+  if (!activeProtocolId) {
     return (
       <ClientLayout>
-        <div className="px-4 pt-6 text-center">
-          <p className="text-muted-foreground">No plan assigned yet.</p>
+        <div className="min-h-screen bg-black text-white px-4 pt-10 text-center">
+          <p className="text-white/60">No plan assigned yet.</p>
           <Button variant="outline" className="mt-4" onClick={() => navigate("/client/dashboard")}>
             Back to Dashboard
           </Button>
@@ -250,42 +182,15 @@ export default function ClientCompletePlan() {
     );
   }
 
-  if (!protocol || !ketoType) {
+  if (!protocol) {
     return (
       <ClientLayout>
-        <div className="flex justify-center py-12">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <div className="min-h-screen bg-black flex justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-amber-400" />
         </div>
       </ClientLayout>
     );
   }
-
-  const themeColor = ketoType.color || "#ef4444";
-  const config = protocol.category ? CATEGORY_CONFIG[protocol.category] : undefined;
-  const Icon = config?.icon;
-  const protocolContent = getProtocolCardContent(protocol.fast_target_hours, isQuickPlan);
-
-  // Resolve hero card visuals — protocols use category, quick plans use tier
-  const quickTier = isQuickPlan ? getTierForLevel(protocol.min_level_required ?? 1) : null;
-  const heroIcon = isQuickPlan ? quickTier!.icon : (config?.icon ?? Zap);
-  const heroAccentClass = isQuickPlan ? quickTier!.accentColor : (config?.color ?? "text-primary");
-  const heroIconGradient = isQuickPlan
-    ? quickTier!.iconGradient
-    : (config?.iconGradient ?? "from-primary via-primary to-primary");
-  const heroSurfaceTint = isQuickPlan
-    ? quickTier!.surfaceTintGradient
-    : (config?.surfaceTintGradient ?? "from-primary/15 via-transparent to-primary/10");
-  const heroEyebrow = isQuickPlan
-    ? `Level ${protocol.min_level_required ?? 1}`
-    : (config?.label ?? "Your KSOM Plan");
-  const heroSubEyebrow = isQuickPlan ? (quickTier!.subtitle) : "Adaptive Protocol";
-
-  // Title suffix — show day count for extended quick plans
-  const exactDays = protocol.fast_target_hours / 24;
-  const titleSuffix =
-    isQuickPlan && protocol.fast_target_hours >= 24
-      ? ` — ${Number.isInteger(exactDays) ? exactDays : Math.round(exactDays * 10) / 10} Day${exactDays === 1 ? "" : "s"}`
-      : "";
 
   const durationLabel =
     protocol.duration_days === 0
@@ -297,143 +202,177 @@ export default function ClientCompletePlan() {
 
   return (
     <ClientLayout>
-      <div className="pb-8 w-full">
-        {/* Back + Title */}
+      <div className="min-h-screen bg-black text-white pb-10">
+        {/* Header */}
         <div className="px-4 pt-4 pb-2 flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/client/dashboard")}>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-white hover:bg-white/10"
+            onClick={() => navigate("/client/dashboard")}
+          >
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Your Complete Plan</p>
-            <h1 className="text-lg font-bold leading-tight">{protocol.name}</h1>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300/80">Your Complete Plan</p>
+            <h1 className="text-lg font-bold leading-tight text-white">{protocol.name}</h1>
           </div>
         </div>
 
-        {/* ═══════════════════════════════════════════ */}
-        {/* PART 1 — YOUR FASTING PROTOCOL             */}
-        {/* ═══════════════════════════════════════════ */}
-        <div className="px-5 mt-4">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="h-px flex-1 bg-border" />
-            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-              Part 1 — Your Fasting Protocol
-            </span>
-            <div className="h-px flex-1 bg-border" />
-          </div>
-        </div>
-
-        {/* PROTOCOL DETAIL CARD — Single structured premium card */}
-        <div className="px-5 space-y-4">
-          {/* MERGED LIBRARY — peek-snap horizontal carousel of every protocol */}
-          {library && library.entries.length > 0 ? (
-            <ProtocolLibraryCarousel
-              entries={library.entries}
-              currentLevel={library.currentLevel}
-              selectedKey={library.selectedKey}
-            />
-          ) : (
-            <InteractiveProtocolCard
-              protocol={{
-                id: protocol.id ?? "active-plan",
-                icon: heroIcon,
-                accentColorClass: heroAccentClass,
-                iconGradient: heroIconGradient,
-                surfaceTintGradient: heroSurfaceTint,
-                eyebrow: heroEyebrow,
-                subEyebrow: heroSubEyebrow,
-                title: protocol.name,
-                titleSuffix: titleSuffix,
-                stats: [
-                  { value: `${protocol.fast_target_hours}h`, label: "Fast", accentClass: heroAccentClass },
-                  { value: durationLabel, label: "Duration" },
-                  { value: getDifficultyLabel(protocol.difficulty_level), label: "Level" },
-                ],
-                status: "current",
-                content: protocolContent,
-              } as DemoProtocol}
-            />
-          )}
-        </div>
-
-        {/* ═══════════════════════════════════════════ */}
-        {/* PART 2 — YOUR KETO TYPE                    */}
-        {/* ═══════════════════════════════════════════ */}
-        <div className="px-5 mt-10">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="h-px flex-1 bg-border" />
-            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-              Part 2 — Your Keto Type
-            </span>
-            <div className="h-px flex-1 bg-border" />
-          </div>
-        </div>
-
-        <div className="px-5 space-y-4">
-          {/* HERO — Interactive 3D flip card (matches protocol card) */}
-          <InteractiveKetoTypeCard
-            ketoType={{
-              abbreviation: ketoType.abbreviation,
-              name: ketoType.name,
-              subtitle: ketoType.subtitle,
-              description: ketoType.description,
-              difficulty: ketoType.difficulty,
-              fat_pct: ketoType.fat_pct,
-              protein_pct: ketoType.protein_pct,
-              carbs_pct: ketoType.carbs_pct,
-              carb_limit_grams: ketoType.carb_limit_grams,
-              how_it_works: ketoType.how_it_works,
-              built_for: ketoType.built_for,
-              color: ketoType.color,
+        {/* ═══ HERO — GOLD LION FASTING CARD ═══ */}
+        <div className="px-4 mt-4">
+          <div
+            className="relative rounded-3xl overflow-hidden border border-amber-300/20 shadow-[0_10px_40px_-10px_rgba(251,191,36,0.25)]"
+            style={{
+              backgroundImage: `url(${fastingCardBgGoldImg})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
             }}
-            themeColor={themeColor}
-            isCurrent
-          />
+          >
+            {/* Dark overlay for legibility */}
+            <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/85" />
 
-          {/* Macro Comparison */}
-          {allKetoTypes && allKetoTypes.length > 1 && (
-            <MacroComparisonFlipCard
-              items={allKetoTypes}
-              activeId={ketoType.id}
-              themeColor={themeColor}
-            />
-          )}
+            <div className="relative p-5 space-y-4">
+              {/* Eyebrow */}
+              <div className="space-y-1">
+                <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/60">
+                  Fasting Protocol
+                </p>
+                <h2 className="text-3xl font-black text-white leading-none">
+                  {protocol.fast_target_hours}h Fast
+                </h2>
+                {ketoType && (
+                  <p className="text-sm text-white/80 mt-1">
+                    <span className="font-black text-amber-300">{ketoType.abbreviation}</span>
+                    <span className="mx-1.5 text-white/40">·</span>
+                    <span>{ketoType.name}</span>
+                  </p>
+                )}
+              </div>
 
-          {/* Protocol + Keto Synergy — rich interactive card */}
-          <InteractiveProtocolCard
-            protocol={buildSynergyProtocol({
-              protocolName: protocol.name,
-              ketoAbbr: ketoType.abbreviation,
-              fastHours: Math.round(protocol.fast_target_hours ?? 72),
-              proteinPct: Math.round(ketoType.protein_pct ?? 30),
-              themeColor,
-            })}
-            frontExtra="timelineAndChips"
-          />
+              {/* COACH ASSIGNED pill */}
+              <div className="inline-flex items-center gap-1.5 h-7 rounded-full px-3 border border-amber-300/40 bg-amber-300/10">
+                <Crown className="h-3 w-3 text-amber-300" />
+                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300">
+                  Coach Assigned
+                </span>
+              </div>
+
+              {/* Stat tiles — gold premium */}
+              <div className="grid grid-cols-3 gap-2 pt-2">
+                <StatTile
+                  icon={<Clock className="h-4 w-4 text-amber-300" />}
+                  value={`${protocol.fast_target_hours}h`}
+                  label="Fast"
+                  accent
+                />
+                <StatTile
+                  icon={<Target className="h-4 w-4 text-white/60" />}
+                  value={durationLabel}
+                  label="Duration"
+                />
+                <StatTile
+                  icon={<Sparkles className="h-4 w-4 text-white/60" />}
+                  value={getDifficultyLabel(protocol.difficulty_level)}
+                  label="Level"
+                />
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* ═══════════════════════════════════════════ */}
-        {/* BOTTOM ACTION BUTTONS                       */}
-        {/* ═══════════════════════════════════════════ */}
-        <div className="px-5 mt-10 mb-6 space-y-3">
+        {/* ═══ KETO TYPE CARD ═══ */}
+        {ketoType && (
+          <div className="px-4 mt-6">
+            <SectionDivider label="Your Keto Type" />
+            <div className="rounded-2xl border border-amber-300/15 bg-gradient-to-b from-white/[0.04] to-white/[0.01] p-5 space-y-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300/70">
+                    Keto Strategy
+                  </p>
+                  <h3 className="text-2xl font-black text-white mt-1">
+                    {ketoType.abbreviation}
+                  </h3>
+                  <p className="text-sm text-white/70">{ketoType.name}</p>
+                </div>
+                {ketoType.subtitle && (
+                  <p className="text-xs text-white/50 italic text-right max-w-[55%]">
+                    {ketoType.subtitle}
+                  </p>
+                )}
+              </div>
+
+              {/* Macro split */}
+              <div className="grid grid-cols-3 gap-2">
+                <MacroTile label="Fat" value={ketoType.fat_pct} suffix="%" />
+                <MacroTile label="Protein" value={ketoType.protein_pct} suffix="%" />
+                <MacroTile label="Carbs" value={ketoType.carbs_pct} suffix="%" />
+              </div>
+
+              {ketoType.description && (
+                <p className="text-sm text-white/75 leading-relaxed">
+                  {ketoType.description}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ═══ SYNERGY ═══ */}
+        {structured && (
+          <div className="px-4 mt-6">
+            <SectionDivider label="Why This Works Together" />
+            <div className="rounded-2xl border border-amber-300/15 bg-gradient-to-b from-white/[0.04] to-white/[0.01] p-5 space-y-4">
+              <p className="text-sm text-white/85 leading-relaxed">
+                {structured.keto_synergy}
+              </p>
+              {structured.how_it_works && (
+                <BlockNote title="How it works" body={structured.how_it_works} />
+              )}
+              {structured.the_science && (
+                <BlockNote title="The science" body={structured.the_science} />
+              )}
+              {structured.built_for && structured.built_for.length > 0 && (
+                <ChipBlock title="Built for" items={structured.built_for} tone="gold" />
+              )}
+              {structured.eat_this && structured.eat_this.length > 0 && (
+                <ChipBlock title="Eat this" items={structured.eat_this} tone="green" />
+              )}
+              {structured.avoid_this && structured.avoid_this.length > 0 && (
+                <ChipBlock title="Avoid" items={structured.avoid_this} tone="red" />
+              )}
+              {structured.coach_warning && (
+                <div className="rounded-xl border border-amber-300/30 bg-amber-300/5 p-3">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-amber-300 mb-1">
+                    Coach Note
+                  </p>
+                  <p className="text-sm text-white/85 leading-relaxed">
+                    {structured.coach_warning}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ═══ ACTIONS ═══ */}
+        <div className="px-4 mt-8 space-y-3">
           <Button
-            className="w-full h-12 text-base font-bold gap-2"
+            className="w-full h-12 text-base font-black gap-2 bg-gradient-to-b from-amber-300 via-yellow-400 to-amber-600 text-black hover:brightness-110 shadow-[0_4px_20px_-4px_rgba(251,191,36,0.5)] ring-1 ring-amber-300/70"
             onClick={() => startFastMutation.mutate()}
             disabled={startFastMutation.isPending}
           >
-            <Zap className="h-5 w-5" />
+            {startFastMutation.isPending ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <Flame className="h-5 w-5" />
+            )}
             {startFastMutation.isPending ? "Starting..." : "Start Fast"}
           </Button>
           <Button
-            variant="secondary"
-            className="w-full h-11 gap-2"
-            onClick={() => navigate("/client/fast-complete")}
-          >
-            <Check className="h-4 w-4" />
-            Preview Fast Complete Screen
-          </Button>
-          <Button
             variant="outline"
-            className="w-full h-11"
+            className="w-full h-11 border-white/15 bg-white/5 text-white hover:bg-white/10"
             onClick={() => navigate("/client/dashboard")}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -442,5 +381,75 @@ export default function ClientCompletePlan() {
         </div>
       </div>
     </ClientLayout>
+  );
+}
+
+/* ───── Helpers ───── */
+
+function StatTile({ icon, value, label, accent }: { icon: React.ReactNode; value: string; label: string; accent?: boolean }) {
+  return (
+    <div className={`rounded-xl p-2.5 text-center border min-w-0 ${
+      accent
+        ? "bg-amber-300/10 border-amber-300/30"
+        : "bg-white/8 border-white/15"
+    }`}>
+      <div className="flex justify-center mb-1">{icon}</div>
+      <p className={`text-sm font-black leading-tight truncate ${accent ? "text-amber-300" : "text-white"}`}>
+        {value}
+      </p>
+      <p className="text-[9px] text-white/60 uppercase tracking-wider font-bold mt-0.5">{label}</p>
+    </div>
+  );
+}
+
+function MacroTile({ label, value, suffix }: { label: string; value: number; suffix: string }) {
+  return (
+    <div className="rounded-xl p-3 text-center bg-white/5 border border-white/10">
+      <p className="text-xl font-black text-white leading-none">
+        {value}<span className="text-sm text-white/50">{suffix}</span>
+      </p>
+      <p className="text-[10px] text-white/60 uppercase tracking-wider font-bold mt-1.5">{label}</p>
+    </div>
+  );
+}
+
+function SectionDivider({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-3 mb-3">
+      <div className="h-px flex-1 bg-amber-300/20" />
+      <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-amber-300/80">
+        {label}
+      </span>
+      <div className="h-px flex-1 bg-amber-300/20" />
+    </div>
+  );
+}
+
+function BlockNote({ title, body }: { title: string; body: string }) {
+  return (
+    <div>
+      <p className="text-[10px] font-bold uppercase tracking-wider text-white/50 mb-1">{title}</p>
+      <p className="text-sm text-white/80 leading-relaxed">{body}</p>
+    </div>
+  );
+}
+
+function ChipBlock({ title, items, tone }: { title: string; items: string[]; tone: "gold" | "green" | "red" }) {
+  const toneClasses = {
+    gold: "border-amber-300/30 bg-amber-300/5 text-amber-200",
+    green: "border-emerald-400/30 bg-emerald-400/5 text-emerald-200",
+    red: "border-red-400/30 bg-red-400/5 text-red-200",
+  }[tone];
+  return (
+    <div>
+      <p className="text-[10px] font-bold uppercase tracking-wider text-white/50 mb-2">{title}</p>
+      <div className="flex flex-wrap gap-1.5">
+        {items.map((it, i) => (
+          <span key={i} className={`text-xs px-2.5 py-1 rounded-full border ${toneClasses}`}>
+            {it}
+          </span>
+        ))}
+      </div>
+    </div>
   );
 }
