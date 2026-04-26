@@ -844,7 +844,7 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
               <AlertDialogAction
                 onClick={() => {
                   setShowEndEatingWindowConfirm(false);
-                  navigate("/client/choose-protocol");
+                  navigate("/client/begin-reset");
                 }}
               >
                 Yes, choose next fast
