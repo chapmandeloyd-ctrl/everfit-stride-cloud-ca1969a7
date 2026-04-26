@@ -900,8 +900,9 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
   }
 
   // Not fasting — ready state
-  // Default to gold lion bg whenever no trainer/per-client image is set
-  const fastingCardBg = featureSettings?.fasting_card_image_url || fastingCardBgImg;
+  // Gold lion is the universal default background for the premium
+  // "Quiet Luxury" Fasting Protocol card per design spec.
+  const fastingCardBg = fastingCardBgImg;
   const ketoAccent = activeKetoType?.color || '#ef4444';
 
   return (
@@ -982,8 +983,12 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
             const fastHours = activeProtocol?.fast_target_hours || activeQuickPlan?.fast_hours || 16;
             const diffLevel = activeProtocol?.difficulty_level || activeQuickPlan?.intensity_tier || "beginner";
             const totalDays = activeProtocol?.duration_days;
+            // Always show Day tile in 4-tile layout. Quick plans (no totalDays)
+            // show "—" for total days but still render the tile so the
+            // premium 4-tile layout stays consistent.
+            const showDayTile = true;
             return (
-              <div className={`grid ${totalDays ? 'grid-cols-4' : 'grid-cols-3'} gap-2`}>
+              <div className="grid grid-cols-4 gap-2">
                 {/* Fast tile */}
                 <div className="bg-white/10 backdrop-blur-md rounded-xl p-2 text-center border border-white/15 min-w-0">
                   <Clock className="h-4 w-4 mx-auto text-white/60 mb-1" />
@@ -1013,11 +1018,13 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
                     </>
                   )}
                 </div>
-                {/* Day tile (only when protocol has total days) */}
-                {totalDays && (
+                {/* Day tile — always present in 4-tile layout */}
+                {showDayTile && (
                   <div className="bg-white/10 backdrop-blur-md rounded-xl p-2 text-center border border-white/15 min-w-0">
                     <CalendarDays className="h-4 w-4 mx-auto text-white/60 mb-1" />
-                    <p className="text-sm font-black text-white leading-tight tabular-nums">{dayNumber}/{totalDays}</p>
+                    <p className="text-sm font-black text-white leading-tight tabular-nums">
+                      {totalDays ? `${dayNumber}/${totalDays}` : `${dayNumber}`}
+                    </p>
                     <p className="text-[9px] text-white/60 uppercase tracking-wider font-medium mt-0.5">Day</p>
                   </div>
                 )}
