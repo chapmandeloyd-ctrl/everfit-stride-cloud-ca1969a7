@@ -65,7 +65,7 @@ export function FastingTimer({ fastStartAt, targetHours, now, demoProgress }: Fa
 
   // SVG dimensions — Zero-style compact (~70% of original 320)
   const size = 224;
-  const bandWidth = 30;
+  const bandWidth = 40;
   const radius = (size - bandWidth) / 2;
   const cx = size / 2;
   const cy = size / 2;
