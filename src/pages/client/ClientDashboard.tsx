@@ -1016,7 +1016,7 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
-              onClick={() => navigate("/client/programs")}
+              onClick={() => navigate("/client/fasting-plans-preview")}
               className="h-10 rounded-full px-4 text-xs font-bold uppercase tracking-wide bg-gradient-to-b from-amber-300 via-yellow-400 to-amber-600 text-black shadow-[0_2px_10px_-2px_rgba(251,191,36,0.55)] ring-1 ring-amber-300/70 hover:brightness-110 active:scale-[0.98] transition"
             >
               View protocols
