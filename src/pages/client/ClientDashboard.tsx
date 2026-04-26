@@ -818,12 +818,40 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
             <Button
               variant={hasBackground ? "secondary" : "outline"}
               className={`w-full h-12 text-base font-bold ${hasBackground ? "bg-white/20 hover:bg-white/30 text-white border-white/30" : ""}`}
-              onClick={() => startFastMutation.mutate()}
+              onClick={() => {
+                if (ewRemainingMs > 0) {
+                  setShowEndEatingWindowConfirm(true);
+                } else {
+                  startFastMutation.mutate();
+                }
+              }}
             >
-              <Clock className="h-4 w-4 mr-2" /> Start next fast
+              <Clock className="h-4 w-4 mr-2" /> Choose next fast
             </Button>
           </CardContent>
         </div>
+
+        <AlertDialog open={showEndEatingWindowConfirm} onOpenChange={setShowEndEatingWindowConfirm}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>End eating window early?</AlertDialogTitle>
+              <AlertDialogDescription>
+                You still have {ewH > 0 ? `${ewH}h ` : ""}{ewM}m left in your eating window. Ending now will close the window and start your next fast.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Stay in eating window</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  setShowEndEatingWindowConfirm(false);
+                  startFastMutation.mutate();
+                }}
+              >
+                Yes, start next fast
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </Card>
     );
   }
