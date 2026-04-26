@@ -24,10 +24,16 @@ export default function ClientDashboardMinimal() {
 
         {/* Smart Weight Tracker — collapsible, above fasting */}
         {SHOW_WEIGHT_TRACKER && clientId && (
-          <div className="space-y-2">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground px-1">
-              KSOM-360 Smart Weight Tracker
-            </h2>
+          <div className="space-y-3">
+            <div>
+              <h2 className="text-3xl font-bold tracking-tight">
+                Smart Weight Tracker
+              </h2>
+              <p className="text-muted-foreground">
+                Your real-pace coach. Adjusts daily targets based on every weigh-in
+                so you always know exactly what to lose today to stay on track.
+              </p>
+            </div>
             <SmartPaceCollapsible />
           </div>
         )}
