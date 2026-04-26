@@ -15,6 +15,16 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useClientFeatureSettings } from "@/hooks/useClientFeatureSettings";
 import { useEngineMode } from "@/hooks/useEngineMode";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -86,6 +96,7 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
   const [showCreatePin, setShowCreatePin] = useState(false);
   const [showVerifyPin, setShowVerifyPin] = useState(false);
   const [showCompletion, setShowCompletion] = useState(false);
+  const [showEndEatingWindowConfirm, setShowEndEatingWindowConfirm] = useState(false);
   const liveActivity = useLiveActivity();
   const { toast } = useToast();
 
