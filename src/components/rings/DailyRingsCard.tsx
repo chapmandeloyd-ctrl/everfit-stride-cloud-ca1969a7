@@ -9,6 +9,7 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { cn } from "@/lib/utils";
+import { useDailyRings, type DayCompletion } from "@/hooks/useDailyRings";
 
 /**
  * DailyRingsCard — Zero-style 4-ring tracker for the client home.
@@ -16,8 +17,6 @@ import { cn } from "@/lib/utils";
  * Currently uses mocked completion data so the layout/colors can be
  * verified live as Dee. Real wiring (HealthKit + manual logs) lands next.
  */
-
-type RingKey = "fasting" | "weight" | "activity" | "sleep";
 
 interface RingDef {
   key: RingKey;
@@ -27,6 +26,7 @@ interface RingDef {
   strokeClass: string;
   bgClass: string;
 }
+type RingKey = "fasting" | "weight" | "activity" | "sleep";
 
 const RINGS: RingDef[] = [
   {
@@ -63,23 +63,11 @@ const RINGS: RingDef[] = [
   },
 ];
 
-// MOCK — today's completion (will be replaced with real data next)
-const TODAY_COMPLETED: Record<RingKey, boolean> = {
-  fasting: true,
+const EMPTY_DAY: DayCompletion = {
+  fasting: false,
   weight: false,
-  activity: true,
+  activity: false,
   sleep: false,
-};
-
-// MOCK — past 7 days
-const WEEK_COMPLETED: Record<number, Record<RingKey, boolean>> = {
-  0: { fasting: false, weight: false, activity: false, sleep: false },
-  1: { fasting: true,  weight: false, activity: false, sleep: false },
-  2: { fasting: true,  weight: false, activity: true,  sleep: false },
-  3: { fasting: false, weight: false, activity: false, sleep: false },
-  4: { fasting: true,  weight: true,  activity: false, sleep: false },
-  5: { fasting: true,  weight: false, activity: true,  sleep: false },
-  6: { fasting: false, weight: false, activity: false, sleep: false },
 };
 
 function buildSegments(completed: Record<RingKey, boolean>): RingSegment[] {
@@ -88,6 +76,12 @@ function buildSegments(completed: Record<RingKey, boolean>): RingSegment[] {
     colorClass: r.strokeClass,
     completed: completed[r.key],
   }));
+}
+
+function copyForCount(count: number): string {
+  if (count === 4) return "Perfect day — every ring closed!";
+  if (count > 0) return "You're making great progress — let's do this!";
+  return "A fresh start. One ring at a time.";
 }
 
 function GoalCard({ ring, completed }: { ring: RingDef; completed: boolean }) {
@@ -199,16 +193,13 @@ export function DailyRingsPinnedHeader() {
   const start = startOfWeek(today, { weekStartsOn: 0 });
   const days = Array.from({ length: 7 }, (_, i) => addDays(start, i));
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
+  const { data } = useDailyRings();
+  const byDate = data?.byDate ?? {};
 
   const selectedDate = selectedIdx != null ? days[selectedIdx] : null;
   const selectedCompleted =
-    selectedIdx != null
-      ? WEEK_COMPLETED[selectedIdx] ?? {
-          fasting: false,
-          weight: false,
-          activity: false,
-          sleep: false,
-        }
+    selectedDate != null
+      ? byDate[format(selectedDate, "yyyy-MM-dd")] ?? { ...EMPTY_DAY }
       : null;
 
   return (
@@ -222,12 +213,7 @@ export function DailyRingsPinnedHeader() {
               const isSelected = selectedIdx === i;
               const future = isFuture(d) && !isToday;
               const dayCompleted =
-                WEEK_COMPLETED[i] ?? {
-                  fasting: false,
-                  weight: false,
-                  activity: false,
-                  sleep: false,
-                };
+                byDate[format(d, "yyyy-MM-dd")] ?? { ...EMPTY_DAY };
               const segs = buildSegments(dayCompleted);
               return (
                 <button
@@ -284,7 +270,10 @@ export function DailyRingsPinnedHeader() {
 }
 
 export function DailyRingsCard() {
-  const segments = buildSegments(TODAY_COMPLETED);
+  const { data } = useDailyRings();
+  const todayKey = format(new Date(), "yyyy-MM-dd");
+  const todayCompleted = data?.byDate[todayKey] ?? { ...EMPTY_DAY };
+  const segments = buildSegments(todayCompleted);
   const count = segments.filter((s) => s.completed).length;
   return (
     <div className="rounded-3xl bg-black p-6 space-y-6 border border-daily-ring-fasting/20">
@@ -299,7 +288,7 @@ export function DailyRingsCard() {
             Rings
           </h2>
           <p className="text-sm text-white/60 mt-3 max-w-[200px]">
-            You're making great progress — let's do this!
+            {copyForCount(count)}
           </p>
         </div>
         <MultiSegmentRing segments={segments} size={130} strokeWidth={20} />
@@ -309,7 +298,7 @@ export function DailyRingsCard() {
           <GoalCard
             key={r.key}
             ring={r}
-            completed={TODAY_COMPLETED[r.key]}
+            completed={todayCompleted[r.key]}
           />
         ))}
       </div>
