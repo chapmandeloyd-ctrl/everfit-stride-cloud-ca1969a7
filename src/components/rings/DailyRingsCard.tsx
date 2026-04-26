@@ -18,6 +18,8 @@ import { useDailyRings, type DayCompletion } from "@/hooks/useDailyRings";
  * verified live as Dee. Real wiring (HealthKit + manual logs) lands next.
  */
 
+type RingKey = "fasting" | "weight" | "activity" | "sleep";
+
 interface RingDef {
   key: RingKey;
   label: string;
@@ -26,7 +28,6 @@ interface RingDef {
   strokeClass: string;
   bgClass: string;
 }
-type RingKey = "fasting" | "weight" | "activity" | "sleep";
 
 const RINGS: RingDef[] = [
   {
