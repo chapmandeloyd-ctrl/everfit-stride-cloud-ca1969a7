@@ -176,7 +176,12 @@ function ProtocolBigCard({
           style={{
             fontFamily: "Georgia, serif",
             fontWeight: 700,
-            fontSize: "260px",
+            fontSize:
+              String(bigNumber).length >= 3
+                ? "180px"
+                : String(bigNumber).length === 2
+                ? "240px"
+                : "260px",
             color: GOLD,
             opacity: locked ? 0.12 : 0.28,
             letterSpacing: "-0.05em",
