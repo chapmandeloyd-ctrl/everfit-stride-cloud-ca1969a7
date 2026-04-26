@@ -1049,15 +1049,11 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
           {/* Coach-assigned plan strip — gold pills wired to live admin assignments */}
           {(() => {
             const isLocked = !!featureSettings?.lock_client_plan_choice;
-            const protocolHref = featureSettings?.selected_protocol_id
-              ? `/client/protocol/${featureSettings.selected_protocol_id}`
-              : isLocked ? null : "/client/fasting-plans-preview";
-            const ketoHref = activeKetoType?.id
-              ? `/client/keto-types/${activeKetoType.id}`
-              : isLocked ? null : "/client/fasting-plan-detail-preview";
-            const protocolLabel = featureSettings?.selected_protocol_id
-              ? "View my protocol"
-              : "View protocols";
+            const hasAssignedPlan = !!(
+              featureSettings?.selected_protocol_id || featureSettings?.selected_quick_plan_id
+            );
+            const protocolHref = hasAssignedPlan ? "/client/complete-plan" : null;
+            const ketoHref = activeKetoType?.id ? `/client/keto-types/${activeKetoType.id}` : null;
             const ketoLabel = activeKetoType?.id ? "View my keto type" : "View keto type";
 
             return (
@@ -1069,22 +1065,24 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
                   </div>
                 )}
                 <div className="flex items-center justify-between gap-2">
-                  <button
-                    type="button"
-                    disabled={!protocolHref}
-                    onClick={() => protocolHref && navigate(protocolHref)}
-                    className="h-7 rounded-full px-3 text-[10px] font-bold uppercase tracking-wide bg-gradient-to-b from-amber-300 via-yellow-400 to-amber-600 text-black shadow-[0_1px_6px_-1px_rgba(251,191,36,0.5)] ring-1 ring-amber-300/70 hover:brightness-110 active:scale-[0.98] transition disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {protocolLabel}
-                  </button>
-                  <button
-                    type="button"
-                    disabled={!ketoHref}
-                    onClick={() => ketoHref && navigate(ketoHref)}
-                    className="h-7 rounded-full px-3 text-[10px] font-bold uppercase tracking-wide bg-gradient-to-b from-amber-300 via-yellow-400 to-amber-600 text-black shadow-[0_1px_6px_-1px_rgba(251,191,36,0.5)] ring-1 ring-amber-300/70 hover:brightness-110 active:scale-[0.98] transition disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {ketoLabel}
-                  </button>
+                  {protocolHref && (
+                    <button
+                      type="button"
+                      onClick={() => navigate(protocolHref)}
+                      className="h-7 rounded-full px-3 text-[10px] font-bold uppercase tracking-wide bg-gradient-to-b from-amber-300 via-yellow-400 to-amber-600 text-black shadow-[0_1px_6px_-1px_rgba(251,191,36,0.5)] ring-1 ring-amber-300/70 hover:brightness-110 active:scale-[0.98] transition"
+                    >
+                      View assigned plan
+                    </button>
+                  )}
+                  {ketoHref && (
+                    <button
+                      type="button"
+                      onClick={() => navigate(ketoHref)}
+                      className="h-7 rounded-full px-3 text-[10px] font-bold uppercase tracking-wide bg-gradient-to-b from-amber-300 via-yellow-400 to-amber-600 text-black shadow-[0_1px_6px_-1px_rgba(251,191,36,0.5)] ring-1 ring-amber-300/70 hover:brightness-110 active:scale-[0.98] transition"
+                    >
+                      {ketoLabel}
+                    </button>
+                  )}
                 </div>
               </div>
             );
