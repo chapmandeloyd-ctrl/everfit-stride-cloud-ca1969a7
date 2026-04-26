@@ -821,7 +821,7 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
                 <Button
                   variant="destructive"
                   className="w-full h-12 text-base font-bold"
-                  onClick={() => setShowEndEatingWindowConfirm(true)}
+                  onClick={() => setShowCloseEatingWindowConfirm(true)}
                 >
                   <Clock className="h-4 w-4 mr-2" /> End Eating Window
                 </Button>
