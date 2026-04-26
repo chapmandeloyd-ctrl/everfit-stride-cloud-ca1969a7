@@ -46,7 +46,7 @@ export function MultiSegmentRing({
         r={radius}
         fill="none"
         strokeWidth={strokeWidth}
-        className="stroke-white/15"
+        className="stroke-white/40"
       />
       {completedCount > 0 &&
         segments.map((seg, i) => {
