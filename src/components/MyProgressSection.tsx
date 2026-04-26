@@ -1,7 +1,5 @@
-import { Smartphone, PencilLine } from "lucide-react";
+import { PencilLine } from "lucide-react";
 import { ActivitySummary } from "@/components/health/ActivitySummary";
-import { useNativeHealth } from "@/hooks/useNativeHealth";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { AiSnapshotSheet } from "@/components/health/AiSnapshotSheet";
@@ -14,7 +12,6 @@ interface Props {
 const SHOW_AI_SNAPSHOT = true;
 
 export function MyProgressSection({ clientId }: Props) {
-  const { isNative, permissionGranted } = useNativeHealth();
   const [snapshotOpen, setSnapshotOpen] = useState(false);
   const [manualOpen, setManualOpen] = useState(false);
 
