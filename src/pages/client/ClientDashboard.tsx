@@ -659,7 +659,7 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
           </div>
 
 
-          <div className="mt-8">
+          <div className="mt-16">
             {featureSettings.fast_lock_pin ? (
               <HoldToEndButton onHoldComplete={() => setShowVerifyPin(true)} />
             ) : (
