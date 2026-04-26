@@ -172,16 +172,14 @@ function ProtocolBigCard({
       {bigNumber !== null && bigNumber !== "" && (
         <div
           aria-hidden
-          className="absolute -right-6 top-1/2 -translate-y-1/2 pointer-events-none select-none leading-none"
+          className="absolute top-1/2 -translate-y-1/2 pointer-events-none select-none leading-none"
           style={{
             fontFamily: "Georgia, serif",
             fontWeight: 700,
-            fontSize:
-              String(bigNumber).length >= 3
-                ? "180px"
-                : String(bigNumber).length === 2
-                ? "240px"
-                : "260px",
+            fontSize: "240px",
+            // 3-digit numbers (e.g. 120) shift further right so the "1"
+            // stays visible — the trailing digit is allowed to bleed off.
+            right: String(bigNumber).length >= 3 ? "-80px" : "-24px",
             color: GOLD,
             opacity: locked ? 0.12 : 0.28,
             letterSpacing: "-0.05em",
