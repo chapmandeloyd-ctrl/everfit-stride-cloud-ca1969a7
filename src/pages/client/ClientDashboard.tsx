@@ -1052,12 +1052,9 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
               library where every card is locked except the assigned one. */}
           {(() => {
             const isLocked = !!featureSettings?.lock_client_plan_choice;
-            const hasAssignedPlan = !!(
-              featureSettings?.selected_protocol_id || featureSettings?.selected_quick_plan_id
-            );
-            const protocolHref = hasAssignedPlan
-              ? "/client/complete-plan"
-              : "/client/fasting-plans-preview";
+            // Always open the full library so the client sees every card
+            // (assigned card highlighted, others locked when admin enforces it).
+            const protocolHref = "/client/fasting-plans-preview";
             const ketoHref = activeKetoType?.id
               ? `/client/keto-types/${activeKetoType.id}`
               : "/client/keto-types";
