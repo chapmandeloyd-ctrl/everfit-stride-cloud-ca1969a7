@@ -456,13 +456,23 @@ export default function ClientFastingPlansPreview() {
                     : p.fast_target_hours
                     ? `${p.fast_target_hours}hr target`
                     : "Ongoing protocol";
+                const fastH = p.fast_target_hours ?? null;
+                const eatH = fastH ? 24 - fastH : null;
+                const big =
+                  p.duration_days && p.duration_days > 0
+                    ? p.duration_days
+                    : p.fast_target_hours ?? null;
                 return (
-                  <LionCard
+                  <ProtocolBigCard
                     key={p.id}
                     eyebrow={eyebrow}
                     name={p.name}
                     desc={p.description}
+                    bigNumber={big}
+                    fastHours={fastH}
+                    eatHours={eatH}
                     locked={isLocked && assignedProtocolId !== p.id}
+                    assigned={assignedProtocolId === p.id}
                     onClick={() =>
                       navigate(
                         `/client/fasting-plan-detail-preview?type=program&id=${p.id}`,
