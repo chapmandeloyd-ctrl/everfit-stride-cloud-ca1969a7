@@ -23,7 +23,14 @@ export default function ClientDashboardMinimal() {
         <DailyRingsPinnedHeader />
 
         {/* Smart Weight Tracker — collapsible, above fasting */}
-        {SHOW_WEIGHT_TRACKER && clientId && <SmartPaceCollapsible />}
+        {SHOW_WEIGHT_TRACKER && clientId && (
+          <div className="space-y-2">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground px-1">
+              KSOM-360 Smart Weight Tracker
+            </h2>
+            <SmartPaceCollapsible />
+          </div>
+        )}
 
         {/* Fasting timer / protocol */}
         <FastingProtocolCard clientId={clientId} navigate={navigate} />
