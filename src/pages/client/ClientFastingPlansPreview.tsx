@@ -122,6 +122,169 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
+function ProtocolBigCard({
+  eyebrow,
+  name,
+  desc,
+  bigNumber,
+  fastHours,
+  eatHours,
+  locked = false,
+  assigned = false,
+  onClick,
+}: {
+  eyebrow: string;
+  name: string;
+  desc: unknown;
+  bigNumber: number | string | null;
+  fastHours: number | null;
+  eatHours: number | null;
+  locked?: boolean;
+  assigned?: boolean;
+  onClick?: () => void;
+}) {
+  let descText: string | null = null;
+  if (typeof desc === "string") {
+    descText = desc;
+  } else if (desc && typeof desc === "object") {
+    const d = desc as Record<string, unknown>;
+    descText =
+      (typeof d.subtitle === "string" && d.subtitle) ||
+      (typeof d.focus === "string" && d.focus) ||
+      (typeof d.who_for === "string" && d.who_for) ||
+      null;
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="relative w-full text-left overflow-hidden p-6 transition active:scale-[0.99]"
+      style={{ background: CARD_BG, border: `1px solid ${GOLD}30`, minHeight: 280 }}
+    >
+      {/* Giant gold number bleeding off right edge */}
+      {bigNumber !== null && bigNumber !== "" && (
+        <div
+          aria-hidden
+          className="absolute -right-6 top-1/2 -translate-y-1/2 pointer-events-none select-none leading-none"
+          style={{
+            fontFamily: "Georgia, serif",
+            fontWeight: 700,
+            fontSize: "260px",
+            color: GOLD,
+            opacity: locked ? 0.12 : 0.28,
+            letterSpacing: "-0.05em",
+          }}
+        >
+          {bigNumber}
+        </div>
+      )}
+
+      {/* Status badges */}
+      {locked && (
+        <div
+          className="absolute top-3 right-3 inline-flex items-center gap-1 px-2 py-1 rounded-full text-[9px] uppercase tracking-widest font-bold z-10"
+          style={{ background: `${GOLD}15`, color: GOLD, border: `1px solid ${GOLD}50` }}
+        >
+          <Lock className="h-2.5 w-2.5" />
+          Locked
+        </div>
+      )}
+      {assigned && !locked && (
+        <div
+          className="absolute top-3 right-3 inline-flex items-center gap-1 px-2 py-1 rounded-full text-[9px] uppercase tracking-widest font-bold z-10"
+          style={{ background: GOLD, color: BLACK }}
+        >
+          ★ Yours
+        </div>
+      )}
+
+      <div className="relative z-[1] flex flex-col h-full" style={{ minHeight: 232 }}>
+        {/* Eyebrow */}
+        <p
+          className="text-[10px] uppercase tracking-[0.3em] mb-4"
+          style={{ color: GOLD }}
+        >
+          {eyebrow}
+        </p>
+
+        {/* Big serif title */}
+        <h3
+          className="font-bold tracking-tight leading-[0.95] max-w-[70%]"
+          style={{
+            color: locked ? MUTED : IVORY,
+            fontFamily: "Georgia, serif",
+            fontSize: "38px",
+          }}
+        >
+          {name}
+        </h3>
+
+        {/* Subtitle */}
+        {descText && (
+          <p
+            className="text-sm leading-snug mt-3 max-w-[65%] line-clamp-2"
+            style={{ color: MUTED }}
+          >
+            {descText}
+          </p>
+        )}
+
+        {/* Bottom stats row */}
+        {(fastHours || eatHours) && (
+          <div className="flex items-baseline gap-5 mt-auto pt-6">
+            {fastHours ? (
+              <div className="flex items-baseline gap-2">
+                <span
+                  className="font-bold"
+                  style={{
+                    color: IVORY,
+                    fontFamily: "Georgia, serif",
+                    fontSize: "28px",
+                    lineHeight: 1,
+                  }}
+                >
+                  {fastHours}h
+                </span>
+                <span
+                  className="text-[10px] uppercase tracking-[0.25em]"
+                  style={{ color: MUTED }}
+                >
+                  Fasting
+                </span>
+              </div>
+            ) : null}
+            {fastHours && eatHours ? (
+              <span style={{ color: MUTED }}>·</span>
+            ) : null}
+            {eatHours ? (
+              <div className="flex items-baseline gap-2">
+                <span
+                  className="font-bold"
+                  style={{
+                    color: IVORY,
+                    fontFamily: "Georgia, serif",
+                    fontSize: "28px",
+                    lineHeight: 1,
+                  }}
+                >
+                  {eatHours}h
+                </span>
+                <span
+                  className="text-[10px] uppercase tracking-[0.25em]"
+                  style={{ color: MUTED }}
+                >
+                  Eating
+                </span>
+              </div>
+            ) : null}
+          </div>
+        )}
+      </div>
+    </button>
+  );
+}
+
 export default function ClientFastingPlansPreview() {
   const navigate = useNavigate();
   const clientId = useEffectiveClientId();
@@ -293,13 +456,23 @@ export default function ClientFastingPlansPreview() {
                     : p.fast_target_hours
                     ? `${p.fast_target_hours}hr target`
                     : "Ongoing protocol";
+                const fastH = p.fast_target_hours ?? null;
+                const eatH = fastH ? 24 - fastH : null;
+                const big =
+                  p.duration_days && p.duration_days > 0
+                    ? p.duration_days
+                    : p.fast_target_hours ?? null;
                 return (
-                  <LionCard
+                  <ProtocolBigCard
                     key={p.id}
                     eyebrow={eyebrow}
                     name={p.name}
                     desc={p.description}
+                    bigNumber={big}
+                    fastHours={fastH}
+                    eatHours={eatH}
                     locked={isLocked && assignedProtocolId !== p.id}
+                    assigned={assignedProtocolId === p.id}
                     onClick={() =>
                       navigate(
                         `/client/fasting-plan-detail-preview?type=program&id=${p.id}`,
