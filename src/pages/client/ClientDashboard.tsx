@@ -608,10 +608,11 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
         <Card className="overflow-hidden border-0 shadow-lg relative">
         {/* Lion card background */}
         <div
-          className="absolute inset-x-0 top-6 bottom-8 bg-center bg-no-repeat"
+          className="absolute inset-0 bg-center bg-no-repeat"
           style={{
             backgroundImage: `url(${fastingCardBgImg})`,
-            backgroundSize: "54%",
+            backgroundSize: "32%",
+            backgroundPosition: "center 58%",
             filter: "sepia(1) saturate(2.5) hue-rotate(-5deg) brightness(0.95)",
           }}
         />
