@@ -107,14 +107,23 @@ export const CATEGORY_ORDER = [
 ];
 
 export function getDifficultyLabel(level: string): string {
-  switch (level) {
-    case "beginner": return "Beginner";
-    case "intermediate": return "Intermediate";
-    case "advanced": return "Advanced";
-    case "experienced": return "Advanced";
-    case "long_fasts": return "Expert";
-    case "expert": return "Expert";
-    default: return level;
+  switch ((level || "").toLowerCase()) {
+    case "beginner":
+    case "low":
+      return "Beginner";
+    case "intermediate":
+    case "medium":
+      return "Intermediate";
+    case "advanced":
+    case "high":
+    case "experienced":
+      return "Advanced";
+    case "long_fasts":
+    case "expert":
+    case "extreme":
+      return "Expert";
+    default:
+      return level ? level.charAt(0).toUpperCase() + level.slice(1) : "—";
   }
 }
 
