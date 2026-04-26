@@ -794,7 +794,7 @@ function KetoTabsAll({ active, setActive, assignedKetoId }: { active: string; se
 /* ---------- KETO TABS — VARIANT B: ASSIGNED + EXPLORE ---------- */
 function KetoTabsAssignedExplore({ active, setActive, assignedKetoId }: { active: string; setActive: (id: string) => void; assignedKetoId: string }) {
   const assigned = KETO_TYPES.find((k) => k.id === assignedKetoId) ?? KETO_TYPES[0];
-  const explore = KETO_TYPES.filter((k) => !k.assigned);
+  const explore = KETO_TYPES.filter((k) => k.id !== assigned.id);
   const assignedActive = active === assigned.id;
   return (
     <div className="px-5 mb-5">
@@ -1614,6 +1614,7 @@ export default function ClientFastingPlanDetailPreview() {
           tabsVariant="explore"
           coachVariant="trainer"
           defaultActive={defaultKetoId}
+          assignedKetoId={defaultKetoId}
           fastHours={plan.fastHours}
           planName={plan.name}
           planType={planType}
