@@ -1013,13 +1013,21 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
             View Your Assigned Program
           </Button>
 
-          <div className="flex items-center justify-center gap-4">
-            <Button variant="link" size="sm" className="text-xs text-white/60 hover:text-white p-0 h-auto" onClick={() => navigate("/client/programs")}>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => navigate("/client/programs")}
+              className="h-10 rounded-full px-4 text-xs font-bold uppercase tracking-wide bg-gradient-to-b from-amber-300 via-yellow-400 to-amber-600 text-black shadow-[0_2px_10px_-2px_rgba(251,191,36,0.55)] ring-1 ring-amber-300/70 hover:brightness-110 active:scale-[0.98] transition"
+            >
               View protocols
-            </Button>
-            <Button variant="link" size="sm" className="text-xs text-primary hover:text-primary/80 p-0 h-auto" onClick={() => navigate("/client/keto-types")}>
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/client/keto-types")}
+              className="h-10 rounded-full px-4 text-xs font-bold uppercase tracking-wide bg-gradient-to-b from-amber-300 via-yellow-400 to-amber-600 text-black shadow-[0_2px_10px_-2px_rgba(251,191,36,0.55)] ring-1 ring-amber-300/70 hover:brightness-110 active:scale-[0.98] transition"
+            >
               View keto type
-            </Button>
+            </button>
           </div>
         </CardContent>
       </Card>
