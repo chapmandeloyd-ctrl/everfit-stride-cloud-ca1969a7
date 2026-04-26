@@ -88,6 +88,7 @@ import ClientProtocolDetail from "./pages/client/ClientProtocolDetail";
 import ClientProtocolCardDemo from "./pages/client/ClientProtocolCardDemo";
 import ClientKetoTypeCardDemo from "./pages/client/ClientKetoTypeCardDemo";
 import ClientFastingPlansPreview from "./pages/client/ClientFastingPlansPreview";
+import WindowsCardDemo from "./pages/client/WindowsCardDemo";
 import ClientFastingPlanDetailPreview from "./pages/client/ClientFastingPlanDetailPreview";
 import ProtocolStylesPreview from "./pages/preview/ProtocolStylesPreview";
 import ClientFastComplete from "./pages/client/ClientFastComplete";
