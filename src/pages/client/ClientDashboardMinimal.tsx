@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { FastingProtocolCard } from "./ClientDashboard";
 import { SmartPaceCollapsible } from "@/components/smart-pace/SmartPaceCollapsible";
-import { MyProgressSection } from "@/components/MyProgressSection";
+import { HealthDashboardCollapsible } from "@/components/health/HealthDashboardCollapsible";
 import { DailyRingsPinnedHeader } from "@/components/rings/DailyRingsCard";
 
 /**
@@ -41,8 +41,10 @@ export default function ClientDashboardMinimal() {
         {/* Fasting timer / protocol */}
         <FastingProtocolCard clientId={clientId} navigate={navigate} />
 
-        {/* Health Dashboard tiles */}
-        {SHOW_WEIGHT_TRACKER && clientId && <MyProgressSection clientId={clientId} />}
+        {/* Health Dashboard — collapsible */}
+        {SHOW_WEIGHT_TRACKER && clientId && (
+          <HealthDashboardCollapsible clientId={clientId} />
+        )}
       </div>
     </ClientLayout>
   );
