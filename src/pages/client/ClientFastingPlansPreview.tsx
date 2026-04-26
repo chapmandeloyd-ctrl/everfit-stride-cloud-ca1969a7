@@ -402,11 +402,15 @@ export default function ClientFastingPlansPreview() {
             {recommended && (
               <section className="space-y-3">
                 <SectionLabel>Recommended for you</SectionLabel>
-                <LionCard
+                <ProtocolBigCard
                   eyebrow={`${recommended.fast_hours}hr fasting`}
                   name={recommended.name}
                   desc={recommended.description ?? "Balanced window for most lifestyles."}
+                  bigNumber={recommended.fast_hours}
+                  fastHours={recommended.fast_hours}
+                  eatHours={24 - recommended.fast_hours}
                   locked={isLocked && assignedQuickId !== recommended.id}
+                  assigned={assignedQuickId === recommended.id}
                   onClick={() =>
                     navigate(
                       `/client/fasting-plan-detail-preview?type=quick&id=${recommended.id}`,
@@ -424,12 +428,16 @@ export default function ClientFastingPlansPreview() {
                   <SectionLabel>{TIER_LABEL[tier]}</SectionLabel>
                   <div className="space-y-3">
                     {items.map((p) => (
-                      <LionCard
+                      <ProtocolBigCard
                         key={p.id}
                         eyebrow={`${p.fast_hours}hr fasting`}
                         name={p.name}
                         desc={p.description}
+                        bigNumber={p.fast_hours}
+                        fastHours={p.fast_hours}
+                        eatHours={24 - p.fast_hours}
                         locked={isLocked && assignedQuickId !== p.id}
+                        assigned={assignedQuickId === p.id}
                         onClick={() =>
                           navigate(
                             `/client/fasting-plan-detail-preview?type=quick&id=${p.id}`,
