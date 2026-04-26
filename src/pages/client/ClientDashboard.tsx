@@ -836,7 +836,7 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
             <AlertDialogHeader>
               <AlertDialogTitle>End eating window early?</AlertDialogTitle>
               <AlertDialogDescription>
-                You still have {ewH > 0 ? `${ewH}h ` : ""}{ewM}m left in your eating window. Ending now will close the window and start your next fast.
+                You still have {ewH > 0 ? `${ewH}h ` : ""}{ewM}m left in your eating window. Ending now will close the window so you can choose your next fast.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
