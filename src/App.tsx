@@ -246,6 +246,7 @@ const App = () => (
           <Route path="/fasting-plans-preview" element={<ClientFastingPlansPreview />} />
           <Route path="/client/fasting-plan-detail-preview" element={<ProtectedRoute allowedRoles={["client", "trainer"]}><ClientFastingPlanDetailPreview /></ProtectedRoute>} />
           <Route path="/fasting-plan-detail-preview" element={<ClientFastingPlanDetailPreview />} />
+          <Route path="/preview/protocol-styles" element={<ProtocolStylesPreview />} />
           <Route path="/client/fast-complete" element={<ProtectedRoute allowedRoles={["client"]}><ClientFastComplete /></ProtectedRoute>} />
           <Route path="/client/vibes" element={<Navigate to="/client/dashboard" replace />} />
           <Route path="/client/labs" element={<Navigate to="/client/dashboard" replace />} />
