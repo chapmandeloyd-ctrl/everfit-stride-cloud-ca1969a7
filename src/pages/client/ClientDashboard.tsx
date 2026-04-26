@@ -659,13 +659,15 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
           </div>
 
 
-          {featureSettings.fast_lock_pin ? (
-            <HoldToEndButton onHoldComplete={() => setShowVerifyPin(true)} />
-          ) : (
-            <Button variant="destructive" className="w-full h-12 text-base" onClick={() => endFastMutation.mutate()}>
-              End Fast
-            </Button>
-          )}
+          <div className="mt-8">
+            {featureSettings.fast_lock_pin ? (
+              <HoldToEndButton onHoldComplete={() => setShowVerifyPin(true)} />
+            ) : (
+              <Button variant="destructive" className="w-full h-12 text-base" onClick={() => endFastMutation.mutate()}>
+                End Fast
+              </Button>
+            )}
+          </div>
 
           {/* PIN Dialogs */}
           <CreatePinDialog
