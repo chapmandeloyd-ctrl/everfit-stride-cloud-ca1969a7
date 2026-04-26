@@ -900,7 +900,10 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
   }
 
   // Not fasting — ready state
-  // Default to gold lion bg whenever no trainer/per-client image is set
+  // Gold lion is the universal default. Trainer's per-client image only
+  // overrides it when explicitly uploaded for THIS client (per-client setting).
+  // Universal trainer welcome-card photos are NOT used here — they cluttered
+  // the premium "Quiet Luxury" card.
   const fastingCardBg = featureSettings?.fasting_card_image_url || fastingCardBgImg;
   const ketoAccent = activeKetoType?.color || '#ef4444';
 
