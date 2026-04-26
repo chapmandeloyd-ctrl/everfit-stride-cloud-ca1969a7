@@ -28,7 +28,7 @@ export default function ClientDashboardMinimal() {
         {/* KSOM Smart Weight Tracker — Smart Pace banner + Health Dashboard */}
         {SHOW_WEIGHT_TRACKER && clientId && (
           <>
-            <SmartPaceBanner clientId={clientId} />
+            <SmartPaceBanner allowRender />
             <MyProgressSection clientId={clientId} />
           </>
         )}
