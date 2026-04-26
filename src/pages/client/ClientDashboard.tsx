@@ -822,7 +822,7 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
                 if (ewRemainingMs > 0) {
                   setShowEndEatingWindowConfirm(true);
                 } else {
-                  navigate("/client/complete-plan");
+                  navigate("/client/begin-reset");
                 }
               }}
             >
@@ -844,7 +844,7 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
               <AlertDialogAction
                 onClick={() => {
                   setShowEndEatingWindowConfirm(false);
-                  navigate("/client/complete-plan");
+                  navigate("/client/begin-reset");
                 }}
               >
                 Yes, choose next fast
