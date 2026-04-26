@@ -1013,7 +1013,7 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
             View Your Assigned Program
           </Button>
 
-          <div className="flex items-center justify-center gap-1.5">
+          <div className="flex items-center justify-between">
             <button
               type="button"
               onClick={() => navigate("/client/fasting-plans-preview")}
