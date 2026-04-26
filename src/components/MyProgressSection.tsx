@@ -11,12 +11,7 @@ interface Props {
   clientId: string;
 }
 
-/**
- * TEMPORARY — AI Snapshot button hidden on the dashboard while we
- * iterate on the new Start Here flow. The sheet itself is preserved
- * so it can be re-enabled by flipping SHOW_AI_SNAPSHOT back to true.
- */
-const SHOW_AI_SNAPSHOT = false;
+const SHOW_AI_SNAPSHOT = true;
 
 export function MyProgressSection({ clientId }: Props) {
   const { isNative, permissionGranted } = useNativeHealth();
