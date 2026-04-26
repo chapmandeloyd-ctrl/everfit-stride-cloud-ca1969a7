@@ -85,7 +85,6 @@ import ClientBeginReset from "./pages/client/ClientBeginReset";
 import ClientQuickPlans from "./pages/client/ClientQuickPlans";
 import ClientQuickPlanDetail from "./pages/client/ClientQuickPlanDetail";
 import ClientProtocolDetail from "./pages/client/ClientProtocolDetail";
-import ClientCompletePlan from "./pages/client/ClientCompletePlan";
 import ClientProtocolCardDemo from "./pages/client/ClientProtocolCardDemo";
 import ClientKetoTypeCardDemo from "./pages/client/ClientKetoTypeCardDemo";
 import ClientFastingPlansPreview from "./pages/client/ClientFastingPlansPreview";
@@ -236,7 +235,7 @@ const App = () => (
           <Route path="/client/quick-plans" element={<ProtectedRoute allowedRoles={["client"]}><FastingRouteGuard><ClientQuickPlans /></FastingRouteGuard></ProtectedRoute>} />
           <Route path="/client/quick-plan/:id" element={<ProtectedRoute allowedRoles={["client"]}><FastingRouteGuard><ClientQuickPlanDetail /></FastingRouteGuard></ProtectedRoute>} />
           <Route path="/client/protocol/:id" element={<Navigate to="/client/complete-plan" replace />} />
-          <Route path="/client/complete-plan" element={<ProtectedRoute allowedRoles={["client", "trainer"]}><ClientCompletePlan /></ProtectedRoute>} />
+          <Route path="/client/complete-plan" element={<ProtectedRoute allowedRoles={["client", "trainer"]}><ClientFastingPlanDetailPreview /></ProtectedRoute>} />
           <Route path="/client/protocol-card-demo" element={<ProtectedRoute allowedRoles={["client"]}><ClientProtocolCardDemo /></ProtectedRoute>} />
           {/* Trainer-accessible alias for previewing the protocol card demo without impersonation */}
           <Route path="/protocol-card-demo" element={<ClientProtocolCardDemo />} />
