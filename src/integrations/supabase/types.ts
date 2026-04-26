@@ -3864,6 +3864,45 @@ export type Database = {
         }
         Relationships: []
       }
+      fasting_webhook_log: {
+        Row: {
+          client_id: string
+          error: string | null
+          event_type: string
+          fired_at: string
+          id: string
+          reference_id: string
+          response_status: number | null
+          status: string
+          trainer_id: string
+          webhook_url: string | null
+        }
+        Insert: {
+          client_id: string
+          error?: string | null
+          event_type: string
+          fired_at?: string
+          id?: string
+          reference_id: string
+          response_status?: number | null
+          status?: string
+          trainer_id: string
+          webhook_url?: string | null
+        }
+        Update: {
+          client_id?: string
+          error?: string | null
+          event_type?: string
+          fired_at?: string
+          id?: string
+          reference_id?: string
+          response_status?: number | null
+          status?: string
+          trainer_id?: string
+          webhook_url?: string | null
+        }
+        Relationships: []
+      }
       fitness_goals: {
         Row: {
           client_id: string
@@ -6577,6 +6616,7 @@ export type Database = {
           subscription_status: string | null
           subscription_tier: Database["public"]["Enums"]["subscription_tier"]
           updated_at: string
+          zapier_webhook_url: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -6596,6 +6636,7 @@ export type Database = {
           subscription_status?: string | null
           subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
           updated_at?: string
+          zapier_webhook_url?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -6615,6 +6656,7 @@ export type Database = {
           subscription_status?: string | null
           subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
           updated_at?: string
+          zapier_webhook_url?: string | null
         }
         Relationships: []
       }

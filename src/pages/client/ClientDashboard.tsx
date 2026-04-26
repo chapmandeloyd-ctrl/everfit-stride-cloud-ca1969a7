@@ -360,6 +360,24 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
           ended_early: endedEarly,
         });
       }
+
+      // Fire Zapier webhook (fast_completed or fast_broken). Fire-and-forget;
+      // dedup is handled server-side by reference_id.
+      if (startAt && clientId) {
+        try {
+          supabase.functions.invoke("fire-zapier-webhook", {
+            body: {
+              client_id: clientId,
+              event_type: endedEarly ? "fast_broken" : "fast_completed",
+              reference_id: `${startAt}:${endedEarly ? "fast_broken" : "fast_completed"}`,
+              target_hours: targetHours,
+              actual_hours: actualHours,
+            },
+          });
+        } catch (e) {
+          console.warn("Zapier webhook invoke failed:", e);
+        }
+      }
     },
     onSuccess: () => {
       liveActivity.stop(); // Dismiss lock screen timer

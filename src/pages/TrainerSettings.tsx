@@ -11,6 +11,7 @@ import { WelcomeCardEditor } from "@/components/settings/WelcomeCardEditor";
 import { FastingCardEditor } from "@/components/settings/FastingCardEditor";
 import { DefaultDashboardLayoutEditor } from "@/components/settings/DefaultDashboardLayoutEditor";
 import { PdfBrandingEditor } from "@/components/settings/PdfBrandingEditor";
+import { ZapierWebhookCard } from "@/components/settings/ZapierWebhookCard";
 import { useState } from "react";
 
 export default function TrainerSettings() {
@@ -91,6 +92,9 @@ export default function TrainerSettings() {
 
         {/* PDF Export Branding (applies to all client PDF exports) */}
         <PdfBrandingEditor />
+
+        {/* Zapier webhook for fasting events */}
+        <ZapierWebhookCard />
 
         {/* Onboarding Flows Preview */}
         <OnboardingPreviewSection />
