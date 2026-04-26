@@ -64,6 +64,7 @@ export function AiSnapshotSheet({ open, onOpenChange, clientId }: Props) {
           : "Snapshot processed",
       );
       queryClient.invalidateQueries({ queryKey: ["health-activity-metrics"] });
+      queryClient.invalidateQueries({ queryKey: ["health-activity-metrics-summary"] });
       queryClient.invalidateQueries({ queryKey: ["activity-summary"] });
       queryClient.invalidateQueries({ queryKey: ["weight-entries"] });
       queryClient.invalidateQueries({ queryKey: ["latest-weight-minimal"] });

@@ -24,7 +24,7 @@ export function HealthDashboardCollapsible({ clientId }: Props) {
   const { user, loading } = useAuth();
 
   const { data: metrics } = useQuery({
-    queryKey: ["health-activity-metrics", clientId],
+    queryKey: ["health-activity-metrics-summary", clientId],
     enabled: !!clientId && !loading && !!user,
     queryFn: async (): Promise<Record<string, MetricSnapshot>> => {
       if (!clientId) return {};
