@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { X } from "lucide-react";
+import { X, Lock } from "lucide-react";
 import lionLogo from "@/assets/logo.png";
 import { supabase } from "@/integrations/supabase/client";
+import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 
 /**
  * Editorial Black & Gold preview of the entire KSOM fasting library.
@@ -47,11 +48,13 @@ function LionCard({
   name,
   desc,
   onClick,
+  locked = false,
 }: {
   eyebrow: string;
   name: string;
   desc: unknown;
   onClick?: () => void;
+  locked?: boolean;
 }) {
   // description may be a string OR a JSON object (e.g. { subtitle, focus, ... })
   let descText: string | null = null;
@@ -79,16 +82,25 @@ function LionCard({
         className="absolute -right-10 top-1/2 -translate-y-1/2 w-44 h-44 object-contain pointer-events-none"
         style={{
           filter: "sepia(1) hue-rotate(-15deg) saturate(2.5) brightness(1.2)",
-          opacity: 0.18,
+          opacity: locked ? 0.08 : 0.18,
         }}
       />
+      {locked && (
+        <div
+          className="absolute top-3 right-3 inline-flex items-center gap-1 px-2 py-1 rounded-full text-[9px] uppercase tracking-widest font-bold"
+          style={{ background: `${GOLD}15`, color: GOLD, border: `1px solid ${GOLD}50` }}
+        >
+          <Lock className="h-2.5 w-2.5" />
+          Locked
+        </div>
+      )}
       <div className="relative space-y-2.5 max-w-[62%]">
         <p className="text-[10px] uppercase tracking-[0.3em]" style={{ color: GOLD }}>
           {eyebrow}
         </p>
         <h3
           className="text-2xl font-light tracking-tight leading-tight"
-          style={{ color: IVORY, fontFamily: "Georgia, serif" }}
+          style={{ color: locked ? MUTED : IVORY, fontFamily: "Georgia, serif" }}
         >
           {name}
         </h3>
@@ -112,7 +124,28 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 
 export default function ClientFastingPlansPreview() {
   const navigate = useNavigate();
+  const clientId = useEffectiveClientId();
   const [tab, setTab] = useState<"windows" | "programs">("windows");
+
+  // Pull the client's current assignment + lock state so we can mark every
+  // card the admin has NOT assigned as locked.
+  const { data: featureSettings } = useQuery({
+    queryKey: ["preview-feature-settings", clientId],
+    queryFn: async () => {
+      if (!clientId) return null;
+      const { data } = await supabase
+        .from("client_feature_settings")
+        .select("selected_protocol_id, selected_quick_plan_id, lock_client_plan_choice")
+        .eq("client_id", clientId)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!clientId,
+  });
+
+  const isLocked = !!featureSettings?.lock_client_plan_choice;
+  const assignedQuickId = featureSettings?.selected_quick_plan_id ?? null;
+  const assignedProtocolId = featureSettings?.selected_protocol_id ?? null;
 
   const { data: quickPlans = [], isLoading: loadingQ } = useQuery({
     queryKey: ["preview-quick-plans"],
@@ -210,6 +243,7 @@ export default function ClientFastingPlansPreview() {
                   eyebrow={`${recommended.fast_hours}hr fasting`}
                   name={recommended.name}
                   desc={recommended.description ?? "Balanced window for most lifestyles."}
+                  locked={isLocked && assignedQuickId !== recommended.id}
                   onClick={() =>
                     navigate(
                       `/client/fasting-plan-detail-preview?type=quick&id=${recommended.id}`,
@@ -232,6 +266,7 @@ export default function ClientFastingPlansPreview() {
                         eyebrow={`${p.fast_hours}hr fasting`}
                         name={p.name}
                         desc={p.description}
+                        locked={isLocked && assignedQuickId !== p.id}
                         onClick={() =>
                           navigate(
                             `/client/fasting-plan-detail-preview?type=quick&id=${p.id}`,
@@ -264,6 +299,7 @@ export default function ClientFastingPlansPreview() {
                     eyebrow={eyebrow}
                     name={p.name}
                     desc={p.description}
+                    locked={isLocked && assignedProtocolId !== p.id}
                     onClick={() =>
                       navigate(
                         `/client/fasting-plan-detail-preview?type=program&id=${p.id}`,

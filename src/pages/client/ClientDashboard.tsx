@@ -1046,15 +1046,38 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
             View Your Assigned Program
           </Button>
 
-          {/* Coach-assigned plan strip — gold pills wired to live admin assignments */}
+          {/* Gold pills — View Protocol + View Keto Type. Always present.
+              If admin has an assignment, they deep-link to the assigned detail page
+              (with big-numbers gold lion layout). Otherwise they open the browse
+              library where every card is locked except the assigned one. */}
           {(() => {
             const isLocked = !!featureSettings?.lock_client_plan_choice;
             const hasAssignedPlan = !!(
               featureSettings?.selected_protocol_id || featureSettings?.selected_quick_plan_id
             );
-            const protocolHref = hasAssignedPlan ? "/client/complete-plan" : null;
-            const ketoHref = activeKetoType?.id ? `/client/keto-types/${activeKetoType.id}` : null;
-            const ketoLabel = activeKetoType?.id ? "View my keto type" : "View keto type";
+            const protocolHref = hasAssignedPlan
+              ? "/client/complete-plan"
+              : "/client/fasting-plans-preview";
+            const ketoHref = activeKetoType?.id
+              ? `/client/keto-types/${activeKetoType.id}`
+              : "/client/keto-types";
+
+            const PillButton = ({
+              label,
+              onClick,
+            }: {
+              label: string;
+              onClick: () => void;
+            }) => (
+              <button
+                type="button"
+                onClick={onClick}
+                className="flex-1 h-8 rounded-full px-3 inline-flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wide bg-gradient-to-b from-amber-300 via-yellow-400 to-amber-600 text-black shadow-[0_1px_6px_-1px_rgba(251,191,36,0.5)] ring-1 ring-amber-300/70 hover:brightness-110 active:scale-[0.98] transition"
+              >
+                {isLocked && <Shield className="h-3 w-3" />}
+                {label}
+              </button>
+            );
 
             return (
               <div className="space-y-2">
@@ -1065,24 +1088,8 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
                   </div>
                 )}
                 <div className="flex items-center justify-between gap-2">
-                  {protocolHref && (
-                    <button
-                      type="button"
-                      onClick={() => navigate(protocolHref)}
-                      className="h-7 rounded-full px-3 text-[10px] font-bold uppercase tracking-wide bg-gradient-to-b from-amber-300 via-yellow-400 to-amber-600 text-black shadow-[0_1px_6px_-1px_rgba(251,191,36,0.5)] ring-1 ring-amber-300/70 hover:brightness-110 active:scale-[0.98] transition"
-                    >
-                      View assigned plan
-                    </button>
-                  )}
-                  {ketoHref && (
-                    <button
-                      type="button"
-                      onClick={() => navigate(ketoHref)}
-                      className="h-7 rounded-full px-3 text-[10px] font-bold uppercase tracking-wide bg-gradient-to-b from-amber-300 via-yellow-400 to-amber-600 text-black shadow-[0_1px_6px_-1px_rgba(251,191,36,0.5)] ring-1 ring-amber-300/70 hover:brightness-110 active:scale-[0.98] transition"
-                    >
-                      {ketoLabel}
-                    </button>
-                  )}
+                  <PillButton label="View Protocol" onClick={() => navigate(protocolHref)} />
+                  <PillButton label="View Keto Type" onClick={() => navigate(ketoHref)} />
                 </div>
               </div>
             );
