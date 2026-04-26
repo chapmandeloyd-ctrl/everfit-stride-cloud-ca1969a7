@@ -900,56 +900,66 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
   }
 
   // Not fasting — ready state
-  const fastingCardBg = featureSettings?.fasting_card_image_url;
-  const hasBg = !!fastingCardBg;
+  // Default to gold lion bg whenever no trainer/per-client image is set
+  const fastingCardBg = featureSettings?.fasting_card_image_url || fastingCardBgImg;
+  const ketoAccent = activeKetoType?.color || '#ef4444';
 
   return (
     <>
       <Card className="overflow-hidden border-0 shadow-lg relative">
-        {/* Background image */}
-        {hasBg && (
-          <>
-            <div
-              className="absolute inset-0 bg-cover bg-center"
-              style={{ backgroundImage: `url(${fastingCardBg})` }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/40" />
-          </>
-        )}
-        {!hasBg && <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 to-black" />}
+        {/* Hybrid background: photo + animated keto color wash */}
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(${fastingCardBg})` }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/60 to-black/40" />
+        <div
+          className="absolute -inset-10 animate-[pulse_5s_ease-in-out_infinite] pointer-events-none"
+          style={{
+            background: `radial-gradient(60% 50% at 80% 20%, ${ketoAccent}55, transparent 70%)`,
+            mixBlendMode: 'screen',
+          }}
+        />
 
-        <CardContent className="relative z-10 px-5 pt-8 pb-6 space-y-4 text-white">
-          <div className="flex items-start justify-between">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <p className="text-xs font-bold text-white/70 uppercase tracking-wider">{isMaintenanceMode ? "Maintenance Schedule" : "Fasting Protocol"}</p>
-                {isCoachAssigned && !isMaintenanceMode && (
-                  <Badge className="text-[10px] px-2 py-0.5 bg-primary/20 text-primary border border-primary/30 hover:bg-primary/20 font-semibold">
-                    Coach Assigned
-                  </Badge>
-                )}
-              </div>
-              <h3 className="text-lg font-black mt-0.5 text-white">{isMaintenanceMode ? (maintenanceLabel || "Maintenance") : planName}</h3>
+        <CardContent className="relative z-10 px-5 pt-7 pb-6 space-y-5 text-white">
+          {/* Quiet Luxury header */}
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[10px] font-medium text-white/50 uppercase tracking-[0.25em]">
+                {isMaintenanceMode ? "Maintenance Schedule" : "Fasting Protocol"}
+              </p>
+              <h3 className="text-3xl font-light text-white tracking-tight mt-1 truncate drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
+                {isMaintenanceMode ? (maintenanceLabel || "Maintenance") : planName}
+              </h3>
               {activeKetoType && !isMaintenanceMode && (
-                <div className="flex items-center gap-2 mt-1">
-                  <div
-                    className="h-5 w-auto px-2 rounded-full flex items-center gap-1.5 text-[10px] font-bold"
-                    style={{ backgroundColor: `${activeKetoType.color || '#ef4444'}20`, color: activeKetoType.color || '#ef4444' }}
-                  >
-                    {activeKetoType.abbreviation}
-                    <span className="text-white/50">·</span>
-                    <span className="text-white/70 font-medium">{activeKetoType.name}</span>
-                  </div>
+                <div className="flex items-center gap-2 mt-2 text-xs">
+                  <span className="font-bold" style={{ color: ketoAccent }}>{activeKetoType.abbreviation}</span>
+                  <span className="text-white/30">·</span>
+                  <span className="text-white/70 truncate">{activeKetoType.name}</span>
                 </div>
+              )}
+              {isCoachAssigned && !isMaintenanceMode && (
+                <Badge className="mt-2 text-[10px] px-2 py-0.5 bg-primary/20 text-primary border border-primary/30 hover:bg-primary/20 font-semibold">
+                  Coach Assigned
+                </Badge>
               )}
             </div>
             {hasDuration && !isMaintenanceMode && (
-              <Badge variant="outline" className="text-xs font-bold px-3 py-1 rounded-full shrink-0 border-white/30 text-white bg-white/10">
-                Day {dayNumber} / {activeProtocol!.duration_days}
-              </Badge>
+              <div className="text-right shrink-0">
+                <p className="text-[9px] uppercase tracking-wider text-white/40 font-medium">Day</p>
+                <p className="text-lg font-light text-white tabular-nums">
+                  {dayNumber}<span className="text-white/40">/{activeProtocol!.duration_days}</span>
+                </p>
+              </div>
             )}
-            {isMaintenanceMode && <Badge variant="outline" className="text-xs border-white/30 text-white bg-white/10">Maintenance</Badge>}
+            {isMaintenanceMode && <Badge variant="outline" className="text-xs border-white/30 text-white bg-white/10 shrink-0">Maintenance</Badge>}
           </div>
+
+          {/* Single accent line in keto color */}
+          <div
+            className="h-px w-full"
+            style={{ background: `linear-gradient(90deg, transparent, ${ketoAccent}80, transparent)` }}
+          />
 
           {/* Day progress sub-card */}
           {hasDuration && !isMaintenanceMode && dayNumber >= activeProtocol!.duration_days ? (
@@ -967,50 +977,65 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
             </div>
           ) : null}
 
-          {/* Stats row — show for both protocols and quick plans */}
+          {/* Stats row — 4 tiles: Fasted · Macros · Day · Level */}
           {(hasProtocol || hasQuickPlan) && !isMaintenanceMode && (() => {
             const fastHours = activeProtocol?.fast_target_hours || activeQuickPlan?.fast_hours || 16;
             const diffLevel = activeProtocol?.difficulty_level || activeQuickPlan?.intensity_tier || "beginner";
+            const totalDays = activeProtocol?.duration_days;
             return (
-              <div className="grid grid-cols-3 gap-2">
+              <div className={`grid ${totalDays ? 'grid-cols-4' : 'grid-cols-3'} gap-2`}>
                 {/* Fast tile */}
-                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-2.5 text-center border border-white/10">
-                  <Clock className="h-4 w-4 mx-auto text-white/50 mb-1" />
-                  <p className="text-sm font-black text-white leading-tight">{todayFastLog ? `${Math.round(todayFastLog.actual_hours)}h` : `${fastHours}h`}</p>
-                  <p className="text-[9px] text-white/50 uppercase tracking-wider font-medium mt-0.5">{todayFastLog ? "Fasted" : "Fast"}</p>
+                <div className="bg-white/10 backdrop-blur-md rounded-xl p-2 text-center border border-white/15 min-w-0">
+                  <Clock className="h-4 w-4 mx-auto text-white/60 mb-1" />
+                  <p className="text-sm font-black text-white leading-tight tabular-nums">{todayFastLog ? `${Math.round(todayFastLog.actual_hours)}h` : `${fastHours}h`}</p>
+                  <p className="text-[9px] text-white/60 uppercase tracking-wider font-medium mt-0.5">{todayFastLog ? "Fasted" : "Fast"}</p>
                 </div>
                 {/* Keto macro tile */}
-                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-2.5 text-center border border-white/10">
+                <div className="bg-white/10 backdrop-blur-md rounded-xl p-2 text-center border border-white/15 min-w-0 flex flex-col items-center justify-center">
                   {activeKetoType ? (
                     <>
-                      <p className="text-xs font-black leading-tight drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]" style={{ color: activeKetoType.color || '#ef4444', textShadow: `0 0 8px ${activeKetoType.color || '#ef4444'}80` }}>{activeKetoType.abbreviation}</p>
-                      <p className="text-sm font-black text-white leading-tight mt-0.5">{activeKetoType.fat_pct}/{activeKetoType.protein_pct}/{activeKetoType.carbs_pct}</p>
-                      <p className="text-[9px] text-white/50 uppercase tracking-wider font-medium mt-0.5">F / P / C</p>
+                      <p
+                        className="text-[10px] font-black leading-tight text-center w-full"
+                        style={{ color: ketoAccent, textShadow: `0 0 8px ${ketoAccent}80` }}
+                      >
+                        {activeKetoType.abbreviation}
+                      </p>
+                      <p className="text-[11px] font-black text-white leading-tight mt-0.5 tabular-nums text-center">
+                        {activeKetoType.fat_pct}/{activeKetoType.protein_pct}/{activeKetoType.carbs_pct}
+                      </p>
+                      <p className="text-[9px] text-white/60 uppercase tracking-wider font-medium mt-0.5 text-center">F/P/C</p>
                     </>
                   ) : (
                     <>
-                      <CalendarDays className="h-4 w-4 mx-auto text-white/50 mb-1" />
+                      <CalendarDays className="h-4 w-4 mx-auto text-white/60 mb-1" />
                       <p className="text-sm font-black text-white leading-tight">--</p>
-                      <p className="text-[9px] text-white/50 uppercase tracking-wider font-medium mt-0.5">Macros</p>
+                      <p className="text-[9px] text-white/60 uppercase tracking-wider font-medium mt-0.5">Macros</p>
                     </>
                   )}
                 </div>
+                {/* Day tile (only when protocol has total days) */}
+                {totalDays && (
+                  <div className="bg-white/10 backdrop-blur-md rounded-xl p-2 text-center border border-white/15 min-w-0">
+                    <CalendarDays className="h-4 w-4 mx-auto text-white/60 mb-1" />
+                    <p className="text-sm font-black text-white leading-tight tabular-nums">{dayNumber}/{totalDays}</p>
+                    <p className="text-[9px] text-white/60 uppercase tracking-wider font-medium mt-0.5">Day</p>
+                  </div>
+                )}
                 {/* Level tile */}
-                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-2.5 text-center border border-white/10">
-                  <BarChart3 className="h-4 w-4 mx-auto text-white/50 mb-1" />
-                  <p className="text-sm font-black text-white leading-tight">{getDifficultyLabel(diffLevel)}</p>
-                  <p className="text-[9px] text-white/50 uppercase tracking-wider font-medium mt-0.5">Level</p>
+                <div className="bg-white/10 backdrop-blur-md rounded-xl p-2 text-center border border-white/15 min-w-0 overflow-hidden">
+                  <BarChart3 className="h-4 w-4 mx-auto text-white/60 mb-1" />
+                  <p className="text-[11px] font-black text-white leading-tight truncate">{getDifficultyLabel(diffLevel)}</p>
+                  <p className="text-[9px] text-white/60 uppercase tracking-wider font-medium mt-0.5">Level</p>
                 </div>
               </div>
             );
           })()}
 
           <Button
-            className="w-full h-12 text-base font-semibold gap-2 bg-white/15 hover:bg-white/25 text-white border border-white/20 backdrop-blur-sm"
             variant="ghost"
+            className="w-full h-11 text-sm font-medium gap-2 bg-white/5 hover:bg-white/10 text-white border border-white/10 backdrop-blur-md"
             onClick={() => navigate("/client/complete-plan")}
           >
-            <Clock className="h-4 w-4" />
             View Your Assigned Program
           </Button>
 
