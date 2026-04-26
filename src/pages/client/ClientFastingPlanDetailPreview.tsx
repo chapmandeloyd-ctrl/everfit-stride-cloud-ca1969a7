@@ -1452,8 +1452,48 @@ function DemoBlock({
 export default function ClientFastingPlanDetailPreview() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const planType = (params.get("type") ?? "quick") as "quick" | "program";
-  const planId = params.get("id");
+  const clientId = useEffectiveClientId();
+
+  const { data: featureSettings } = useQuery({
+    queryKey: ["fasting-detail-feature-settings", clientId],
+    enabled: !!clientId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("client_feature_settings")
+        .select("selected_protocol_id, selected_quick_plan_id")
+        .eq("client_id", clientId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const routePlanType = params.get("type") as "quick" | "program" | null;
+  const routePlanId = params.get("id");
+  const assignedPlanType = featureSettings?.selected_protocol_id
+    ? "program"
+    : featureSettings?.selected_quick_plan_id
+      ? "quick"
+      : null;
+  const assignedPlanId = featureSettings?.selected_protocol_id ?? featureSettings?.selected_quick_plan_id ?? null;
+
+  const planType = (routePlanType ?? assignedPlanType ?? "quick") as "quick" | "program";
+  const planId = routePlanId ?? assignedPlanId;
+
+  const { data: ketoAssignment } = useQuery({
+    queryKey: ["fasting-detail-keto-assignment", clientId],
+    enabled: !!clientId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("client_keto_assignments")
+        .select("keto_type_id, keto_types(id, abbreviation, name)")
+        .eq("client_id", clientId!)
+        .eq("is_active", true)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const { data: quickPlan } = useQuery({
     queryKey: ["fasting-detail-quick", planId],
@@ -1484,6 +1524,8 @@ export default function ClientFastingPlanDetailPreview() {
       return data;
     },
   });
+
+  const assignedKeto = ketoAssignment?.keto_types as { id: string; abbreviation: string; name: string } | null;
 
   const plan: PlanView = useMemo(() => {
     if (planType === "quick" && quickPlan) {
@@ -1535,6 +1577,8 @@ export default function ClientFastingPlanDetailPreview() {
     };
   }, [planType, quickPlan, program]);
 
+  const defaultKetoId = assignedKeto?.id ? assignedKeto.id.toLowerCase() : "skd";
+
   return (
     <div className="min-h-screen pb-24" style={{ background: BLACK }}>
       <header className="flex items-center justify-between px-5 py-5">
@@ -1564,7 +1608,7 @@ export default function ClientFastingPlanDetailPreview() {
         <DemoBlock
           tabsVariant="explore"
           coachVariant="trainer"
-          defaultActive="skd"
+          defaultActive={defaultKetoId}
           fastHours={plan.fastHours}
           planName={plan.name}
           planType={planType}
