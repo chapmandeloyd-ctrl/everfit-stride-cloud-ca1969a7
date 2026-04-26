@@ -1,6 +1,6 @@
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Zap, Flame, Utensils, Dumbbell, Scale } from "lucide-react";
+import { Zap, Flame, Utensils, Dumbbell, Scale, Lock } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -42,7 +42,7 @@ export function QuickControlPanel({ clientId, trainerId }: Props) {
     queryFn: async () => {
       const [settingsRes, ketoRes] = await Promise.all([
         supabase.from("client_feature_settings")
-          .select("fasting_enabled, selected_protocol_id, macros_enabled, training_enabled, smart_pace_enabled")
+          .select("fasting_enabled, selected_protocol_id, macros_enabled, training_enabled, smart_pace_enabled, lock_client_plan_choice")
           .eq("client_id", clientId)
           .maybeSingle(),
         supabase.from("client_keto_assignments")
@@ -58,6 +58,7 @@ export function QuickControlPanel({ clientId, trainerId }: Props) {
         smart_pace_enabled: settingsRes.data?.smart_pace_enabled ?? false,
         selected_protocol_id: settingsRes.data?.selected_protocol_id || null,
         keto_type_id: ketoRes.data?.keto_type_id || null,
+        lock_client_plan_choice: settingsRes.data?.lock_client_plan_choice ?? false,
       };
     },
   });
@@ -103,6 +104,20 @@ export function QuickControlPanel({ clientId, trainerId }: Props) {
       queryClient.invalidateQueries({ queryKey: ["quick-control-settings", clientId] });
       queryClient.invalidateQueries({ queryKey: ["client-health-scores"] });
       toast({ title: "Protocol assigned" });
+    },
+  });
+
+  const lockChoiceMutation = useMutation({
+    mutationFn: async (value: boolean) => {
+      const { error } = await supabase
+        .from("client_feature_settings")
+        .update({ lock_client_plan_choice: value })
+        .eq("client_id", clientId);
+      if (error) throw error;
+    },
+    onSuccess: (_, value) => {
+      queryClient.invalidateQueries({ queryKey: ["quick-control-settings", clientId] });
+      toast({ title: value ? "Coach-only assignment ON" : "Client choice unlocked" });
     },
   });
 
@@ -180,6 +195,26 @@ export function QuickControlPanel({ clientId, trainerId }: Props) {
             </Select>
           </div>
         </div>
+
+        {/* Coach-only assignment lock */}
+        <label
+          htmlFor={`${clientId}-lock-plan`}
+          className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-background border border-border/60 cursor-pointer hover:border-primary/50 transition-colors"
+        >
+          <div className="flex items-center gap-2 min-w-0">
+            <Lock className={`h-3.5 w-3.5 shrink-0 ${settings?.lock_client_plan_choice ? "text-primary" : "text-muted-foreground"}`} />
+            <div className="min-w-0">
+              <div className="text-xs font-semibold truncate">Coach-only plan assignment</div>
+              <div className="text-[10px] text-muted-foreground truncate">Locks client from picking their own protocol / keto type</div>
+            </div>
+          </div>
+          <Switch
+            id={`${clientId}-lock-plan`}
+            checked={settings?.lock_client_plan_choice ?? false}
+            onCheckedChange={(v) => lockChoiceMutation.mutate(v)}
+            className="scale-75 shrink-0"
+          />
+        </label>
       </div>
     </div>
   );
