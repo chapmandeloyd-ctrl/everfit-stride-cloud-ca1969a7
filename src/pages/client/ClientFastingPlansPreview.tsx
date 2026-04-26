@@ -129,6 +129,8 @@ function ProtocolBigCard({
   bigNumber,
   fastHours,
   eatHours,
+  eatValue,
+  eatLabel,
   locked = false,
   assigned = false,
   onClick,
@@ -139,6 +141,10 @@ function ProtocolBigCard({
   bigNumber: number | string | null;
   fastHours: number | null;
   eatHours: number | null;
+  /** Optional override for the right-hand stat (e.g. "5" for days). */
+  eatValue?: string | number | null;
+  /** Optional label override for the right-hand stat (e.g. "Days"). */
+  eatLabel?: string;
   locked?: boolean;
   assigned?: boolean;
   onClick?: () => void;
@@ -231,7 +237,7 @@ function ProtocolBigCard({
         )}
 
         {/* Bottom stats row */}
-        {(fastHours || eatHours) && (
+        {(fastHours || eatHours || eatValue) && (
           <div className="flex items-baseline gap-5 mt-auto pt-6">
             {fastHours ? (
               <div className="flex items-baseline gap-2">
@@ -254,10 +260,30 @@ function ProtocolBigCard({
                 </span>
               </div>
             ) : null}
-            {fastHours && eatHours ? (
+            {fastHours && (eatHours || eatValue) ? (
               <span style={{ color: MUTED }}>·</span>
             ) : null}
-            {eatHours ? (
+            {eatValue ? (
+              <div className="flex items-baseline gap-2">
+                <span
+                  className="font-bold"
+                  style={{
+                    color: IVORY,
+                    fontFamily: "Georgia, serif",
+                    fontSize: "28px",
+                    lineHeight: 1,
+                  }}
+                >
+                  {eatValue}
+                </span>
+                <span
+                  className="text-[10px] uppercase tracking-[0.25em]"
+                  style={{ color: MUTED }}
+                >
+                  {eatLabel ?? "Days"}
+                </span>
+              </div>
+            ) : eatHours ? (
               <div className="flex items-baseline gap-2">
                 <span
                   className="font-bold"
