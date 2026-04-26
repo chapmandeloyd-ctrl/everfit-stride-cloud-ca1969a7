@@ -1,14 +1,13 @@
 import { useState } from "react";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { useQuery } from "@tanstack/react-query";
 import {
-  TrendingUp,
-  AlertTriangle,
-  Target,
+  Scale,
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
 import { useSmartPace } from "@/hooks/useSmartPace";
+import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
+import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { SmartPaceBanner } from "./SmartPaceBanner";
 
@@ -19,61 +18,67 @@ import { SmartPaceBanner } from "./SmartPaceBanner";
  */
 export function SmartPaceCollapsible() {
   const { data } = useSmartPace();
+  const clientId = useEffectiveClientId();
   const [open, setOpen] = useState(false);
+
+  // Latest weight entry — for compact "now" reading on the card face.
+  const { data: latestWeight } = useQuery({
+    queryKey: ["smart-pace-collapsible-latest-weight", clientId],
+    enabled: !!clientId,
+    queryFn: async () => {
+      if (!clientId) return null;
+      const { data: defs } = await supabase
+        .from("metric_definitions")
+        .select("id")
+        .eq("name", "Weight")
+        .limit(1);
+      const defId = defs?.[0]?.id;
+      if (!defId) return null;
+      const { data: cm } = await supabase
+        .from("client_metrics")
+        .select("id")
+        .eq("client_id", clientId)
+        .eq("metric_definition_id", defId)
+        .limit(1);
+      const cmId = cm?.[0]?.id;
+      if (!cmId) return null;
+      const { data: entry } = await supabase
+        .from("metric_entries")
+        .select("value")
+        .eq("client_metric_id", cmId)
+        .order("recorded_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return entry?.value ?? null;
+    },
+    staleTime: 30_000,
+  });
 
   if (!data?.enabled || !data.goal) return null;
 
-  const { goal, todayTargetLbs, status, progressPct, debtLbs, creditLbs } = data;
+  const { todayTargetLbs, status, progressPct } = data;
 
   const tone =
     status === "behind" || status === "missed"
       ? {
-          gradient:
-            "bg-[linear-gradient(135deg,hsl(0_0%_18%)_0%,hsl(0_0%_12%)_45%,hsl(0_60%_22%)_100%)]",
-          border: "border-destructive/40",
-          glow: "shadow-[0_8px_32px_-8px_hsl(var(--destructive)/0.5)]",
-          icon: AlertTriangle,
+          iconBg: "bg-destructive/10",
           iconColor: "text-destructive",
-          badge: "bg-destructive text-destructive-foreground",
-          progress: "bg-gradient-to-r from-destructive via-red-400 to-destructive",
-          dot: "bg-destructive shadow-[0_0_10px_hsl(var(--destructive))]",
+          pill: "bg-destructive/15 text-destructive ring-destructive/30",
+          label: status === "missed" ? "Catch up" : "Behind",
         }
       : status === "ahead"
       ? {
-          gradient:
-            "bg-[linear-gradient(135deg,hsl(215_25%_20%)_0%,hsl(215_30%_14%)_45%,hsl(200_70%_28%)_100%)]",
-          border: "border-sky-500/40",
-          glow: "shadow-[0_8px_32px_-8px_hsl(200_85%_50%/0.5)]",
-          icon: TrendingUp,
-          iconColor: "text-sky-300",
-          badge: "bg-sky-500 text-white",
-          progress: "bg-gradient-to-r from-sky-500 via-cyan-300 to-sky-500",
-          dot: "bg-sky-400 shadow-[0_0_10px_hsl(200_85%_60%)]",
+          iconBg: "bg-sky-500/10",
+          iconColor: "text-sky-500",
+          pill: "bg-sky-500/15 text-sky-600 dark:text-sky-300 ring-sky-500/30",
+          label: "Ahead",
         }
       : {
-          gradient:
-            "bg-[linear-gradient(135deg,hsl(150_15%_18%)_0%,hsl(150_20%_12%)_45%,hsl(150_55%_22%)_100%)]",
-          border: "border-emerald-500/40",
-          glow: "shadow-[0_8px_32px_-8px_hsl(150_75%_45%/0.5)]",
-          icon: Target,
-          iconColor: "text-emerald-300",
-          badge: "bg-emerald-500 text-white",
-          progress: "bg-gradient-to-r from-emerald-500 via-green-300 to-emerald-500",
-          dot: "bg-emerald-400 shadow-[0_0_10px_hsl(150_75%_55%)]",
+          iconBg: "bg-amber-400/15",
+          iconColor: "text-amber-500",
+          pill: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 ring-emerald-500/30",
+          label: "On pace",
         };
-
-  const Icon = tone.icon;
-  const headline =
-    status === "missed"
-      ? "Catch-up needed"
-      : status === "behind"
-      ? "Catch-up day"
-      : status === "ahead"
-      ? "Ahead of pace"
-      : "On pace";
-
-  const startWeight = goal.start_weight;
-  const goalWeight = goal.goal_weight;
 
   if (open) {
     return (
@@ -90,110 +95,38 @@ export function SmartPaceCollapsible() {
     );
   }
 
+  // Compact summary line (matches the reference screenshot height).
+  const summary =
+    latestWeight !== null && latestWeight !== undefined
+      ? `${todayTargetLbs.toFixed(1)} lb today · ${latestWeight.toFixed(1)} now · ${Math.round(progressPct)}%`
+      : `${todayTargetLbs.toFixed(1)} lb today · ${Math.round(progressPct)}%`;
+
   return (
-    <Card
+    <button
+      type="button"
       onClick={() => setOpen(true)}
-      className={cn(
-        "relative overflow-hidden border p-4 text-white cursor-pointer transition-all hover:scale-[1.005] active:scale-[0.99]",
-        tone.gradient,
-        tone.border,
-        tone.glow
-      )}
+      className="w-full flex items-center gap-3 rounded-2xl border border-border bg-card p-3 text-left transition hover:bg-muted/40 active:scale-[0.995]"
     >
-      {/* Granite noise texture */}
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.18] mix-blend-overlay"
-        style={{
-          backgroundImage:
-            "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.6 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
-        }}
-      />
-
-      {/* Status mood-ring dot */}
-      <div className="absolute top-3 right-10 flex items-center gap-1.5 z-10">
-        <span className="relative flex h-2.5 w-2.5">
-          <span className={cn("absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping", tone.dot)} />
-          <span className={cn("relative inline-flex h-2.5 w-2.5 rounded-full", tone.dot)} />
-        </span>
+      <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-xl", tone.iconBg)}>
+        <Scale className={cn("h-5 w-5", tone.iconColor)} />
       </div>
-
-      {/* Expand chevron */}
-      <div className="absolute top-3 right-3 z-10 text-white/70">
-        <ChevronDown className="h-4 w-4" />
-      </div>
-
-      <div className="relative flex items-start gap-3">
-        <div className={cn("rounded-full p-2 bg-black/30 backdrop-blur-sm ring-1 ring-white/10", tone.iconColor)}>
-          <Icon className="h-5 w-5" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs font-semibold uppercase tracking-wide text-white/60">
-              Smart Pace
-            </span>
-            <Badge className={cn("text-[10px] uppercase shadow-md", tone.badge)}>{headline}</Badge>
-          </div>
-          <h3 className="font-heading font-bold text-2xl mt-1 drop-shadow-sm">
-            {todayTargetLbs.toFixed(1)}{" "}
-            <span className="text-base font-medium text-white/60">lb today</span>
-          </h3>
-        </div>
-      </div>
-
-      {/* Start → Goal weight strip */}
-      <div className="relative mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-2 rounded-xl bg-black/30 ring-1 ring-white/10 p-2.5">
-        <div className="text-left">
-          <p className="text-[10px] uppercase tracking-wide text-white/50">Start</p>
-          <p className="font-heading font-bold text-base text-white leading-tight">
-            {startWeight !== null ? `${startWeight.toFixed(1)} lb` : "—"}
-          </p>
-        </div>
-        <div className="h-px w-5 bg-white/20" aria-hidden="true" />
-        <div className="text-right">
-          <p className="text-[10px] uppercase tracking-wide text-white/50">Goal</p>
-          <p className="font-heading font-bold text-base text-white leading-tight">
-            {goalWeight.toFixed(1)} lb
-          </p>
-        </div>
-      </div>
-
-      {/* Progress bar */}
-      <div className="relative mt-3">
-        <div className="flex justify-between items-center mb-1">
-          <span className="text-[11px] text-white/60">Goal progress</span>
-          <span className="text-[11px] font-semibold text-white">{Math.round(progressPct)}%</span>
-        </div>
-        <div className="h-2 rounded-full bg-black/40 overflow-hidden ring-1 ring-white/10 shadow-inner">
-          <div
-            className={cn("h-full transition-all shadow-[0_0_12px_rgba(255,255,255,0.4)]", tone.progress)}
-            style={{ width: `${progressPct}%` }}
-          />
-        </div>
-      </div>
-
-      {/* Quick debt/credit pill */}
-      {(debtLbs > 0 || creditLbs > 0) && (
-        <div className="relative mt-3 flex items-center justify-center">
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-bold uppercase tracking-wide text-foreground">
+            Weight Tracker
+          </span>
           <span
             className={cn(
-              "text-[11px] font-semibold uppercase tracking-wide rounded-full px-3 py-1 ring-1",
-              debtLbs > 0
-                ? "bg-destructive/20 text-destructive ring-destructive/40"
-                : "bg-emerald-500/20 text-emerald-200 ring-emerald-500/40"
+              "text-[10px] font-semibold uppercase tracking-wide rounded-full px-1.5 py-0.5 ring-1",
+              tone.pill
             )}
           >
-            {debtLbs > 0
-              ? `${debtLbs.toFixed(1)} lb behind`
-              : `${creditLbs.toFixed(1)} lb ahead`}
+            {tone.label}
           </span>
         </div>
-      )}
-
-      {/* Tap-to-expand hint */}
-      <div className="relative mt-3 flex items-center justify-center gap-1 text-[10px] uppercase tracking-wide text-white/50">
-        <ChevronDown className="h-3 w-3" />
-        Tap for journal &amp; my why
+        <p className="text-sm text-muted-foreground truncate">{summary}</p>
       </div>
-    </Card>
+      <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+    </button>
   );
 }
