@@ -97,6 +97,7 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
   const [showVerifyPin, setShowVerifyPin] = useState(false);
   const [showCompletion, setShowCompletion] = useState(false);
   const [showEndEatingWindowConfirm, setShowEndEatingWindowConfirm] = useState(false);
+  const [showCloseEatingWindowConfirm, setShowCloseEatingWindowConfirm] = useState(false);
   const liveActivity = useLiveActivity();
   const { toast } = useToast();
 
@@ -820,7 +821,7 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
                 <Button
                   variant="destructive"
                   className="w-full h-12 text-base font-bold"
-                  onClick={() => setShowEndEatingWindowConfirm(true)}
+                  onClick={() => setShowCloseEatingWindowConfirm(true)}
                 >
                   <Clock className="h-4 w-4 mr-2" /> End Eating Window
                 </Button>
@@ -859,6 +860,36 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
                 }}
               >
                 Yes, choose next fast
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog open={showCloseEatingWindowConfirm} onOpenChange={setShowCloseEatingWindowConfirm}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>End eating window?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Ending will close your eating window and take you back to your home screen.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={async () => {
+                  setShowCloseEatingWindowConfirm(false);
+                  if (!clientId) return;
+                  await supabase
+                    .from("client_feature_settings")
+                    .update({ eating_window_ends_at: null })
+                    .eq("client_id", clientId);
+                  queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting", clientId] });
+                  queryClient.invalidateQueries({ queryKey: ["my-feature-settings", clientId] });
+                  queryClient.invalidateQueries({ queryKey: ["fasting-profile-data"] });
+                  navigate("/client/dashboard");
+                }}
+              >
+                Yes, end window
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
