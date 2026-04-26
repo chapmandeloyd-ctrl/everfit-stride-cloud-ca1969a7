@@ -129,6 +129,8 @@ function ProtocolBigCard({
   bigNumber,
   fastHours,
   eatHours,
+  eatValue,
+  eatLabel,
   locked = false,
   assigned = false,
   onClick,
@@ -139,6 +141,10 @@ function ProtocolBigCard({
   bigNumber: number | string | null;
   fastHours: number | null;
   eatHours: number | null;
+  /** Optional override for the right-hand stat (e.g. "5" for days). */
+  eatValue?: string | number | null;
+  /** Optional label override for the right-hand stat (e.g. "Days"). */
+  eatLabel?: string;
   locked?: boolean;
   assigned?: boolean;
   onClick?: () => void;
@@ -231,7 +237,7 @@ function ProtocolBigCard({
         )}
 
         {/* Bottom stats row */}
-        {(fastHours || eatHours) && (
+        {(fastHours || eatHours || eatValue) && (
           <div className="flex items-baseline gap-5 mt-auto pt-6">
             {fastHours ? (
               <div className="flex items-baseline gap-2">
@@ -254,10 +260,30 @@ function ProtocolBigCard({
                 </span>
               </div>
             ) : null}
-            {fastHours && eatHours ? (
+            {fastHours && (eatHours || eatValue) ? (
               <span style={{ color: MUTED }}>·</span>
             ) : null}
-            {eatHours ? (
+            {eatValue ? (
+              <div className="flex items-baseline gap-2">
+                <span
+                  className="font-bold"
+                  style={{
+                    color: IVORY,
+                    fontFamily: "Georgia, serif",
+                    fontSize: "28px",
+                    lineHeight: 1,
+                  }}
+                >
+                  {eatValue}
+                </span>
+                <span
+                  className="text-[10px] uppercase tracking-[0.25em]"
+                  style={{ color: MUTED }}
+                >
+                  {eatLabel ?? "Days"}
+                </span>
+              </div>
+            ) : eatHours ? (
               <div className="flex items-baseline gap-2">
                 <span
                   className="font-bold"
@@ -408,7 +434,9 @@ export default function ClientFastingPlansPreview() {
                   desc={recommended.description ?? "Balanced window for most lifestyles."}
                   bigNumber={recommended.fast_hours}
                   fastHours={recommended.fast_hours}
-                  eatHours={24 - recommended.fast_hours}
+                  eatHours={recommended.fast_hours > 24 ? null : 24 - recommended.fast_hours}
+                  eatValue={recommended.fast_hours > 24 ? +(recommended.fast_hours / 24).toFixed(recommended.fast_hours % 24 === 0 ? 0 : 1) : null}
+                  eatLabel="Days"
                   locked={isLocked && assignedQuickId !== recommended.id}
                   assigned={assignedQuickId === recommended.id}
                   onClick={() =>
@@ -435,7 +463,9 @@ export default function ClientFastingPlansPreview() {
                         desc={p.description}
                         bigNumber={p.fast_hours}
                         fastHours={p.fast_hours}
-                        eatHours={24 - p.fast_hours}
+                        eatHours={p.fast_hours > 24 ? null : 24 - p.fast_hours}
+                        eatValue={p.fast_hours > 24 ? +(p.fast_hours / 24).toFixed(p.fast_hours % 24 === 0 ? 0 : 1) : null}
+                        eatLabel="Days"
                         locked={isLocked && assignedQuickId !== p.id}
                         assigned={assignedQuickId === p.id}
                         onClick={() =>
