@@ -815,19 +815,30 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
               )}
             </div>
 
-            <Button
-              variant={hasBackground ? "secondary" : "outline"}
-              className={`w-full h-12 text-base font-bold ${hasBackground ? "bg-white/20 hover:bg-white/30 text-white border-white/30" : ""}`}
-              onClick={() => {
-                if (ewRemainingMs > 0) {
-                  setShowEndEatingWindowConfirm(true);
-                } else {
-                  navigate("/client/begin-reset");
-                }
-              }}
-            >
-              <Clock className="h-4 w-4 mr-2" /> Choose next fast
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-2">
+              {ewRemainingMs > 0 && (
+                <Button
+                  variant="destructive"
+                  className="w-full h-12 text-base font-bold"
+                  onClick={() => setShowEndEatingWindowConfirm(true)}
+                >
+                  <Clock className="h-4 w-4 mr-2" /> End Eating Window
+                </Button>
+              )}
+              <Button
+                variant={hasBackground ? "secondary" : "outline"}
+                className={`w-full h-12 text-base font-bold ${hasBackground ? "bg-white/20 hover:bg-white/30 text-white border-white/30" : ""}`}
+                onClick={() => {
+                  if (ewRemainingMs > 0) {
+                    setShowEndEatingWindowConfirm(true);
+                  } else {
+                    navigate("/client/begin-reset");
+                  }
+                }}
+              >
+                <Clock className="h-4 w-4 mr-2" /> Choose next fast
+              </Button>
+            </div>
           </CardContent>
         </div>
 
