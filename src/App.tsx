@@ -90,6 +90,7 @@ import ClientProtocolCardDemo from "./pages/client/ClientProtocolCardDemo";
 import ClientKetoTypeCardDemo from "./pages/client/ClientKetoTypeCardDemo";
 import ClientFastingPlansPreview from "./pages/client/ClientFastingPlansPreview";
 import ClientFastingPlanDetailPreview from "./pages/client/ClientFastingPlanDetailPreview";
+import ProtocolStylesPreview from "./pages/preview/ProtocolStylesPreview";
 import ClientFastComplete from "./pages/client/ClientFastComplete";
 import ClientLabs from "./pages/client/ClientLabs";
 import ClientDiamondLab from "./pages/client/ClientDiamondLab";
