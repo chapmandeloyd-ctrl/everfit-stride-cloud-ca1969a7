@@ -2,6 +2,11 @@
 // For each client with an active fast (active_fast_start_at set), fires a
 // push when the elapsed-hours crosses one of the milestone thresholds.
 // Milestones: 12h, 16h, 18h, 20h, 24h, 36h, 48h, 72h.
+//
+// Also fires Zapier webhooks (via fire-zapier-webhook) for:
+//   - fast_started     (once per fast, when we first see it)
+//   - milestone_<hrs>  (once per crossed milestone)
+//   - pre_end_1h       (within 1h of target, once per fast)
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
@@ -22,6 +27,30 @@ const MILESTONES: { hours: number; title: string; body: string }[] = [
   { hours: 48, title: "48 hours 🎯", body: "Two full days. Break the fast mindfully when ready." },
   { hours: 72, title: "72 hours 👑", body: "Extended fast complete. Refeed slowly." },
 ];
+
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+async function fireZap(payload: {
+  client_id: string;
+  event_type: string;
+  reference_id?: string;
+  target_hours?: number;
+  actual_hours?: number;
+}) {
+  try {
+    await fetch(`${SUPABASE_URL}/functions/v1/fire-zapier-webhook`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${SERVICE_KEY}`,
+      },
+      body: JSON.stringify(payload),
+    });
+  } catch (err) {
+    console.error("fireZap error", err);
+  }
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -46,11 +75,45 @@ serve(async (req) => {
       if (s.nudge_fasting === false) continue;
       const start = new Date(s.active_fast_start_at);
       const elapsedH = (now.getTime() - start.getTime()) / 3_600_000;
+      const targetH = s.active_fast_target_hours ?? null;
+      const startIso = start.toISOString();
+
+      // === Zapier: fast_started (fires once per fast) ===
+      await fireZap({
+        client_id: s.client_id,
+        event_type: "fast_started",
+        reference_id: `${startIso}:fast_started`,
+        target_hours: targetH ?? undefined,
+      });
+
+      // === Zapier: pre_end_1h (fires when within last hour of target) ===
+      if (targetH && elapsedH >= targetH - 1 && elapsedH < targetH) {
+        await fireZap({
+          client_id: s.client_id,
+          event_type: "pre_end_1h",
+          reference_id: `${startIso}:pre_end_1h`,
+          target_hours: targetH,
+          actual_hours: Math.round(elapsedH * 100) / 100,
+        });
+      }
+
       if (elapsedH < 12) continue;
 
       // Find largest milestone the user has crossed
       const crossed = MILESTONES.filter((m) => elapsedH >= m.hours);
       if (!crossed.length) continue;
+
+      // === Zapier: fire one event per crossed milestone (dedup handles duplicates) ===
+      for (const m of crossed) {
+        await fireZap({
+          client_id: s.client_id,
+          event_type: `milestone_${m.hours}`,
+          reference_id: `${startIso}:milestone_${m.hours}`,
+          target_hours: targetH ?? undefined,
+          actual_hours: m.hours,
+        });
+      }
+
       const target = crossed[crossed.length - 1];
 
       const refId = `${start.toISOString()}:${target.hours}`;
