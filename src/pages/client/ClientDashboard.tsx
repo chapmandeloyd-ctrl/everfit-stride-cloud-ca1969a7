@@ -3,7 +3,7 @@ import fastingCardBgImg from "@/assets/fasting-timer-bg.jpg";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Bell, Dumbbell, CheckCircle2, Circle, UtensilsCrossed, Footprints, ChevronRight, Smartphone, X, Plus, Pencil, Swords, Trophy, MapPin, Check, Activity, ScanBarcode, Camera, PenLine, MessageCircle, Clock, ArrowRight, CalendarDays, BarChart3 } from "lucide-react";
+import { Bell, Dumbbell, CheckCircle2, Circle, UtensilsCrossed, Footprints, ChevronRight, Smartphone, X, Plus, Pencil, Swords, Trophy, MapPin, Check, Activity, ScanBarcode, Camera, PenLine, MessageCircle, Clock, ArrowRight, CalendarDays, BarChart3, Shield } from "lucide-react";
 import { getDifficultyLabel, getDurationLabel } from "@/lib/fastingCategoryConfig";
 import { useAuth } from "@/hooks/useAuth";
 import { differenceInCalendarDays, isToday, isBefore, startOfDay, parseISO, format } from "date-fns";
@@ -106,7 +106,7 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
     queryFn: async () => {
       const { data, error } = await supabase
         .from("client_feature_settings")
-        .select("selected_protocol_id, selected_quick_plan_id, protocol_start_date, active_fast_start_at, active_fast_target_hours, last_fast_ended_at, eating_window_ends_at, eating_window_hours, fasting_strict_mode, protocol_assigned_by, fasting_card_subtitle, fasting_card_image_url, eating_window_card_image_url, fast_lock_pin, protocol_completed, maintenance_mode, maintenance_schedule_type, trainer_id")
+        .select("selected_protocol_id, selected_quick_plan_id, protocol_start_date, active_fast_start_at, active_fast_target_hours, last_fast_ended_at, eating_window_ends_at, eating_window_hours, fasting_strict_mode, protocol_assigned_by, fasting_card_subtitle, fasting_card_image_url, eating_window_card_image_url, fast_lock_pin, protocol_completed, maintenance_mode, maintenance_schedule_type, trainer_id, lock_client_plan_choice")
         .eq("client_id", clientId)
         .maybeSingle();
       if (error) throw error;
@@ -129,6 +129,7 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
         maintenance_mode: boolean;
         maintenance_schedule_type: string | null;
         trainer_id: string;
+        lock_client_plan_choice: boolean;
       } | null;
     },
     enabled: !!clientId,
@@ -1013,22 +1014,49 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
             View Your Assigned Program
           </Button>
 
-          <div className="flex items-center justify-between">
-            <button
-              type="button"
-              onClick={() => navigate("/client/fasting-plans-preview")}
-              className="h-7 rounded-full px-3 text-[10px] font-bold uppercase tracking-wide bg-gradient-to-b from-amber-300 via-yellow-400 to-amber-600 text-black shadow-[0_1px_6px_-1px_rgba(251,191,36,0.5)] ring-1 ring-amber-300/70 hover:brightness-110 active:scale-[0.98] transition"
-            >
-              View protocols
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate("/client/fasting-plan-detail-preview")}
-              className="h-7 rounded-full px-3 text-[10px] font-bold uppercase tracking-wide bg-gradient-to-b from-amber-300 via-yellow-400 to-amber-600 text-black shadow-[0_1px_6px_-1px_rgba(251,191,36,0.5)] ring-1 ring-amber-300/70 hover:brightness-110 active:scale-[0.98] transition"
-            >
-              View keto type
-            </button>
-          </div>
+          {/* Coach-assigned plan strip — gold pills wired to live admin assignments */}
+          {(() => {
+            const isLocked = !!featureSettings?.lock_client_plan_choice;
+            const protocolHref = featureSettings?.selected_protocol_id
+              ? `/client/protocol/${featureSettings.selected_protocol_id}`
+              : isLocked ? null : "/client/fasting-plans-preview";
+            const ketoHref = activeKetoType?.id
+              ? `/client/keto-types/${activeKetoType.id}`
+              : isLocked ? null : "/client/fasting-plan-detail-preview";
+            const protocolLabel = featureSettings?.selected_protocol_id
+              ? "View my protocol"
+              : "View protocols";
+            const ketoLabel = activeKetoType?.id ? "View my keto type" : "View keto type";
+
+            return (
+              <div className="space-y-2">
+                {isLocked && (
+                  <div className="flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-300/90">
+                    <Shield className="h-3 w-3" />
+                    Locked by your coach
+                  </div>
+                )}
+                <div className="flex items-center justify-between gap-2">
+                  <button
+                    type="button"
+                    disabled={!protocolHref}
+                    onClick={() => protocolHref && navigate(protocolHref)}
+                    className="h-7 rounded-full px-3 text-[10px] font-bold uppercase tracking-wide bg-gradient-to-b from-amber-300 via-yellow-400 to-amber-600 text-black shadow-[0_1px_6px_-1px_rgba(251,191,36,0.5)] ring-1 ring-amber-300/70 hover:brightness-110 active:scale-[0.98] transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {protocolLabel}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={!ketoHref}
+                    onClick={() => ketoHref && navigate(ketoHref)}
+                    className="h-7 rounded-full px-3 text-[10px] font-bold uppercase tracking-wide bg-gradient-to-b from-amber-300 via-yellow-400 to-amber-600 text-black shadow-[0_1px_6px_-1px_rgba(251,191,36,0.5)] ring-1 ring-amber-300/70 hover:brightness-110 active:scale-[0.98] transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {ketoLabel}
+                  </button>
+                </div>
+              </div>
+            );
+          })()}
         </CardContent>
       </Card>
 

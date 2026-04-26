@@ -1117,6 +1117,7 @@ export type Database = {
           level_start_date: string
           level_status: string
           lock_advanced_plans: boolean
+          lock_client_plan_choice: boolean
           lock_start_weight_after_set: boolean
           macros_enabled: boolean
           maintenance_mode: boolean
@@ -1216,6 +1217,7 @@ export type Database = {
           level_start_date?: string
           level_status?: string
           lock_advanced_plans?: boolean
+          lock_client_plan_choice?: boolean
           lock_start_weight_after_set?: boolean
           macros_enabled?: boolean
           maintenance_mode?: boolean
@@ -1315,6 +1317,7 @@ export type Database = {
           level_start_date?: string
           level_status?: string
           lock_advanced_plans?: boolean
+          lock_client_plan_choice?: boolean
           lock_start_weight_after_set?: boolean
           macros_enabled?: boolean
           maintenance_mode?: boolean
