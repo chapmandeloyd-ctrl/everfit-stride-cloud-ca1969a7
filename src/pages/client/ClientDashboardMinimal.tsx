@@ -2,7 +2,7 @@ import { ClientLayout } from "@/components/ClientLayout";
 import { useNavigate } from "react-router-dom";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { FastingProtocolCard } from "./ClientDashboard";
-import { SmartPaceBanner } from "@/components/smart-pace/SmartPaceBanner";
+import { SmartPaceCollapsible } from "@/components/smart-pace/SmartPaceCollapsible";
 import { MyProgressSection } from "@/components/MyProgressSection";
 import { DailyRingsPinnedHeader } from "@/components/rings/DailyRingsCard";
 
@@ -22,16 +22,14 @@ export default function ClientDashboardMinimal() {
         {/* Pinned weekday strip — always visible at top */}
         <DailyRingsPinnedHeader />
 
+        {/* Smart Weight Tracker — collapsible, above fasting */}
+        {SHOW_WEIGHT_TRACKER && clientId && <SmartPaceCollapsible />}
+
         {/* Fasting timer / protocol */}
         <FastingProtocolCard clientId={clientId} navigate={navigate} />
 
-        {/* KSOM Smart Weight Tracker — Smart Pace banner + Health Dashboard */}
-        {SHOW_WEIGHT_TRACKER && clientId && (
-          <>
-            <SmartPaceBanner allowRender />
-            <MyProgressSection clientId={clientId} />
-          </>
-        )}
+        {/* Health Dashboard tiles */}
+        {SHOW_WEIGHT_TRACKER && clientId && <MyProgressSection clientId={clientId} />}
       </div>
     </ClientLayout>
   );
