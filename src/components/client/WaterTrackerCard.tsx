@@ -123,40 +123,49 @@ export function WaterTrackerCard() {
   const message = useMemo(() => getMessage(progress), [progress]);
   const lastEntry = entries[0];
 
-  // Swipe-left-to-undo on the portion icon
+  // Simple interaction: tap adds one serving, swipe left removes one serving.
   const swipeRef = useRef<{ x: number; y: number; active: boolean; pointerId: number | null }>({
     x: 0,
     y: 0,
     active: false,
     pointerId: null,
   });
-  const [swipeDx, setSwipeDx] = useState(0);
-  const suppressClickRef = useRef(false);
-  const SWIPE_THRESHOLD = 30;
+  const [showRemoveHint, setShowRemoveHint] = useState(false);
+  const SWIPE_THRESHOLD = 36;
+  const TAP_THRESHOLD = 10;
+
+  const resetSwipe = () => {
+    swipeRef.current.active = false;
+    swipeRef.current.pointerId = null;
+    setShowRemoveHint(false);
+  };
 
   const onPointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
     swipeRef.current = { x: e.clientX, y: e.clientY, active: true, pointerId: e.pointerId };
-    setSwipeDx(0);
+    setShowRemoveHint(false);
     try {
       e.currentTarget.setPointerCapture(e.pointerId);
     } catch {
       /* noop */
     }
   };
+
   const onPointerMove = (e: React.PointerEvent<HTMLButtonElement>) => {
     if (!swipeRef.current.active) return;
+
     const dx = e.clientX - swipeRef.current.x;
-    // Only allow left drag (negative dx), clamp to -90
-    if (dx < 0) {
-      setSwipeDx(Math.max(dx, -90));
-    } else {
-      setSwipeDx(0);
-    }
+    const dy = Math.abs(e.clientY - swipeRef.current.y);
+    const isLeftSwipe = dx < -12 && Math.abs(dx) > dy;
+
+    setShowRemoveHint(isLeftSwipe && !!lastEntry);
   };
-  const onPointerEnd = (e: React.PointerEvent<HTMLButtonElement>) => {
+
+  const onPointerEnd = async (e: React.PointerEvent<HTMLButtonElement>) => {
     if (!swipeRef.current.active) return;
+
     const dx = e.clientX - swipeRef.current.x;
-    swipeRef.current.active = false;
+    const dy = Math.abs(e.clientY - swipeRef.current.y);
+
     try {
       if (swipeRef.current.pointerId !== null) {
         e.currentTarget.releasePointerCapture(swipeRef.current.pointerId);
@@ -164,17 +173,20 @@ export function WaterTrackerCard() {
     } catch {
       /* noop */
     }
-    setSwipeDx(0);
-    if (dx <= -SWIPE_THRESHOLD) {
+
+    resetSwipe();
+
+    if (dx <= -SWIPE_THRESHOLD && Math.abs(dx) > dy) {
       if (lastEntry) {
-        handleUndo();
+        await handleUndo();
       } else {
         toast("Nothing to remove yet");
       }
-      suppressClickRef.current = true;
-      setTimeout(() => {
-        suppressClickRef.current = false;
-      }, 400);
+      return;
+    }
+
+    if (Math.abs(dx) <= TAP_THRESHOLD && dy <= TAP_THRESHOLD) {
+      await handleAdd();
     }
   };
 
@@ -288,17 +300,16 @@ export function WaterTrackerCard() {
             </div>
           </div>
 
-          {/* Swipe-left hint, revealed as user drags */}
-          {swipeDx < -4 && (
+          {/* Swipe-left hint */}
+          {showRemoveHint && (
             <div
-              className="absolute top-1/2 -translate-y-1/2 flex items-center gap-1 text-[10px] font-semibold text-rose-300 pointer-events-none z-20"
+              className="absolute top-1/2 -translate-y-1/2 pointer-events-none z-20"
               style={{
-                left: `calc(${Math.max(percent, 4)}% + ${swipeDx}px + 28px)`,
-                opacity: Math.min(1, Math.abs(swipeDx) / SWIPE_THRESHOLD),
+                left: `calc(${Math.max(percent, 4)}% - 78px)`,
               }}
             >
-              <span className="rounded-full bg-rose-500/90 px-2 py-0.5 text-white shadow-md">
-                − remove
+              <span className="rounded-full bg-destructive px-2 py-0.5 text-[10px] font-semibold text-destructive-foreground shadow-md">
+                Swipe left to remove 1
               </span>
             </div>
           )}
@@ -306,25 +317,23 @@ export function WaterTrackerCard() {
           {/* Sliding glass */}
           <button
             type="button"
-            onClick={() => {
-              if (suppressClickRef.current) return;
-              handleAdd();
+            onClick={(e) => {
+              if (e.detail === 0) {
+                handleAdd();
+              }
             }}
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
             onPointerUp={onPointerEnd}
-            onPointerCancel={onPointerEnd}
+            onPointerCancel={resetSwipe}
             className="absolute top-1/2 group select-none"
             style={{
               left: `${Math.max(percent, 4)}%`,
-              transform: `translate(calc(-50% + ${swipeDx}px), -50%)`,
-              transition:
-                swipeRef.current.active
-                  ? "none"
-                  : "left 700ms ease-out, transform 200ms ease-out",
-              touchAction: "none",
+              transform: "translate(-50%, -50%)",
+              transition: "left 700ms ease-out, transform 200ms ease-out",
+              touchAction: "pan-y",
             }}
-            aria-label={`Tap to add ${servingOz} fl oz, swipe left to remove last entry`}
+            aria-label={`Tap to add ${servingOz} fl oz, swipe left to remove one serving`}
           >
             <div className="relative">
               <svg width="44" height="52" viewBox="0 0 44 52" className="drop-shadow-lg">
@@ -435,7 +444,7 @@ export function WaterTrackerCard() {
         {/* Quick stats */}
         {entries.length > 0 && (
           <div className="text-xs text-muted-foreground">
-            {entries.length} {entries.length === 1 ? "log" : "logs"} today · tap the {portionType} to add {servingOz} fl oz
+            {entries.length} {entries.length === 1 ? "log" : "logs"} today · tap the {portionType} to add {servingOz} fl oz · swipe left to remove 1
           </div>
         )}
       </CardContent>
