@@ -178,16 +178,18 @@ export function WaterTrackerCard() {
     }
   };
 
-  // Trigger celebration only once per crossing
+  // Trigger celebration only once per day per client (persisted in localStorage)
   useEffect(() => {
     if (progress >= 1 && !hasCelebrated) {
       setCelebrate(true);
       setHasCelebrated(true);
+      try {
+        window.localStorage.setItem(celebrationStorageKey, "1");
+      } catch {
+        /* noop */
+      }
     }
-    if (progress < 1 && hasCelebrated) {
-      setHasCelebrated(false);
-    }
-  }, [progress, hasCelebrated]);
+  }, [progress, hasCelebrated, celebrationStorageKey]);
 
   const handleAdd = async (amount = servingOz) => {
     if (!clientId) return;
