@@ -9,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Droplet, GlassWater, Check } from "lucide-react";
+import { GlassWater, Check } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -167,10 +167,31 @@ export function WaterTrackerSettingsDialog({
                     {p === "glass" ? (
                       <GlassWater className="h-10 w-10 text-sky-400" strokeWidth={1.5} />
                     ) : (
-                      <Droplet
-                        className="h-10 w-10 text-sky-400 fill-sky-400/30"
+                      <svg
+                        viewBox="0 0 24 32"
+                        className="h-10 w-10 text-sky-400"
+                        fill="none"
+                        stroke="currentColor"
                         strokeWidth={1.5}
-                      />
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                      >
+                        {/* Cap */}
+                        <rect x="9" y="1.5" width="6" height="3" rx="0.8" />
+                        {/* Neck */}
+                        <path d="M10 4.5 V8" />
+                        <path d="M14 4.5 V8" />
+                        {/* Shoulder + body */}
+                        <path d="M10 8 Q6 10 6 14 V27 Q6 30 9 30 H15 Q18 30 18 27 V14 Q18 10 14 8 Z" />
+                        {/* Water fill */}
+                        <path
+                          d="M6.4 17 V27 Q6.4 29.6 9 29.6 H15 Q17.6 29.6 17.6 27 V17 Z"
+                          fill="currentColor"
+                          fillOpacity={0.3}
+                          stroke="none"
+                        />
+                      </svg>
                     )}
                     <div className="text-center">
                       <div className="text-base font-semibold capitalize">{p}</div>
