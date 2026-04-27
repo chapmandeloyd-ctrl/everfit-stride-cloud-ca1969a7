@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Plus, Droplet, Star, Trophy, Settings, X } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -118,6 +118,47 @@ export function WaterTrackerCard() {
   const message = useMemo(() => getMessage(progress), [progress]);
   const lastEntry = entries[0];
 
+  // Swipe-left-to-undo on the portion icon
+  const swipeRef = useRef<{ x: number; y: number; active: boolean }>({ x: 0, y: 0, active: false });
+  const [swipeDx, setSwipeDx] = useState(0);
+  const SWIPE_THRESHOLD = 40;
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    swipeRef.current = { x: e.clientX, y: e.clientY, active: true };
+    setSwipeDx(0);
+  };
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (!swipeRef.current.active) return;
+    const dx = e.clientX - swipeRef.current.x;
+    const dy = e.clientY - swipeRef.current.y;
+    if (Math.abs(dx) > Math.abs(dy)) {
+      // Only allow left drag (negative dx)
+      setSwipeDx(Math.min(0, Math.max(dx, -80)));
+    }
+  };
+  const onPointerEnd = (e: React.PointerEvent) => {
+    if (!swipeRef.current.active) return;
+    const dx = e.clientX - swipeRef.current.x;
+    const dy = e.clientY - swipeRef.current.y;
+    swipeRef.current.active = false;
+    setSwipeDx(0);
+    if (dx <= -SWIPE_THRESHOLD && Math.abs(dx) > Math.abs(dy)) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (lastEntry) {
+        handleUndo();
+      } else {
+        toast("Nothing to remove yet");
+      }
+      // Suppress the click that follows
+      suppressClickRef.current = true;
+      setTimeout(() => {
+        suppressClickRef.current = false;
+      }, 300);
+    }
+  };
+  const suppressClickRef = useRef(false);
+
   // Trigger celebration only once per crossing
   useEffect(() => {
     if (progress >= 1 && !hasCelebrated) {
@@ -229,10 +270,21 @@ export function WaterTrackerCard() {
           {/* Sliding glass */}
           <button
             type="button"
-            onClick={() => handleAdd()}
-            className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 transition-all duration-700 ease-out group"
-            style={{ left: `${Math.max(percent, 4)}%` }}
-            aria-label={`Add ${servingOz} fl oz of water with ${portionType}`}
+            onClick={() => {
+              if (suppressClickRef.current) return;
+              handleAdd();
+            }}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerEnd}
+            onPointerCancel={onPointerEnd}
+            className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 transition-all duration-700 ease-out group touch-pan-y"
+            style={{
+              left: `${Math.max(percent, 4)}%`,
+              transform: `translate(calc(-50% + ${swipeDx}px), -50%)`,
+              transition: swipeDx === 0 ? "left 700ms ease-out, transform 200ms ease-out" : "none",
+            }}
+            aria-label={`Add ${servingOz} fl oz — swipe left to remove last entry`}
           >
             <div className="relative">
               <svg width="44" height="52" viewBox="0 0 44 52" className="drop-shadow-lg">
