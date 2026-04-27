@@ -15,7 +15,7 @@ if (isNativeApp() || isLovablePreviewHost) {
 }
 
 createRoot(document.getElementById("root")!).render(
-  <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+  <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
     <App />
   </ThemeProvider>
 );
