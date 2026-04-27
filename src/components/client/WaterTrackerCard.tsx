@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,10 +17,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { MoreHorizontal, Plus, Droplet, Star, Trophy, Undo2, Settings2, X } from "lucide-react";
+import { MoreHorizontal, Plus, Droplet, Star, Trophy, Undo2, Settings2, X, GlassWater, Check } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
+import { useHabitLoopPreferences } from "@/hooks/useHabitLoopPreferences";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -72,14 +73,33 @@ function startOfTodayISO() {
   return d.toISOString();
 }
 
+// Unit conversion helpers
+const OZ_PER_LITER = 33.814;
+const ozToLiter = (oz: number) => oz / OZ_PER_LITER;
+const literToOz = (l: number) => l * OZ_PER_LITER;
+
+type Unit = "fl_oz" | "liter";
+type Portion = "glass" | "bottle";
+const PORTION_OZ: Record<Portion, number> = { glass: 8, bottle: 16 };
+
+function formatVolume(oz: number, unit: Unit) {
+  if (unit === "liter") return `${ozToLiter(oz).toFixed(2)} L`;
+  return `${Math.round(oz)} fl oz`;
+}
+
 export function WaterTrackerCard() {
   const clientId = useEffectiveClientId();
   const queryClient = useQueryClient();
   const [celebrate, setCelebrate] = useState(false);
   const [hasCelebrated, setHasCelebrated] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [goalInput, setGoalInput] = useState("64");
-  const [servingInput, setServingInput] = useState("8");
+  // Draft state for the Settings dialog
+  const [draftUnit, setDraftUnit] = useState<Unit>("fl_oz");
+  const [draftPortion, setDraftPortion] = useState<Portion>("glass");
+  const [draftGoalOz, setDraftGoalOz] = useState<number>(64);
+  const [draftReminders, setDraftReminders] = useState<boolean>(true);
+
+  const { prefs: habitPrefs, updatePrefs: updateHabitPrefs } = useHabitLoopPreferences();
 
   // Goal settings
   const { data: settings } = useQuery({
@@ -88,10 +108,10 @@ export function WaterTrackerCard() {
       if (!clientId) return null;
       const { data } = await supabase
         .from("water_goal_settings")
-        .select("daily_goal_oz, serving_size_oz")
+        .select("daily_goal_oz, serving_size_oz, unit, reminders_enabled")
         .eq("client_id", clientId)
         .maybeSingle();
-      return data ?? { daily_goal_oz: 64, serving_size_oz: 8 };
+      return data ?? { daily_goal_oz: 64, serving_size_oz: 8, unit: "fl_oz", reminders_enabled: true };
     },
     enabled: !!clientId,
   });
@@ -114,16 +134,24 @@ export function WaterTrackerCard() {
 
   const goalOz = Number(settings?.daily_goal_oz ?? 64);
   const servingOz = Number(settings?.serving_size_oz ?? 8);
+  const unit: Unit = (settings?.unit as Unit) ?? "fl_oz";
+  const remindersEnabled = settings?.reminders_enabled ?? true;
   const totalOz = entries.reduce((sum, e) => sum + Number(e.amount_oz), 0);
   const progress = goalOz > 0 ? Math.min(totalOz / goalOz, 1) : 0;
   const percent = Math.round(progress * 100);
   const message = useMemo(() => getMessage(progress), [progress]);
   const lastEntry = entries[0];
 
+  // Sync draft state with saved settings whenever the dialog opens
   useEffect(() => {
-    setGoalInput(String(goalOz));
-    setServingInput(String(servingOz));
-  }, [goalOz, servingOz]);
+    if (settingsOpen) {
+      setDraftUnit(unit);
+      setDraftPortion(servingOz >= 12 ? "bottle" : "glass");
+      setDraftGoalOz(goalOz);
+      setDraftReminders(remindersEnabled);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settingsOpen]);
 
   // Trigger celebration only once per crossing
   useEffect(() => {
@@ -165,26 +193,54 @@ export function WaterTrackerCard() {
 
   const handleSaveSettings = async () => {
     if (!clientId) return;
-    const goal = Number(goalInput);
-    const serving = Number(servingInput);
-    if (!goal || goal <= 0 || !serving || serving <= 0) {
-      toast.error("Enter valid numbers");
+    const goal = Math.round(draftGoalOz);
+    const serving = PORTION_OZ[draftPortion];
+    if (!goal || goal <= 0) {
+      toast.error("Enter a valid goal");
       return;
     }
     const { error } = await supabase
       .from("water_goal_settings")
       .upsert(
-        { client_id: clientId, daily_goal_oz: goal, serving_size_oz: serving },
+        {
+          client_id: clientId,
+          daily_goal_oz: goal,
+          serving_size_oz: serving,
+          unit: draftUnit,
+          reminders_enabled: draftReminders,
+        },
         { onConflict: "client_id" },
       );
     if (error) {
       toast.error("Couldn't save");
       return;
     }
-    toast.success("Goal updated");
+
+    // Wire the Reminders switch into the Habit Loop preferences
+    if (habitPrefs && habitPrefs.hydration_enabled !== draftReminders) {
+      try {
+        updateHabitPrefs({ hydration_enabled: draftReminders } as any);
+      } catch {
+        /* non-fatal */
+      }
+    }
+
+    toast.success("Water tracker updated");
     setSettingsOpen(false);
     queryClient.invalidateQueries({ queryKey: ["water-goal-settings", clientId] });
   };
+
+  // Slider configuration adapts to the chosen unit
+  const sliderMinOz = draftUnit === "liter" ? Math.round(literToOz(0.5)) : 16;
+  const sliderMaxOz = draftUnit === "liter" ? Math.round(literToOz(5)) : 200;
+  const sliderStepOz = draftUnit === "liter" ? Math.round(literToOz(0.1)) : 8;
+  const draftGoalDisplay =
+    draftUnit === "liter"
+      ? `${ozToLiter(draftGoalOz).toFixed(2)} L`
+      : `${Math.round(draftGoalOz)} fl oz`;
+  const portionDisplay = (oz: number) =>
+    draftUnit === "liter" ? `${ozToLiter(oz).toFixed(2)} L` : `${oz} fl oz`;
+  const bottleCount = Math.round(draftGoalOz / PORTION_OZ[draftPortion]);
 
   // Layout: 8 droplet markers spaced across the bar (last replaced by star)
   const markers = Array.from({ length: 8 }, (_, i) => i);
@@ -224,10 +280,17 @@ export function WaterTrackerCard() {
         </div>
 
         {/* Numeric readout */}
-        <div className="text-2xl font-bold text-foreground">
-          {totalOz} fl oz
-          <span className="text-muted-foreground font-medium">/{goalOz} fl oz</span>
-        </div>
+        <button
+          type="button"
+          onClick={() => setSettingsOpen(true)}
+          className="text-2xl font-bold text-foreground hover:opacity-80 transition-opacity text-left"
+          aria-label="Open water tracker settings"
+        >
+          {formatVolume(totalOz, unit)}
+          <span className="text-muted-foreground font-medium">
+            /{formatVolume(goalOz, unit)}
+          </span>
+        </button>
 
         {/* Progress bar with sliding glass */}
         <div className="relative h-14">
