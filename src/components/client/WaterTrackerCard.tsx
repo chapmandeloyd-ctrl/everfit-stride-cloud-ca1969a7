@@ -533,39 +533,115 @@ export function WaterTrackerCard() {
 
       {/* Settings dialog */}
       <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Adjust water goal</DialogTitle>
+            <DialogTitle className="text-xl">Water Tracker Settings</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label htmlFor="daily-goal">Daily goal (fl oz)</Label>
-              <Input
-                id="daily-goal"
-                type="number"
-                inputMode="numeric"
-                min={1}
-                value={goalInput}
-                onChange={(e) => setGoalInput(e.target.value)}
-              />
+
+          <div className="space-y-6 py-2">
+            {/* Portion */}
+            <div className="space-y-3">
+              <div className="text-sm font-medium text-muted-foreground">Portion</div>
+              <div className="grid grid-cols-2 gap-3">
+                {(["glass", "bottle"] as Portion[]).map((p) => {
+                  const selected = draftPortion === p;
+                  return (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setDraftPortion(p)}
+                      className={cn(
+                        "relative rounded-2xl border-2 p-4 flex flex-col items-center gap-2 transition-all",
+                        selected
+                          ? "border-sky-400 bg-sky-400/10"
+                          : "border-border bg-secondary/30 hover:bg-secondary/50",
+                      )}
+                    >
+                      {selected && (
+                        <div className="absolute top-2 right-2 h-5 w-5 rounded-full bg-emerald-500 flex items-center justify-center">
+                          <Check className="h-3 w-3 text-white" strokeWidth={3} />
+                        </div>
+                      )}
+                      {p === "glass" ? (
+                        <GlassWater className="h-10 w-10 text-sky-400" strokeWidth={1.5} />
+                      ) : (
+                        <Droplet className="h-10 w-10 text-sky-400 fill-sky-400/30" strokeWidth={1.5} />
+                      )}
+                      <div className="text-center">
+                        <div className="text-base font-semibold capitalize">{p}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {portionDisplay(PORTION_OZ[p])}
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="serving-size">Serving size per tap (fl oz)</Label>
-              <Input
-                id="serving-size"
-                type="number"
-                inputMode="numeric"
-                min={1}
-                value={servingInput}
-                onChange={(e) => setServingInput(e.target.value)}
+
+            {/* Daily Goal */}
+            <div className="space-y-3">
+              <div className="flex items-baseline justify-between">
+                <div>
+                  <div className="text-sm font-medium text-muted-foreground">Your Daily Goal</div>
+                  <div className="text-xs text-muted-foreground/80">
+                    Equals {bottleCount} {draftPortion}
+                    {bottleCount === 1 ? "" : "s"} (1 {draftPortion} ={" "}
+                    {portionDisplay(PORTION_OZ[draftPortion])})
+                  </div>
+                </div>
+                <div className="text-lg font-bold text-foreground">{draftGoalDisplay}</div>
+              </div>
+
+              <Slider
+                value={[draftGoalOz]}
+                min={sliderMinOz}
+                max={sliderMaxOz}
+                step={sliderStepOz}
+                onValueChange={(v) => setDraftGoalOz(v[0])}
+                className="py-2"
               />
+
+              {/* Unit toggle */}
+              <div className="flex gap-2 pt-1">
+                {(["fl_oz", "liter"] as Unit[]).map((u) => {
+                  const selected = draftUnit === u;
+                  return (
+                    <button
+                      key={u}
+                      type="button"
+                      onClick={() => setDraftUnit(u)}
+                      className={cn(
+                        "flex-1 py-2 rounded-lg text-sm font-semibold transition-all",
+                        selected
+                          ? "bg-foreground text-background"
+                          : "bg-secondary/50 text-muted-foreground hover:bg-secondary",
+                      )}
+                    >
+                      {u === "fl_oz" ? "fl oz" : "L"}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Reminders */}
+            <div className="flex items-center justify-between border-t border-border/60 pt-4">
+              <div>
+                <div className="text-sm font-medium text-foreground">Reminders</div>
+                <div className="text-xs text-muted-foreground">Hydration nudges throughout the day</div>
+              </div>
+              <Switch checked={draftReminders} onCheckedChange={setDraftReminders} />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setSettingsOpen(false)}>
+
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button variant="ghost" onClick={() => setSettingsOpen(false)} className="text-emerald-500 hover:text-emerald-400">
               Cancel
             </Button>
-            <Button onClick={handleSaveSettings}>Save</Button>
+            <Button onClick={handleSaveSettings} className="bg-emerald-500 hover:bg-emerald-600 text-white">
+              Save
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
