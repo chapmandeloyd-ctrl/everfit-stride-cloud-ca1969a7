@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronRight, BookOpen, Activity, UtensilsCrossed } from "lucide-react";
+import { ChevronDown, ChevronRight, BookOpen, Activity, UtensilsCrossed, Droplet } from "lucide-react";
 import { ClientFoodJournalTab } from "./ClientFoodJournalTab";
 import { ClientMacrosTab } from "./ClientMacrosTab";
 import { ClientMealPlanTab } from "./ClientMealPlanTab";
+import { ClientWaterTrackerTab } from "./ClientWaterTrackerTab";
 
 interface GroupedNutritionTabProps {
   clientId: string;
@@ -14,6 +15,7 @@ const sections = [
   { key: "food-journal", label: "Food Journal", icon: BookOpen },
   { key: "macros", label: "Macros", icon: Activity },
   { key: "meal-plan", label: "Meal Plan", icon: UtensilsCrossed },
+  { key: "water-tracker", label: "Water Tracker", icon: Droplet },
 ] as const;
 
 export function GroupedNutritionTab({ clientId, trainerId }: GroupedNutritionTabProps) {
@@ -21,6 +23,7 @@ export function GroupedNutritionTab({ clientId, trainerId }: GroupedNutritionTab
     "food-journal": true,
     macros: false,
     "meal-plan": false,
+    "water-tracker": false,
   });
 
   const toggle = (key: string) =>
@@ -43,6 +46,7 @@ export function GroupedNutritionTab({ clientId, trainerId }: GroupedNutritionTab
             {key === "food-journal" && <ClientFoodJournalTab clientId={clientId} />}
             {key === "macros" && <ClientMacrosTab clientId={clientId} trainerId={trainerId} />}
             {key === "meal-plan" && <ClientMealPlanTab clientId={clientId} trainerId={trainerId} />}
+            {key === "water-tracker" && <ClientWaterTrackerTab clientId={clientId} />}
           </CollapsibleContent>
         </Collapsible>
       ))}
