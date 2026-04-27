@@ -244,6 +244,11 @@ export default function ClientKetoTypes() {
   const isLocked = !!featureSettings?.lock_client_plan_choice;
   const assignedKetoId = activeAssignment?.keto_type_id ?? null;
 
+  const assignedKeto = ketoTypes?.find((k) => k.id === assignedKetoId) ?? null;
+  const assignedKetoLabel = assignedKeto
+    ? `${assignedKeto.abbreviation} — ${assignedKeto.name}`
+    : null;
+
   const grouped =
     categories?.map((cat) => ({
       category: cat,
@@ -302,6 +307,7 @@ export default function ClientKetoTypes() {
                     carbsPct={kt.carbs_pct}
                     locked={locked}
                     isAssigned={isAssigned}
+                    assignedName={assignedKetoLabel}
                     onClick={() => navigate(`/client/keto-types/${kt.id}`)}
                   />
                 );
