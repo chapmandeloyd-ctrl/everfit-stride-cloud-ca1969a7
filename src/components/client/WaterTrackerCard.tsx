@@ -244,14 +244,19 @@ export function WaterTrackerCard() {
 
   const handleAdd = async (amount = servingOz) => {
     if (!clientId) return;
-    if (atGoal) {
+    if (repairingOverflow) return;
+    if (atGoal || remainingOz <= 0) {
       toast("Goal already reached for today 🎉");
       return;
     }
+
+    const amountToInsert = Math.min(amount, remainingOz);
+    if (amountToInsert <= 0) return;
+
     triggerPulse("add");
     const { error } = await supabase.from("water_log_entries").insert({
       client_id: clientId,
-      amount_oz: amount,
+      amount_oz: amountToInsert,
     });
     if (error) {
       toast.error("Couldn't log water");
@@ -261,7 +266,7 @@ export function WaterTrackerCard() {
   };
 
   const handleUndo = async () => {
-    if (!lastEntry) return;
+    if (!lastEntry || repairingOverflow) return;
     triggerPulse("remove");
     const { error } = await supabase
       .from("water_log_entries")
@@ -465,24 +470,26 @@ export function WaterTrackerCard() {
           </button>
 
           <div className="text-xs text-muted-foreground tabular-nums min-w-[80px] text-center">
-            {atGoal ? (
+            {repairingOverflow ? (
+              <span className="font-semibold text-muted-foreground">Syncing…</span>
+            ) : atGoal ? (
               <span className="font-semibold text-emerald-500">Goal reached</span>
             ) : (
-              <>+{servingOz} fl oz / tap</>
+              <>+{Math.round(tapAmountOz)} fl oz / tap</>
             )}
           </div>
 
           <button
             type="button"
             onClick={() => handleAdd()}
-            disabled={atGoal}
+            disabled={atGoal || repairingOverflow}
             className={cn(
               "h-12 w-12 rounded-full flex items-center justify-center shadow-md ring-2 transition-all active:scale-90",
-              atGoal
+              atGoal || repairingOverflow
                 ? "bg-muted/40 ring-transparent text-muted-foreground/40 cursor-not-allowed"
                 : "bg-emerald-500 hover:bg-emerald-400 ring-card text-white"
             )}
-            aria-label={`Add ${servingOz} fl oz of water`}
+            aria-label={`Add ${Math.round(tapAmountOz)} fl oz of water`}
           >
             <Plus className="h-6 w-6" strokeWidth={3} />
           </button>
