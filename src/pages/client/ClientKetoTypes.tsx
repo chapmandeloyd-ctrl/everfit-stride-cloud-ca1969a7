@@ -19,10 +19,10 @@ const MUTED = "hsl(40 10% 65%)";
 const BLACK = "hsl(0 0% 4%)";
 const CARD_BG = "hsl(0 0% 7%)";
 
-const LOCK_TOOLTIP =
-  "Your coach has locked plan selection. Only the keto type they assigned is active — message your coach to switch.";
-
-function LockedBadge() {
+function LockedBadge({ assignedName }: { assignedName?: string | null }) {
+  const tooltipText = assignedName
+    ? `Your coach has locked plan selection. Currently active: ${assignedName}. Message your coach to switch.`
+    : "Your coach has locked plan selection. Only the keto type they assigned is active — message your coach to switch.";
   return (
     <TooltipProvider delayDuration={150}>
       <Tooltip>
@@ -45,7 +45,7 @@ function LockedBadge() {
           </span>
         </TooltipTrigger>
         <TooltipContent side="left" className="max-w-[220px] text-xs leading-snug">
-          {LOCK_TOOLTIP}
+          {tooltipText}
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
@@ -84,6 +84,7 @@ function KetoLionCard({
   locked,
   isAssigned,
   onClick,
+  assignedName,
 }: {
   abbreviation: string;
   name: string;
@@ -94,6 +95,7 @@ function KetoLionCard({
   locked: boolean;
   isAssigned: boolean;
   onClick: () => void;
+  assignedName?: string | null;
 }) {
   // The "big numbers" treatment: show ABBR (e.g. CKD) as the headline number
   // and the full name as the editorial title underneath.
@@ -116,7 +118,7 @@ function KetoLionCard({
         }}
       />
       {locked && (
-        <LockedBadge />
+        <LockedBadge assignedName={assignedName} />
       )}
       {isAssigned && !locked && (
         <div
