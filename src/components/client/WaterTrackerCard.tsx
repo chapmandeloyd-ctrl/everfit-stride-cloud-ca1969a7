@@ -111,6 +111,7 @@ export function WaterTrackerCard() {
   const goalOz = Number(settings?.daily_goal_oz ?? 64);
   const servingOz = Number(settings?.serving_size_oz ?? 8);
   const unit: Unit = (settings?.unit as Unit) ?? "fl_oz";
+  const portionType = servingOz >= 12 ? "bottle" : "glass";
   const totalOz = entries.reduce((sum, e) => sum + Number(e.amount_oz), 0);
   const progress = goalOz > 0 ? Math.min(totalOz / goalOz, 1) : 0;
   const percent = Math.round(progress * 100);
@@ -231,28 +232,62 @@ export function WaterTrackerCard() {
             onClick={() => handleAdd()}
             className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 transition-all duration-700 ease-out group"
             style={{ left: `${Math.max(percent, 4)}%` }}
-            aria-label={`Add ${servingOz} fl oz of water`}
+            aria-label={`Add ${servingOz} fl oz of water with ${portionType}`}
           >
             <div className="relative">
-              {/* Glass icon */}
               <svg width="44" height="52" viewBox="0 0 44 52" className="drop-shadow-lg">
                 <defs>
-                  <linearGradient id="waterGlass" x1="0" x2="0" y1="0" y2="1">
+                  <linearGradient id="waterPortion" x1="0" x2="0" y1="0" y2="1">
                     <stop offset="0%" stopColor="hsl(200 90% 75% / 0.9)" />
                     <stop offset="100%" stopColor="hsl(210 85% 55% / 0.95)" />
                   </linearGradient>
                 </defs>
-                <path
-                  d="M8 6 L36 6 L33 46 Q33 50 28 50 L16 50 Q11 50 11 46 Z"
-                  fill="hsl(0 0% 100% / 0.18)"
-                  stroke="hsl(200 80% 80% / 0.7)"
-                  strokeWidth="1.5"
-                />
-                {/* Water inside glass scales with progress */}
-                <path
-                  d={`M9 ${48 - 38 * Math.min(progress + 0.15, 1)} L35 ${48 - 38 * Math.min(progress + 0.15, 1)} L33 46 Q33 50 28 50 L16 50 Q11 50 11 46 Z`}
-                  fill="url(#waterGlass)"
-                />
+
+                {portionType === "bottle" ? (
+                  <>
+                    <rect
+                      x="17"
+                      y="3"
+                      width="10"
+                      height="4"
+                      rx="1.2"
+                      fill="hsl(0 0% 100% / 0.18)"
+                      stroke="hsl(200 80% 80% / 0.7)"
+                      strokeWidth="1.5"
+                    />
+                    <path
+                      d="M18 7 V12 M26 7 V12"
+                      stroke="hsl(200 80% 80% / 0.7)"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                    />
+                    <path
+                      d="M18 12 Q11 15 11 22 V43 Q11 48 16 48 H28 Q33 48 33 43 V22 Q33 15 26 12 Z"
+                      fill="hsl(0 0% 100% / 0.18)"
+                      stroke="hsl(200 80% 80% / 0.7)"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d={`M12.4 ${44 - 21 * Math.min(progress + 0.15, 1)} V43 Q12.4 46.8 16 46.8 H28 Q31.6 46.8 31.6 43 V${44 - 21 * Math.min(progress + 0.15, 1)} Z`}
+                      fill="url(#waterPortion)"
+                    />
+                  </>
+                ) : (
+                  <>
+                    <path
+                      d="M8 6 L36 6 L33 46 Q33 50 28 50 L16 50 Q11 50 11 46 Z"
+                      fill="hsl(0 0% 100% / 0.18)"
+                      stroke="hsl(200 80% 80% / 0.7)"
+                      strokeWidth="1.5"
+                    />
+                    <path
+                      d={`M9 ${48 - 38 * Math.min(progress + 0.15, 1)} L35 ${48 - 38 * Math.min(progress + 0.15, 1)} L33 46 Q33 50 28 50 L16 50 Q11 50 11 46 Z`}
+                      fill="url(#waterPortion)"
+                    />
+                  </>
+                )}
               </svg>
               {/* Plus button overlay */}
               <div className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-emerald-500 group-hover:bg-emerald-400 group-active:scale-95 flex items-center justify-center shadow-lg ring-2 ring-card transition-all">
@@ -281,7 +316,7 @@ export function WaterTrackerCard() {
         {/* Quick stats */}
         {entries.length > 0 && (
           <div className="text-xs text-muted-foreground">
-            {entries.length} {entries.length === 1 ? "log" : "logs"} today · tap the glass to add {servingOz} fl oz
+            {entries.length} {entries.length === 1 ? "log" : "logs"} today · tap the {portionType} to add {servingOz} fl oz
           </div>
         )}
       </CardContent>
