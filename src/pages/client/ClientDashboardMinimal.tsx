@@ -5,6 +5,7 @@ import { FastingProtocolCard } from "./ClientDashboard";
 import { SmartPaceCollapsible } from "@/components/smart-pace/SmartPaceCollapsible";
 import { HealthDashboardCollapsible } from "@/components/health/HealthDashboardCollapsible";
 import { DailyRingsPinnedHeader } from "@/components/rings/DailyRingsCard";
+import { WaterTrackerCard } from "@/components/client/WaterTrackerCard";
 
 /**
  * Minimal client dashboard — Fasting + Smart Pace + Health tracking tiles.
@@ -40,6 +41,9 @@ export default function ClientDashboardMinimal() {
 
         {/* Fasting timer / protocol */}
         <FastingProtocolCard clientId={clientId} navigate={navigate} />
+
+        {/* Daily Water Tracker */}
+        {clientId && <WaterTrackerCard />}
 
         {/* Health Dashboard — collapsible */}
         {SHOW_WEIGHT_TRACKER && clientId && (
