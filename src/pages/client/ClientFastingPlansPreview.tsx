@@ -44,13 +44,13 @@ const TIER_LABEL: Record<string, string> = {
   extreme: "Extended Fasts",
 };
 
-const LOCK_TOOLTIP =
-  "Your coach has locked plan selection. Only the protocol they assigned is active — message your coach to switch plans.";
-
-function LockedBadge() {
+function LockedBadge({ assignedName }: { assignedName?: string | null }) {
   // Span wrapper so the tooltip works even though the parent is a <button>
   // (Radix tooltip needs a focusable/hover-able trigger). pointerEvents:auto
   // lets the badge intercept hover/touch without firing the card's onClick.
+  const tooltipText = assignedName
+    ? `Your coach has locked plan selection. Currently active: ${assignedName}. Message your coach to switch plans.`
+    : "Your coach has locked plan selection. Only the protocol they assigned is active — message your coach to switch plans.";
   return (
     <TooltipProvider delayDuration={150}>
       <Tooltip>
@@ -73,7 +73,7 @@ function LockedBadge() {
           </span>
         </TooltipTrigger>
         <TooltipContent side="left" className="max-w-[220px] text-xs leading-snug">
-          {LOCK_TOOLTIP}
+          {tooltipText}
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
@@ -165,6 +165,7 @@ function ProtocolBigCard({
   locked = false,
   assigned = false,
   onClick,
+  assignedName,
 }: {
   eyebrow: string;
   name: string;
@@ -179,6 +180,7 @@ function ProtocolBigCard({
   locked?: boolean;
   assigned?: boolean;
   onClick?: () => void;
+  assignedName?: string | null;
 }) {
   let descText: string | null = null;
   if (typeof desc === "string") {
@@ -222,7 +224,7 @@ function ProtocolBigCard({
 
       {/* Status badges */}
       {locked && (
-        <LockedBadge />
+        <LockedBadge assignedName={assignedName} />
       )}
       {assigned && !locked && (
         <div
@@ -396,6 +398,21 @@ export default function ClientFastingPlansPreview() {
 
   const recommended = quickPlans.find((p) => p.fast_hours === 16) ?? quickPlans[0];
 
+  const assignedQuickName =
+    quickPlans.find((p) => p.id === assignedQuickId)?.name ?? null;
+  const assignedProtocolName =
+    protocols.find((p) => p.id === assignedProtocolId)?.name ?? null;
+  const assignedQuickLabel = assignedQuickName
+    ? `${assignedQuickName} (Window)`
+    : assignedProtocolName
+    ? `${assignedProtocolName} (Program)`
+    : null;
+  const assignedProtocolLabel = assignedProtocolName
+    ? `${assignedProtocolName} (Program)`
+    : assignedQuickName
+    ? `${assignedQuickName} (Window)`
+    : null;
+
   return (
     <div className="min-h-screen" style={{ background: BLACK }}>
       <div
@@ -467,6 +484,7 @@ export default function ClientFastingPlansPreview() {
                   eatLabel="Days"
                   locked={isLocked && assignedQuickId !== recommended.id}
                   assigned={assignedQuickId === recommended.id}
+                  assignedName={assignedQuickLabel}
                   onClick={() =>
                     navigate(
                       `/client/fasting-plan-detail-preview?type=quick&id=${recommended.id}`,
@@ -496,6 +514,7 @@ export default function ClientFastingPlansPreview() {
                         eatLabel="Days"
                         locked={isLocked && assignedQuickId !== p.id}
                         assigned={assignedQuickId === p.id}
+                        assignedName={assignedQuickLabel}
                         onClick={() =>
                           navigate(
                             `/client/fasting-plan-detail-preview?type=quick&id=${p.id}`,
@@ -539,6 +558,7 @@ export default function ClientFastingPlansPreview() {
                     eatHours={eatH}
                     locked={isLocked && assignedProtocolId !== p.id}
                     assigned={assignedProtocolId === p.id}
+                    assignedName={assignedProtocolLabel}
                     onClick={() =>
                       navigate(
                         `/client/fasting-plan-detail-preview?type=program&id=${p.id}`,
