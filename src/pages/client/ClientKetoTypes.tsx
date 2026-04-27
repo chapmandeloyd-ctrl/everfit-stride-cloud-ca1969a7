@@ -116,13 +116,7 @@ function KetoLionCard({
         }}
       />
       {locked && (
-        <div
-          className="absolute top-3 right-3 inline-flex items-center gap-1 px-2 py-1 rounded-full text-[9px] uppercase tracking-widest font-bold"
-          style={{ background: `${GOLD}15`, color: GOLD, border: `1px solid ${GOLD}50` }}
-        >
-          <Lock className="h-2.5 w-2.5" />
-          Locked
-        </div>
+        <LockedBadge />
       )}
       {isAssigned && !locked && (
         <div
