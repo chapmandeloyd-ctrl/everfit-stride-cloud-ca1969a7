@@ -1,13 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Plus, Droplet, Star, Trophy, Undo2, Settings2, X } from "lucide-react";
+import { Plus, Droplet, Star, Trophy, Settings, X } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
@@ -171,42 +164,14 @@ export function WaterTrackerCard() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <span className="text-sm font-medium text-muted-foreground">Daily Water Goal</span>
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => setSettingsOpen(true)}
-              className="h-8 w-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors"
-              aria-label="Open water tracker settings"
-            >
-              <Settings2 className="h-4 w-4" />
-            </button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  className="h-8 w-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors"
-                  aria-label="Water tracker options"
-                >
-                  <MoreHorizontal className="h-5 w-5" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setSettingsOpen(true)}>
-                <Settings2 className="h-4 w-4 mr-2" /> Settings (goal, unit, portion)
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleAdd(servingOz / 2)}>
-                <Droplet className="h-4 w-4 mr-2" /> Add half ({servingOz / 2} fl oz)
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={handleUndo}
-                disabled={!lastEntry}
-                className="text-destructive focus:text-destructive"
-              >
-                <Undo2 className="h-4 w-4 mr-2" /> Undo last
-              </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          <button
+            type="button"
+            onClick={() => setSettingsOpen(true)}
+            className="h-9 w-9 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary/60 active:scale-95 transition-all"
+            aria-label="Open water tracker settings"
+          >
+            <Settings className="h-[22px] w-[22px]" strokeWidth={1.75} />
+          </button>
         </div>
 
         {/* Numeric readout */}
