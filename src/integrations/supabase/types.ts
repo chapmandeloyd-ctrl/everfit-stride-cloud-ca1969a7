@@ -4717,6 +4717,7 @@ export type Database = {
           client_id: string
           created_at: string
           daily_score_enabled: boolean
+          hydration_enabled: boolean
           id: string
           last_meal_enabled: boolean
           max_daily_notifications: number
@@ -4733,6 +4734,7 @@ export type Database = {
           client_id: string
           created_at?: string
           daily_score_enabled?: boolean
+          hydration_enabled?: boolean
           id?: string
           last_meal_enabled?: boolean
           max_daily_notifications?: number
@@ -4749,6 +4751,7 @@ export type Database = {
           client_id?: string
           created_at?: string
           daily_score_enabled?: boolean
+          hydration_enabled?: boolean
           id?: string
           last_meal_enabled?: boolean
           max_daily_notifications?: number
@@ -8973,7 +8976,9 @@ export type Database = {
           created_at: string
           daily_goal_oz: number
           id: string
+          reminders_enabled: boolean
           serving_size_oz: number
+          unit: string
           updated_at: string
         }
         Insert: {
@@ -8981,7 +8986,9 @@ export type Database = {
           created_at?: string
           daily_goal_oz?: number
           id?: string
+          reminders_enabled?: boolean
           serving_size_oz?: number
+          unit?: string
           updated_at?: string
         }
         Update: {
@@ -8989,7 +8996,9 @@ export type Database = {
           created_at?: string
           daily_goal_oz?: number
           id?: string
+          reminders_enabled?: boolean
           serving_size_oz?: number
+          unit?: string
           updated_at?: string
         }
         Relationships: []
