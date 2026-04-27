@@ -8967,6 +8967,57 @@ export type Database = {
         }
         Relationships: []
       }
+      water_goal_settings: {
+        Row: {
+          client_id: string
+          created_at: string
+          daily_goal_oz: number
+          id: string
+          serving_size_oz: number
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          daily_goal_oz?: number
+          id?: string
+          serving_size_oz?: number
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          daily_goal_oz?: number
+          id?: string
+          serving_size_oz?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      water_log_entries: {
+        Row: {
+          amount_oz: number
+          client_id: string
+          created_at: string
+          id: string
+          logged_at: string
+        }
+        Insert: {
+          amount_oz: number
+          client_id: string
+          created_at?: string
+          id?: string
+          logged_at?: string
+        }
+        Update: {
+          amount_oz?: number
+          client_id?: string
+          created_at?: string
+          id?: string
+          logged_at?: string
+        }
+        Relationships: []
+      }
       workout_collection_categories: {
         Row: {
           card_layout: string
