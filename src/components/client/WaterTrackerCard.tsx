@@ -1,8 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
-import { Switch } from "@/components/ui/switch";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,20 +7,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { MoreHorizontal, Plus, Droplet, Star, Trophy, Undo2, Settings2, X, GlassWater, Check } from "lucide-react";
+import { MoreHorizontal, Plus, Droplet, Star, Trophy, Undo2, Settings2, X } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { useHabitLoopPreferences } from "@/hooks/useHabitLoopPreferences";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { WaterTrackerSettingsDialog } from "@/components/water/WaterTrackerSettingsDialog";
 
 /**
  * Daily Water Tracker — inspired by minimalist hydration trackers.
@@ -76,11 +67,8 @@ function startOfTodayISO() {
 // Unit conversion helpers
 const OZ_PER_LITER = 33.814;
 const ozToLiter = (oz: number) => oz / OZ_PER_LITER;
-const literToOz = (l: number) => l * OZ_PER_LITER;
 
 type Unit = "fl_oz" | "liter";
-type Portion = "glass" | "bottle";
-const PORTION_OZ: Record<Portion, number> = { glass: 8, bottle: 16 };
 
 function formatVolume(oz: number, unit: Unit) {
   if (unit === "liter") return `${ozToLiter(oz).toFixed(2)} L`;
@@ -93,11 +81,6 @@ export function WaterTrackerCard() {
   const [celebrate, setCelebrate] = useState(false);
   const [hasCelebrated, setHasCelebrated] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  // Draft state for the Settings dialog
-  const [draftUnit, setDraftUnit] = useState<Unit>("fl_oz");
-  const [draftPortion, setDraftPortion] = useState<Portion>("glass");
-  const [draftGoalOz, setDraftGoalOz] = useState<number>(64);
-  const [draftReminders, setDraftReminders] = useState<boolean>(true);
 
   const { prefs: habitPrefs, updatePrefs: updateHabitPrefs } = useHabitLoopPreferences();
 
@@ -135,23 +118,11 @@ export function WaterTrackerCard() {
   const goalOz = Number(settings?.daily_goal_oz ?? 64);
   const servingOz = Number(settings?.serving_size_oz ?? 8);
   const unit: Unit = (settings?.unit as Unit) ?? "fl_oz";
-  const remindersEnabled = settings?.reminders_enabled ?? true;
   const totalOz = entries.reduce((sum, e) => sum + Number(e.amount_oz), 0);
   const progress = goalOz > 0 ? Math.min(totalOz / goalOz, 1) : 0;
   const percent = Math.round(progress * 100);
   const message = useMemo(() => getMessage(progress), [progress]);
   const lastEntry = entries[0];
-
-  // Sync draft state with saved settings whenever the dialog opens
-  useEffect(() => {
-    if (settingsOpen) {
-      setDraftUnit(unit);
-      setDraftPortion(servingOz >= 12 ? "bottle" : "glass");
-      setDraftGoalOz(goalOz);
-      setDraftReminders(remindersEnabled);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [settingsOpen]);
 
   // Trigger celebration only once per crossing
   useEffect(() => {
@@ -190,57 +161,6 @@ export function WaterTrackerCard() {
     toast.success("Removed last entry");
     queryClient.invalidateQueries({ queryKey: ["water-log-today", clientId] });
   };
-
-  const handleSaveSettings = async () => {
-    if (!clientId) return;
-    const goal = Math.round(draftGoalOz);
-    const serving = PORTION_OZ[draftPortion];
-    if (!goal || goal <= 0) {
-      toast.error("Enter a valid goal");
-      return;
-    }
-    const { error } = await supabase
-      .from("water_goal_settings")
-      .upsert(
-        {
-          client_id: clientId,
-          daily_goal_oz: goal,
-          serving_size_oz: serving,
-          unit: draftUnit,
-          reminders_enabled: draftReminders,
-        },
-        { onConflict: "client_id" },
-      );
-    if (error) {
-      toast.error("Couldn't save");
-      return;
-    }
-
-    // Wire the Reminders switch into the Habit Loop preferences
-    if (habitPrefs && habitPrefs.hydration_enabled !== draftReminders) {
-      try {
-        updateHabitPrefs({ hydration_enabled: draftReminders } as any);
-      } catch {
-        /* non-fatal */
-      }
-    }
-
-    toast.success("Water tracker updated");
-    setSettingsOpen(false);
-    queryClient.invalidateQueries({ queryKey: ["water-goal-settings", clientId] });
-  };
-
-  // Slider configuration adapts to the chosen unit
-  const sliderMinOz = draftUnit === "liter" ? Math.round(literToOz(0.5)) : 16;
-  const sliderMaxOz = draftUnit === "liter" ? Math.round(literToOz(5)) : 200;
-  const sliderStepOz = draftUnit === "liter" ? Math.round(literToOz(0.1)) : 8;
-  const draftGoalDisplay =
-    draftUnit === "liter"
-      ? `${ozToLiter(draftGoalOz).toFixed(2)} L`
-      : `${Math.round(draftGoalOz)} fl oz`;
-  const portionDisplay = (oz: number) =>
-    draftUnit === "liter" ? `${ozToLiter(oz).toFixed(2)} L` : `${oz} fl oz`;
-  const bottleCount = Math.round(draftGoalOz / PORTION_OZ[draftPortion]);
 
   // Layout: 8 droplet markers spaced across the bar (last replaced by star)
   const markers = Array.from({ length: 8 }, (_, i) => i);
@@ -532,119 +452,20 @@ export function WaterTrackerCard() {
       )}
 
       {/* Settings dialog */}
-      <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-xl">Water Tracker Settings</DialogTitle>
-          </DialogHeader>
-
-          <div className="space-y-6 py-2">
-            {/* Portion */}
-            <div className="space-y-3">
-              <div className="text-sm font-medium text-muted-foreground">Portion</div>
-              <div className="grid grid-cols-2 gap-3">
-                {(["glass", "bottle"] as Portion[]).map((p) => {
-                  const selected = draftPortion === p;
-                  return (
-                    <button
-                      key={p}
-                      type="button"
-                      onClick={() => setDraftPortion(p)}
-                      className={cn(
-                        "relative rounded-2xl border-2 p-4 flex flex-col items-center gap-2 transition-all",
-                        selected
-                          ? "border-sky-400 bg-sky-400/10"
-                          : "border-border bg-secondary/30 hover:bg-secondary/50",
-                      )}
-                    >
-                      {selected && (
-                        <div className="absolute top-2 right-2 h-5 w-5 rounded-full bg-emerald-500 flex items-center justify-center">
-                          <Check className="h-3 w-3 text-white" strokeWidth={3} />
-                        </div>
-                      )}
-                      {p === "glass" ? (
-                        <GlassWater className="h-10 w-10 text-sky-400" strokeWidth={1.5} />
-                      ) : (
-                        <Droplet className="h-10 w-10 text-sky-400 fill-sky-400/30" strokeWidth={1.5} />
-                      )}
-                      <div className="text-center">
-                        <div className="text-base font-semibold capitalize">{p}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {portionDisplay(PORTION_OZ[p])}
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Daily Goal */}
-            <div className="space-y-3">
-              <div className="flex items-baseline justify-between">
-                <div>
-                  <div className="text-sm font-medium text-muted-foreground">Your Daily Goal</div>
-                  <div className="text-xs text-muted-foreground/80">
-                    Equals {bottleCount} {draftPortion}
-                    {bottleCount === 1 ? "" : "s"} (1 {draftPortion} ={" "}
-                    {portionDisplay(PORTION_OZ[draftPortion])})
-                  </div>
-                </div>
-                <div className="text-lg font-bold text-foreground">{draftGoalDisplay}</div>
-              </div>
-
-              <Slider
-                value={[draftGoalOz]}
-                min={sliderMinOz}
-                max={sliderMaxOz}
-                step={sliderStepOz}
-                onValueChange={(v) => setDraftGoalOz(v[0])}
-                className="py-2"
-              />
-
-              {/* Unit toggle */}
-              <div className="flex gap-2 pt-1">
-                {(["fl_oz", "liter"] as Unit[]).map((u) => {
-                  const selected = draftUnit === u;
-                  return (
-                    <button
-                      key={u}
-                      type="button"
-                      onClick={() => setDraftUnit(u)}
-                      className={cn(
-                        "flex-1 py-2 rounded-lg text-sm font-semibold transition-all",
-                        selected
-                          ? "bg-foreground text-background"
-                          : "bg-secondary/50 text-muted-foreground hover:bg-secondary",
-                      )}
-                    >
-                      {u === "fl_oz" ? "fl oz" : "L"}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Reminders */}
-            <div className="flex items-center justify-between border-t border-border/60 pt-4">
-              <div>
-                <div className="text-sm font-medium text-foreground">Reminders</div>
-                <div className="text-xs text-muted-foreground">Hydration nudges throughout the day</div>
-              </div>
-              <Switch checked={draftReminders} onCheckedChange={setDraftReminders} />
-            </div>
-          </div>
-
-          <DialogFooter className="gap-2 sm:gap-2">
-            <Button variant="ghost" onClick={() => setSettingsOpen(false)} className="text-emerald-500 hover:text-emerald-400">
-              Cancel
-            </Button>
-            <Button onClick={handleSaveSettings} className="bg-emerald-500 hover:bg-emerald-600 text-white">
-              Save
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <WaterTrackerSettingsDialog
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        clientId={clientId}
+        currentRemindersEnabled={habitPrefs?.hydration_enabled ?? true}
+        onRemindersChange={(enabled) => {
+          try {
+            updateHabitPrefs({ hydration_enabled: enabled } as any);
+          } catch {
+            /* non-fatal */
+          }
+        }}
+        context="client"
+      />
     </Card>
   );
 }
