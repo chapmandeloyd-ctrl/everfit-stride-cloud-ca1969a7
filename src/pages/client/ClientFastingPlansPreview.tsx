@@ -5,6 +5,7 @@ import { X, Lock } from "lucide-react";
 import lionLogo from "@/assets/logo.png";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 /**
  * Editorial Black & Gold preview of the entire KSOM fasting library.
@@ -42,6 +43,42 @@ const TIER_LABEL: Record<string, string> = {
   high: "Advanced Windows",
   extreme: "Extended Fasts",
 };
+
+const LOCK_TOOLTIP =
+  "Your coach has locked plan selection. Only the protocol they assigned is active — message your coach to switch plans.";
+
+function LockedBadge() {
+  // Span wrapper so the tooltip works even though the parent is a <button>
+  // (Radix tooltip needs a focusable/hover-able trigger). pointerEvents:auto
+  // lets the badge intercept hover/touch without firing the card's onClick.
+  return (
+    <TooltipProvider delayDuration={150}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span
+            role="button"
+            tabIndex={0}
+            aria-label="Locked by your coach"
+            onClick={(e) => e.stopPropagation()}
+            className="absolute top-3 right-3 inline-flex items-center gap-1 px-2 py-1 rounded-full text-[9px] uppercase tracking-widest font-bold z-20 cursor-help"
+            style={{
+              background: `${GOLD}15`,
+              color: GOLD,
+              border: `1px solid ${GOLD}50`,
+              pointerEvents: "auto",
+            }}
+          >
+            <Lock className="h-2.5 w-2.5" />
+            Locked
+          </span>
+        </TooltipTrigger>
+        <TooltipContent side="left" className="max-w-[220px] text-xs leading-snug">
+          {LOCK_TOOLTIP}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
 
 function LionCard({
   eyebrow,
@@ -86,13 +123,7 @@ function LionCard({
         }}
       />
       {locked && (
-        <div
-          className="absolute top-3 right-3 inline-flex items-center gap-1 px-2 py-1 rounded-full text-[9px] uppercase tracking-widest font-bold"
-          style={{ background: `${GOLD}15`, color: GOLD, border: `1px solid ${GOLD}50` }}
-        >
-          <Lock className="h-2.5 w-2.5" />
-          Locked
-        </div>
+        <LockedBadge />
       )}
       <div className="relative space-y-2.5 max-w-[62%]">
         <p className="text-[10px] uppercase tracking-[0.3em]" style={{ color: GOLD }}>
@@ -191,13 +222,7 @@ function ProtocolBigCard({
 
       {/* Status badges */}
       {locked && (
-        <div
-          className="absolute top-3 right-3 inline-flex items-center gap-1 px-2 py-1 rounded-full text-[9px] uppercase tracking-widest font-bold z-10"
-          style={{ background: `${GOLD}15`, color: GOLD, border: `1px solid ${GOLD}50` }}
-        >
-          <Lock className="h-2.5 w-2.5" />
-          Locked
-        </div>
+        <LockedBadge />
       )}
       {assigned && !locked && (
         <div
