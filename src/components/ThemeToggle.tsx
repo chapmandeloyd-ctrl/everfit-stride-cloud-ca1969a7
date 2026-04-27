@@ -1,9 +1,19 @@
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
+
+/** Only this account can toggle light/dark. Everyone else sees the app in dark mode only. */
+const OWNER_EMAIL = "ksomfast@yahoo.com";
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
+  const { user } = useAuth();
+
+  // Hide the toggle from everyone except the owner. The app is dark-mode only for users.
+  if (user?.email?.toLowerCase() !== OWNER_EMAIL) {
+    return null;
+  }
 
   return (
     <Button
