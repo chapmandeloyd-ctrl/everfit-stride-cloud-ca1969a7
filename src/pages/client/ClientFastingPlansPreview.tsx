@@ -44,13 +44,13 @@ const TIER_LABEL: Record<string, string> = {
   extreme: "Extended Fasts",
 };
 
-const LOCK_TOOLTIP =
-  "Your coach has locked plan selection. Only the protocol they assigned is active — message your coach to switch plans.";
-
-function LockedBadge() {
+function LockedBadge({ assignedName }: { assignedName?: string | null }) {
   // Span wrapper so the tooltip works even though the parent is a <button>
   // (Radix tooltip needs a focusable/hover-able trigger). pointerEvents:auto
   // lets the badge intercept hover/touch without firing the card's onClick.
+  const tooltipText = assignedName
+    ? `Your coach has locked plan selection. Currently active: ${assignedName}. Message your coach to switch plans.`
+    : "Your coach has locked plan selection. Only the protocol they assigned is active — message your coach to switch plans.";
   return (
     <TooltipProvider delayDuration={150}>
       <Tooltip>
@@ -73,7 +73,7 @@ function LockedBadge() {
           </span>
         </TooltipTrigger>
         <TooltipContent side="left" className="max-w-[220px] text-xs leading-snug">
-          {LOCK_TOOLTIP}
+          {tooltipText}
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
@@ -179,6 +179,7 @@ function ProtocolBigCard({
   locked?: boolean;
   assigned?: boolean;
   onClick?: () => void;
+  assignedName?: string | null;
 }) {
   let descText: string | null = null;
   if (typeof desc === "string") {
