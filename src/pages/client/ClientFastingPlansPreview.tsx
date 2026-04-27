@@ -165,6 +165,7 @@ function ProtocolBigCard({
   locked = false,
   assigned = false,
   onClick,
+  assignedName,
 }: {
   eyebrow: string;
   name: string;
@@ -223,7 +224,7 @@ function ProtocolBigCard({
 
       {/* Status badges */}
       {locked && (
-        <LockedBadge />
+        <LockedBadge assignedName={assignedName} />
       )}
       {assigned && !locked && (
         <div
