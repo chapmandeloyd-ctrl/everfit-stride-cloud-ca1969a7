@@ -17,7 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { MoreHorizontal, Plus, Droplet, Star, Trophy, Undo2, Settings2 } from "lucide-react";
+import { MoreHorizontal, Plus, Droplet, Star, Trophy, Undo2, Settings2, X } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
@@ -130,8 +130,6 @@ export function WaterTrackerCard() {
     if (progress >= 1 && !hasCelebrated) {
       setCelebrate(true);
       setHasCelebrated(true);
-      const t = setTimeout(() => setCelebrate(false), 2400);
-      return () => clearTimeout(t);
     }
     if (progress < 1 && hasCelebrated) {
       setHasCelebrated(false);
