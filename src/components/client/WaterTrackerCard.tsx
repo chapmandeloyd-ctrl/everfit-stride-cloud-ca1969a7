@@ -244,49 +244,76 @@ export function WaterTrackerCard() {
                 </defs>
 
                 {portionType === "bottle" ? (
-                  <>
-                    <rect
-                      x="17"
-                      y="3"
-                      width="10"
-                      height="4"
-                      rx="1.2"
-                      fill="hsl(0 0% 100% / 0.18)"
-                      stroke="hsl(200 80% 80% / 0.7)"
-                      strokeWidth="1.5"
-                    />
-                    <path
-                      d="M18 7 V12 M26 7 V12"
-                      stroke="hsl(200 80% 80% / 0.7)"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                    />
-                    <path
-                      d="M18 12 Q11 15 11 22 V43 Q11 48 16 48 H28 Q33 48 33 43 V22 Q33 15 26 12 Z"
-                      fill="hsl(0 0% 100% / 0.18)"
-                      stroke="hsl(200 80% 80% / 0.7)"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d={`M12.4 ${44 - 21 * Math.min(progress + 0.15, 1)} V43 Q12.4 46.8 16 46.8 H28 Q31.6 46.8 31.6 43 V${44 - 21 * Math.min(progress + 0.15, 1)} Z`}
-                      fill="url(#waterPortion)"
-                    />
-                  </>
+                  (() => {
+                    // Bottle interior: y=14 (top) to y=46 (bottom) ≈ 32px tall
+                    const top = 14;
+                    const bottom = 46;
+                    const fillY = bottom - (bottom - top) * progress;
+                    return (
+                      <>
+                        <rect
+                          x="17"
+                          y="3"
+                          width="10"
+                          height="4"
+                          rx="1.2"
+                          fill="hsl(0 0% 100% / 0.18)"
+                          stroke="hsl(200 80% 80% / 0.7)"
+                          strokeWidth="1.5"
+                        />
+                        <path
+                          d="M18 7 V12 M26 7 V12"
+                          stroke="hsl(200 80% 80% / 0.7)"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                        />
+                        <path
+                          d="M18 12 Q11 15 11 22 V43 Q11 48 16 48 H28 Q33 48 33 43 V22 Q33 15 26 12 Z"
+                          fill="hsl(0 0% 100% / 0.18)"
+                          stroke="hsl(200 80% 80% / 0.7)"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        {progress > 0 && (
+                          <path
+                            d={`M12 ${fillY} Q12 ${Math.min(fillY + 2, bottom)} 13 ${fillY} Q14 ${Math.max(fillY - 1.5, top)} 16 ${fillY} Q18 ${Math.min(fillY + 1.5, bottom)} 20 ${fillY} Q22 ${Math.max(fillY - 1.5, top)} 24 ${fillY} Q26 ${Math.min(fillY + 1.5, bottom)} 28 ${fillY} Q30 ${Math.max(fillY - 1.5, top)} 32 ${fillY} V43 Q32 46.8 28 46.8 H16 Q12 46.8 12 43 Z`}
+                            fill="url(#waterPortion)"
+                            style={{ transition: "d 700ms ease-out" }}
+                          />
+                        )}
+                      </>
+                    );
+                  })()
                 ) : (
-                  <>
-                    <path
-                      d="M8 6 L36 6 L33 46 Q33 50 28 50 L16 50 Q11 50 11 46 Z"
-                      fill="hsl(0 0% 100% / 0.18)"
-                      stroke="hsl(200 80% 80% / 0.7)"
-                      strokeWidth="1.5"
-                    />
-                    <path
-                      d={`M9 ${48 - 38 * Math.min(progress + 0.15, 1)} L35 ${48 - 38 * Math.min(progress + 0.15, 1)} L33 46 Q33 50 28 50 L16 50 Q11 50 11 46 Z`}
-                      fill="url(#waterPortion)"
-                    />
-                  </>
+                  (() => {
+                    // Glass interior: y=7 (top) to y=48 (bottom) ≈ 41px tall
+                    const top = 7;
+                    const bottom = 48;
+                    const fillY = bottom - (bottom - top) * progress;
+                    // Glass tapers: top width 28 (x 8-36), bottom width 22 (x 11-33)
+                    // Linear interpolation of left/right edges based on fillY
+                    const t = (bottom - fillY) / (bottom - top); // 0 at bottom, 1 at top
+                    const leftX = 11 - 3 * t;
+                    const rightX = 33 + 3 * t;
+                    return (
+                      <>
+                        <path
+                          d="M8 6 L36 6 L33 46 Q33 50 28 50 L16 50 Q11 50 11 46 Z"
+                          fill="hsl(0 0% 100% / 0.18)"
+                          stroke="hsl(200 80% 80% / 0.7)"
+                          strokeWidth="1.5"
+                        />
+                        {progress > 0 && (
+                          <path
+                            d={`M${leftX} ${fillY} L${rightX} ${fillY} L33 46 Q33 50 28 50 L16 50 Q11 50 11 46 Z`}
+                            fill="url(#waterPortion)"
+                            style={{ transition: "d 700ms ease-out" }}
+                          />
+                        )}
+                      </>
+                    );
+                  })()
                 )}
               </svg>
               {/* Plus button overlay */}
