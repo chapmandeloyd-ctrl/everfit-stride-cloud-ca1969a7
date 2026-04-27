@@ -235,9 +235,30 @@ export function WaterTrackerCard() {
         <div className="relative h-14">
           {/* Track */}
           <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-10 rounded-full bg-secondary/60 overflow-hidden">
+            {/* Droplet markers — sit BEHIND the fill so the % label stays visible on top */}
+            <div className="absolute inset-0 flex items-center justify-between px-4 pointer-events-none z-0">
+              {markers.map((i) => {
+                const isLast = i === markers.length - 1;
+                if (isLast) {
+                  return (
+                    <Star
+                      key={i}
+                      className="h-5 w-5 text-amber-400 fill-amber-400/80"
+                    />
+                  );
+                }
+                return (
+                  <Droplet
+                    key={i}
+                    className="h-4 w-4 text-sky-300/60 fill-sky-300/40"
+                  />
+                );
+              })}
+            </div>
+
             {/* Fill */}
             <div
-              className="h-full rounded-full bg-gradient-to-r from-sky-500/70 to-sky-400/80 transition-all duration-700 ease-out flex items-center px-3"
+              className="relative h-full rounded-full bg-gradient-to-r from-sky-500/85 to-sky-400/90 transition-all duration-700 ease-out flex items-center px-3 z-10"
               style={{ width: `${Math.max(percent, 6)}%` }}
             >
               {percent > 0 && (
@@ -246,35 +267,6 @@ export function WaterTrackerCard() {
                 </span>
               )}
             </div>
-          </div>
-
-          {/* Droplet markers (under the glass) */}
-          <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-10 flex items-center justify-between px-4 pointer-events-none">
-            {markers.map((i) => {
-              const markerProgress = (i + 1) / markers.length;
-              const reached = progress >= markerProgress;
-              const isLast = i === markers.length - 1;
-              if (isLast) {
-                return (
-                  <Star
-                    key={i}
-                    className={cn(
-                      "h-5 w-5 transition-colors",
-                      reached ? "text-amber-400 fill-amber-400" : "text-amber-400/40 fill-amber-400/20",
-                    )}
-                  />
-                );
-              }
-              return (
-                <Droplet
-                  key={i}
-                  className={cn(
-                    "h-4 w-4 transition-colors",
-                    reached ? "text-sky-100 fill-sky-100/80" : "text-sky-300/40 fill-sky-300/20",
-                  )}
-                />
-              );
-            })}
           </div>
 
           {/* Sliding glass */}
