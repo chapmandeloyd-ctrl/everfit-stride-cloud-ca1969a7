@@ -71,8 +71,13 @@ function formatVolume(oz: number, unit: Unit) {
 export function WaterTrackerCard() {
   const clientId = useEffectiveClientId();
   const queryClient = useQueryClient();
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const celebrationStorageKey = `water-celebrated:${clientId ?? "anon"}:${todayKey}`;
   const [celebrate, setCelebrate] = useState(false);
-  const [hasCelebrated, setHasCelebrated] = useState(false);
+  const [hasCelebrated, setHasCelebrated] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.localStorage.getItem(celebrationStorageKey) === "1";
+  });
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const { prefs: habitPrefs, updatePrefs: updateHabitPrefs } = useHabitLoopPreferences();
@@ -173,16 +178,18 @@ export function WaterTrackerCard() {
     }
   };
 
-  // Trigger celebration only once per crossing
+  // Trigger celebration only once per day per client (persisted in localStorage)
   useEffect(() => {
     if (progress >= 1 && !hasCelebrated) {
       setCelebrate(true);
       setHasCelebrated(true);
+      try {
+        window.localStorage.setItem(celebrationStorageKey, "1");
+      } catch {
+        /* noop */
+      }
     }
-    if (progress < 1 && hasCelebrated) {
-      setHasCelebrated(false);
-    }
-  }, [progress, hasCelebrated]);
+  }, [progress, hasCelebrated, celebrationStorageKey]);
 
   const handleAdd = async (amount = servingOz) => {
     if (!clientId) return;
