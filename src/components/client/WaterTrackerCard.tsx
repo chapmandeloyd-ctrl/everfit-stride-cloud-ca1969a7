@@ -71,8 +71,13 @@ function formatVolume(oz: number, unit: Unit) {
 export function WaterTrackerCard() {
   const clientId = useEffectiveClientId();
   const queryClient = useQueryClient();
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const celebrationStorageKey = `water-celebrated:${clientId ?? "anon"}:${todayKey}`;
   const [celebrate, setCelebrate] = useState(false);
-  const [hasCelebrated, setHasCelebrated] = useState(false);
+  const [hasCelebrated, setHasCelebrated] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.localStorage.getItem(celebrationStorageKey) === "1";
+  });
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const { prefs: habitPrefs, updatePrefs: updateHabitPrefs } = useHabitLoopPreferences();
