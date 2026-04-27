@@ -171,18 +171,27 @@ export function WaterTrackerCard() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <span className="text-sm font-medium text-muted-foreground">Daily Water Goal</span>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                className="text-muted-foreground hover:text-foreground transition-colors"
-                aria-label="Water tracker options"
-              >
-                <MoreHorizontal className="h-5 w-5" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setSettingsOpen(true)}
+              className="h-8 w-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors"
+              aria-label="Open water tracker settings"
+            >
+              <Settings2 className="h-4 w-4" />
+            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className="h-8 w-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors"
+                  aria-label="Water tracker options"
+                >
+                  <MoreHorizontal className="h-5 w-5" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => setSettingsOpen(true)}>
-                <Settings2 className="h-4 w-4 mr-2" /> Adjust goal
+                <Settings2 className="h-4 w-4 mr-2" /> Settings (goal, unit, portion)
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleAdd(servingOz / 2)}>
                 <Droplet className="h-4 w-4 mr-2" /> Add half ({servingOz / 2} fl oz)
@@ -195,8 +204,9 @@ export function WaterTrackerCard() {
               >
                 <Undo2 className="h-4 w-4 mr-2" /> Undo last
               </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
 
         {/* Numeric readout */}
