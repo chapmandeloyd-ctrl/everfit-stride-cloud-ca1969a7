@@ -5,6 +5,7 @@ import { X, Lock } from "lucide-react";
 import lionLogo from "@/assets/logo.png";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 /**
  * Editorial Black & Gold preview of the entire KSOM fasting library.
