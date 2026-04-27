@@ -398,6 +398,21 @@ export default function ClientFastingPlansPreview() {
 
   const recommended = quickPlans.find((p) => p.fast_hours === 16) ?? quickPlans[0];
 
+  const assignedQuickName =
+    quickPlans.find((p) => p.id === assignedQuickId)?.name ?? null;
+  const assignedProtocolName =
+    protocols.find((p) => p.id === assignedProtocolId)?.name ?? null;
+  const assignedQuickLabel = assignedQuickName
+    ? `${assignedQuickName} (Window)`
+    : assignedProtocolName
+    ? `${assignedProtocolName} (Program)`
+    : null;
+  const assignedProtocolLabel = assignedProtocolName
+    ? `${assignedProtocolName} (Program)`
+    : assignedQuickName
+    ? `${assignedQuickName} (Window)`
+    : null;
+
   return (
     <div className="min-h-screen" style={{ background: BLACK }}>
       <div
@@ -469,6 +484,7 @@ export default function ClientFastingPlansPreview() {
                   eatLabel="Days"
                   locked={isLocked && assignedQuickId !== recommended.id}
                   assigned={assignedQuickId === recommended.id}
+                  assignedName={assignedQuickLabel}
                   onClick={() =>
                     navigate(
                       `/client/fasting-plan-detail-preview?type=quick&id=${recommended.id}`,
@@ -498,6 +514,7 @@ export default function ClientFastingPlansPreview() {
                         eatLabel="Days"
                         locked={isLocked && assignedQuickId !== p.id}
                         assigned={assignedQuickId === p.id}
+                        assignedName={assignedQuickLabel}
                         onClick={() =>
                           navigate(
                             `/client/fasting-plan-detail-preview?type=quick&id=${p.id}`,
@@ -541,6 +558,7 @@ export default function ClientFastingPlansPreview() {
                     eatHours={eatH}
                     locked={isLocked && assignedProtocolId !== p.id}
                     assigned={assignedProtocolId === p.id}
+                    assignedName={assignedProtocolLabel}
                     onClick={() =>
                       navigate(
                         `/client/fasting-plan-detail-preview?type=program&id=${p.id}`,
