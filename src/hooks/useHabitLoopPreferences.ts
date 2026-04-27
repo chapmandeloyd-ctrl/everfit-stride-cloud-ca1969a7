@@ -14,6 +14,7 @@ export interface HabitLoopPrefs {
   last_meal_enabled: boolean;
   streak_protection_enabled: boolean;
   daily_score_enabled: boolean;
+  hydration_enabled: boolean;
   quiet_hours_start: string | null;
   quiet_hours_end: string | null;
 }
@@ -27,6 +28,7 @@ const DEFAULTS: Omit<HabitLoopPrefs, "client_id"> = {
   last_meal_enabled: true,
   streak_protection_enabled: true,
   daily_score_enabled: true,
+  hydration_enabled: true,
   quiet_hours_start: null,
   quiet_hours_end: null,
 };
