@@ -328,11 +328,143 @@ export function WaterTrackerCard() {
         )}
       </CardContent>
 
-      {/* Celebration overlay */}
+      {/* Animated celebration overlay */}
       {celebrate && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-sky-500/30 backdrop-blur-sm animate-in fade-in zoom-in-95 duration-500 pointer-events-none">
-          <div className="text-5xl font-extrabold text-white drop-shadow-lg">100%</div>
-          <div className="text-xl font-bold text-white drop-shadow mt-1">Goal achieved!</div>
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center overflow-hidden rounded-[inherit] animate-in fade-in duration-300">
+          {/* Layered background: deep blue gradient + subtle blur of card behind */}
+          <div className="absolute inset-0 bg-gradient-to-br from-sky-600/85 via-sky-500/85 to-cyan-500/85 backdrop-blur-md" />
+
+          {/* Rising bubbles */}
+          {Array.from({ length: 14 }).map((_, i) => {
+            const left = (i * 7 + (i % 3) * 11) % 95;
+            const size = 8 + ((i * 5) % 18);
+            const delay = (i * 0.18) % 2.4;
+            const duration = 2.6 + ((i * 0.3) % 1.8);
+            return (
+              <span
+                key={`bubble-${i}`}
+                className="absolute rounded-full bg-white/40 ring-1 ring-white/60 wt-bubble"
+                style={{
+                  left: `${left}%`,
+                  width: `${size}px`,
+                  height: `${size}px`,
+                  bottom: `-20px`,
+                  animationDelay: `${delay}s`,
+                  animationDuration: `${duration}s`,
+                }}
+              />
+            );
+          })}
+
+          {/* Confetti shards */}
+          {Array.from({ length: 18 }).map((_, i) => {
+            const left = (i * 13 + 5) % 100;
+            const delay = (i * 0.07) % 0.9;
+            const duration = 1.6 + ((i * 0.25) % 1.4);
+            const colors = ["bg-amber-300", "bg-pink-300", "bg-emerald-300", "bg-white", "bg-yellow-200"];
+            const color = colors[i % colors.length];
+            const rotate = (i * 47) % 360;
+            return (
+              <span
+                key={`confetti-${i}`}
+                className={cn("absolute w-2 h-3 rounded-sm wt-confetti", color)}
+                style={{
+                  left: `${left}%`,
+                  top: `-12px`,
+                  animationDelay: `${delay}s`,
+                  animationDuration: `${duration}s`,
+                  transform: `rotate(${rotate}deg)`,
+                }}
+              />
+            );
+          })}
+
+          {/* Pulsing rings behind trophy */}
+          <div className="absolute h-32 w-32 rounded-full bg-white/20 wt-ripple" />
+          <div
+            className="absolute h-32 w-32 rounded-full bg-white/15 wt-ripple"
+            style={{ animationDelay: "0.6s" }}
+          />
+
+          {/* Bouncing trophy */}
+          <div className="relative z-10 wt-trophy">
+            <div className="absolute inset-0 -m-4 rounded-full bg-amber-300/40 blur-2xl" />
+            <Trophy
+              className="relative h-16 w-16 text-amber-300 fill-amber-400/90 drop-shadow-[0_4px_12px_rgba(251,191,36,0.6)]"
+              strokeWidth={1.5}
+            />
+          </div>
+
+          {/* Text */}
+          <div className="relative z-10 mt-3 text-center wt-pop">
+            <div className="text-6xl font-extrabold text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.3)] tracking-tight">
+              100%
+            </div>
+            <div className="text-xl font-bold text-white drop-shadow mt-0.5">
+              Goal achieved!
+            </div>
+            <div className="text-sm text-white/85 mt-1 px-6">
+              Your body says thank you 💧
+            </div>
+          </div>
+
+          {/* Close X */}
+          <button
+            type="button"
+            onClick={() => setCelebrate(false)}
+            className="absolute top-3 right-3 z-20 h-9 w-9 rounded-full bg-white/20 hover:bg-white/35 active:scale-95 backdrop-blur flex items-center justify-center transition-all ring-1 ring-white/40"
+            aria-label="Dismiss celebration"
+          >
+            <X className="h-5 w-5 text-white" strokeWidth={2.5} />
+          </button>
+
+          {/* Scoped keyframes */}
+          <style>{`
+            @keyframes wt-bubble-rise {
+              0% { transform: translateY(0) scale(0.6); opacity: 0; }
+              15% { opacity: 1; }
+              100% { transform: translateY(-380px) scale(1); opacity: 0; }
+            }
+            .wt-bubble {
+              animation-name: wt-bubble-rise;
+              animation-iteration-count: infinite;
+              animation-timing-function: ease-in;
+            }
+            @keyframes wt-confetti-fall {
+              0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+              10% { opacity: 1; }
+              100% { transform: translateY(420px) rotate(540deg); opacity: 0; }
+            }
+            .wt-confetti {
+              animation-name: wt-confetti-fall;
+              animation-iteration-count: infinite;
+              animation-timing-function: linear;
+            }
+            @keyframes wt-ripple {
+              0% { transform: scale(0.6); opacity: 0.7; }
+              100% { transform: scale(2.4); opacity: 0; }
+            }
+            .wt-ripple {
+              animation: wt-ripple 1.8s ease-out infinite;
+            }
+            @keyframes wt-trophy-bounce {
+              0%, 100% { transform: translateY(0) rotate(-4deg); }
+              25% { transform: translateY(-14px) rotate(6deg); }
+              50% { transform: translateY(0) rotate(-3deg); }
+              75% { transform: translateY(-6px) rotate(4deg); }
+            }
+            .wt-trophy {
+              animation: wt-trophy-bounce 1.4s ease-in-out infinite;
+            }
+            @keyframes wt-pop {
+              0% { transform: scale(0.4); opacity: 0; }
+              60% { transform: scale(1.1); opacity: 1; }
+              100% { transform: scale(1); opacity: 1; }
+            }
+            .wt-pop {
+              animation: wt-pop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+            }
+          `}</style>
         </div>
       )}
 
