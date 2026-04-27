@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Plus, Droplet, Star, Trophy, Settings, X } from "lucide-react";
+import { Plus, Minus, Droplet, Star, Trophy, Settings, X } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
@@ -123,71 +123,13 @@ export function WaterTrackerCard() {
   const message = useMemo(() => getMessage(progress), [progress]);
   const lastEntry = entries[0];
 
-  // Simple interaction: tap adds one serving, swipe left removes one serving.
-  const swipeRef = useRef<{ x: number; y: number; active: boolean; pointerId: number | null }>({
-    x: 0,
-    y: 0,
-    active: false,
-    pointerId: null,
-  });
-  const [showRemoveHint, setShowRemoveHint] = useState(false);
-  const SWIPE_THRESHOLD = 36;
-  const TAP_THRESHOLD = 10;
-
-  const resetSwipe = () => {
-    swipeRef.current.active = false;
-    swipeRef.current.pointerId = null;
-    setShowRemoveHint(false);
-  };
-
-  const onPointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
-    swipeRef.current = { x: e.clientX, y: e.clientY, active: true, pointerId: e.pointerId };
-    setShowRemoveHint(false);
-    try {
-      e.currentTarget.setPointerCapture(e.pointerId);
-    } catch {
-      /* noop */
-    }
-  };
-
-  const onPointerMove = (e: React.PointerEvent<HTMLButtonElement>) => {
-    if (!swipeRef.current.active) return;
-
-    const dx = e.clientX - swipeRef.current.x;
-    const dy = Math.abs(e.clientY - swipeRef.current.y);
-    const isLeftSwipe = dx < -12 && Math.abs(dx) > dy;
-
-    setShowRemoveHint(isLeftSwipe && !!lastEntry);
-  };
-
-  const onPointerEnd = async (e: React.PointerEvent<HTMLButtonElement>) => {
-    if (!swipeRef.current.active) return;
-
-    const dx = e.clientX - swipeRef.current.x;
-    const dy = Math.abs(e.clientY - swipeRef.current.y);
-
-    try {
-      if (swipeRef.current.pointerId !== null) {
-        e.currentTarget.releasePointerCapture(swipeRef.current.pointerId);
-      }
-    } catch {
-      /* noop */
-    }
-
-    resetSwipe();
-
-    if (dx <= -SWIPE_THRESHOLD && Math.abs(dx) > dy) {
-      if (lastEntry) {
-        await handleUndo();
-      } else {
-        toast("Nothing to remove yet");
-      }
-      return;
-    }
-
-    if (Math.abs(dx) <= TAP_THRESHOLD && dy <= TAP_THRESHOLD) {
-      await handleAdd();
-    }
+  // Hard cap: don't allow logging past the goal
+  const atGoal = totalOz >= goalOz;
+  const canRemove = entries.length > 0;
+  const [pulse, setPulse] = useState<"add" | "remove" | null>(null);
+  const triggerPulse = (kind: "add" | "remove") => {
+    setPulse(kind);
+    window.setTimeout(() => setPulse(null), 350);
   };
 
   // Trigger celebration only once per day per client (persisted in localStorage)
@@ -205,6 +147,11 @@ export function WaterTrackerCard() {
 
   const handleAdd = async (amount = servingOz) => {
     if (!clientId) return;
+    if (atGoal) {
+      toast("Goal already reached for today 🎉");
+      return;
+    }
+    triggerPulse("add");
     const { error } = await supabase.from("water_log_entries").insert({
       client_id: clientId,
       amount_oz: amount,
@@ -218,6 +165,7 @@ export function WaterTrackerCard() {
 
   const handleUndo = async () => {
     if (!lastEntry) return;
+    triggerPulse("remove");
     const { error } = await supabase
       .from("water_log_entries")
       .delete()
@@ -300,42 +248,23 @@ export function WaterTrackerCard() {
             </div>
           </div>
 
-          {/* Swipe-left hint */}
-          {showRemoveHint && (
-            <div
-              className="absolute top-1/2 -translate-y-1/2 pointer-events-none z-20"
-              style={{
-                left: `calc(${Math.max(percent, 4)}% - 78px)`,
-              }}
-            >
-              <span className="rounded-full bg-destructive px-2 py-0.5 text-[10px] font-semibold text-destructive-foreground shadow-md">
-                Swipe left to remove 1
-              </span>
-            </div>
-          )}
-
-          {/* Sliding glass */}
-          <button
-            type="button"
-            onClick={(e) => {
-              if (e.detail === 0) {
-                handleAdd();
-              }
-            }}
-            onPointerDown={onPointerDown}
-            onPointerMove={onPointerMove}
-            onPointerUp={onPointerEnd}
-            onPointerCancel={resetSwipe}
-            className="absolute top-1/2 group select-none"
+          {/* Sliding glass — purely visual, smooth */}
+          <div
+            className="absolute top-1/2 pointer-events-none select-none"
             style={{
               left: `${Math.max(percent, 4)}%`,
               transform: "translate(-50%, -50%)",
-              transition: "left 700ms ease-out, transform 200ms ease-out",
-              touchAction: "pan-y",
+              transition: "left 700ms ease-out",
             }}
-            aria-label={`Tap to add ${servingOz} fl oz, swipe left to remove one serving`}
+            aria-hidden="true"
           >
-            <div className="relative">
+            <div
+              className={cn(
+                "relative transition-transform duration-300",
+                pulse === "add" && "scale-110",
+                pulse === "remove" && "scale-90"
+              )}
+            >
               <svg width="44" height="52" viewBox="0 0 44 52" className="drop-shadow-lg">
                 <defs>
                   <linearGradient id="waterPortion" x1="0" x2="0" y1="0" y2="1">
@@ -417,11 +346,48 @@ export function WaterTrackerCard() {
                   })()
                 )}
               </svg>
-              {/* Plus button overlay */}
-              <div className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-emerald-500 group-hover:bg-emerald-400 group-active:scale-95 flex items-center justify-center shadow-lg ring-2 ring-card transition-all">
-                <Plus className="h-4 w-4 text-white" strokeWidth={3} />
-              </div>
             </div>
+          </div>
+        </div>
+
+        {/* Explicit +/- controls — no gesture guessing */}
+        <div className="flex items-center justify-center gap-4 pt-1">
+          <button
+            type="button"
+            onClick={handleUndo}
+            disabled={!canRemove}
+            className={cn(
+              "h-12 w-12 rounded-full flex items-center justify-center shadow-md ring-1 transition-all active:scale-90",
+              canRemove
+                ? "bg-secondary hover:bg-secondary/80 ring-border text-foreground"
+                : "bg-muted/40 ring-transparent text-muted-foreground/40 cursor-not-allowed"
+            )}
+            aria-label="Remove one serving"
+          >
+            <Minus className="h-6 w-6" strokeWidth={3} />
+          </button>
+
+          <div className="text-xs text-muted-foreground tabular-nums min-w-[80px] text-center">
+            {atGoal ? (
+              <span className="font-semibold text-emerald-500">Goal reached</span>
+            ) : (
+              <>+{servingOz} fl oz / tap</>
+            )}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => handleAdd()}
+            disabled={atGoal}
+            className={cn(
+              "h-12 w-12 rounded-full flex items-center justify-center shadow-md ring-2 transition-all active:scale-90",
+              atGoal
+                ? "bg-muted/40 ring-transparent text-muted-foreground/40 cursor-not-allowed"
+                : "bg-emerald-500 hover:bg-emerald-400 ring-card text-white"
+            )}
+            aria-label={`Add ${servingOz} fl oz of water`}
+          >
+            <Plus className="h-6 w-6" strokeWidth={3} />
           </button>
         </div>
 
@@ -444,7 +410,7 @@ export function WaterTrackerCard() {
         {/* Quick stats */}
         {entries.length > 0 && (
           <div className="text-xs text-muted-foreground">
-            {entries.length} {entries.length === 1 ? "log" : "logs"} today · tap the {portionType} to add {servingOz} fl oz · swipe left to remove 1
+            {entries.length} {entries.length === 1 ? "log" : "logs"} today
           </div>
         )}
       </CardContent>
