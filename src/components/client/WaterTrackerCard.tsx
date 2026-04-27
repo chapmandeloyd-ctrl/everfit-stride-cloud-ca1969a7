@@ -119,45 +119,59 @@ export function WaterTrackerCard() {
   const lastEntry = entries[0];
 
   // Swipe-left-to-undo on the portion icon
-  const swipeRef = useRef<{ x: number; y: number; active: boolean }>({ x: 0, y: 0, active: false });
+  const swipeRef = useRef<{ x: number; y: number; active: boolean; pointerId: number | null }>({
+    x: 0,
+    y: 0,
+    active: false,
+    pointerId: null,
+  });
   const [swipeDx, setSwipeDx] = useState(0);
-  const SWIPE_THRESHOLD = 40;
+  const suppressClickRef = useRef(false);
+  const SWIPE_THRESHOLD = 30;
 
-  const onPointerDown = (e: React.PointerEvent) => {
-    swipeRef.current = { x: e.clientX, y: e.clientY, active: true };
+  const onPointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
+    swipeRef.current = { x: e.clientX, y: e.clientY, active: true, pointerId: e.pointerId };
     setSwipeDx(0);
-  };
-  const onPointerMove = (e: React.PointerEvent) => {
-    if (!swipeRef.current.active) return;
-    const dx = e.clientX - swipeRef.current.x;
-    const dy = e.clientY - swipeRef.current.y;
-    if (Math.abs(dx) > Math.abs(dy)) {
-      // Only allow left drag (negative dx)
-      setSwipeDx(Math.min(0, Math.max(dx, -80)));
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+      /* noop */
     }
   };
-  const onPointerEnd = (e: React.PointerEvent) => {
+  const onPointerMove = (e: React.PointerEvent<HTMLButtonElement>) => {
     if (!swipeRef.current.active) return;
     const dx = e.clientX - swipeRef.current.x;
-    const dy = e.clientY - swipeRef.current.y;
+    // Only allow left drag (negative dx), clamp to -90
+    if (dx < 0) {
+      setSwipeDx(Math.max(dx, -90));
+    } else {
+      setSwipeDx(0);
+    }
+  };
+  const onPointerEnd = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (!swipeRef.current.active) return;
+    const dx = e.clientX - swipeRef.current.x;
     swipeRef.current.active = false;
+    try {
+      if (swipeRef.current.pointerId !== null) {
+        e.currentTarget.releasePointerCapture(swipeRef.current.pointerId);
+      }
+    } catch {
+      /* noop */
+    }
     setSwipeDx(0);
-    if (dx <= -SWIPE_THRESHOLD && Math.abs(dx) > Math.abs(dy)) {
-      e.preventDefault();
-      e.stopPropagation();
+    if (dx <= -SWIPE_THRESHOLD) {
       if (lastEntry) {
         handleUndo();
       } else {
         toast("Nothing to remove yet");
       }
-      // Suppress the click that follows
       suppressClickRef.current = true;
       setTimeout(() => {
         suppressClickRef.current = false;
-      }, 300);
+      }, 400);
     }
   };
-  const suppressClickRef = useRef(false);
 
   // Trigger celebration only once per crossing
   useEffect(() => {
@@ -267,6 +281,21 @@ export function WaterTrackerCard() {
             </div>
           </div>
 
+          {/* Swipe-left hint, revealed as user drags */}
+          {swipeDx < -4 && (
+            <div
+              className="absolute top-1/2 -translate-y-1/2 flex items-center gap-1 text-[10px] font-semibold text-rose-300 pointer-events-none z-20"
+              style={{
+                left: `calc(${Math.max(percent, 4)}% + ${swipeDx}px + 28px)`,
+                opacity: Math.min(1, Math.abs(swipeDx) / SWIPE_THRESHOLD),
+              }}
+            >
+              <span className="rounded-full bg-rose-500/90 px-2 py-0.5 text-white shadow-md">
+                − remove
+              </span>
+            </div>
+          )}
+
           {/* Sliding glass */}
           <button
             type="button"
@@ -278,13 +307,17 @@ export function WaterTrackerCard() {
             onPointerMove={onPointerMove}
             onPointerUp={onPointerEnd}
             onPointerCancel={onPointerEnd}
-            className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 transition-all duration-700 ease-out group touch-pan-y"
+            className="absolute top-1/2 group select-none"
             style={{
               left: `${Math.max(percent, 4)}%`,
               transform: `translate(calc(-50% + ${swipeDx}px), -50%)`,
-              transition: swipeDx === 0 ? "left 700ms ease-out, transform 200ms ease-out" : "none",
+              transition:
+                swipeRef.current.active
+                  ? "none"
+                  : "left 700ms ease-out, transform 200ms ease-out",
+              touchAction: "none",
             }}
-            aria-label={`Add ${servingOz} fl oz — swipe left to remove last entry`}
+            aria-label={`Tap to add ${servingOz} fl oz, swipe left to remove last entry`}
           >
             <div className="relative">
               <svg width="44" height="52" viewBox="0 0 44 52" className="drop-shadow-lg">
