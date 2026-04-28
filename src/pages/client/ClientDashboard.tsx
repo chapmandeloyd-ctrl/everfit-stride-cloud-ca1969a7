@@ -746,13 +746,15 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
             {isMaintenanceMode && <Badge variant="secondary" className="text-xs">Maintenance</Badge>}
           </div>
 
-          {/* Hero Dynamic Timer */}
-          <div className="py-0">
-            <FastingTimer
-              fastStartAt={featureSettings.active_fast_start_at!}
-              targetHours={featureSettings.active_fast_target_hours!}
-              now={now}
-            />
+          {/* Hero Dynamic Timer — visually scaled (internals untouched) */}
+          <div className="py-0 flex justify-center" style={{ height: "230px", overflow: "hidden" }}>
+            <div style={{ transform: "scale(0.72)", transformOrigin: "center center" }}>
+              <FastingTimer
+                fastStartAt={featureSettings.active_fast_start_at!}
+                targetHours={featureSettings.active_fast_target_hours!}
+                now={now}
+              />
+            </div>
           </div>
 
 
