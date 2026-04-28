@@ -20,8 +20,22 @@ const ozToLiter = (oz: number) => oz / OZ_PER_LITER;
 const literToOz = (l: number) => l * OZ_PER_LITER;
 
 export type WaterUnit = "fl_oz" | "liter";
-export type WaterPortion = "glass" | "bottle";
-export const WATER_PORTION_OZ: Record<WaterPortion, number> = { glass: 8, bottle: 16 };
+export type WaterPortion = "glass" | "bottle" | "large_bottle";
+export const WATER_PORTION_OZ: Record<WaterPortion, number> = {
+  glass: 8,
+  bottle: 16,
+  large_bottle: 30,
+};
+export const WATER_PORTION_LABEL: Record<WaterPortion, string> = {
+  glass: "Glass",
+  bottle: "Bottle",
+  large_bottle: "Large Bottle",
+};
+export function inferPortionFromServing(servingOz: number): WaterPortion {
+  if (servingOz >= 24) return "large_bottle";
+  if (servingOz >= 12) return "bottle";
+  return "glass";
+}
 
 interface Props {
   open: boolean;
@@ -74,21 +88,36 @@ export function WaterTrackerSettingsDialog({
     const goalOz = Number(settings.daily_goal_oz ?? 64);
     const servingOz = Number(settings.serving_size_oz ?? 8);
     setDraftUnit((settings.unit as WaterUnit) ?? "fl_oz");
-    setDraftPortion(servingOz >= 12 ? "bottle" : "glass");
+    setDraftPortion(inferPortionFromServing(servingOz));
     setDraftGoalOz(goalOz);
     setDraftReminders(currentRemindersEnabled ?? settings.reminders_enabled ?? true);
   }, [open, settings, currentRemindersEnabled]);
 
-  const sliderMinOz = draftUnit === "liter" ? Math.round(literToOz(0.5)) : 16;
-  const sliderMaxOz = draftUnit === "liter" ? Math.round(literToOz(5)) : 200;
-  const sliderStepOz = draftUnit === "liter" ? Math.round(literToOz(0.1)) : 8;
+  const portionOz = WATER_PORTION_OZ[draftPortion];
+  const sliderMinOz =
+    draftUnit === "liter" ? Math.round(literToOz(0.5)) : portionOz;
+  const sliderMaxOz =
+    draftUnit === "liter" ? Math.round(literToOz(5)) : 240;
+  // Step by portion size (in fl_oz mode) so the goal is always a whole number
+  // of glasses/bottles. In liter mode, step by 0.1 L for fine control.
+  const sliderStepOz =
+    draftUnit === "liter" ? Math.round(literToOz(0.1)) : portionOz;
   const draftGoalDisplay =
     draftUnit === "liter"
       ? `${ozToLiter(draftGoalOz).toFixed(2)} L`
       : `${Math.round(draftGoalOz)} fl oz`;
   const portionDisplay = (oz: number) =>
     draftUnit === "liter" ? `${ozToLiter(oz).toFixed(2)} L` : `${oz} fl oz`;
-  const bottleCount = Math.round(draftGoalOz / WATER_PORTION_OZ[draftPortion]);
+  const bottleCount = Math.max(1, Math.round(draftGoalOz / portionOz));
+
+  // Snap goal to a whole multiple of the chosen portion when switching
+  // portions, so the saved goal/serving math always lines up.
+  useEffect(() => {
+    if (!open) return;
+    const snapped = Math.max(portionOz, Math.round(draftGoalOz / portionOz) * portionOz);
+    if (snapped !== draftGoalOz) setDraftGoalOz(snapped);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draftPortion]);
 
   const handleSave = async () => {
     if (!clientId) return;
