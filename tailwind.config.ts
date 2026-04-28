@@ -73,6 +73,7 @@ export default {
           weight: "hsl(var(--ring-weight))",
           activity: "hsl(var(--ring-activity))",
           sleep: "hsl(var(--ring-sleep))",
+          water: "hsl(var(--ring-water))",
         },
       },
       borderRadius: {
