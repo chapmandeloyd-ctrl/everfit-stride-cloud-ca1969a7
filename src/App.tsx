@@ -62,6 +62,7 @@ import NotFound from "./pages/NotFound";
 import ClientHealth from "./pages/client/ClientHealth";
 import ClientHealthConnect from "./pages/client/ClientHealthConnect";
 import ClientBadges from "./pages/client/ClientBadges";
+import ClientTimeline from "./pages/client/ClientTimeline";
 import ClientMealPlan from "./pages/client/ClientMealPlan";
 import ClientMealSelect from "./pages/client/ClientMealSelect";
 import ClientHealthReminders from "./pages/client/ClientHealthReminders";
