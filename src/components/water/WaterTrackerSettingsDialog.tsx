@@ -173,8 +173,8 @@ export function WaterTrackerSettingsDialog({
         <div className="space-y-6 py-2">
           <div className="space-y-3">
             <div className="text-sm font-medium text-muted-foreground">Portion</div>
-            <div className="grid grid-cols-2 gap-3">
-              {(["glass", "bottle"] as WaterPortion[]).map((p) => {
+            <div className="grid grid-cols-3 gap-2">
+              {(["glass", "bottle", "large_bottle"] as WaterPortion[]).map((p) => {
                 const selected = draftPortion === p;
                 return (
                   <button
@@ -182,7 +182,7 @@ export function WaterTrackerSettingsDialog({
                     type="button"
                     onClick={() => setDraftPortion(p)}
                     className={cn(
-                      "relative rounded-2xl border-2 p-4 flex flex-col items-center gap-2 transition-all",
+                      "relative rounded-2xl border-2 p-3 flex flex-col items-center gap-2 transition-all",
                       selected
                         ? "border-sky-400 bg-sky-400/10"
                         : "border-border bg-secondary/30 hover:bg-secondary/50",
@@ -194,11 +194,14 @@ export function WaterTrackerSettingsDialog({
                       </div>
                     )}
                     {p === "glass" ? (
-                      <GlassWater className="h-10 w-10 text-sky-400" strokeWidth={1.5} />
+                      <GlassWater className="h-9 w-9 text-sky-400" strokeWidth={1.5} />
                     ) : (
                       <svg
                         viewBox="0 0 24 32"
-                        className="h-10 w-10 text-sky-400"
+                        className={cn(
+                          "text-sky-400",
+                          p === "large_bottle" ? "h-11 w-11" : "h-9 w-9",
+                        )}
                         fill="none"
                         stroke="currentColor"
                         strokeWidth={1.5}
@@ -223,8 +226,8 @@ export function WaterTrackerSettingsDialog({
                       </svg>
                     )}
                     <div className="text-center">
-                      <div className="text-base font-semibold capitalize">{p}</div>
-                      <div className="text-xs text-muted-foreground">
+                      <div className="text-sm font-semibold">{WATER_PORTION_LABEL[p]}</div>
+                      <div className="text-[11px] text-muted-foreground">
                         {portionDisplay(WATER_PORTION_OZ[p])}
                       </div>
                     </div>
