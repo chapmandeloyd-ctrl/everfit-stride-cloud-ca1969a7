@@ -244,8 +244,9 @@ export function WaterTrackerSettingsDialog({
                   {context === "admin" ? "Client's Daily Goal" : "Your Daily Goal"}
                 </div>
                 <div className="text-xs text-muted-foreground/80">
-                  Equals {bottleCount} {draftPortion}
-                  {bottleCount === 1 ? "" : "s"} (1 {draftPortion} ={" "}
+                  Equals {bottleCount} {WATER_PORTION_LABEL[draftPortion].toLowerCase()}
+                  {bottleCount === 1 ? "" : "s"} (1{" "}
+                  {WATER_PORTION_LABEL[draftPortion].toLowerCase()} ={" "}
                   {portionDisplay(WATER_PORTION_OZ[draftPortion])})
                 </div>
               </div>
