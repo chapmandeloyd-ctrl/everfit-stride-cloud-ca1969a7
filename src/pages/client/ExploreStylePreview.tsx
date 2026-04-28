@@ -71,19 +71,48 @@ function BadgeCategoryTint({ label, type }: { label: string; type: string }) {
 function BadgeGoldOutline({ label, type }: { label: string; type: string }) {
   return (
     <div className="flex flex-col items-center gap-1">
-      <div className="relative h-16 w-16">
-        {/* Gold border via larger hex behind */}
+      <div className="relative h-16 w-16" style={{ filter: "drop-shadow(0 6px 10px rgba(0,0,0,0.6)) drop-shadow(0 1px 0 rgba(212,175,90,0.25))" }}>
+        {/* Outer gold rim with metallic gradient */}
         <div
           className="absolute inset-0"
-          style={{ background: GOLD, clipPath: HEX_CLIP }}
+          style={{
+            background:
+              "linear-gradient(140deg, hsl(45 85% 75%) 0%, hsl(42 70% 55%) 35%, hsl(38 65% 38%) 65%, hsl(45 80% 70%) 100%)",
+            clipPath: HEX_CLIP,
+          }}
         />
+        {/* Glossy black inner face */}
         <div
-          className="absolute inset-[2px] flex items-center justify-center"
-          style={{ background: "hsl(0 0% 5%)", clipPath: HEX_CLIP }}
+          className="absolute inset-[2px] flex items-center justify-center overflow-hidden"
+          style={{
+            background:
+              "radial-gradient(ellipse at 30% 20%, hsl(0 0% 22%) 0%, hsl(0 0% 8%) 45%, hsl(0 0% 3%) 100%)",
+            clipPath: HEX_CLIP,
+          }}
         >
+            {/* Top gloss highlight */}
+            <div
+              className="absolute inset-x-0 top-0 h-1/2 pointer-events-none"
+              style={{
+                background:
+                  "linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.04) 60%, transparent 100%)",
+              }}
+            />
+            {/* Soft inner shadow at bottom for depth */}
+            <div
+              className="absolute inset-x-0 bottom-0 h-1/2 pointer-events-none"
+              style={{
+                background:
+                  "linear-gradient(0deg, rgba(0,0,0,0.55) 0%, transparent 100%)",
+              }}
+            />
           <span
-            className="text-sm font-bold leading-none"
-            style={{ color: GOLD, fontFamily: "Georgia, serif" }}
+            className="relative text-sm font-bold leading-none"
+            style={{
+              color: GOLD,
+              fontFamily: "Georgia, serif",
+              textShadow: "0 1px 0 rgba(0,0,0,0.8), 0 0 8px hsl(42 70% 55% / 0.35)",
+            }}
           >
             {label}
           </span>
