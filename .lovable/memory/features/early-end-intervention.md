@@ -14,6 +14,8 @@ When a user taps "End Fast" before the target hours, `EndFastEarlySheet` opens (
 
 Eating window has a lighter `EndEatingWindowEarlySheet` (no AI, just reason chips: done_eating / not_hungry / extend_fast / schedule / other). Two intents: `end_window` and `choose_next_fast`.
 
+**End fast — skip Fuel Phase** (added Apr 2026): Third option on `EndFastEarlySheet` available on BOTH the just-started step and the regular reason step. Wired via new `onEndSkipFuel` prop → `endFastSkipFuelMutation` in `ClientDashboard.tsx`. Behavior: clears `active_fast_start_at` + `active_fast_target_hours` + `fast_lock_pin`, leaves `eating_window_ends_at = null` (no Fuel Phase starts), inserts to `fasting_log` with `status="partial"` ONLY if `actual_hours >= 1` (1h credit threshold), always inserts to `early_session_ends` with `reason="skipped_fuel"` (or user-picked reason), optional "Notify my trainer" checkbox (default ON) → reuses `notify-trainer-fast-cancelled` with `kind="end_and_notify"`. Navigates back to `/client/dashboard` (NOT `/client/fast-complete`). Time-based credit rules: <1h = no log/no credit, 1h–target = partial credit, ≥target = completed.
+
 Table `early_session_ends` columns: client_id, session_type ('fast'|'eating_window'), elapsed_hours, target_hours, percent_complete, reason, action_attempted, ai_suggestion_shown, ai_suggestion_text, note. RLS: client own + trainer-of-client read.
 
 Files: `src/components/fasting/EndFastEarlySheet.tsx`, `src/components/fasting/EndEatingWindowEarlySheet.tsx`, `supabase/functions/coach-fast-intervention/index.ts`, `supabase/functions/notify-trainer-fast-cancelled/index.ts`. Wired into `FastingProtocolCard` in `ClientDashboard.tsx`. Did NOT modify the legacy `FastingTimer` per memory constraint.
