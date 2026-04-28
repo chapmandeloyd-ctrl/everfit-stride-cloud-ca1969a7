@@ -67,6 +67,8 @@ import { CreatePinDialog, VerifyPinDialog, HoldToEndButton } from "@/components/
 import { FastingCoachTipCard } from "@/components/FastingCoachTipCard";
 import { ProtocolCompletionDialog } from "@/components/ProtocolCompletionDialog";
 import { MyProgressSection } from "@/components/MyProgressSection";
+import { EndFastEarlySheet } from "@/components/fasting/EndFastEarlySheet";
+import { EndEatingWindowEarlySheet } from "@/components/fasting/EndEatingWindowEarlySheet";
 import { SmartPaceBanner } from "@/components/smart-pace/SmartPaceBanner";
 import { SmartPaceCatchUpModal } from "@/components/smart-pace/SmartPaceCatchUpModal";
 import { MyWhyCard } from "@/components/goal-motivation/MyWhyCard";
@@ -98,6 +100,9 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
   const [showCompletion, setShowCompletion] = useState(false);
   const [showEndEatingWindowConfirm, setShowEndEatingWindowConfirm] = useState(false);
   const [showCloseEatingWindowConfirm, setShowCloseEatingWindowConfirm] = useState(false);
+  const [showEndFastEarlySheet, setShowEndFastEarlySheet] = useState(false);
+  const [showEndEatingWindowSheet, setShowEndEatingWindowSheet] = useState(false);
+  const [eatingWindowSheetIntent, setEatingWindowSheetIntent] = useState<"end_window" | "choose_next_fast">("end_window");
   const liveActivity = useLiveActivity();
   const { toast } = useToast();
 
@@ -330,7 +335,14 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
   });
 
   const endFastMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (intervention?: void | {
+      reason: string;
+      actionAttempted: string | null;
+      note: string;
+      aiSuggestionShown: boolean;
+      aiSuggestionText: string | null;
+      elapsedHours: number;
+    }) => {
       const nowTs = new Date();
       const startAt = featureSettings?.active_fast_start_at;
       const targetHours = featureSettings?.active_fast_target_hours || 16;
@@ -372,6 +384,26 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
           status: endedEarly ? "partial" : "completed",
           ended_early: endedEarly,
         });
+      }
+
+      // Log early-end intervention metadata for the coach + adaptive engine
+      if (endedEarly && clientId && intervention) {
+        try {
+          await supabase.from("early_session_ends").insert({
+            client_id: clientId,
+            session_type: "fast",
+            elapsed_hours: intervention.elapsedHours,
+            target_hours: targetHours,
+            percent_complete: completionPct,
+            reason: intervention.reason,
+            action_attempted: intervention.actionAttempted,
+            ai_suggestion_shown: intervention.aiSuggestionShown,
+            ai_suggestion_text: intervention.aiSuggestionText,
+            note: intervention.note || null,
+          });
+        } catch (e) {
+          console.warn("early_session_ends insert failed:", e);
+        }
       }
 
       // Fire Zapier webhook (fast_completed or fast_broken). Fire-and-forget;
@@ -676,7 +708,7 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
             {featureSettings.fast_lock_pin ? (
               <HoldToEndButton onHoldComplete={() => setShowVerifyPin(true)} />
             ) : (
-              <Button variant="destructive" className="w-full h-12 text-base" onClick={() => endFastMutation.mutate()}>
+              <Button variant="destructive" className="w-full h-12 text-base" onClick={() => setShowEndFastEarlySheet(true)}>
                 End Fast
               </Button>
             )}
@@ -700,8 +732,18 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
             storedPin={featureSettings.fast_lock_pin || ""}
             onVerified={() => {
               setShowVerifyPin(false);
-              endFastMutation.mutate();
+              setShowEndFastEarlySheet(true);
             }}
+          />
+
+          {/* Coaching intervention before ending the fast early */}
+          <EndFastEarlySheet
+            open={showEndFastEarlySheet}
+            onOpenChange={setShowEndFastEarlySheet}
+            clientId={clientId}
+            fastStartAt={featureSettings.active_fast_start_at}
+            targetHours={featureSettings.active_fast_target_hours!}
+            onConfirmEnd={(meta) => endFastMutation.mutate(meta)}
           />
         </CardContent>
         </Card>
@@ -848,7 +890,10 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
                   variant="ghost"
                   className="w-full h-12 text-sm font-medium uppercase tracking-widest bg-transparent border hover:bg-transparent"
                   style={{ borderColor: "hsl(42 70% 55%)", color: "hsl(42 70% 55%)" }}
-                  onClick={() => setShowCloseEatingWindowConfirm(true)}
+                  onClick={() => {
+                    setEatingWindowSheetIntent("end_window");
+                    setShowEndEatingWindowSheet(true);
+                  }}
                 >
                   <Clock className="h-4 w-4 mr-2" /> End Eating Window
                 </Button>
@@ -859,7 +904,8 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
                 style={{ borderColor: "hsl(42 70% 55% / 0.5)", color: "hsl(40 20% 92%)" }}
                 onClick={() => {
                   if (ewRemainingMs > 0) {
-                    setShowEndEatingWindowConfirm(true);
+                    setEatingWindowSheetIntent("choose_next_fast");
+                    setShowEndEatingWindowSheet(true);
                   } else {
                     navigate("/client/begin-reset");
                   }
@@ -871,57 +917,54 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
           </CardContent>
         </div>
 
-        <AlertDialog open={showEndEatingWindowConfirm} onOpenChange={setShowEndEatingWindowConfirm}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>End eating window early?</AlertDialogTitle>
-              <AlertDialogDescription>
-                You still have {ewH > 0 ? `${ewH}h ` : ""}{ewM}m left in your eating window. Ending now will close the window so you can choose your next fast.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Stay in eating window</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => {
-                  setShowEndEatingWindowConfirm(false);
-                  navigate("/client/begin-reset");
-                }}
-              >
-                Yes, choose next fast
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <EndEatingWindowEarlySheet
+          open={showEndEatingWindowSheet}
+          onOpenChange={setShowEndEatingWindowSheet}
+          remainingMs={ewRemainingMs}
+          windowHours={featureSettings?.eating_window_hours || 8}
+          elapsedMs={Math.max(
+            0,
+            (featureSettings?.eating_window_hours || 8) * 3_600_000 - ewRemainingMs,
+          )}
+          intent={eatingWindowSheetIntent}
+          onConfirm={async (meta) => {
+            if (!clientId) return;
+            const targetH = featureSettings?.eating_window_hours || 8;
+            const completionPct = targetH > 0
+              ? Math.min(Math.round((meta.elapsedHours / targetH) * 100), 100)
+              : 0;
+            // Log early-end metadata
+            try {
+              await supabase.from("early_session_ends").insert({
+                client_id: clientId,
+                session_type: "eating_window",
+                elapsed_hours: meta.elapsedHours,
+                target_hours: targetH,
+                percent_complete: completionPct,
+                reason: meta.reason,
+                action_attempted: null,
+                ai_suggestion_shown: false,
+                ai_suggestion_text: null,
+                note: meta.note || null,
+              });
+            } catch (e) {
+              console.warn("early_session_ends insert (eating_window) failed:", e);
+            }
 
-        <AlertDialog open={showCloseEatingWindowConfirm} onOpenChange={setShowCloseEatingWindowConfirm}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>End eating window?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Ending will close your eating window and take you back to your home screen.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={async () => {
-                  setShowCloseEatingWindowConfirm(false);
-                  if (!clientId) return;
-                  await supabase
-                    .from("client_feature_settings")
-                    .update({ eating_window_ends_at: null })
-                    .eq("client_id", clientId);
-                  queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting", clientId] });
-                  queryClient.invalidateQueries({ queryKey: ["my-feature-settings", clientId] });
-                  queryClient.invalidateQueries({ queryKey: ["fasting-profile-data"] });
-                  navigate("/client/dashboard");
-                }}
-              >
-                Yes, end window
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+            if (eatingWindowSheetIntent === "choose_next_fast") {
+              navigate("/client/begin-reset");
+            } else {
+              await supabase
+                .from("client_feature_settings")
+                .update({ eating_window_ends_at: null })
+                .eq("client_id", clientId);
+              queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting", clientId] });
+              queryClient.invalidateQueries({ queryKey: ["my-feature-settings", clientId] });
+              queryClient.invalidateQueries({ queryKey: ["fasting-profile-data"] });
+              navigate("/client/dashboard");
+            }
+          }}
+        />
       </Card>
     );
   }
