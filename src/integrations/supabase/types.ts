@@ -3330,6 +3330,51 @@ export type Database = {
           },
         ]
       }
+      early_session_ends: {
+        Row: {
+          action_attempted: string | null
+          ai_suggestion_shown: boolean
+          ai_suggestion_text: string | null
+          client_id: string
+          created_at: string
+          elapsed_hours: number
+          id: string
+          note: string | null
+          percent_complete: number
+          reason: string | null
+          session_type: string
+          target_hours: number
+        }
+        Insert: {
+          action_attempted?: string | null
+          ai_suggestion_shown?: boolean
+          ai_suggestion_text?: string | null
+          client_id: string
+          created_at?: string
+          elapsed_hours: number
+          id?: string
+          note?: string | null
+          percent_complete: number
+          reason?: string | null
+          session_type: string
+          target_hours: number
+        }
+        Update: {
+          action_attempted?: string | null
+          ai_suggestion_shown?: boolean
+          ai_suggestion_text?: string | null
+          client_id?: string
+          created_at?: string
+          elapsed_hours?: number
+          id?: string
+          note?: string | null
+          percent_complete?: number
+          reason?: string | null
+          session_type?: string
+          target_hours?: number
+        }
+        Relationships: []
+      }
       eating_window_meal_photos: {
         Row: {
           client_id: string
