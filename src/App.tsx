@@ -107,6 +107,7 @@ import AllClientWorkouts from "./pages/AllClientWorkouts";
 import ClientCommandCenter from "./pages/ClientCommandCenter";
 import Scheduling from "./pages/Scheduling";
 import TrainerSettings from "./pages/TrainerSettings";
+import TrainerExploreManager from "./pages/TrainerExploreManager";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { FastingRouteGuard } from "./components/FastingRouteGuard";
 import { ImpersonationProvider } from "./hooks/useImpersonation";
@@ -177,6 +178,7 @@ const App = () => (
           <Route path="/macro-calculator" element={<ProtectedRoute allowedRoles={["trainer"]}><MacroCalculator /></ProtectedRoute>} />
           <Route path="/macro-tracking" element={<ProtectedRoute allowedRoles={["trainer"]}><MacroTracking /></ProtectedRoute>} />
           <Route path="/keto-types" element={<ProtectedRoute allowedRoles={["trainer"]}><KetoTypesManager /></ProtectedRoute>} />
+          <Route path="/explore-manager" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerExploreManager /></ProtectedRoute>} />
           <Route path="/clients/:clientId/health" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerClientHealth /></ProtectedRoute>} />
           <Route path="/clients/:clientId" element={<ProtectedRoute allowedRoles={["trainer"]}><ClientCommandCenter /></ProtectedRoute>} />
           <Route path="/clients/:clientId/workout-history" element={<ProtectedRoute allowedRoles={["trainer"]}><ClientWorkoutHistory /></ProtectedRoute>} />
