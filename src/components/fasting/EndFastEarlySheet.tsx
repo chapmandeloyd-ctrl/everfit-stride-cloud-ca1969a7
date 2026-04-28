@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Coffee, Droplets, Footprints, Wind, Loader2 } from "lucide-react";
+import { Coffee, Droplets, Footprints, Wind, Loader2, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 
@@ -21,9 +21,15 @@ interface Props {
     aiSuggestionText: string | null;
     elapsedHours: number;
   }) => void;
+  /** Called when user picks "No, cancel it" within the just-started window (≤15 min). Should clean-cancel the fast (no log, no penalty). */
+  onCancelMistake?: () => void;
+  /** Called when user picks "Yes, end & notify trainer" within the just-started window. Ends the fast AND alerts the trainer to reschedule. */
+  onEndAndNotifyTrainer?: (meta: { elapsedHours: number }) => void;
 }
 
-type Step = "coach" | "reason";
+type Step = "just_started" | "coach" | "reason";
+
+const JUST_STARTED_THRESHOLD_HOURS = 0.25; // 15 minutes
 
 const REASON_OPTIONS: { id: string; label: string }[] = [
   { id: "done", label: "I'm actually done — feel good" },
@@ -106,6 +112,8 @@ export function EndFastEarlySheet({
   fastStartAt,
   targetHours,
   onConfirmEnd,
+  onCancelMistake,
+  onEndAndNotifyTrainer,
 }: Props) {
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>("coach");
@@ -124,17 +132,25 @@ export function EndFastEarlySheet({
   const elapsedMins = Math.floor((elapsedH - elapsedHrs) * 60);
   const remainHrs = Math.floor(remainingH);
   const remainMins = Math.floor((remainingH - remainHrs) * 60);
+  const justStarted = elapsedH < JUST_STARTED_THRESHOLD_HOURS;
+  const elapsedTotalMins = Math.max(0, Math.round(elapsedH * 60));
 
   const diagnosis = useMemo(() => getStaticDiagnosis(elapsedH), [elapsedH]);
 
-  // Reset state and (re)fetch AI line each time the sheet opens
+  // Reset state and (re)fetch AI line each time the sheet opens.
+  // Skip the AI call entirely when the fast just started — it's not useful that early.
   useEffect(() => {
     if (!open) return;
-    setStep("coach");
+    setStep(justStarted ? "just_started" : "coach");
     setActionAttempted(null);
     setReason(null);
     setNote("");
     setAiLine(null);
+
+    if (justStarted) {
+      setAiLoading(false);
+      return;
+    }
 
     let cancelled = false;
     const stageLabel = getStageLabel(elapsedH);
@@ -200,7 +216,81 @@ export function EndFastEarlySheet({
         style={{ borderColor: "hsl(42 70% 55% / 0.25)" }}
       >
         <div className="px-5 pt-6 pb-8 max-w-md mx-auto space-y-5">
-          {step === "coach" ? (
+          {step === "just_started" ? (
+            <>
+              {/* Just-started variant — no coaching, just confirm intent */}
+              <div className="space-y-2 text-center">
+                <div
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full"
+                  style={{ backgroundColor: "hsl(42 70% 55% / 0.12)" }}
+                >
+                  <AlertCircle className="h-3 w-3" style={{ color: "hsl(42 70% 55%)" }} />
+                  <p
+                    className="text-[10px] font-medium uppercase tracking-[0.25em]"
+                    style={{ color: "hsl(42 70% 55%)" }}
+                  >
+                    Just started · {elapsedTotalMins} min in
+                  </p>
+                </div>
+                <h2
+                  className="text-2xl font-light"
+                  style={{ fontFamily: "Georgia, serif", color: "hsl(40 20% 92%)" }}
+                >
+                  Did you mean to start this fast?
+                </h2>
+                <p className="text-xs text-white/60 max-w-xs mx-auto leading-relaxed">
+                  No worries either way — this won't count against you. Pick whichever fits.
+                </p>
+              </div>
+
+              <div className="space-y-2.5 pt-2">
+                <Button
+                  className="w-full h-14 text-sm font-semibold uppercase tracking-widest"
+                  style={{
+                    backgroundColor: "hsl(42 70% 55%)",
+                    color: "hsl(0 0% 8%)",
+                  }}
+                  onClick={() => {
+                    onCancelMistake?.();
+                    onOpenChange(false);
+                  }}
+                >
+                  No, cancel it
+                </Button>
+                <p className="text-[11px] text-white/45 text-center -mt-0.5">
+                  Clean slate. Start a fast whenever you're ready.
+                </p>
+
+                <Button
+                  variant="ghost"
+                  className="w-full h-12 text-sm font-medium uppercase tracking-widest border bg-transparent hover:bg-white/[0.03]"
+                  style={{
+                    borderColor: "hsl(42 70% 55% / 0.4)",
+                    color: "hsl(40 20% 92%)",
+                  }}
+                  onClick={() => {
+                    onEndAndNotifyTrainer?.({ elapsedHours: Math.round(elapsedH * 100) / 100 });
+                    onOpenChange(false);
+                  }}
+                >
+                  End fast & alert my trainer
+                </Button>
+                <p className="text-[11px] text-white/45 text-center -mt-0.5">
+                  Your trainer will get a heads-up to schedule a new fast.
+                </p>
+              </div>
+
+              <div className="pt-1 text-center">
+                <button
+                  type="button"
+                  onClick={() => onOpenChange(false)}
+                  className="text-xs text-white/40 hover:text-white/70 underline underline-offset-4 transition-colors"
+                >
+                  Keep fasting
+                </button>
+              </div>
+            </>
+          ) : step === "coach" ? (
             <>
               {/* Header */}
               <div className="space-y-1.5 text-center">
