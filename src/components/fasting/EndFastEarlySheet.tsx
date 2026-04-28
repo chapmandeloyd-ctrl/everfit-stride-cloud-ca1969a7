@@ -321,6 +321,35 @@ export function EndFastEarlySheet({
                 <p className="text-[11px] text-white/45 text-center -mt-0.5">
                   Your trainer will get a heads-up to schedule a new fast.
                 </p>
+
+                {onEndSkipFuel && (
+                  <>
+                    <Button
+                      variant="ghost"
+                      className="w-full h-12 text-sm font-medium uppercase tracking-widest border bg-transparent hover:bg-white/[0.03]"
+                      style={{
+                        borderColor: "hsl(42 70% 55% / 0.25)",
+                        color: "hsl(40 20% 88%)",
+                      }}
+                      onClick={() => handleEndSkipFuel("skipped_fuel_just_started")}
+                    >
+                      <SkipForward className="h-3.5 w-3.5 mr-2" />
+                      End fast — skip Fuel Phase
+                    </Button>
+                    <p className="text-[11px] text-white/45 text-center -mt-0.5">
+                      Ends the fast and returns you to Today. No eating window will start.
+                    </p>
+                    <label className="flex items-center justify-center gap-2 pt-1 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={notifyTrainer}
+                        onChange={(e) => setNotifyTrainer(e.target.checked)}
+                        className="h-3.5 w-3.5 rounded border-white/30 bg-transparent accent-amber-500"
+                      />
+                      <span className="text-[11px] text-white/55">Notify my trainer</span>
+                    </label>
+                  </>
+                )}
               </div>
 
               <div className="pt-1 text-center">
@@ -492,6 +521,33 @@ export function EndFastEarlySheet({
                   End fast
                 </Button>
               </div>
+
+              {onEndSkipFuel && (
+                <div className="pt-3 border-t" style={{ borderColor: "hsl(42 70% 55% / 0.15)" }}>
+                  <Button
+                    variant="ghost"
+                    className="w-full h-11 text-xs font-medium uppercase tracking-widest border bg-transparent hover:bg-white/[0.03]"
+                    style={{ borderColor: "hsl(42 70% 55% / 0.25)", color: "hsl(40 20% 88%)" }}
+                    disabled={!reason}
+                    onClick={() => handleEndSkipFuel()}
+                  >
+                    <SkipForward className="h-3.5 w-3.5 mr-2" />
+                    End & skip Fuel Phase
+                  </Button>
+                  <p className="text-[10px] text-white/45 text-center mt-1.5 leading-snug">
+                    Returns to Today with no eating window. You'll still get credit for time fasted (1h+).
+                  </p>
+                  <label className="flex items-center justify-center gap-2 pt-2 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={notifyTrainer}
+                      onChange={(e) => setNotifyTrainer(e.target.checked)}
+                      className="h-3.5 w-3.5 rounded border-white/30 bg-transparent accent-amber-500"
+                    />
+                    <span className="text-[11px] text-white/55">Notify my trainer</span>
+                  </label>
+                </div>
+              )}
             </>
           )}
         </div>
