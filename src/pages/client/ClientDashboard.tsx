@@ -303,6 +303,17 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
         throw new Error("Fast timer could not be started.");
       }
 
+      // Timeline event
+      emitActivityEvent({
+        clientId: clientId!,
+        eventType: "fast_started",
+        title: "Fast started",
+        subtitle: `${data.active_fast_target_hours}h target`,
+        category: "fasting",
+        icon: "play",
+        metadata: { target_hours: data.active_fast_target_hours, protocol_id: activeProtocol?.id ?? null },
+      });
+
       return {
         targetHours: data.active_fast_target_hours,
       };
@@ -423,6 +434,28 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
         } catch (e) {
           console.warn("Zapier webhook invoke failed:", e);
         }
+      }
+
+      // Timeline event
+      if (clientId) {
+        emitActivityEvent({
+          clientId,
+          eventType: endedEarly ? "fast_ended_early" : "fast_completed",
+          title: endedEarly ? "Fast ended early" : "Fast completed",
+          subtitle: `${actualHours.toFixed(1)}h of ${targetHours}h (${completionPct}%)`,
+          category: "fasting",
+          icon: endedEarly ? "stop-circle" : "check-circle",
+          metadata: { actual_hours: actualHours, target_hours: targetHours, completion_pct: completionPct, reason: intervention?.reason ?? null },
+        });
+        emitActivityEvent({
+          clientId,
+          eventType: "eating_window_opened",
+          title: "Fuel Phase started",
+          subtitle: `${eatingWindowHours}h window`,
+          category: "eating",
+          icon: "utensils",
+          metadata: { window_hours: eatingWindowHours },
+        });
       }
     },
     onSuccess: () => {
