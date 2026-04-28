@@ -55,7 +55,7 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
   }
 
   if (!user) {
-    return <Navigate to="/auth" replace />;
+    return null;
   }
 
   // Allow trainers to access client routes while impersonating a client
