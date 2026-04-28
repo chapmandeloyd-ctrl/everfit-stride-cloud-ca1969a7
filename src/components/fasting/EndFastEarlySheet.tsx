@@ -293,20 +293,20 @@ export function EndFastEarlySheet({
           ) : step === "coach" ? (
             <>
               {/* Header */}
-              <div className="space-y-1.5 text-center">
+              <div className="space-y-1 text-center">
                 <p
-                  className="text-[10px] font-medium uppercase tracking-[0.3em]"
+                  className="text-[9px] font-medium uppercase tracking-[0.28em]"
                   style={{ color: "hsl(42 70% 55%)" }}
                 >
                   Pause before you end
                 </p>
                 <h2
-                  className="text-2xl font-light"
+                  className="text-lg font-light"
                   style={{ fontFamily: "Georgia, serif", color: "hsl(40 20% 92%)" }}
                 >
                   You're {elapsedHrs}h {String(elapsedMins).padStart(2, "0")}m in
                 </h2>
-                <p className="text-xs text-white/60">
+                <p className="text-[11px] text-white/60">
                   {remainHrs > 0 || remainMins > 0
                     ? `${remainHrs}h ${String(remainMins).padStart(2, "0")}m left to your ${targetHours}h goal`
                     : "You're at your goal"}
