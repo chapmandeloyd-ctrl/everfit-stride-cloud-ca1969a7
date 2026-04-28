@@ -1,4 +1,4 @@
-import { Clock, Scale, Activity, Moon, ChevronDown } from "lucide-react";
+import { Clock, Scale, Activity, Moon, Droplet, ChevronDown } from "lucide-react";
 import { format, addDays, startOfWeek, isFuture } from "date-fns";
 import { useState } from "react";
 import { MultiSegmentRing, RingSegment } from "@/components/rings/MultiSegmentRing";
@@ -18,7 +18,7 @@ import { useDailyRings, type DayCompletion } from "@/hooks/useDailyRings";
  * verified live as Dee. Real wiring (HealthKit + manual logs) lands next.
  */
 
-type RingKey = "fasting" | "weight" | "activity" | "sleep";
+type RingKey = "fasting" | "weight" | "activity" | "sleep" | "water";
 
 interface RingDef {
   key: RingKey;
@@ -62,6 +62,14 @@ const RINGS: RingDef[] = [
     strokeClass: "stroke-daily-ring-sleep",
     bgClass: "bg-daily-ring-sleep",
   },
+  {
+    key: "water",
+    label: "Water",
+    goal: "Hit your hydration goal",
+    icon: Droplet,
+    strokeClass: "stroke-daily-ring-water",
+    bgClass: "bg-daily-ring-water",
+  },
 ];
 
 const EMPTY_DAY: DayCompletion = {
@@ -69,6 +77,7 @@ const EMPTY_DAY: DayCompletion = {
   weight: false,
   activity: false,
   sleep: false,
+  water: false,
 };
 
 function buildSegments(completed: Record<RingKey, boolean>): RingSegment[] {
@@ -80,7 +89,7 @@ function buildSegments(completed: Record<RingKey, boolean>): RingSegment[] {
 }
 
 function copyForCount(count: number): string {
-  if (count === 4) return "Perfect day — every ring closed!";
+  if (count === 5) return "Perfect day — every ring closed!";
   if (count > 0) return "You're making great progress — let's do this!";
   return "A fresh start. One ring at a time.";
 }
@@ -159,7 +168,7 @@ function DayDetailFull({
             {format(date, "MMMM d, yyyy")}
           </p>
           <h2 className="text-3xl font-serif mt-2 leading-tight text-white">
-            <span className="text-white/50">{count} of 4</span>
+            <span className="text-white/50">{count} of 5</span>
             <br />
             Rings
           </h2>
