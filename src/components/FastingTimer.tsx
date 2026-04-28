@@ -23,6 +23,7 @@ interface FastingTimerProps {
   targetHours: number;
   now: Date;
   demoProgress?: number; // 0-1 override for demo mode
+  compact?: boolean;
 }
 
 // Helper: create an SVG arc path for a segment of a circle
@@ -38,7 +39,7 @@ function describeArc(cx: number, cy: number, r: number, startDeg: number, endDeg
   return `M ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2}`;
 }
 
-export function FastingTimer({ fastStartAt, targetHours, now, demoProgress }: FastingTimerProps) {
+export function FastingTimer({ fastStartAt, targetHours, now, demoProgress, compact = false }: FastingTimerProps) {
   const fastStart = new Date(fastStartAt);
   const fastEnd = new Date(fastStart.getTime() + targetHours * 3600000);
   const elapsed = now.getTime() - fastStart.getTime();
@@ -64,8 +65,8 @@ export function FastingTimer({ fastStartAt, targetHours, now, demoProgress }: Fa
   const currentStage = [...FASTING_STAGES].reverse().find(s => elapsedHours >= s.hour) || FASTING_STAGES[0];
 
   // SVG dimensions
-  const size = 300;
-  const bandWidth = 40;
+  const size = compact ? 236 : 300;
+  const bandWidth = compact ? 32 : 40;
   const radius = (size - bandWidth) / 2;
   const cx = size / 2;
   const cy = size / 2;
@@ -120,9 +121,9 @@ export function FastingTimer({ fastStartAt, targetHours, now, demoProgress }: Fa
   const circumference = 2 * Math.PI * radius;
 
   return (
-    <div className="flex flex-col items-center">
+    <div className={cn("flex w-full flex-col items-center", compact ? "gap-2" : "") }>
       {/* Timer Ring */}
-      <div className="relative" style={{ width: size, height: size }}>
+      <div className="relative shrink-0" style={{ width: size, height: size }}>
         <svg width={size} height={size}>
           {/* Background track */}
           <circle
@@ -161,7 +162,7 @@ export function FastingTimer({ fastStartAt, targetHours, now, demoProgress }: Fa
           {/* Progress indicator nub */}
           {progress > 0.005 && (
             <circle
-              cx={indicatorX} cy={indicatorY} r={6}
+              cx={indicatorX} cy={indicatorY} r={compact ? 5 : 6}
               fill={indicatorColor}
               stroke="hsl(var(--background))"
               strokeWidth={2}
@@ -183,10 +184,16 @@ export function FastingTimer({ fastStartAt, targetHours, now, demoProgress }: Fa
               className={cn(
                 "absolute flex items-center justify-center rounded-full text-xs transition-all duration-500",
                 isCurrent
-                  ? "w-6 h-6 -ml-3 -mt-3 scale-110 z-10"
+                  ? compact
+                    ? "h-5 w-5 -ml-2.5 -mt-2.5 scale-110 z-10"
+                    : "h-6 w-6 -ml-3 -mt-3 scale-110 z-10"
                   : isReached
-                    ? "w-5 h-5 -ml-2.5 -mt-2.5 bg-card/90"
-                    : "w-4 h-4 -ml-2 -mt-2 bg-muted/60 opacity-40"
+                    ? compact
+                      ? "h-4 w-4 -ml-2 -mt-2 bg-card/90"
+                      : "h-5 w-5 -ml-2.5 -mt-2.5 bg-card/90"
+                    : compact
+                      ? "h-3.5 w-3.5 -ml-[7px] -mt-[7px] bg-muted/60 opacity-40"
+                      : "h-4 w-4 -ml-2 -mt-2 bg-muted/60 opacity-40"
               )}
               style={{
                 left: pos.cx,
@@ -200,59 +207,68 @@ export function FastingTimer({ fastStartAt, targetHours, now, demoProgress }: Fa
               }}
               title={`${stage.label} (${stage.hour}h) – ${stage.description}`}
             >
-              <span className={cn("text-[9px]", !isReached && "grayscale")}>{stage.icon}</span>
+              <span className={cn(compact ? "text-[8px]" : "text-[9px]", !isReached && "grayscale")}>{stage.icon}</span>
             </div>
           );
         })}
 
         {/* Center content */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-xl mb-0.5">{currentStage.icon}</span>
+          <span className={cn(compact ? "mb-0 text-lg" : "mb-0.5 text-xl")}>{currentStage.icon}</span>
           <span
-            className="text-[9px] font-medium tracking-wide uppercase"
+            className={cn(
+              "font-medium uppercase tracking-wide",
+              compact ? "text-[8px]" : "text-[9px]"
+            )}
             style={{ color: currentStage.color }}
           >
             {currentStage.label}
           </span>
-          <span className="text-2xl font-bold tabular-nums tracking-tight mt-0.5 text-white drop-shadow-lg">{timeStr}</span>
-          <span className="text-[10px] text-white/80 font-bold mt-0.5 uppercase tracking-wider">
+          <span className={cn(
+            "font-bold tabular-nums tracking-tight text-white drop-shadow-lg",
+            compact ? "mt-0.5 text-[2rem] leading-none" : "mt-0.5 text-2xl"
+          )}>{timeStr}</span>
+          <span className={cn(
+            "font-bold uppercase tracking-wider text-white/80",
+            compact ? "mt-1 text-[9px]" : "mt-0.5 text-[10px]"
+          )}>
             Elapsed ({elapsedPct}%)
           </span>
         </div>
       </div>
 
       {/* Start / Goal timestamps */}
-      <div className="w-full grid grid-cols-2 gap-3 mt-5">
-        <div className="bg-white/10 rounded-lg px-3 py-2.5 text-center border border-white/20">
-          <p className="text-[10px] font-bold text-white/70 uppercase tracking-wider mb-0.5">Started</p>
+      <div className={cn("grid w-full grid-cols-2", compact ? "mt-1 gap-2" : "mt-5 gap-3")}>
+        <div className={cn("rounded-lg border border-white/20 bg-white/10 text-center", compact ? "px-2.5 py-2" : "px-3 py-2.5")}>
+          <p className={cn("font-bold uppercase tracking-wider text-white/70", compact ? "mb-0 text-[9px]" : "mb-0.5 text-[10px]")}>Started</p>
           <p className="text-xs font-bold text-white">{format(fastStart, "EEE, h:mm a")}</p>
         </div>
-        <div className="bg-white/10 rounded-lg px-3 py-2.5 text-center border border-white/20">
-          <p className="text-[10px] font-bold text-white/70 uppercase tracking-wider mb-0.5">{targetHours}h Goal</p>
+        <div className={cn("rounded-lg border border-white/20 bg-white/10 text-center", compact ? "px-2.5 py-2" : "px-3 py-2.5")}>
+          <p className={cn("font-bold uppercase tracking-wider text-white/70", compact ? "mb-0 text-[9px]" : "mb-0.5 text-[10px]")}>{targetHours}h Goal</p>
           <p className="text-xs font-bold text-white">{format(fastEnd, "EEE, h:mm a")}</p>
         </div>
       </div>
 
       {/* Current stage description */}
-      <p className="text-xs font-bold text-white/80 mt-3 text-center">
+      <p className={cn("text-center font-bold text-white/80", compact ? "mt-1 text-[11px] leading-snug" : "mt-3 text-xs")}>
         {currentStage.description}
         {remainingMs <= 0 && " — Fast complete! 🎉"}
       </p>
 
       {/* Day Milestone Banner */}
       {milestoneBanner && (
-        <div className="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-center">
-          <p className="text-sm font-black text-white">
+        <div className={cn("rounded-xl border border-amber-500/30 bg-amber-500/10 text-center", compact ? "mt-1 px-3 py-2.5" : "mt-3 px-4 py-3")}>
+          <p className={cn("font-black text-white", compact ? "text-xs" : "text-sm")}>
             {milestoneBanner.emoji} {milestoneBanner.title}
           </p>
-          <p className="text-[11px] text-white/70 mt-1 font-medium">
+          <p className={cn("mt-1 font-medium text-white/70", compact ? "text-[10px] leading-snug" : "text-[11px]")}>
             {milestoneBanner.body}
           </p>
         </div>
       )}
 
       {/* Next Milestone Preview */}
-      {nextMilestone && !milestoneBanner && elapsedHours >= 12 && (
+      {nextMilestone && !milestoneBanner && elapsedHours >= 12 && !compact && (
         <p className="text-[11px] text-white/40 text-center mt-2 italic">
           Next milestone: Day {nextMilestone.day} at {nextMilestone.hours}h
         </p>
