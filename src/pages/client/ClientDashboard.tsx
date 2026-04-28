@@ -713,7 +713,7 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
         />
         {/* Dark overlay for text readability */}
         <div className="absolute inset-0 bg-black/60" />
-        <CardContent className="px-5 pt-8 pb-6 space-y-5 relative z-10 text-white">
+        <CardContent className="px-5 pt-4 pb-4 space-y-2 relative z-10 text-white">
           <div className="flex items-start justify-between">
             <div className="space-y-1">
               <div className="flex items-center gap-2 flex-wrap">
@@ -747,7 +747,7 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
           </div>
 
           {/* Hero Dynamic Timer */}
-          <div className="py-2">
+          <div className="py-0">
             <FastingTimer
               fastStartAt={featureSettings.active_fast_start_at!}
               targetHours={featureSettings.active_fast_target_hours!}
@@ -756,7 +756,7 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
           </div>
 
 
-          <div className="mt-16">
+          <div className="mt-2">
             {featureSettings.fast_lock_pin ? (
               <HoldToEndButton onHoldComplete={() => setShowVerifyPin(true)} />
             ) : (
