@@ -445,7 +445,7 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
           subtitle: `${actualHours.toFixed(1)}h of ${targetHours}h (${completionPct}%)`,
           category: "fasting",
           icon: endedEarly ? "stop-circle" : "check-circle",
-          metadata: { actual_hours: actualHours, target_hours: targetHours, completion_pct: completionPct, reason: intervention?.reason ?? null },
+          metadata: { actual_hours: actualHours, target_hours: targetHours, completion_pct: completionPct, reason: (intervention && (intervention as any).reason) ?? null },
         });
         emitActivityEvent({
           clientId,
