@@ -335,7 +335,7 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
   });
 
   const endFastMutation = useMutation({
-    mutationFn: async (intervention?: {
+    mutationFn: async (intervention?: void | {
       reason: string;
       actionAttempted: string | null;
       note: string;
