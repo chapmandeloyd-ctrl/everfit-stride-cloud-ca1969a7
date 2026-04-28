@@ -708,7 +708,7 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
             {featureSettings.fast_lock_pin ? (
               <HoldToEndButton onHoldComplete={() => setShowVerifyPin(true)} />
             ) : (
-              <Button variant="destructive" className="w-full h-12 text-base" onClick={() => endFastMutation.mutate()}>
+              <Button variant="destructive" className="w-full h-12 text-base" onClick={() => setShowEndFastEarlySheet(true)}>
                 End Fast
               </Button>
             )}
@@ -732,8 +732,18 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
             storedPin={featureSettings.fast_lock_pin || ""}
             onVerified={() => {
               setShowVerifyPin(false);
-              endFastMutation.mutate();
+              setShowEndFastEarlySheet(true);
             }}
+          />
+
+          {/* Coaching intervention before ending the fast early */}
+          <EndFastEarlySheet
+            open={showEndFastEarlySheet}
+            onOpenChange={setShowEndFastEarlySheet}
+            clientId={clientId}
+            fastStartAt={featureSettings.active_fast_start_at}
+            targetHours={featureSettings.active_fast_target_hours!}
+            onConfirmEnd={(meta) => endFastMutation.mutate(meta)}
           />
         </CardContent>
         </Card>
