@@ -20,8 +20,22 @@ const ozToLiter = (oz: number) => oz / OZ_PER_LITER;
 const literToOz = (l: number) => l * OZ_PER_LITER;
 
 export type WaterUnit = "fl_oz" | "liter";
-export type WaterPortion = "glass" | "bottle";
-export const WATER_PORTION_OZ: Record<WaterPortion, number> = { glass: 8, bottle: 16 };
+export type WaterPortion = "glass" | "bottle" | "large_bottle";
+export const WATER_PORTION_OZ: Record<WaterPortion, number> = {
+  glass: 8,
+  bottle: 16,
+  large_bottle: 30,
+};
+export const WATER_PORTION_LABEL: Record<WaterPortion, string> = {
+  glass: "Glass",
+  bottle: "Bottle",
+  large_bottle: "Large Bottle",
+};
+export function inferPortionFromServing(servingOz: number): WaterPortion {
+  if (servingOz >= 24) return "large_bottle";
+  if (servingOz >= 12) return "bottle";
+  return "glass";
+}
 
 interface Props {
   open: boolean;
@@ -74,21 +88,36 @@ export function WaterTrackerSettingsDialog({
     const goalOz = Number(settings.daily_goal_oz ?? 64);
     const servingOz = Number(settings.serving_size_oz ?? 8);
     setDraftUnit((settings.unit as WaterUnit) ?? "fl_oz");
-    setDraftPortion(servingOz >= 12 ? "bottle" : "glass");
+    setDraftPortion(inferPortionFromServing(servingOz));
     setDraftGoalOz(goalOz);
     setDraftReminders(currentRemindersEnabled ?? settings.reminders_enabled ?? true);
   }, [open, settings, currentRemindersEnabled]);
 
-  const sliderMinOz = draftUnit === "liter" ? Math.round(literToOz(0.5)) : 16;
-  const sliderMaxOz = draftUnit === "liter" ? Math.round(literToOz(5)) : 200;
-  const sliderStepOz = draftUnit === "liter" ? Math.round(literToOz(0.1)) : 8;
+  const portionOz = WATER_PORTION_OZ[draftPortion];
+  const sliderMinOz =
+    draftUnit === "liter" ? Math.round(literToOz(0.5)) : portionOz;
+  const sliderMaxOz =
+    draftUnit === "liter" ? Math.round(literToOz(5)) : 240;
+  // Step by portion size (in fl_oz mode) so the goal is always a whole number
+  // of glasses/bottles. In liter mode, step by 0.1 L for fine control.
+  const sliderStepOz =
+    draftUnit === "liter" ? Math.round(literToOz(0.1)) : portionOz;
   const draftGoalDisplay =
     draftUnit === "liter"
       ? `${ozToLiter(draftGoalOz).toFixed(2)} L`
       : `${Math.round(draftGoalOz)} fl oz`;
   const portionDisplay = (oz: number) =>
     draftUnit === "liter" ? `${ozToLiter(oz).toFixed(2)} L` : `${oz} fl oz`;
-  const bottleCount = Math.round(draftGoalOz / WATER_PORTION_OZ[draftPortion]);
+  const bottleCount = Math.max(1, Math.round(draftGoalOz / portionOz));
+
+  // Snap goal to a whole multiple of the chosen portion when switching
+  // portions, so the saved goal/serving math always lines up.
+  useEffect(() => {
+    if (!open) return;
+    const snapped = Math.max(portionOz, Math.round(draftGoalOz / portionOz) * portionOz);
+    if (snapped !== draftGoalOz) setDraftGoalOz(snapped);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draftPortion]);
 
   const handleSave = async () => {
     if (!clientId) return;
@@ -144,8 +173,8 @@ export function WaterTrackerSettingsDialog({
         <div className="space-y-6 py-2">
           <div className="space-y-3">
             <div className="text-sm font-medium text-muted-foreground">Portion</div>
-            <div className="grid grid-cols-2 gap-3">
-              {(["glass", "bottle"] as WaterPortion[]).map((p) => {
+            <div className="grid grid-cols-3 gap-2">
+              {(["glass", "bottle", "large_bottle"] as WaterPortion[]).map((p) => {
                 const selected = draftPortion === p;
                 return (
                   <button
@@ -153,7 +182,7 @@ export function WaterTrackerSettingsDialog({
                     type="button"
                     onClick={() => setDraftPortion(p)}
                     className={cn(
-                      "relative rounded-2xl border-2 p-4 flex flex-col items-center gap-2 transition-all",
+                      "relative rounded-2xl border-2 p-3 flex flex-col items-center gap-2 transition-all",
                       selected
                         ? "border-sky-400 bg-sky-400/10"
                         : "border-border bg-secondary/30 hover:bg-secondary/50",
@@ -165,11 +194,14 @@ export function WaterTrackerSettingsDialog({
                       </div>
                     )}
                     {p === "glass" ? (
-                      <GlassWater className="h-10 w-10 text-sky-400" strokeWidth={1.5} />
+                      <GlassWater className="h-9 w-9 text-sky-400" strokeWidth={1.5} />
                     ) : (
                       <svg
                         viewBox="0 0 24 32"
-                        className="h-10 w-10 text-sky-400"
+                        className={cn(
+                          "text-sky-400",
+                          p === "large_bottle" ? "h-11 w-11" : "h-9 w-9",
+                        )}
                         fill="none"
                         stroke="currentColor"
                         strokeWidth={1.5}
@@ -194,8 +226,8 @@ export function WaterTrackerSettingsDialog({
                       </svg>
                     )}
                     <div className="text-center">
-                      <div className="text-base font-semibold capitalize">{p}</div>
-                      <div className="text-xs text-muted-foreground">
+                      <div className="text-sm font-semibold">{WATER_PORTION_LABEL[p]}</div>
+                      <div className="text-[11px] text-muted-foreground">
                         {portionDisplay(WATER_PORTION_OZ[p])}
                       </div>
                     </div>
@@ -212,8 +244,9 @@ export function WaterTrackerSettingsDialog({
                   {context === "admin" ? "Client's Daily Goal" : "Your Daily Goal"}
                 </div>
                 <div className="text-xs text-muted-foreground/80">
-                  Equals {bottleCount} {draftPortion}
-                  {bottleCount === 1 ? "" : "s"} (1 {draftPortion} ={" "}
+                  Equals {bottleCount} {WATER_PORTION_LABEL[draftPortion].toLowerCase()}
+                  {bottleCount === 1 ? "" : "s"} (1{" "}
+                  {WATER_PORTION_LABEL[draftPortion].toLowerCase()} ={" "}
                   {portionDisplay(WATER_PORTION_OZ[draftPortion])})
                 </div>
               </div>
