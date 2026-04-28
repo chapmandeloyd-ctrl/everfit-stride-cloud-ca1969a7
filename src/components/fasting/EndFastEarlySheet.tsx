@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Coffee, Droplets, Footprints, Wind, Loader2, AlertCircle } from "lucide-react";
+import { Coffee, Droplets, Footprints, Wind, Loader2, AlertCircle, SkipForward } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 
@@ -25,6 +25,20 @@ interface Props {
   onCancelMistake?: () => void;
   /** Called when user picks "Yes, end & notify trainer" within the just-started window. Ends the fast AND alerts the trainer to reschedule. */
   onEndAndNotifyTrainer?: (meta: { elapsedHours: number }) => void;
+  /**
+   * Called when user wants to end the fast AND skip the Fuel Phase entirely
+   * (no eating window starts, returns to Today). Available on both the just-started
+   * sheet and the regular reason step.
+   */
+  onEndSkipFuel?: (meta: {
+    reason: string;
+    actionAttempted: string | null;
+    note: string;
+    aiSuggestionShown: boolean;
+    aiSuggestionText: string | null;
+    elapsedHours: number;
+    notifyTrainer: boolean;
+  }) => void;
 }
 
 type Step = "just_started" | "coach" | "reason";
@@ -127,6 +141,7 @@ export function EndFastEarlySheet({
   onConfirmEnd,
   onCancelMistake,
   onEndAndNotifyTrainer,
+  onEndSkipFuel,
 }: Props) {
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>("coach");
@@ -135,6 +150,7 @@ export function EndFastEarlySheet({
   const [actionAttempted, setActionAttempted] = useState<string | null>(null);
   const [reason, setReason] = useState<string | null>(null);
   const [note, setNote] = useState("");
+  const [notifyTrainer, setNotifyTrainer] = useState(true);
 
   const elapsedH = useMemo(() => {
     if (!fastStartAt) return 0;
@@ -159,6 +175,7 @@ export function EndFastEarlySheet({
     setReason(null);
     setNote("");
     setAiLine(null);
+    setNotifyTrainer(true);
 
     if (justStarted) {
       setAiLoading(false);
@@ -217,6 +234,19 @@ export function EndFastEarlySheet({
       aiSuggestionShown: !!aiLine,
       aiSuggestionText: aiLine,
       elapsedHours: Math.round(elapsedH * 100) / 100,
+    });
+    onOpenChange(false);
+  };
+
+  const handleEndSkipFuel = (overrideReason?: string) => {
+    onEndSkipFuel?.({
+      reason: overrideReason ?? reason ?? "skipped_fuel",
+      actionAttempted,
+      note: note.trim(),
+      aiSuggestionShown: !!aiLine,
+      aiSuggestionText: aiLine,
+      elapsedHours: Math.round(elapsedH * 100) / 100,
+      notifyTrainer,
     });
     onOpenChange(false);
   };
