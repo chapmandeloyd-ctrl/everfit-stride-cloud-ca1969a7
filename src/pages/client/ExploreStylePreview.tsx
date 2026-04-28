@@ -71,47 +71,82 @@ function BadgeCategoryTint({ label, type }: { label: string; type: string }) {
 function BadgeGoldOutline({ label, type }: { label: string; type: string }) {
   return (
     <div className="flex flex-col items-center gap-1">
-      <div className="relative h-16 w-16" style={{ filter: "drop-shadow(0 6px 10px rgba(0,0,0,0.6)) drop-shadow(0 1px 0 rgba(212,175,90,0.25))" }}>
-        {/* Outer gold rim with metallic gradient */}
+      <div
+        className="relative h-20 w-20"
+        style={{
+          filter:
+            "drop-shadow(0 10px 14px rgba(0,0,0,0.75)) drop-shadow(0 2px 4px rgba(0,0,0,0.6)) drop-shadow(0 0 12px hsl(42 70% 55% / 0.25))",
+        }}
+      >
+        {/* Bottom shadow rim — creates the "lifted" base */}
+        <div
+          className="absolute inset-0 translate-y-[3px]"
+          style={{
+            background: "hsl(0 0% 0%)",
+            clipPath: HEX_CLIP,
+            opacity: 0.9,
+          }}
+        />
+        {/* Outer gold rim with stronger metallic gradient (multi-stop for chrome feel) */}
         <div
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(140deg, hsl(45 85% 75%) 0%, hsl(42 70% 55%) 35%, hsl(38 65% 38%) 65%, hsl(45 80% 70%) 100%)",
+              "linear-gradient(155deg, hsl(48 95% 88%) 0%, hsl(45 85% 70%) 18%, hsl(42 75% 52%) 38%, hsl(36 60% 30%) 58%, hsl(40 70% 45%) 78%, hsl(48 90% 78%) 100%)",
             clipPath: HEX_CLIP,
           }}
         />
-        {/* Glossy black inner face */}
+        {/* Inner dark bevel ring (creates depth between rim and face) */}
         <div
-          className="absolute inset-[2px] flex items-center justify-center overflow-hidden"
+          className="absolute inset-[3px]"
           style={{
             background:
-              "radial-gradient(ellipse at 30% 20%, hsl(0 0% 22%) 0%, hsl(0 0% 8%) 45%, hsl(0 0% 3%) 100%)",
+              "linear-gradient(155deg, hsl(0 0% 18%) 0%, hsl(0 0% 4%) 50%, hsl(0 0% 12%) 100%)",
             clipPath: HEX_CLIP,
           }}
+        />
+        {/* Glossy black inner face — recessed */}
+        <div
+          className="absolute inset-[5px] flex items-center justify-center overflow-hidden"
+          style={{
+            background:
+              "radial-gradient(ellipse at 35% 25%, hsl(0 0% 28%) 0%, hsl(0 0% 10%) 40%, hsl(0 0% 2%) 100%)",
+            clipPath: HEX_CLIP,
+            boxShadow:
+              "inset 0 2px 3px rgba(0,0,0,0.9), inset 0 -1px 2px rgba(255,255,255,0.05)",
+          }}
         >
-            {/* Top gloss highlight */}
-            <div
-              className="absolute inset-x-0 top-0 h-1/2 pointer-events-none"
-              style={{
-                background:
-                  "linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.04) 60%, transparent 100%)",
-              }}
-            />
-            {/* Soft inner shadow at bottom for depth */}
-            <div
-              className="absolute inset-x-0 bottom-0 h-1/2 pointer-events-none"
-              style={{
-                background:
-                  "linear-gradient(0deg, rgba(0,0,0,0.55) 0%, transparent 100%)",
-              }}
-            />
-          <span
-            className="relative text-sm font-bold leading-none"
+          {/* Top specular highlight */}
+          <div
+            className="absolute inset-x-0 top-0 h-[55%] pointer-events-none"
             style={{
-              color: GOLD,
+              background:
+                "linear-gradient(180deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.06) 50%, transparent 100%)",
+            }}
+          />
+          {/* Bottom dark gradient for depth */}
+          <div
+            className="absolute inset-x-0 bottom-0 h-[55%] pointer-events-none"
+            style={{
+              background:
+                "linear-gradient(0deg, rgba(0,0,0,0.7) 0%, transparent 100%)",
+            }}
+          />
+          {/* Subtle gold inner glow */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background:
+                "radial-gradient(circle at 50% 60%, hsl(42 70% 55% / 0.18) 0%, transparent 60%)",
+            }}
+          />
+          <span
+            className="relative text-base font-bold leading-none"
+            style={{
+              color: "hsl(45 85% 70%)",
               fontFamily: "Georgia, serif",
-              textShadow: "0 1px 0 rgba(0,0,0,0.8), 0 0 8px hsl(42 70% 55% / 0.35)",
+              textShadow:
+                "0 1px 0 rgba(0,0,0,0.95), 0 -1px 0 rgba(255,255,255,0.08), 0 0 10px hsl(42 70% 55% / 0.5)",
             }}
           >
             {label}
