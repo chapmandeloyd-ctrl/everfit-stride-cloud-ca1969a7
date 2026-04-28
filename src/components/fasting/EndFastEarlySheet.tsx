@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Coffee, Droplets, Footprints, Wind, Loader2, AlertCircle } from "lucide-react";
+import { Coffee, Droplets, Footprints, Wind, Loader2, AlertCircle, SkipForward } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 
@@ -25,6 +25,20 @@ interface Props {
   onCancelMistake?: () => void;
   /** Called when user picks "Yes, end & notify trainer" within the just-started window. Ends the fast AND alerts the trainer to reschedule. */
   onEndAndNotifyTrainer?: (meta: { elapsedHours: number }) => void;
+  /**
+   * Called when user wants to end the fast AND skip the Fuel Phase entirely
+   * (no eating window starts, returns to Today). Available on both the just-started
+   * sheet and the regular reason step.
+   */
+  onEndSkipFuel?: (meta: {
+    reason: string;
+    actionAttempted: string | null;
+    note: string;
+    aiSuggestionShown: boolean;
+    aiSuggestionText: string | null;
+    elapsedHours: number;
+    notifyTrainer: boolean;
+  }) => void;
 }
 
 type Step = "just_started" | "coach" | "reason";
@@ -127,6 +141,7 @@ export function EndFastEarlySheet({
   onConfirmEnd,
   onCancelMistake,
   onEndAndNotifyTrainer,
+  onEndSkipFuel,
 }: Props) {
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>("coach");
@@ -135,6 +150,7 @@ export function EndFastEarlySheet({
   const [actionAttempted, setActionAttempted] = useState<string | null>(null);
   const [reason, setReason] = useState<string | null>(null);
   const [note, setNote] = useState("");
+  const [notifyTrainer, setNotifyTrainer] = useState(true);
 
   const elapsedH = useMemo(() => {
     if (!fastStartAt) return 0;
@@ -159,6 +175,7 @@ export function EndFastEarlySheet({
     setReason(null);
     setNote("");
     setAiLine(null);
+    setNotifyTrainer(true);
 
     if (justStarted) {
       setAiLoading(false);
@@ -217,6 +234,19 @@ export function EndFastEarlySheet({
       aiSuggestionShown: !!aiLine,
       aiSuggestionText: aiLine,
       elapsedHours: Math.round(elapsedH * 100) / 100,
+    });
+    onOpenChange(false);
+  };
+
+  const handleEndSkipFuel = (overrideReason?: string) => {
+    onEndSkipFuel?.({
+      reason: overrideReason ?? reason ?? "skipped_fuel",
+      actionAttempted,
+      note: note.trim(),
+      aiSuggestionShown: !!aiLine,
+      aiSuggestionText: aiLine,
+      elapsedHours: Math.round(elapsedH * 100) / 100,
+      notifyTrainer,
     });
     onOpenChange(false);
   };
@@ -291,6 +321,35 @@ export function EndFastEarlySheet({
                 <p className="text-[11px] text-white/45 text-center -mt-0.5">
                   Your trainer will get a heads-up to schedule a new fast.
                 </p>
+
+                {onEndSkipFuel && (
+                  <>
+                    <Button
+                      variant="ghost"
+                      className="w-full h-12 text-sm font-medium uppercase tracking-widest border bg-transparent hover:bg-white/[0.03]"
+                      style={{
+                        borderColor: "hsl(42 70% 55% / 0.25)",
+                        color: "hsl(40 20% 88%)",
+                      }}
+                      onClick={() => handleEndSkipFuel("skipped_fuel_just_started")}
+                    >
+                      <SkipForward className="h-3.5 w-3.5 mr-2" />
+                      End fast — skip Fuel Phase
+                    </Button>
+                    <p className="text-[11px] text-white/45 text-center -mt-0.5">
+                      Ends the fast and returns you to Today. No eating window will start.
+                    </p>
+                    <label className="flex items-center justify-center gap-2 pt-1 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={notifyTrainer}
+                        onChange={(e) => setNotifyTrainer(e.target.checked)}
+                        className="h-3.5 w-3.5 rounded border-white/30 bg-transparent accent-amber-500"
+                      />
+                      <span className="text-[11px] text-white/55">Notify my trainer</span>
+                    </label>
+                  </>
+                )}
               </div>
 
               <div className="pt-1 text-center">
@@ -462,6 +521,33 @@ export function EndFastEarlySheet({
                   End fast
                 </Button>
               </div>
+
+              {onEndSkipFuel && (
+                <div className="pt-3 border-t" style={{ borderColor: "hsl(42 70% 55% / 0.15)" }}>
+                  <Button
+                    variant="ghost"
+                    className="w-full h-11 text-xs font-medium uppercase tracking-widest border bg-transparent hover:bg-white/[0.03]"
+                    style={{ borderColor: "hsl(42 70% 55% / 0.25)", color: "hsl(40 20% 88%)" }}
+                    disabled={!reason}
+                    onClick={() => handleEndSkipFuel()}
+                  >
+                    <SkipForward className="h-3.5 w-3.5 mr-2" />
+                    End & skip Fuel Phase
+                  </Button>
+                  <p className="text-[10px] text-white/45 text-center mt-1.5 leading-snug">
+                    Returns to Today with no eating window. You'll still get credit for time fasted (1h+).
+                  </p>
+                  <label className="flex items-center justify-center gap-2 pt-2 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={notifyTrainer}
+                      onChange={(e) => setNotifyTrainer(e.target.checked)}
+                      className="h-3.5 w-3.5 rounded border-white/30 bg-transparent accent-amber-500"
+                    />
+                    <span className="text-[11px] text-white/55">Notify my trainer</span>
+                  </label>
+                </div>
+              )}
             </>
           )}
         </div>
