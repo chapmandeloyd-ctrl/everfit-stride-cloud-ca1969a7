@@ -465,6 +465,58 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
       queryClient.invalidateQueries({ queryKey: ["fasting-gate-state"] });
     },
   });
+
+  // Clean cancel for "I tapped start by mistake" within first 15 min.
+  // Clears the active fast WITHOUT logging it, WITHOUT starting an eating window,
+  // and WITHOUT touching the protocol selection. No penalty, no record.
+  const cancelMistakenFastMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("client_feature_settings")
+        .update({
+          active_fast_start_at: null,
+          active_fast_target_hours: null,
+          fast_lock_pin: null,
+        })
+        .eq("client_id", clientId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      liveActivity.stop();
+      queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting"] });
+      queryClient.invalidateQueries({ queryKey: ["my-feature-settings"] });
+      queryClient.invalidateQueries({ queryKey: ["fasting-gate-state"] });
+      toast({
+        title: "No worries — fast cancelled",
+        description: "Start a fast whenever you're ready.",
+      });
+    },
+    onError: (err) => {
+      toast({
+        title: "Couldn't cancel",
+        description: err instanceof Error ? err.message : "Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Fire-and-forget trainer alert (in-app + push + email) when client ends a
+  // just-started fast and asks to reschedule.
+  const notifyTrainerFastCancelled = async (kind: "cancel" | "end_and_notify", elapsedHours: number) => {
+    if (!clientId) return;
+    try {
+      await supabase.functions.invoke("notify-trainer-fast-cancelled", {
+        body: {
+          client_id: clientId,
+          kind,
+          elapsed_minutes: Math.max(0, Math.round(elapsedHours * 60)),
+          target_hours: featureSettings?.active_fast_target_hours ?? null,
+        },
+      });
+    } catch (e) {
+      console.warn("notify-trainer-fast-cancelled invoke failed:", e);
+    }
+  };
   const fastingSubtitle = featureSettings?.fasting_card_subtitle || "Fasting is the foundation of your plan.";
   const fastingTitle = (featureSettings as any)?.fasting_card_title || "KSOM-360";
 
