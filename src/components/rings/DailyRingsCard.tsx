@@ -173,7 +173,7 @@ function DayDetailFull({
             Rings
           </h2>
           <p className="text-sm text-white/60 mt-3 max-w-[200px]">
-            {count === 4
+            {count === 5
               ? "Perfect day — every ring closed!"
               : count > 0
               ? "You're making great progress — let's do this!"
@@ -293,7 +293,7 @@ export function DailyRingsCard() {
             {format(new Date(), "MMMM d, yyyy")}
           </p>
           <h2 className="text-3xl font-serif mt-2 leading-tight text-white">
-            <span className="text-white/50">{count} of 4</span>
+            <span className="text-white/50">{count} of 5</span>
             <br />
             Rings
           </h2>
