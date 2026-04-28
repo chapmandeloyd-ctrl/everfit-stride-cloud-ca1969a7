@@ -1,4 +1,4 @@
-import { Home, Activity } from "lucide-react";
+import { CalendarDays, Activity } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -9,7 +9,7 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { label: "Home", to: "/client/dashboard", icon: Home },
+  { label: "Today", to: "/client/dashboard", icon: CalendarDays },
   { label: "Stages", to: "/client/stages", icon: Activity },
 ];
 
