@@ -9,6 +9,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { FastingRouteGuard } from "./components/FastingRouteGuard";
 import { ImpersonationProvider } from "./hooks/useImpersonation";
 import { lazyRetry } from "./lib/lazyRetry";
+import { ReloadLatestButton } from "./components/ReloadLatestButton";
 
 const Dashboard = lazyRetry(() => import("./pages/Dashboard"), "Dashboard");
 const TrainerDashboard = lazyRetry(() => import("./pages/TrainerDashboard"), "TrainerDashboard");
@@ -96,6 +97,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <ReloadLatestButton />
 
       <BrowserRouter>
         <ImpersonationProvider>
