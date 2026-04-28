@@ -67,6 +67,8 @@ import { CreatePinDialog, VerifyPinDialog, HoldToEndButton } from "@/components/
 import { FastingCoachTipCard } from "@/components/FastingCoachTipCard";
 import { ProtocolCompletionDialog } from "@/components/ProtocolCompletionDialog";
 import { MyProgressSection } from "@/components/MyProgressSection";
+import { EndFastEarlySheet } from "@/components/fasting/EndFastEarlySheet";
+import { EndEatingWindowEarlySheet } from "@/components/fasting/EndEatingWindowEarlySheet";
 import { SmartPaceBanner } from "@/components/smart-pace/SmartPaceBanner";
 import { SmartPaceCatchUpModal } from "@/components/smart-pace/SmartPaceCatchUpModal";
 import { MyWhyCard } from "@/components/goal-motivation/MyWhyCard";
