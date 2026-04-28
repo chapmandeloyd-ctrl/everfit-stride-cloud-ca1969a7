@@ -796,6 +796,25 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
             fastStartAt={featureSettings.active_fast_start_at}
             targetHours={featureSettings.active_fast_target_hours!}
             onConfirmEnd={(meta) => endFastMutation.mutate(meta)}
+            onCancelMistake={() => {
+              const startAt = featureSettings.active_fast_start_at;
+              const elapsedH = startAt
+                ? Math.max(0, (Date.now() - new Date(startAt).getTime()) / 3_600_000)
+                : 0;
+              cancelMistakenFastMutation.mutate();
+              notifyTrainerFastCancelled("cancel", elapsedH);
+            }}
+            onEndAndNotifyTrainer={({ elapsedHours }) => {
+              endFastMutation.mutate({
+                reason: "mistake_reschedule",
+                actionAttempted: null,
+                note: "Client ended within 15 min of starting and asked trainer to reschedule.",
+                aiSuggestionShown: false,
+                aiSuggestionText: null,
+                elapsedHours,
+              });
+              notifyTrainerFastCancelled("end_and_notify", elapsedHours);
+            }}
           />
         </CardContent>
         </Card>
