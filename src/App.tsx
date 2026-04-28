@@ -107,6 +107,7 @@ import AllClientWorkouts from "./pages/AllClientWorkouts";
 import ClientCommandCenter from "./pages/ClientCommandCenter";
 import Scheduling from "./pages/Scheduling";
 import TrainerSettings from "./pages/TrainerSettings";
+import TrainerExploreManager from "./pages/TrainerExploreManager";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { FastingRouteGuard } from "./components/FastingRouteGuard";
 import { ImpersonationProvider } from "./hooks/useImpersonation";
