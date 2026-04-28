@@ -192,6 +192,7 @@ const App = () => (
           
           {/* Client Routes */}
           <Route path="/client/dashboard" element={<ProtectedRoute allowedRoles={["client"]}><ClientDashboard /></ProtectedRoute>} />
+          <Route path="/client/timeline" element={<ProtectedRoute allowedRoles={["client"]}><ClientTimeline /></ProtectedRoute>} />
           <Route path="/client/pace" element={<ProtectedRoute allowedRoles={["client"]}><ClientSmartPace /></ProtectedRoute>} />
           <Route path="/dev/pace-preview" element={<SmartPacePreview />} />
           <Route path="/client/daily-score" element={<ProtectedRoute allowedRoles={["client"]}><ClientDailyScore /></ProtectedRoute>} />
