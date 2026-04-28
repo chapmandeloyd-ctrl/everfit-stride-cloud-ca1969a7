@@ -713,9 +713,9 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
         />
         {/* Dark overlay for text readability */}
         <div className="absolute inset-0 bg-black/60" />
-        <CardContent className="px-5 pt-4 pb-4 space-y-2 relative z-10 text-white">
-          <div className="flex items-start justify-between">
-            <div className="space-y-1">
+          <CardContent className="relative z-10 space-y-3 px-4 pt-4 pb-4 text-white sm:px-5">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 space-y-1">
               <div className="flex items-center gap-2 flex-wrap">
                 <p className="text-xs font-bold text-white/70 uppercase tracking-wider">{isMaintenanceMode ? "Maintenance Schedule" : "Fasting Program"}</p>
                 {isCoachAssigned && !isMaintenanceMode && (
@@ -724,11 +724,11 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
                   </Badge>
                 )}
               </div>
-              <h3 className="text-lg font-black mt-0.5 text-white">{isMaintenanceMode ? (maintenanceLabel || "Maintenance") : planName}</h3>
+              <h3 className="mt-0.5 text-lg font-black leading-tight text-white">{isMaintenanceMode ? (maintenanceLabel || "Maintenance") : planName}</h3>
               {activeKetoType && !isMaintenanceMode && (
                 <div className="flex items-center gap-2 mt-1">
                   <div
-                    className="h-5 w-auto px-2 rounded-full flex items-center gap-1.5 text-[10px] font-bold"
+                    className="flex h-5 w-auto items-center gap-1.5 rounded-full px-2 text-[10px] font-bold"
                     style={{ backgroundColor: `${activeKetoType.color || '#ef4444'}20`, color: activeKetoType.color || '#ef4444' }}
                   >
                     {activeKetoType.abbreviation}
@@ -739,26 +739,24 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
               )}
             </div>
             {hasDuration && !isMaintenanceMode && (
-              <Badge variant="secondary" className="text-xs font-bold px-3 py-1 rounded-full bg-white/15 text-white border-0 shrink-0">
+              <Badge variant="secondary" className="shrink-0 rounded-full border-0 bg-white/15 px-3 py-1 text-xs font-bold text-white">
                 Day {dayNumber} / {activeProtocol!.duration_days}
               </Badge>
             )}
             {isMaintenanceMode && <Badge variant="secondary" className="text-xs">Maintenance</Badge>}
           </div>
 
-          {/* Hero Dynamic Timer — visually scaled (internals untouched) */}
-          <div className="py-0 flex justify-center" style={{ height: "230px", overflow: "hidden" }}>
-            <div style={{ transform: "scale(0.72)", transformOrigin: "center center" }}>
+          <div className="flex justify-center overflow-hidden">
               <FastingTimer
                 fastStartAt={featureSettings.active_fast_start_at!}
                 targetHours={featureSettings.active_fast_target_hours!}
                 now={now}
+                compact
               />
-            </div>
           </div>
 
 
-          <div className="mt-2">
+          <div className="pt-1">
             {featureSettings.fast_lock_pin ? (
               <HoldToEndButton onHoldComplete={() => setShowVerifyPin(true)} />
             ) : (
