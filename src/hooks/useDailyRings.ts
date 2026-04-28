@@ -3,7 +3,7 @@ import { addDays, format, startOfWeek, startOfDay, endOfDay } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "./useEffectiveClientId";
 
-export type RingKey = "fasting" | "weight" | "activity" | "sleep";
+export type RingKey = "fasting" | "weight" | "activity" | "sleep" | "water";
 export type DayCompletion = Record<RingKey, boolean>;
 
 export interface DailyRingsData {
@@ -14,6 +14,7 @@ export interface DailyRingsData {
     fastingHours: number;
     activitySteps: number;
     sleepHours: number;
+    waterOz: number;
   };
 }
 
@@ -21,6 +22,7 @@ const DEFAULT_GOALS = {
   fastingHours: 10,
   activitySteps: 8000,
   sleepHours: 6.5,
+  waterOz: 64,
 };
 
 const EMPTY_DAY: DayCompletion = {
@@ -28,6 +30,7 @@ const EMPTY_DAY: DayCompletion = {
   weight: false,
   activity: false,
   sleep: false,
+  water: false,
 };
 
 /**
@@ -58,7 +61,16 @@ export function useDailyRings() {
         byDate[format(d, "yyyy-MM-dd")] = { ...EMPTY_DAY };
       }
 
-      const goals = DEFAULT_GOALS;
+      // Pull the user's configured water goal if present
+      const { data: waterGoalRow } = await supabase
+        .from("water_goal_settings")
+        .select("daily_goal_oz")
+        .eq("client_id", clientId!)
+        .maybeSingle();
+      const goals = {
+        ...DEFAULT_GOALS,
+        waterOz: Number(waterGoalRow?.daily_goal_oz ?? DEFAULT_GOALS.waterOz),
+      };
 
       // Resolve the Weight metric definition so we can read Smart Pace / AI snapshot weigh-ins
       const { data: weightDef } = await supabase
@@ -80,7 +92,7 @@ export function useDailyRings() {
         weightMetricId = cm?.id ?? null;
       }
 
-      const [fastsRes, checkinsRes, healthRes, weightEntriesRes] = await Promise.all([
+      const [fastsRes, checkinsRes, healthRes, weightEntriesRes, waterRes] = await Promise.all([
         supabase
           .from("fasting_log")
           .select("ended_at, actual_hours, target_hours, status")
@@ -108,6 +120,12 @@ export function useDailyRings() {
               .gte("recorded_at", rangeStart)
               .lte("recorded_at", rangeEnd)
           : Promise.resolve({ data: [] as { recorded_at: string }[] }),
+        supabase
+          .from("water_log_entries")
+          .select("amount_oz, logged_at")
+          .eq("client_id", clientId!)
+          .gte("logged_at", rangeStart)
+          .lte("logged_at", rangeEnd),
       ]);
 
       // Fasting → mark day if any completed fast that day meets goal
@@ -160,6 +178,18 @@ export function useDailyRings() {
       }
       for (const [key, hrs] of Object.entries(sleepByDay)) {
         if (hrs >= goals.sleepHours) byDate[key].sleep = true;
+      }
+
+      // Water → mark day if total oz logged ≥ goal
+      const waterByDay: Record<string, number> = {};
+      for (const row of (waterRes.data as { amount_oz: number; logged_at: string }[] | null) ?? []) {
+        if (!row.logged_at) continue;
+        const key = format(new Date(row.logged_at), "yyyy-MM-dd");
+        if (!byDate[key]) continue;
+        waterByDay[key] = (waterByDay[key] ?? 0) + Number(row.amount_oz ?? 0);
+      }
+      for (const [key, oz] of Object.entries(waterByDay)) {
+        if (goals.waterOz > 0 && oz >= goals.waterOz) byDate[key].water = true;
       }
 
       return { byDate, goals };
