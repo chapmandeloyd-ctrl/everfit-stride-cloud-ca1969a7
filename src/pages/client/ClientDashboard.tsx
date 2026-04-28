@@ -433,6 +433,110 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
     },
   });
 
+  // End the fast AND skip the Fuel Phase entirely.
+  // Logs to fasting_log so time-fasted credit is preserved (status="partial" if <target,
+  // "completed" if user is at goal). Does NOT start an eating window.
+  // Optionally notifies the trainer. Returns the user to the Today screen.
+  const endFastSkipFuelMutation = useMutation({
+    mutationFn: async (intervention: {
+      reason: string;
+      actionAttempted: string | null;
+      note: string;
+      aiSuggestionShown: boolean;
+      aiSuggestionText: string | null;
+      elapsedHours: number;
+      notifyTrainer: boolean;
+    }) => {
+      const nowTs = new Date();
+      const startAt = featureSettings?.active_fast_start_at;
+      const targetHours = featureSettings?.active_fast_target_hours || 16;
+      const trainerId = featureSettings?.trainer_id;
+
+      const actualMs = startAt ? nowTs.getTime() - new Date(startAt).getTime() : 0;
+      const actualHours = Math.round((actualMs / 3600000) * 100) / 100;
+      const completionPct = Math.min(Math.round((actualHours / targetHours) * 100), 100);
+      const endedEarly = actualHours < targetHours;
+      const earnedCredit = actualHours >= 1; // 1h+ counts toward fasting time
+
+      // Clear active fast WITHOUT starting an eating window
+      const { error } = await supabase
+        .from("client_feature_settings")
+        .update({
+          last_fast_ended_at: nowTs.toISOString(),
+          last_fast_completed_at: nowTs.toISOString(),
+          active_fast_start_at: null,
+          active_fast_target_hours: null,
+          eating_window_ends_at: null, // <- key difference: no Fuel Phase
+          fast_lock_pin: null,
+        })
+        .eq("client_id", clientId);
+      if (error) throw error;
+
+      // Log to fasting_log so the user gets credit for time fasted
+      if (startAt && trainerId && earnedCredit) {
+        await supabase.from("fasting_log").insert({
+          client_id: clientId!,
+          trainer_id: trainerId,
+          started_at: startAt,
+          ended_at: nowTs.toISOString(),
+          target_hours: targetHours,
+          actual_hours: actualHours,
+          completion_pct: completionPct,
+          status: endedEarly ? "partial" : "completed",
+          ended_early: endedEarly,
+        });
+      }
+
+      // Always log the intervention so the coach + adaptive engine see why
+      if (clientId) {
+        try {
+          await supabase.from("early_session_ends").insert({
+            client_id: clientId,
+            session_type: "fast",
+            elapsed_hours: intervention.elapsedHours,
+            target_hours: targetHours,
+            percent_complete: completionPct,
+            reason: intervention.reason || "skipped_fuel",
+            action_attempted: intervention.actionAttempted,
+            ai_suggestion_shown: intervention.aiSuggestionShown,
+            ai_suggestion_text: intervention.aiSuggestionText,
+            note: [intervention.note, "Fuel Phase skipped"].filter(Boolean).join(" — ") || null,
+          });
+        } catch (e) {
+          console.warn("early_session_ends insert failed:", e);
+        }
+      }
+
+      // Optional trainer notification (uses the same channel as the just-started "alert trainer" path)
+      if (intervention.notifyTrainer) {
+        await notifyTrainerFastCancelled("end_and_notify", intervention.elapsedHours);
+      }
+
+      return { earnedCredit, actualHours };
+    },
+    onSuccess: ({ earnedCredit, actualHours }) => {
+      liveActivity.stop();
+      queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting"] });
+      queryClient.invalidateQueries({ queryKey: ["fasting-gate-state"] });
+      queryClient.invalidateQueries({ queryKey: ["today-fasting-log"] });
+      toast({
+        title: "Fast ended · Fuel Phase skipped",
+        description: earnedCredit
+          ? `You're back on Today. Credit logged for ${actualHours.toFixed(1)}h fasted.`
+          : "You're back on Today. Start a fresh fast whenever you're ready.",
+      });
+      navigate("/client/dashboard");
+    },
+    onError: (err) => {
+      console.error("End fast / skip Fuel error:", err);
+      toast({
+        title: "Couldn't end the fast",
+        description: err instanceof Error ? err.message : "Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Auto-end fast when timer reaches 100%
   const fastCompleted = isFasting && featureSettings?.active_fast_start_at && featureSettings?.active_fast_target_hours
     ? (now.getTime() - new Date(featureSettings.active_fast_start_at).getTime()) >= featureSettings.active_fast_target_hours * 3600000
