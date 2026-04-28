@@ -919,6 +919,7 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
               });
               notifyTrainerFastCancelled("end_and_notify", elapsedHours);
             }}
+            onEndSkipFuel={(meta) => endFastSkipFuelMutation.mutate(meta)}
           />
         </CardContent>
         </Card>
