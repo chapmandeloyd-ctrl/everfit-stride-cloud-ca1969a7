@@ -14,6 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_events: {
+        Row: {
+          actor_id: string | null
+          category: string
+          client_id: string
+          created_at: string
+          edited: boolean
+          edited_at: string | null
+          edited_by: string | null
+          event_type: string
+          icon: string | null
+          id: string
+          metadata: Json
+          occurred_at: string
+          source: string
+          subtitle: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          actor_id?: string | null
+          category?: string
+          client_id: string
+          created_at?: string
+          edited?: boolean
+          edited_at?: string | null
+          edited_by?: string | null
+          event_type: string
+          icon?: string | null
+          id?: string
+          metadata?: Json
+          occurred_at?: string
+          source?: string
+          subtitle?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          actor_id?: string | null
+          category?: string
+          client_id?: string
+          created_at?: string
+          edited?: boolean
+          edited_at?: string | null
+          edited_by?: string | null
+          event_type?: string
+          icon?: string | null
+          id?: string
+          metadata?: Json
+          occurred_at?: string
+          source?: string
+          subtitle?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       adaptive_macro_adjustments: {
         Row: {
           adjusted_calories: number
@@ -10058,9 +10115,28 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      backfill_activity_events: {
+        Args: { p_client_id: string }
+        Returns: number
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
+      }
+      emit_activity_event: {
+        Args: {
+          p_actor_id?: string
+          p_category?: string
+          p_client_id: string
+          p_event_type: string
+          p_icon?: string
+          p_metadata?: Json
+          p_occurred_at?: string
+          p_source?: string
+          p_subtitle?: string
+          p_title: string
+        }
+        Returns: string
       }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }

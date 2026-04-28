@@ -12,6 +12,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect, useCallback } from "react";
+import { emitActivityEvent } from "@/lib/activityEvents";
 import { useClientFeatureSettings } from "@/hooks/useClientFeatureSettings";
 import { useEngineMode } from "@/hooks/useEngineMode";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -302,6 +303,17 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
         throw new Error("Fast timer could not be started.");
       }
 
+      // Timeline event
+      emitActivityEvent({
+        clientId: clientId!,
+        eventType: "fast_started",
+        title: "Fast started",
+        subtitle: `${data.active_fast_target_hours}h target`,
+        category: "fasting",
+        icon: "play",
+        metadata: { target_hours: data.active_fast_target_hours, protocol_id: activeProtocol?.id ?? null },
+      });
+
       return {
         targetHours: data.active_fast_target_hours,
       };
@@ -423,6 +435,28 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
           console.warn("Zapier webhook invoke failed:", e);
         }
       }
+
+      // Timeline event
+      if (clientId) {
+        emitActivityEvent({
+          clientId,
+          eventType: endedEarly ? "fast_ended_early" : "fast_completed",
+          title: endedEarly ? "Fast ended early" : "Fast completed",
+          subtitle: `${actualHours.toFixed(1)}h of ${targetHours}h (${completionPct}%)`,
+          category: "fasting",
+          icon: endedEarly ? "stop-circle" : "check-circle",
+          metadata: { actual_hours: actualHours, target_hours: targetHours, completion_pct: completionPct, reason: (intervention && (intervention as any).reason) ?? null },
+        });
+        emitActivityEvent({
+          clientId,
+          eventType: "eating_window_opened",
+          title: "Fuel Phase started",
+          subtitle: `${eatingWindowHours}h window`,
+          category: "eating",
+          icon: "utensils",
+          metadata: { window_hours: eatingWindowHours },
+        });
+      }
     },
     onSuccess: () => {
       liveActivity.stop(); // Dismiss lock screen timer
@@ -510,6 +544,27 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
       // Optional trainer notification (uses the same channel as the just-started "alert trainer" path)
       if (intervention.notifyTrainer) {
         await notifyTrainerFastCancelled("end_and_notify", intervention.elapsedHours);
+      }
+
+      // Timeline event
+      if (clientId) {
+        emitActivityEvent({
+          clientId,
+          eventType: "fast_ended_early",
+          title: "Fast ended — Fuel Phase skipped",
+          subtitle: earnedCredit
+            ? `${actualHours.toFixed(1)}h logged · returned to Today`
+            : `${actualHours.toFixed(1)}h · no credit (under 1h)`,
+          category: "fasting",
+          icon: "stop-circle",
+          metadata: {
+            actual_hours: actualHours,
+            target_hours: targetHours,
+            reason: intervention.reason || "skipped_fuel",
+            notified_trainer: intervention.notifyTrainer,
+            credit_earned: earnedCredit,
+          },
+        });
       }
 
       return { earnedCredit, actualHours };

@@ -3,6 +3,9 @@ import { InsightCoachControls } from "./InsightCoachControls";
 
 import { ActivityLog } from "./ActivityLog";
 import { ParentLinkSection } from "./ParentLinkSection";
+import { ActivityTimeline } from "@/components/timeline/ActivityTimeline";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Activity } from "lucide-react";
 import { CopilotAssistPanel } from "./CopilotAssistPanel";
 import { AIWriteFeedbackPanel } from "./AIWriteFeedbackPanel";
 import { AIProgressReportPanel } from "./AIProgressReportPanel";
@@ -125,6 +128,19 @@ export function CoachCommandCenterTab({ clientId, trainerId }: CoachCommandCente
 
       {/* I) Activity Log */}
       <ActivityLog clientId={clientId} />
+
+      {/* J) Activity Timeline */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Activity className="h-4 w-4" />
+            Activity Timeline
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ActivityTimeline clientId={clientId} trainerMode />
+        </CardContent>
+      </Card>
     </div>
   );
 }
