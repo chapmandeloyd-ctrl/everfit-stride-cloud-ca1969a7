@@ -100,6 +100,9 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
   const [showCompletion, setShowCompletion] = useState(false);
   const [showEndEatingWindowConfirm, setShowEndEatingWindowConfirm] = useState(false);
   const [showCloseEatingWindowConfirm, setShowCloseEatingWindowConfirm] = useState(false);
+  const [showEndFastEarlySheet, setShowEndFastEarlySheet] = useState(false);
+  const [showEndEatingWindowSheet, setShowEndEatingWindowSheet] = useState(false);
+  const [eatingWindowSheetIntent, setEatingWindowSheetIntent] = useState<"end_window" | "choose_next_fast">("end_window");
   const liveActivity = useLiveActivity();
   const { toast } = useToast();
 
