@@ -546,6 +546,27 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
         await notifyTrainerFastCancelled("end_and_notify", intervention.elapsedHours);
       }
 
+      // Timeline event
+      if (clientId) {
+        emitActivityEvent({
+          clientId,
+          eventType: "fast_ended_early",
+          title: "Fast ended — Fuel Phase skipped",
+          subtitle: earnedCredit
+            ? `${actualHours.toFixed(1)}h logged · returned to Today`
+            : `${actualHours.toFixed(1)}h · no credit (under 1h)`,
+          category: "fasting",
+          icon: "stop-circle",
+          metadata: {
+            actual_hours: actualHours,
+            target_hours: targetHours,
+            reason: intervention.reason || "skipped_fuel",
+            notified_trainer: intervention.notifyTrainer,
+            credit_earned: earnedCredit,
+          },
+        });
+      }
+
       return { earnedCredit, actualHours };
     },
     onSuccess: ({ earnedCredit, actualHours }) => {
