@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LayoutDashboard, Users, Dumbbell, Calendar, CalendarClock, MessageSquare, Settings, TrendingUp, Target, CheckSquare, FileText, Play, Tags, Calculator, Activity, Heart, GraduationCap, Library, ChevronDown, ChevronRight, BookOpen, MonitorPlay, Zap, Bell } from "lucide-react";
+import { LayoutDashboard, Users, Dumbbell, Calendar, CalendarClock, MessageSquare, Settings, TrendingUp, Target, CheckSquare, FileText, Play, Tags, Calculator, Activity, Heart, GraduationCap, Library, ChevronDown, ChevronRight, BookOpen, MonitorPlay, Zap, Bell, Compass } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import {
@@ -46,6 +46,7 @@ const onDemandItems = [
   { title: "On-demand Workouts", url: "/ondemand-workouts", icon: Dumbbell },
   { title: "Workout Labels", url: "/workout-labels", icon: Tags },
   { title: "Studio Programs", url: "/studio-programs", icon: GraduationCap },
+  { title: "Explore Manager", url: "/explore-manager", icon: Compass },
 ];
 
 const bottomItems = [
