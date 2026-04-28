@@ -335,7 +335,14 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
   });
 
   const endFastMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (intervention?: {
+      reason: string;
+      actionAttempted: string | null;
+      note: string;
+      aiSuggestionShown: boolean;
+      aiSuggestionText: string | null;
+      elapsedHours: number;
+    }) => {
       const nowTs = new Date();
       const startAt = featureSettings?.active_fast_start_at;
       const targetHours = featureSettings?.active_fast_target_hours || 16;
@@ -377,6 +384,26 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
           status: endedEarly ? "partial" : "completed",
           ended_early: endedEarly,
         });
+      }
+
+      // Log early-end intervention metadata for the coach + adaptive engine
+      if (endedEarly && clientId && intervention) {
+        try {
+          await supabase.from("early_session_ends").insert({
+            client_id: clientId,
+            session_type: "fast",
+            elapsed_hours: intervention.elapsedHours,
+            target_hours: targetHours,
+            percent_complete: completionPct,
+            reason: intervention.reason,
+            action_attempted: intervention.actionAttempted,
+            ai_suggestion_shown: intervention.aiSuggestionShown,
+            ai_suggestion_text: intervention.aiSuggestionText,
+            note: intervention.note || null,
+          });
+        } catch (e) {
+          console.warn("early_session_ends insert failed:", e);
+        }
       }
 
       // Fire Zapier webhook (fast_completed or fast_broken). Fire-and-forget;
