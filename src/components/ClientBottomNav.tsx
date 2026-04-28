@@ -1,4 +1,4 @@
-import { CalendarDays, Activity } from "lucide-react";
+import { CalendarDays, Activity, Compass } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -11,6 +11,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { label: "Today", to: "/client/dashboard", icon: CalendarDays },
   { label: "Stages", to: "/client/stages", icon: Activity },
+  { label: "Explore", to: "/client/explore", icon: Compass },
 ];
 
 export function ClientBottomNav() {
