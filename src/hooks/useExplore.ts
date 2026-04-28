@@ -209,25 +209,17 @@ export async function computeChallengeProgress(
   if (challenge.type === "fasting") {
     // Pull completed fasts since join
     const { data: sessions } = await supabase
-      .from("fasting_sessions")
-      .select("started_at, ended_at")
+      .from("fasting_log")
+      .select("started_at, ended_at, actual_hours")
       .eq("client_id", userId)
       .gte("started_at", since)
       .not("ended_at", "is", null);
 
     const minHrs = Number(challenge.fast_minimum_hours || 12);
-    const fasts = (sessions || []).filter((s: any) => {
-      if (!s.ended_at) return false;
-      const hrs = (new Date(s.ended_at).getTime() - new Date(s.started_at).getTime()) / 3_600_000;
-      return hrs >= minHrs;
-    });
+    const fasts = (sessions || []).filter((s: any) => Number(s.actual_hours || 0) >= minHrs);
 
     if (challenge.target_unit === "hours") {
-      const total = fasts.reduce(
-        (sum: number, s: any) =>
-          sum + (new Date(s.ended_at).getTime() - new Date(s.started_at).getTime()) / 3_600_000,
-        0
-      );
+      const total = fasts.reduce((sum: number, s: any) => sum + Number(s.actual_hours || 0), 0);
       return Math.round(total * 10) / 10;
     }
     // default: count of qualifying fasts
