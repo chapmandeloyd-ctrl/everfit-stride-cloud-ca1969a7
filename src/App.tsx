@@ -26,7 +26,7 @@ const TaskLibrary = lazyRetry(() => import("./pages/TaskLibrary"), "TaskLibrary"
 const Auth = lazyRetry(() => import("./pages/Auth"), "Auth");
 const Unsubscribe = lazyRetry(() => import("./pages/Unsubscribe"), "Unsubscribe");
 const PortalMockup = lazyRetry(() => import("./pages/PortalMockup"), "PortalMockup");
-const ClientDashboard = lazyRetry(() => import("./pages/client/ClientDashboardMinimal"), "ClientDashboardMinimal");
+import ClientDashboard from "./pages/client/ClientDashboardMinimal";
 const ClientRingsDemo = lazyRetry(() => import("./pages/client/ClientRingsDemo"), "ClientRingsDemo");
 const ClientSmartPace = lazyRetry(() => import("./pages/client/ClientSmartPace"), "ClientSmartPace");
 const SmartPacePreview = lazyRetry(() => import("./pages/SmartPacePreview"), "SmartPacePreview");
