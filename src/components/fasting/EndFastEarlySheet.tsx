@@ -41,6 +41,19 @@ const REASON_OPTIONS: { id: string; label: string }[] = [
   { id: "other", label: "Other" },
 ];
 
+function formatElapsedHeader(hours: number, minutes: number): string {
+  if (hours <= 0) return `You're ${minutes} min into your fast`;
+  if (minutes <= 0) return `You're ${hours}h into your fast`;
+  return `You're ${hours}h ${String(minutes).padStart(2, "0")}m into your fast`;
+}
+
+function formatRemainingCopy(hours: number, minutes: number, targetHours: number): string {
+  if (hours <= 0 && minutes <= 0) return "You're at your goal";
+  if (hours <= 0) return `${minutes} min left in your ${targetHours}h fast`;
+  if (minutes <= 0) return `${hours}h left in your ${targetHours}h fast`;
+  return `${hours}h ${String(minutes).padStart(2, "0")}m left in your ${targetHours}h fast`;
+}
+
 function getStaticDiagnosis(elapsedH: number): { headline: string; suggestions: { id: string; label: string; icon: any; }[] } {
   if (elapsedH < 4) {
     return {
@@ -301,15 +314,13 @@ export function EndFastEarlySheet({
                   Pause before you end
                 </p>
                 <h2
-                  className="text-lg font-light"
+                  className="text-base font-light leading-tight sm:text-lg"
                   style={{ fontFamily: "Georgia, serif", color: "hsl(40 20% 92%)" }}
                 >
-                  You're {elapsedHrs}h {String(elapsedMins).padStart(2, "0")}m in
+                  {formatElapsedHeader(elapsedHrs, elapsedMins)}
                 </h2>
                 <p className="text-[11px] text-white/60">
-                  {remainHrs > 0 || remainMins > 0
-                    ? `${remainHrs}h ${String(remainMins).padStart(2, "0")}m left to your ${targetHours}h goal`
-                    : "You're at your goal"}
+                  {formatRemainingCopy(remainHrs, remainMins, targetHours)}
                 </p>
               </div>
 
