@@ -810,6 +810,69 @@ export type Database = {
           },
         ]
       }
+      challenges: {
+        Row: {
+          badge_color: string
+          badge_label: string | null
+          created_at: string
+          description: string | null
+          difficulty: string
+          duration_days: number
+          fast_minimum_hours: number | null
+          featured_rank: number | null
+          id: string
+          is_published: boolean
+          participants: number
+          subtitle: string | null
+          target_unit: string | null
+          target_value: number | null
+          tips: string[] | null
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          badge_color?: string
+          badge_label?: string | null
+          created_at?: string
+          description?: string | null
+          difficulty?: string
+          duration_days: number
+          fast_minimum_hours?: number | null
+          featured_rank?: number | null
+          id?: string
+          is_published?: boolean
+          participants?: number
+          subtitle?: string | null
+          target_unit?: string | null
+          target_value?: number | null
+          tips?: string[] | null
+          title: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          badge_color?: string
+          badge_label?: string | null
+          created_at?: string
+          description?: string | null
+          difficulty?: string
+          duration_days?: number
+          fast_minimum_hours?: number | null
+          featured_rank?: number | null
+          id?: string
+          is_published?: boolean
+          participants?: number
+          subtitle?: string | null
+          target_unit?: string | null
+          target_value?: number | null
+          tips?: string[] | null
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       checkin_auto_drafts: {
         Row: {
           client_id: string
@@ -3776,6 +3839,60 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      explore_content: {
+        Row: {
+          author: string | null
+          body: string | null
+          category: string
+          created_at: string
+          cta_label: string | null
+          featured_rank: number | null
+          id: string
+          image_url: string | null
+          is_premium: boolean
+          is_published: boolean
+          popular_rank: number | null
+          subtitle: string | null
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          author?: string | null
+          body?: string | null
+          category: string
+          created_at?: string
+          cta_label?: string | null
+          featured_rank?: number | null
+          id?: string
+          image_url?: string | null
+          is_premium?: boolean
+          is_published?: boolean
+          popular_rank?: number | null
+          subtitle?: string | null
+          title: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          author?: string | null
+          body?: string | null
+          category?: string
+          created_at?: string
+          cta_label?: string | null
+          featured_rank?: number | null
+          id?: string
+          image_url?: string | null
+          is_premium?: boolean
+          is_published?: boolean
+          popular_rank?: number | null
+          subtitle?: string | null
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       factor_impact_history: {
         Row: {
@@ -8791,6 +8908,82 @@ export type Database = {
             columns: ["trainer_id"]
             isOneToOne: true
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_bookmarks: {
+        Row: {
+          content_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          content_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          content_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_bookmarks_content_id_fkey"
+            columns: ["content_id"]
+            isOneToOne: false
+            referencedRelation: "explore_content"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_challenges: {
+        Row: {
+          abandoned_at: string | null
+          challenge_id: string
+          completed_at: string | null
+          created_at: string
+          id: string
+          joined_at: string
+          progress_value: number
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          abandoned_at?: string | null
+          challenge_id: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          joined_at?: string
+          progress_value?: number
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          abandoned_at?: string | null
+          challenge_id?: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          joined_at?: string
+          progress_value?: number
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_challenges_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "challenges"
             referencedColumns: ["id"]
           },
         ]
