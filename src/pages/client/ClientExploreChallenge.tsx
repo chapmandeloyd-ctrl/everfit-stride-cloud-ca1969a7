@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Calendar, Target, Users, Sparkles } from "lucide-react";
+import { ArrowLeft, Calendar, Target, Sparkles } from "lucide-react";
 import {
   useChallengeById,
   useUserChallengeForChallenge,
@@ -13,14 +13,14 @@ import { ClientBottomNav } from "@/components/ClientBottomNav";
 import { UpdateBanner } from "@/components/UpdateBanner";
 import { useAppUpdate } from "@/hooks/useAppUpdate";
 import { ChallengeBadge } from "@/components/explore/ChallengeBadge";
-import { cn } from "@/lib/utils";
+import { LionWatermark } from "@/components/explore/LionWatermark";
 
-const BANNER_COLORS: Record<string, string> = {
-  green: "bg-emerald-700",
-  purple: "bg-purple-600",
-  pink: "bg-pink-600",
-  red: "bg-primary",
-};
+const BG = "hsl(0 0% 4%)";
+const SURFACE = "hsl(0 0% 6%)";
+const GOLD = "hsl(42 70% 55%)";
+const IVORY = "hsl(40 20% 92%)";
+const MUTED = "hsl(40 10% 65%)";
+const HAIRLINE = "hsl(42 70% 55% / 0.25)";
 
 export default function ClientExploreChallenge() {
   const { id } = useParams<{ id: string }>();
@@ -31,15 +31,24 @@ export default function ClientExploreChallenge() {
   const leave = useLeaveChallenge();
   const { updateAvailable } = useAppUpdate();
 
-  const ucWithChallenge = userChallenge && challenge ? { ...userChallenge, challenge } : undefined;
+  const ucWithChallenge =
+    userChallenge && challenge ? { ...userChallenge, challenge } : undefined;
   const { data: progress = 0 } = useComputedProgress(ucWithChallenge as any);
 
-  if (isLoading) return <div className="p-8 text-center text-muted-foreground">Loading…</div>;
+  if (isLoading) {
+    return (
+      <div className="p-8 text-center" style={{ background: BG, color: MUTED, minHeight: "100vh" }}>
+        Loading…
+      </div>
+    );
+  }
   if (!challenge) {
     return (
-      <div className="p-8 text-center">
-        <p className="text-muted-foreground">Challenge not found.</p>
-        <Button variant="outline" className="mt-4" onClick={() => navigate(-1)}>Go back</Button>
+      <div className="p-8 text-center" style={{ background: BG, minHeight: "100vh" }}>
+        <p style={{ color: MUTED }}>Challenge not found.</p>
+        <Button variant="outline" className="mt-4" onClick={() => navigate(-1)}>
+          Go back
+        </Button>
       </div>
     );
   }
@@ -49,112 +58,216 @@ export default function ClientExploreChallenge() {
   const isJoined = !!userChallenge;
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col" style={{ background: BG }}>
       <UpdateBanner />
       <header
-        className="bg-card border-b border-border px-4 shrink-0 sticky top-0 z-40"
-        style={{ paddingTop: updateAvailable ? "12px" : "max(env(safe-area-inset-top, 0px), 12px)" }}
+        className="px-4 shrink-0 sticky top-0 z-40"
+        style={{
+          background: BG,
+          borderBottom: `1px solid ${HAIRLINE}`,
+          paddingTop: updateAvailable ? "12px" : "max(env(safe-area-inset-top, 0px), 12px)",
+        }}
       >
         <div className="flex items-center gap-3 h-14">
-          <button onClick={() => navigate(-1)} className="h-10 w-10 rounded-full bg-muted flex items-center justify-center" aria-label="Back">
-            <ArrowLeft className="h-4 w-4" />
+          <button
+            onClick={() => navigate(-1)}
+            className="h-9 w-9 flex items-center justify-center rounded-full"
+            style={{ border: `1px solid ${HAIRLINE}`, color: GOLD }}
+            aria-label="Back"
+          >
+            <ArrowLeft className="h-4 w-4" strokeWidth={1.5} />
           </button>
-          <h1 className="flex-1 text-center text-base font-semibold tracking-tight pr-10 truncate">{challenge.title}</h1>
+          <h1
+            className="flex-1 text-center text-base tracking-wide pr-9 truncate"
+            style={{ color: IVORY, fontFamily: "Georgia, serif", fontWeight: 400 }}
+          >
+            {challenge.title}
+          </h1>
         </div>
       </header>
 
-      <main className="flex-1 overflow-auto" style={{ paddingBottom: "calc(5rem + max(env(safe-area-inset-bottom, 0px), 4px))" }}>
-        {/* Hero banner */}
-        <div className={cn("relative h-48 flex items-end px-5 pb-0", BANNER_COLORS[challenge.badge_color] || BANNER_COLORS.green)}>
-          <div className="absolute -bottom-8 left-5">
-            <ChallengeBadge label={challenge.badge_label} color={challenge.badge_color} type={challenge.type} size="lg" className="ring-4 ring-background" />
+      <main
+        className="flex-1 overflow-auto"
+        style={{ paddingBottom: "calc(5rem + max(env(safe-area-inset-bottom, 0px), 4px))" }}
+      >
+        {/* Hero with watermark */}
+        <div
+          className="relative h-56 flex items-center justify-center overflow-hidden"
+          style={{ background: SURFACE, borderBottom: `1px solid ${HAIRLINE}` }}
+        >
+          <LionWatermark opacity={0.14} />
+          <div className="relative">
+            <ChallengeBadge
+              label={challenge.badge_label}
+              color={challenge.badge_color}
+              type={challenge.type}
+              size="lg"
+            />
           </div>
         </div>
 
-        <div className="pt-12 px-5 pb-2 flex justify-end">
-          {!isJoined ? (
-            <Button
-              size="lg"
-              onClick={() => id && join.mutate(id)}
-              disabled={join.isPending}
-              className="rounded-full px-8 bg-primary hover:bg-primary/90"
-            >
-              {join.isPending ? "Joining…" : "Join Challenge"}
-            </Button>
-          ) : (
-            <Button
-              size="lg"
-              variant="outline"
-              onClick={() => userChallenge && leave.mutate(userChallenge.id)}
-              className="rounded-full px-8"
-            >
-              Leave
-            </Button>
+        <div className="px-6 pt-8 pb-4 text-center space-y-3">
+          <p className="text-[10px] uppercase tracking-[0.4em]" style={{ color: GOLD }}>
+            The Challenge · {challenge.type}
+          </p>
+          <div className="mx-auto h-px w-10" style={{ background: GOLD }} />
+          <h2
+            className="text-3xl leading-tight tracking-tight"
+            style={{ color: IVORY, fontFamily: "Georgia, serif", fontWeight: 400 }}
+          >
+            {challenge.title}
+          </h2>
+          {challenge.subtitle && (
+            <p className="text-sm max-w-md mx-auto" style={{ color: MUTED }}>
+              {challenge.subtitle}
+            </p>
           )}
         </div>
 
-        <div className="px-5 pt-2 space-y-5">
-          <p className={cn("text-[10px] font-bold tracking-[0.2em] uppercase", typeColor(challenge.type))}>{challenge.type}</p>
-          <h2 className="text-3xl font-bold tracking-tight leading-tight">
-            {challenge.subtitle ? `Join Us: ${challenge.title}` : challenge.title}
-          </h2>
+        {/* CTA */}
+        <div className="px-6 pt-2 pb-6 flex justify-center">
+          {!isJoined ? (
+            <button
+              onClick={() => id && join.mutate(id)}
+              disabled={join.isPending}
+              className="px-10 py-3 text-[11px] uppercase tracking-[0.4em] disabled:opacity-50"
+              style={{
+                border: `1px solid ${GOLD}`,
+                color: GOLD,
+                fontFamily: "Georgia, serif",
+                background: "transparent",
+              }}
+            >
+              {join.isPending ? "Joining…" : "Join Challenge"}
+            </button>
+          ) : (
+            <button
+              onClick={() => userChallenge && leave.mutate(userChallenge.id)}
+              className="px-10 py-3 text-[11px] uppercase tracking-[0.4em]"
+              style={{
+                border: `1px solid ${HAIRLINE}`,
+                color: MUTED,
+                fontFamily: "Georgia, serif",
+                background: "transparent",
+              }}
+            >
+              Leave
+            </button>
+          )}
+        </div>
 
-          <div className="space-y-3 text-foreground/90">
-            <div className="flex items-center gap-3">
-              <Calendar className="h-5 w-5 text-muted-foreground" />
-              <span>{challenge.duration_days} days</span>
+        <div className="px-6 space-y-6">
+          {/* Meta lines */}
+          <div className="space-y-3" style={{ color: IVORY, fontFamily: "Georgia, serif" }}>
+            <div
+              className="flex items-center gap-3 py-3"
+              style={{ borderTop: `1px solid ${HAIRLINE}` }}
+            >
+              <Calendar className="h-4 w-4" strokeWidth={1.25} style={{ color: GOLD }} />
+              <span className="text-sm">{challenge.duration_days} days</span>
             </div>
-            <div className="flex items-center gap-3">
-              <Target className="h-5 w-5 text-muted-foreground" />
-              <span>{challenge.subtitle || `Reach ${challenge.target_value} ${challenge.target_unit}`}</span>
+            <div
+              className="flex items-center gap-3 py-3"
+              style={{ borderTop: `1px solid ${HAIRLINE}` }}
+            >
+              <Target className="h-4 w-4" strokeWidth={1.25} style={{ color: GOLD }} />
+              <span className="text-sm">
+                {challenge.subtitle || `Reach ${challenge.target_value} ${challenge.target_unit}`}
+              </span>
             </div>
           </div>
 
           {isJoined && (
-            <div className="bg-card rounded-2xl border border-border p-4 space-y-2">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold">Your Progress</p>
-                <p className="text-sm text-muted-foreground">
+            <div className="relative overflow-hidden p-5 space-y-3" style={{ background: SURFACE, border: `1px solid ${HAIRLINE}` }}>
+              <LionWatermark opacity={0.05} />
+              <div className="relative flex items-center justify-between">
+                <p className="text-[10px] uppercase tracking-[0.35em]" style={{ color: GOLD }}>
+                  Your Progress
+                </p>
+                <p className="text-[11px] uppercase tracking-[0.25em]" style={{ color: MUTED }}>
                   {progress}/{target} {challenge.target_unit}
                 </p>
               </div>
-              <Progress value={pct} className="h-2" />
+              <Progress value={pct} className="relative h-[2px]" />
             </div>
           )}
 
           {challenge.description && (
-            <div className="space-y-3 pt-2">
+            <div className="space-y-4 pt-2">
               {challenge.description.split("\n\n").map((p, i) => (
-                <p key={i} className="text-base leading-relaxed text-foreground/90">{p}</p>
+                <p
+                  key={i}
+                  className="text-[15px] leading-[1.8]"
+                  style={{ color: IVORY, fontFamily: "Georgia, serif" }}
+                >
+                  {p}
+                </p>
               ))}
             </div>
           )}
 
+          {/* Numbers */}
           <div className="pt-4">
-            <h3 className="text-xl font-bold mb-3">Challenge Numbers</h3>
-            <div className="bg-card rounded-2xl border border-border divide-y divide-border">
-              <div className="flex items-center justify-between p-4">
-                <span className="text-foreground/80">Participants</span>
-                <span className="font-bold">{challenge.participants.toLocaleString()}</span>
+            <div className="flex items-center gap-3 mb-3">
+              <span className="h-px w-6" style={{ background: GOLD }} />
+              <h3
+                className="text-[11px] uppercase tracking-[0.4em]"
+                style={{ color: GOLD, fontFamily: "Georgia, serif" }}
+              >
+                The Numbers
+              </h3>
+            </div>
+            <div style={{ background: SURFACE, border: `1px solid ${HAIRLINE}` }}>
+              <div
+                className="flex items-center justify-between p-4"
+                style={{ borderBottom: `1px solid ${HAIRLINE}` }}
+              >
+                <span className="text-sm" style={{ color: MUTED, fontFamily: "Georgia, serif" }}>
+                  Participants
+                </span>
+                <span style={{ color: IVORY, fontFamily: "Georgia, serif" }}>
+                  {challenge.participants.toLocaleString()}
+                </span>
               </div>
               <div className="flex items-center justify-between p-4">
-                <span className="text-foreground/80">Difficulty</span>
-                <span className="font-bold capitalize">{challenge.difficulty}</span>
+                <span className="text-sm" style={{ color: MUTED, fontFamily: "Georgia, serif" }}>
+                  Difficulty
+                </span>
+                <span className="capitalize" style={{ color: IVORY, fontFamily: "Georgia, serif" }}>
+                  {challenge.difficulty}
+                </span>
               </div>
             </div>
           </div>
 
           {challenge.tips && challenge.tips.length > 0 && (
             <div className="pt-4">
-              <h3 className="text-xl font-bold mb-3 flex items-center gap-2">
-                <Sparkles className="h-5 w-5" />
-                Tips for Success
-              </h3>
-              <div className="bg-card rounded-2xl border border-border p-4 space-y-3">
+              <div className="flex items-center gap-3 mb-3">
+                <span className="h-px w-6" style={{ background: GOLD }} />
+                <h3
+                  className="text-[11px] uppercase tracking-[0.4em] flex items-center gap-2"
+                  style={{ color: GOLD, fontFamily: "Georgia, serif" }}
+                >
+                  <Sparkles className="h-3.5 w-3.5" strokeWidth={1.25} />
+                  For Success
+                </h3>
+              </div>
+              <div className="p-5 space-y-4 relative overflow-hidden" style={{ background: SURFACE, border: `1px solid ${HAIRLINE}` }}>
+                <LionWatermark opacity={0.04} />
                 {challenge.tips.map((tip, i) => (
-                  <div key={i} className="flex gap-3">
-                    <span className="text-primary font-bold">{i + 1}.</span>
-                    <p className="text-foreground/90 flex-1">{tip}</p>
+                  <div key={i} className="relative flex gap-4">
+                    <span
+                      className="text-[10px] uppercase tracking-[0.3em] pt-1"
+                      style={{ color: GOLD, fontFamily: "Georgia, serif" }}
+                    >
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <p
+                      className="flex-1 text-[14px] leading-[1.7]"
+                      style={{ color: IVORY, fontFamily: "Georgia, serif" }}
+                    >
+                      {tip}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -166,14 +279,4 @@ export default function ClientExploreChallenge() {
       <ClientBottomNav />
     </div>
   );
-}
-
-function typeColor(type: string): string {
-  switch (type) {
-    case "fasting": return "text-emerald-600";
-    case "sleep": return "text-purple-500";
-    case "movement": return "text-pink-500";
-    case "journal": return "text-amber-500";
-    default: return "text-muted-foreground";
-  }
 }
