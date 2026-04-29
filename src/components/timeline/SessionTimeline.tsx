@@ -4,7 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { format, formatDistanceToNowStrict } from "date-fns";
-import { Droplet, Pencil, ChevronRight, Sparkles } from "lucide-react";
+import { Droplet, Pencil, ChevronRight, Sparkles, BookOpen, Timer } from "lucide-react";
+import { Link } from "react-router-dom";
 import { getJournalPhotoUrl, type DailyJournalEntry } from "@/hooks/useDailyJournal";
 
 interface SessionTimelineProps {
