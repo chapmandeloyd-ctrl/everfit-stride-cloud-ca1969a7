@@ -674,16 +674,15 @@ function TimeColumn({
 }
 
 /* ---------- EATING WINDOW BLOCK ---------- */
-function EatingWindow({ plan }: { plan: PlanView }) {
-  // Live, user-editable times for this plan. Re-init when plan changes.
-  const [times, setTimes] = useState({
-    opensAt: plan.opensAt,
-    closesAt: plan.closesAt,
-  });
-  useEffect(() => {
-    setTimes({ opensAt: plan.opensAt, closesAt: plan.closesAt });
-  }, [plan.opensAt, plan.closesAt]);
-
+function EatingWindow({
+  plan,
+  times,
+  onTimesChange,
+}: {
+  plan: PlanView;
+  times: { opensAt: string; closesAt: string };
+  onTimesChange: (next: { opensAt: string; closesAt: string }) => void;
+}) {
   return (
     <div
       className="mx-5 mt-2 p-5"
@@ -705,7 +704,7 @@ function EatingWindow({ plan }: { plan: PlanView }) {
         opensAt={times.opensAt}
         closesAt={times.closesAt}
         eatHours={plan.eatHours}
-        onChange={setTimes}
+        onChange={onTimesChange}
       />
     </div>
   );
