@@ -688,6 +688,21 @@ export function SessionTimeline({ clientId }: SessionTimelineProps) {
         </div>
       </div>
 
+      {/* Orphan journal entries (not inside any fast segment) */}
+      {orphanJournals.length > 0 && (
+        <div className="space-y-5 mb-5">
+          {orphanJournals.map((entry) => (
+            <div key={entry.id} className="flex gap-3">
+              <DateGutter date={journalAt(entry)} />
+              <div className="flex-1 min-w-0 relative pl-4">
+                <Rail accent="muted" />
+                <JournalDayCard entry={entry} />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Segments — render fast segments as containers */}
       <div className="space-y-5">
         {fastSegments.map((seg, idx) => {
