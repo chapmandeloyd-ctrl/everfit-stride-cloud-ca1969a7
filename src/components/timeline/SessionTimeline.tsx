@@ -488,14 +488,73 @@ export function SessionTimeline({ clientId }: SessionTimelineProps) {
   const { data: events = [], isLoading: loadingEvents } = useQuery({
     queryKey: ["session-timeline-events", clientId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("activity_events")
-        .select("*")
-        .eq("client_id", clientId)
-        .order("occurred_at", { ascending: false })
-        .limit(500);
+      const [{ data: data, error }, { data: fastLogs, error: fastLogsError }] = await Promise.all([
+        supabase
+          .from("activity_events")
+          .select("*")
+          .eq("client_id", clientId)
+          .order("occurred_at", { ascending: false })
+          .limit(500),
+        supabase
+          .from("fasting_log")
+          .select("id, started_at, ended_at, actual_hours, target_hours, ended_early, status")
+          .eq("client_id", clientId)
+          .order("ended_at", { ascending: false })
+          .limit(200),
+      ]);
       if (error) throw error;
-      return (data || []) as RawEvent[];
+      if (fastLogsError) throw fastLogsError;
+
+      const existingLogIds = new Set(
+        (data || [])
+          .flatMap((event) => [event.metadata?.fasting_log_id].filter(Boolean))
+      );
+
+      const syntheticFastEvents: RawEvent[] = (fastLogs || [])
+        .flatMap((log: any) => {
+          if (existingLogIds.has(log.id)) return [];
+
+          const actualHours = Number(log.actual_hours || 0);
+          const targetHours = Number(log.target_hours || 0);
+          const completionPct = targetHours > 0 ? Math.min(Math.round((actualHours / targetHours) * 100), 100) : 0;
+
+          return [
+            {
+              id: `fast-log-start-${log.id}`,
+              occurred_at: log.started_at,
+              event_type: "fast_started",
+              category: "fasting",
+              title: "Fast started",
+              subtitle: targetHours > 0 ? `${targetHours}h target` : null,
+              icon: "play",
+              metadata: { fasting_log_id: log.id, synthetic: true, target_hours: targetHours },
+              source: "backfill",
+              edited: false,
+            },
+            {
+              id: `fast-log-end-${log.id}`,
+              occurred_at: log.ended_at,
+              event_type: log.ended_early || log.status !== "completed" ? "fast_ended_early" : "fast_completed",
+              category: "fasting",
+              title: log.ended_early || log.status !== "completed" ? "Fast ended early" : "Fast completed",
+              subtitle: `${actualHours.toFixed(1)}h${targetHours > 0 ? ` of ${targetHours}h (${completionPct}%)` : ""}`,
+              icon: log.ended_early || log.status !== "completed" ? "stop-circle" : "check-circle",
+              metadata: {
+                fasting_log_id: log.id,
+                synthetic: true,
+                duration_minutes: Math.round(actualHours * 60),
+                actual_hours: actualHours,
+                target_hours: targetHours,
+              },
+              source: "backfill",
+              edited: false,
+            },
+          ] as RawEvent[];
+        });
+
+      return [...((data || []) as RawEvent[]), ...syntheticFastEvents].sort(
+        (a, b) => new Date(b.occurred_at).getTime() - new Date(a.occurred_at).getTime(),
+      );
     },
     refetchInterval: 60_000,
   });
@@ -538,6 +597,27 @@ export function SessionTimeline({ clientId }: SessionTimelineProps) {
         .limit(1000);
       if (error) throw error;
       return (data || []) as WaterRow[];
+    },
+  });
+
+  const { data: journals = [] } = useQuery({
+    queryKey: ["session-timeline-journals", clientId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("daily_journal_entries")
+        .select("*")
+        .eq("client_id", clientId)
+        .order("entry_date", { ascending: false })
+        .limit(120);
+      if (error) throw error;
+
+      const rows = (data || []) as DailyJournalEntry[];
+      return Promise.all(
+        rows.map(async (entry) => ({
+          ...entry,
+          photoUrl: entry.photo_path ? await getJournalPhotoUrl(entry.photo_path) : null,
+        })),
+      ) as Promise<JournalRow[]>;
     },
   });
 
