@@ -498,16 +498,16 @@ function WheelPicker({
     <div className="mt-5">
       <div className="grid grid-cols-2 gap-3 mb-4">
         <TimeColumn
-          label="opens at"
-          value={formatTime(opens)}
-          active={editing === "opens"}
-          onClick={() => setEditing("opens")}
-        />
-        <TimeColumn
-          label="closes at"
+          label="fast starts"
           value={formatTime(closes)}
           active={editing === "closes"}
           onClick={() => setEditing("closes")}
+        />
+        <TimeColumn
+          label="fast ends"
+          value={formatTime(opens)}
+          active={editing === "opens"}
+          onClick={() => setEditing("opens")}
         />
       </div>
       <div
@@ -710,10 +710,10 @@ function EatingWindow({
         className="text-center text-[10px] uppercase tracking-[0.3em] mb-4"
         style={{ color: GOLD }}
       >
-        Eating Window
+        Fasting Window
       </div>
       <div className="text-center font-serif text-5xl" style={{ color: IVORY }}>
-        {plan.eatHours}
+        {24 - plan.eatHours}
         <span className="text-2xl ml-1" style={{ color: GOLD_SOFT }}>
           h
         </span>
