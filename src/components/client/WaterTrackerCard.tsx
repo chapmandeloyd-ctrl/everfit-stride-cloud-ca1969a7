@@ -231,6 +231,7 @@ export function WaterTrackerCard() {
         }
 
         queryClient.invalidateQueries({ queryKey: ["water-log-today", clientId] });
+        queryClient.invalidateQueries({ queryKey: ["daily-rings", clientId] });
       } catch {
         lastRepairSignatureRef.current = null;
         toast.error("Couldn't repair today's water total");
@@ -263,6 +264,7 @@ export function WaterTrackerCard() {
       return;
     }
     queryClient.invalidateQueries({ queryKey: ["water-log-today", clientId] });
+    queryClient.invalidateQueries({ queryKey: ["daily-rings", clientId] });
   };
 
   const handleUndo = async () => {
@@ -278,6 +280,7 @@ export function WaterTrackerCard() {
     }
     toast.success("Removed last entry");
     queryClient.invalidateQueries({ queryKey: ["water-log-today", clientId] });
+    queryClient.invalidateQueries({ queryKey: ["daily-rings", clientId] });
   };
 
   // Layout: 8 droplet markers spaced across the bar (last replaced by star)
