@@ -411,6 +411,24 @@ function formatTime({ hour, minute, period }: TimeParts): string {
   return `${hour}:${minute.toString().padStart(2, "0")} ${period}`;
 }
 
+function sqlTimeToUiTime(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const match = value.trim().match(/^(\d{1,2}):(\d{2})(?::\d{2}(?:\.\d+)?)?$/);
+  if (!match) return null;
+  const h24 = parseInt(match[1], 10);
+  const minute = parseInt(match[2], 10);
+  const period: Period = h24 >= 12 ? "PM" : "AM";
+  let hour = h24 % 12;
+  if (hour === 0) hour = 12;
+  return formatTime({ hour, minute, period });
+}
+
+function uiTimeToSqlTime(value: string): string {
+  const { hour, minute, period } = parseTime(value);
+  const h24 = period === "AM" ? (hour === 12 ? 0 : hour) : hour === 12 ? 12 : hour + 12;
+  return `${String(h24).padStart(2, "0")}:${String(minute).padStart(2, "0")}:00`;
+}
+
 /** Convert TimeParts to minutes-of-day (0-1439). */
 function toMinutes({ hour, minute, period }: TimeParts): number {
   const h24 = period === "AM" ? (hour === 12 ? 0 : hour) : hour === 12 ? 12 : hour + 12;
@@ -950,6 +968,8 @@ function SynergyContent({
         active_fast_start_at: new Date().toISOString(),
         last_fast_ended_at: null,
         eating_window_ends_at: null,
+        preferred_eating_window_opens_at: uiTimeToSqlTime(windowOpensAt),
+        preferred_eating_window_closes_at: uiTimeToSqlTime(windowClosesAt),
       };
       if (planType === "quick") {
         updates.selected_quick_plan_id = planId;
@@ -1490,6 +1510,7 @@ export default function ClientFastingPlanDetailPreview() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const clientId = useEffectiveClientId();
+  const queryClient = useQueryClient();
 
   const { data: featureSettings } = useQuery({
     queryKey: ["fasting-detail-feature-settings", clientId],
@@ -1497,7 +1518,7 @@ export default function ClientFastingPlanDetailPreview() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("client_feature_settings")
-        .select("selected_protocol_id, selected_quick_plan_id")
+        .select("selected_protocol_id, selected_quick_plan_id, preferred_eating_window_opens_at, preferred_eating_window_closes_at")
         .eq("client_id", clientId!)
         .maybeSingle();
       if (error) throw error;
@@ -1616,12 +1637,59 @@ export default function ClientFastingPlanDetailPreview() {
 
   const defaultKetoId = assignedKeto?.id ? assignedKeto.id.toLowerCase() : "skd";
 
+  const preferredTimes = useMemo(
+    () => ({
+      opensAt: sqlTimeToUiTime(featureSettings?.preferred_eating_window_opens_at) ?? plan.opensAt,
+      closesAt: sqlTimeToUiTime(featureSettings?.preferred_eating_window_closes_at) ?? plan.closesAt,
+    }),
+    [
+      featureSettings?.preferred_eating_window_closes_at,
+      featureSettings?.preferred_eating_window_opens_at,
+      plan.closesAt,
+      plan.opensAt,
+    ],
+  );
+
   // Live, user-editable eating-window times. Shared by the wheel picker AND
   // the Daily Meal Timeline so adjusting "opens at" shifts every meal slot.
-  const [times, setTimes] = useState({ opensAt: plan.opensAt, closesAt: plan.closesAt });
+  const [times, setTimes] = useState(preferredTimes);
+  const lastPersistedTimesRef = useRef(preferredTimes);
+
   useEffect(() => {
-    setTimes({ opensAt: plan.opensAt, closesAt: plan.closesAt });
-  }, [plan.opensAt, plan.closesAt]);
+    setTimes(preferredTimes);
+    lastPersistedTimesRef.current = preferredTimes;
+  }, [preferredTimes]);
+
+  useEffect(() => {
+    if (!clientId) return;
+    if (
+      times.opensAt === lastPersistedTimesRef.current.opensAt &&
+      times.closesAt === lastPersistedTimesRef.current.closesAt
+    ) {
+      return;
+    }
+
+    const timer = window.setTimeout(async () => {
+      const { error } = await supabase
+        .from("client_feature_settings")
+        .update({
+          preferred_eating_window_opens_at: uiTimeToSqlTime(times.opensAt),
+          preferred_eating_window_closes_at: uiTimeToSqlTime(times.closesAt),
+        })
+        .eq("client_id", clientId);
+
+      if (error) {
+        toast.error("Could not save eating window");
+        return;
+      }
+
+      lastPersistedTimesRef.current = times;
+      queryClient.invalidateQueries({ queryKey: ["fasting-detail-feature-settings", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting", clientId] });
+    }, 250);
+
+    return () => window.clearTimeout(timer);
+  }, [clientId, queryClient, times]);
 
   return (
     <div className="min-h-screen pb-24" style={{ background: BLACK }}>

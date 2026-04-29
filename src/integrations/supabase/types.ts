@@ -1259,6 +1259,8 @@ export type Database = {
           parent_link_enabled: boolean
           pinned_insight_text: string | null
           pinned_insight_until: string | null
+          preferred_eating_window_closes_at: string | null
+          preferred_eating_window_opens_at: string | null
           progress_photos_enabled: boolean
           protocol_assigned_by: string | null
           protocol_completed: boolean
@@ -1359,6 +1361,8 @@ export type Database = {
           parent_link_enabled?: boolean
           pinned_insight_text?: string | null
           pinned_insight_until?: string | null
+          preferred_eating_window_closes_at?: string | null
+          preferred_eating_window_opens_at?: string | null
           progress_photos_enabled?: boolean
           protocol_assigned_by?: string | null
           protocol_completed?: boolean
@@ -1459,6 +1463,8 @@ export type Database = {
           parent_link_enabled?: boolean
           pinned_insight_text?: string | null
           pinned_insight_until?: string | null
+          preferred_eating_window_closes_at?: string | null
+          preferred_eating_window_opens_at?: string | null
           progress_photos_enabled?: boolean
           protocol_assigned_by?: string | null
           protocol_completed?: boolean
