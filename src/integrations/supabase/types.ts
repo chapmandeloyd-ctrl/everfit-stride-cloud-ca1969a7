@@ -3241,6 +3241,51 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_journal_entries: {
+        Row: {
+          body_feelings: string[]
+          client_id: string
+          created_at: string
+          entry_date: string
+          id: string
+          meals_count: string | null
+          meals_quality: string | null
+          mood: string | null
+          note: string | null
+          photo_path: string | null
+          snacks_count: number | null
+          updated_at: string
+        }
+        Insert: {
+          body_feelings?: string[]
+          client_id: string
+          created_at?: string
+          entry_date?: string
+          id?: string
+          meals_count?: string | null
+          meals_quality?: string | null
+          mood?: string | null
+          note?: string | null
+          photo_path?: string | null
+          snacks_count?: number | null
+          updated_at?: string
+        }
+        Update: {
+          body_feelings?: string[]
+          client_id?: string
+          created_at?: string
+          entry_date?: string
+          id?: string
+          meals_count?: string | null
+          meals_quality?: string | null
+          mood?: string | null
+          note?: string | null
+          photo_path?: string | null
+          snacks_count?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       dashboard_card_layouts: {
         Row: {
           cards: Json
