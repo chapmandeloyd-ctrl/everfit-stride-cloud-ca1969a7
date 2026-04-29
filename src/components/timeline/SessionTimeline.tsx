@@ -667,6 +667,11 @@ export function SessionTimeline({ clientId }: SessionTimelineProps) {
     [...segments].sort((a, b) => a.startedAt.getTime() - b.startedAt.getTime())[0]?.startedAt ??
     null;
 
+  // Is there an open eating window right now? (last segment is eating with no end)
+  const hasOpenEatingWindow = segments.length > 0
+    && segments[0].type === "eating"
+    && segments[0].endedAt === null;
+
   // Journals that aren't already nested inside a fast segment (orphans).
   // These should still appear on the timeline so users see their journal entries
   // even on days when no fast was logged.
@@ -700,7 +705,10 @@ export function SessionTimeline({ clientId }: SessionTimelineProps) {
         <DateGutter date={new Date()} />
         <div className="flex-1 min-w-0 relative pl-4">
           <Rail accent="muted" />
-          <LiveStatusInline activeFastStartAt={activeFastStartAt} />
+          <LiveStatusInline
+            activeFastStartAt={activeFastStartAt}
+            hasOpenEatingWindow={hasOpenEatingWindow}
+          />
         </div>
       </div>
 
