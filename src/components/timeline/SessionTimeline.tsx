@@ -441,7 +441,13 @@ function FastSessionCard({
   );
 }
 
-function LiveStatusInline({ activeFastStartAt }: { activeFastStartAt: string | null }) {
+function LiveStatusInline({
+  activeFastStartAt,
+  hasOpenEatingWindow,
+}: {
+  activeFastStartAt: string | null;
+  hasOpenEatingWindow: boolean;
+}) {
   useTicker(true);
   if (activeFastStartAt) {
     const elapsed = formatDistanceToNowStrict(new Date(activeFastStartAt));
@@ -455,11 +461,21 @@ function LiveStatusInline({ activeFastStartAt }: { activeFastStartAt: string | n
       </div>
     );
   }
+  if (hasOpenEatingWindow) {
+    return (
+      <div>
+        <h3 className="text-lg font-bold text-foreground">Currently eating..</h3>
+        <p className="text-xs text-muted-foreground mt-0.5">
+          Log meals as you eat to fill in this window.
+        </p>
+      </div>
+    );
+  }
   return (
     <div>
-      <h3 className="text-lg font-bold text-foreground">Currently eating..</h3>
+      <h3 className="text-lg font-bold text-foreground">Not tracking right now</h3>
       <p className="text-xs text-muted-foreground mt-0.5">
-        Log meals as you eat to fill in this window.
+        Start a fast or log a meal to begin a new session.
       </p>
     </div>
   );
@@ -651,6 +667,11 @@ export function SessionTimeline({ clientId }: SessionTimelineProps) {
     [...segments].sort((a, b) => a.startedAt.getTime() - b.startedAt.getTime())[0]?.startedAt ??
     null;
 
+  // Is there an open eating window right now? (last segment is eating with no end)
+  const hasOpenEatingWindow = segments.length > 0
+    && segments[0].type === "eating"
+    && segments[0].endedAt === null;
+
   // Journals that aren't already nested inside a fast segment (orphans).
   // These should still appear on the timeline so users see their journal entries
   // even on days when no fast was logged.
@@ -684,7 +705,10 @@ export function SessionTimeline({ clientId }: SessionTimelineProps) {
         <DateGutter date={new Date()} />
         <div className="flex-1 min-w-0 relative pl-4">
           <Rail accent="muted" />
-          <LiveStatusInline activeFastStartAt={activeFastStartAt} />
+          <LiveStatusInline
+            activeFastStartAt={activeFastStartAt}
+            hasOpenEatingWindow={hasOpenEatingWindow}
+          />
         </div>
       </div>
 
