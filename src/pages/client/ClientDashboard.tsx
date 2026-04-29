@@ -2634,6 +2634,11 @@ export default function ClientDashboard() {
             case "restore":
               return null;
 
+            case "daily_journal":
+              return !isViewingOtherDay ? (
+                <DailyJournalCard key="daily_journal" />
+              ) : null;
+
             case "engine_cards":
               return null;
 
