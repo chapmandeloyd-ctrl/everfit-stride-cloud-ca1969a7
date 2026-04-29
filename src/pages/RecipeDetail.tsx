@@ -13,6 +13,7 @@ import { EditRecipeDialog } from "@/components/nutrition/EditRecipeDialog";
 import { DeleteRecipeDialog } from "@/components/nutrition/DeleteRecipeDialog";
 import { validateMacros } from "@/components/nutrition/macroValidator";
 import { MacroValidationBanner } from "@/components/meals/MacroValidationBanner";
+import { MacroPercentBar } from "@/components/nutrition/MacroPercentBar";
 
 export default function RecipeDetail() {
   const { id } = useParams<{ id: string }>();
@@ -176,6 +177,24 @@ export default function RecipeDetail() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Macro % Breakdown */}
+        <Card>
+          <CardContent className="p-4 space-y-2">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              Calorie Breakdown
+            </h4>
+            <MacroPercentBar
+              macros={{
+                calories: recipe.calories,
+                protein: recipe.protein,
+                fats: recipe.fats,
+                carbs: recipe.carbs,
+              }}
+              ketoTypes={recipe.keto_types as string[] | null}
+            />
+          </CardContent>
+        </Card>
 
         {/* Tab System */}
         <Card>
