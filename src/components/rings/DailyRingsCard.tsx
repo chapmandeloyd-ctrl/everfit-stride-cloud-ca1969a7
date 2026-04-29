@@ -182,7 +182,7 @@ function DayDetailFull({
             Rings
           </h2>
           <p className="text-sm text-white/60 mt-3 max-w-[200px]">
-            {count === 5
+            {count === 6
               ? "Perfect day — every ring closed!"
               : count > 0
               ? "You're making great progress — let's do this!"
