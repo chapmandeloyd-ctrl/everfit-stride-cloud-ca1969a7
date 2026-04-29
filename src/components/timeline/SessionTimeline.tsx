@@ -765,27 +765,64 @@ export function SessionTimeline({ clientId }: SessionTimelineProps) {
           );
         })}
 
-        {fastSegments.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <p className="text-sm font-medium text-foreground">No fasting sessions yet</p>
-            <p className="text-xs text-muted-foreground mt-1 max-w-xs">
-              Start a fast and your timeline will fill in here.
-            </p>
+        {fastSegments.length === 0 && orphanJournals.length === 0 && (
+          <div className="flex gap-3">
+            <div className="w-14 shrink-0" />
+            <div className="flex-1 min-w-0 relative pl-4">
+              <Rail accent="muted" />
+              <div className="rounded-2xl border border-border bg-card/40 p-5">
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                </div>
+                <h3 className="text-base font-bold text-foreground leading-tight">
+                  Welcome to your Timeline
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                  Every fast, eating window, and journal entry will appear here as your story builds.
+                  Start with one quick action below.
+                </p>
+
+                <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <Link
+                    to="/client/dashboard"
+                    className="flex items-center gap-2 rounded-xl border border-primary/40 bg-primary/10 hover:bg-primary/20 transition-colors px-3 py-2.5"
+                  >
+                    <Timer className="h-4 w-4 text-primary shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold text-foreground">Start a fast</p>
+                      <p className="text-[10px] text-muted-foreground truncate">Begin your first session</p>
+                    </div>
+                  </Link>
+                  <Link
+                    to="/client/dashboard"
+                    className="flex items-center gap-2 rounded-xl border border-border bg-background/40 hover:bg-background/60 transition-colors px-3 py-2.5"
+                  >
+                    <BookOpen className="h-4 w-4 text-accent shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold text-foreground">Write today's journal</p>
+                      <p className="text-[10px] text-muted-foreground truncate">Mood, meals, how you feel</p>
+                    </div>
+                  </Link>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
-        {/* Footer */}
-        <div className="flex gap-3">
-          <div className="w-14 shrink-0" />
-          <div className="flex-1 min-w-0 relative pl-4">
-            <Rail accent="muted" />
-            <JourneyFooter
-              firstFastDate={firstFastDate}
-              totalEatingWindows={eatingSegments.length}
-              totalFastedHours={totalFastedHours}
-            />
+        {/* Footer (only once they've started fasting) */}
+        {firstFastDate && (
+          <div className="flex gap-3">
+            <div className="w-14 shrink-0" />
+            <div className="flex-1 min-w-0 relative pl-4">
+              <Rail accent="muted" />
+              <JourneyFooter
+                firstFastDate={firstFastDate}
+                totalEatingWindows={eatingSegments.length}
+                totalFastedHours={totalFastedHours}
+              />
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
