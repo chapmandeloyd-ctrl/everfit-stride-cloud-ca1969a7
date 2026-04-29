@@ -3,7 +3,7 @@ import { addDays, format, startOfWeek, startOfDay, endOfDay } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "./useEffectiveClientId";
 
-export type RingKey = "fasting" | "weight" | "activity" | "sleep" | "water";
+export type RingKey = "fasting" | "weight" | "activity" | "sleep" | "water" | "journal";
 export type DayCompletion = Record<RingKey, boolean>;
 
 export interface DailyRingsData {
@@ -31,6 +31,7 @@ const EMPTY_DAY: DayCompletion = {
   activity: false,
   sleep: false,
   water: false,
+  journal: false,
 };
 
 /**
@@ -92,7 +93,7 @@ export function useDailyRings() {
         weightMetricId = cm?.id ?? null;
       }
 
-      const [fastsRes, checkinsRes, healthRes, weightEntriesRes, waterRes] = await Promise.all([
+      const [fastsRes, checkinsRes, healthRes, weightEntriesRes, waterRes, journalRes] = await Promise.all([
         supabase
           .from("fasting_log")
           .select("ended_at, actual_hours, target_hours, status")
@@ -126,6 +127,12 @@ export function useDailyRings() {
           .eq("client_id", clientId!)
           .gte("logged_at", rangeStart)
           .lte("logged_at", rangeEnd),
+        supabase
+          .from("daily_journal_entries")
+          .select("entry_date")
+          .eq("client_id", clientId!)
+          .gte("entry_date", format(weekStart, "yyyy-MM-dd"))
+          .lte("entry_date", format(weekEnd, "yyyy-MM-dd")),
       ]);
 
       // Fasting → mark day if any completed fast that day meets goal
@@ -190,6 +197,12 @@ export function useDailyRings() {
       }
       for (const [key, oz] of Object.entries(waterByDay)) {
         if (goals.waterOz > 0 && oz >= goals.waterOz) byDate[key].water = true;
+      }
+
+      // Journal → mark day if a journal entry exists for that date
+      for (const row of (journalRes.data as { entry_date: string }[] | null) ?? []) {
+        const key = row.entry_date;
+        if (byDate[key]) byDate[key].journal = true;
       }
 
       return { byDate, goals };

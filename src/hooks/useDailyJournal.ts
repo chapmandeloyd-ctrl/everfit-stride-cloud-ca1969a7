@@ -127,6 +127,7 @@ export function useSaveDailyJournal() {
       qc.invalidateQueries({ queryKey: ["daily-journal-history"] });
       qc.invalidateQueries({ queryKey: ["timeline-events"] });
       qc.invalidateQueries({ queryKey: ["activity-events"] });
+      qc.invalidateQueries({ queryKey: ["daily-rings"] });
     },
   });
 }

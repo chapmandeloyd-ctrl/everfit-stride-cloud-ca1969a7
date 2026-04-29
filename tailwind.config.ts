@@ -74,6 +74,7 @@ export default {
           activity: "hsl(var(--ring-activity))",
           sleep: "hsl(var(--ring-sleep))",
           water: "hsl(var(--ring-water))",
+          journal: "hsl(var(--ring-journal))",
         },
       },
       borderRadius: {

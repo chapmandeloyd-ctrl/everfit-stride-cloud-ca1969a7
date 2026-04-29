@@ -1,4 +1,4 @@
-import { Clock, Scale, Activity, Moon, Droplet, ChevronDown } from "lucide-react";
+import { Clock, Scale, Activity, Moon, Droplet, BookOpen, ChevronDown } from "lucide-react";
 import { format, addDays, startOfWeek, isFuture } from "date-fns";
 import { useState } from "react";
 import { MultiSegmentRing, RingSegment } from "@/components/rings/MultiSegmentRing";
@@ -18,7 +18,7 @@ import { useDailyRings, type DayCompletion } from "@/hooks/useDailyRings";
  * verified live as Dee. Real wiring (HealthKit + manual logs) lands next.
  */
 
-type RingKey = "fasting" | "weight" | "activity" | "sleep" | "water";
+type RingKey = "fasting" | "weight" | "activity" | "sleep" | "water" | "journal";
 
 interface RingDef {
   key: RingKey;
@@ -70,6 +70,14 @@ const RINGS: RingDef[] = [
     strokeClass: "stroke-daily-ring-water",
     bgClass: "bg-daily-ring-water",
   },
+  {
+    key: "journal",
+    label: "Journal",
+    goal: "Log today's reflection",
+    icon: BookOpen,
+    strokeClass: "stroke-daily-ring-journal",
+    bgClass: "bg-daily-ring-journal",
+  },
 ];
 
 const EMPTY_DAY: DayCompletion = {
@@ -78,6 +86,7 @@ const EMPTY_DAY: DayCompletion = {
   activity: false,
   sleep: false,
   water: false,
+  journal: false,
 };
 
 function buildSegments(completed: Record<RingKey, boolean>): RingSegment[] {
@@ -89,7 +98,7 @@ function buildSegments(completed: Record<RingKey, boolean>): RingSegment[] {
 }
 
 function copyForCount(count: number): string {
-  if (count === 5) return "Perfect day — every ring closed!";
+  if (count === 6) return "Perfect day — every ring closed!";
   if (count > 0) return "You're making great progress — let's do this!";
   return "A fresh start. One ring at a time.";
 }
@@ -168,12 +177,12 @@ function DayDetailFull({
             {format(date, "MMMM d, yyyy")}
           </p>
           <h2 className="text-3xl font-serif mt-2 leading-tight text-white">
-            <span className="text-white/50">{count} of 5</span>
+            <span className="text-white/50">{count} of 6</span>
             <br />
             Rings
           </h2>
           <p className="text-sm text-white/60 mt-3 max-w-[200px]">
-            {count === 5
+            {count === 6
               ? "Perfect day — every ring closed!"
               : count > 0
               ? "You're making great progress — let's do this!"

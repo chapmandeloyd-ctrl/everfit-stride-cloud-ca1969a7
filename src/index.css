@@ -64,6 +64,7 @@ Light Theme 1: Clean & Athletic — warm white base, bold red accents, crisp con
     --ring-activity: 142 55% 50%; /* Vibrant green */
     --ring-sleep: 353 85% 68%;    /* Coral pink */
    --ring-water: 200 90% 55%;    /* Hydration blue */
+  --ring-journal: 174 72% 50%;  /* KSOM-360 teal */
   }
 
   .dark {
