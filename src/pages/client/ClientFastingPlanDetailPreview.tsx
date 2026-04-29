@@ -498,16 +498,16 @@ function WheelPicker({
     <div className="mt-5">
       <div className="grid grid-cols-2 gap-3 mb-4">
         <TimeColumn
-          label="opens at"
-          value={formatTime(opens)}
-          active={editing === "opens"}
-          onClick={() => setEditing("opens")}
-        />
-        <TimeColumn
-          label="closes at"
+          label="fast starts"
           value={formatTime(closes)}
           active={editing === "closes"}
           onClick={() => setEditing("closes")}
+        />
+        <TimeColumn
+          label="fast ends"
+          value={formatTime(opens)}
+          active={editing === "opens"}
+          onClick={() => setEditing("opens")}
         />
       </div>
       <div
