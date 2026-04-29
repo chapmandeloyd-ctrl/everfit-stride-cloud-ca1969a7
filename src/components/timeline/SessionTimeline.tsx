@@ -350,11 +350,13 @@ function FastSessionCard({
   segment,
   meals,
   water,
+  journals,
   isLive,
 }: {
   segment: Segment;
   meals: MealLogRow[];
   water: WaterRow[];
+  journals: JournalRow[];
   isLive: boolean;
 }) {
   useTicker(isLive);
@@ -367,6 +369,7 @@ function FastSessionCard({
 
   const dayGroups = mealsByDay(meals, segment.startedAt, endDate);
   const totalWater = Math.round(waterTotal(water, segment.startedAt, endDate));
+  const journalGroups = journalsInRange(journals, segment.startedAt, endDate);
 
   return (
     <div
@@ -408,15 +411,18 @@ function FastSessionCard({
       )}
 
       {/* Per-day meal sub-cards */}
-      {dayGroups.length > 0 && (
+      {(dayGroups.length > 0 || journalGroups.length > 0) && (
         <div className="space-y-2">
+          {journalGroups.map((entry) => (
+            <JournalDayCard key={entry.id} entry={entry} />
+          ))}
           {dayGroups.map((g) => (
             <MealDayCard key={g.day} date={g.date} meals={g.items} />
           ))}
         </div>
       )}
 
-      {dayGroups.length === 0 && totalWater === 0 && !isLive && (
+      {dayGroups.length === 0 && journalGroups.length === 0 && totalWater === 0 && !isLive && (
         <p className="text-[11px] text-muted-foreground italic">
           No meals or water logged in this window.
         </p>
