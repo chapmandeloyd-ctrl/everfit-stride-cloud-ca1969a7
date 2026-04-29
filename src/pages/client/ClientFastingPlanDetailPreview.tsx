@@ -1593,6 +1593,13 @@ export default function ClientFastingPlanDetailPreview() {
 
   const defaultKetoId = assignedKeto?.id ? assignedKeto.id.toLowerCase() : "skd";
 
+  // Live, user-editable eating-window times. Shared by the wheel picker AND
+  // the Daily Meal Timeline so adjusting "opens at" shifts every meal slot.
+  const [times, setTimes] = useState({ opensAt: plan.opensAt, closesAt: plan.closesAt });
+  useEffect(() => {
+    setTimes({ opensAt: plan.opensAt, closesAt: plan.closesAt });
+  }, [plan.opensAt, plan.closesAt]);
+
   return (
     <div className="min-h-screen pb-24" style={{ background: BLACK }}>
       <header className="flex items-center justify-between px-5 py-5">
@@ -1615,7 +1622,7 @@ export default function ClientFastingPlanDetailPreview() {
       </header>
 
       <Hero plan={plan} />
-      <EatingWindow plan={plan} />
+      <EatingWindow plan={plan} times={times} onTimesChange={setTimes} />
 
       {/* Locked: Assigned + Explore (all keto types) · Coach Trainer */}
       <div className="mt-6">
@@ -1628,6 +1635,8 @@ export default function ClientFastingPlanDetailPreview() {
           planName={plan.name}
           planType={planType}
           planId={planId}
+          windowOpensAt={times.opensAt}
+          windowClosesAt={times.closesAt}
         />
       </div>
     </div>
