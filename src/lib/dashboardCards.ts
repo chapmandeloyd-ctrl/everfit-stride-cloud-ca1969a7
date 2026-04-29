@@ -23,25 +23,35 @@ export const DEFAULT_CARD_ORDER: DashboardCardConfig[] = [
 
 export function mergeWithDefaults(saved: DashboardCardConfig[] | null): DashboardCardConfig[] {
   if (!saved || saved.length === 0) return [...DEFAULT_CARD_ORDER];
-  
-  // Build map from saved
-  const savedMap = new Map(saved.map(c => [c.key, c]));
-  
-  // Start with saved order, then append any new defaults not in saved
+
+  const savedMap = new Map(saved.map((c) => [c.key, c]));
+
+  // Start from saved order, preserving user's customizations
   const result: DashboardCardConfig[] = [];
   for (const card of saved) {
-    const def = DEFAULT_CARD_ORDER.find(d => d.key === card.key);
+    const def = DEFAULT_CARD_ORDER.find((d) => d.key === card.key);
     if (def) {
       result.push({ ...def, visible: card.visible });
     }
   }
-  
-  // Add any new cards that weren't in the saved config
-  for (const def of DEFAULT_CARD_ORDER) {
-    if (!savedMap.has(def.key)) {
-      result.push({ ...def });
+
+  // Insert any new default cards at their default position relative to neighbors
+  for (let i = 0; i < DEFAULT_CARD_ORDER.length; i++) {
+    const def = DEFAULT_CARD_ORDER[i];
+    if (savedMap.has(def.key)) continue;
+
+    // Find nearest preceding default card that exists in result
+    let insertAt = result.length;
+    for (let j = i - 1; j >= 0; j--) {
+      const prevKey = DEFAULT_CARD_ORDER[j].key;
+      const idx = result.findIndex((r) => r.key === prevKey);
+      if (idx !== -1) {
+        insertAt = idx + 1;
+        break;
+      }
     }
+    result.splice(insertAt, 0, { ...def });
   }
-  
+
   return result;
 }
