@@ -651,6 +651,21 @@ export function SessionTimeline({ clientId }: SessionTimelineProps) {
     [...segments].sort((a, b) => a.startedAt.getTime() - b.startedAt.getTime())[0]?.startedAt ??
     null;
 
+  // Journals that aren't already nested inside a fast segment (orphans).
+  // These should still appear on the timeline so users see their journal entries
+  // even on days when no fast was logged.
+  const orphanJournals = useMemo(() => {
+    return journals.filter((entry) => {
+      const t = journalAt(entry).getTime();
+      // Already shown inside a fast segment?
+      const covered = fastSegments.some((seg) => {
+        const end = (seg.endedAt ?? new Date()).getTime();
+        return t >= seg.startedAt.getTime() && t <= end;
+      });
+      return !covered;
+    });
+  }, [journals, fastSegments]);
+
   if (loadingEvents) {
     return (
       <div className="space-y-3">
@@ -672,6 +687,21 @@ export function SessionTimeline({ clientId }: SessionTimelineProps) {
           <LiveStatusInline activeFastStartAt={activeFastStartAt} />
         </div>
       </div>
+
+      {/* Orphan journal entries (not inside any fast segment) */}
+      {orphanJournals.length > 0 && (
+        <div className="space-y-5 mb-5">
+          {orphanJournals.map((entry) => (
+            <div key={entry.id} className="flex gap-3">
+              <DateGutter date={journalAt(entry)} />
+              <div className="flex-1 min-w-0 relative pl-4">
+                <Rail accent="muted" />
+                <JournalDayCard entry={entry} />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Segments — render fast segments as containers */}
       <div className="space-y-5">
