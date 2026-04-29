@@ -68,6 +68,10 @@ export function AiSnapshotSheet({ open, onOpenChange, clientId }: Props) {
       queryClient.invalidateQueries({ queryKey: ["activity-summary"] });
       queryClient.invalidateQueries({ queryKey: ["weight-entries"] });
       queryClient.invalidateQueries({ queryKey: ["latest-weight-minimal"] });
+      // StepTrackerCard / useHealthStats / useHealthData read from health_data
+      // table — invalidate them so the snapshot's mirrored values appear immediately.
+      queryClient.invalidateQueries({ queryKey: ["health-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["health-data"] });
       reset();
       onOpenChange(false);
     } catch (err: any) {
