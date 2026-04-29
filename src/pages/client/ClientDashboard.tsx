@@ -74,6 +74,7 @@ import { SmartPaceBanner } from "@/components/smart-pace/SmartPaceBanner";
 import { SmartPaceCatchUpModal } from "@/components/smart-pace/SmartPaceCatchUpModal";
 import { MyWhyCard } from "@/components/goal-motivation/MyWhyCard";
 import { DailyCheckInCard } from "@/components/goal-motivation/DailyCheckInCard";
+import { DailyJournalCard } from "@/components/daily-journal/DailyJournalCard";
 import { useSmartPace } from "@/hooks/useSmartPace";
 
 import { InAppNotifications } from "@/components/InAppNotifications";
@@ -2632,6 +2633,11 @@ export default function ClientDashboard() {
 
             case "restore":
               return null;
+
+            case "daily_journal":
+              return !isViewingOtherDay ? (
+                <DailyJournalCard key="daily_journal" />
+              ) : null;
 
             case "engine_cards":
               return null;
