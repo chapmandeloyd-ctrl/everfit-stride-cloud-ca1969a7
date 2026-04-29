@@ -74,6 +74,7 @@ import { SmartPaceBanner } from "@/components/smart-pace/SmartPaceBanner";
 import { SmartPaceCatchUpModal } from "@/components/smart-pace/SmartPaceCatchUpModal";
 import { MyWhyCard } from "@/components/goal-motivation/MyWhyCard";
 import { DailyCheckInCard } from "@/components/goal-motivation/DailyCheckInCard";
+import { DailyJournalCard } from "@/components/daily-journal/DailyJournalCard";
 import { useSmartPace } from "@/hooks/useSmartPace";
 
 import { InAppNotifications } from "@/components/InAppNotifications";
