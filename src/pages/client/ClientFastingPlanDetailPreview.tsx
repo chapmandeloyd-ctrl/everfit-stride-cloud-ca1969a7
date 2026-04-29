@@ -674,16 +674,15 @@ function TimeColumn({
 }
 
 /* ---------- EATING WINDOW BLOCK ---------- */
-function EatingWindow({ plan }: { plan: PlanView }) {
-  // Live, user-editable times for this plan. Re-init when plan changes.
-  const [times, setTimes] = useState({
-    opensAt: plan.opensAt,
-    closesAt: plan.closesAt,
-  });
-  useEffect(() => {
-    setTimes({ opensAt: plan.opensAt, closesAt: plan.closesAt });
-  }, [plan.opensAt, plan.closesAt]);
-
+function EatingWindow({
+  plan,
+  times,
+  onTimesChange,
+}: {
+  plan: PlanView;
+  times: { opensAt: string; closesAt: string };
+  onTimesChange: (next: { opensAt: string; closesAt: string }) => void;
+}) {
   return (
     <div
       className="mx-5 mt-2 p-5"
@@ -705,7 +704,7 @@ function EatingWindow({ plan }: { plan: PlanView }) {
         opensAt={times.opensAt}
         closesAt={times.closesAt}
         eatHours={plan.eatHours}
-        onChange={setTimes}
+        onChange={onTimesChange}
       />
     </div>
   );
@@ -916,6 +915,8 @@ function SynergyContent({
   planName,
   planType,
   planId,
+  windowOpensAt,
+  windowClosesAt,
 }: {
   ketoId: string;
   assignedKetoId: string;
@@ -924,6 +925,8 @@ function SynergyContent({
   planName: string;
   planType: "quick" | "program";
   planId: string | null;
+  windowOpensAt: string;
+  windowClosesAt: string;
 }) {
   const keto = KETO_TYPES.find((k) => k.id === ketoId)!;
   const baseCopy = SYNERGY_COPY[ketoId] ?? SYNERGY_COPY.skd;
@@ -1064,6 +1067,29 @@ function SynergyContent({
               carbs: plan.totals.carbs - basePlan.totals.carbs,
               protein: plan.totals.protein - basePlan.totals.protein,
             };
+        // Shift the hardcoded MEAL_PLANS times (anchored at "10:00 AM" opens)
+        // by the delta between the live eating-window opens-at and that anchor.
+        // Handles single times ("1:30 PM") and ranges ("8:00 PM – 10:00 AM").
+        const BASELINE_OPENS = "10:00 AM";
+        const shiftMinutes =
+          toMinutes(parseTime(windowOpensAt)) - toMinutes(parseTime(BASELINE_OPENS));
+        const shiftOne = (t: string) => formatTime(fromMinutes(toMinutes(parseTime(t)) + shiftMinutes));
+        const shiftWindowText = (raw: string): string => {
+          if (!shiftMinutes) return raw;
+          const parts = raw.split(/\s*[–-]\s*/);
+          if (parts.length === 2) {
+            try {
+              return `${shiftOne(parts[0])} – ${shiftOne(parts[1])}`;
+            } catch {
+              return raw;
+            }
+          }
+          try {
+            return shiftOne(raw);
+          } catch {
+            return raw;
+          }
+        };
         return (
           <>
             {/* "What changed" callout — only when not on baseline SKD */}
@@ -1203,7 +1229,7 @@ function SynergyContent({
               className="text-[9px] uppercase tracking-[0.25em] mb-1"
               style={{ color: MUTED }}
             >
-              {m.window}
+              {shiftWindowText(m.window)}
             </div>
           <div
             className="p-4"
@@ -1424,6 +1450,8 @@ function DemoBlock({
   planName,
   planType,
   planId,
+  windowOpensAt,
+  windowClosesAt,
 }: {
   tabsVariant: "all" | "explore" | "top3";
   coachVariant: "trainer" | "brand" | "none";
@@ -1433,6 +1461,8 @@ function DemoBlock({
   planName: string;
   planType: "quick" | "program";
   planId: string | null;
+  windowOpensAt: string;
+  windowClosesAt: string;
 }) {
   const [active, setActive] = useState(defaultActive);
   return (
@@ -1449,6 +1479,8 @@ function DemoBlock({
         planName={planName}
         planType={planType}
         planId={planId}
+        windowOpensAt={windowOpensAt}
+        windowClosesAt={windowClosesAt}
       />
     </div>
   );
@@ -1584,6 +1616,13 @@ export default function ClientFastingPlanDetailPreview() {
 
   const defaultKetoId = assignedKeto?.id ? assignedKeto.id.toLowerCase() : "skd";
 
+  // Live, user-editable eating-window times. Shared by the wheel picker AND
+  // the Daily Meal Timeline so adjusting "opens at" shifts every meal slot.
+  const [times, setTimes] = useState({ opensAt: plan.opensAt, closesAt: plan.closesAt });
+  useEffect(() => {
+    setTimes({ opensAt: plan.opensAt, closesAt: plan.closesAt });
+  }, [plan.opensAt, plan.closesAt]);
+
   return (
     <div className="min-h-screen pb-24" style={{ background: BLACK }}>
       <header className="flex items-center justify-between px-5 py-5">
@@ -1606,7 +1645,7 @@ export default function ClientFastingPlanDetailPreview() {
       </header>
 
       <Hero plan={plan} />
-      <EatingWindow plan={plan} />
+      <EatingWindow plan={plan} times={times} onTimesChange={setTimes} />
 
       {/* Locked: Assigned + Explore (all keto types) · Coach Trainer */}
       <div className="mt-6">
@@ -1619,6 +1658,8 @@ export default function ClientFastingPlanDetailPreview() {
           planName={plan.name}
           planType={planType}
           planId={planId}
+          windowOpensAt={times.opensAt}
+          windowClosesAt={times.closesAt}
         />
       </div>
     </div>
