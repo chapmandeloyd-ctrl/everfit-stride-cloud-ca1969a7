@@ -651,6 +651,21 @@ export function SessionTimeline({ clientId }: SessionTimelineProps) {
     [...segments].sort((a, b) => a.startedAt.getTime() - b.startedAt.getTime())[0]?.startedAt ??
     null;
 
+  // Journals that aren't already nested inside a fast segment (orphans).
+  // These should still appear on the timeline so users see their journal entries
+  // even on days when no fast was logged.
+  const orphanJournals = useMemo(() => {
+    return journals.filter((entry) => {
+      const t = journalAt(entry).getTime();
+      // Already shown inside a fast segment?
+      const covered = fastSegments.some((seg) => {
+        const end = (seg.endedAt ?? new Date()).getTime();
+        return t >= seg.startedAt.getTime() && t <= end;
+      });
+      return !covered;
+    });
+  }, [journals, fastSegments]);
+
   if (loadingEvents) {
     return (
       <div className="space-y-3">
