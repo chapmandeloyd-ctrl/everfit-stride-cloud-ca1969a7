@@ -441,7 +441,13 @@ function FastSessionCard({
   );
 }
 
-function LiveStatusInline({ activeFastStartAt }: { activeFastStartAt: string | null }) {
+function LiveStatusInline({
+  activeFastStartAt,
+  hasOpenEatingWindow,
+}: {
+  activeFastStartAt: string | null;
+  hasOpenEatingWindow: boolean;
+}) {
   useTicker(true);
   if (activeFastStartAt) {
     const elapsed = formatDistanceToNowStrict(new Date(activeFastStartAt));
@@ -455,11 +461,21 @@ function LiveStatusInline({ activeFastStartAt }: { activeFastStartAt: string | n
       </div>
     );
   }
+  if (hasOpenEatingWindow) {
+    return (
+      <div>
+        <h3 className="text-lg font-bold text-foreground">Currently eating..</h3>
+        <p className="text-xs text-muted-foreground mt-0.5">
+          Log meals as you eat to fill in this window.
+        </p>
+      </div>
+    );
+  }
   return (
     <div>
-      <h3 className="text-lg font-bold text-foreground">Currently eating..</h3>
+      <h3 className="text-lg font-bold text-foreground">Not tracking right now</h3>
       <p className="text-xs text-muted-foreground mt-0.5">
-        Log meals as you eat to fill in this window.
+        Start a fast or log a meal to begin a new session.
       </p>
     </div>
   );
