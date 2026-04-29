@@ -616,6 +616,39 @@ General rules:
       }
     }
 
+    // ── Emit a Timeline marker so the import shows on the user's Timeline.
+    if (savedCount > 0 || workoutCount > 0) {
+      const parts: string[] = [];
+      if (aggregated['Steps']) parts.push(`${Math.round(aggregated['Steps']).toLocaleString()} steps`);
+      if (aggregated['Weight']) parts.push(`${aggregated['Weight']} lb`);
+      if (aggregated['Sleep']) parts.push(`${aggregated['Sleep']}h sleep`);
+      if (aggregated['Caloric Burn']) parts.push(`${Math.round(aggregated['Caloric Burn']).toLocaleString()} cal burn`);
+      if (aggregated['Caloric Intake']) parts.push(`${Math.round(aggregated['Caloric Intake']).toLocaleString()} cal intake`);
+      if (workoutCount > 0) parts.push(`${workoutCount} workout${workoutCount === 1 ? '' : 's'}`);
+
+      const subtitle = parts.length > 0 ? parts.join(' · ') : 'Health snapshot imported';
+
+      const { error: evtErr } = await supabase.from('activity_events').insert({
+        client_id: targetClientId,
+        event_type: 'ai_snapshot_imported',
+        title: 'AI Snapshot imported',
+        subtitle,
+        category: 'metrics',
+        icon: 'camera',
+        source: 'ai_snapshot',
+        occurred_at: now.toISOString(),
+        actor_id: user.id,
+        metadata: {
+          metrics: aggregated,
+          workout_count: workoutCount,
+          summary: extracted.summary ?? null,
+        },
+      });
+      if (evtErr) {
+        console.warn('[ai_snapshot] activity_events insert failed:', evtErr.message);
+      }
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
