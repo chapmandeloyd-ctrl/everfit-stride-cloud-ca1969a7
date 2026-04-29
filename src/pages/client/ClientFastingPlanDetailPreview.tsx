@@ -1067,6 +1067,29 @@ function SynergyContent({
               carbs: plan.totals.carbs - basePlan.totals.carbs,
               protein: plan.totals.protein - basePlan.totals.protein,
             };
+        // Shift the hardcoded MEAL_PLANS times (anchored at "10:00 AM" opens)
+        // by the delta between the live eating-window opens-at and that anchor.
+        // Handles single times ("1:30 PM") and ranges ("8:00 PM – 10:00 AM").
+        const BASELINE_OPENS = "10:00 AM";
+        const shiftMinutes =
+          toMinutes(parseTime(windowOpensAt)) - toMinutes(parseTime(BASELINE_OPENS));
+        const shiftOne = (t: string) => formatTime(fromMinutes(toMinutes(parseTime(t)) + shiftMinutes));
+        const shiftWindowText = (raw: string): string => {
+          if (!shiftMinutes) return raw;
+          const parts = raw.split(/\s*[–-]\s*/);
+          if (parts.length === 2) {
+            try {
+              return `${shiftOne(parts[0])} – ${shiftOne(parts[1])}`;
+            } catch {
+              return raw;
+            }
+          }
+          try {
+            return shiftOne(raw);
+          } catch {
+            return raw;
+          }
+        };
         return (
           <>
             {/* "What changed" callout — only when not on baseline SKD */}
