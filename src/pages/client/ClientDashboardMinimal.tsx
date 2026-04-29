@@ -6,6 +6,7 @@ import { SmartPaceCollapsible } from "@/components/smart-pace/SmartPaceCollapsib
 import { HealthDashboardCollapsible } from "@/components/health/HealthDashboardCollapsible";
 import { DailyRingsPinnedHeader } from "@/components/rings/DailyRingsCard";
 import { WaterTrackerCard } from "@/components/client/WaterTrackerCard";
+import { StepTrackerCard } from "@/components/client/StepTrackerCard";
 
 /**
  * Minimal client dashboard — Fasting + Smart Pace + Health tracking tiles.
@@ -44,6 +45,9 @@ export default function ClientDashboardMinimal() {
 
         {/* Daily Water Tracker */}
         {clientId && <WaterTrackerCard />}
+
+        {/* Daily Step Tracker (Apple Health snapshot) */}
+        {clientId && <StepTrackerCard />}
 
         {/* Health Dashboard — collapsible */}
         {SHOW_WEIGHT_TRACKER && clientId && (
