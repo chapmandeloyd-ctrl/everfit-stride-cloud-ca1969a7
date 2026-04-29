@@ -20,7 +20,7 @@ export interface DailyRingsData {
 
 const DEFAULT_GOALS = {
   fastingHours: 10,
-  activitySteps: 8000,
+  activitySteps: 10000,
   sleepHours: 6.5,
   waterOz: 64,
 };
