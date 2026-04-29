@@ -915,6 +915,8 @@ function SynergyContent({
   planName,
   planType,
   planId,
+  windowOpensAt,
+  windowClosesAt,
 }: {
   ketoId: string;
   assignedKetoId: string;
@@ -923,6 +925,8 @@ function SynergyContent({
   planName: string;
   planType: "quick" | "program";
   planId: string | null;
+  windowOpensAt: string;
+  windowClosesAt: string;
 }) {
   const keto = KETO_TYPES.find((k) => k.id === ketoId)!;
   const baseCopy = SYNERGY_COPY[ketoId] ?? SYNERGY_COPY.skd;
