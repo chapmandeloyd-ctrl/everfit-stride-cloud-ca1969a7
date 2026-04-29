@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { format, formatDistanceToNowStrict } from "date-fns";
 import { Droplet, Pencil, ChevronRight, Sparkles } from "lucide-react";
+import { getJournalPhotoUrl, type DailyJournalEntry } from "@/hooks/useDailyJournal";
 
 interface SessionTimelineProps {
   clientId: string;
@@ -49,6 +50,25 @@ interface WaterRow {
   amount_oz: number;
   logged_at: string;
 }
+
+interface JournalRow extends DailyJournalEntry {
+  photoUrl: string | null;
+}
+
+const MOOD_EMOJI: Record<string, string> = {
+  good: "🙂",
+  energized: "⚡",
+  happy: "😄",
+  calm: "😌",
+  tired: "😴",
+  stressed: "😖",
+};
+
+const MEAL_QUALITY_EMOJI: Record<string, string> = {
+  healthy: "🥕",
+  unhealthy: "🍔",
+  mixed: "🍱",
+};
 
 function isSnack(m: MealLogRow): boolean {
   const blob = `${m.notes ?? ""} ${m.meal_name ?? ""}`.toLowerCase();
@@ -180,6 +200,19 @@ function waterTotal(water: WaterRow[], from: Date, to: Date): number {
   }, 0);
 }
 
+function journalAt(entry: Pick<JournalRow, "entry_date">) {
+  return new Date(`${entry.entry_date}T00:00:00`);
+}
+
+function journalsInRange(journals: JournalRow[], from: Date, to: Date) {
+  return journals
+    .filter((entry) => {
+      const t = journalAt(entry).getTime();
+      return t >= from.getTime() && t <= to.getTime();
+    })
+    .sort((a, b) => journalAt(a).getTime() - journalAt(b).getTime());
+}
+
 /* ──────────── Sub-components ──────────── */
 
 function MealDayCard({
@@ -233,6 +266,82 @@ function MealDayCard({
           </span>
         )}
       </div>
+    </div>
+  );
+}
+
+function JournalDayCard({ entry }: { entry: JournalRow }) {
+  const moodEmoji = entry.mood ? MOOD_EMOJI[entry.mood] ?? "📓" : null;
+  const mealEmoji = entry.meals_quality ? MEAL_QUALITY_EMOJI[entry.meals_quality] ?? "🍽️" : null;
+  const bodyPreview = entry.body_feelings?.slice(0, 2) ?? [];
+  const mealsLabel = entry.meals_count ? `${entry.meals_count} ${entry.meals_count === "1" ? "meal" : "meals"}` : null;
+  const snacksLabel = typeof entry.snacks_count === "number"
+    ? `${entry.snacks_count} ${entry.snacks_count === 1 ? "snack" : "snacks"}`
+    : null;
+
+  return (
+    <div className="rounded-xl border border-border/60 bg-background/40 p-3">
+      <div className="flex items-center justify-between mb-3 gap-2">
+        <span className="text-[11px] text-muted-foreground tabular-nums">
+          {format(journalAt(entry), "MMM d 'at' h:mm a")}
+        </span>
+        <button
+          type="button"
+          className="h-6 w-6 rounded-md flex items-center justify-center text-accent hover:bg-accent/10 transition-colors"
+          aria-label="Journal logged"
+        >
+          <Pencil className="h-3.5 w-3.5" />
+        </button>
+      </div>
+
+      <div className="flex items-center gap-2 flex-wrap mb-3">
+        {moodEmoji && (
+          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-lg">
+            {moodEmoji}
+          </div>
+        )}
+        {mealEmoji && (
+          <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-lg">
+            {mealEmoji}
+          </div>
+        )}
+        {bodyPreview.map((item) => (
+          <span
+            key={item}
+            className="px-2.5 py-1 rounded-full bg-muted text-foreground text-[11px] font-medium"
+          >
+            {item}
+          </span>
+        ))}
+      </div>
+
+      <div className="flex flex-wrap gap-1.5">
+        {mealsLabel && (
+          <span className="px-2.5 py-1 rounded-full bg-muted text-foreground text-[11px] font-medium">
+            {mealsLabel}
+          </span>
+        )}
+        {snacksLabel && (
+          <span className="px-2.5 py-1 rounded-full bg-muted text-foreground text-[11px] font-medium">
+            {snacksLabel}
+          </span>
+        )}
+      </div>
+
+      {entry.note && (
+        <p className="mt-3 text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap">
+          {entry.note}
+        </p>
+      )}
+
+      {entry.photoUrl && (
+        <img
+          src={entry.photoUrl}
+          alt="Journal photo"
+          className="mt-3 h-24 w-24 rounded-xl object-cover ring-1 ring-border"
+          loading="lazy"
+        />
+      )}
     </div>
   );
 }
