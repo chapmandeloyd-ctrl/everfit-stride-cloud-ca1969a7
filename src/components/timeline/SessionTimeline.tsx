@@ -837,7 +837,7 @@ export function SessionTimeline({ clientId }: SessionTimelineProps) {
           );
         })}
 
-        {fastSegments.length === 0 && orphanJournals.length === 0 && (
+        {fastSegments.length === 0 && orphanJournals.length === 0 && snapshotEvents.length === 0 && (
           <div className="flex gap-3">
             <div className="w-14 shrink-0" />
             <div className="flex-1 min-w-0 relative pl-4">
