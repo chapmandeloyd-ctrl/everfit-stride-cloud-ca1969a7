@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { format, formatDistanceToNowStrict } from "date-fns";
 import { Droplet, Pencil, ChevronRight, Sparkles } from "lucide-react";
+import { getJournalPhotoUrl, type DailyJournalEntry } from "@/hooks/useDailyJournal";
 
 interface SessionTimelineProps {
   clientId: string;
@@ -21,6 +22,16 @@ interface RawEvent {
   metadata: any;
   source: string;
   edited: boolean;
+}
+
+interface FastingLogRow {
+  id: string;
+  started_at: string;
+  ended_at: string;
+  actual_hours: number | string | null;
+  target_hours: number | string | null;
+  ended_early: boolean | null;
+  status: string | null;
 }
 
 type SegmentType = "fast" | "eating";
@@ -49,6 +60,25 @@ interface WaterRow {
   amount_oz: number;
   logged_at: string;
 }
+
+interface JournalRow extends DailyJournalEntry {
+  photoUrl: string | null;
+}
+
+const MOOD_EMOJI: Record<string, string> = {
+  good: "🙂",
+  energized: "⚡",
+  happy: "😄",
+  calm: "😌",
+  tired: "😴",
+  stressed: "😖",
+};
+
+const MEAL_QUALITY_EMOJI: Record<string, string> = {
+  healthy: "🥕",
+  unhealthy: "🍔",
+  mixed: "🍱",
+};
 
 function isSnack(m: MealLogRow): boolean {
   const blob = `${m.notes ?? ""} ${m.meal_name ?? ""}`.toLowerCase();
@@ -180,6 +210,19 @@ function waterTotal(water: WaterRow[], from: Date, to: Date): number {
   }, 0);
 }
 
+function journalAt(entry: Pick<JournalRow, "entry_date">) {
+  return new Date(`${entry.entry_date}T00:00:00`);
+}
+
+function journalsInRange(journals: JournalRow[], from: Date, to: Date) {
+  return journals
+    .filter((entry) => {
+      const t = journalAt(entry).getTime();
+      return t >= from.getTime() && t <= to.getTime();
+    })
+    .sort((a, b) => journalAt(a).getTime() - journalAt(b).getTime());
+}
+
 /* ──────────── Sub-components ──────────── */
 
 function MealDayCard({
@@ -237,15 +280,93 @@ function MealDayCard({
   );
 }
 
+function JournalDayCard({ entry }: { entry: JournalRow }) {
+  const moodEmoji = entry.mood ? MOOD_EMOJI[entry.mood] ?? "📓" : null;
+  const mealEmoji = entry.meals_quality ? MEAL_QUALITY_EMOJI[entry.meals_quality] ?? "🍽️" : null;
+  const bodyPreview = entry.body_feelings?.slice(0, 2) ?? [];
+  const mealsLabel = entry.meals_count ? `${entry.meals_count} ${entry.meals_count === "1" ? "meal" : "meals"}` : null;
+  const snacksLabel = typeof entry.snacks_count === "number"
+    ? `${entry.snacks_count} ${entry.snacks_count === 1 ? "snack" : "snacks"}`
+    : null;
+
+  return (
+    <div className="rounded-xl border border-border/60 bg-background/40 p-3">
+      <div className="flex items-center justify-between mb-3 gap-2">
+        <span className="text-[11px] text-muted-foreground tabular-nums">
+          {format(journalAt(entry), "MMM d 'at' h:mm a")}
+        </span>
+        <button
+          type="button"
+          className="h-6 w-6 rounded-md flex items-center justify-center text-accent hover:bg-accent/10 transition-colors"
+          aria-label="Journal logged"
+        >
+          <Pencil className="h-3.5 w-3.5" />
+        </button>
+      </div>
+
+      <div className="flex items-center gap-2 flex-wrap mb-3">
+        {moodEmoji && (
+          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-lg">
+            {moodEmoji}
+          </div>
+        )}
+        {mealEmoji && (
+          <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-lg">
+            {mealEmoji}
+          </div>
+        )}
+        {bodyPreview.map((item) => (
+          <span
+            key={item}
+            className="px-2.5 py-1 rounded-full bg-muted text-foreground text-[11px] font-medium"
+          >
+            {item}
+          </span>
+        ))}
+      </div>
+
+      <div className="flex flex-wrap gap-1.5">
+        {mealsLabel && (
+          <span className="px-2.5 py-1 rounded-full bg-muted text-foreground text-[11px] font-medium">
+            {mealsLabel}
+          </span>
+        )}
+        {snacksLabel && (
+          <span className="px-2.5 py-1 rounded-full bg-muted text-foreground text-[11px] font-medium">
+            {snacksLabel}
+          </span>
+        )}
+      </div>
+
+      {entry.note && (
+        <p className="mt-3 text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap">
+          {entry.note}
+        </p>
+      )}
+
+      {entry.photoUrl && (
+        <img
+          src={entry.photoUrl}
+          alt="Journal photo"
+          className="mt-3 h-24 w-24 rounded-xl object-cover ring-1 ring-border"
+          loading="lazy"
+        />
+      )}
+    </div>
+  );
+}
+
 function FastSessionCard({
   segment,
   meals,
   water,
+  journals,
   isLive,
 }: {
   segment: Segment;
   meals: MealLogRow[];
   water: WaterRow[];
+  journals: JournalRow[];
   isLive: boolean;
 }) {
   useTicker(isLive);
@@ -258,6 +379,7 @@ function FastSessionCard({
 
   const dayGroups = mealsByDay(meals, segment.startedAt, endDate);
   const totalWater = Math.round(waterTotal(water, segment.startedAt, endDate));
+  const journalGroups = journalsInRange(journals, segment.startedAt, endDate);
 
   return (
     <div
@@ -299,15 +421,18 @@ function FastSessionCard({
       )}
 
       {/* Per-day meal sub-cards */}
-      {dayGroups.length > 0 && (
+      {(dayGroups.length > 0 || journalGroups.length > 0) && (
         <div className="space-y-2">
+          {journalGroups.map((entry) => (
+            <JournalDayCard key={entry.id} entry={entry} />
+          ))}
           {dayGroups.map((g) => (
             <MealDayCard key={g.day} date={g.date} meals={g.items} />
           ))}
         </div>
       )}
 
-      {dayGroups.length === 0 && totalWater === 0 && !isLive && (
+      {dayGroups.length === 0 && journalGroups.length === 0 && totalWater === 0 && !isLive && (
         <p className="text-[11px] text-muted-foreground italic">
           No meals or water logged in this window.
         </p>
@@ -373,14 +498,77 @@ export function SessionTimeline({ clientId }: SessionTimelineProps) {
   const { data: events = [], isLoading: loadingEvents } = useQuery({
     queryKey: ["session-timeline-events", clientId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("activity_events")
-        .select("*")
-        .eq("client_id", clientId)
-        .order("occurred_at", { ascending: false })
-        .limit(500);
+      const [{ data: data, error }, { data: fastLogs, error: fastLogsError }] = await Promise.all([
+        supabase
+          .from("activity_events")
+          .select("*")
+          .eq("client_id", clientId)
+          .order("occurred_at", { ascending: false })
+          .limit(500),
+        supabase
+          .from("fasting_log")
+          .select("id, started_at, ended_at, actual_hours, target_hours, ended_early, status")
+          .eq("client_id", clientId)
+          .order("ended_at", { ascending: false })
+          .limit(200),
+      ]);
       if (error) throw error;
-      return (data || []) as RawEvent[];
+      if (fastLogsError) throw fastLogsError;
+
+      const existingLogIds = new Set(
+        ((data || []) as RawEvent[])
+          .map((event) => {
+            const metadata = event.metadata as Record<string, unknown> | null;
+            return typeof metadata?.fasting_log_id === "string" ? metadata.fasting_log_id : null;
+          })
+          .filter((value): value is string => Boolean(value))
+      );
+
+      const syntheticFastEvents: RawEvent[] = ((fastLogs || []) as FastingLogRow[])
+        .flatMap((log) => {
+          if (existingLogIds.has(log.id)) return [];
+
+          const actualHours = Number(log.actual_hours || 0);
+          const targetHours = Number(log.target_hours || 0);
+          const completionPct = targetHours > 0 ? Math.min(Math.round((actualHours / targetHours) * 100), 100) : 0;
+
+          return [
+            {
+              id: `fast-log-start-${log.id}`,
+              occurred_at: log.started_at,
+              event_type: "fast_started",
+              category: "fasting",
+              title: "Fast started",
+              subtitle: targetHours > 0 ? `${targetHours}h target` : null,
+              icon: "play",
+              metadata: { fasting_log_id: log.id, synthetic: true, target_hours: targetHours },
+              source: "backfill",
+              edited: false,
+            },
+            {
+              id: `fast-log-end-${log.id}`,
+              occurred_at: log.ended_at,
+              event_type: log.ended_early || log.status !== "completed" ? "fast_ended_early" : "fast_completed",
+              category: "fasting",
+              title: log.ended_early || log.status !== "completed" ? "Fast ended early" : "Fast completed",
+              subtitle: `${actualHours.toFixed(1)}h${targetHours > 0 ? ` of ${targetHours}h (${completionPct}%)` : ""}`,
+              icon: log.ended_early || log.status !== "completed" ? "stop-circle" : "check-circle",
+              metadata: {
+                fasting_log_id: log.id,
+                synthetic: true,
+                duration_minutes: Math.round(actualHours * 60),
+                actual_hours: actualHours,
+                target_hours: targetHours,
+              },
+              source: "backfill",
+              edited: false,
+            },
+          ] as RawEvent[];
+        });
+
+      return [...((data || []) as RawEvent[]), ...syntheticFastEvents].sort(
+        (a, b) => new Date(b.occurred_at).getTime() - new Date(a.occurred_at).getTime(),
+      );
     },
     refetchInterval: 60_000,
   });
@@ -423,6 +611,27 @@ export function SessionTimeline({ clientId }: SessionTimelineProps) {
         .limit(1000);
       if (error) throw error;
       return (data || []) as WaterRow[];
+    },
+  });
+
+  const { data: journals = [] } = useQuery({
+    queryKey: ["session-timeline-journals", clientId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("daily_journal_entries")
+        .select("*")
+        .eq("client_id", clientId)
+        .order("entry_date", { ascending: false })
+        .limit(120);
+      if (error) throw error;
+
+      const rows = (data || []) as DailyJournalEntry[];
+      return Promise.all(
+        rows.map(async (entry) => ({
+          ...entry,
+          photoUrl: entry.photo_path ? await getJournalPhotoUrl(entry.photo_path) : null,
+        })),
+      ) as Promise<JournalRow[]>;
     },
   });
 
@@ -482,6 +691,7 @@ export function SessionTimeline({ clientId }: SessionTimelineProps) {
                   segment={seg}
                   meals={meals}
                   water={water}
+                  journals={journals}
                   isLive={isLive}
                 />
                 {eatingAfter && (

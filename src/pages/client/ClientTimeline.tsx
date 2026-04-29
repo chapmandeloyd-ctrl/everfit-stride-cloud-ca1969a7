@@ -9,7 +9,7 @@ type View = "sessions" | "events";
 
 export default function ClientTimeline() {
   const clientId = useEffectiveClientId();
-  const [view, setView] = useState<View>("sessions");
+  const [view, setView] = useState<View>("events");
 
   return (
     <div className="min-h-screen bg-background pb-20">
