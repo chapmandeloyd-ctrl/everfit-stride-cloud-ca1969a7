@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { X, Smile, Lotus, Soup, Apple, Pencil, Image as ImageIcon, Loader2, Check } from "lucide-react";
+import { X, Smile, Soup, Apple, Pencil, Image as ImageIcon, Loader2, Check } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
