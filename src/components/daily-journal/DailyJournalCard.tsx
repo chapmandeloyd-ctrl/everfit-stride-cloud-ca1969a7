@@ -15,8 +15,8 @@ export function DailyJournalCard() {
       className={cn(
         "h-9 w-9 rounded-full flex items-center justify-center ring-1 transition",
         filled
-          ? "bg-primary/20 ring-primary/40 text-primary"
-          : "bg-teal-500/15 ring-teal-400/30 text-teal-300"
+          ? "bg-teal-400/25 ring-teal-300/50 text-teal-200"
+          : "bg-teal-500/10 ring-teal-400/20 text-teal-300/70"
       )}
     >
       {children}
