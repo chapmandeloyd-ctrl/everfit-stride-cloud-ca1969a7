@@ -3,7 +3,7 @@ import { addDays, format, startOfWeek, startOfDay, endOfDay } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "./useEffectiveClientId";
 
-export type RingKey = "fasting" | "weight" | "activity" | "sleep" | "water";
+export type RingKey = "fasting" | "weight" | "activity" | "sleep" | "water" | "journal";
 export type DayCompletion = Record<RingKey, boolean>;
 
 export interface DailyRingsData {
@@ -31,6 +31,7 @@ const EMPTY_DAY: DayCompletion = {
   activity: false,
   sleep: false,
   water: false,
+  journal: false,
 };
 
 /**
