@@ -8,7 +8,6 @@ export const DEFAULT_CARD_ORDER: DashboardCardConfig[] = [
   { key: "calendar", label: "Calendar Strip", visible: true },
   { key: "workouts", label: "Today's Workout", visible: true },
   { key: "fasting", label: "Fasting Protocol", visible: true },
-  { key: "daily_journal", label: "Daily Journal", visible: true },
   { key: "assigned_plan", label: "Your Complete Plan", visible: false },
   { key: "coach_tip", label: "Coach Tip & Progress", visible: true },
   { key: "habits", label: "Habits", visible: true },
