@@ -24,6 +24,16 @@ interface RawEvent {
   edited: boolean;
 }
 
+interface FastingLogRow {
+  id: string;
+  started_at: string;
+  ended_at: string;
+  actual_hours: number | string | null;
+  target_hours: number | string | null;
+  ended_early: boolean | null;
+  status: string | null;
+}
+
 type SegmentType = "fast" | "eating";
 
 interface Segment {
@@ -506,12 +516,16 @@ export function SessionTimeline({ clientId }: SessionTimelineProps) {
       if (fastLogsError) throw fastLogsError;
 
       const existingLogIds = new Set(
-        (data || [])
-          .flatMap((event) => [event.metadata?.fasting_log_id].filter(Boolean))
+        ((data || []) as RawEvent[])
+          .map((event) => {
+            const metadata = event.metadata as Record<string, unknown> | null;
+            return typeof metadata?.fasting_log_id === "string" ? metadata.fasting_log_id : null;
+          })
+          .filter((value): value is string => Boolean(value))
       );
 
-      const syntheticFastEvents: RawEvent[] = (fastLogs || [])
-        .flatMap((log: any) => {
+      const syntheticFastEvents: RawEvent[] = ((fastLogs || []) as FastingLogRow[])
+        .flatMap((log) => {
           if (existingLogIds.has(log.id)) return [];
 
           const actualHours = Number(log.actual_hours || 0);
@@ -677,6 +691,7 @@ export function SessionTimeline({ clientId }: SessionTimelineProps) {
                   segment={seg}
                   meals={meals}
                   water={water}
+                  journals={journals}
                   isLive={isLive}
                 />
                 {eatingAfter && (
