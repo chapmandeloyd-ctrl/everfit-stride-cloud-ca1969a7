@@ -2,6 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Flame, Clock, Plus, Lock } from "lucide-react";
+import { MacroPercentBar } from "@/components/nutrition/MacroPercentBar";
 
 interface MealData {
   id: string;
@@ -9,11 +10,13 @@ interface MealData {
   image_url?: string;
   protein?: number;
   carbs?: number;
+  fats?: number;
   calories?: number;
   prep_time_minutes?: number;
   pick_label?: string | null;
   pick_slot?: number | null;
   score?: number;
+  keto_types?: string[] | null;
 }
 
 interface RecommendedMealCardProps {
@@ -84,6 +87,17 @@ export function RecommendedMealCard({ meal, rank, onSelect, onViewDetail, isLogg
                 </span>
               )}
             </div>
+            <MacroPercentBar
+              variant="compact"
+              className="mt-1"
+              macros={{
+                calories: meal.calories,
+                protein: meal.protein,
+                fats: meal.fats,
+                carbs: meal.carbs,
+              }}
+              ketoTypes={meal.keto_types}
+            />
           </div>
 
           {/* CTA */}
