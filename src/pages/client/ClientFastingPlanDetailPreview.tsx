@@ -710,10 +710,10 @@ function EatingWindow({
         className="text-center text-[10px] uppercase tracking-[0.3em] mb-4"
         style={{ color: GOLD }}
       >
-        Eating Window
+        Fasting Window
       </div>
       <div className="text-center font-serif text-5xl" style={{ color: IVORY }}>
-        {plan.eatHours}
+        {24 - plan.eatHours}
         <span className="text-2xl ml-1" style={{ color: GOLD_SOFT }}>
           h
         </span>
