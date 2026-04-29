@@ -48,8 +48,8 @@ const RINGS: RingDef[] = [
   },
   {
     key: "activity",
-    label: "Activity",
-    goal: "Hit your step goal",
+    label: "Steps",
+    goal: "Hit your daily step goal",
     icon: Activity,
     strokeClass: "stroke-daily-ring-activity",
     bgClass: "bg-daily-ring-activity",
