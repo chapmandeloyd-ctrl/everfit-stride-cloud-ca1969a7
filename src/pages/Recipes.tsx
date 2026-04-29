@@ -16,6 +16,7 @@ import { ExportRecipesDialog } from "@/components/nutrition/ExportRecipesDialog"
 import { ImportRecipesDialog } from "@/components/nutrition/ImportRecipesDialog";
 import { AIRecipeBuilderDialog } from "@/components/nutrition/AIRecipeBuilderDialog";
 import { BulkRecipeImportDialog } from "@/components/nutrition/BulkRecipeImportDialog";
+import { MacroPercentBar } from "@/components/nutrition/MacroPercentBar";
 
 export default function Recipes() {
   const navigate = useNavigate();
@@ -120,6 +121,17 @@ export default function Recipes() {
                     <span>{recipe.calories} cal</span>
                     <span>P{recipe.protein}g · C{recipe.carbs}g · F{recipe.fats}g</span>
                   </div>
+
+                  <MacroPercentBar
+                    macros={{
+                      calories: recipe.calories,
+                      protein: recipe.protein,
+                      fats: recipe.fats,
+                      carbs: recipe.carbs,
+                    }}
+                    ketoTypes={recipe.keto_types as string[] | null}
+                    className="mb-3"
+                  />
 
                   {recipe.tags && recipe.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1 mb-3">
