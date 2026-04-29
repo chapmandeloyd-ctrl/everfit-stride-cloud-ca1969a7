@@ -18,8 +18,9 @@ const DEFAULT_GOAL = 10_000;
 const MOTIVATIONAL = [
   { threshold: 0, title: "Time to get moving!", body: "A short walk now sets the tone for the whole day." },
   { threshold: 0.25, title: "Nice start — keep stepping!", body: "Quarter of the way there. Momentum is everything." },
-  { threshold: 0.5, title: "Halfway there — strong pace!", body: "You're on rhythm. A few more walks and you've got this." },
-  { threshold: 0.75, title: "Almost there — finish strong!", body: "One more loop around the block and you're done." },
+  { threshold: 0.5, title: "Past halfway — strong pace!", body: "You're on rhythm. A few more walks and you've got this." },
+  { threshold: 0.7, title: "Closing in — keep going!", body: "You're well past halfway. Stay on your feet." },
+  { threshold: 0.85, title: "Almost there — finish strong!", body: "One more loop around the block and you're done." },
   { threshold: 1, title: "Goal smashed! 🎉", body: "Every step today added up. Your body thanks you." },
 ];
 
