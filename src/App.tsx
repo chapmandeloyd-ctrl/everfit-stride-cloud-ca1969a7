@@ -125,6 +125,7 @@ import NotificationCenter from "./pages/NotificationCenter";
 import ResetPassword from "./pages/ResetPassword";
 import CheckoutTest from "./pages/CheckoutTest";
 import SynergyCardDemo from "./pages/SynergyCardDemo";
+import StepTrackerPreview from "./pages/StepTrackerPreview";
 
 const queryClient = new QueryClient();
 
