@@ -1229,7 +1229,7 @@ function SynergyContent({
               className="text-[9px] uppercase tracking-[0.25em] mb-1"
               style={{ color: MUTED }}
             >
-              {m.window}
+              {shiftWindowText(m.window)}
             </div>
           <div
             className="p-4"
