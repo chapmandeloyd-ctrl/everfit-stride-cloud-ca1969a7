@@ -1423,6 +1423,8 @@ function DemoBlock({
   planName,
   planType,
   planId,
+  windowOpensAt,
+  windowClosesAt,
 }: {
   tabsVariant: "all" | "explore" | "top3";
   coachVariant: "trainer" | "brand" | "none";
@@ -1432,6 +1434,8 @@ function DemoBlock({
   planName: string;
   planType: "quick" | "program";
   planId: string | null;
+  windowOpensAt: string;
+  windowClosesAt: string;
 }) {
   const [active, setActive] = useState(defaultActive);
   return (
@@ -1448,6 +1452,8 @@ function DemoBlock({
         planName={planName}
         planType={planType}
         planId={planId}
+        windowOpensAt={windowOpensAt}
+        windowClosesAt={windowClosesAt}
       />
     </div>
   );
