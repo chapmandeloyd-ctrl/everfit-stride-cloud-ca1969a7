@@ -520,6 +520,102 @@ General rules:
       }
     }
 
+    // ── Mirror snapshot values into health_data so widgets that read
+    //     from the HealthKit-backed store (StepTrackerCard, useHealthStats,
+    //     etc.) immediately reflect the AI Snapshot import. Without this,
+    //     the Health Dashboard cards update but the Step Tracker / "today"
+    //     widgets still show 0 because they query a different table.
+    const METRIC_TO_HEALTH_DATA: Record<string, { data_type: string; unit: string; transform?: (v: number) => number }> = {
+      Steps: { data_type: 'steps', unit: 'count' },
+      Weight: { data_type: 'weight', unit: 'lbs' },
+      Sleep: { data_type: 'sleep', unit: 'minutes', transform: (v) => Math.round(v * 60) }, // hours → minutes
+    };
+
+    const todayStart = new Date(now);
+    todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date(now);
+    todayEnd.setHours(23, 59, 59, 999);
+
+    for (const [metricName, value] of Object.entries(aggregated)) {
+      const map = METRIC_TO_HEALTH_DATA[metricName];
+      if (!map) continue;
+      const numericValue = map.transform ? map.transform(Number(value)) : Number(value);
+      if (!Number.isFinite(numericValue) || numericValue <= 0) continue;
+
+      // For cumulative daily metrics (steps, sleep), keep one row per day
+      // and only overwrite with a higher value. Weight always overwrites.
+      const isCumulativeDaily = metricName === 'Steps' || metricName === 'Sleep';
+
+      if (isCumulativeDaily) {
+        const { data: existingRows } = await supabase
+          .from('health_data')
+          .select('id, value')
+          .eq('client_id', targetClientId)
+          .eq('data_type', map.data_type)
+          .gte('recorded_at', todayStart.toISOString())
+          .lte('recorded_at', todayEnd.toISOString())
+          .order('value', { ascending: false })
+          .limit(1);
+
+        if (existingRows && existingRows.length > 0) {
+          if (numericValue > Number(existingRows[0].value)) {
+            await supabase
+              .from('health_data')
+              .update({ value: numericValue, recorded_at: now.toISOString(), source: 'ai_snapshot' })
+              .eq('id', existingRows[0].id);
+          }
+          continue;
+        }
+      }
+
+      const { error: hdErr } = await supabase.from('health_data').insert({
+        client_id: targetClientId,
+        data_type: map.data_type,
+        value: numericValue,
+        unit: map.unit,
+        recorded_at: now.toISOString(),
+        source: 'ai_snapshot',
+        metadata: { imported_via: 'ai_snapshot' },
+      });
+      if (hdErr) {
+        console.error(`[ai_snapshot] health_data insert failed for ${map.data_type}:`, hdErr.message);
+      } else {
+        console.log(`[ai_snapshot] mirrored ${metricName} → health_data (${map.data_type}=${numericValue})`);
+      }
+    }
+
+    // Caloric Burn → split as a single active_energy row (read-health-stats
+    // sums active + resting, so this becomes today's total burn).
+    if (aggregated['Caloric Burn'] && aggregated['Caloric Burn'] > 0) {
+      const burnVal = Number(aggregated['Caloric Burn']);
+      const { data: existingBurn } = await supabase
+        .from('health_data')
+        .select('id, value')
+        .eq('client_id', targetClientId)
+        .eq('data_type', 'active_energy')
+        .eq('source', 'ai_snapshot')
+        .gte('recorded_at', todayStart.toISOString())
+        .lte('recorded_at', todayEnd.toISOString())
+        .limit(1);
+
+      if (existingBurn && existingBurn.length > 0) {
+        await supabase
+          .from('health_data')
+          .update({ value: burnVal, recorded_at: now.toISOString() })
+          .eq('id', existingBurn[0].id);
+      } else {
+        await supabase.from('health_data').insert({
+          client_id: targetClientId,
+          data_type: 'active_energy',
+          value: burnVal,
+          unit: 'kcal',
+          recorded_at: now.toISOString(),
+          source: 'ai_snapshot',
+          metadata: { imported_via: 'ai_snapshot' },
+        });
+      }
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
