@@ -72,6 +72,7 @@ export function AiSnapshotSheet({ open, onOpenChange, clientId }: Props) {
       // table — invalidate them so the snapshot's mirrored values appear immediately.
       queryClient.invalidateQueries({ queryKey: ["health-stats"] });
       queryClient.invalidateQueries({ queryKey: ["health-data"] });
+      queryClient.invalidateQueries({ queryKey: ["session-timeline-events"] });
       reset();
       onOpenChange(false);
     } catch (err: any) {

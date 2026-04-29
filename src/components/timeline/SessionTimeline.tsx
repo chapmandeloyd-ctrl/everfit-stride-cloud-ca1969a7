@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { format, formatDistanceToNowStrict } from "date-fns";
-import { Droplet, Pencil, ChevronRight, Sparkles, BookOpen, Timer } from "lucide-react";
+import { Droplet, Pencil, ChevronRight, Sparkles, BookOpen, Timer, Camera } from "lucide-react";
 import { Link } from "react-router-dom";
 import { getJournalPhotoUrl, type DailyJournalEntry } from "@/hooks/useDailyJournal";
 
@@ -357,6 +357,56 @@ function JournalDayCard({ entry }: { entry: JournalRow }) {
   );
 }
 
+function SnapshotEventCard({ event }: { event: RawEvent }) {
+  const meta = (event.metadata ?? {}) as Record<string, any>;
+  const metrics = (meta.metrics ?? {}) as Record<string, number>;
+  const chips: Array<{ label: string; value: string }> = [];
+  if (metrics['Steps']) chips.push({ label: 'Steps', value: Math.round(metrics['Steps']).toLocaleString() });
+  if (metrics['Weight']) chips.push({ label: 'Weight', value: `${metrics['Weight']} lb` });
+  if (metrics['Sleep']) chips.push({ label: 'Sleep', value: `${metrics['Sleep']}h` });
+  if (metrics['Caloric Burn']) chips.push({ label: 'Burn', value: `${Math.round(metrics['Caloric Burn']).toLocaleString()} cal` });
+  if (metrics['Caloric Intake']) chips.push({ label: 'Intake', value: `${Math.round(metrics['Caloric Intake']).toLocaleString()} cal` });
+  if (typeof meta.workout_count === 'number' && meta.workout_count > 0) {
+    chips.push({ label: 'Workouts', value: String(meta.workout_count) });
+  }
+
+  return (
+    <div className="rounded-xl border border-border/60 bg-background/40 p-3">
+      <div className="flex items-center justify-between mb-2 gap-2">
+        <span className="text-[11px] text-muted-foreground tabular-nums">
+          {format(new Date(event.occurred_at), "MMM d 'at' h:mm a")}
+        </span>
+        <div className="h-6 w-6 rounded-md flex items-center justify-center text-accent">
+          <Camera className="h-3.5 w-3.5" />
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2 mb-2">
+        <div className="h-9 w-9 rounded-full bg-teal-500/15 flex items-center justify-center text-base">
+          📸
+        </div>
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-foreground leading-tight">AI Snapshot imported</p>
+          <p className="text-[10px] text-muted-foreground">Health metrics auto-filled</p>
+        </div>
+      </div>
+
+      {chips.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {chips.map((c) => (
+            <span
+              key={c.label}
+              className="px-2.5 py-1 rounded-full bg-muted text-foreground text-[11px] font-medium"
+            >
+              {c.label}: <span className="text-muted-foreground">{c.value}</span>
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function FastSessionCard({
   segment,
   meals,
@@ -688,6 +738,13 @@ export function SessionTimeline({ clientId }: SessionTimelineProps) {
     });
   }, [journals, fastSegments]);
 
+  // Standalone AI Snapshot events render as their own Timeline rows.
+  const snapshotEvents = useMemo(() => {
+    return (events as RawEvent[])
+      .filter((e) => e.event_type === 'ai_snapshot_imported')
+      .sort((a, b) => new Date(b.occurred_at).getTime() - new Date(a.occurred_at).getTime());
+  }, [events]);
+
   if (loadingEvents) {
     return (
       <div className="space-y-3">
@@ -722,6 +779,21 @@ export function SessionTimeline({ clientId }: SessionTimelineProps) {
               <div className="flex-1 min-w-0 relative pl-4">
                 <Rail accent="muted" />
                 <JournalDayCard entry={entry} />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* AI Snapshot import markers */}
+      {snapshotEvents.length > 0 && (
+        <div className="space-y-5 mb-5">
+          {snapshotEvents.map((evt) => (
+            <div key={evt.id} className="flex gap-3">
+              <DateGutter date={new Date(evt.occurred_at)} />
+              <div className="flex-1 min-w-0 relative pl-4">
+                <Rail accent="muted" />
+                <SnapshotEventCard event={evt} />
               </div>
             </div>
           ))}
@@ -765,7 +837,7 @@ export function SessionTimeline({ clientId }: SessionTimelineProps) {
           );
         })}
 
-        {fastSegments.length === 0 && orphanJournals.length === 0 && (
+        {fastSegments.length === 0 && orphanJournals.length === 0 && snapshotEvents.length === 0 && (
           <div className="flex gap-3">
             <div className="w-14 shrink-0" />
             <div className="flex-1 min-w-0 relative pl-4">
