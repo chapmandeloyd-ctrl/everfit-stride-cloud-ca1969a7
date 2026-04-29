@@ -9,6 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format, startOfWeek, endOfWeek, addWeeks, subWeeks } from "date-fns";
 import { ChevronLeft, ChevronRight, UtensilsCrossed, Flame, BookOpen } from "lucide-react";
+import { MacroPercentBar } from "@/components/nutrition/MacroPercentBar";
 
 export default function ClientMealPlan() {
   const { user } = useAuth();
@@ -272,6 +273,17 @@ export default function ClientMealPlan() {
                             <p className="text-xs text-muted-foreground mt-1">
                               {recipe.calories} Cal • P {Number(recipe.protein || 0)}g • C {Number(recipe.carbs || 0)}g • F {Number(recipe.fats || 0)}g
                             </p>
+                            <MacroPercentBar
+                              variant="compact"
+                              className="mt-1"
+                              macros={{
+                                calories: recipe.calories,
+                                protein: recipe.protein,
+                                fats: recipe.fats,
+                                carbs: recipe.carbs,
+                              }}
+                              ketoTypes={recipe.keto_types as string[] | null}
+                            />
                             <Badge variant="outline" className="text-[10px] mt-1">{recipe.servings || 1} SERVINGS</Badge>
                           </div>
                         );
