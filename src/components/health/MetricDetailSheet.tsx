@@ -1,4 +1,4 @@
-import { useMemo, useState, type ComponentType } from "react";
+import { useMemo, useState, type ComponentType, type ReactNode } from "react";
 import {
   Sheet,
   SheetContent,
@@ -59,6 +59,8 @@ interface Props {
    * Defaults: Avg / Best / Total. For weight we'll use Avg / Min / Max.
    */
   summaryMode?: "sum" | "minmax";
+  /** Custom node injected after the chart, before the summary stats. */
+  extraSection?: (rangeDays: number) => ReactNode;
 }
 
 function formatDateShort(date: string): string {
@@ -120,6 +122,7 @@ export function MetricDetailSheet({
   decimals = 0,
   formatY,
   summaryMode = "sum",
+  extraSection,
 }: Props) {
   const [rangeKey, setRangeKey] = useState(defaultRangeKey ?? ranges[0].key);
   const range = ranges.find((r) => r.key === rangeKey) ?? ranges[0];
@@ -289,6 +292,8 @@ export function MetricDetailSheet({
               </div>
             )}
           </div>
+
+          {extraSection && extraSection(range.days)}
 
           {/* Summary stats */}
           <div className="grid grid-cols-3 gap-3">
