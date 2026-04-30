@@ -118,6 +118,60 @@ const handler = async (req: Request): Promise<Response> => {
       return json({ connections: data });
     }
 
+    // ── Metric history (daily series for one named metric) ─────────────
+    if (mode === "metric_history") {
+      const metricName: string = body.metric_name;
+      const historyDays: number = Number(body.days ?? 14);
+      if (!metricName) throw new Error("Missing metric_name");
+
+      const { data: def, error: defErr } = await admin
+        .from("metric_definitions")
+        .select("id, name, unit")
+        .eq("name", metricName)
+        .maybeSingle();
+      if (defErr) throw defErr;
+      if (!def) return json({ metric: metricName, unit: null, days: [] });
+
+      const { data: cm, error: cmErr } = await admin
+        .from("client_metrics")
+        .select("id")
+        .eq("client_id", clientId)
+        .eq("metric_definition_id", def.id)
+        .maybeSingle();
+      if (cmErr) throw cmErr;
+      if (!cm) return json({ metric: metricName, unit: def.unit, days: [] });
+
+      const since = new Date();
+      since.setUTCDate(since.getUTCDate() - historyDays);
+
+      const { data: entries, error: entriesErr } = await admin
+        .from("metric_entries")
+        .select("value, recorded_at")
+        .eq("client_id", clientId)
+        .eq("client_metric_id", cm.id)
+        .gte("recorded_at", since.toISOString())
+        .order("recorded_at", { ascending: true });
+      if (entriesErr) throw entriesErr;
+
+      // Bucket per local day (using tz_offset). Use the latest entry per day
+      // for cumulative metrics like Steps (HealthKit is upserted as daily total).
+      const byDay = new Map<string, { value: number; recorded_at: string }>();
+      for (const e of entries ?? []) {
+        const localMs = new Date(e.recorded_at).getTime() + tzOffsetMin * 60_000;
+        const dayKey = new Date(localMs).toISOString().slice(0, 10);
+        const existing = byDay.get(dayKey);
+        if (!existing || new Date(e.recorded_at) > new Date(existing.recorded_at)) {
+          byDay.set(dayKey, { value: Number(e.value), recorded_at: e.recorded_at });
+        }
+      }
+
+      const days = Array.from(byDay.entries())
+        .map(([date, v]) => ({ date, value: v.value, recorded_at: v.recorded_at }))
+        .sort((a, b) => a.date.localeCompare(b.date));
+
+      return json({ metric: metricName, unit: def.unit, days });
+    }
+
     if (mode === "metric_summary") {
       const metricNames = ["Weight", "Steps", "Sleep", "Caloric Intake", "Caloric Burn"];
 
