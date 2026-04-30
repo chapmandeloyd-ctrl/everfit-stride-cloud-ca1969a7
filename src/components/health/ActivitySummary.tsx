@@ -6,6 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/hooks/useAuth';
 import { useState } from 'react';
 import { StepsDetailSheet } from '@/components/health/StepsDetailSheet';
+import { MetricDetailSheet, WEIGHT_RANGES } from '@/components/health/MetricDetailSheet';
 
 interface ActivitySummaryProps {
   clientId?: string;
@@ -33,6 +34,8 @@ const METRIC_CARDS = [
 export function ActivitySummary({ clientId }: ActivitySummaryProps) {
   const { user, loading } = useAuth();
   const [stepsOpen, setStepsOpen] = useState(false);
+  const [sleepOpen, setSleepOpen] = useState(false);
+  const [weightOpen, setWeightOpen] = useState(false);
 
   const { data: summaryData, isLoading } = useQuery({
     queryKey: ['health-activity-metrics', clientId],
@@ -97,9 +100,12 @@ export function ActivitySummary({ clientId }: ActivitySummaryProps) {
           ? Math.min((Number(data.value) / card.goal) * 100, 100)
           : null;
 
-        const isInteractive = card.key === 'Steps';
+        const isInteractive =
+          card.key === 'Steps' || card.key === 'Sleep' || card.key === 'Weight';
         const handleClick = () => {
           if (card.key === 'Steps') setStepsOpen(true);
+          if (card.key === 'Sleep') setSleepOpen(true);
+          if (card.key === 'Weight') setWeightOpen(true);
         };
 
         return (
@@ -150,7 +156,34 @@ export function ActivitySummary({ clientId }: ActivitySummaryProps) {
         );
       })}
       {clientId && (
-        <StepsDetailSheet open={stepsOpen} onOpenChange={setStepsOpen} clientId={clientId} />
+        <>
+          <StepsDetailSheet open={stepsOpen} onOpenChange={setStepsOpen} clientId={clientId} />
+          <MetricDetailSheet
+            open={sleepOpen}
+            onOpenChange={setSleepOpen}
+            clientId={clientId}
+            metricName="Sleep"
+            title="Sleep"
+            unitLabel="hrs"
+            icon={Moon}
+            decimals={1}
+            description="Quality sleep is when your body repairs muscle, regulates hormones, and consolidates memory. Most adults perform best with 7–9 hours per night."
+          />
+          <MetricDetailSheet
+            open={weightOpen}
+            onOpenChange={setWeightOpen}
+            clientId={clientId}
+            metricName="Weight"
+            title="Body Weight"
+            unitLabel="lbs"
+            icon={Scale}
+            ranges={WEIGHT_RANGES}
+            defaultRangeKey="3M"
+            decimals={1}
+            summaryMode="minmax"
+            description="Daily body weight fluctuates with hydration, food, and sleep. Trends over weeks matter far more than single readings."
+          />
+        </>
       )}
     </div>
   );
