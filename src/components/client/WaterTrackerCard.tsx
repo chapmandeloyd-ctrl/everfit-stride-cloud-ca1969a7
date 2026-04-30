@@ -129,6 +129,60 @@ export function WaterTrackerCard() {
   const message = useMemo(() => getMessage(progress), [progress]);
   const lastEntry = entries[0];
 
+  // ─────────────────────────────────────────────────────────────────────
+  // DIAGNOSTIC LOGGING — investigating reported "water tracker reset" bug.
+  // Logs every time totalOz changes so we can see, in console, exactly
+  // when/why the value drops. Includes timezone + day-window + entry list
+  // so we can correlate any apparent reset with the real cause.
+  // Remove once the bug is confirmed fixed or proven to be expected daily reset.
+  // ─────────────────────────────────────────────────────────────────────
+  const prevTotalRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!clientId) return;
+    const prev = prevTotalRef.current;
+    const now = new Date();
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const localMidnight = new Date();
+    localMidnight.setHours(0, 0, 0, 0);
+
+    const ctx = {
+      clientId,
+      goalOz,
+      totalOz,
+      cappedTotalOz,
+      percent,
+      entryCount: entries.length,
+      entries: entries.map((e) => ({ id: e.id, oz: e.amount_oz, at: e.logged_at })),
+      tz,
+      nowISO: now.toISOString(),
+      nowLocal: now.toString(),
+      localMidnightUTC: localMidnight.toISOString(),
+      queryWindowStartUTC: startOfTodayISO(),
+      repairingOverflow,
+    };
+
+    if (prev === null) {
+      console.log("[💧water] mount/initial state:", ctx);
+    } else if (prev !== totalOz) {
+      const dropped = prev > totalOz;
+      console.log(
+        `[💧water] totalOz changed ${prev} → ${totalOz}${dropped ? " ⚠️ DROPPED" : ""}`,
+        ctx
+      );
+      if (dropped) {
+        console.warn(
+          "[💧water] ⚠️ POSSIBLE RESET DETECTED — entries shrank from",
+          prev,
+          "oz to",
+          totalOz,
+          "oz. Compare entry list above with prior log."
+        );
+      }
+    }
+    prevTotalRef.current = totalOz;
+  }, [totalOz, goalOz, cappedTotalOz, percent, entries, clientId, repairingOverflow]);
+
+
   const overflowRepairPlan = useMemo(() => {
     if (goalOz <= 0 || totalOz <= goalOz || entries.length === 0) return null;
 
@@ -207,6 +261,8 @@ export function WaterTrackerCard() {
     if (lastRepairSignatureRef.current === overflowRepairPlan.signature) return;
 
     lastRepairSignatureRef.current = overflowRepairPlan.signature;
+
+    console.warn("[💧water] 🔧 overflow repair plan executing — entries will be trimmed/deleted:", overflowRepairPlan);
 
     const repairOverflow = async () => {
       setRepairingOverflow(true);
