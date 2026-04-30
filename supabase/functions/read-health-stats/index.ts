@@ -172,6 +172,97 @@ const handler = async (req: Request): Promise<Response> => {
       return json({ metric: metricName, unit: def.unit, days });
     }
 
+    // ── Caloric Burn history (per-day Total + Active + Resting) ─────────
+    if (mode === "caloric_burn_history") {
+      const historyDays: number = Number(body.days ?? 14);
+      const since = new Date();
+      since.setUTCDate(since.getUTCDate() - historyDays);
+
+      const { data: rows, error: rowsErr } = await admin
+        .from("health_data")
+        .select("data_type, value, recorded_at")
+        .eq("client_id", clientId)
+        .in("data_type", ["active_energy", "resting_energy", "calories_burned"])
+        .gte("recorded_at", since.toISOString())
+        .order("recorded_at", { ascending: true });
+      if (rowsErr) throw rowsErr;
+
+      // Pull latest weight in lbs for BMR fallback
+      let weightLbs: number | null = null;
+      try {
+        const { data: wDef } = await admin
+          .from("metric_definitions")
+          .select("id")
+          .eq("name", "Weight")
+          .maybeSingle();
+        if (wDef) {
+          const { data: wCm } = await admin
+            .from("client_metrics")
+            .select("id")
+            .eq("client_id", clientId)
+            .eq("metric_definition_id", wDef.id)
+            .maybeSingle();
+          if (wCm) {
+            const { data: wEntry } = await admin
+              .from("metric_entries")
+              .select("value")
+              .eq("client_id", clientId)
+              .eq("client_metric_id", wCm.id)
+              .order("recorded_at", { ascending: false })
+              .limit(1)
+              .maybeSingle();
+            if (wEntry) weightLbs = Number(wEntry.value);
+          }
+        }
+      } catch (e) {
+        console.warn("[caloric_burn_history] weight lookup failed", e);
+      }
+      // Rough BMR estimate when no Apple Resting data exists.
+      // ~10 kcal per lb/day is a reasonable adult-average resting baseline
+      // (Mifflin-St Jeor without age/sex). Documented as "estimated".
+      const estimatedBmr = weightLbs ? Math.round(weightLbs * 10) : null;
+
+      // Bucket by local day. For each day, take MAX (Apple gives running daily totals).
+      const byDay = new Map<string, { active: number; resting: number; restingFromSync: boolean }>();
+      for (const r of rows ?? []) {
+        const localMs = new Date(r.recorded_at).getTime() + tzOffsetMin * 60_000;
+        const dayKey = new Date(localMs).toISOString().slice(0, 10);
+        const cur = byDay.get(dayKey) ?? { active: 0, resting: 0, restingFromSync: false };
+        const v = Number(r.value) || 0;
+        if (r.data_type === "active_energy") {
+          cur.active = Math.max(cur.active, v);
+        } else if (r.data_type === "resting_energy") {
+          cur.resting = Math.max(cur.resting, v);
+          cur.restingFromSync = true;
+        } else if (r.data_type === "calories_burned") {
+          // Legacy hourly buckets — sum within day
+          cur.active = cur.active + v;
+        }
+        byDay.set(dayKey, cur);
+      }
+
+      const days = Array.from(byDay.entries())
+        .map(([date, v]) => {
+          const resting = v.restingFromSync ? v.resting : (estimatedBmr ?? 0);
+          const total = Math.round(v.active + resting);
+          return {
+            date,
+            value: total,
+            active: Math.round(v.active),
+            resting: Math.round(resting),
+            resting_estimated: !v.restingFromSync && estimatedBmr !== null,
+          };
+        })
+        .sort((a, b) => a.date.localeCompare(b.date));
+
+      return json({
+        metric: "Caloric Burn",
+        unit: "cal",
+        days,
+        bmr_estimated: estimatedBmr,
+      });
+    }
+
     if (mode === "metric_summary") {
       const metricNames = ["Weight", "Steps", "Sleep", "Caloric Intake", "Caloric Burn"];
 
