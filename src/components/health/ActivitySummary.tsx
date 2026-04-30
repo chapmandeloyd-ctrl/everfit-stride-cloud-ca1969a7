@@ -1,9 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Footprints, Flame, Moon, Scale, BatteryCharging } from 'lucide-react';
+import { Footprints, Flame, Moon, Scale, BatteryCharging, ChevronRight } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/hooks/useAuth';
+import { useState } from 'react';
+import { StepsDetailSheet } from '@/components/health/StepsDetailSheet';
 
 interface ActivitySummaryProps {
   clientId?: string;
@@ -30,6 +32,7 @@ const METRIC_CARDS = [
 
 export function ActivitySummary({ clientId }: ActivitySummaryProps) {
   const { user, loading } = useAuth();
+  const [stepsOpen, setStepsOpen] = useState(false);
 
   const { data: summaryData, isLoading } = useQuery({
     queryKey: ['health-activity-metrics', clientId],
@@ -94,15 +97,29 @@ export function ActivitySummary({ clientId }: ActivitySummaryProps) {
           ? Math.min((Number(data.value) / card.goal) * 100, 100)
           : null;
 
+        const isInteractive = card.key === 'Steps';
+        const handleClick = () => {
+          if (card.key === 'Steps') setStepsOpen(true);
+        };
+
         return (
-          <Card key={card.key}>
+          <Card
+            key={card.key}
+            onClick={isInteractive ? handleClick : undefined}
+            className={isInteractive ? 'cursor-pointer transition hover:bg-muted/40 active:scale-[0.99]' : undefined}
+          >
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   {card.key}
                 </CardTitle>
-                <div className={`p-2 rounded-lg ${card.bgColor}`}>
-                  <Icon className={`h-4 w-4 ${card.color}`} />
+                <div className="flex items-center gap-1">
+                  <div className={`p-2 rounded-lg ${card.bgColor}`}>
+                    <Icon className={`h-4 w-4 ${card.color}`} />
+                  </div>
+                  {isInteractive && (
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  )}
                 </div>
               </div>
             </CardHeader>
@@ -132,6 +149,9 @@ export function ActivitySummary({ clientId }: ActivitySummaryProps) {
           </Card>
         );
       })}
+      {clientId && (
+        <StepsDetailSheet open={stepsOpen} onOpenChange={setStepsOpen} clientId={clientId} />
+      )}
     </div>
   );
 }
