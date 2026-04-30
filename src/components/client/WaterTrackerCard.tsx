@@ -182,12 +182,6 @@ export function WaterTrackerCard() {
     prevTotalRef.current = totalOz;
   }, [totalOz, goalOz, cappedTotalOz, percent, entries, clientId, repairingOverflow]);
 
-  // Also log every time the overflow repair plan fires
-  useEffect(() => {
-    if (overflowRepairPlan) {
-      console.warn("[💧water] 🔧 overflow repair plan triggered:", overflowRepairPlan);
-    }
-  }, [overflowRepairPlan]);
 
   const overflowRepairPlan = useMemo(() => {
     if (goalOz <= 0 || totalOz <= goalOz || entries.length === 0) return null;
