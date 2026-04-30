@@ -262,6 +262,8 @@ export function WaterTrackerCard() {
 
     lastRepairSignatureRef.current = overflowRepairPlan.signature;
 
+    console.warn("[💧water] 🔧 overflow repair plan executing — entries will be trimmed/deleted:", overflowRepairPlan);
+
     const repairOverflow = async () => {
       setRepairingOverflow(true);
 
