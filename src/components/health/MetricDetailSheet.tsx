@@ -4,8 +4,10 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
+  SheetClose,
 } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
+import { X } from "lucide-react";
 import {
   Area,
   AreaChart,
@@ -173,10 +175,18 @@ export function MetricDetailSheet({
         className="h-[92vh] overflow-y-auto bg-background p-0 border-border"
       >
         <SheetHeader className="sticky top-0 z-10 border-b border-border bg-background/95 px-5 py-4 backdrop-blur">
-          <SheetTitle className="flex items-center gap-2 text-foreground">
-            <Icon className="h-5 w-5 text-primary" />
-            {title}
-          </SheetTitle>
+          <div className="flex items-center justify-between">
+            <SheetTitle className="flex items-center gap-2 text-foreground">
+              <Icon className="h-5 w-5 text-primary" />
+              {title}
+            </SheetTitle>
+            <SheetClose
+              aria-label="Close"
+              className="h-9 w-9 -mr-2 inline-flex items-center justify-center rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground transition"
+            >
+              <X className="h-5 w-5" />
+            </SheetClose>
+          </div>
         </SheetHeader>
 
         <div className="px-5 pb-10 pt-4 space-y-6">
