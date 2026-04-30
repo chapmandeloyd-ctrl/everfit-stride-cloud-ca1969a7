@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { StepsDetailSheet } from '@/components/health/StepsDetailSheet';
 import { MetricDetailSheet, WEIGHT_RANGES } from '@/components/health/MetricDetailSheet';
 import { SleepTimesChart } from '@/components/health/SleepTimesChart';
+import { CaloricBurnDetailSheet } from '@/components/health/CaloricBurnDetailSheet';
 
 interface ActivitySummaryProps {
   clientId?: string;
@@ -37,6 +38,7 @@ export function ActivitySummary({ clientId }: ActivitySummaryProps) {
   const [stepsOpen, setStepsOpen] = useState(false);
   const [sleepOpen, setSleepOpen] = useState(false);
   const [weightOpen, setWeightOpen] = useState(false);
+  const [burnOpen, setBurnOpen] = useState(false);
 
   const { data: summaryData, isLoading } = useQuery({
     queryKey: ['health-activity-metrics', clientId],
@@ -102,11 +104,15 @@ export function ActivitySummary({ clientId }: ActivitySummaryProps) {
           : null;
 
         const isInteractive =
-          card.key === 'Steps' || card.key === 'Sleep' || card.key === 'Weight';
+          card.key === 'Steps' ||
+          card.key === 'Sleep' ||
+          card.key === 'Weight' ||
+          card.key === 'Caloric Burn';
         const handleClick = () => {
           if (card.key === 'Steps') setStepsOpen(true);
           if (card.key === 'Sleep') setSleepOpen(true);
           if (card.key === 'Weight') setWeightOpen(true);
+          if (card.key === 'Caloric Burn') setBurnOpen(true);
         };
 
         return (
@@ -191,6 +197,11 @@ export function ActivitySummary({ clientId }: ActivitySummaryProps) {
             decimals={1}
             summaryMode="minmax"
             description="Daily body weight fluctuates with hydration, food, and sleep. Trends over weeks matter far more than single readings."
+          />
+          <CaloricBurnDetailSheet
+            open={burnOpen}
+            onOpenChange={setBurnOpen}
+            clientId={clientId}
           />
         </>
       )}
