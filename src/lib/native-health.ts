@@ -13,6 +13,7 @@ import { Capacitor } from "@capacitor/core";
 const HEALTH_READ_TYPES = [
   "steps",
   "calories",
+  "calories.basal",
   "heartRate",
   "weight",
   "sleep",
@@ -260,10 +261,11 @@ export async function readTodayHealthData(): Promise<NativeHealthData | null> {
 
   try {
     const sleepRangeStart = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString();
-    const [stepsRes, caloriesRes, hrRes, weightRes, sleepRes, sleepHistoryRes] =
+    const [stepsRes, caloriesRes, basalRes, hrRes, weightRes, sleepRes, sleepHistoryRes] =
       await Promise.allSettled([
         h.queryAggregated({ dataType: "steps", startDate, endDate, bucket: "day", aggregation: "sum" }),
         h.queryAggregated({ dataType: "calories", startDate, endDate, bucket: "day", aggregation: "sum" }),
+        h.queryAggregated({ dataType: "calories.basal", startDate, endDate, bucket: "day", aggregation: "sum" }),
         h.readSamples({ dataType: "heartRate", startDate, endDate, limit: 1 }),
         h.readSamples({ dataType: "weight", startDate: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString(), endDate, limit: 1 }),
         h.readSamples({ dataType: "sleep", startDate: new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString(), endDate, limit: 1 }),
@@ -275,6 +277,10 @@ export async function readTodayHealthData(): Promise<NativeHealthData | null> {
     const activeCalories =
       caloriesRes.status === "fulfilled"
         ? caloriesRes.value?.samples?.[0]?.value ?? null
+        : null;
+    const restingCalories =
+      basalRes.status === "fulfilled"
+        ? basalRes.value?.samples?.[0]?.value ?? null
         : null;
     const heartRate =
       hrRes.status === "fulfilled"
@@ -313,7 +319,7 @@ export async function readTodayHealthData(): Promise<NativeHealthData | null> {
     return {
       steps: steps != null ? Math.round(steps) : null,
       activeCalories: activeCalories != null ? Math.round(activeCalories) : null,
-      restingCalories: null, // Requires separate basal energy query
+      restingCalories: restingCalories != null ? Math.round(restingCalories) : null,
       heartRate: heartRate != null ? Math.round(heartRate) : null,
       weight: weight != null ? Math.round(weight * 10) / 10 : null, // kg, 1 decimal
       sleepMinutes,
@@ -361,6 +367,16 @@ export async function syncHealthDataToBackend(
       client_id: clientId,
       data_type: "active_energy",
       value: data.activeCalories,
+      unit: "kcal",
+      recorded_at: now,
+      source: "apple_health",
+    });
+  }
+  if (data.restingCalories != null) {
+    entries.push({
+      client_id: clientId,
+      data_type: "resting_energy",
+      value: data.restingCalories,
       unit: "kcal",
       recorded_at: now,
       source: "apple_health",
