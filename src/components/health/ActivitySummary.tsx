@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useState } from 'react';
 import { StepsDetailSheet } from '@/components/health/StepsDetailSheet';
 import { MetricDetailSheet, WEIGHT_RANGES } from '@/components/health/MetricDetailSheet';
+import { SleepTimesChart } from '@/components/health/SleepTimesChart';
 
 interface ActivitySummaryProps {
   clientId?: string;
@@ -168,6 +169,14 @@ export function ActivitySummary({ clientId }: ActivitySummaryProps) {
             icon={Moon}
             decimals={1}
             description="Quality sleep is when your body repairs muscle, regulates hormones, and consolidates memory. Most adults perform best with 7–9 hours per night."
+            extraSection={(rangeDays) => (
+              <div className="space-y-2">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Sleep times
+                </h3>
+                <SleepTimesChart clientId={clientId} days={rangeDays} />
+              </div>
+            )}
           />
           <MetricDetailSheet
             open={weightOpen}
