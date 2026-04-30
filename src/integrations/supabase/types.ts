@@ -8082,6 +8082,50 @@ export type Database = {
         }
         Relationships: []
       }
+      sleep_sessions: {
+        Row: {
+          client_id: string
+          created_at: string
+          duration_minutes: number
+          ended_at: string
+          id: string
+          metadata: Json
+          source: string
+          stage: string | null
+          started_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          duration_minutes: number
+          ended_at: string
+          id?: string
+          metadata?: Json
+          source?: string
+          stage?: string | null
+          started_at: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          duration_minutes?: number
+          ended_at?: string
+          id?: string
+          metadata?: Json
+          source?: string
+          stage?: string | null
+          started_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sleep_sessions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       smart_pace_admin_actions: {
         Row: {
           action_date: string
