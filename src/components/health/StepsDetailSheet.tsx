@@ -79,10 +79,12 @@ export function StepsDetailSheet({ open, onOpenChange, clientId }: Props) {
     [data?.days, range.days],
   );
 
-  const latest = series[series.length - 1];
-  const total = series.reduce((s, d) => s + d.value, 0);
-  const avg = series.length ? Math.round(total / series.length) : 0;
-  const best = series.reduce((m, d) => Math.max(m, d.value), 0);
+  // Raw entries (no zero-fill) — used for daily list + summary stats
+  const rawDays = useMemo(() => data?.days ?? [], [data?.days]);
+  const latest = rawDays[rawDays.length - 1];
+  const total = rawDays.reduce((s, d) => s + d.value, 0);
+  const avg = rawDays.length ? Math.round(total / rawDays.length) : 0;
+  const best = rawDays.reduce((m, d) => Math.max(m, d.value), 0);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -248,7 +250,7 @@ export function StepsDetailSheet({ open, onOpenChange, clientId }: Props) {
               Daily history
             </h3>
             <div className="rounded-xl border border-border bg-card divide-y divide-border">
-              {[...series].reverse().map((d) => (
+              {[...rawDays].reverse().map((d) => (
                 <div
                   key={d.date}
                   className="flex items-baseline justify-between px-4 py-3"
@@ -264,9 +266,14 @@ export function StepsDetailSheet({ open, onOpenChange, clientId }: Props) {
                   </span>
                 </div>
               ))}
-              {series.length === 0 && (
+              {rawDays.length === 0 && !isLoading && (
                 <div className="px-4 py-6 text-center text-sm text-muted-foreground">
                   No entries yet.
+                </div>
+              )}
+              {isLoading && (
+                <div className="px-4 py-6 text-center text-sm text-muted-foreground">
+                  Loading…
                 </div>
               )}
             </div>
