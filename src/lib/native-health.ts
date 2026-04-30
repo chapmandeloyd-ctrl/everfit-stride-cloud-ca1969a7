@@ -84,6 +84,7 @@ export interface NativeHealthData {
   heartRate: number | null;
   weight: number | null;
   sleepMinutes: number | null;
+  sleepSessions: Array<{ startedAt: string; endedAt: string }>;
 }
 
 /**
