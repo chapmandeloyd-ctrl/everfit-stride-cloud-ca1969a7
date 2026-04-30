@@ -413,6 +413,31 @@ export async function syncHealthDataToBackend(
     }
     console.log(`[HealthKit] Synced ${entries.length} metrics to backend`);
 
+    // Persist sleep intervals (bedtime → wake) for the depth-view chart.
+    if (data.sleepSessions && data.sleepSessions.length > 0) {
+      const sessionRows = data.sleepSessions.map((s) => ({
+        client_id: clientId,
+        started_at: s.startedAt,
+        ended_at: s.endedAt,
+        duration_minutes: Math.max(
+          0,
+          Math.round((new Date(s.endedAt).getTime() - new Date(s.startedAt).getTime()) / 60000),
+        ),
+        source: "apple_health",
+      }));
+      const { error: sleepErr } = await supabase
+        .from("sleep_sessions")
+        .upsert(sessionRows, {
+          onConflict: "client_id,started_at,ended_at,source",
+          ignoreDuplicates: true,
+        });
+      if (sleepErr) {
+        console.warn("[HealthKit] sleep_sessions upsert failed:", sleepErr);
+      } else {
+        console.log(`[HealthKit] Synced ${sessionRows.length} sleep intervals`);
+      }
+    }
+
     // Smart Pace integration: if we synced a weight, push it through the engine.
     if (data.weight != null) {
       try {
