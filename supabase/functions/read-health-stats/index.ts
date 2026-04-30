@@ -465,7 +465,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     const stats = {
       todaySteps: dedupeMaxPerHour(steps),
-      todayCalories: getTotalCaloriesBurned(rows),
+      todayCalories: await getTotalCaloriesBurnedToday(rows, admin, clientId),
       avgHeartRate:
         hr.length > 0
           ? Math.round(
@@ -516,15 +516,51 @@ function json(body: unknown): Response {
   });
 }
 
-function getTotalCaloriesBurned(rows: Array<{ data_type: string; value: number; recorded_at: string }>): number {
-  const activeEnergy = rows.filter((row) => row.data_type === "active_energy");
-  const restingEnergy = rows.filter((row) => row.data_type === "resting_energy");
+async function getTotalCaloriesBurnedToday(
+  rows: Array<{ data_type: string; value: number; recorded_at: string }>,
+  admin: any,
+  clientId: string,
+): Promise<number> {
+  // Apple stores cumulative daily totals; the most recent reading for the day is the source of truth.
+  const latest = (dt: string) => {
+    const f = rows.filter((r) => r.data_type === dt).sort(
+      (a, b) => new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime(),
+    );
+    return f.length > 0 ? Number(f[0].value) || 0 : 0;
+  };
 
-  if (activeEnergy.length > 0 || restingEnergy.length > 0) {
-    return dedupeMaxPerHour(activeEnergy) + dedupeMaxPerHour(restingEnergy);
+  let active = latest("active_energy");
+  let resting = latest("resting_energy");
+
+  // Legacy hourly per-bucket calories
+  if (active === 0 && resting === 0) {
+    const legacy = dedupeMaxPerHour(rows.filter((r) => r.data_type === "calories_burned"));
+    if (legacy > 0) return Math.round(legacy);
   }
 
-  return dedupeMaxPerHour(rows.filter((row) => row.data_type === "calories_burned"));
+  // BMR fallback when resting wasn't synced (PWA users / pre-watch data)
+  if (resting === 0) {
+    try {
+      const { data: wDef } = await admin
+        .from("metric_definitions").select("id").eq("name", "Weight").maybeSingle();
+      if (wDef) {
+        const { data: wCm } = await admin
+          .from("client_metrics").select("id")
+          .eq("client_id", clientId).eq("metric_definition_id", wDef.id).maybeSingle();
+        if (wCm) {
+          const { data: wEntry } = await admin
+            .from("metric_entries").select("value")
+            .eq("client_id", clientId).eq("client_metric_id", wCm.id)
+            .order("recorded_at", { ascending: false }).limit(1).maybeSingle();
+          if (wEntry) resting = Math.round(Number(wEntry.value) * 10); // ~10 kcal/lb/day
+        }
+      }
+    } catch (e) {
+      console.warn("[todayCalories] BMR fallback failed", e);
+    }
+  }
+
+  return Math.round(active + resting);
 }
 
 function dedupeMaxPerHour(items: Array<{ value: number; recorded_at: string }>): number {
