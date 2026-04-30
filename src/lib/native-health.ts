@@ -259,13 +259,15 @@ export async function readTodayHealthData(): Promise<NativeHealthData | null> {
   const endDate = now.toISOString();
 
   try {
-    const [stepsRes, caloriesRes, hrRes, weightRes, sleepRes] =
+    const sleepRangeStart = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString();
+    const [stepsRes, caloriesRes, hrRes, weightRes, sleepRes, sleepHistoryRes] =
       await Promise.allSettled([
         h.queryAggregated({ dataType: "steps", startDate, endDate, bucket: "day", aggregation: "sum" }),
         h.queryAggregated({ dataType: "calories", startDate, endDate, bucket: "day", aggregation: "sum" }),
         h.readSamples({ dataType: "heartRate", startDate, endDate, limit: 1 }),
         h.readSamples({ dataType: "weight", startDate: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString(), endDate, limit: 1 }),
         h.readSamples({ dataType: "sleep", startDate: new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString(), endDate, limit: 1 }),
+        h.readSamples({ dataType: "sleep", startDate: sleepRangeStart, endDate, limit: 200 }),
       ]);
 
     const steps =
@@ -296,6 +298,18 @@ export async function readTodayHealthData(): Promise<NativeHealthData | null> {
       }
     }
 
+    const sleepSessions: Array<{ startedAt: string; endedAt: string }> = [];
+    if (sleepHistoryRes.status === "fulfilled" && Array.isArray(sleepHistoryRes.value?.samples)) {
+      for (const s of sleepHistoryRes.value.samples) {
+        if (s.startDate && s.endDate) {
+          sleepSessions.push({
+            startedAt: new Date(s.startDate).toISOString(),
+            endedAt: new Date(s.endDate).toISOString(),
+          });
+        }
+      }
+    }
+
     return {
       steps: steps != null ? Math.round(steps) : null,
       activeCalories: activeCalories != null ? Math.round(activeCalories) : null,
@@ -303,6 +317,7 @@ export async function readTodayHealthData(): Promise<NativeHealthData | null> {
       heartRate: heartRate != null ? Math.round(heartRate) : null,
       weight: weight != null ? Math.round(weight * 10) / 10 : null, // kg, 1 decimal
       sleepMinutes,
+      sleepSessions,
     };
   } catch (err) {
     console.error("[HealthKit] Failed to read data:", err);
