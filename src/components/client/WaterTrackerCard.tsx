@@ -86,7 +86,7 @@ export function WaterTrackerCard() {
   const { prefs: habitPrefs, updatePrefs: updateHabitPrefs } = useHabitLoopPreferences();
 
   // Goal settings
-  const { data: settings } = useQuery({
+  const { data: settings, isPending: settingsPending } = useQuery({
     queryKey: ["water-goal-settings", clientId],
     queryFn: async () => {
       if (!clientId) return null;
@@ -101,7 +101,7 @@ export function WaterTrackerCard() {
   });
 
   // Today's entries
-  const { data: entries = [] } = useQuery({
+  const { data: entries = [], isPending: entriesPending } = useQuery({
     queryKey: ["water-log-today", clientId],
     queryFn: async () => {
       if (!clientId) return [];
@@ -116,11 +116,12 @@ export function WaterTrackerCard() {
     enabled: !!clientId,
   });
 
-  const goalOz = Number(settings?.daily_goal_oz ?? 64);
-  const servingOz = Number(settings?.serving_size_oz ?? 8);
-  const unit: Unit = (settings?.unit as Unit) ?? "fl_oz";
+  const isHydrationLoading = !!clientId && (settingsPending || entriesPending);
+  const goalOz = isHydrationLoading ? 0 : Number(settings?.daily_goal_oz ?? 64);
+  const servingOz = isHydrationLoading ? 8 : Number(settings?.serving_size_oz ?? 8);
+  const unit: Unit = isHydrationLoading ? "fl_oz" : ((settings?.unit as Unit) ?? "fl_oz");
   const portionType = servingOz >= 12 ? "bottle" : "glass";
-  const totalOz = entries.reduce((sum, e) => sum + Number(e.amount_oz), 0);
+  const totalOz = isHydrationLoading ? 0 : entries.reduce((sum, e) => sum + Number(e.amount_oz), 0);
   const cappedTotalOz = goalOz > 0 ? Math.min(totalOz, goalOz) : totalOz;
   const remainingOz = Math.max(goalOz - cappedTotalOz, 0);
   const tapAmountOz = Math.min(servingOz, remainingOz || servingOz);
@@ -128,59 +129,6 @@ export function WaterTrackerCard() {
   const percent = Math.round(progress * 100);
   const message = useMemo(() => getMessage(progress), [progress]);
   const lastEntry = entries[0];
-
-  // ─────────────────────────────────────────────────────────────────────
-  // DIAGNOSTIC LOGGING — investigating reported "water tracker reset" bug.
-  // Logs every time totalOz changes so we can see, in console, exactly
-  // when/why the value drops. Includes timezone + day-window + entry list
-  // so we can correlate any apparent reset with the real cause.
-  // Remove once the bug is confirmed fixed or proven to be expected daily reset.
-  // ─────────────────────────────────────────────────────────────────────
-  const prevTotalRef = useRef<number | null>(null);
-  useEffect(() => {
-    if (!clientId) return;
-    const prev = prevTotalRef.current;
-    const now = new Date();
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    const localMidnight = new Date();
-    localMidnight.setHours(0, 0, 0, 0);
-
-    const ctx = {
-      clientId,
-      goalOz,
-      totalOz,
-      cappedTotalOz,
-      percent,
-      entryCount: entries.length,
-      entries: entries.map((e) => ({ id: e.id, oz: e.amount_oz, at: e.logged_at })),
-      tz,
-      nowISO: now.toISOString(),
-      nowLocal: now.toString(),
-      localMidnightUTC: localMidnight.toISOString(),
-      queryWindowStartUTC: startOfTodayISO(),
-      repairingOverflow,
-    };
-
-    if (prev === null) {
-      console.log("[💧water] mount/initial state:", ctx);
-    } else if (prev !== totalOz) {
-      const dropped = prev > totalOz;
-      console.log(
-        `[💧water] totalOz changed ${prev} → ${totalOz}${dropped ? " ⚠️ DROPPED" : ""}`,
-        ctx
-      );
-      if (dropped) {
-        console.warn(
-          "[💧water] ⚠️ POSSIBLE RESET DETECTED — entries shrank from",
-          prev,
-          "oz to",
-          totalOz,
-          "oz. Compare entry list above with prior log."
-        );
-      }
-    }
-    prevTotalRef.current = totalOz;
-  }, [totalOz, goalOz, cappedTotalOz, percent, entries, clientId, repairingOverflow]);
 
 
   const overflowRepairPlan = useMemo(() => {
@@ -341,6 +289,30 @@ export function WaterTrackerCard() {
 
   // Layout: 8 droplet markers spaced across the bar (last replaced by star)
   const markers = Array.from({ length: 8 }, (_, i) => i);
+
+  if (isHydrationLoading) {
+    return (
+      <Card className="relative overflow-hidden border-border/60 bg-card">
+        <CardContent className="p-5 space-y-4 animate-pulse">
+          <div className="flex items-center justify-between">
+            <div className="h-4 w-28 rounded bg-secondary/70" />
+            <div className="h-9 w-9 rounded-full bg-secondary/70" />
+          </div>
+          <div className="h-8 w-36 rounded bg-secondary/70" />
+          <div className="h-14 rounded-3xl bg-secondary/60" />
+          <div className="flex items-center justify-center gap-4 pt-1">
+            <div className="h-14 w-14 rounded-full bg-secondary/70" />
+            <div className="h-6 w-28 rounded bg-secondary/70" />
+            <div className="h-14 w-14 rounded-full bg-secondary/70" />
+          </div>
+          <div className="border-t border-border/60 pt-4 space-y-2">
+            <div className="h-5 w-40 rounded bg-secondary/70" />
+            <div className="h-4 w-56 rounded bg-secondary/60" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="relative overflow-hidden border-border/60 bg-card">
