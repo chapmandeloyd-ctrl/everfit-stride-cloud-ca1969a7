@@ -179,6 +179,22 @@ function buildSegments(events: RawEvent[], activeFastStartAt: string | null): Se
     }
   }
 
+  // Auto-close stale open eating windows. An eating window should never stay
+  // "currently eating" indefinitely — if it's been open longer than a typical
+  // eating window (12h), close it at start + 12h so the timeline doesn't
+  // falsely report "Currently eating.." days later.
+  const MAX_EATING_WINDOW_MS = 12 * 60 * 60 * 1000;
+  const nowMs = Date.now();
+  for (const seg of segments) {
+    if (seg.type === "eating" && seg.endedAt === null) {
+      const elapsed = nowMs - seg.startedAt.getTime();
+      if (elapsed > MAX_EATING_WINDOW_MS) {
+        seg.endedAt = new Date(seg.startedAt.getTime() + MAX_EATING_WINDOW_MS);
+        seg.durationMinutes = MAX_EATING_WINDOW_MS / 60000;
+      }
+    }
+  }
+
   return segments.reverse(); // newest first
 }
 
