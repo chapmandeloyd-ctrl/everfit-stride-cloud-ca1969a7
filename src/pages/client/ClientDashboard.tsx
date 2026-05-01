@@ -930,8 +930,6 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
             </button>
           </div>
 
-          <BeveragesTodayCard clientId={clientId} />
-
           <div className="pt-1">
             {featureSettings.fast_lock_pin ? (
               <HoldToEndButton onHoldComplete={() => setShowVerifyPin(true)} />
