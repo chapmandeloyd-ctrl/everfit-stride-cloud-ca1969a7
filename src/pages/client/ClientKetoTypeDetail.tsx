@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, useParams } from "react-router-dom";
@@ -8,6 +8,7 @@ import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { toast } from "sonner";
 import { ClientLayout } from "@/components/ClientLayout";
 import { KetoTypeDetailView } from "@/components/keto/KetoTypeDetailView";
+import { PairRequiredDialog } from "@/components/client/PairRequiredDialog";
 
 // Brand gold — keto type detail uses gold theming to align with the
 // protocol/keto pairing experience (overrides any per-type color from DB).
@@ -111,6 +112,38 @@ export default function ClientKetoTypeDetail() {
 
   const isActive = activeAssignment?.keto_type_id === id;
 
+  // Resolve the user's currently-active fasting plan name (protocol or quick plan)
+  // so the pair dialog can show what this keto type will pair with.
+  const activeProtocolId = featureSettings?.selected_protocol_id ?? null;
+  const activeQuickPlanId = featureSettings?.selected_quick_plan_id ?? null;
+  const hasActivePlan = !!(activeProtocolId || activeQuickPlanId);
+
+  const { data: activePlanName } = useQuery({
+    queryKey: ["pair-other-name", activeProtocolId, activeQuickPlanId],
+    enabled: hasActivePlan,
+    queryFn: async () => {
+      if (activeProtocolId) {
+        const { data } = await supabase
+          .from("fasting_protocols")
+          .select("name")
+          .eq("id", activeProtocolId)
+          .maybeSingle();
+        return data?.name ?? null;
+      }
+      if (activeQuickPlanId) {
+        const { data } = await supabase
+          .from("quick_fasting_plans")
+          .select("name")
+          .eq("id", activeQuickPlanId)
+          .maybeSingle();
+        return (data as { name: string | null } | null)?.name ?? null;
+      }
+      return null;
+    },
+  });
+
+  const [pairDialogOpen, setPairDialogOpen] = useState(false);
+
   const setActive = useMutation({
     mutationFn: async () => {
       if (!clientId || !ketoType) throw new Error("Missing data");
@@ -129,7 +162,9 @@ export default function ClientKetoTypeDetail() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["client-keto-assignment"] });
-      toast.success(`${ketoType?.abbreviation} — ${ketoType?.name} activated!`);
+      toast.success(`${ketoType?.abbreviation} — ${ketoType?.name} set as your keto type`);
+      // Open the pair dialog instead of leaving the user on a dead-end "activated" toast.
+      setPairDialogOpen(true);
     },
   });
 
@@ -196,6 +231,24 @@ export default function ClientKetoTypeDetail() {
           This information is educational only and not a substitute for medical advice.
         </p>
       </div>
+
+      <PairRequiredDialog
+        open={pairDialogOpen}
+        onOpenChange={setPairDialogOpen}
+        justSet="keto"
+        justSetLabel={`${ketoType.abbreviation} — ${ketoType.name}`}
+        otherLabel={activePlanName ?? null}
+        mode={hasActivePlan ? "ready-paired" : "needs-other"}
+        onPickOther={() => {
+          setPairDialogOpen(false);
+          navigate("/client/programs");
+        }}
+        onViewPaired={() => {
+          setPairDialogOpen(false);
+          navigate("/client/complete-plan");
+        }}
+        onSaveForLater={() => setPairDialogOpen(false)}
+      />
     </ClientLayout>
   );
 }
