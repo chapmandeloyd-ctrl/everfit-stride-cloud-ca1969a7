@@ -461,13 +461,18 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
           metadata: { window_hours: eatingWindowHours },
         });
       }
+      return { endedEarly };
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       liveActivity.stop(); // Dismiss lock screen timer
       queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting"] });
       queryClient.invalidateQueries({ queryKey: ["fasting-gate-state"] });
       queryClient.invalidateQueries({ queryKey: ["today-fasting-log"] });
-      navigate("/client/fast-complete");
+      // Only show the celebratory "Fast Complete · Part 1 done" screen on a TRUE completion.
+      // If the user ended early, stay on the dashboard — early-end messaging is handled by EndFastEarlySheet.
+      if (!result?.endedEarly) {
+        navigate("/client/fast-complete");
+      }
     },
   });
 
@@ -2884,7 +2889,8 @@ export default function ClientDashboard() {
                             queryClient.invalidateQueries({ queryKey: ["fasting-gate-state"] });
                             queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting"] });
                             queryClient.invalidateQueries({ queryKey: ["today-fasting-log"] });
-                            navigate("/client/fast-complete");
+                            // Only show the celebratory "Fast Complete" screen on a true completion.
+                            if (!endedEarly) navigate("/client/fast-complete");
                           }}>
                             End Fast
                           </Button>
