@@ -116,7 +116,6 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import GuardianSummary from "./pages/GuardianSummary";
 import StudioProgramDetail from "./pages/StudioProgramDetail";
 import KetoTypesManager from "./pages/KetoTypesManager";
-import ClientKetoTypes from "./pages/client/ClientKetoTypes";
 import ClientKetoTypeDetail from "./pages/client/ClientKetoTypeDetail";
 import ClientGroceryList from "./pages/client/ClientGroceryList";
 import CardStylesPreview from "./pages/client/CardStylesPreview";
@@ -231,7 +230,7 @@ const App = () => (
           <Route path="/client/macro-setup" element={<Navigate to="/client/dashboard" replace />} />
           <Route path="/client/log-meal" element={<Navigate to="/client/dashboard" replace />} />
           <Route path="/client/recipes/:id" element={<Navigate to="/client/dashboard" replace />} />
-          <Route path="/client/keto-types" element={<ProtectedRoute allowedRoles={["client"]}><ClientKetoTypes /></ProtectedRoute>} />
+          <Route path="/client/keto-types" element={<Navigate to="/client/complete-plan" replace />} />
           <Route path="/client/keto-types/:id" element={<ProtectedRoute allowedRoles={["client"]}><ClientKetoTypeDetail /></ProtectedRoute>} />
           <Route path="/client/card-styles" element={<ProtectedRoute allowedRoles={["client", "trainer"]}><CardStylesPreview /></ProtectedRoute>} />
           <Route path="/client/workouts/:id" element={<Navigate to="/client/dashboard" replace />} />
