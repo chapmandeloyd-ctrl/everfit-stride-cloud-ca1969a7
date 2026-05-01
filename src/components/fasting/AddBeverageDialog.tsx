@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Camera, Barcode, Pencil, Loader2 } from "lucide-react";
+import { Camera, Barcode, Pencil, Loader2, Sparkles } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -30,20 +30,52 @@ interface Props {
 
 export function AddBeverageDialog({ open, onOpenChange, clientId, category }: Props) {
   const qc = useQueryClient();
-  const [mode, setMode] = useState<"choose" | "manual">("choose");
+  const [mode, setMode] = useState<"choose" | "ai" | "manual">("choose");
   const [showBarcode, setShowBarcode] = useState(false);
   const [showPhoto, setShowPhoto] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [aiQuery, setAiQuery] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
   const [form, setForm] = useState({ name: "", calories: 0, protein: 0, carbs: 0, fats: 0, source: "manual" as "manual" | "photo" | "barcode", barcode: "" });
 
   const reset = () => {
     setMode("choose");
+    setAiQuery("");
     setForm({ name: "", calories: 0, protein: 0, carbs: 0, fats: 0, source: "manual", barcode: "" });
   };
 
   const handleClose = (v: boolean) => {
     if (!v) reset();
     onOpenChange(v);
+  };
+
+  const handleAiLookup = async () => {
+    const q = aiQuery.trim();
+    if (!q) {
+      toast.error("Type a beverage name");
+      return;
+    }
+    setAiLoading(true);
+    const { data, error } = await supabase.functions.invoke("ai-beverage-lookup", {
+      body: { name: q },
+    });
+    setAiLoading(false);
+    if (error || !data?.nutrition) {
+      toast.error(error?.message || "AI lookup failed");
+      return;
+    }
+    const n = data.nutrition;
+    setForm({
+      name: n.name || q,
+      calories: Math.round(n.calories || 0),
+      protein: Math.round((n.protein || 0) * 10) / 10,
+      carbs: Math.round((n.carbs || 0) * 10) / 10,
+      fats: Math.round((n.fats || 0) * 10) / 10,
+      source: "manual",
+      barcode: "",
+    });
+    toast.success(`Found: ${n.name}${n.serving ? ` (${n.serving})` : ""}`);
+    setMode("manual");
   };
 
   const handleSave = async () => {
@@ -85,8 +117,11 @@ export function AddBeverageDialog({ open, onOpenChange, clientId, category }: Pr
 
           {mode === "choose" && (
             <div className="grid gap-3 mt-2">
+              <Button variant="outline" className="h-14 justify-start gap-3" onClick={() => setMode("ai")}>
+                <Sparkles className="h-5 w-5" /> Type name — AI fills nutrition
+              </Button>
               <Button variant="outline" className="h-14 justify-start gap-3" onClick={() => setMode("manual")}>
-                <Pencil className="h-5 w-5" /> Type it in
+                <Pencil className="h-5 w-5" /> Type it in manually
               </Button>
               <Button variant="outline" className="h-14 justify-start gap-3" onClick={() => setShowPhoto(true)}>
                 <Camera className="h-5 w-5" /> Snap a photo
@@ -94,6 +129,31 @@ export function AddBeverageDialog({ open, onOpenChange, clientId, category }: Pr
               <Button variant="outline" className="h-14 justify-start gap-3" onClick={() => setShowBarcode(true)}>
                 <Barcode className="h-5 w-5" /> Scan barcode
               </Button>
+            </div>
+          )}
+
+          {mode === "ai" && (
+            <div className="space-y-3 mt-2">
+              <div>
+                <Label htmlFor="ai-name">Beverage name</Label>
+                <Input
+                  id="ai-name"
+                  autoFocus
+                  value={aiQuery}
+                  onChange={(e) => setAiQuery(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter" && !aiLoading) handleAiLookup(); }}
+                  placeholder="e.g. Zero Pepsi, Celsius Peach, Xtend BCAA"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  AI will look up calories & macros for one standard serving. You can edit before saving.
+                </p>
+              </div>
+              <div className="flex gap-2 pt-2">
+                <Button variant="outline" className="flex-1" onClick={() => setMode("choose")} disabled={aiLoading}>Back</Button>
+                <Button className="flex-1" onClick={handleAiLookup} disabled={aiLoading}>
+                  {aiLoading ? <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Looking up…</> : <><Sparkles className="h-4 w-4 mr-2" /> Look up</>}
+                </Button>
+              </div>
             </div>
           )}
 
