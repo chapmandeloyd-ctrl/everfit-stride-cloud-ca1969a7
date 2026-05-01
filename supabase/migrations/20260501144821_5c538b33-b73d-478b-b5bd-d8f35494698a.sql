@@ -1,0 +1,1 @@
+ALTER TYPE beverage_category ADD VALUE IF NOT EXISTS 'zero_sugar_creamer';

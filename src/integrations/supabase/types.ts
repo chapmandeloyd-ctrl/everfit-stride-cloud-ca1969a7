@@ -10395,6 +10395,7 @@ export type Database = {
         | "tea_lemon_splenda"
         | "caution"
         | "breaks_fast"
+        | "zero_sugar_creamer"
       beverage_source: "manual" | "photo" | "barcode"
       client_status: "active" | "paused" | "pending"
       engine_mode: "metabolic" | "performance" | "athletic"
@@ -10554,6 +10555,7 @@ export const Constants = {
         "tea_lemon_splenda",
         "caution",
         "breaks_fast",
+        "zero_sugar_creamer",
       ],
       beverage_source: ["manual", "photo", "barcode"],
       client_status: ["active", "paused", "pending"],
