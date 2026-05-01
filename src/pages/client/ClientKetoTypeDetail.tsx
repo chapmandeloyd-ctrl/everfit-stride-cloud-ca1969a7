@@ -11,7 +11,8 @@ import { KetoTypeDetailView } from "@/components/keto/KetoTypeDetailView";
 
 // Brand gold — keto type detail uses gold theming to align with the
 // protocol/keto pairing experience (overrides any per-type color from DB).
-const GOLD = "#D4AF37";
+// Brand signature gold — matches --ring-fasting: hsl(43, 65%, 52%)
+const GOLD = "#D9A82E";
 
 interface KetoType {
   id: string;
