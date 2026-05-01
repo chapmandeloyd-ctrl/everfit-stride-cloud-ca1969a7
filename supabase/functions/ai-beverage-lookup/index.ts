@@ -30,7 +30,7 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `You are a beverage & supplement nutrition database. Return what is printed on the official Nutrition Facts / Supplement Facts label for ONE standard serving.
+            content: `You are a beverage & supplement nutrition database. Return EVERYTHING printed on the official Nutrition Facts / Supplement Facts label for ONE standard serving.
 
 CRITICAL RULES:
 1. Report EXACTLY what the label states. Do NOT compute macros from ingredients.
@@ -40,15 +40,20 @@ CRITICAL RULES:
 5. Black coffee (8 oz): ~2 cal, 0/0/0. Tea: ~2 cal, 0/0/0.
 6. Standard servings: soda 12 fl oz can, energy drink 12–16 fl oz can, BCAA 1 scoop (~12.5g), coffee/tea 8 fl oz.
 
-ALSO RETURN (when present on the label):
-- Electrolytes in mg: sodium, potassium, magnesium, calcium
-- Caffeine in mg
-- Sugar (g), added sugar (g), fiber (g)
-- Vitamins (e.g. B6, B12, C) with amount + unit
-- Free-form amino acids in mg (L-Leucine, L-Glutamine, L-Isoleucine, L-Valine, L-Citrulline, etc.) — these go in 'aminos', NOT in protein.
-- Anything else notable (taurine, glucuronolactone, beta-alanine, etc.) under 'other'.
+YOU MUST ALWAYS POPULATE these fields (use 0 or empty array when absent — NEVER omit):
+- electrolytes: { sodium_mg, potassium_mg, magnesium_mg, calcium_mg } — all 4 keys, use 0 if not on label
+- caffeine_mg: number, 0 if none
+- sugar_g, added_sugar_g, fiber_g: numbers, 0 if not listed
+- vitamins: array of {name, amount, unit, dv_pct?} — [] if none
+- aminos: array of {name, amount_mg} for free-form amino acids (L-Leucine, L-Glutamine, L-Isoleucine, L-Valine, L-Citrulline, taurine if free-form, etc.) — [] if none. These do NOT count as protein.
+- other: array of {name, amount, unit} for taurine, beta-alanine, glucuronolactone, electrolyte blends, etc. — [] if none
 
-Use 0 / null / [] when something isn't on the label. If unsure of the exact brand, give the typical value for that product CATEGORY based on the rules above — never invent protein for a BCAA.`,
+SPECIFIC EXAMPLES YOU MUST MATCH:
+- Xtend BCAA Original (1 scoop ~13.5g): aminos = [{L-Leucine, 3500}, {L-Glutamine, 2500}, {L-Isoleucine, 1750}, {L-Valine, 1750}, {L-Citrulline Malate, 1000}]; electrolytes = {sodium_mg: 220, potassium_mg: 220, magnesium_mg: 0, calcium_mg: 0}; vitamins = [{B6, 0.64, mg, 50}]; other = []. Calories 0, protein 0, carbs 0, fat 0.
+- Celsius Original 12oz: caffeine_mg 200; vitamins include B-vitamins + Vitamin C; other includes Taurine, Guarana, Ginger, Glucuronolactone.
+- Diet Coke 12oz: caffeine_mg 46; sodium_mg 40; everything else 0/[].
+
+If unsure of the exact brand, give the typical value for that product CATEGORY — but NEVER invent protein for a BCAA, and NEVER return empty electrolytes/vitamins/aminos arrays for known products like Xtend.`,
           },
           { role: "user", content: `Beverage: ${name.trim()}${category ? `\nCategory hint: ${category}` : ""}` },
         ],
