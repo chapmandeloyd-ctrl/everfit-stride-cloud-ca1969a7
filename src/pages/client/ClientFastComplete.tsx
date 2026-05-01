@@ -90,10 +90,6 @@ export default function ClientFastComplete() {
     navigate("/client/dashboard", { replace: true });
   }, [navigate, shouldBlockFastComplete]);
 
-  if (shouldBlockFastComplete) {
-    return null;
-  }
-
   // Keto type
   const { data: ketoType } = useQuery({
     queryKey: ["fast-complete-keto", clientId],
@@ -131,6 +127,10 @@ export default function ClientFastComplete() {
   const eatingEnd = settings?.eating_window_ends_at
     ? format(new Date(settings.eating_window_ends_at), "h:mm a")
     : null;
+
+  if (shouldBlockFastComplete) {
+    return null;
+  }
 
   return (
     <ClientLayout>
