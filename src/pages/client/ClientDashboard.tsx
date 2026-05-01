@@ -2889,7 +2889,8 @@ export default function ClientDashboard() {
                             queryClient.invalidateQueries({ queryKey: ["fasting-gate-state"] });
                             queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting"] });
                             queryClient.invalidateQueries({ queryKey: ["today-fasting-log"] });
-                            navigate("/client/fast-complete");
+                            // Only show the celebratory "Fast Complete" screen on a true completion.
+                            if (!endedEarly) navigate("/client/fast-complete");
                           }}>
                             End Fast
                           </Button>
