@@ -30,7 +30,7 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: "You are a beverage nutrition database. Given a beverage name (often a brand like 'Zero Pepsi', 'Celsius Peach Vibe', 'Xtend BCAA Mango'), return its nutrition for ONE standard serving (typical can/bottle size: soda 12oz, energy drink 12-16oz, BCAA 1 scoop, coffee/tea 8oz). Be accurate based on widely known label data. If unsure of brand, return your best estimate for the category.",
+            content: "You are a beverage & supplement nutrition database. Given a name (often a brand like 'Zero Pepsi', 'Celsius Peach Vibe', 'Xtend BCAA Mango', 'Scivation Xtend'), return nutrition for ONE standard serving (soda: 12 fl oz can; energy drink: 12-16 fl oz can; BCAA powder: 1 scoop ~12.5g; black coffee: 8 fl oz; tea: 8 fl oz). Use widely-known Supplement Facts / Nutrition Facts label data. IMPORTANT: BCAAs and most zero-calorie drinks have 0 calories, 0 protein, 0 carbs, 0 fat on the label even though amino acids technically contain nitrogen — report what the label says (usually all zeros for Xtend, Scivation, Celsius, Diet Coke, etc.). Do NOT count BCAA amino acid mg as protein grams. If the brand is unknown, give a typical estimate for the category.",
           },
           { role: "user", content: `Beverage: ${name.trim()}` },
         ],
