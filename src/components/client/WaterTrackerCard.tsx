@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Plus, Minus, Droplet, Star, Trophy, Settings, X } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -163,52 +163,8 @@ export function WaterTrackerCard() {
     previousProgressRef.current = progress;
   }, [progress, hasCelebrated, celebrationStorageKey]);
 
-  useEffect(() => {
-    if (!clientId || !overflowRepairPlan || repairingOverflow) return;
-    if (lastRepairSignatureRef.current === overflowRepairPlan.signature) return;
-
-    lastRepairSignatureRef.current = overflowRepairPlan.signature;
-
-    console.warn("[💧water] 🔧 overflow repair plan executing — entries will be trimmed/deleted:", overflowRepairPlan);
-
-    const repairOverflow = async () => {
-      setRepairingOverflow(true);
-
-      try {
-        if (overflowRepairPlan.updateEntry && overflowRepairPlan.updateEntry.amountOz > 0) {
-          const { error: updateError } = await supabase
-            .from("water_log_entries")
-            .update({ amount_oz: overflowRepairPlan.updateEntry.amountOz })
-            .eq("id", overflowRepairPlan.updateEntry.id);
-
-          if (updateError) throw updateError;
-        }
-
-        if (overflowRepairPlan.deleteIds.length > 0) {
-          const { error: deleteError } = await supabase
-            .from("water_log_entries")
-            .delete()
-            .in("id", overflowRepairPlan.deleteIds);
-
-          if (deleteError) throw deleteError;
-        }
-
-        queryClient.invalidateQueries({ queryKey: ["water-log-today", clientId] });
-        queryClient.invalidateQueries({ queryKey: ["daily-rings", clientId] });
-      } catch {
-        lastRepairSignatureRef.current = null;
-        toast.error("Couldn't repair today's water total");
-      } finally {
-        setRepairingOverflow(false);
-      }
-    };
-
-    void repairOverflow();
-  }, [clientId, overflowRepairPlan, queryClient, repairingOverflow]);
-
   const handleAdd = async (amount = servingOz) => {
     if (!clientId) return;
-    if (repairingOverflow) return;
     if (atGoal || remainingOz <= 0) {
       toast("Goal already reached for today 🎉");
       return;
@@ -231,7 +187,7 @@ export function WaterTrackerCard() {
   };
 
   const handleUndo = async () => {
-    if (!lastEntry || repairingOverflow) return;
+    if (!lastEntry) return;
     triggerPulse("remove");
     const { error } = await supabase
       .from("water_log_entries")
