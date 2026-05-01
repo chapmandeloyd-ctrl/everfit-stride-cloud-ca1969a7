@@ -1000,6 +1000,7 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
           />
         </CardContent>
         </Card>
+        {clientId && <BeveragesTodayCard clientId={clientId} />}
       </div>
     );
   }
