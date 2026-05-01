@@ -1469,6 +1469,7 @@ export default function ClientDashboard() {
   const { settings, isLoading: settingsLoading } = useClientFeatureSettings();
   const { config: engineConfig } = useEngineMode();
   const { toast } = useToast();
+  const [openEndFastFlowSignal, setOpenEndFastFlowSignal] = useState(0);
   const { cards: layoutCards, isLoading: layoutLoading } = useDashboardLayoutClient();
   const { data: streakData } = useConsistencyStreak();
 
@@ -2666,7 +2667,7 @@ export default function ClientDashboard() {
             case "fasting":
               return settings.fasting_enabled && !engineConfig.fastingDisabled && !isViewingOtherDay ? (
                 <div key="fasting" className="space-y-3">
-                  <FastingProtocolCard clientId={clientId} navigate={navigate} />
+                  <FastingProtocolCard clientId={clientId} navigate={navigate} openEndFastFlowSignal={openEndFastFlowSignal} />
                   {dashRecentFastLog && (
                     <FastingStatusCard
                       actualHours={dashRecentFastLog.actual_hours}
@@ -2894,6 +2895,7 @@ export default function ClientDashboard() {
                           <Button variant="outline" size="sm" className="w-full" onClick={(e) => {
                             e.stopPropagation();
                             document.getElementById("fasting-protocol-card")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                            setOpenEndFastFlowSignal((prev) => prev + 1);
                           }}>
                             End Fast
                           </Button>
