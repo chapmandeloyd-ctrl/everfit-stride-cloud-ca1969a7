@@ -241,7 +241,7 @@ export default function ClientKetoTypeDetail() {
         mode="needs-other"
         onPickOther={() => {
           setPairDialogOpen(false);
-          navigate("/client/choose-protocol");
+          navigate("/client/programs");
         }}
         onViewPaired={() => {
           setPairDialogOpen(false);

@@ -76,7 +76,7 @@ export function ProtocolCompletionDialog({
             className="w-full h-12 text-base"
             onClick={() => {
               onOpenChange(false);
-              navigate("/client/choose-protocol");
+              navigate("/client/programs");
             }}
           >
             Start Next Protocol <ChevronRight className="h-4 w-4 ml-1" />

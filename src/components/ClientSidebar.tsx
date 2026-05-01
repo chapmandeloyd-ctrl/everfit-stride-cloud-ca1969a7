@@ -42,6 +42,7 @@ const mainItems: MenuItem[] = [
     isVisible: (s) => s?.food_journal_enabled !== false && s?.meal_plan_type !== "none",
   },
   { title: "Nutrition Dashboard", url: "/client/nutrition-dashboard", icon: Activity, featureKey: "macros_enabled" },
+  { title: "Keto Types", url: "/client/keto-types", icon: Utensils, featureKey: "macros_enabled" },
   { title: "Messages", url: "/client/messages", icon: MessageSquare, featureKey: "messages_enabled" },
   { title: "Appointments", url: "/client/appointments", icon: CalendarClock },
 ];

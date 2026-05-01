@@ -3,7 +3,7 @@ import fastingCardBgGoldImg from "@/assets/fasting-timer-bg-gold.png";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Bell, Dumbbell, CheckCircle2, Circle, UtensilsCrossed, Footprints, ChevronRight, Smartphone, X, Plus, Pencil, Swords, Trophy, MapPin, Check, Activity, ScanBarcode, Camera, PenLine, MessageCircle, Clock, ArrowRight, CalendarDays, BarChart3, Droplet } from "lucide-react";
+import { Bell, Dumbbell, CheckCircle2, Circle, UtensilsCrossed, Footprints, ChevronRight, Smartphone, X, Plus, Pencil, Swords, Trophy, MapPin, Check, Activity, ScanBarcode, Camera, PenLine, MessageCircle, Clock, ArrowRight, CalendarDays, BarChart3, Shield, Droplet } from "lucide-react";
 import { getDifficultyLabel, getDurationLabel } from "@/lib/fastingCategoryConfig";
 import { useAuth } from "@/hooks/useAuth";
 import { differenceInCalendarDays, isToday, isBefore, startOfDay, parseISO, format } from "date-fns";
@@ -791,7 +791,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
           <Button className="w-full h-12 text-base" onClick={() => startFastMutation.mutate()}>
             <Clock className="h-4 w-4 mr-2" /> Start Fast
           </Button>
-          <Button variant="ghost" size="sm" className="w-full text-xs" onClick={() => navigate("/client/choose-protocol")}>
+          <Button variant="ghost" size="sm" className="w-full text-xs" onClick={() => navigate("/client/programs")}>
             Start a new protocol
           </Button>
         </CardContent>
@@ -870,7 +870,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
           <Button className="w-full h-12 text-base" onClick={() => startFastMutation.mutate()}>
             <Clock className="h-4 w-4 mr-2" /> Start Fast
           </Button>
-          <Button variant="ghost" size="sm" className="w-full text-xs" onClick={() => navigate("/client/choose-protocol")}>
+          <Button variant="ghost" size="sm" className="w-full text-xs" onClick={() => navigate("/client/programs")}>
             Start a new protocol
           </Button>
         </CardContent>
@@ -1395,46 +1395,51 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
             View Your Assigned Program
           </Button>
 
-          {/* Gold pills — quick links to the individual protocol & keto type detail pages */}
-          {(activeProtocol || activeKetoType) && (
-            <div className="flex flex-wrap gap-2 pt-1">
-              {activeProtocol && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(`/client/protocol/${activeProtocol.id}`);
-                  }}
-                  className="text-[11px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border transition-colors"
-                  style={{
-                    backgroundColor: "hsl(43 65% 52% / 0.12)",
-                    borderColor: "hsl(43 65% 52% / 0.45)",
-                    color: "hsl(43 80% 65%)",
-                  }}
-                >
-                  View Protocol
-                </button>
-              )}
-              {activeKetoType && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(`/client/keto-types/${activeKetoType.id}`);
-                  }}
-                  className="text-[11px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border transition-colors"
-                  style={{
-                    backgroundColor: "hsl(43 65% 52% / 0.12)",
-                    borderColor: "hsl(43 65% 52% / 0.45)",
-                    color: "hsl(43 80% 65%)",
-                  }}
-                >
-                  View Keto Type
-                </button>
-              )}
-            </div>
-          )}
+          {/* Gold pills — View Protocol + View Keto Type. Always present.
+              If admin has an assignment, they deep-link to the assigned detail page
+              (with big-numbers gold lion layout). Otherwise they open the browse
+              library where every card is locked except the assigned one. */}
+          {(() => {
+            const isLocked = !!featureSettings?.lock_client_plan_choice;
+            // Always open the full library so the client sees every card
+            // (assigned card highlighted, others locked when admin enforces it).
+            const protocolHref = "/client/fasting-plans-preview";
+            const ketoHref = activeKetoType?.id
+              ? `/client/keto-types/${activeKetoType.id}`
+              : "/client/keto-types";
 
+            const PillButton = ({
+              label,
+              onClick,
+            }: {
+              label: string;
+              onClick: () => void;
+            }) => (
+              <button
+                type="button"
+                onClick={onClick}
+                className="flex-1 h-8 rounded-full px-3 inline-flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wide bg-gradient-to-b from-amber-300 via-yellow-400 to-amber-600 text-black shadow-[0_1px_6px_-1px_rgba(251,191,36,0.5)] ring-1 ring-amber-300/70 hover:brightness-110 active:scale-[0.98] transition"
+              >
+                {isLocked && <Shield className="h-3 w-3" />}
+                {label}
+              </button>
+            );
+
+            return (
+              <div className="space-y-2">
+                {isLocked && (
+                  <div className="flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-300/90">
+                    <Shield className="h-3 w-3" />
+                    Locked by your coach
+                  </div>
+                )}
+                <div className="flex items-center justify-between gap-2">
+                  <PillButton label="View Protocol" onClick={() => navigate(protocolHref)} />
+                  <PillButton label="View Keto Type" onClick={() => navigate(ketoHref)} />
+                </div>
+              </div>
+            );
+          })()}
         </CardContent>
       </Card>
 
@@ -2898,7 +2903,7 @@ export default function ClientDashboard() {
                       ) : mealGateStatus === "strict_locked" ? (
                         <div className="mt-4 p-3 rounded-lg bg-muted/50 text-center space-y-2">
                           <p className="text-xs text-muted-foreground font-medium">Start a fast to open your eating window.</p>
-                          <Button variant="outline" size="sm" className="w-full gap-1" onClick={(e) => { e.stopPropagation(); navigate("/client/choose-protocol"); }}>
+                          <Button variant="outline" size="sm" className="w-full gap-1" onClick={(e) => { e.stopPropagation(); navigate("/client/programs"); }}>
                             <Clock className="h-3.5 w-3.5" /> Start Fast
                           </Button>
                         </div>

@@ -89,7 +89,7 @@ export function ProgramsSelector({ navigate }: { navigate: (path: string) => voi
           </div>
           <button
             className="text-sm font-semibold text-primary flex items-center gap-1"
-            onClick={() => navigate("/client/choose-protocol")}
+            onClick={() => navigate("/client/programs")}
           >
             View All <ChevronRight className="h-4 w-4" />
           </button>
