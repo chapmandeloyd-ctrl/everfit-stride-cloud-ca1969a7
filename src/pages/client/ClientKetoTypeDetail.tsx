@@ -9,8 +9,6 @@ import { toast } from "sonner";
 import { ClientLayout } from "@/components/ClientLayout";
 import { KetoTypeDetailView } from "@/components/keto/KetoTypeDetailView";
 
-interface KetoType {
-
 // Brand gold — keto type detail uses gold theming to align with the
 // protocol/keto pairing experience (overrides any per-type color from DB).
 const GOLD = "#D4AF37";
