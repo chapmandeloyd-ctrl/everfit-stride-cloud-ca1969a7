@@ -1759,6 +1759,54 @@ export default function ClientFastingPlanDetailPreview() {
 
       <Hero plan={plan} />
       <EatingWindow plan={plan} times={times} onTimesChange={setTimes} />
+
+      {/* Fixed bottom CTA — mirrors Keto Type detail */}
+      <div
+        className="fixed bottom-0 left-0 right-0 p-4 backdrop-blur border-t z-20"
+        style={{ background: `${BLACK}f2`, borderColor: `${GOLD}22` }}
+      >
+        {isActivePlan ? (
+          <div
+            className="w-full h-14 rounded-lg flex items-center justify-center text-base font-bold"
+            style={{
+              backgroundColor: `${GOLD}12`,
+              color: GOLD,
+              border: `1px solid ${GOLD}30`,
+            }}
+          >
+            This is your current protocol
+          </div>
+        ) : (
+          <button
+            className="w-full h-14 rounded-lg text-base font-bold disabled:opacity-60"
+            style={{ backgroundColor: GOLD, color: BLACK }}
+            onClick={() => setProtocolMutation.mutate()}
+            disabled={setProtocolMutation.isPending || !planId}
+          >
+            {setProtocolMutation.isPending
+              ? "Setting..."
+              : `Set ${plan.name}`}
+          </button>
+        )}
+      </div>
+
+      <PairRequiredDialog
+        open={pairDialogOpen}
+        onOpenChange={setPairDialogOpen}
+        justSet="protocol"
+        justSetLabel={plan.name}
+        otherLabel={ketoLabel}
+        mode={hasKeto ? "ready-paired" : "needs-other"}
+        onPickOther={() => {
+          setPairDialogOpen(false);
+          navigate("/client/keto-types");
+        }}
+        onViewPaired={() => {
+          setPairDialogOpen(false);
+          navigate("/client/complete-plan");
+        }}
+        onSaveForLater={() => setPairDialogOpen(false)}
+      />
     </div>
   );
 }
