@@ -44,6 +44,21 @@ export function BeveragesTodayCard({ clientId }: Props) {
   const totalCal = logs.reduce((s: number, l: any) => s + Number(l.calories || 0), 0);
   const broke = logs.some((l: any) => l.broke_fast);
 
+  // Aggregate electrolyte + caffeine totals from details JSON
+  const totals = logs.reduce(
+    (acc: any, l: any) => {
+      const d = l.details || {};
+      const e = d.electrolytes || {};
+      acc.sodium += Number(e.sodium_mg) || 0;
+      acc.potassium += Number(e.potassium_mg) || 0;
+      acc.magnesium += Number(e.magnesium_mg) || 0;
+      acc.caffeine += Number(d.caffeine_mg) || 0;
+      return acc;
+    },
+    { sodium: 0, potassium: 0, magnesium: 0, caffeine: 0 }
+  );
+  const hasElec = totals.sodium || totals.potassium || totals.magnesium || totals.caffeine;
+
   return (
     <div className="rounded-2xl border border-white/15 bg-white/5 backdrop-blur-sm p-3 space-y-2">
       <div className="flex items-center justify-between">
@@ -71,6 +86,30 @@ export function BeveragesTodayCard({ clientId }: Props) {
           </div>
         ))}
       </div>
+      {hasElec ? (
+        <div className="pt-2 border-t border-white/10 flex flex-wrap gap-1.5">
+          {totals.sodium > 0 && (
+            <span className="px-1.5 py-0.5 rounded bg-white/10 text-[10px] font-semibold text-white/90">
+              Na {Math.round(totals.sodium)}mg
+            </span>
+          )}
+          {totals.potassium > 0 && (
+            <span className="px-1.5 py-0.5 rounded bg-white/10 text-[10px] font-semibold text-white/90">
+              K {Math.round(totals.potassium)}mg
+            </span>
+          )}
+          {totals.magnesium > 0 && (
+            <span className="px-1.5 py-0.5 rounded bg-white/10 text-[10px] font-semibold text-white/90">
+              Mg {Math.round(totals.magnesium)}mg
+            </span>
+          )}
+          {totals.caffeine > 0 && (
+            <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-[10px] font-semibold text-amber-200">
+              ☕ {Math.round(totals.caffeine)}mg
+            </span>
+          )}
+        </div>
+      ) : null}
     </div>
   );
 }
