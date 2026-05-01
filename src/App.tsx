@@ -84,7 +84,6 @@ import ClientCardioPlayer from "./pages/client/ClientCardioPlayer";
 import ClientWodBuilder from "./pages/client/ClientWodBuilder";
 import ClientAppointments from "./pages/client/ClientAppointments";
 import ClientRecipeDetail from "./pages/client/ClientRecipeDetail";
-import ClientPrograms from "./pages/client/ClientPrograms";
 import ClientChooseProtocol from "./pages/client/ClientChooseProtocol";
 import ClientBeginReset from "./pages/client/ClientBeginReset";
 import ClientQuickPlans from "./pages/client/ClientQuickPlans";
@@ -117,7 +116,6 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import GuardianSummary from "./pages/GuardianSummary";
 import StudioProgramDetail from "./pages/StudioProgramDetail";
 import KetoTypesManager from "./pages/KetoTypesManager";
-import ClientKetoTypes from "./pages/client/ClientKetoTypes";
 import ClientKetoTypeDetail from "./pages/client/ClientKetoTypeDetail";
 import ClientGroceryList from "./pages/client/ClientGroceryList";
 import CardStylesPreview from "./pages/client/CardStylesPreview";
@@ -232,7 +230,7 @@ const App = () => (
           <Route path="/client/macro-setup" element={<Navigate to="/client/dashboard" replace />} />
           <Route path="/client/log-meal" element={<Navigate to="/client/dashboard" replace />} />
           <Route path="/client/recipes/:id" element={<Navigate to="/client/dashboard" replace />} />
-          <Route path="/client/keto-types" element={<ProtectedRoute allowedRoles={["client"]}><ClientKetoTypes /></ProtectedRoute>} />
+          <Route path="/client/keto-types" element={<Navigate to="/client/complete-plan" replace />} />
           <Route path="/client/keto-types/:id" element={<ProtectedRoute allowedRoles={["client"]}><ClientKetoTypeDetail /></ProtectedRoute>} />
           <Route path="/client/card-styles" element={<ProtectedRoute allowedRoles={["client", "trainer"]}><CardStylesPreview /></ProtectedRoute>} />
           <Route path="/client/workouts/:id" element={<Navigate to="/client/dashboard" replace />} />
@@ -244,7 +242,7 @@ const App = () => (
           <Route path="/client/cardio-player" element={<Navigate to="/client/dashboard" replace />} />
           <Route path="/client/wod-builder" element={<Navigate to="/client/dashboard" replace />} />
           <Route path="/client/my-workouts" element={<Navigate to="/client/dashboard" replace />} />
-          <Route path="/client/programs" element={<ProtectedRoute allowedRoles={["client"]}><FastingRouteGuard><ClientPrograms /></FastingRouteGuard></ProtectedRoute>} />
+          <Route path="/client/programs" element={<Navigate to="/client/choose-protocol" replace />} />
           <Route path="/client/choose-protocol" element={<ProtectedRoute allowedRoles={["client"]}><ClientChooseProtocol /></ProtectedRoute>} />
           <Route path="/client/begin-reset" element={<ProtectedRoute allowedRoles={["client"]}><ClientFastingPlansPreview /></ProtectedRoute>} />
           <Route path="/client/quick-plans" element={<ProtectedRoute allowedRoles={["client"]}><FastingRouteGuard><ClientQuickPlans /></FastingRouteGuard></ProtectedRoute>} />

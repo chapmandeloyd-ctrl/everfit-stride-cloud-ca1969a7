@@ -187,7 +187,7 @@ export default function ClientQuickPlanDetail() {
       <div className="pb-8 w-full">
         {/* Back + Title */}
         <div className="px-4 pt-4 pb-2 flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/client/programs")}>
+          <Button variant="ghost" size="icon" onClick={() => navigate("/client/choose-protocol")}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>

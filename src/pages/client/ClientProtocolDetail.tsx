@@ -140,7 +140,7 @@ export default function ClientProtocolDetail() {
       <div className="pb-24 w-full">
         {/* Back button */}
         <div className="px-3 pt-4 pb-2">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/client/programs")}>
+          <Button variant="ghost" size="icon" onClick={() => navigate("/client/choose-protocol")}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
         </div>
