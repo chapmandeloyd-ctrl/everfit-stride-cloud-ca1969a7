@@ -930,6 +930,8 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
             </button>
           </div>
 
+          <BeveragesTodayCard clientId={clientId} />
+
           <div className="pt-1">
             {featureSettings.fast_lock_pin ? (
               <HoldToEndButton onHoldComplete={() => setShowVerifyPin(true)} />
@@ -992,7 +994,12 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
             onEndSkipFuel={(meta) => endFastSkipFuelMutation.mutate(meta)}
           />
 
-          <WhatCanIDrinkSheet open={showWhatCanIDrink} onOpenChange={setShowWhatCanIDrink} />
+          <WhatCanIDrinkSheet
+            open={showWhatCanIDrink}
+            onOpenChange={setShowWhatCanIDrink}
+            clientId={clientId}
+            activeFastStartAt={featureSettings.active_fast_start_at}
+          />
         </CardContent>
         </Card>
       </div>
