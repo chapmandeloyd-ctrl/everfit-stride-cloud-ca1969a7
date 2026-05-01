@@ -37,11 +37,13 @@ export function AddBeverageDialog({ open, onOpenChange, clientId, category }: Pr
   const [aiQuery, setAiQuery] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [form, setForm] = useState({ name: "", calories: 0, protein: 0, carbs: 0, fats: 0, source: "manual" as "manual" | "photo" | "barcode", barcode: "" });
+  const [details, setDetails] = useState<Record<string, any>>({});
 
   const reset = () => {
     setMode("choose");
     setAiQuery("");
     setForm({ name: "", calories: 0, protein: 0, carbs: 0, fats: 0, source: "manual", barcode: "" });
+    setDetails({});
   };
 
   const handleClose = (v: boolean) => {
@@ -74,6 +76,17 @@ export function AddBeverageDialog({ open, onOpenChange, clientId, category }: Pr
       source: "manual",
       barcode: "",
     });
+    setDetails({
+      serving: n.serving || null,
+      electrolytes: n.electrolytes || {},
+      caffeine_mg: n.caffeine_mg ?? 0,
+      sugar_g: n.sugar_g ?? 0,
+      added_sugar_g: n.added_sugar_g ?? 0,
+      fiber_g: n.fiber_g ?? 0,
+      vitamins: n.vitamins || [],
+      aminos: n.aminos || [],
+      other: n.other || [],
+    });
     toast.success(`Found: ${n.name}${n.serving ? ` (${n.serving})` : ""}`);
     setMode("manual");
   };
@@ -95,6 +108,7 @@ export function AddBeverageDialog({ open, onOpenChange, clientId, category }: Pr
       fats: form.fats,
       source: form.source,
       barcode: form.barcode || null,
+      details,
     });
     setSaving(false);
     if (error) {
