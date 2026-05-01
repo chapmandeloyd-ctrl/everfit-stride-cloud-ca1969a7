@@ -1656,6 +1656,50 @@ export default function ClientFastingPlanDetailPreview() {
   const [times, setTimes] = useState(preferredTimes);
   const lastPersistedTimesRef = useRef(preferredTimes);
 
+  const [pairDialogOpen, setPairDialogOpen] = useState(false);
+
+  const isActivePlan =
+    !!planId &&
+    ((planType === "program" && featureSettings?.selected_protocol_id === planId) ||
+      (planType === "quick" && featureSettings?.selected_quick_plan_id === planId));
+
+  const hasKeto = !!ketoAssignment?.keto_type_id;
+  const ketoLabel = assignedKeto ? `${assignedKeto.abbreviation} — ${assignedKeto.name}` : null;
+
+  const setProtocolMutation = useMutation({
+    mutationFn: async () => {
+      if (!clientId) throw new Error("Not signed in");
+      if (!planId) throw new Error("No plan selected");
+      const updates: Record<string, unknown> = {
+        preferred_eating_window_opens_at: uiTimeToSqlTime(times.opensAt),
+        preferred_eating_window_closes_at: uiTimeToSqlTime(times.closesAt),
+      };
+      if (planType === "quick") {
+        updates.selected_quick_plan_id = planId;
+        updates.selected_protocol_id = null;
+        updates.protocol_start_date = null;
+      } else {
+        updates.selected_protocol_id = planId;
+        updates.selected_quick_plan_id = null;
+        updates.protocol_start_date = new Date().toISOString().slice(0, 10);
+      }
+      const { error } = await supabase
+        .from("client_feature_settings")
+        .update(updates)
+        .eq("client_id", clientId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["my-feature-settings", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["fasting-detail-feature-settings", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["fasting-gate-state"] });
+      toast.success(`${plan.name} set as your fasting protocol`);
+      setPairDialogOpen(true);
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Could not save protocol"),
+  });
+
   useEffect(() => {
     setTimes(preferredTimes);
     lastPersistedTimesRef.current = preferredTimes;
