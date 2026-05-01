@@ -57,7 +57,7 @@ export function AddBeverageDialog({ open, onOpenChange, clientId, category }: Pr
     }
     setAiLoading(true);
     const { data, error } = await supabase.functions.invoke("ai-beverage-lookup", {
-      body: { name: q },
+      body: { name: q, category: ALL_CATEGORIES[category]?.label },
     });
     setAiLoading(false);
     if (error || !data?.nutrition) {
