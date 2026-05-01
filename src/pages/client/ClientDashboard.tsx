@@ -930,8 +930,6 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
             </button>
           </div>
 
-          <BeveragesTodayCard clientId={clientId} />
-
           <div className="pt-1">
             {featureSettings.fast_lock_pin ? (
               <HoldToEndButton onHoldComplete={() => setShowVerifyPin(true)} />
@@ -2643,6 +2641,7 @@ export default function ClientDashboard() {
               return settings.fasting_enabled && !engineConfig.fastingDisabled && !isViewingOtherDay ? (
                 <div key="fasting" className="space-y-3">
                   <FastingProtocolCard clientId={clientId} navigate={navigate} />
+                  <BeveragesTodayCard clientId={clientId} />
                   {dashRecentFastLog && (
                     <FastingStatusCard
                       actualHours={dashRecentFastLog.actual_hours}

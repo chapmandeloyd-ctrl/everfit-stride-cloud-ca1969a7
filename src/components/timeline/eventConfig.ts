@@ -77,6 +77,7 @@ const TYPE_DEFAULT_ICON: Record<string, keyof typeof ICON_MAP> = {
   eating_window_opened: "utensils",
   eating_window_closed: "coffee",
   meal_logged: "utensils",
+  beverage_logged: "coffee",
   workout_started: "dumbbell",
   workout_completed: "dumbbell",
   weighin_logged: "scale",
