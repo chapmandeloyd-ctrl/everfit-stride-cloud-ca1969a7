@@ -121,16 +121,8 @@ export function useMealEngineState(): MealEngineState {
           }
         }
       } else {
-        // No window end set, use hours-based logic
-        const hoursSinceFastEnd = (now.getTime() - lastFastEnded.getTime()) / 3600000;
-        const windowHours = settings?.eating_window_hours || 8;
-        if (hoursSinceFastEnd <= 0.5) {
-          fasting_state = "break_fast_triggered";
-        } else if (hoursSinceFastEnd >= windowHours - 1) {
-          fasting_state = "eating_window_closing";
-        } else if (hoursSinceFastEnd < windowHours) {
-          fasting_state = "eating_window_open";
-        }
+        // No eating window is active. This covers early-ended fasts and explicit skip-Fuel flows.
+        fasting_state = "idle";
       }
     }
   }
