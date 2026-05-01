@@ -791,7 +791,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
           <Button className="w-full h-12 text-base" onClick={() => startFastMutation.mutate()}>
             <Clock className="h-4 w-4 mr-2" /> Start Fast
           </Button>
-          <Button variant="ghost" size="sm" className="w-full text-xs" onClick={() => navigate("/client/programs")}>
+          <Button variant="ghost" size="sm" className="w-full text-xs" onClick={() => navigate("/client/choose-protocol")}>
             Start a new protocol
           </Button>
         </CardContent>
@@ -870,7 +870,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
           <Button className="w-full h-12 text-base" onClick={() => startFastMutation.mutate()}>
             <Clock className="h-4 w-4 mr-2" /> Start Fast
           </Button>
-          <Button variant="ghost" size="sm" className="w-full text-xs" onClick={() => navigate("/client/programs")}>
+          <Button variant="ghost" size="sm" className="w-full text-xs" onClick={() => navigate("/client/choose-protocol")}>
             Start a new protocol
           </Button>
         </CardContent>
@@ -2903,7 +2903,7 @@ export default function ClientDashboard() {
                       ) : mealGateStatus === "strict_locked" ? (
                         <div className="mt-4 p-3 rounded-lg bg-muted/50 text-center space-y-2">
                           <p className="text-xs text-muted-foreground font-medium">Start a fast to open your eating window.</p>
-                          <Button variant="outline" size="sm" className="w-full gap-1" onClick={(e) => { e.stopPropagation(); navigate("/client/programs"); }}>
+                          <Button variant="outline" size="sm" className="w-full gap-1" onClick={(e) => { e.stopPropagation(); navigate("/client/choose-protocol"); }}>
                             <Clock className="h-3.5 w-3.5" /> Start Fast
                           </Button>
                         </div>
