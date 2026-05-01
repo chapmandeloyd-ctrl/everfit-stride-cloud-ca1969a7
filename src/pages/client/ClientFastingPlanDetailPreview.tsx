@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
+import { PairRequiredDialog } from "@/components/client/PairRequiredDialog";
 
 /**
  * Editorial Black & Gold — Fasting Plan Detail (TOP HALF).
