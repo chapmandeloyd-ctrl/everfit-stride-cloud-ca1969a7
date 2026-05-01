@@ -1420,7 +1420,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    navigate(`/client/keto-type/${activeKetoType.id}`);
+                    navigate(`/client/keto-types/${activeKetoType.id}`);
                   }}
                   className="text-[11px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border transition-colors"
                   style={{
