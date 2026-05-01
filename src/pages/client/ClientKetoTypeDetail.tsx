@@ -142,6 +142,11 @@ export default function ClientKetoTypeDetail() {
     );
   }
 
+  // Force gold theme for the standalone keto type view to match the
+  // protocol pairing aesthetic (overrides per-type DB colors).
+  const themedKetoType = { ...ketoType, color: GOLD };
+  const themedAllTypes = (allTypes || []).map((t) => ({ ...t, color: GOLD }));
+
   return (
     <ClientLayout>
       <div className="px-3 pt-4 pb-32 space-y-4 w-full">
@@ -156,8 +161,8 @@ export default function ClientKetoTypeDetail() {
 
         {/* Shared detail view */}
         <KetoTypeDetailView
-          ketoType={ketoType}
-          allTypes={allTypes || []}
+          ketoType={themedKetoType}
+          allTypes={themedAllTypes}
           isActive={isActive}
         />
 
@@ -169,9 +174,9 @@ export default function ClientKetoTypeDetail() {
           <div
             className="w-full h-14 rounded-lg flex items-center justify-center text-base font-bold"
             style={{
-              backgroundColor: `${ketoType.color}12`,
-              color: ketoType.color,
-              border: `1px solid ${ketoType.color}30`,
+              backgroundColor: `${GOLD}12`,
+              color: GOLD,
+              border: `1px solid ${GOLD}30`,
             }}
           >
             This is your current keto type
@@ -179,7 +184,7 @@ export default function ClientKetoTypeDetail() {
         ) : (
           <Button
             className="w-full h-14 text-base font-bold text-white"
-            style={{ backgroundColor: ketoType.color }}
+            style={{ backgroundColor: GOLD }}
             onClick={() => setActive.mutate()}
             disabled={setActive.isPending}
           >
