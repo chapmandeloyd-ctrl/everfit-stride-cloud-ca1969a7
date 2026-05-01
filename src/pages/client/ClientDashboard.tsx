@@ -71,6 +71,7 @@ import { MyProgressSection } from "@/components/MyProgressSection";
 import { EndFastEarlySheet } from "@/components/fasting/EndFastEarlySheet";
 import { EndEatingWindowEarlySheet } from "@/components/fasting/EndEatingWindowEarlySheet";
 import { WhatCanIDrinkSheet } from "@/components/fasting/WhatCanIDrinkSheet";
+import { BeveragesTodayCard } from "@/components/fasting/BeveragesTodayCard";
 import { SmartPaceBanner } from "@/components/smart-pace/SmartPaceBanner";
 import { SmartPaceCatchUpModal } from "@/components/smart-pace/SmartPaceCatchUpModal";
 import { MyWhyCard } from "@/components/goal-motivation/MyWhyCard";
@@ -929,6 +930,8 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
             </button>
           </div>
 
+          <BeveragesTodayCard clientId={clientId} />
+
           <div className="pt-1">
             {featureSettings.fast_lock_pin ? (
               <HoldToEndButton onHoldComplete={() => setShowVerifyPin(true)} />
@@ -991,7 +994,12 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
             onEndSkipFuel={(meta) => endFastSkipFuelMutation.mutate(meta)}
           />
 
-          <WhatCanIDrinkSheet open={showWhatCanIDrink} onOpenChange={setShowWhatCanIDrink} />
+          <WhatCanIDrinkSheet
+            open={showWhatCanIDrink}
+            onOpenChange={setShowWhatCanIDrink}
+            clientId={clientId}
+            activeFastStartAt={featureSettings.active_fast_start_at}
+          />
         </CardContent>
         </Card>
       </div>

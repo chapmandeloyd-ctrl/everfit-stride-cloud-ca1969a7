@@ -420,6 +420,62 @@ export type Database = {
         }
         Relationships: []
       }
+      beverage_logs: {
+        Row: {
+          beverage_id: string | null
+          broke_fast: boolean
+          calories: number
+          carbs: number
+          category: Database["public"]["Enums"]["beverage_category"]
+          client_id: string
+          consumed_at: string
+          created_at: string
+          fasting_log_id: string | null
+          fats: number
+          id: string
+          name: string
+          protein: number
+        }
+        Insert: {
+          beverage_id?: string | null
+          broke_fast?: boolean
+          calories?: number
+          carbs?: number
+          category: Database["public"]["Enums"]["beverage_category"]
+          client_id: string
+          consumed_at?: string
+          created_at?: string
+          fasting_log_id?: string | null
+          fats?: number
+          id?: string
+          name: string
+          protein?: number
+        }
+        Update: {
+          beverage_id?: string | null
+          broke_fast?: boolean
+          calories?: number
+          carbs?: number
+          category?: Database["public"]["Enums"]["beverage_category"]
+          client_id?: string
+          consumed_at?: string
+          created_at?: string
+          fasting_log_id?: string | null
+          fats?: number
+          id?: string
+          name?: string
+          protein?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "beverage_logs_beverage_id_fkey"
+            columns: ["beverage_id"]
+            isOneToOne: false
+            referencedRelation: "client_beverages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       billing_events: {
         Row: {
           amount: number | null
@@ -1084,6 +1140,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      client_beverages: {
+        Row: {
+          barcode: string | null
+          calories: number
+          carbs: number
+          category: Database["public"]["Enums"]["beverage_category"]
+          client_id: string
+          created_at: string
+          fats: number
+          id: string
+          image_url: string | null
+          name: string
+          protein: number
+          source: Database["public"]["Enums"]["beverage_source"]
+          updated_at: string
+        }
+        Insert: {
+          barcode?: string | null
+          calories?: number
+          carbs?: number
+          category: Database["public"]["Enums"]["beverage_category"]
+          client_id: string
+          created_at?: string
+          fats?: number
+          id?: string
+          image_url?: string | null
+          name: string
+          protein?: number
+          source?: Database["public"]["Enums"]["beverage_source"]
+          updated_at?: string
+        }
+        Update: {
+          barcode?: string | null
+          calories?: number
+          carbs?: number
+          category?: Database["public"]["Enums"]["beverage_category"]
+          client_id?: string
+          created_at?: string
+          fats?: number
+          id?: string
+          image_url?: string | null
+          name?: string
+          protein?: number
+          source?: Database["public"]["Enums"]["beverage_source"]
+          updated_at?: string
+        }
+        Relationships: []
       }
       client_collection_access: {
         Row: {
@@ -10277,6 +10381,15 @@ export type Database = {
       }
     }
     Enums: {
+      beverage_category:
+        | "zero_sugar_soda"
+        | "zero_cal_energy"
+        | "zero_cal_bcaa"
+        | "black_coffee_splenda"
+        | "tea_lemon_splenda"
+        | "caution"
+        | "breaks_fast"
+      beverage_source: "manual" | "photo" | "barcode"
       client_status: "active" | "paused" | "pending"
       engine_mode: "metabolic" | "performance" | "athletic"
       label_category:
@@ -10427,6 +10540,16 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      beverage_category: [
+        "zero_sugar_soda",
+        "zero_cal_energy",
+        "zero_cal_bcaa",
+        "black_coffee_splenda",
+        "tea_lemon_splenda",
+        "caution",
+        "breaks_fast",
+      ],
+      beverage_source: ["manual", "photo", "barcode"],
       client_status: ["active", "paused", "pending"],
       engine_mode: ["metabolic", "performance", "athletic"],
       label_category: [
