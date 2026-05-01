@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { useNavigate } from "react-router-dom";
-import { format } from "date-fns";
+import { format, isToday } from "date-fns";
 import { useEffect, useState, useRef } from "react";
 
 // Confetti particle component
@@ -72,13 +72,27 @@ export default function ClientFastComplete() {
     queryFn: async () => {
       const { data } = await supabase
         .from("client_feature_settings")
-        .select("eating_window_ends_at, last_fast_ended_at, eating_window_hours")
+        .select("active_fast_start_at, eating_window_ends_at, last_fast_ended_at, last_fast_completed_at, eating_window_hours")
         .eq("client_id", clientId!)
         .maybeSingle();
       return data;
     },
     enabled: !!clientId,
   });
+
+  const now = new Date();
+  const hasCompletedFastToday = !!settings?.last_fast_completed_at && isToday(new Date(settings.last_fast_completed_at));
+  const hasActiveFuelPhase = !!settings?.eating_window_ends_at && new Date(settings.eating_window_ends_at) > now;
+  const shouldBlockFastComplete = !!settings && (!hasCompletedFastToday || !hasActiveFuelPhase || !!settings.active_fast_start_at);
+
+  useEffect(() => {
+    if (!shouldBlockFastComplete) return;
+    navigate("/client/dashboard", { replace: true });
+  }, [navigate, shouldBlockFastComplete]);
+
+  if (shouldBlockFastComplete) {
+    return null;
+  }
 
   // Keto type
   const { data: ketoType } = useQuery({
