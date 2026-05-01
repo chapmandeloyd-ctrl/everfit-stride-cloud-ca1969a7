@@ -247,7 +247,7 @@ const App = () => (
           <Route path="/client/begin-reset" element={<ProtectedRoute allowedRoles={["client"]}><ClientFastingPlansPreview /></ProtectedRoute>} />
           <Route path="/client/quick-plans" element={<ProtectedRoute allowedRoles={["client"]}><FastingRouteGuard><ClientQuickPlans /></FastingRouteGuard></ProtectedRoute>} />
           <Route path="/client/quick-plan/:id" element={<ProtectedRoute allowedRoles={["client"]}><FastingRouteGuard><ClientQuickPlanDetail /></FastingRouteGuard></ProtectedRoute>} />
-          <Route path="/client/protocol/:id" element={<Navigate to="/client/complete-plan" replace />} />
+          <Route path="/client/protocol/:id" element={<ProtectedRoute allowedRoles={["client"]}><ClientProtocolDetail /></ProtectedRoute>} />
           <Route path="/client/complete-plan" element={<ProtectedRoute allowedRoles={["client", "trainer"]}><ClientFastingPlanDetailPreview /></ProtectedRoute>} />
           <Route path="/client/protocol-card-demo" element={<ProtectedRoute allowedRoles={["client"]}><ClientProtocolCardDemo /></ProtectedRoute>} />
           {/* Trainer-accessible alias for previewing the protocol card demo without impersonation */}
