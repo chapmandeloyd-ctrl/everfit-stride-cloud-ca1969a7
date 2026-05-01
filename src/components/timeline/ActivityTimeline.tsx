@@ -87,27 +87,27 @@ export function ActivityTimeline({ clientId, trainerMode = false }: ActivityTime
 
   return (
     <div className="space-y-4">
-      {/* Filter chips + backfill */}
-      <div className="flex items-center justify-between gap-2">
-        <ScrollArea className="flex-1">
-          <div className="flex items-center gap-2 pb-2">
-            {CATEGORY_FILTERS.map((f) => (
-              <button
-                key={f.value}
-                onClick={() => setFilter(f.value)}
-                className={cn(
-                  "shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors",
-                  filter === f.value
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-card text-muted-foreground border-border hover:text-foreground",
-                )}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-        </ScrollArea>
-        {trainerMode && (
+      {/* Trainer-only controls (filters + backfill) */}
+      {trainerMode && (
+        <div className="flex items-center justify-between gap-2">
+          <ScrollArea className="flex-1">
+            <div className="flex items-center gap-2 pb-2">
+              {CATEGORY_FILTERS.map((f) => (
+                <button
+                  key={f.value}
+                  onClick={() => setFilter(f.value)}
+                  className={cn(
+                    "shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors",
+                    filter === f.value
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-card text-muted-foreground border-border hover:text-foreground",
+                  )}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          </ScrollArea>
           <Button
             size="sm"
             variant="outline"
@@ -118,8 +118,8 @@ export function ActivityTimeline({ clientId, trainerMode = false }: ActivityTime
             <RefreshCw className={cn("h-3.5 w-3.5 mr-1.5", backfillMutation.isPending && "animate-spin")} />
             Backfill
           </Button>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Loading state */}
       {isLoading && (
