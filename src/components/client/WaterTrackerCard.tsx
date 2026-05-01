@@ -79,8 +79,6 @@ export function WaterTrackerCard() {
     return window.localStorage.getItem(celebrationStorageKey) === "1";
   });
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [repairingOverflow, setRepairingOverflow] = useState(false);
-  const lastRepairSignatureRef = useRef<string | null>(null);
   const previousProgressRef = useRef(0);
 
   const { prefs: habitPrefs, updatePrefs: updateHabitPrefs } = useHabitLoopPreferences();
@@ -130,48 +128,9 @@ export function WaterTrackerCard() {
   const message = useMemo(() => getMessage(progress), [progress]);
   const lastEntry = entries[0];
 
-
-  const overflowRepairPlan = useMemo(() => {
-    if (goalOz <= 0 || totalOz <= goalOz || entries.length === 0) return null;
-
-    const oldestFirst = [...entries].reverse();
-    let runningTotal = 0;
-    let updateEntry: { id: string; amountOz: number } | null = null;
-    const deleteIds: string[] = [];
-
-    for (const entry of oldestFirst) {
-      const amountOz = Number(entry.amount_oz);
-      const remaining = goalOz - runningTotal;
-
-      if (remaining <= 0) {
-        deleteIds.push(entry.id);
-        continue;
-      }
-
-      if (amountOz <= remaining) {
-        runningTotal += amountOz;
-        continue;
-      }
-
-      updateEntry = {
-        id: entry.id,
-        amountOz: remaining,
-      };
-      runningTotal = goalOz;
-    }
-
-    if (!updateEntry && deleteIds.length === 0) return null;
-
-    return {
-      updateEntry,
-      deleteIds,
-      signature: `${goalOz}:${entries.map((entry) => `${entry.id}:${entry.amount_oz}`).join("|")}`,
-    };
-  }, [entries, goalOz, totalOz]);
-
   // Hard cap: don't allow logging past the goal
-  const atGoal = cappedTotalOz >= goalOz;
-  const canRemove = entries.length > 0 && !repairingOverflow;
+  const atGoal = goalOz > 0 && totalOz >= goalOz;
+  const canRemove = entries.length > 0;
   const [pulse, setPulse] = useState<"add" | "remove" | null>(null);
   const triggerPulse = (kind: "add" | "remove") => {
     setPulse(kind);
@@ -204,52 +163,8 @@ export function WaterTrackerCard() {
     previousProgressRef.current = progress;
   }, [progress, hasCelebrated, celebrationStorageKey]);
 
-  useEffect(() => {
-    if (!clientId || !overflowRepairPlan || repairingOverflow) return;
-    if (lastRepairSignatureRef.current === overflowRepairPlan.signature) return;
-
-    lastRepairSignatureRef.current = overflowRepairPlan.signature;
-
-    console.warn("[💧water] 🔧 overflow repair plan executing — entries will be trimmed/deleted:", overflowRepairPlan);
-
-    const repairOverflow = async () => {
-      setRepairingOverflow(true);
-
-      try {
-        if (overflowRepairPlan.updateEntry && overflowRepairPlan.updateEntry.amountOz > 0) {
-          const { error: updateError } = await supabase
-            .from("water_log_entries")
-            .update({ amount_oz: overflowRepairPlan.updateEntry.amountOz })
-            .eq("id", overflowRepairPlan.updateEntry.id);
-
-          if (updateError) throw updateError;
-        }
-
-        if (overflowRepairPlan.deleteIds.length > 0) {
-          const { error: deleteError } = await supabase
-            .from("water_log_entries")
-            .delete()
-            .in("id", overflowRepairPlan.deleteIds);
-
-          if (deleteError) throw deleteError;
-        }
-
-        queryClient.invalidateQueries({ queryKey: ["water-log-today", clientId] });
-        queryClient.invalidateQueries({ queryKey: ["daily-rings", clientId] });
-      } catch {
-        lastRepairSignatureRef.current = null;
-        toast.error("Couldn't repair today's water total");
-      } finally {
-        setRepairingOverflow(false);
-      }
-    };
-
-    void repairOverflow();
-  }, [clientId, overflowRepairPlan, queryClient, repairingOverflow]);
-
   const handleAdd = async (amount = servingOz) => {
     if (!clientId) return;
-    if (repairingOverflow) return;
     if (atGoal || remainingOz <= 0) {
       toast("Goal already reached for today 🎉");
       return;
@@ -272,7 +187,7 @@ export function WaterTrackerCard() {
   };
 
   const handleUndo = async () => {
-    if (!lastEntry || repairingOverflow) return;
+    if (!lastEntry) return;
     triggerPulse("remove");
     const { error } = await supabase
       .from("water_log_entries")
@@ -501,9 +416,7 @@ export function WaterTrackerCard() {
           </button>
 
           <div className="text-xs text-muted-foreground tabular-nums min-w-[80px] text-center">
-            {repairingOverflow ? (
-              <span className="font-semibold text-muted-foreground">Syncing…</span>
-            ) : atGoal ? (
+            {atGoal ? (
               <span className="font-semibold text-emerald-500">Goal reached</span>
             ) : (
               <>+{Math.round(tapAmountOz)} fl oz / tap</>
@@ -513,10 +426,10 @@ export function WaterTrackerCard() {
           <button
             type="button"
             onClick={() => handleAdd()}
-            disabled={atGoal || repairingOverflow}
+            disabled={atGoal}
             className={cn(
               "h-12 w-12 rounded-full flex items-center justify-center shadow-md ring-2 transition-all active:scale-90",
-              atGoal || repairingOverflow
+              atGoal
                 ? "bg-muted/40 ring-transparent text-muted-foreground/40 cursor-not-allowed"
                 : "bg-emerald-500 hover:bg-emerald-400 ring-card text-white"
             )}
