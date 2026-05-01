@@ -430,6 +430,7 @@ export type Database = {
           client_id: string
           consumed_at: string
           created_at: string
+          details: Json | null
           fasting_log_id: string | null
           fats: number
           id: string
@@ -445,6 +446,7 @@ export type Database = {
           client_id: string
           consumed_at?: string
           created_at?: string
+          details?: Json | null
           fasting_log_id?: string | null
           fats?: number
           id?: string
@@ -460,6 +462,7 @@ export type Database = {
           client_id?: string
           consumed_at?: string
           created_at?: string
+          details?: Json | null
           fasting_log_id?: string | null
           fats?: number
           id?: string
@@ -1149,6 +1152,7 @@ export type Database = {
           category: Database["public"]["Enums"]["beverage_category"]
           client_id: string
           created_at: string
+          details: Json | null
           fats: number
           id: string
           image_url: string | null
@@ -1164,6 +1168,7 @@ export type Database = {
           category: Database["public"]["Enums"]["beverage_category"]
           client_id: string
           created_at?: string
+          details?: Json | null
           fats?: number
           id?: string
           image_url?: string | null
@@ -1179,6 +1184,7 @@ export type Database = {
           category?: Database["public"]["Enums"]["beverage_category"]
           client_id?: string
           created_at?: string
+          details?: Json | null
           fats?: number
           id?: string
           image_url?: string | null
