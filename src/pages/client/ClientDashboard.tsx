@@ -877,7 +877,7 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
   if (isFasting && featureSettings.active_fast_start_at && featureSettings.active_fast_target_hours) {
 
     return (
-      <div className="space-y-3">
+      <div id="fasting-protocol-card" className="space-y-3">
         {SHOW_WEIGHT_TRACKER && (
           <div className="space-y-2">
             <h2 className="text-lg font-bold text-foreground px-1">KSOM-360 Smart Weight Tracker</h2>
@@ -2888,7 +2888,7 @@ export default function ClientDashboard() {
                           <p className="text-[10px] text-muted-foreground">Eating window opens at {fastEndTimeStr}</p>
                           <Button variant="outline" size="sm" className="w-full" onClick={(e) => {
                             e.stopPropagation();
-                            setShowEndFastEarlySheet(true);
+                            document.getElementById("fasting-protocol-card")?.scrollIntoView({ behavior: "smooth", block: "start" });
                           }}>
                             End Fast
                           </Button>
