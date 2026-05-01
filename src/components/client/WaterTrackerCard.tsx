@@ -80,6 +80,7 @@ export function WaterTrackerCard() {
   });
   const [settingsOpen, setSettingsOpen] = useState(false);
   const previousProgressRef = useRef(0);
+  const initialLoadDoneRef = useRef(false);
 
   const { prefs: habitPrefs, updatePrefs: updateHabitPrefs } = useHabitLoopPreferences();
 
@@ -144,10 +145,28 @@ export function WaterTrackerCard() {
     setHasCelebrated(stored);
     setCelebrate(false);
     previousProgressRef.current = progress;
+    initialLoadDoneRef.current = false;
   }, [celebrationStorageKey]);
 
   // Trigger celebration only when crossing into goal for the first time that day
   useEffect(() => {
+    // Skip the very first run after data loads — we only want to celebrate
+    // when the user actively crosses into the goal, not on page load/refresh.
+    if (!initialLoadDoneRef.current) {
+      previousProgressRef.current = progress;
+      initialLoadDoneRef.current = true;
+      // If they're already at goal on load, mark as celebrated so we never fire
+      if (progress >= 1 && !hasCelebrated) {
+        setHasCelebrated(true);
+        try {
+          window.localStorage.setItem(celebrationStorageKey, "1");
+        } catch {
+          /* noop */
+        }
+      }
+      return;
+    }
+
     const crossedIntoGoal = previousProgressRef.current < 1 && progress >= 1;
 
     if (crossedIntoGoal && !hasCelebrated) {
