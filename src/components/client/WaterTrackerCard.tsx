@@ -416,9 +416,7 @@ export function WaterTrackerCard() {
           </button>
 
           <div className="text-xs text-muted-foreground tabular-nums min-w-[80px] text-center">
-            {repairingOverflow ? (
-              <span className="font-semibold text-muted-foreground">Syncing…</span>
-            ) : atGoal ? (
+            {atGoal ? (
               <span className="font-semibold text-emerald-500">Goal reached</span>
             ) : (
               <>+{Math.round(tapAmountOz)} fl oz / tap</>
@@ -428,10 +426,10 @@ export function WaterTrackerCard() {
           <button
             type="button"
             onClick={() => handleAdd()}
-            disabled={atGoal || repairingOverflow}
+            disabled={atGoal}
             className={cn(
               "h-12 w-12 rounded-full flex items-center justify-center shadow-md ring-2 transition-all active:scale-90",
-              atGoal || repairingOverflow
+              atGoal
                 ? "bg-muted/40 ring-transparent text-muted-foreground/40 cursor-not-allowed"
                 : "bg-emerald-500 hover:bg-emerald-400 ring-card text-white"
             )}
