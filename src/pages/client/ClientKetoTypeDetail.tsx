@@ -231,6 +231,24 @@ export default function ClientKetoTypeDetail() {
           This information is educational only and not a substitute for medical advice.
         </p>
       </div>
+
+      <PairRequiredDialog
+        open={pairDialogOpen}
+        onOpenChange={setPairDialogOpen}
+        justSet="keto"
+        justSetLabel={`${ketoType.abbreviation} — ${ketoType.name}`}
+        otherLabel={activePlanName ?? null}
+        mode={hasActivePlan ? "ready-paired" : "needs-other"}
+        onPickOther={() => {
+          setPairDialogOpen(false);
+          navigate("/client/programs");
+        }}
+        onViewPaired={() => {
+          setPairDialogOpen(false);
+          navigate("/client/complete-plan");
+        }}
+        onSaveForLater={() => setPairDialogOpen(false)}
+      />
     </ClientLayout>
   );
 }
