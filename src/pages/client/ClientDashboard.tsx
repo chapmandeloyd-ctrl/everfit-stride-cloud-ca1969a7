@@ -1395,51 +1395,6 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
             View Your Assigned Program
           </Button>
 
-          {/* Gold pills — View Protocol + View Keto Type. Always present.
-              If admin has an assignment, they deep-link to the assigned detail page
-              (with big-numbers gold lion layout). Otherwise they open the browse
-              library where every card is locked except the assigned one. */}
-          {(() => {
-            const isLocked = !!featureSettings?.lock_client_plan_choice;
-            // Always open the full library so the client sees every card
-            // (assigned card highlighted, others locked when admin enforces it).
-            const protocolHref = "/client/fasting-plans-preview";
-            const ketoHref = activeKetoType?.id
-              ? `/client/keto-types/${activeKetoType.id}`
-              : "/client/keto-types";
-
-            const PillButton = ({
-              label,
-              onClick,
-            }: {
-              label: string;
-              onClick: () => void;
-            }) => (
-              <button
-                type="button"
-                onClick={onClick}
-                className="flex-1 h-8 rounded-full px-3 inline-flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wide bg-gradient-to-b from-amber-300 via-yellow-400 to-amber-600 text-black shadow-[0_1px_6px_-1px_rgba(251,191,36,0.5)] ring-1 ring-amber-300/70 hover:brightness-110 active:scale-[0.98] transition"
-              >
-                {isLocked && <Shield className="h-3 w-3" />}
-                {label}
-              </button>
-            );
-
-            return (
-              <div className="space-y-2">
-                {isLocked && (
-                  <div className="flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-300/90">
-                    <Shield className="h-3 w-3" />
-                    Locked by your coach
-                  </div>
-                )}
-                <div className="flex items-center justify-between gap-2">
-                  <PillButton label="View Protocol" onClick={() => navigate(protocolHref)} />
-                  <PillButton label="View Keto Type" onClick={() => navigate(ketoHref)} />
-                </div>
-              </div>
-            );
-          })()}
         </CardContent>
       </Card>
 
