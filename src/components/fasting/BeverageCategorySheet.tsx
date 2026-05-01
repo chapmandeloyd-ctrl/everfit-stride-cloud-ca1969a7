@@ -62,11 +62,36 @@ export function BeverageCategorySheet({ open, onOpenChange, category, clientId, 
         details: b.details || {},
       });
       if (error) throw error;
+
+      // Track on activity timeline
+      const cal = Math.round(Number(b.calories) || 0);
+      const subtitleParts = [`${cal} cal`];
+      if (breaksFast) subtitleParts.push("fast broken");
+      const cfg = ALL_CATEGORIES[b.category as BeverageCategoryKey];
+      if (cfg) subtitleParts.push(cfg.label);
+      await supabase.from("activity_events").insert({
+        client_id: clientId,
+        event_type: "beverage_logged",
+        category: "eating",
+        title: b.name,
+        subtitle: subtitleParts.join(" · "),
+        icon: "coffee",
+        metadata: {
+          beverage_id: b.id,
+          category: b.category,
+          calories: cal,
+          broke_fast: breaksFast,
+          during_fast: isActiveFast,
+        },
+        source: "client",
+      });
+
       return { breaksFast };
     },
     onSuccess: (res) => {
       if (!res) return;
       qc.invalidateQueries({ queryKey: ["beverage-logs-today", clientId] });
+      qc.invalidateQueries({ queryKey: ["activity-events", clientId] });
       toast.success(res.breaksFast ? "Logged — fast broken" : "Logged");
     },
     onError: () => toast.error("Failed to log"),
