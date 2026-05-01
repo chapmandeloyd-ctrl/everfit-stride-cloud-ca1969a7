@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, GlassWater, Loader2 } from "lucide-react";
+import { Plus, Trash2, GlassWater, Loader2, Info } from "lucide-react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { BeverageCategoryKey } from "@/lib/beverageCategories";
 import { ALL_CATEGORIES } from "@/lib/beverageCategories";
 import { AddBeverageDialog } from "./AddBeverageDialog";
+import { BeverageLabelView } from "./BeverageLabelView";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 interface Props {
   open: boolean;
@@ -20,6 +22,7 @@ interface Props {
 export function BeverageCategorySheet({ open, onOpenChange, category, clientId, activeFastStartAt }: Props) {
   const qc = useQueryClient();
   const [showAdd, setShowAdd] = useState(false);
+  const [labelView, setLabelView] = useState<any>(null);
 
   const { data: beverages = [], isLoading } = useQuery({
     queryKey: ["client-beverages", clientId, category],
@@ -56,6 +59,7 @@ export function BeverageCategorySheet({ open, onOpenChange, category, clientId, 
         carbs: b.carbs,
         fats: b.fats,
         broke_fast: breaksFast,
+        details: b.details || {},
       });
       if (error) throw error;
       return { breaksFast };
@@ -113,6 +117,16 @@ export function BeverageCategorySheet({ open, onOpenChange, category, clientId, 
                       </p>
                     </div>
                   </button>
+                  {b.details && Object.keys(b.details).length > 0 && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={(e) => { e.stopPropagation(); setLabelView(b); }}
+                      aria-label="View label"
+                    >
+                      <Info className="h-4 w-4 text-sky-400" />
+                    </Button>
+                  )}
                   <Button
                     variant="ghost"
                     size="icon"
@@ -142,6 +156,22 @@ export function BeverageCategorySheet({ open, onOpenChange, category, clientId, 
         clientId={clientId}
         category={category}
       />
+
+      <Dialog open={!!labelView} onOpenChange={(v) => !v && setLabelView(null)}>
+        <DialogContent className="sm:max-w-md max-h-[80vh] overflow-y-auto">
+          {labelView && (
+            <>
+              <DialogHeader>
+                <DialogTitle>{labelView.name}</DialogTitle>
+                <DialogDescription>
+                  {Math.round(Number(labelView.calories))} cal · P {Number(labelView.protein)}g · C {Number(labelView.carbs)}g · F {Number(labelView.fats)}g
+                </DialogDescription>
+              </DialogHeader>
+              <BeverageLabelView details={labelView.details} />
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
