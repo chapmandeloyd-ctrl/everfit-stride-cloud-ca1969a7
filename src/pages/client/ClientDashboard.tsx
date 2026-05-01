@@ -96,7 +96,7 @@ import { WelcomeCard } from "@/components/client/WelcomeCard";
 const SHOW_WEIGHT_TRACKER = false;
 
 // Fasting Program Card sub-component
-export function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; navigate: (path: string) => void }) {
+export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal = 0 }: { clientId: string | null; navigate: (path: string) => void; openEndFastFlowSignal?: number }) {
   const queryClient = useQueryClient();
   const [now, setNow] = useState(new Date());
   const [showCreatePin, setShowCreatePin] = useState(false);
@@ -259,6 +259,11 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
     }, 4000);
     return () => clearInterval(interval);
   }, [mealPhotos.length]);
+
+  useEffect(() => {
+    if (!openEndFastFlowSignal || !isFasting) return;
+    setShowEndFastEarlySheet(true);
+  }, [openEndFastFlowSignal, isFasting]);
 
   // Live Activity: show fasting timer on lock screen & Dynamic Island, update every 10s
   useEffect(() => {
