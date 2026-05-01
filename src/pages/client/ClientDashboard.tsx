@@ -3,7 +3,7 @@ import fastingCardBgGoldImg from "@/assets/fasting-timer-bg-gold.png";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Bell, Dumbbell, CheckCircle2, Circle, UtensilsCrossed, Footprints, ChevronRight, Smartphone, X, Plus, Pencil, Swords, Trophy, MapPin, Check, Activity, ScanBarcode, Camera, PenLine, MessageCircle, Clock, ArrowRight, CalendarDays, BarChart3, Shield } from "lucide-react";
+import { Bell, Dumbbell, CheckCircle2, Circle, UtensilsCrossed, Footprints, ChevronRight, Smartphone, X, Plus, Pencil, Swords, Trophy, MapPin, Check, Activity, ScanBarcode, Camera, PenLine, MessageCircle, Clock, ArrowRight, CalendarDays, BarChart3, Shield, Droplet } from "lucide-react";
 import { getDifficultyLabel, getDurationLabel } from "@/lib/fastingCategoryConfig";
 import { useAuth } from "@/hooks/useAuth";
 import { differenceInCalendarDays, isToday, isBefore, startOfDay, parseISO, format } from "date-fns";
@@ -70,6 +70,7 @@ import { ProtocolCompletionDialog } from "@/components/ProtocolCompletionDialog"
 import { MyProgressSection } from "@/components/MyProgressSection";
 import { EndFastEarlySheet } from "@/components/fasting/EndFastEarlySheet";
 import { EndEatingWindowEarlySheet } from "@/components/fasting/EndEatingWindowEarlySheet";
+import { WhatCanIDrinkSheet } from "@/components/fasting/WhatCanIDrinkSheet";
 import { SmartPaceBanner } from "@/components/smart-pace/SmartPaceBanner";
 import { SmartPaceCatchUpModal } from "@/components/smart-pace/SmartPaceCatchUpModal";
 import { MyWhyCard } from "@/components/goal-motivation/MyWhyCard";
@@ -104,6 +105,7 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
   const [showCloseEatingWindowConfirm, setShowCloseEatingWindowConfirm] = useState(false);
   const [showEndFastEarlySheet, setShowEndFastEarlySheet] = useState(false);
   const [showEndEatingWindowSheet, setShowEndEatingWindowSheet] = useState(false);
+  const [showWhatCanIDrink, setShowWhatCanIDrink] = useState(false);
   const [eatingWindowSheetIntent, setEatingWindowSheetIntent] = useState<"end_window" | "choose_next_fast">("end_window");
   const liveActivity = useLiveActivity();
   const { toast } = useToast();
@@ -916,6 +918,17 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
           </div>
 
 
+          <div className="flex justify-center">
+            <button
+              type="button"
+              onClick={() => setShowWhatCanIDrink(true)}
+              className="inline-flex items-center gap-2 rounded-full bg-white/10 hover:bg-white/15 active:bg-white/20 transition-colors px-4 py-2 text-sm font-semibold text-white border border-white/15 backdrop-blur-sm"
+            >
+              <Droplet className="h-4 w-4 text-sky-300" />
+              What can I drink?
+            </button>
+          </div>
+
           <div className="pt-1">
             {featureSettings.fast_lock_pin ? (
               <HoldToEndButton onHoldComplete={() => setShowVerifyPin(true)} />
@@ -977,6 +990,8 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
             }}
             onEndSkipFuel={(meta) => endFastSkipFuelMutation.mutate(meta)}
           />
+
+          <WhatCanIDrinkSheet open={showWhatCanIDrink} onOpenChange={setShowWhatCanIDrink} />
         </CardContent>
         </Card>
       </div>
