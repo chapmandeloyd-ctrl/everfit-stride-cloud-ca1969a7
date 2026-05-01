@@ -1,7 +1,7 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format, formatDistanceToNow, formatDistanceToNowStrict } from "date-fns";
-import { Camera, Pencil, RefreshCw, type LucideIcon } from "lucide-react";
+import { Camera, Pencil, RefreshCw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -431,13 +431,13 @@ function buildMetadataChips(event: TimelineEvent) {
   }
 
   if (typeof meta.reason === "string" && meta.reason.trim()) {
-    chips.push({ label: "Reason", value: meta.reason.trim().replaceAll("_", " ") });
+    chips.push({ label: "Reason", value: meta.reason.trim().split("_").join(" ") });
   }
 
   return chips;
 }
 
-function Pill({ children }: { children: React.ReactNode }) {
+function Pill({ children }: { children: ReactNode }) {
   return <span className="rounded-full bg-muted px-3 py-2 text-sm font-semibold text-foreground">{children}</span>;
 }
 
