@@ -132,11 +132,11 @@ export default function ClientKetoTypeDetail() {
       }
       if (activeQuickPlanId) {
         const { data } = await supabase
-          .from("quick_plans")
+          .from("quick_fasting_plans")
           .select("name")
           .eq("id", activeQuickPlanId)
           .maybeSingle();
-        return data?.name ?? null;
+        return (data as { name: string | null } | null)?.name ?? null;
       }
       return null;
     },
