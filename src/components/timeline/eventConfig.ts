@@ -13,6 +13,8 @@ import {
   Bed,
   Footprints,
   Heart,
+  BookOpen,
+  Camera,
   type LucideIcon,
 } from "lucide-react";
 
@@ -24,6 +26,7 @@ export type EventCategory =
   | "badges"
   | "trainer"
   | "habits"
+  | "journal"
   | "general";
 
 export interface EventVisual {
@@ -50,6 +53,8 @@ const ICON_MAP: Record<string, LucideIcon> = {
   bed: Bed,
   footprints: Footprints,
   heart: Heart,
+  "book-open": BookOpen,
+  camera: Camera,
 };
 
 const CATEGORY_VISUALS: Record<EventCategory, Omit<EventVisual, "icon">> = {
@@ -60,6 +65,7 @@ const CATEGORY_VISUALS: Record<EventCategory, Omit<EventVisual, "icon">> = {
   badges: { iconBg: "bg-yellow-500/15", iconFg: "text-yellow-400", categoryLabel: "Badges" },
   trainer: { iconBg: "bg-purple-500/15", iconFg: "text-purple-400", categoryLabel: "Trainer" },
   habits: { iconBg: "bg-cyan-500/15", iconFg: "text-cyan-400", categoryLabel: "Habits" },
+  journal: { iconBg: "bg-teal-500/15", iconFg: "text-teal-400", categoryLabel: "Journal" },
   general: { iconBg: "bg-muted", iconFg: "text-muted-foreground", categoryLabel: "Other" },
 };
 
@@ -74,6 +80,8 @@ const TYPE_DEFAULT_ICON: Record<string, keyof typeof ICON_MAP> = {
   workout_started: "dumbbell",
   workout_completed: "dumbbell",
   weighin_logged: "scale",
+  ai_snapshot_imported: "camera",
+  journal_entry: "book-open",
   badge_earned: "award",
   coach_override: "edit",
   goal_set: "target",
@@ -93,6 +101,7 @@ export const CATEGORY_FILTERS: { value: EventCategory | "all"; label: string }[]
   { value: "eating", label: "Eating" },
   { value: "workout", label: "Workout" },
   { value: "metrics", label: "Metrics" },
+  { value: "journal", label: "Journal" },
   { value: "badges", label: "Badges" },
   { value: "trainer", label: "Trainer" },
 ];
