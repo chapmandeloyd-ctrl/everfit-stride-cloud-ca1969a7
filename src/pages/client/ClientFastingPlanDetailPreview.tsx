@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
+import { PairRequiredDialog } from "@/components/client/PairRequiredDialog";
 
 /**
  * Editorial Black & Gold — Fasting Plan Detail (TOP HALF).
@@ -1655,6 +1656,50 @@ export default function ClientFastingPlanDetailPreview() {
   const [times, setTimes] = useState(preferredTimes);
   const lastPersistedTimesRef = useRef(preferredTimes);
 
+  const [pairDialogOpen, setPairDialogOpen] = useState(false);
+
+  const isActivePlan =
+    !!planId &&
+    ((planType === "program" && featureSettings?.selected_protocol_id === planId) ||
+      (planType === "quick" && featureSettings?.selected_quick_plan_id === planId));
+
+  const hasKeto = !!ketoAssignment?.keto_type_id;
+  const ketoLabel = assignedKeto ? `${assignedKeto.abbreviation} — ${assignedKeto.name}` : null;
+
+  const setProtocolMutation = useMutation({
+    mutationFn: async () => {
+      if (!clientId) throw new Error("Not signed in");
+      if (!planId) throw new Error("No plan selected");
+      const updates: Record<string, unknown> = {
+        preferred_eating_window_opens_at: uiTimeToSqlTime(times.opensAt),
+        preferred_eating_window_closes_at: uiTimeToSqlTime(times.closesAt),
+      };
+      if (planType === "quick") {
+        updates.selected_quick_plan_id = planId;
+        updates.selected_protocol_id = null;
+        updates.protocol_start_date = null;
+      } else {
+        updates.selected_protocol_id = planId;
+        updates.selected_quick_plan_id = null;
+        updates.protocol_start_date = new Date().toISOString().slice(0, 10);
+      }
+      const { error } = await supabase
+        .from("client_feature_settings")
+        .update(updates)
+        .eq("client_id", clientId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["my-feature-settings", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["fasting-detail-feature-settings", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["fasting-gate-state"] });
+      toast.success(`${plan.name} set as your fasting protocol`);
+      setPairDialogOpen(true);
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Could not save protocol"),
+  });
+
   useEffect(() => {
     setTimes(preferredTimes);
     lastPersistedTimesRef.current = preferredTimes;
@@ -1714,6 +1759,54 @@ export default function ClientFastingPlanDetailPreview() {
 
       <Hero plan={plan} />
       <EatingWindow plan={plan} times={times} onTimesChange={setTimes} />
+
+      {/* Fixed bottom CTA — mirrors Keto Type detail */}
+      <div
+        className="fixed bottom-0 left-0 right-0 p-4 backdrop-blur border-t z-20"
+        style={{ background: `${BLACK}f2`, borderColor: `${GOLD}22` }}
+      >
+        {isActivePlan ? (
+          <div
+            className="w-full h-14 rounded-lg flex items-center justify-center text-base font-bold"
+            style={{
+              backgroundColor: `${GOLD}12`,
+              color: GOLD,
+              border: `1px solid ${GOLD}30`,
+            }}
+          >
+            This is your current protocol
+          </div>
+        ) : (
+          <button
+            className="w-full h-14 rounded-lg text-base font-bold disabled:opacity-60"
+            style={{ backgroundColor: GOLD, color: BLACK }}
+            onClick={() => setProtocolMutation.mutate()}
+            disabled={setProtocolMutation.isPending || !planId}
+          >
+            {setProtocolMutation.isPending
+              ? "Setting..."
+              : `Set ${plan.name}`}
+          </button>
+        )}
+      </div>
+
+      <PairRequiredDialog
+        open={pairDialogOpen}
+        onOpenChange={setPairDialogOpen}
+        justSet="protocol"
+        justSetLabel={plan.name}
+        otherLabel={ketoLabel}
+        mode={hasKeto ? "ready-paired" : "needs-other"}
+        onPickOther={() => {
+          setPairDialogOpen(false);
+          navigate("/client/keto-types");
+        }}
+        onViewPaired={() => {
+          setPairDialogOpen(false);
+          navigate("/client/complete-plan");
+        }}
+        onSaveForLater={() => setPairDialogOpen(false)}
+      />
     </div>
   );
 }
