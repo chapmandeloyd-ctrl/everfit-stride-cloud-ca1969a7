@@ -75,7 +75,7 @@ export function PairRequiredDialog({
           <AlertDialogCancel onClick={onSaveForLater}>Save for later</AlertDialogCancel>
           <AlertDialogAction onClick={onPickOther}>Pick {otherKind}</AlertDialogAction>
         </AlertDialogFooter>
-      </AlertDialog>
-    );
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
