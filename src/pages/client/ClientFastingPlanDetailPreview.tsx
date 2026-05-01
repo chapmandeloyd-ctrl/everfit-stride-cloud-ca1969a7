@@ -1714,22 +1714,6 @@ export default function ClientFastingPlanDetailPreview() {
 
       <Hero plan={plan} />
       <EatingWindow plan={plan} times={times} onTimesChange={setTimes} />
-
-      {/* Locked: Assigned + Explore (all keto types) · Coach Trainer */}
-      <div className="mt-6">
-        <DemoBlock
-          tabsVariant="explore"
-          coachVariant="trainer"
-          defaultActive={defaultKetoId}
-          assignedKetoId={defaultKetoId}
-          fastHours={plan.fastHours}
-          planName={plan.name}
-          planType={planType}
-          planId={planId}
-          windowOpensAt={times.opensAt}
-          windowClosesAt={times.closesAt}
-        />
-      </div>
     </div>
   );
 }
