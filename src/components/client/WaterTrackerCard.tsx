@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Plus, Minus, Droplet, Star, Trophy, Settings, X } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -79,8 +79,6 @@ export function WaterTrackerCard() {
     return window.localStorage.getItem(celebrationStorageKey) === "1";
   });
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [repairingOverflow, setRepairingOverflow] = useState(false);
-  const lastRepairSignatureRef = useRef<string | null>(null);
   const previousProgressRef = useRef(0);
 
   const { prefs: habitPrefs, updatePrefs: updateHabitPrefs } = useHabitLoopPreferences();
@@ -130,48 +128,9 @@ export function WaterTrackerCard() {
   const message = useMemo(() => getMessage(progress), [progress]);
   const lastEntry = entries[0];
 
-
-  const overflowRepairPlan = useMemo(() => {
-    if (goalOz <= 0 || totalOz <= goalOz || entries.length === 0) return null;
-
-    const oldestFirst = [...entries].reverse();
-    let runningTotal = 0;
-    let updateEntry: { id: string; amountOz: number } | null = null;
-    const deleteIds: string[] = [];
-
-    for (const entry of oldestFirst) {
-      const amountOz = Number(entry.amount_oz);
-      const remaining = goalOz - runningTotal;
-
-      if (remaining <= 0) {
-        deleteIds.push(entry.id);
-        continue;
-      }
-
-      if (amountOz <= remaining) {
-        runningTotal += amountOz;
-        continue;
-      }
-
-      updateEntry = {
-        id: entry.id,
-        amountOz: remaining,
-      };
-      runningTotal = goalOz;
-    }
-
-    if (!updateEntry && deleteIds.length === 0) return null;
-
-    return {
-      updateEntry,
-      deleteIds,
-      signature: `${goalOz}:${entries.map((entry) => `${entry.id}:${entry.amount_oz}`).join("|")}`,
-    };
-  }, [entries, goalOz, totalOz]);
-
   // Hard cap: don't allow logging past the goal
-  const atGoal = cappedTotalOz >= goalOz;
-  const canRemove = entries.length > 0 && !repairingOverflow;
+  const atGoal = goalOz > 0 && totalOz >= goalOz;
+  const canRemove = entries.length > 0;
   const [pulse, setPulse] = useState<"add" | "remove" | null>(null);
   const triggerPulse = (kind: "add" | "remove") => {
     setPulse(kind);
