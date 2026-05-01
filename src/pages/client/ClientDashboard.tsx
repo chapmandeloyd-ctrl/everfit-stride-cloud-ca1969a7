@@ -96,7 +96,7 @@ import { WelcomeCard } from "@/components/client/WelcomeCard";
 const SHOW_WEIGHT_TRACKER = false;
 
 // Fasting Program Card sub-component
-export function FastingProtocolCard({ clientId, navigate }: { clientId: string | null; navigate: (path: string) => void }) {
+export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal = 0 }: { clientId: string | null; navigate: (path: string) => void; openEndFastFlowSignal?: number }) {
   const queryClient = useQueryClient();
   const [now, setNow] = useState(new Date());
   const [showCreatePin, setShowCreatePin] = useState(false);
@@ -116,7 +116,7 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
     queryFn: async () => {
       const { data, error } = await supabase
         .from("client_feature_settings")
-        .select("selected_protocol_id, selected_quick_plan_id, protocol_start_date, active_fast_start_at, active_fast_target_hours, last_fast_ended_at, eating_window_ends_at, eating_window_hours, fasting_strict_mode, protocol_assigned_by, fasting_card_subtitle, fasting_card_image_url, eating_window_card_image_url, fast_lock_pin, protocol_completed, maintenance_mode, maintenance_schedule_type, trainer_id, lock_client_plan_choice")
+        .select("selected_protocol_id, selected_quick_plan_id, protocol_start_date, active_fast_start_at, active_fast_target_hours, last_fast_ended_at, last_fast_completed_at, eating_window_ends_at, eating_window_hours, fasting_strict_mode, protocol_assigned_by, fasting_card_subtitle, fasting_card_image_url, eating_window_card_image_url, fast_lock_pin, protocol_completed, maintenance_mode, maintenance_schedule_type, trainer_id, lock_client_plan_choice")
         .eq("client_id", clientId)
         .maybeSingle();
       if (error) throw error;
@@ -127,6 +127,7 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
         active_fast_start_at: string | null;
         active_fast_target_hours: number | null;
         last_fast_ended_at: string | null;
+        last_fast_completed_at: string | null;
         eating_window_ends_at: string | null;
         eating_window_hours: number;
         fasting_strict_mode: boolean;
@@ -259,6 +260,11 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
     return () => clearInterval(interval);
   }, [mealPhotos.length]);
 
+  useEffect(() => {
+    if (!openEndFastFlowSignal || !isFasting) return;
+    setShowEndFastEarlySheet(true);
+  }, [openEndFastFlowSignal, isFasting]);
+
   // Live Activity: show fasting timer on lock screen & Dynamic Island, update every 10s
   useEffect(() => {
     if (!isFasting || !featureSettings?.active_fast_start_at || !featureSettings?.active_fast_target_hours) return;
@@ -371,14 +377,19 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
       const endedEarly = actualHours < targetHours;
 
       const eatingWindowHours = featureSettings?.eating_window_hours || 8;
-      const eatingWindowEnd = new Date(nowTs.getTime() + eatingWindowHours * 3600000).toISOString();
+      const shouldOpenEatingWindow = !endedEarly;
+      const eatingWindowEnd = shouldOpenEatingWindow
+        ? new Date(nowTs.getTime() + eatingWindowHours * 3600000).toISOString()
+        : null;
 
       // Update feature settings
       const { error } = await supabase
         .from("client_feature_settings")
         .update({
           last_fast_ended_at: nowTs.toISOString(),
-          last_fast_completed_at: nowTs.toISOString(),
+          last_fast_completed_at: shouldOpenEatingWindow
+            ? nowTs.toISOString()
+            : featureSettings?.last_fast_completed_at ?? null,
           active_fast_start_at: null,
           active_fast_target_hours: null,
           eating_window_ends_at: eatingWindowEnd,
@@ -451,15 +462,17 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
           icon: endedEarly ? "stop-circle" : "check-circle",
           metadata: { actual_hours: actualHours, target_hours: targetHours, completion_pct: completionPct, reason: (intervention && (intervention as any).reason) ?? null },
         });
-        emitActivityEvent({
-          clientId,
-          eventType: "eating_window_opened",
-          title: "Fuel Phase started",
-          subtitle: `${eatingWindowHours}h window`,
-          category: "eating",
-          icon: "utensils",
-          metadata: { window_hours: eatingWindowHours },
-        });
+        if (shouldOpenEatingWindow) {
+          emitActivityEvent({
+            clientId,
+            eventType: "eating_window_opened",
+            title: "Fuel Phase started",
+            subtitle: `${eatingWindowHours}h window`,
+            category: "eating",
+            icon: "utensils",
+            metadata: { window_hours: eatingWindowHours },
+          });
+        }
       }
       return { endedEarly };
     },
@@ -468,11 +481,16 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
       queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting"] });
       queryClient.invalidateQueries({ queryKey: ["fasting-gate-state"] });
       queryClient.invalidateQueries({ queryKey: ["today-fasting-log"] });
-      // Only show the celebratory "Fast Complete · Part 1 done" screen on a TRUE completion.
-      // If the user ended early, stay on the dashboard — early-end messaging is handled by EndFastEarlySheet.
-      if (!result?.endedEarly) {
-        navigate("/client/fast-complete");
+      if (result?.endedEarly) {
+        toast({
+          title: "Fast ended early",
+          description: "Part 1 ended before target, so no Fuel Phase or keto window was opened.",
+        });
+        navigate("/client/dashboard");
+        return;
       }
+
+      navigate("/client/fast-complete");
     },
   });
 
@@ -506,7 +524,9 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
         .from("client_feature_settings")
         .update({
           last_fast_ended_at: nowTs.toISOString(),
-          last_fast_completed_at: nowTs.toISOString(),
+          last_fast_completed_at: endedEarly
+            ? featureSettings?.last_fast_completed_at ?? null
+            : nowTs.toISOString(),
           active_fast_start_at: null,
           active_fast_target_hours: null,
           eating_window_ends_at: null, // <- key difference: no Fuel Phase
@@ -862,7 +882,7 @@ export function FastingProtocolCard({ clientId, navigate }: { clientId: string |
   if (isFasting && featureSettings.active_fast_start_at && featureSettings.active_fast_target_hours) {
 
     return (
-      <div className="space-y-3">
+      <div id="fasting-protocol-card" className="space-y-3">
         {SHOW_WEIGHT_TRACKER && (
           <div className="space-y-2">
             <h2 className="text-lg font-bold text-foreground px-1">KSOM-360 Smart Weight Tracker</h2>
@@ -1449,6 +1469,7 @@ export default function ClientDashboard() {
   const { settings, isLoading: settingsLoading } = useClientFeatureSettings();
   const { config: engineConfig } = useEngineMode();
   const { toast } = useToast();
+  const [openEndFastFlowSignal, setOpenEndFastFlowSignal] = useState(0);
   const { cards: layoutCards, isLoading: layoutLoading } = useDashboardLayoutClient();
   const { data: streakData } = useConsistencyStreak();
 
@@ -2646,7 +2667,7 @@ export default function ClientDashboard() {
             case "fasting":
               return settings.fasting_enabled && !engineConfig.fastingDisabled && !isViewingOtherDay ? (
                 <div key="fasting" className="space-y-3">
-                  <FastingProtocolCard clientId={clientId} navigate={navigate} />
+                  <FastingProtocolCard clientId={clientId} navigate={navigate} openEndFastFlowSignal={openEndFastFlowSignal} />
                   {dashRecentFastLog && (
                     <FastingStatusCard
                       actualHours={dashRecentFastLog.actual_hours}
@@ -2871,26 +2892,10 @@ export default function ClientDashboard() {
                         <div className="mt-4 p-3 rounded-lg bg-muted/50 text-center space-y-2">
                           <p className="text-xs text-muted-foreground font-medium">You're currently fasting. Meals unlock when your fast ends.</p>
                           <p className="text-[10px] text-muted-foreground">Eating window opens at {fastEndTimeStr}</p>
-                          <Button variant="outline" size="sm" className="w-full" onClick={async (e) => {
+                          <Button variant="outline" size="sm" className="w-full" onClick={(e) => {
                             e.stopPropagation();
-                            const nowTs = new Date();
-                            const ewHours = fastingState?.eating_window_hours || 8;
-                            const ewEnd = new Date(nowTs.getTime() + ewHours * 3600000).toISOString();
-                            const startAt = fastingState?.active_fast_start_at;
-                            const targetHours = fastingState?.active_fast_target_hours || 16;
-                            const actualMs = startAt ? nowTs.getTime() - new Date(startAt).getTime() : 0;
-                            const actualHours = Math.round((actualMs / 3600000) * 100) / 100;
-                            const completionPct = Math.min(Math.round((actualHours / targetHours) * 100), 100);
-                            const endedEarly = actualHours < targetHours;
-                            await supabase.from("client_feature_settings").update({ last_fast_ended_at: nowTs.toISOString(), last_fast_completed_at: nowTs.toISOString(), active_fast_start_at: null, active_fast_target_hours: null, eating_window_ends_at: ewEnd }).eq("client_id", clientId);
-                            if (startAt && fastingState?.trainer_id) {
-                              await supabase.from("fasting_log").insert({ client_id: clientId!, trainer_id: fastingState.trainer_id, started_at: startAt, ended_at: nowTs.toISOString(), target_hours: targetHours, actual_hours: actualHours, completion_pct: completionPct, status: endedEarly ? "partial" : "completed", ended_early: endedEarly });
-                            }
-                            queryClient.invalidateQueries({ queryKey: ["fasting-gate-state"] });
-                            queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting"] });
-                            queryClient.invalidateQueries({ queryKey: ["today-fasting-log"] });
-                            // Only show the celebratory "Fast Complete" screen on a true completion.
-                            if (!endedEarly) navigate("/client/fast-complete");
+                            document.getElementById("fasting-protocol-card")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                            setOpenEndFastFlowSignal((prev) => prev + 1);
                           }}>
                             End Fast
                           </Button>
