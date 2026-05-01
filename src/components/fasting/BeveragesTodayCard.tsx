@@ -60,25 +60,25 @@ export function BeveragesTodayCard({ clientId }: Props) {
   const hasElec = totals.sodium || totals.potassium || totals.magnesium || totals.caffeine;
 
   return (
-    <div className="rounded-2xl border border-white/15 bg-white/5 backdrop-blur-sm p-3 space-y-2">
+    <div className="rounded-2xl border border-border bg-card p-3 space-y-2">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <GlassWater className="h-4 w-4 text-sky-300" />
-          <span className="text-sm font-semibold text-white">Beverages today</span>
+          <GlassWater className="h-4 w-4 text-sky-400" />
+          <span className="text-sm font-semibold text-foreground">Beverages today</span>
         </div>
-        <span className={`text-xs font-bold ${broke ? "text-red-400" : "text-white/70"}`}>
+        <span className={`text-xs font-bold ${broke ? "text-destructive" : "text-muted-foreground"}`}>
           {Math.round(totalCal)} cal {broke && "· fast broken"}
         </span>
       </div>
       <div className="space-y-1">
         {logs.map((l: any) => (
-          <div key={l.id} className="flex items-center justify-between gap-2 text-xs text-white/80">
+          <div key={l.id} className="flex items-center justify-between gap-2 text-xs text-foreground/85">
             <span className="truncate flex-1">{l.name}</span>
-            <span className="text-white/50 shrink-0">{Math.round(Number(l.calories))} cal</span>
+            <span className="text-muted-foreground shrink-0">{Math.round(Number(l.calories))} cal</span>
             <button
               type="button"
               onClick={() => removeMutation.mutate(l.id)}
-              className="text-white/40 hover:text-white/80"
+              className="text-muted-foreground hover:text-foreground"
               aria-label="Remove"
             >
               <X className="h-3 w-3" />
@@ -87,19 +87,19 @@ export function BeveragesTodayCard({ clientId }: Props) {
         ))}
       </div>
       {hasElec ? (
-        <div className="pt-2 border-t border-white/10 flex flex-wrap gap-1.5">
+        <div className="pt-2 border-t border-border flex flex-wrap gap-1.5">
           {totals.sodium > 0 && (
-            <span className="px-1.5 py-0.5 rounded bg-white/10 text-[10px] font-semibold text-white/90">
+            <span className="px-1.5 py-0.5 rounded bg-muted text-[10px] font-semibold text-foreground">
               Na {Math.round(totals.sodium)}mg
             </span>
           )}
           {totals.potassium > 0 && (
-            <span className="px-1.5 py-0.5 rounded bg-white/10 text-[10px] font-semibold text-white/90">
+            <span className="px-1.5 py-0.5 rounded bg-muted text-[10px] font-semibold text-foreground">
               K {Math.round(totals.potassium)}mg
             </span>
           )}
           {totals.magnesium > 0 && (
-            <span className="px-1.5 py-0.5 rounded bg-white/10 text-[10px] font-semibold text-white/90">
+            <span className="px-1.5 py-0.5 rounded bg-muted text-[10px] font-semibold text-foreground">
               Mg {Math.round(totals.magnesium)}mg
             </span>
           )}
