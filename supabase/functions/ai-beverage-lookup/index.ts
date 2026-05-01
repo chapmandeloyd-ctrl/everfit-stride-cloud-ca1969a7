@@ -9,7 +9,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { name } = await req.json();
+    const { name, category } = await req.json();
     if (!name || typeof name !== "string" || name.trim().length === 0) {
       return new Response(JSON.stringify({ error: "Name required" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -30,9 +30,19 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: "You are a beverage & supplement nutrition database. Given a name (often a brand like 'Zero Pepsi', 'Celsius Peach Vibe', 'Xtend BCAA Mango', 'Scivation Xtend'), return nutrition for ONE standard serving (soda: 12 fl oz can; energy drink: 12-16 fl oz can; BCAA powder: 1 scoop ~12.5g; black coffee: 8 fl oz; tea: 8 fl oz). Use widely-known Supplement Facts / Nutrition Facts label data. IMPORTANT: BCAAs and most zero-calorie drinks have 0 calories, 0 protein, 0 carbs, 0 fat on the label even though amino acids technically contain nitrogen — report what the label says (usually all zeros for Xtend, Scivation, Celsius, Diet Coke, etc.). Do NOT count BCAA amino acid mg as protein grams. If the brand is unknown, give a typical estimate for the category.",
+            content: `You are a beverage & supplement nutrition database. Return what is printed on the official Nutrition Facts / Supplement Facts label for ONE standard serving.
+
+CRITICAL RULES:
+1. Report EXACTLY what the label states. Do NOT compute macros from ingredients.
+2. BCAA powders (Xtend, Scivation, Optimum, Mutant, etc.): label shows Calories 0, Protein 0g, Carbs 0g, Fat 0g. Free-form amino acids (L-Leucine, L-Glutamine, L-Isoleucine, L-Valine) are NOT counted as protein on US supplement labels. Always return 0/0/0/0.
+3. Zero-cal energy drinks (Celsius, Bang, Monster Zero, Reign, C4): typically 0–10 cal, 0g protein, 0–2g carbs, 0g fat.
+4. Diet/Zero sodas (Diet Coke, Coke Zero, Pepsi Zero): 0 cal, 0/0/0.
+5. Black coffee (8 oz): ~2 cal, 0/0/0. Tea: ~2 cal, 0/0/0.
+6. Standard servings: soda 12 fl oz can, energy drink 12–16 fl oz can, BCAA 1 scoop (~12.5g), coffee/tea 8 fl oz.
+
+If unsure of the exact brand, give the typical value for that product CATEGORY based on the rules above — never invent protein for a BCAA.`,
           },
-          { role: "user", content: `Beverage: ${name.trim()}` },
+          { role: "user", content: `Beverage: ${name.trim()}${category ? `\nCategory hint: ${category}` : ""}` },
         ],
         tools: [
           {
