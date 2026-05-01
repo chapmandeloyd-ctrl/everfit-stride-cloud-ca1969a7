@@ -1395,6 +1395,46 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
             View Your Assigned Program
           </Button>
 
+          {/* Gold pills — quick links to the individual protocol & keto type detail pages */}
+          {(activeProtocol || activeKetoType) && (
+            <div className="flex flex-wrap gap-2 pt-1">
+              {activeProtocol && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/client/protocol/${activeProtocol.id}`);
+                  }}
+                  className="text-[11px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border transition-colors"
+                  style={{
+                    backgroundColor: "hsl(43 65% 52% / 0.12)",
+                    borderColor: "hsl(43 65% 52% / 0.45)",
+                    color: "hsl(43 80% 65%)",
+                  }}
+                >
+                  View Protocol
+                </button>
+              )}
+              {activeKetoType && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/client/keto-types/${activeKetoType.id}`);
+                  }}
+                  className="text-[11px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border transition-colors"
+                  style={{
+                    backgroundColor: "hsl(43 65% 52% / 0.12)",
+                    borderColor: "hsl(43 65% 52% / 0.45)",
+                    color: "hsl(43 80% 65%)",
+                  }}
+                >
+                  View Keto Type
+                </button>
+              )}
+            </div>
+          )}
+
         </CardContent>
       </Card>
 
