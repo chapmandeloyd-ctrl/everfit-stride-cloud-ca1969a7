@@ -1289,7 +1289,8 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
         />
 
         <CardContent className="relative z-10 px-5 pt-7 pb-6 space-y-5 text-white">
-          {/* Quiet Luxury header */}
+          {/* Quiet Luxury header — only when BOTH protocol + keto type are assigned */}
+          {programFullyAssigned && (
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="text-[10px] font-medium text-white/50 uppercase tracking-[0.25em]">
@@ -1321,12 +1322,15 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
             )}
             {isMaintenanceMode && <Badge variant="outline" className="text-xs border-white/30 text-white bg-white/10 shrink-0">Maintenance</Badge>}
           </div>
+          )}
 
-          {/* Single accent line in keto color */}
-          <div
-            className="h-px w-full"
-            style={{ background: `linear-gradient(90deg, transparent, ${ketoAccent}80, transparent)` }}
-          />
+          {/* Single accent line in keto color — only when fully assigned */}
+          {programFullyAssigned && (
+            <div
+              className="h-px w-full"
+              style={{ background: `linear-gradient(90deg, transparent, ${ketoAccent}80, transparent)` }}
+            />
+          )}
 
           {/* Day progress sub-card */}
           {hasDuration && !isMaintenanceMode && dayNumber >= activeProtocol!.duration_days ? (
@@ -1344,8 +1348,8 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
             </div>
           ) : null}
 
-          {/* Stats row — 4 tiles: Fasted · Macros · Day · Level */}
-          {(hasProtocol || hasQuickPlan) && !isMaintenanceMode && (() => {
+          {/* Stats row — 4 tiles. Only when BOTH protocol + keto type are assigned */}
+          {programFullyAssigned && (hasProtocol || hasQuickPlan) && !isMaintenanceMode && (() => {
             const fastHours = activeProtocol?.fast_target_hours || activeQuickPlan?.fast_hours || 16;
             const diffLevel = activeProtocol?.difficulty_level || activeQuickPlan?.intensity_tier || "beginner";
             const totalDays = activeProtocol?.duration_days;
@@ -1404,13 +1408,16 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
             );
           })()}
 
-          <Button
-            variant="ghost"
-            className="w-full h-11 text-sm font-medium gap-2 bg-white/5 hover:bg-white/10 text-white border border-white/10 backdrop-blur-md"
-            onClick={() => navigate("/client/complete-plan")}
-          >
-            View Your Assigned Program
-          </Button>
+          {/* "View Your Assigned Program" — only when BOTH halves are assigned */}
+          {programFullyAssigned && (
+            <Button
+              variant="ghost"
+              className="w-full h-11 text-sm font-medium gap-2 bg-white/5 hover:bg-white/10 text-white border border-white/10 backdrop-blur-md"
+              onClick={() => navigate("/client/complete-plan")}
+            >
+              View Your Assigned Program
+            </Button>
+          )}
 
           {/* Gold pills — View Protocol + View Keto Type. Always present.
               If admin has an assignment, they deep-link to the assigned detail page
