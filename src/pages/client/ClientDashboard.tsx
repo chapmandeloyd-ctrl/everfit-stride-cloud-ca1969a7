@@ -775,20 +775,20 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
 
   // ───────────────────────────────────────────────────────────────────
   // PROGRAM PAIRING GATE
-  // The Today fasting card only appears when BOTH halves of the program
-  // are assigned: a fasting protocol/quick-plan AND a keto type.
+  // A program is "fully assigned" only when BOTH halves exist:
+  //   1. A fasting protocol (or quick plan)
+  //   2. A keto type
+  // When NOT fully assigned we still render the lion card shell with the
+  // gold "View Protocol" / "View Keto Type" pills, but we hide the
+  // "Fasting Protocol / 16h Fast / Coach Assigned" header, the stats
+  // tiles, and the "View Your Assigned Program" button — those only
+  // appear once both halves are paired together.
   // Applies to both client view and admin/trainer impersonation view
   // (ClientDashboardMinimal renders this same component).
-  // Exception: if a fast or eating window is already active, keep showing
-  // the timer so an in-flight session is never hidden by a transient
-  // data race.
   // ───────────────────────────────────────────────────────────────────
   const hasAnyProtocol = !!featureSettings?.selected_protocol_id || !!featureSettings?.selected_quick_plan_id;
   const hasKetoType = !!activeKetoType;
   const programFullyAssigned = hasAnyProtocol && hasKetoType;
-  if (!programFullyAssigned && !isFasting && !hasEatingWindow) {
-    return null;
-  }
 
   // Maintenance mode idle state
   if (isMaintenanceMode && !isFasting && !hasEatingWindow) {
