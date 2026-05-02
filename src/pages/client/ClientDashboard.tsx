@@ -163,7 +163,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
     enabled: !!featureSettings?.trainer_id,
   });
 
-  const { data: activeProtocol } = useQuery({
+  const { data: activeProtocolRaw } = useQuery({
     queryKey: ["active-fasting-protocol", featureSettings?.selected_protocol_id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -193,7 +193,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
   });
 
   // Fetch active keto type for display
-  const { data: activeKetoType } = useQuery({
+  const { data: activeKetoTypeRaw } = useQuery({
     queryKey: ["fasting-card-keto-type", clientId],
     queryFn: async () => {
       const { data: assignment } = await supabase
