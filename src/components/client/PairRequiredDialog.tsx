@@ -53,7 +53,7 @@ export function PairRequiredDialog({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={onSaveForLater}>Save for later</AlertDialogCancel>
+            <AlertDialogCancel onClick={onSaveForLater}>Just browsing for now</AlertDialogCancel>
             <AlertDialogAction onClick={onViewPaired}>View Complete Plan</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -72,7 +72,7 @@ export function PairRequiredDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={onSaveForLater}>Save for later</AlertDialogCancel>
+          <AlertDialogCancel onClick={onSaveForLater}>Just browsing for now</AlertDialogCancel>
           <AlertDialogAction onClick={onPickOther}>Pick {otherKind}</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

@@ -237,8 +237,8 @@ export default function ClientKetoTypeDetail() {
         onOpenChange={setPairDialogOpen}
         justSet="keto"
         justSetLabel={`${ketoType.abbreviation} — ${ketoType.name}`}
-        otherLabel={null}
-        mode="needs-other"
+        otherLabel={activePlanName ?? null}
+        mode={hasActivePlan ? "ready-paired" : "needs-other"}
         onPickOther={() => {
           setPairDialogOpen(false);
           navigate("/client/programs");
