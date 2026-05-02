@@ -1426,11 +1426,14 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
               library where every card is locked except the assigned one. */}
           {(() => {
             const isLocked = !!featureSettings?.lock_client_plan_choice;
-            // TEMP: hardcoded for preview. Will be driven by the new onboarding
-            // question "Do you prefer self-guided keto fasting protocol or
-            // coach-guided keto program?" — answer stored on
-            // client_feature_settings (field TBD, e.g. self_guided_program).
-            const selfGuidedProgram = true;
+            // TEMP: hardcoded for preview. Will be driven by new onboarding answers.
+            // 'selfGuided'    → user picked self-guided keto fasting protocol
+            // 'coachStartNow' → coach-guided + "Start my keto program now" (full card + Coach Assigned badge)
+            // 'coachWait'     → coach-guided + "I'd rather wait" (locked badge + locked buttons + "Ready whenever you are")
+            const previewMode: "selfGuided" | "coachStartNow" | "coachWait" = "coachWait";
+            const isCoachWait = previewMode === "coachWait";
+            const isSelfGuided = previewMode === "selfGuided";
+            const isCoachStartNow = previewMode === "coachStartNow";
             // Always open the full library so the client sees every card
             // (assigned card highlighted, others locked when admin enforces it).
             const protocolHref = "/client/fasting-plans-preview";
@@ -1441,23 +1444,25 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
             const PillButton = ({
               label,
               onClick,
+              locked,
             }: {
               label: string;
               onClick: () => void;
+              locked?: boolean;
             }) => (
               <button
                 type="button"
                 onClick={onClick}
                 className="flex-1 h-8 rounded-full px-3 inline-flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wide bg-gradient-to-b from-amber-300 via-yellow-400 to-amber-600 text-black shadow-[0_1px_6px_-1px_rgba(251,191,36,0.5)] ring-1 ring-amber-300/70 hover:brightness-110 active:scale-[0.98] transition"
               >
-                {isLocked && <Shield className="h-3 w-3" />}
+                {(locked || isLocked) && <Shield className="h-3 w-3" />}
                 {label}
               </button>
             );
 
             return (
               <div className="space-y-2">
-                {selfGuidedProgram ? (
+                {isSelfGuided ? (
                   <div className="space-y-1.5">
                     <p className="text-center text-[11px] font-medium text-white/70 px-4 leading-snug">
                       Your keto program is enabled. Please select your program below.
@@ -1467,6 +1472,21 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                       Program Unlocked
                     </div>
                   </div>
+                ) : isCoachWait ? (
+                  <div className="space-y-1.5">
+                    <p className="text-center text-[11px] font-medium text-white/70 px-4 leading-snug">
+                      Ready whenever you are. Your coach will unlock your program when you're set.
+                    </p>
+                    <div className="flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-300/90">
+                      <Shield className="h-3 w-3" />
+                      Locked by your coach
+                    </div>
+                  </div>
+                ) : isCoachStartNow ? (
+                  <div className="flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-300">
+                    <Shield className="h-3 w-3" />
+                    Coach Assigned
+                  </div>
                 ) : isLocked ? (
                   <div className="flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-300/90">
                     <Shield className="h-3 w-3" />
@@ -1474,9 +1494,22 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                   </div>
                 ) : null}
                 <div className="flex items-center justify-between gap-2">
-                  <PillButton label="View Protocol" onClick={() => navigate(protocolHref)} />
-                  <PillButton label="View Keto Type" onClick={() => navigate(ketoHref)} />
+                  <PillButton
+                    label="View Protocol"
+                    locked={isCoachWait}
+                    onClick={() => (isCoachWait ? setShowCoachWaitLock(true) : navigate(protocolHref))}
+                  />
+                  <PillButton
+                    label="View Keto Type"
+                    locked={isCoachWait}
+                    onClick={() => (isCoachWait ? setShowCoachWaitLock(true) : navigate(ketoHref))}
+                  />
                 </div>
+                <PlanLockedDialog
+                  open={showCoachWaitLock}
+                  onOpenChange={setShowCoachWaitLock}
+                  lockMessage="Your coach hasn't unlocked your program yet. We'll let you know the moment it's ready."
+                />
               </div>
             );
           })()}
