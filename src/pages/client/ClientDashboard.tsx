@@ -773,6 +773,23 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
     ? ({ "16:8_daily": "16:8 Daily", "16:8_weekdays": "16:8 Weekdays", "14:10_daily": "14:10 Daily", "flexible": "Flexible Fasting" } as Record<string, string>)[featureSettings.maintenance_schedule_type] || featureSettings.maintenance_schedule_type
     : null;
 
+  // ───────────────────────────────────────────────────────────────────
+  // PROGRAM PAIRING GATE
+  // The Today fasting card only appears when BOTH halves of the program
+  // are assigned: a fasting protocol/quick-plan AND a keto type.
+  // Applies to both client view and admin/trainer impersonation view
+  // (ClientDashboardMinimal renders this same component).
+  // Exception: if a fast or eating window is already active, keep showing
+  // the timer so an in-flight session is never hidden by a transient
+  // data race.
+  // ───────────────────────────────────────────────────────────────────
+  const hasAnyProtocol = !!featureSettings?.selected_protocol_id || !!featureSettings?.selected_quick_plan_id;
+  const hasKetoType = !!activeKetoType;
+  const programFullyAssigned = hasAnyProtocol && hasKetoType;
+  if (!programFullyAssigned && !isFasting && !hasEatingWindow) {
+    return null;
+  }
+
   // Maintenance mode idle state
   if (isMaintenanceMode && !isFasting && !hasEatingWindow) {
     return (
