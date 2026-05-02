@@ -108,6 +108,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
   const [showEndFastEarlySheet, setShowEndFastEarlySheet] = useState(false);
   const [showEndEatingWindowSheet, setShowEndEatingWindowSheet] = useState(false);
   const [showWhatCanIDrink, setShowWhatCanIDrink] = useState(false);
+  const [showCoachWaitLock, setShowCoachWaitLock] = useState(false);
   const [eatingWindowSheetIntent, setEatingWindowSheetIntent] = useState<"end_window" | "choose_next_fast">("end_window");
   const liveActivity = useLiveActivity();
   const { toast } = useToast();
