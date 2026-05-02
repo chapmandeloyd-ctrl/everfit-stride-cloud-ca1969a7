@@ -163,7 +163,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
     enabled: !!featureSettings?.trainer_id,
   });
 
-  const { data: activeProtocol } = useQuery({
+  const { data: activeProtocolRaw } = useQuery({
     queryKey: ["active-fasting-protocol", featureSettings?.selected_protocol_id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -193,7 +193,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
   });
 
   // Fetch active keto type for display
-  const { data: activeKetoType } = useQuery({
+  const { data: activeKetoTypeRaw } = useQuery({
     queryKey: ["fasting-card-keto-type", clientId],
     queryFn: async () => {
       const { data: assignment } = await supabase
@@ -206,6 +206,28 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
     },
     enabled: !!clientId,
   });
+
+  // TEMP PREVIEW: when previewing the "coachStartNow" lion card, fall back
+  // to mock 16:8 protocol + TKD keto type so the full card renders even when
+  // the client doesn't yet have real assignments. Remove once onboarding wires
+  // real assignments through the trainer.
+  const PREVIEW_COACH_START_NOW = true;
+  const activeProtocol = activeProtocolRaw ?? (PREVIEW_COACH_START_NOW ? {
+    id: "preview-16-8",
+    name: "16:8 Daily",
+    duration_days: 28,
+    fast_target_hours: 16,
+    difficulty_level: "intermediate",
+  } : null);
+  const activeKetoType = activeKetoTypeRaw ?? (PREVIEW_COACH_START_NOW ? {
+    id: "preview-tkd",
+    name: "Targeted Keto",
+    abbreviation: "TKD",
+    color: "#14b8a6",
+    fat_pct: 65,
+    protein_pct: 25,
+    carbs_pct: 10,
+  } : null);
 
   // Meal slideshow photos for the eating window card
   const { data: mealPhotos = [] } = useQuery({
@@ -712,7 +734,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
 
   // No protocol selected — empty state
   const hasQuickPlan = !!featureSettings?.selected_quick_plan_id && !!activeQuickPlan;
-  const hasProtocol = !!featureSettings?.selected_protocol_id && !!activeProtocol;
+  const hasProtocol = (!!featureSettings?.selected_protocol_id && !!activeProtocolRaw) || (PREVIEW_COACH_START_NOW && !!activeProtocol);
 
   const isCoachAssigned = !!featureSettings?.protocol_assigned_by;
   const planName = activeProtocol?.name 
@@ -788,7 +810,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
   // Applies to both client view and admin/trainer impersonation view
   // (ClientDashboardMinimal renders this same component).
   // ───────────────────────────────────────────────────────────────────
-  const hasAnyProtocol = !!featureSettings?.selected_protocol_id || !!featureSettings?.selected_quick_plan_id;
+  const hasAnyProtocol = !!featureSettings?.selected_protocol_id || !!featureSettings?.selected_quick_plan_id || (PREVIEW_COACH_START_NOW && !!activeProtocol);
   const hasKetoType = !!activeKetoType;
   const programFullyAssigned = hasAnyProtocol && hasKetoType;
 
