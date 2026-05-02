@@ -1431,7 +1431,8 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
             // 'selfGuided'    → user picked self-guided keto fasting protocol
             // 'coachStartNow' → coach-guided + "Start my keto program now" (full card + Coach Assigned badge)
             // 'coachWait'     → coach-guided + "I'd rather wait" (locked badge + locked buttons + "Ready whenever you are")
-            const previewMode: "selfGuided" | "coachStartNow" | "coachWait" = "coachWait";
+            type PreviewMode = "selfGuided" | "coachStartNow" | "coachWait";
+            const previewMode = "coachWait" as PreviewMode;
             const isCoachWait = previewMode === "coachWait";
             const isSelfGuided = previewMode === "selfGuided";
             const isCoachStartNow = previewMode === "coachStartNow";
