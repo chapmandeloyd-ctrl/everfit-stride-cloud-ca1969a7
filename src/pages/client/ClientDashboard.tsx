@@ -207,6 +207,28 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
     enabled: !!clientId,
   });
 
+  // TEMP PREVIEW: when previewing the "coachStartNow" lion card, fall back
+  // to mock 16:8 protocol + TKD keto type so the full card renders even when
+  // the client doesn't yet have real assignments. Remove once onboarding wires
+  // real assignments through the trainer.
+  const PREVIEW_COACH_START_NOW = true;
+  const activeProtocol = activeProtocolRaw ?? (PREVIEW_COACH_START_NOW ? {
+    id: "preview-16-8",
+    name: "16:8 Daily",
+    duration_days: 28,
+    fast_target_hours: 16,
+    difficulty_level: "intermediate",
+  } : null);
+  const activeKetoType = activeKetoTypeRaw ?? (PREVIEW_COACH_START_NOW ? {
+    id: "preview-tkd",
+    name: "Targeted Keto",
+    abbreviation: "TKD",
+    color: "#14b8a6",
+    fat_pct: 65,
+    protein_pct: 25,
+    carbs_pct: 10,
+  } : null);
+
   // Meal slideshow photos for the eating window card
   const { data: mealPhotos = [] } = useQuery({
     queryKey: ["eating-window-meal-photos", clientId],
