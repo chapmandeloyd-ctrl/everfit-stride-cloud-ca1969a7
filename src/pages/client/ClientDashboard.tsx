@@ -1432,7 +1432,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
             // 'coachStartNow' → coach-guided + "Start my keto program now" (full card + Coach Assigned badge)
             // 'coachWait'     → coach-guided + "I'd rather wait" (locked badge + locked buttons + "Ready whenever you are")
             type PreviewMode = "selfGuided" | "coachStartNow" | "coachWait";
-            const previewMode = "coachWait" as PreviewMode;
+            const previewMode = "coachStartNow" as PreviewMode;
             const isCoachWait = previewMode === "coachWait";
             const isSelfGuided = previewMode === "selfGuided";
             const isCoachStartNow = previewMode === "coachStartNow";
