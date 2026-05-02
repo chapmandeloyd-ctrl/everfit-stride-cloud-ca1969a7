@@ -734,7 +734,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
 
   // No protocol selected — empty state
   const hasQuickPlan = !!featureSettings?.selected_quick_plan_id && !!activeQuickPlan;
-  const hasProtocol = !!featureSettings?.selected_protocol_id && !!activeProtocol;
+  const hasProtocol = (!!featureSettings?.selected_protocol_id && !!activeProtocolRaw) || (PREVIEW_COACH_START_NOW && !!activeProtocol);
 
   const isCoachAssigned = !!featureSettings?.protocol_assigned_by;
   const planName = activeProtocol?.name 
