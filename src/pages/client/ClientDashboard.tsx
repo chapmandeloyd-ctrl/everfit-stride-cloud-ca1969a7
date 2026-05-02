@@ -810,7 +810,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
   // Applies to both client view and admin/trainer impersonation view
   // (ClientDashboardMinimal renders this same component).
   // ───────────────────────────────────────────────────────────────────
-  const hasAnyProtocol = !!featureSettings?.selected_protocol_id || !!featureSettings?.selected_quick_plan_id;
+  const hasAnyProtocol = !!featureSettings?.selected_protocol_id || !!featureSettings?.selected_quick_plan_id || (PREVIEW_COACH_START_NOW && !!activeProtocol);
   const hasKetoType = !!activeKetoType;
   const programFullyAssigned = hasAnyProtocol && hasKetoType;
 
