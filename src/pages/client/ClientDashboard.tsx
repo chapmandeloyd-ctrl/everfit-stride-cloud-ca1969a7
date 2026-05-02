@@ -1532,7 +1532,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                 <PlanLockedDialog
                   open={showCoachWaitLock}
                   onOpenChange={setShowCoachWaitLock}
-                  lockMessage="Your coach hasn't unlocked your program yet. We'll let you know the moment it's ready."
+                  lockMessage="You've been assigned a program. To unlock the ability to view, start, and finish your assigned program, notify your coach to switch your plan to self-assigned."
                 />
               </div>
             );
