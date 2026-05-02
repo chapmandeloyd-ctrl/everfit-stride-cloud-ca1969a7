@@ -1288,7 +1288,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
           }}
         />
 
-        <CardContent className="relative z-10 px-5 pt-7 pb-6 space-y-5 text-white">
+        <CardContent className={`relative z-10 px-5 pt-7 pb-6 space-y-5 text-white ${!programFullyAssigned ? "min-h-[420px] flex flex-col justify-end" : ""}`}>
           {/* Quiet Luxury header — only when BOTH protocol + keto type are assigned */}
           {programFullyAssigned && (
           <div className="flex items-start justify-between gap-3">
