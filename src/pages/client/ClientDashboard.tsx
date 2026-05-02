@@ -1425,6 +1425,11 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
               library where every card is locked except the assigned one. */}
           {(() => {
             const isLocked = !!featureSettings?.lock_client_plan_choice;
+            // TEMP: hardcoded for preview. Will be driven by the new onboarding
+            // question "Do you prefer self-guided keto fasting protocol or
+            // coach-guided keto program?" — answer stored on
+            // client_feature_settings (field TBD, e.g. self_guided_program).
+            const selfGuidedProgram = true;
             // Always open the full library so the client sees every card
             // (assigned card highlighted, others locked when admin enforces it).
             const protocolHref = "/client/fasting-plans-preview";
@@ -1451,12 +1456,22 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
 
             return (
               <div className="space-y-2">
-                {isLocked && (
+                {selfGuidedProgram ? (
+                  <div className="space-y-1.5">
+                    <p className="text-center text-[11px] font-medium text-white/70 px-4 leading-snug">
+                      Your keto program is enabled. Please select your program below.
+                    </p>
+                    <div className="flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-300">
+                      <Shield className="h-3 w-3" />
+                      Program Unlocked
+                    </div>
+                  </div>
+                ) : isLocked ? (
                   <div className="flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-300/90">
                     <Shield className="h-3 w-3" />
                     Locked by your coach
                   </div>
-                )}
+                ) : null}
                 <div className="flex items-center justify-between gap-2">
                   <PillButton label="View Protocol" onClick={() => navigate(protocolHref)} />
                   <PillButton label="View Keto Type" onClick={() => navigate(ketoHref)} />
