@@ -923,9 +923,9 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
             <div className="min-w-0 space-y-1">
               <div className="flex items-center gap-2 flex-wrap">
                 <p className="text-xs font-bold text-white/70 uppercase tracking-wider">{isMaintenanceMode ? "Maintenance Schedule" : "Fasting Program"}</p>
-                {isCoachAssigned && !isMaintenanceMode && (
+                {!isMaintenanceMode && (
                   <Badge className="text-[10px] px-2 py-0.5 bg-primary/20 text-primary border border-primary/30 hover:bg-primary/20 font-semibold">
-                    Coach Assigned
+                    {isCoachAssigned ? "Coach Assigned" : "My Assigned"}
                   </Badge>
                 )}
               </div>
@@ -1093,12 +1093,12 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                   >
                     {isMaintenanceMode ? "Maintenance Schedule" : "Fasting Program"}
                   </p>
-                  {isCoachAssigned && !isMaintenanceMode && (
+                  {!isMaintenanceMode && (
                     <Badge
                       className="text-[10px] px-2 py-0.5 font-medium bg-transparent"
                       style={{ borderColor: "hsl(42 70% 55%)", color: "hsl(42 70% 55%)" }}
                     >
-                      Coach Assigned
+                      {isCoachAssigned ? "Coach Assigned" : "My Assigned"}
                     </Badge>
                   )}
                 </div>
@@ -1306,9 +1306,9 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                   <span className="text-white/70 truncate">{activeKetoType.name}</span>
                 </div>
               )}
-              {isCoachAssigned && !isMaintenanceMode && (
+              {!isMaintenanceMode && (
                 <Badge className="mt-2 text-[10px] px-2 py-0.5 bg-amber-400/15 text-amber-300 border border-amber-300/40 hover:bg-amber-400/15 font-semibold uppercase tracking-wider">
-                  Coach Assigned
+                  {isCoachAssigned ? "Coach Assigned" : "My Assigned"}
                 </Badge>
               )}
             </div>
