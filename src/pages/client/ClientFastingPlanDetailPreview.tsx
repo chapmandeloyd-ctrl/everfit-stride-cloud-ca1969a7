@@ -1760,6 +1760,20 @@ export default function ClientFastingPlanDetailPreview() {
       <Hero plan={plan} />
       <EatingWindow plan={plan} times={times} onTimesChange={setTimes} />
 
+      {/* PART 2 — Keto Type recommendations + Daily Meal Timeline */}
+      <DemoBlock
+        tabsVariant="top3"
+        coachVariant="brand"
+        defaultActive={defaultKetoId}
+        assignedKetoId={defaultKetoId}
+        fastHours={plan.fastHours}
+        planName={plan.name}
+        planType={planType}
+        planId={planId}
+        windowOpensAt={times.opensAt}
+        windowClosesAt={times.closesAt}
+      />
+
       {/* Fixed bottom CTA — mirrors Keto Type detail */}
       <div
         className="fixed bottom-0 left-0 right-0 p-4 backdrop-blur border-t z-20"
