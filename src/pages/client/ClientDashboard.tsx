@@ -71,6 +71,7 @@ import { MyProgressSection } from "@/components/MyProgressSection";
 import { EndFastEarlySheet } from "@/components/fasting/EndFastEarlySheet";
 import { EndEatingWindowEarlySheet } from "@/components/fasting/EndEatingWindowEarlySheet";
 import { WhatCanIDrinkSheet } from "@/components/fasting/WhatCanIDrinkSheet";
+import { AssignedProgramSheet } from "@/components/client/AssignedProgramSheet";
 import { BeveragesTodayCard } from "@/components/fasting/BeveragesTodayCard";
 import { SmartPaceBanner } from "@/components/smart-pace/SmartPaceBanner";
 import { SmartPaceCatchUpModal } from "@/components/smart-pace/SmartPaceCatchUpModal";
