@@ -1449,15 +1449,13 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
               library where every card is locked except the assigned one. */}
           {(() => {
             const isLocked = !!featureSettings?.lock_client_plan_choice;
-            // TEMP: hardcoded for preview. Will be driven by new onboarding answers.
-            // 'selfGuided'    → user picked self-guided keto fasting protocol
-            // 'coachStartNow' → coach-guided + "Start my keto program now" (full card + Coach Assigned badge)
-            // 'coachWait'     → coach-guided + "I'd rather wait" (locked badge + locked buttons + "Ready whenever you are")
-            type PreviewMode = "selfGuided" | "coachStartNow" | "coachWait";
-            const previewMode = "coachWait" as PreviewMode;
-            const isCoachWait = previewMode === "coachWait";
-            const isSelfGuided = previewMode === "selfGuided";
-            const isCoachStartNow = previewMode === "coachStartNow";
+            // Driven by real assignment + lock state:
+            //  - coach assigned + locked  → 'coachWait'    (locked badge + locked buttons + queued message)
+            //  - coach assigned + unlocked → 'coachStartNow' (Coach Assigned badge, buttons unlocked)
+            //  - no coach (self)          → 'selfGuided'   (My Assigned badge, buttons unlocked)
+            const isCoachWait = isCoachAssigned && isLocked;
+            const isCoachStartNow = isCoachAssigned && !isLocked;
+            const isSelfGuided = !isCoachAssigned;
             // Always open the full library so the client sees every card
             // (assigned card highlighted, others locked when admin enforces it).
             const protocolHref = "/client/fasting-plans-preview";
