@@ -182,7 +182,7 @@ const FAST_BLOCK: Meal = {
   text: "Water, black coffee, electrolytes. No cream, no sweeteners.",
 };
 
-const MEAL_PLANS: Record<string, { totals: { cal: number; fat: number; carbs: number; protein: number }; meals: Meal[] }> = {
+export const MEAL_PLANS: Record<string, { totals: { cal: number; fat: number; carbs: number; protein: number }; meals: Meal[] }> = {
   // Standard Keto — 70% fat / 25% protein / 5% carbs
   skd: {
     totals: { cal: 1820, fat: 142, carbs: 25, protein: 113 },
