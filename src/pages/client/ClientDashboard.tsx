@@ -1552,6 +1552,8 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
       <AssignedProgramSheet
         open={showAssignedProgramSheet}
         onOpenChange={setShowAssignedProgramSheet}
+        protocolHref={protocolHref}
+        ketoHref={ketoHref}
         canStart={!featureSettings?.lock_client_plan_choice}
       />
     </>
