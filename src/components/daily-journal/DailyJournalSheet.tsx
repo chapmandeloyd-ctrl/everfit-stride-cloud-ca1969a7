@@ -309,7 +309,7 @@ export function DailyJournalSheet({ open, onOpenChange }: Props) {
 
             {/* My meals were */}
             <Section icon={<Apple className="h-4 w-4" />} title="My meals were">
-              <div className="grid grid-cols-3 gap-2.5">
+              <div className="grid grid-cols-4 gap-2.5">
                 {MEAL_QUALITY.map((q) => {
                   const selected = quality === q.key;
                   return (
