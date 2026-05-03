@@ -3204,6 +3204,12 @@ export default function ClientDashboard() {
 
       <BuildWorkoutSheet open={wodSheetOpen} onOpenChange={setWodSheetOpen} />
 
+      <AssignedProgramSheet
+        open={showAssignedProgramSheet}
+        onOpenChange={setShowAssignedProgramSheet}
+        canStart={!featureSettings?.lock_client_plan_choice}
+      />
+
       <QuickCardioFlow
         open={cardioFlowOpen}
         onOpenChange={setCardioFlowOpen}
