@@ -815,6 +815,10 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
   const hasAnyProtocol = !!featureSettings?.selected_protocol_id || !!featureSettings?.selected_quick_plan_id || (PREVIEW_COACH_START_NOW && !!activeProtocol);
   const hasKetoType = !!activeKetoType;
   const programFullyAssigned = hasAnyProtocol && hasKetoType;
+  const assignedProgramProtocolHref = "/client/fasting-plans-preview";
+  const assignedProgramKetoHref = activeKetoType?.id
+    ? `/client/keto-types/${activeKetoType.id}`
+    : "/client/keto-types";
 
   // Maintenance mode idle state
   if (isMaintenanceMode && !isFasting && !hasEatingWindow) {
@@ -1552,6 +1556,8 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
       <AssignedProgramSheet
         open={showAssignedProgramSheet}
         onOpenChange={setShowAssignedProgramSheet}
+        protocolHref={assignedProgramProtocolHref}
+        ketoHref={assignedProgramKetoHref}
         canStart={!featureSettings?.lock_client_plan_choice}
       />
     </>
