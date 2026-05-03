@@ -1485,14 +1485,9 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
             return (
               <div className="space-y-2">
                 {isSelfGuided ? (
-                  <div className="space-y-1.5">
-                    <p className="text-center text-[11px] font-medium text-white/70 px-4 leading-snug">
-                      Your keto program is enabled. Please select your program below.
-                    </p>
-                    <div className="flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-300">
-                      <Shield className="h-3 w-3" />
-                      Program Unlocked
-                    </div>
+                  <div className="flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-300">
+                    <Shield className="h-3 w-3" />
+                    My Assigned
                   </div>
                 ) : isCoachWait ? (
                   <div className="space-y-1.5">
