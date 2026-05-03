@@ -36,8 +36,8 @@ const BODY_FEELINGS = [
   "Other",
 ];
 
-const MEAL_COUNTS = ["1 meal", "2 meals", "3 meals", "4 and more"];
-const MEAL_COUNT_VALUES = ["1", "2", "3", "4+"];
+const MEAL_COUNTS = ["No meal (fasting)", "1 meal", "2 meals", "3 meals", "4 and more"];
+const MEAL_COUNT_VALUES = ["0", "1", "2", "3", "4+"];
 
 const SNACK_COUNTS = [1, 2, 3, 4, 5];
 
@@ -45,6 +45,7 @@ const MEAL_QUALITY: { key: string; emoji: string; label: string }[] = [
   { key: "healthy", emoji: "🥕", label: "Healthy" },
   { key: "unhealthy", emoji: "🍔", label: "Unhealthy" },
   { key: "mixed", emoji: "🍱", label: "Mixed" },
+  { key: "fasting", emoji: "⏳", label: "Fasting" },
 ];
 
 export function DailyJournalSheet({ open, onOpenChange }: Props) {
@@ -224,6 +225,7 @@ export function DailyJournalSheet({ open, onOpenChange }: Props) {
                 {MEAL_COUNTS.map((label, i) => {
                   const value = MEAL_COUNT_VALUES[i];
                   const selected = mealsCount === value;
+                  const isFasting = value === "0";
                   return (
                     <button
                       key={value}
@@ -231,6 +233,7 @@ export function DailyJournalSheet({ open, onOpenChange }: Props) {
                       onClick={() => setMealsCount(value)}
                       className={cn(
                         "relative flex items-center justify-between px-4 py-3 rounded-full border-2 transition",
+                        isFasting && "col-span-2",
                         selected
                           ? "border-primary bg-primary/10 text-white"
                           : "border-white/10 bg-white/[0.03] text-white/70 hover:bg-white/5"
@@ -246,6 +249,19 @@ export function DailyJournalSheet({ open, onOpenChange }: Props) {
 
             {/* Snacks today */}
             <Section icon={<TacoIcon />} title="Snacks today">
+              <button
+                type="button"
+                onClick={() => setSnacks(snacks === 0 ? null : 0)}
+                className={cn(
+                  "relative w-full flex items-center justify-between px-4 py-3 mb-2.5 rounded-full border-2 transition",
+                  snacks === 0
+                    ? "border-primary bg-primary/10 text-white"
+                    : "border-white/10 bg-white/[0.03] text-white/70 hover:bg-white/5"
+                )}
+              >
+                <span className="text-sm font-medium">None</span>
+                <SelectDot selected={snacks === 0} small />
+              </button>
               <div className="grid grid-cols-5 gap-2">
                 {SNACK_COUNTS.map((n) => {
                   const selected = snacks === n;
