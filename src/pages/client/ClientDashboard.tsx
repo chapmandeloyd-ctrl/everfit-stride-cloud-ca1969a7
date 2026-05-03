@@ -1439,7 +1439,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
             <Button
               variant="ghost"
               className="w-full h-11 text-sm font-medium gap-2 bg-white/5 hover:bg-white/10 text-white border border-white/10 backdrop-blur-md"
-              onClick={() => navigate("/client/complete-plan")}
+              onClick={() => setShowAssignedProgramSheet(true)}
             >
               View Your Assigned Program
             </Button>
