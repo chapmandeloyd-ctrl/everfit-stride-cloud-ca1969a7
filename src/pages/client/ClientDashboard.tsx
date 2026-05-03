@@ -1498,9 +1498,11 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                   </div>
                 ) : isCoachWait ? (
                   <div className="space-y-1.5">
-                    <p className="text-center text-[11px] font-medium text-white/70 px-4 leading-snug">
-                      Ready whenever you are. Your coach will unlock your program when you're set.
-                    </p>
+                    {!hasProtocol && (
+                      <p className="text-center text-[11px] font-medium text-white/70 px-4 leading-snug">
+                        Your program is queued up — your coach will hand you the keys when the timing's right.
+                      </p>
+                    )}
                     <div className="flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-300/90">
                       <Shield className="h-3 w-3" />
                       Locked by your coach
