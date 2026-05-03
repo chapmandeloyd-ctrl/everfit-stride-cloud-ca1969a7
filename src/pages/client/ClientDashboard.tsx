@@ -1548,6 +1548,12 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
           onSwitchToMaintenance={() => switchToMaintenanceMutation.mutate()}
         />
       )}
+
+      <AssignedProgramSheet
+        open={showAssignedProgramSheet}
+        onOpenChange={setShowAssignedProgramSheet}
+        canStart={!featureSettings?.lock_client_plan_choice}
+      />
     </>
   );
 }
