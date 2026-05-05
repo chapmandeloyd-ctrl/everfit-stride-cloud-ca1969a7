@@ -12,7 +12,7 @@ import {
 import { toast } from "sonner";
 import { Loader2, Trash2, RefreshCw, Database } from "lucide-react";
 
-interface TableInfo { table_name: string; row_estimate: number }
+interface TableInfo { table_name: string; row_estimate: number; row_count: number | null }
 
 const PAGE_SIZE = 50;
 
@@ -144,7 +144,9 @@ export default function AdminDataConsole() {
                 >
                   <div className="flex items-center justify-between gap-2">
                     <span className="truncate">{t.table_name}</span>
-                    <span className="text-xs text-muted-foreground">~{Math.max(0, t.row_estimate)}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {t.row_count ?? `~${Math.max(0, t.row_estimate)}`}
+                    </span>
                   </div>
                 </button>
               </li>

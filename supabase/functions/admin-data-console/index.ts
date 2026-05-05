@@ -52,7 +52,21 @@ serve(async (req) => {
       if (error) {
         return json({ error: error.message || "Failed to load tables" }, 500);
       }
-      return json({ tables: data ?? [] });
+      const tables = (data ?? []) as Array<{ table_name: string; row_estimate: number }>;
+      // Get exact counts in parallel (head request, no rows transferred)
+      const withCounts = await Promise.all(
+        tables.map(async (t) => {
+          const { count, error: cErr } = await admin
+            .from(t.table_name)
+            .select("*", { count: "exact", head: true });
+          return {
+            table_name: t.table_name,
+            row_estimate: t.row_estimate,
+            row_count: cErr ? null : count ?? 0,
+          };
+        })
+      );
+      return json({ tables: withCounts });
     }
 
     if (action === "list_rows") {
