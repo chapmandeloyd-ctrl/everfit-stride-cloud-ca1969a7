@@ -17,6 +17,7 @@ import Messages from "./pages/Messages";
 import Analytics from "./pages/Analytics";
 import Goals from "./pages/Goals";
 import TaskLibrary from "./pages/TaskLibrary";
+import AdminDataConsole from "./pages/AdminDataConsole";
 import Auth from "./pages/Auth";
 import Unsubscribe from "./pages/Unsubscribe";
 import PortalMockup from "./pages/PortalMockup";
@@ -159,6 +160,7 @@ const App = () => (
           <Route path="/workout-templates" element={<ProtectedRoute allowedRoles={["trainer"]}><WorkoutTemplates /></ProtectedRoute>} />
           <Route path="/exercises" element={<ProtectedRoute allowedRoles={["trainer"]}><Exercises /></ProtectedRoute>} />
           <Route path="/clients" element={<ProtectedRoute allowedRoles={["trainer"]}><Clients /></ProtectedRoute>} />
+          <Route path="/admin/data" element={<ProtectedRoute allowedRoles={["trainer"]}><AdminDataConsole /></ProtectedRoute>} />
           <Route path="/messages" element={<ProtectedRoute allowedRoles={["trainer"]}><Messages /></ProtectedRoute>} />
           <Route path="/analytics" element={<ProtectedRoute allowedRoles={["trainer"]}><Analytics /></ProtectedRoute>} />
           <Route path="/goals" element={<ProtectedRoute allowedRoles={["trainer"]}><Goals /></ProtectedRoute>} />
