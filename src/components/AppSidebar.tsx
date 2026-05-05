@@ -13,6 +13,7 @@ import {
   Wind,
   Target,
   FileText,
+  Database,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Profile } from "@/hooks/useAuth";
@@ -32,6 +33,7 @@ const trainerNav = [
   { label: "Messages", icon: MessageSquare, path: "/messages" },
   { label: "Resources", icon: FileText, path: "/resources" },
   { label: "Analytics", icon: BarChart3, path: "/analytics" },
+  { label: "Data Console", icon: Database, path: "/admin/data" },
 ];
 
 const clientNav = [
