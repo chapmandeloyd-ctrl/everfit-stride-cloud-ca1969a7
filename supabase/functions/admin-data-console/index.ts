@@ -94,6 +94,36 @@ serve(async (req) => {
       return json({ success: true });
     }
 
+    if (action === "bulk_delete") {
+      const table = String(body.table || "");
+      const ids = Array.isArray(body.ids) ? body.ids : [];
+      const idColumn = String(body.id_column || "id");
+      if (!table || BLOCKED.has(table) || ids.length === 0) {
+        return json({ error: "Invalid request" }, 400);
+      }
+      const { error, count } = await admin
+        .from(table)
+        .delete({ count: "exact" })
+        .in(idColumn, ids);
+      if (error) return json({ error: error.message }, 400);
+      return json({ success: true, deleted: count ?? ids.length });
+    }
+
+    if (action === "delete_all") {
+      const table = String(body.table || "");
+      const idColumn = String(body.id_column || "id");
+      if (!table || BLOCKED.has(table)) {
+        return json({ error: "Invalid request" }, 400);
+      }
+      // Use a filter that matches all rows (id is not null)
+      const { error, count } = await admin
+        .from(table)
+        .delete({ count: "exact" })
+        .not(idColumn, "is", null);
+      if (error) return json({ error: error.message }, 400);
+      return json({ success: true, deleted: count ?? 0 });
+    }
+
     return json({ error: "Unknown action" }, 400);
   } catch (e: any) {
     return json({ error: e.message ?? String(e) }, 500);

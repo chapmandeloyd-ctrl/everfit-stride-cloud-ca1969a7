@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { Loader2, Trash2, RefreshCw, Database } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface TableInfo { table_name: string; row_estimate: number; row_count: number | null }
 
@@ -26,6 +27,9 @@ export default function AdminDataConsole() {
   const [loadingTables, setLoadingTables] = useState(false);
   const [loadingRows, setLoadingRows] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<{ idCol: string; id: any } | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<any>>(new Set());
+  const [bulkConfirm, setBulkConfirm] = useState<null | "selected" | "all">(null);
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   async function call(action: string, payload: Record<string, unknown> = {}) {
     const { data, error } = await supabase.functions.invoke("admin-data-console", {
@@ -57,6 +61,7 @@ export default function AdminDataConsole() {
       setRows(data.rows ?? []);
       setCount(data.count ?? null);
       setPage(pageIdx);
+      setSelectedIds(new Set());
     } catch (e: any) {
       toast.error(e.message);
       setRows([]); setCount(null);
@@ -98,6 +103,48 @@ export default function AdminDataConsole() {
     } catch (e: any) {
       toast.error(e.message);
     }
+  }
+
+  async function handleBulkDelete() {
+    if (!selected || !idColumn || !bulkConfirm) return;
+    setBulkBusy(true);
+    try {
+      if (bulkConfirm === "all") {
+        const data = await call("delete_all", { table: selected, id_column: idColumn });
+        toast.success(`Deleted ${data.deleted ?? "all"} rows`);
+      } else {
+        const ids = Array.from(selectedIds);
+        const data = await call("bulk_delete", { table: selected, id_column: idColumn, ids });
+        toast.success(`Deleted ${data.deleted ?? ids.length} rows`);
+      }
+      setBulkConfirm(null);
+      loadRows(selected, 0);
+      loadTables();
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setBulkBusy(false);
+    }
+  }
+
+  function toggleRow(id: any) {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleAllOnPage() {
+    if (!idColumn) return;
+    const pageIds = rows.map(r => r[idColumn]);
+    const allSelected = pageIds.every(id => selectedIds.has(id));
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (allSelected) pageIds.forEach(id => next.delete(id));
+      else pageIds.forEach(id => next.add(id));
+      return next;
+    });
   }
 
   function renderCell(v: any) {
@@ -170,6 +217,19 @@ export default function AdminDataConsole() {
                   </p>
                 </div>
                 <div className="flex gap-2">
+                  {selectedIds.size > 0 && (
+                    <Button size="sm" variant="destructive" onClick={() => setBulkConfirm("selected")}>
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Delete {selectedIds.size}
+                    </Button>
+                  )}
+                  {count !== null && count > 0 && (
+                    <Button size="sm" variant="outline"
+                      className="text-destructive border-destructive/40 hover:bg-destructive/10"
+                      onClick={() => setBulkConfirm("all")}>
+                      Delete all ({count})
+                    </Button>
+                  )}
                   <Button size="sm" variant="outline" disabled={page === 0 || loadingRows}
                     onClick={() => loadRows(selected, page - 1)}>Prev</Button>
                   <Button size="sm" variant="outline"
@@ -187,6 +247,12 @@ export default function AdminDataConsole() {
                   <Table>
                     <TableHeader>
                       <TableRow>
+                        <TableHead className="w-10">
+                          <Checkbox
+                            checked={rows.length > 0 && idColumn !== null && rows.every(r => selectedIds.has(r[idColumn]))}
+                            onCheckedChange={toggleAllOnPage}
+                          />
+                        </TableHead>
                         <TableHead className="w-12"></TableHead>
                         {columns.map(c => <TableHead key={c}>{c}</TableHead>)}
                       </TableRow>
@@ -194,6 +260,13 @@ export default function AdminDataConsole() {
                     <TableBody>
                       {rows.map((r, i) => (
                         <TableRow key={i}>
+                          <TableCell>
+                            <Checkbox
+                              checked={idColumn !== null && selectedIds.has(r[idColumn])}
+                              onCheckedChange={() => idColumn && toggleRow(r[idColumn])}
+                              disabled={!idColumn}
+                            />
+                          </TableCell>
                           <TableCell>
                             <Button
                               size="icon"
@@ -237,6 +310,31 @@ export default function AdminDataConsole() {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={!!bulkConfirm} onOpenChange={(o) => !o && !bulkBusy && setBulkConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {bulkConfirm === "all"
+                ? `Delete ALL ${count ?? ""} rows from ${selected}?`
+                : `Delete ${selectedIds.size} selected rows?`}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently removes data from <span className="font-mono">{selected}</span> and cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={bulkBusy}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); handleBulkDelete(); }}
+              disabled={bulkBusy}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {bulkBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
