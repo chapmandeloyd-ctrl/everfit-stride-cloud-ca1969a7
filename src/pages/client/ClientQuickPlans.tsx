@@ -4,10 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LockedPlanPopover } from "@/components/LockedPlanPopover";
 import { LockProgress } from "@/components/LockProgress";
-import { ArrowLeft, Clock, Hourglass, UtensilsCrossed, Lock, ShieldCheck, ChevronRight } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { ArrowLeft, Clock, Hourglass, UtensilsCrossed, Lock, ShieldCheck, ChevronRight, Trash2 } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { FastingSafetyNotice } from "@/components/FastingSafetyNotice";
@@ -59,6 +61,10 @@ const DIFFICULTY_GROUPS = [
 export default function ClientQuickPlans() {
   const clientId = useEffectiveClientId();
   const navigate = useNavigate();
+  const { userRole } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const isTrainer = userRole === "trainer";
   const [lockedMessage, setLockedMessage] = useState<string | null>(null);
   const { evaluatePlan, isReady } = usePlanGating();
 
@@ -72,6 +78,23 @@ export default function ClientQuickPlans() {
       if (error) throw error;
       return data as QuickPlan[];
     },
+  });
+
+  const deletePlan = useMutation({
+    mutationFn: async (planId: string) => {
+      // Clear any references first
+      await supabase
+        .from("client_feature_settings")
+        .update({ selected_quick_plan_id: null })
+        .eq("selected_quick_plan_id", planId);
+      const { error } = await supabase.from("quick_fasting_plans").delete().eq("id", planId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["quick-fasting-plans"] });
+      toast({ title: "Plan deleted" });
+    },
+    onError: (e: any) => toast({ title: "Delete failed", description: e.message, variant: "destructive" }),
   });
 
   function handlePlanClick(plan: QuickPlan) {
@@ -206,6 +229,21 @@ export default function ClientQuickPlans() {
                             <Badge variant="outline" className="text-[10px] border-primary/30 text-primary">
                               <ShieldCheck className="h-3 w-3 mr-1" /> Coach Approved
                             </Badge>
+                          )}
+                          {isTrainer && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (confirm(`Delete "${plan.name}" permanently?`)) {
+                                  deletePlan.mutate(plan.id);
+                                }
+                              }}
+                              className="ml-2 inline-flex items-center justify-center h-8 w-8 rounded-full text-destructive hover:bg-destructive/10"
+                              aria-label="Delete plan"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
                           )}
                         </div>
                         <h3 className="text-2xl font-black tracking-tight leading-none mb-1">{plan.name}</h3>
