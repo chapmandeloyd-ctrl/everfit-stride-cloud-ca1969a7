@@ -1811,6 +1811,61 @@ export default function ClientFastingPlanDetailPreview() {
         windowClosesAt={times.closesAt}
       />
 
+      {/* Review / Save controls */}
+      <div className="px-5 pb-6 pt-2 space-y-3">
+        <div
+          className="rounded-2xl p-4 flex items-center justify-between gap-3"
+          style={{ background: SURFACE, border: `1px solid ${GOLD}22` }}
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <CheckCircle2 size={20} style={{ color: reviewedAt ? GOLD : MUTED, flexShrink: 0 }} />
+            <div className="min-w-0">
+              <div className="text-sm font-semibold" style={{ color: IVORY }}>
+                {reviewedAt ? "Plan reviewed" : "Mark plan as reviewed"}
+              </div>
+              <div className="text-[11px]" style={{ color: MUTED }}>
+                {reviewedAt
+                  ? `Reviewed ${new Date(reviewedAt).toLocaleDateString()}`
+                  : "Saves status to your profile"}
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={() => toggleReviewedMutation.mutate(!reviewedAt)}
+            disabled={toggleReviewedMutation.isPending}
+            className="h-9 px-4 rounded-lg text-xs font-bold whitespace-nowrap disabled:opacity-50"
+            style={{
+              backgroundColor: reviewedAt ? `${GOLD}18` : GOLD,
+              color: reviewedAt ? GOLD : BLACK,
+              border: reviewedAt ? `1px solid ${GOLD}55` : "none",
+            }}
+          >
+            {reviewedAt ? "Reviewed ✓" : "Mark reviewed"}
+          </button>
+        </div>
+
+        <button
+          onClick={() => toggleSavedMutation.mutate(!savedForLater)}
+          disabled={toggleSavedMutation.isPending}
+          className="w-full rounded-2xl p-4 flex items-center justify-between gap-3 disabled:opacity-50"
+          style={{ background: SURFACE, border: `1px solid ${GOLD}22` }}
+        >
+          <div className="flex items-center gap-3">
+            {savedForLater ? (
+              <BookmarkCheck size={20} style={{ color: GOLD }} />
+            ) : (
+              <Bookmark size={20} style={{ color: MUTED }} />
+            )}
+            <div className="text-sm font-semibold text-left" style={{ color: IVORY }}>
+              {savedForLater ? "Saved for later" : "Save plan for later"}
+            </div>
+          </div>
+          <span className="text-[11px] uppercase tracking-wider" style={{ color: savedForLater ? GOLD : MUTED }}>
+            {savedForLater ? "Tap to remove" : "Tap to save"}
+          </span>
+        </button>
+      </div>
+
       {/* Fixed bottom CTA — mirrors Keto Type detail */}
       <div
         className="fixed bottom-0 left-0 right-0 p-4 backdrop-blur border-t z-20"
