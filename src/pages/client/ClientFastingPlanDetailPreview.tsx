@@ -1,5 +1,5 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ChevronLeft, Sparkles } from "lucide-react";
+import { ChevronLeft, Sparkles, CheckCircle2, Bookmark, BookmarkCheck } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -1519,7 +1519,7 @@ export default function ClientFastingPlanDetailPreview() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("client_feature_settings")
-        .select("selected_protocol_id, selected_quick_plan_id, preferred_eating_window_opens_at, preferred_eating_window_closes_at")
+        .select("selected_protocol_id, selected_quick_plan_id, preferred_eating_window_opens_at, preferred_eating_window_closes_at, plan_reviewed_at, plan_saved_for_later")
         .eq("client_id", clientId!)
         .maybeSingle();
       if (error) throw error;
