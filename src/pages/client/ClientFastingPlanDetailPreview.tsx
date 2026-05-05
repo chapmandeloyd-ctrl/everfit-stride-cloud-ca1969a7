@@ -1864,6 +1864,24 @@ export default function ClientFastingPlanDetailPreview() {
             {savedForLater ? "Tap to remove" : "Tap to save"}
           </span>
         </button>
+
+        {/* Where to find saved plans */}
+        <button
+          onClick={() => navigate("/client/profile")}
+          className="w-full rounded-2xl p-3 flex items-center justify-between gap-3 mt-1"
+          style={{ background: "transparent", border: `1px dashed ${GOLD}33` }}
+        >
+          <div className="flex items-center gap-2">
+            <BookmarkCheck size={16} style={{ color: GOLD }} />
+            <span className="text-xs" style={{ color: MUTED }}>
+              Find saved plans on your{" "}
+              <span style={{ color: GOLD, fontWeight: 600 }}>Profile</span>
+            </span>
+          </div>
+          <span className="text-[11px] uppercase tracking-wider" style={{ color: GOLD }}>
+            View
+          </span>
+        </button>
       </div>
 
       {/* Fixed bottom CTA — mirrors Keto Type detail */}
