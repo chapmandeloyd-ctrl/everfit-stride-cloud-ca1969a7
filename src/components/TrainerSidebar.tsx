@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LayoutDashboard, Users, Dumbbell, Calendar, CalendarClock, MessageSquare, Settings, TrendingUp, Target, CheckSquare, FileText, Play, Tags, Calculator, Activity, Heart, GraduationCap, Library, ChevronDown, ChevronRight, BookOpen, MonitorPlay, Zap, Bell, Compass } from "lucide-react";
+import { LayoutDashboard, Users, Dumbbell, Calendar, CalendarClock, MessageSquare, Settings, TrendingUp, Target, CheckSquare, FileText, Play, Tags, Calculator, Activity, Heart, GraduationCap, Library, ChevronDown, ChevronRight, BookOpen, MonitorPlay, Zap, Bell, Compass, Database } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import {
@@ -24,6 +24,7 @@ const mainItems = [
   { title: "Analytics", url: "/analytics", icon: TrendingUp },
   { title: "Scheduling", url: "/scheduling", icon: CalendarClock },
   { title: "Notifications", url: "/notifications", icon: Bell },
+  { title: "Data Console", url: "/admin/data", icon: Database },
 ];
 
 const libraryItems = [
