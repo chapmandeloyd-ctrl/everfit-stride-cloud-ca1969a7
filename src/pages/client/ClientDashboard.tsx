@@ -71,6 +71,7 @@ import { MyProgressSection } from "@/components/MyProgressSection";
 import { EndFastEarlySheet } from "@/components/fasting/EndFastEarlySheet";
 import { EndEatingWindowEarlySheet } from "@/components/fasting/EndEatingWindowEarlySheet";
 import { WhatCanIDrinkSheet } from "@/components/fasting/WhatCanIDrinkSheet";
+import { AssignedProgramSheet } from "@/components/client/AssignedProgramSheet";
 import { BeveragesTodayCard } from "@/components/fasting/BeveragesTodayCard";
 import { SmartPaceBanner } from "@/components/smart-pace/SmartPaceBanner";
 import { SmartPaceCatchUpModal } from "@/components/smart-pace/SmartPaceCatchUpModal";
@@ -107,6 +108,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
   const [showCloseEatingWindowConfirm, setShowCloseEatingWindowConfirm] = useState(false);
   const [showEndFastEarlySheet, setShowEndFastEarlySheet] = useState(false);
   const [showEndEatingWindowSheet, setShowEndEatingWindowSheet] = useState(false);
+  const [showAssignedProgramSheet, setShowAssignedProgramSheet] = useState(false);
   const [showWhatCanIDrink, setShowWhatCanIDrink] = useState(false);
   const [showCoachWaitLock, setShowCoachWaitLock] = useState(false);
   const [eatingWindowSheetIntent, setEatingWindowSheetIntent] = useState<"end_window" | "choose_next_fast">("end_window");
@@ -813,7 +815,6 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
   const hasAnyProtocol = !!featureSettings?.selected_protocol_id || !!featureSettings?.selected_quick_plan_id || (PREVIEW_COACH_START_NOW && !!activeProtocol);
   const hasKetoType = !!activeKetoType;
   const programFullyAssigned = hasAnyProtocol && hasKetoType;
-  const assignedProgramHref = "/client/complete-plan";
 
   // Maintenance mode idle state
   if (isMaintenanceMode && !isFasting && !hasEatingWindow) {
@@ -1438,7 +1439,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
             <Button
               variant="ghost"
               className="w-full h-11 text-sm font-medium gap-2 bg-white/5 hover:bg-white/10 text-white border border-white/10 backdrop-blur-md"
-              onClick={() => navigate(assignedProgramHref)}
+              onClick={() => navigate("/client/complete-plan")}
             >
               View Your Assigned Program
             </Button>
@@ -1548,6 +1549,11 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
         />
       )}
 
+      <AssignedProgramSheet
+        open={showAssignedProgramSheet}
+        onOpenChange={setShowAssignedProgramSheet}
+        canStart={!featureSettings?.lock_client_plan_choice}
+      />
     </>
   );
 }
