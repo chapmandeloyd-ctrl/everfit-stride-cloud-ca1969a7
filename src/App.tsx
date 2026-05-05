@@ -199,7 +199,7 @@ const App = () => (
           <Route path="/dev/pace-preview" element={<SmartPacePreview />} />
           <Route path="/client/daily-score" element={<ProtectedRoute allowedRoles={["client"]}><ClientDailyScore /></ProtectedRoute>} />
           <Route path="/client/coaching" element={<Navigate to="/client/dashboard" replace />} />
-          <Route path="/client/profile" element={<ProtectedRoute allowedRoles={["client"]}><ClientProfile /></ProtectedRoute>} />
+          <Route path="/client/profile" element={<ProtectedRoute allowedRoles={["client", "trainer"]}><ClientProfile /></ProtectedRoute>} />
           <Route path="/client/stages" element={<ProtectedRoute allowedRoles={["client"]}><ClientStagesTimeline /></ProtectedRoute>} />
           <Route path="/client/explore" element={<ProtectedRoute allowedRoles={["client"]}><ClientExplore /></ProtectedRoute>} />
           <Route path="/client/explore/content/:id" element={<ProtectedRoute allowedRoles={["client"]}><ClientExploreContent /></ProtectedRoute>} />
