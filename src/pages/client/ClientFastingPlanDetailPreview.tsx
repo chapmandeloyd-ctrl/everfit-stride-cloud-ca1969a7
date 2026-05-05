@@ -1700,6 +1700,43 @@ export default function ClientFastingPlanDetailPreview() {
     onError: (e) => toast.error(e instanceof Error ? e.message : "Could not save protocol"),
   });
 
+  const reviewedAt = (featureSettings as any)?.plan_reviewed_at as string | null | undefined;
+  const savedForLater = !!(featureSettings as any)?.plan_saved_for_later;
+
+  const toggleReviewedMutation = useMutation({
+    mutationFn: async (markReviewed: boolean) => {
+      if (!clientId) throw new Error("Not signed in");
+      const { error } = await supabase
+        .from("client_feature_settings")
+        .update({ plan_reviewed_at: markReviewed ? new Date().toISOString() : null })
+        .eq("client_id", clientId);
+      if (error) throw error;
+    },
+    onSuccess: (_d, markReviewed) => {
+      queryClient.invalidateQueries({ queryKey: ["fasting-detail-feature-settings", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["assigned-plan-card", clientId] });
+      toast.success(markReviewed ? "Marked as reviewed" : "Review status cleared");
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Could not update review status"),
+  });
+
+  const toggleSavedMutation = useMutation({
+    mutationFn: async (save: boolean) => {
+      if (!clientId) throw new Error("Not signed in");
+      const { error } = await supabase
+        .from("client_feature_settings")
+        .update({ plan_saved_for_later: save })
+        .eq("client_id", clientId);
+      if (error) throw error;
+    },
+    onSuccess: (_d, save) => {
+      queryClient.invalidateQueries({ queryKey: ["fasting-detail-feature-settings", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["assigned-plan-card", clientId] });
+      toast.success(save ? "Saved for later" : "Removed from saved");
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Could not update saved status"),
+  });
+
   useEffect(() => {
     setTimes(preferredTimes);
     lastPersistedTimesRef.current = preferredTimes;
