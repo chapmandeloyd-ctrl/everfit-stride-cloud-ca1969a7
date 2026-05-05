@@ -10326,6 +10326,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_list_tables: {
+        Args: never
+        Returns: {
+          row_estimate: number
+          table_name: string
+        }[]
+      }
       backfill_activity_events: {
         Args: { p_client_id: string }
         Returns: number
