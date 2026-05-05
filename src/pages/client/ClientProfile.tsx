@@ -1,6 +1,6 @@
 import { ClientLayout } from "@/components/ClientLayout";
 import { Card, CardContent } from "@/components/ui/card";
-import { ChevronRight, Settings, Clock, Star, Bookmark, Upload, Trash2, Info } from "lucide-react";
+import { ChevronRight, Settings, Clock, Star, Bookmark, BookmarkCheck, Upload, Trash2, Info, CheckCircle2 } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
@@ -78,6 +78,42 @@ export default function ClientProfile() {
       };
     },
     enabled: !!clientId,
+  });
+
+  const { data: savedPlanInfo } = useQuery({
+    queryKey: ["saved-plan-info", clientId],
+    enabled: !!clientId,
+    queryFn: async () => {
+      const { data: settings } = await supabase
+        .from("client_feature_settings")
+        .select("plan_saved_for_later, plan_reviewed_at, selected_protocol_id, selected_quick_plan_id")
+        .eq("client_id", clientId)
+        .maybeSingle();
+      if (!settings) return null;
+
+      let planName: string | null = null;
+      if (settings.selected_protocol_id) {
+        const { data } = await supabase
+          .from("fasting_protocols")
+          .select("name")
+          .eq("id", settings.selected_protocol_id)
+          .maybeSingle();
+        planName = data?.name ?? null;
+      } else if (settings.selected_quick_plan_id) {
+        const { data } = await supabase
+          .from("quick_fasting_plans")
+          .select("name")
+          .eq("id", settings.selected_quick_plan_id)
+          .maybeSingle();
+        planName = data?.name ?? null;
+      }
+
+      return {
+        saved: !!(settings as any).plan_saved_for_later,
+        reviewedAt: (settings as any).plan_reviewed_at as string | null,
+        planName,
+      };
+    },
   });
 
   const menuItems = [
@@ -187,6 +223,36 @@ export default function ClientProfile() {
             </div>
           </CardContent>
         </Card>
+
+          {/* Saved Plan card */}
+          {savedPlanInfo && (savedPlanInfo.saved || savedPlanInfo.reviewedAt) && (
+            <Card className="overflow-hidden">
+              <button
+                onClick={() => navigate("/client/complete-plan")}
+                className="w-full p-4 flex items-center justify-between text-left hover:bg-muted/40 transition-colors"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  {savedPlanInfo.saved ? (
+                    <BookmarkCheck className="h-5 w-5 text-primary shrink-0" />
+                  ) : (
+                    <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />
+                  )}
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-foreground truncate">
+                      {savedPlanInfo.saved ? "Saved Plan" : "Reviewed Plan"}
+                      {savedPlanInfo.planName ? ` · ${savedPlanInfo.planName}` : ""}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground">
+                      {savedPlanInfo.reviewedAt
+                        ? `Reviewed ${new Date(savedPlanInfo.reviewedAt).toLocaleDateString()}`
+                        : "Tap to open the full preview"}
+                    </p>
+                  </div>
+                </div>
+                <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />
+              </button>
+            </Card>
+          )}
 
         {/* Fasting & menu section */}
         <div className="divide-y divide-border">
