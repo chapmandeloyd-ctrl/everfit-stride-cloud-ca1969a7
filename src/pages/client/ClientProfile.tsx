@@ -117,7 +117,6 @@ export default function ClientProfile() {
   });
 
   const menuItems = [
-    { label: "Recipe Collections", to: "/client/meal-plan" },
     { label: "Health", to: "/client/health" },
   ];
 
