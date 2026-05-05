@@ -1,6 +1,6 @@
 import { ClientLayout } from "@/components/ClientLayout";
 import { Card, CardContent } from "@/components/ui/card";
-import { ChevronRight, Settings, Clock, Star, Bookmark, BookmarkCheck, Upload, Trash2, Info, CheckCircle2 } from "lucide-react";
+import { ChevronRight, Settings, Clock, Star, Bookmark, BookmarkCheck, Upload, Trash2, Info, CheckCircle2, Play, Apple } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
@@ -261,6 +261,49 @@ export default function ClientProfile() {
             </button>
           ))}
         </div>
+
+        {/* Fasting Quick Actions */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Fasting Quick Actions</CardTitle>
+            <CardDescription>Jump back into your plan in one tap</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <Button
+              variant="default"
+              className="w-full h-12 justify-between"
+              onClick={() => navigate("/client")}
+            >
+              <span className="flex items-center gap-2">
+                <Play className="h-4 w-4" />
+                Start Today's Plan
+              </span>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full h-12 justify-between"
+              onClick={() => navigate("/client/quick-plans")}
+            >
+              <span className="flex items-center gap-2">
+                <BookmarkCheck className="h-4 w-4" />
+                Saved Fasting Plans
+              </span>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full h-12 justify-between"
+              onClick={() => navigate("/client/meal-plan")}
+            >
+              <span className="flex items-center gap-2">
+                <Apple className="h-4 w-4" />
+                Nutrition Tips
+              </span>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </CardContent>
+        </Card>
 
         {/* Logout */}
         {!isImpersonating && (
