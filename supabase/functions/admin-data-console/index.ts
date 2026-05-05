@@ -48,14 +48,11 @@ serve(async (req) => {
     const action = body.action as string;
 
     if (action === "list_tables") {
-      const { data, error } = await admin.rpc("admin_list_tables" as any).then(
-        (r) => r,
-        () => ({ data: null, error: { message: "rpc-missing" } })
-      );
-      if (data) return json({ tables: data });
-      // Fallback: query information_schema via PostgREST is not possible; use a fixed list of known public tables
-      // by scanning pg_tables through a SQL function fallback isn't available — return error so UI prompts user.
-      return json({ error: "admin_list_tables RPC missing — please run the migration." }, 500);
+      const { data, error } = await userClient.rpc("admin_list_tables" as any);
+      if (error) {
+        return json({ error: error.message || "Failed to load tables" }, 500);
+      }
+      return json({ tables: data ?? [] });
     }
 
     if (action === "list_rows") {
