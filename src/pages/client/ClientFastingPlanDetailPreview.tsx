@@ -1,5 +1,5 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ChevronLeft, Sparkles } from "lucide-react";
+import { ChevronLeft, Sparkles, CheckCircle2, Bookmark, BookmarkCheck } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -1519,7 +1519,7 @@ export default function ClientFastingPlanDetailPreview() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("client_feature_settings")
-        .select("selected_protocol_id, selected_quick_plan_id, preferred_eating_window_opens_at, preferred_eating_window_closes_at")
+        .select("selected_protocol_id, selected_quick_plan_id, preferred_eating_window_opens_at, preferred_eating_window_closes_at, plan_reviewed_at, plan_saved_for_later")
         .eq("client_id", clientId!)
         .maybeSingle();
       if (error) throw error;
@@ -1700,6 +1700,43 @@ export default function ClientFastingPlanDetailPreview() {
     onError: (e) => toast.error(e instanceof Error ? e.message : "Could not save protocol"),
   });
 
+  const reviewedAt = (featureSettings as any)?.plan_reviewed_at as string | null | undefined;
+  const savedForLater = !!(featureSettings as any)?.plan_saved_for_later;
+
+  const toggleReviewedMutation = useMutation({
+    mutationFn: async (markReviewed: boolean) => {
+      if (!clientId) throw new Error("Not signed in");
+      const { error } = await supabase
+        .from("client_feature_settings")
+        .update({ plan_reviewed_at: markReviewed ? new Date().toISOString() : null })
+        .eq("client_id", clientId);
+      if (error) throw error;
+    },
+    onSuccess: (_d, markReviewed) => {
+      queryClient.invalidateQueries({ queryKey: ["fasting-detail-feature-settings", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["assigned-plan-card", clientId] });
+      toast.success(markReviewed ? "Marked as reviewed" : "Review status cleared");
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Could not update review status"),
+  });
+
+  const toggleSavedMutation = useMutation({
+    mutationFn: async (save: boolean) => {
+      if (!clientId) throw new Error("Not signed in");
+      const { error } = await supabase
+        .from("client_feature_settings")
+        .update({ plan_saved_for_later: save })
+        .eq("client_id", clientId);
+      if (error) throw error;
+    },
+    onSuccess: (_d, save) => {
+      queryClient.invalidateQueries({ queryKey: ["fasting-detail-feature-settings", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["assigned-plan-card", clientId] });
+      toast.success(save ? "Saved for later" : "Removed from saved");
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Could not update saved status"),
+  });
+
   useEffect(() => {
     setTimes(preferredTimes);
     lastPersistedTimesRef.current = preferredTimes;
@@ -1773,6 +1810,61 @@ export default function ClientFastingPlanDetailPreview() {
         windowOpensAt={times.opensAt}
         windowClosesAt={times.closesAt}
       />
+
+      {/* Review / Save controls */}
+      <div className="px-5 pb-6 pt-2 space-y-3">
+        <div
+          className="rounded-2xl p-4 flex items-center justify-between gap-3"
+          style={{ background: SURFACE, border: `1px solid ${GOLD}22` }}
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <CheckCircle2 size={20} style={{ color: reviewedAt ? GOLD : MUTED, flexShrink: 0 }} />
+            <div className="min-w-0">
+              <div className="text-sm font-semibold" style={{ color: IVORY }}>
+                {reviewedAt ? "Plan reviewed" : "Mark plan as reviewed"}
+              </div>
+              <div className="text-[11px]" style={{ color: MUTED }}>
+                {reviewedAt
+                  ? `Reviewed ${new Date(reviewedAt).toLocaleDateString()}`
+                  : "Saves status to your profile"}
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={() => toggleReviewedMutation.mutate(!reviewedAt)}
+            disabled={toggleReviewedMutation.isPending}
+            className="h-9 px-4 rounded-lg text-xs font-bold whitespace-nowrap disabled:opacity-50"
+            style={{
+              backgroundColor: reviewedAt ? `${GOLD}18` : GOLD,
+              color: reviewedAt ? GOLD : BLACK,
+              border: reviewedAt ? `1px solid ${GOLD}55` : "none",
+            }}
+          >
+            {reviewedAt ? "Reviewed ✓" : "Mark reviewed"}
+          </button>
+        </div>
+
+        <button
+          onClick={() => toggleSavedMutation.mutate(!savedForLater)}
+          disabled={toggleSavedMutation.isPending}
+          className="w-full rounded-2xl p-4 flex items-center justify-between gap-3 disabled:opacity-50"
+          style={{ background: SURFACE, border: `1px solid ${GOLD}22` }}
+        >
+          <div className="flex items-center gap-3">
+            {savedForLater ? (
+              <BookmarkCheck size={20} style={{ color: GOLD }} />
+            ) : (
+              <Bookmark size={20} style={{ color: MUTED }} />
+            )}
+            <div className="text-sm font-semibold text-left" style={{ color: IVORY }}>
+              {savedForLater ? "Saved for later" : "Save plan for later"}
+            </div>
+          </div>
+          <span className="text-[11px] uppercase tracking-wider" style={{ color: savedForLater ? GOLD : MUTED }}>
+            {savedForLater ? "Tap to remove" : "Tap to save"}
+          </span>
+        </button>
+      </div>
 
       {/* Fixed bottom CTA — mirrors Keto Type detail */}
       <div
