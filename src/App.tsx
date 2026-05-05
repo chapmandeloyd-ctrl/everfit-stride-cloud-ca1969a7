@@ -19,6 +19,7 @@ import Goals from "./pages/Goals";
 import TaskLibrary from "./pages/TaskLibrary";
 import Auth from "./pages/Auth";
 import Unsubscribe from "./pages/Unsubscribe";
+import PortalMockup from "./pages/PortalMockup";
 import ClientDashboard from "./pages/client/ClientDashboardMinimal";
 import ClientRingsDemo from "./pages/client/ClientRingsDemo";
 import ClientSmartPace from "./pages/client/ClientSmartPace";
@@ -143,6 +144,7 @@ const App = () => (
           <Route path="/guardian/:token" element={<GuardianSummary />} />
           <Route path="/unsubscribe" element={<Unsubscribe />} />
           <Route path="/checkout-test" element={<CheckoutTest />} />
+          <Route path="/portal-mockup" element={<PortalMockup />} />
           <Route path="/synergy-card-demo" element={<SynergyCardDemo />} />
           <Route path="/client/rings-demo" element={<ClientRingsDemo />} />
           <Route path="/preview/step-tracker" element={<StepTrackerPreview />} />
