@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Dumbbell, MessageSquare, Camera, CheckSquare, Utensils, Activity, Target, Scale, BookOpen, CalendarDays, List, ChefHat, Eye, Clock, Smile, Type, Image, Shield, TrendingUp, Zap, LayoutGrid } from "lucide-react";
 import { InsightCoachControls } from "./InsightCoachControls";
 import { CoachPlanOverrides } from "./CoachPlanOverrides";
+import { Lock } from "lucide-react";
 import { ENGINE_MODE_OPTIONS, type EngineMode, getEngineConfig } from "@/lib/engineConfig";
 import { Slider } from "@/components/ui/slider";
 import { RestDayCardEditor } from "./RestDayCardEditor";
@@ -252,6 +253,9 @@ export function ClientSettingsTab({ clientId, trainerId }: ClientSettingsTabProp
 
   return (
     <div className="space-y-6">
+      {/* Coach-only plan assignment lock */}
+      <PlanAssignmentLockCard clientId={clientId} />
+
       {/* Plan Override Controls */}
       <CoachPlanOverrides clientId={clientId} trainerId={trainerId} />
 
@@ -1161,6 +1165,67 @@ function DashboardLayoutSection({ clientId, trainerId, settings }: { clientId: s
           disabledCards={disabledCards}
           onSaveAsDefault={(newCards) => save({ cards: newCards, forClient: null })}
         />
+      </CardContent>
+    </Card>
+  );
+}
+
+function PlanAssignmentLockCard({ clientId }: { clientId: string }) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const { data: locked } = useQuery({
+    queryKey: ["plan-assignment-lock", clientId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("client_feature_settings")
+        .select("lock_client_plan_choice")
+        .eq("client_id", clientId)
+        .maybeSingle();
+      return data?.lock_client_plan_choice ?? false;
+    },
+  });
+
+  const toggle = useMutation({
+    mutationFn: async (value: boolean) => {
+      const { error } = await supabase
+        .from("client_feature_settings")
+        .update({ lock_client_plan_choice: value })
+        .eq("client_id", clientId);
+      if (error) throw error;
+    },
+    onSuccess: (_, value) => {
+      queryClient.invalidateQueries({ queryKey: ["plan-assignment-lock", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["quick-control-settings", clientId] });
+      toast({ title: value ? "Coach-only assignment ON" : "Client choice unlocked" });
+    },
+  });
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Lock className="h-5 w-5" />
+          Coach-only Plan Assignment
+        </CardTitle>
+        <CardDescription>
+          When ON, this client cannot pick or start their own protocol / quick plan — they'll see the
+          "Plan Locked" dialog and must use what you assign.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-center justify-between gap-3 rounded-lg border p-3">
+          <div className="min-w-0">
+            <Label className="text-sm font-semibold">Lock plan choice to coach</Label>
+            <p className="text-xs text-muted-foreground">
+              Turn OFF to let the client view, start, and finish their assigned program themselves.
+            </p>
+          </div>
+          <Switch
+            checked={!!locked}
+            onCheckedChange={(v) => toggle.mutate(v)}
+          />
+        </div>
       </CardContent>
     </Card>
   );
