@@ -156,14 +156,27 @@ export default function ClientQuickPlanDetail() {
       if (error) throw error;
       if (!data) throw new Error("Plan could not be saved.");
       if (startNow && !data.active_fast_start_at) throw new Error("Fast timer could not be started.");
+      // Fresh-pair: deactivate any active keto type so the user picks one
+      // intentionally paired with this fasting plan.
+      await supabase
+        .from("client_keto_assignments")
+        .update({ is_active: false })
+        .eq("client_id", clientId)
+        .eq("is_active", true);
     },
     onSuccess: (_, { startNow }) => {
       queryClient.invalidateQueries({ queryKey: ["my-feature-settings", clientId] });
       queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting", clientId] });
       queryClient.invalidateQueries({ queryKey: ["fasting-gate-state"] });
       queryClient.invalidateQueries({ queryKey: ["fasting-profile-data"] });
-      toast.success(startNow ? "Fast started!" : "Plan saved!");
-      navigate("/client/dashboard");
+      queryClient.invalidateQueries({ queryKey: ["active-keto-assignment", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["client-keto-assignment", clientId] });
+      toast.success(
+        startNow
+          ? "Fast started! Now pick a Keto Type to complete the synergy."
+          : "Plan saved. Now pick a Keto Type to complete the synergy."
+      );
+      navigate("/client/keto-types");
     },
     onError: (error) => toast.error(error instanceof Error ? error.message : "Failed to select plan"),
   });
