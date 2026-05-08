@@ -204,8 +204,8 @@ export default function ClientKetoTypeDetail() {
 
       </div>
 
-      {/* Fixed bottom CTA */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur border-t z-20">
+      {/* Fixed bottom CTA — lifted above the client tab bar so it isn't clipped */}
+      <div className="fixed bottom-20 md:bottom-24 left-0 right-0 p-4 bg-background/95 backdrop-blur border-t z-20">
         {isActive ? (
           <div
             className="w-full h-14 rounded-lg flex items-center justify-center text-base font-bold"

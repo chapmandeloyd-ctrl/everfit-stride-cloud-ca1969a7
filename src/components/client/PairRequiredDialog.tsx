@@ -37,6 +37,7 @@ export function PairRequiredDialog({
   onSaveForLater,
 }: PairRequiredDialogProps) {
   const otherKind = justSet === "protocol" ? "Keto Type" : "Fasting Protocol";
+  const justSetShort = justSetLabel.split(" — ")[0];
 
   if (mode === "ready-paired") {
     return (
@@ -65,15 +66,18 @@ export function PairRequiredDialog({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>One more step</AlertDialogTitle>
+          <AlertDialogTitle>Complete your synergy</AlertDialogTitle>
           <AlertDialogDescription>
-            <span className="font-semibold text-foreground">{justSetLabel}</span> is set. To begin, you also need to pick a{" "}
-            <span className="font-semibold text-foreground">{otherKind}</span> — the protocol and keto type run together as one program.
+            <span className="font-semibold text-foreground">{justSetShort}</span> needs to be paired with a{" "}
+            <span className="font-semibold text-foreground">{otherKind}</span> to complete the synergy.
+            <br />
+            <br />
+            Tap Continue to choose your {otherKind.toLowerCase()}.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel onClick={onSaveForLater}>Just browsing for now</AlertDialogCancel>
-          <AlertDialogAction onClick={onPickOther}>Pick {otherKind}</AlertDialogAction>
+          <AlertDialogAction onClick={onPickOther}>Continue</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
