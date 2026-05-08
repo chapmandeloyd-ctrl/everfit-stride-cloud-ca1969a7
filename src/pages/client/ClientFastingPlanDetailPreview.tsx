@@ -1537,7 +1537,24 @@ export default function ClientFastingPlanDetailPreview() {
   const assignedPlanId = featureSettings?.selected_protocol_id ?? featureSettings?.selected_quick_plan_id ?? null;
 
   const planType = (routePlanType ?? assignedPlanType ?? "quick") as "quick" | "program";
-  const planId = routePlanId ?? assignedPlanId;
+
+  const { data: defaultQuickPlan } = useQuery({
+    queryKey: ["fasting-detail-default-quick-plan"],
+    enabled: planType === "quick" && !routePlanId && !assignedPlanId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("quick_fasting_plans")
+        .select("id, name, fast_hours, intensity_tier, description")
+        .order("order_index", { ascending: true })
+        .order("name", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const planId = routePlanId ?? assignedPlanId ?? (planType === "quick" ? defaultQuickPlan?.id ?? null : null);
 
   const { data: ketoAssignment } = useQuery({
     queryKey: ["fasting-detail-keto-assignment", clientId],
