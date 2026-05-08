@@ -1004,6 +1004,18 @@ function SynergyContent({
     onError: (e) =>
       toast.error(e instanceof Error ? e.message : "Could not start fast"),
   });
+
+  const handleStartFast = () => {
+    if (!planId) {
+      toast.error("No fasting plan is available yet.", {
+        description: "Add a quick fasting plan to the library or assign one to this client first.",
+      });
+      return;
+    }
+
+    startFastMutation.mutate();
+  };
+
   return (
     <div className="px-5">
       {withCoach !== "none" && (
@@ -1436,7 +1448,7 @@ function SynergyContent({
 
             <button
               type="button"
-              disabled={startFastMutation.isPending || !clientId || !planId}
+              disabled={startFastMutation.isPending || !clientId}
               className="w-full py-4 text-sm uppercase tracking-[0.3em] font-serif transition active:scale-[0.99]"
               style={{
                 background: GOLD,
@@ -1444,7 +1456,7 @@ function SynergyContent({
                 border: `1px solid ${GOLD}`,
                 opacity: startFastMutation.isPending ? 0.6 : 1,
               }}
-              onClick={() => startFastMutation.mutate()}
+              onClick={handleStartFast}
             >
               {startFastMutation.isPending ? "Starting…" : "Start Your Fast"}
             </button>
