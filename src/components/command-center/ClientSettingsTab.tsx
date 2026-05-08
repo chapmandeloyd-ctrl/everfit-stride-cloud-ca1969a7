@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Dumbbell, MessageSquare, Camera, CheckSquare, Utensils, Activity, Target, Scale, BookOpen, CalendarDays, List, ChefHat, Eye, Clock, Smile, Type, Image, Shield, TrendingUp, Zap, LayoutGrid } from "lucide-react";
 import { InsightCoachControls } from "./InsightCoachControls";
 import { CoachPlanOverrides } from "./CoachPlanOverrides";
+import { Lock } from "lucide-react";
 import { ENGINE_MODE_OPTIONS, type EngineMode, getEngineConfig } from "@/lib/engineConfig";
 import { Slider } from "@/components/ui/slider";
 import { RestDayCardEditor } from "./RestDayCardEditor";
@@ -252,6 +253,9 @@ export function ClientSettingsTab({ clientId, trainerId }: ClientSettingsTabProp
 
   return (
     <div className="space-y-6">
+      {/* Coach-only plan assignment lock */}
+      <PlanAssignmentLockCard clientId={clientId} />
+
       {/* Plan Override Controls */}
       <CoachPlanOverrides clientId={clientId} trainerId={trainerId} />
 
