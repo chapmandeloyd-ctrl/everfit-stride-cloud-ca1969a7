@@ -9,6 +9,16 @@ import { toast } from "sonner";
 import { ClientLayout } from "@/components/ClientLayout";
 import { KetoTypeDetailView } from "@/components/keto/KetoTypeDetailView";
 import { PairRequiredDialog } from "@/components/client/PairRequiredDialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 // Brand gold — keto type detail uses gold theming to align with the
 // protocol/keto pairing experience (overrides any per-type color from DB).
@@ -102,7 +112,7 @@ export default function ClientKetoTypeDetail() {
     queryFn: async () => {
       const { data } = await supabase
         .from("client_feature_settings")
-        .select("selected_protocol_id, selected_quick_plan_id")
+        .select("selected_protocol_id, selected_quick_plan_id, active_fast_start_at")
         .eq("client_id", clientId!)
         .maybeSingle();
       return data;
@@ -117,6 +127,7 @@ export default function ClientKetoTypeDetail() {
   const activeProtocolId = featureSettings?.selected_protocol_id ?? null;
   const activeQuickPlanId = featureSettings?.selected_quick_plan_id ?? null;
   const hasActivePlan = !!(activeProtocolId || activeQuickPlanId);
+  const hasLiveFast = !!featureSettings?.active_fast_start_at;
 
   const { data: activePlanName } = useQuery({
     queryKey: ["pair-other-name", activeProtocolId, activeQuickPlanId],
@@ -143,6 +154,7 @@ export default function ClientKetoTypeDetail() {
   });
 
   const [pairDialogOpen, setPairDialogOpen] = useState(false);
+  const [confirmEndFastOpen, setConfirmEndFastOpen] = useState(false);
 
   const setActive = useMutation({
     mutationFn: async () => {
@@ -159,14 +171,41 @@ export default function ClientKetoTypeDetail() {
         assigned_by: clientId,
         is_active: true,
       });
+      // Fresh-pair: wipe any active fasting protocol/quick plan and end any
+      // running fast so the user is forced to choose a protocol that pairs
+      // with this keto type.
+      await supabase
+        .from("client_feature_settings")
+        .update({
+          selected_protocol_id: null,
+          selected_quick_plan_id: null,
+          protocol_start_date: null,
+          active_fast_start_at: null,
+          active_fast_target_hours: null,
+          eating_window_ends_at: null,
+          last_fast_ended_at: hasLiveFast ? new Date().toISOString() : null,
+        })
+        .eq("client_id", clientId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["client-keto-assignment"] });
+      queryClient.invalidateQueries({ queryKey: ["client-plan-for-synergy", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["my-feature-settings", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["fasting-gate-state"] });
+      queryClient.invalidateQueries({ queryKey: ["fasting-profile-data"] });
       toast.success(`${ketoType?.abbreviation} — ${ketoType?.name} set as your keto type`);
-      // Open the pair dialog instead of leaving the user on a dead-end "activated" toast.
       setPairDialogOpen(true);
     },
   });
+
+  const handleSetClick = () => {
+    if (hasLiveFast) {
+      setConfirmEndFastOpen(true);
+    } else {
+      setActive.mutate();
+    }
+  };
 
   if (!ketoType) {
     return (
@@ -221,7 +260,7 @@ export default function ClientKetoTypeDetail() {
           <Button
             className="w-full h-14 text-base font-bold text-white"
             style={{ backgroundColor: GOLD }}
-            onClick={() => setActive.mutate()}
+            onClick={handleSetClick}
             disabled={setActive.isPending}
           >
             Set {ketoType.abbreviation} — {ketoType.name}
@@ -237,8 +276,8 @@ export default function ClientKetoTypeDetail() {
         onOpenChange={setPairDialogOpen}
         justSet="keto"
         justSetLabel={`${ketoType.abbreviation} — ${ketoType.name}`}
-        otherLabel={activePlanName ?? null}
-        mode={hasActivePlan ? "ready-paired" : "needs-other"}
+        otherLabel={null}
+        mode="needs-other"
         onPickOther={() => {
           setPairDialogOpen(false);
           navigate("/client/programs");
@@ -249,6 +288,29 @@ export default function ClientKetoTypeDetail() {
         }}
         onSaveForLater={() => setPairDialogOpen(false)}
       />
+
+      <AlertDialog open={confirmEndFastOpen} onOpenChange={setConfirmEndFastOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>End your active fast?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You have an active{activePlanName ? ` ${activePlanName}` : ""} fast running. Switching keto types will end it so you can pick a fasting protocol that pairs with{" "}
+              <span className="font-semibold text-foreground">{ketoType.abbreviation}</span>.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep my fast</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setConfirmEndFastOpen(false);
+                setActive.mutate();
+              }}
+            >
+              End fast & continue
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </ClientLayout>
   );
 }
