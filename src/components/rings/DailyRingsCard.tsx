@@ -171,7 +171,7 @@ function DayDetailFull({
       </div>
 
       {/* Headline + big ring */}
-      <div className="px-6 pt-2 pb-4 flex items-start justify-between gap-4">
+      <div className="px-6 pt-8 pb-4 flex items-start justify-between gap-4">
         <div className="flex-1 pt-2">
           <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-daily-ring-fasting">
             {format(date, "MMMM d, yyyy")}
