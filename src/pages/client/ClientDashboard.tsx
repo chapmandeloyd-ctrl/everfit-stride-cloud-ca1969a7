@@ -1461,8 +1461,12 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
             // Always open the full library so the client sees every card
             // (assigned card highlighted, others locked when admin enforces it).
             const protocolHref = "/client/fasting-plans-preview";
-            const ketoHref = activeKetoType?.id
-              ? `/client/keto-types/${activeKetoType.id}`
+            // Guard against preview placeholder ids (no real DB row) — route
+            // to the picker so the detail page doesn't get stuck loading.
+            const ketoIdIsReal =
+              !!activeKetoType?.id && !String(activeKetoType.id).startsWith("preview-");
+            const ketoHref = ketoIdIsReal
+              ? `/client/keto-types/${activeKetoType!.id}`
               : "/client/keto-types";
 
             const PillButton = ({
