@@ -1,4 +1,4 @@
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { ChevronLeft, Sparkles, CheckCircle2, Bookmark, BookmarkCheck } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -1522,6 +1522,8 @@ function DemoBlock({
 export default function ClientFastingPlanDetailPreview() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
+  const location = useLocation();
+  const isCombinedView = location.pathname === "/client/complete-plan";
   const clientId = useEffectiveClientId();
   const queryClient = useQueryClient();
 
@@ -1816,13 +1818,31 @@ export default function ClientFastingPlanDetailPreview() {
           className="text-[10px] uppercase tracking-[0.35em]"
           style={{ color: GOLD }}
         >
-          Protocol
+          {isCombinedView ? "Full Program" : "Protocol"}
         </div>
         <div style={{ width: 22 }} />
       </header>
 
       <Hero plan={plan} />
       <EatingWindow plan={plan} times={times} onTimesChange={setTimes} />
+
+      {/* PART 2 — Keto Type recommendations + Daily Meal Timeline.
+          Only render on the combined "Full Program" route so that the
+          plain protocol preview stays protocol-only. */}
+      {isCombinedView && (
+        <DemoBlock
+          tabsVariant="top3"
+          coachVariant="brand"
+          defaultActive={defaultKetoId}
+          assignedKetoId={defaultKetoId}
+          fastHours={plan.fastHours}
+          planName={plan.name}
+          planType={planType}
+          planId={planId}
+          windowOpensAt={times.opensAt}
+          windowClosesAt={times.closesAt}
+        />
+      )}
 
       {/* Review / Save controls */}
       <div className="px-5 pb-6 pt-2 space-y-3">
