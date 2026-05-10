@@ -1469,6 +1469,18 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
               ? `/client/keto-types/${activeKetoType!.id}`
               : "/client/keto-types";
 
+            // When BOTH halves are set, tapping either pill should open the
+            // combined "Full Program" page (protocol + keto, working as one)
+            // instead of routing to the individual detail/library pages.
+            const protocolOnClick = () => {
+              if (isCoachWait) return setShowCoachWaitLock(true);
+              navigate(programFullyAssigned ? "/client/complete-plan" : protocolHref);
+            };
+            const ketoOnClick = () => {
+              if (isCoachWait) return setShowCoachWaitLock(true);
+              navigate(programFullyAssigned ? "/client/complete-plan" : ketoHref);
+            };
+
             const PillButton = ({
               label,
               onClick,
@@ -1522,12 +1534,12 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                   <PillButton
                     label="View Protocol"
                     locked={isCoachWait}
-                    onClick={() => (isCoachWait ? setShowCoachWaitLock(true) : navigate(protocolHref))}
+                    onClick={protocolOnClick}
                   />
                   <PillButton
                     label="View Keto Type"
                     locked={isCoachWait}
-                    onClick={() => (isCoachWait ? setShowCoachWaitLock(true) : navigate(ketoHref))}
+                    onClick={ketoOnClick}
                   />
                 </div>
                 <PlanLockedDialog
