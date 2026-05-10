@@ -1813,32 +1813,16 @@ export default function ClientFastingPlanDetailPreview() {
           <ChevronLeft size={22} />
         </button>
         <div
-          className="text-[10px] uppercase tracking-[0.35em] flex items-baseline gap-1.5"
+          className="text-[10px] uppercase tracking-[0.35em]"
           style={{ color: GOLD }}
         >
-          <span style={{ color: MUTED }}>Part 1</span>
-          <span style={{ color: `${GOLD}66` }}>·</span>
-          <span>Protocol</span>
+          Protocol
         </div>
         <div style={{ width: 22 }} />
       </header>
 
       <Hero plan={plan} />
       <EatingWindow plan={plan} times={times} onTimesChange={setTimes} />
-
-      {/* PART 2 — Keto Type recommendations + Daily Meal Timeline */}
-      <DemoBlock
-        tabsVariant="top3"
-        coachVariant="brand"
-        defaultActive={defaultKetoId}
-        assignedKetoId={defaultKetoId}
-        fastHours={plan.fastHours}
-        planName={plan.name}
-        planType={planType}
-        planId={planId}
-        windowOpensAt={times.opensAt}
-        windowClosesAt={times.closesAt}
-      />
 
       {/* Review / Save controls */}
       <div className="px-5 pb-6 pt-2 space-y-3">
