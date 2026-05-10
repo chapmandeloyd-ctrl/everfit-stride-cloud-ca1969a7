@@ -1472,13 +1472,16 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
             // When BOTH halves are set, tapping either pill should open the
             // combined "Full Program" page (protocol + keto, working as one)
             // instead of routing to the individual detail/library pages.
+            // Each pill always opens its own detail/library page, even when the
+            // full program is assigned. Only the dedicated "View Program" CTA
+            // routes to /client/complete-plan.
             const protocolOnClick = () => {
               if (isCoachWait) return setShowCoachWaitLock(true);
-              navigate(programFullyAssigned ? "/client/complete-plan" : protocolHref);
+              navigate(protocolHref);
             };
             const ketoOnClick = () => {
               if (isCoachWait) return setShowCoachWaitLock(true);
-              navigate(programFullyAssigned ? "/client/complete-plan" : ketoHref);
+              navigate(ketoHref);
             };
 
             const PillButton = ({
