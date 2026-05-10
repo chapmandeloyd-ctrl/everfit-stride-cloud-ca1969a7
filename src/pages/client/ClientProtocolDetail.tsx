@@ -14,6 +14,11 @@ import {
 import { PROTOCOL_DETAIL_COPY } from "@/lib/protocolDetailContent";
 import { FastingSafetyNotice } from "@/components/FastingSafetyNotice";
 import { FastingStructureComparison } from "@/components/FastingStructureComparison";
+import { useState } from "react";
+import {
+  ConfirmReplacementDialog,
+  CrossSellOtherSideDialog,
+} from "@/components/client/ReplacePairDialogs";
 
 
 function generateWeeklyProgression(durationDays: number, fastTargetHours: number) {
@@ -46,6 +51,10 @@ export default function ClientProtocolDetail() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
+  const [confirmReplaceOpen, setConfirmReplaceOpen] = useState(false);
+  const [pendingStartNow, setPendingStartNow] = useState(false);
+  const [crossSellOpen, setCrossSellOpen] = useState(false);
+
   const { data: protocol, isLoading } = useQuery({
     queryKey: ["fasting-protocol", id],
     queryFn: async () => {
@@ -61,6 +70,48 @@ export default function ClientProtocolDetail() {
       };
     },
     enabled: !!id,
+  });
+
+  // Current active protocol/quick plan id+name (for replacement copy)
+  const { data: currentSelection } = useQuery({
+    queryKey: ["current-selected-fasting", clientId],
+    enabled: !!clientId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("client_feature_settings")
+        .select("selected_protocol_id, selected_quick_plan_id")
+        .eq("client_id", clientId!)
+        .maybeSingle();
+      return data ?? null;
+    },
+  });
+
+  const { data: currentProtocolLabel } = useQuery({
+    queryKey: [
+      "current-fasting-label",
+      currentSelection?.selected_protocol_id,
+      currentSelection?.selected_quick_plan_id,
+    ],
+    enabled: !!(currentSelection?.selected_protocol_id || currentSelection?.selected_quick_plan_id),
+    queryFn: async () => {
+      if (currentSelection?.selected_protocol_id) {
+        const { data } = await supabase
+          .from("fasting_protocols")
+          .select("name")
+          .eq("id", currentSelection.selected_protocol_id)
+          .maybeSingle();
+        return data?.name ?? null;
+      }
+      if (currentSelection?.selected_quick_plan_id) {
+        const { data } = await supabase
+          .from("quick_fasting_plans")
+          .select("name")
+          .eq("id", currentSelection.selected_quick_plan_id)
+          .maybeSingle();
+        return (data as { name: string | null } | null)?.name ?? null;
+      }
+      return null;
+    },
   });
 
   // Fetch active keto assignment for synergy display
@@ -102,13 +153,8 @@ export default function ClientProtocolDetail() {
       if (error) throw error;
       if (!data) throw new Error("Protocol could not be saved.");
       if (startNow && !data.active_fast_start_at) throw new Error("Fast timer could not be started.");
-      // Fresh-pair: deactivate any active keto type so the user picks one
-      // intentionally paired with this protocol.
-      await supabase
-        .from("client_keto_assignments")
-        .update({ is_active: false })
-        .eq("client_id", clientId)
-        .eq("is_active", true);
+      // Keep the user's keto assignment intact — the cross-sell step will
+      // offer the chance to change it.
     },
     onSuccess: (_, { startNow }) => {
       queryClient.invalidateQueries({ queryKey: ["my-feature-settings", clientId] });
@@ -117,12 +163,19 @@ export default function ClientProtocolDetail() {
       queryClient.invalidateQueries({ queryKey: ["fasting-profile-data"] });
       queryClient.invalidateQueries({ queryKey: ["active-keto-assignment", clientId] });
       queryClient.invalidateQueries({ queryKey: ["client-keto-assignment", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["current-selected-fasting", clientId] });
       if (startNow) {
         toast.success("Fast started! Now pick a Keto Type to complete the synergy.");
       } else {
         toast.success("Protocol saved. Now pick a Keto Type to complete the synergy.");
       }
-      navigate("/client/keto-types");
+      // If the user already has a keto type, cross-sell. Otherwise keep
+      // the existing flow (push them to pick one).
+      if (activeKetoAssignment?.keto_type_id) {
+        setCrossSellOpen(true);
+      } else {
+        navigate("/client/keto-types");
+      }
     },
     onError: (error) => toast.error(error instanceof Error ? error.message : "Failed to select protocol"),
   });
@@ -143,6 +196,19 @@ export default function ClientProtocolDetail() {
   const autoProgression = generateWeeklyProgression(protocol.duration_days, protocol.fast_target_hours);
   const autoSchedule = getDailySchedule(protocol.fast_target_hours);
   const eatHours = 24 - protocol.fast_target_hours;
+
+  const isReplacement =
+    !!(currentSelection?.selected_protocol_id || currentSelection?.selected_quick_plan_id) &&
+    currentSelection?.selected_protocol_id !== protocol.id;
+
+  const handleStartClick = (startNow: boolean) => {
+    if (isReplacement) {
+      setPendingStartNow(startNow);
+      setConfirmReplaceOpen(true);
+    } else {
+      selectProtocolMutation.mutate({ protocolId: protocol.id, startNow });
+    }
+  };
 
   return (
     <ClientLayout>
@@ -387,7 +453,7 @@ export default function ClientProtocolDetail() {
       <div className="fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-t p-4 safe-area-bottom space-y-2">
         <Button
           className="w-full h-12 text-base font-semibold"
-          onClick={() => selectProtocolMutation.mutate({ protocolId: protocol.id, startNow: true })}
+          onClick={() => handleStartClick(true)}
           disabled={selectProtocolMutation.isPending}
         >
           {selectProtocolMutation.isPending ? "Starting..." : "Start This Program Now"}
@@ -395,12 +461,39 @@ export default function ClientProtocolDetail() {
         <Button
           variant="outline"
           className="w-full h-10 text-sm"
-          onClick={() => selectProtocolMutation.mutate({ protocolId: protocol.id, startNow: false })}
+          onClick={() => handleStartClick(false)}
           disabled={selectProtocolMutation.isPending}
         >
           Save program for later
         </Button>
       </div>
+
+      <ConfirmReplacementDialog
+        open={confirmReplaceOpen}
+        onOpenChange={setConfirmReplaceOpen}
+        kind="protocol"
+        newLabel={protocol.name}
+        currentLabel={currentProtocolLabel ?? null}
+        onConfirm={() => {
+          setConfirmReplaceOpen(false);
+          selectProtocolMutation.mutate({ protocolId: protocol.id, startNow: pendingStartNow });
+        }}
+      />
+
+      <CrossSellOtherSideDialog
+        open={crossSellOpen}
+        onOpenChange={setCrossSellOpen}
+        justChanged="protocol"
+        newLabel={protocol.name}
+        onChangeOther={() => {
+          setCrossSellOpen(false);
+          navigate("/client/keto-types");
+        }}
+        onViewProgram={() => {
+          setCrossSellOpen(false);
+          navigate("/client/complete-plan");
+        }}
+      />
     </ClientLayout>
   );
 }

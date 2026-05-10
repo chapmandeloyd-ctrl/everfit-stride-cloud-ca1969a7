@@ -10,6 +10,10 @@ import { ClientLayout } from "@/components/ClientLayout";
 import { KetoTypeDetailView } from "@/components/keto/KetoTypeDetailView";
 import { PairRequiredDialog } from "@/components/client/PairRequiredDialog";
 import {
+  ConfirmReplacementDialog,
+  CrossSellOtherSideDialog,
+} from "@/components/client/ReplacePairDialogs";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -155,6 +159,24 @@ export default function ClientKetoTypeDetail() {
 
   const [pairDialogOpen, setPairDialogOpen] = useState(false);
   const [confirmEndFastOpen, setConfirmEndFastOpen] = useState(false);
+  const [confirmReplaceOpen, setConfirmReplaceOpen] = useState(false);
+  const [crossSellOpen, setCrossSellOpen] = useState(false);
+
+  // Resolve the currently-active keto type's label so the replacement
+  // confirm dialog can show what's being replaced.
+  const { data: currentKetoLabel } = useQuery({
+    queryKey: ["current-keto-label", activeAssignment?.keto_type_id],
+    enabled: !!activeAssignment?.keto_type_id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("keto_types")
+        .select("abbreviation, name")
+        .eq("id", activeAssignment!.keto_type_id)
+        .maybeSingle();
+      if (!data) return null;
+      return `${data.abbreviation} — ${data.name}`;
+    },
+  });
 
   const setActive = useMutation({
     mutationFn: async () => {
@@ -171,21 +193,20 @@ export default function ClientKetoTypeDetail() {
         assigned_by: clientId,
         is_active: true,
       });
-      // Fresh-pair: wipe any active fasting protocol/quick plan and end any
-      // running fast so the user is forced to choose a protocol that pairs
-      // with this keto type.
-      await supabase
-        .from("client_feature_settings")
-        .update({
-          selected_protocol_id: null,
-          selected_quick_plan_id: null,
-          protocol_start_date: null,
-          active_fast_start_at: null,
-          active_fast_target_hours: null,
-          eating_window_ends_at: null,
-          last_fast_ended_at: hasLiveFast ? new Date().toISOString() : null,
-        })
-        .eq("client_id", clientId);
+      // If a live fast is running, end it (the user already confirmed in the
+      // pre-step) but KEEP their active protocol so the cross-sell can offer
+      // the option to change it. Don't nuke the other half of the pair.
+      if (hasLiveFast) {
+        await supabase
+          .from("client_feature_settings")
+          .update({
+            active_fast_start_at: null,
+            active_fast_target_hours: null,
+            eating_window_ends_at: null,
+            last_fast_ended_at: new Date().toISOString(),
+          })
+          .eq("client_id", clientId);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["client-keto-assignment"] });
@@ -195,11 +216,29 @@ export default function ClientKetoTypeDetail() {
       queryClient.invalidateQueries({ queryKey: ["fasting-gate-state"] });
       queryClient.invalidateQueries({ queryKey: ["fasting-profile-data"] });
       toast.success(`${ketoType?.abbreviation} — ${ketoType?.name} set as your keto type`);
-      setPairDialogOpen(true);
+      // Cross-sell only if the user already has the other half of the pair.
+      if (hasActivePlan) {
+        setCrossSellOpen(true);
+      } else {
+        setPairDialogOpen(true);
+      }
     },
   });
 
   const handleSetClick = () => {
+    // If they're replacing an existing keto type, confirm first.
+    if (activeAssignment && activeAssignment.keto_type_id !== ketoType?.id) {
+      setConfirmReplaceOpen(true);
+    } else if (hasLiveFast) {
+      setConfirmEndFastOpen(true);
+    } else {
+      setActive.mutate();
+    }
+  };
+
+  // After the user confirms replacement, gate on the live-fast flow if needed.
+  const handleReplaceConfirmed = () => {
+    setConfirmReplaceOpen(false);
     if (hasLiveFast) {
       setConfirmEndFastOpen(true);
     } else {
@@ -287,6 +326,30 @@ export default function ClientKetoTypeDetail() {
           navigate("/client/complete-plan");
         }}
         onSaveForLater={() => setPairDialogOpen(false)}
+      />
+
+      <ConfirmReplacementDialog
+        open={confirmReplaceOpen}
+        onOpenChange={setConfirmReplaceOpen}
+        kind="keto"
+        newLabel={`${ketoType.abbreviation} — ${ketoType.name}`}
+        currentLabel={currentKetoLabel ?? null}
+        onConfirm={handleReplaceConfirmed}
+      />
+
+      <CrossSellOtherSideDialog
+        open={crossSellOpen}
+        onOpenChange={setCrossSellOpen}
+        justChanged="keto"
+        newLabel={`${ketoType.abbreviation} — ${ketoType.name}`}
+        onChangeOther={() => {
+          setCrossSellOpen(false);
+          navigate("/client/programs");
+        }}
+        onViewProgram={() => {
+          setCrossSellOpen(false);
+          navigate("/client/complete-plan");
+        }}
       />
 
       <AlertDialog open={confirmEndFastOpen} onOpenChange={setConfirmEndFastOpen}>
