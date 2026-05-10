@@ -14,6 +14,11 @@ import {
 import { PROTOCOL_DETAIL_COPY } from "@/lib/protocolDetailContent";
 import { FastingSafetyNotice } from "@/components/FastingSafetyNotice";
 import { FastingStructureComparison } from "@/components/FastingStructureComparison";
+import { useState } from "react";
+import {
+  ConfirmReplacementDialog,
+  CrossSellOtherSideDialog,
+} from "@/components/client/ReplacePairDialogs";
 
 
 function generateWeeklyProgression(durationDays: number, fastTargetHours: number) {
@@ -46,6 +51,10 @@ export default function ClientProtocolDetail() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
+  const [confirmReplaceOpen, setConfirmReplaceOpen] = useState(false);
+  const [pendingStartNow, setPendingStartNow] = useState(false);
+  const [crossSellOpen, setCrossSellOpen] = useState(false);
+
   const { data: protocol, isLoading } = useQuery({
     queryKey: ["fasting-protocol", id],
     queryFn: async () => {
@@ -61,6 +70,48 @@ export default function ClientProtocolDetail() {
       };
     },
     enabled: !!id,
+  });
+
+  // Current active protocol/quick plan id+name (for replacement copy)
+  const { data: currentSelection } = useQuery({
+    queryKey: ["current-selected-fasting", clientId],
+    enabled: !!clientId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("client_feature_settings")
+        .select("selected_protocol_id, selected_quick_plan_id")
+        .eq("client_id", clientId!)
+        .maybeSingle();
+      return data ?? null;
+    },
+  });
+
+  const { data: currentProtocolLabel } = useQuery({
+    queryKey: [
+      "current-fasting-label",
+      currentSelection?.selected_protocol_id,
+      currentSelection?.selected_quick_plan_id,
+    ],
+    enabled: !!(currentSelection?.selected_protocol_id || currentSelection?.selected_quick_plan_id),
+    queryFn: async () => {
+      if (currentSelection?.selected_protocol_id) {
+        const { data } = await supabase
+          .from("fasting_protocols")
+          .select("name")
+          .eq("id", currentSelection.selected_protocol_id)
+          .maybeSingle();
+        return data?.name ?? null;
+      }
+      if (currentSelection?.selected_quick_plan_id) {
+        const { data } = await supabase
+          .from("quick_fasting_plans")
+          .select("name")
+          .eq("id", currentSelection.selected_quick_plan_id)
+          .maybeSingle();
+        return (data as { name: string | null } | null)?.name ?? null;
+      }
+      return null;
+    },
   });
 
   // Fetch active keto assignment for synergy display
