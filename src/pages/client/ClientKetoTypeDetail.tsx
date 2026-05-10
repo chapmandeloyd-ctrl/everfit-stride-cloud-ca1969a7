@@ -285,15 +285,33 @@ export default function ClientKetoTypeDetail() {
       {/* Fixed bottom CTA — lifted above the client tab bar so it isn't clipped */}
       <div className="fixed bottom-20 md:bottom-24 left-0 right-0 p-4 bg-background/95 backdrop-blur border-t z-20">
         {isActive ? (
-          <div
-            className="w-full h-14 rounded-lg flex items-center justify-center text-base font-bold"
-            style={{
-              backgroundColor: `${GOLD}12`,
-              color: GOLD,
-              border: `1px solid ${GOLD}30`,
-            }}
-          >
-            This is your current keto type
+          <div className="space-y-2">
+            <div
+              className="w-full h-10 rounded-lg flex items-center justify-center text-xs font-bold uppercase tracking-wider"
+              style={{
+                backgroundColor: `${GOLD}12`,
+                color: GOLD,
+                border: `1px solid ${GOLD}30`,
+              }}
+            >
+              Your current keto type
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                variant="outline"
+                className="h-12 text-sm font-semibold"
+                onClick={() => navigate("/client/dashboard")}
+              >
+                Go back
+              </Button>
+              <Button
+                className="h-12 text-sm font-bold text-white"
+                style={{ backgroundColor: GOLD }}
+                onClick={() => navigate("/client/keto-types")}
+              >
+                Browse other keto types
+              </Button>
+            </div>
           </div>
         ) : (
           <Button
