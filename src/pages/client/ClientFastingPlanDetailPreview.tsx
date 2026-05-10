@@ -1923,15 +1923,37 @@ export default function ClientFastingPlanDetailPreview() {
         style={{ background: `${BLACK}f2`, borderColor: `${GOLD}22` }}
       >
         {isActivePlan ? (
-          <div
-            className="w-full h-14 rounded-lg flex items-center justify-center text-base font-bold"
-            style={{
-              backgroundColor: `${GOLD}12`,
-              color: GOLD,
-              border: `1px solid ${GOLD}30`,
-            }}
-          >
-            This is your current protocol
+          <div className="space-y-2">
+            <div
+              className="w-full h-10 rounded-lg flex items-center justify-center text-xs font-bold uppercase tracking-wider"
+              style={{
+                backgroundColor: `${GOLD}12`,
+                color: GOLD,
+                border: `1px solid ${GOLD}30`,
+              }}
+            >
+              Your current protocol
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                className="h-12 rounded-lg text-sm font-semibold"
+                style={{
+                  background: "transparent",
+                  color: IVORY,
+                  border: `1px solid ${GOLD}40`,
+                }}
+                onClick={() => navigate("/client/dashboard")}
+              >
+                Go back
+              </button>
+              <button
+                className="h-12 rounded-lg text-sm font-bold"
+                style={{ backgroundColor: GOLD, color: BLACK }}
+                onClick={() => navigate("/client/programs")}
+              >
+                Browse other protocols
+              </button>
+            </div>
           </div>
         ) : (
           <button
