@@ -153,13 +153,8 @@ export default function ClientProtocolDetail() {
       if (error) throw error;
       if (!data) throw new Error("Protocol could not be saved.");
       if (startNow && !data.active_fast_start_at) throw new Error("Fast timer could not be started.");
-      // Fresh-pair: deactivate any active keto type so the user picks one
-      // intentionally paired with this protocol.
-      await supabase
-        .from("client_keto_assignments")
-        .update({ is_active: false })
-        .eq("client_id", clientId)
-        .eq("is_active", true);
+      // Keep the user's keto assignment intact — the cross-sell step will
+      // offer the chance to change it.
     },
     onSuccess: (_, { startNow }) => {
       queryClient.invalidateQueries({ queryKey: ["my-feature-settings", clientId] });
@@ -168,12 +163,19 @@ export default function ClientProtocolDetail() {
       queryClient.invalidateQueries({ queryKey: ["fasting-profile-data"] });
       queryClient.invalidateQueries({ queryKey: ["active-keto-assignment", clientId] });
       queryClient.invalidateQueries({ queryKey: ["client-keto-assignment", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["current-selected-fasting", clientId] });
       if (startNow) {
         toast.success("Fast started! Now pick a Keto Type to complete the synergy.");
       } else {
         toast.success("Protocol saved. Now pick a Keto Type to complete the synergy.");
       }
-      navigate("/client/keto-types");
+      // If the user already has a keto type, cross-sell. Otherwise keep
+      // the existing flow (push them to pick one).
+      if (activeKetoAssignment?.keto_type_id) {
+        setCrossSellOpen(true);
+      } else {
+        navigate("/client/keto-types");
+      }
     },
     onError: (error) => toast.error(error instanceof Error ? error.message : "Failed to select protocol"),
   });
