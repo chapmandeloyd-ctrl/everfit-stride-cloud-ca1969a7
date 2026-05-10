@@ -197,6 +197,19 @@ export default function ClientProtocolDetail() {
   const autoSchedule = getDailySchedule(protocol.fast_target_hours);
   const eatHours = 24 - protocol.fast_target_hours;
 
+  const isReplacement =
+    !!(currentSelection?.selected_protocol_id || currentSelection?.selected_quick_plan_id) &&
+    currentSelection?.selected_protocol_id !== protocol.id;
+
+  const handleStartClick = (startNow: boolean) => {
+    if (isReplacement) {
+      setPendingStartNow(startNow);
+      setConfirmReplaceOpen(true);
+    } else {
+      selectProtocolMutation.mutate({ protocolId: protocol.id, startNow });
+    }
+  };
+
   return (
     <ClientLayout>
       <div className="pb-24 w-full">
@@ -440,7 +453,7 @@ export default function ClientProtocolDetail() {
       <div className="fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-t p-4 safe-area-bottom space-y-2">
         <Button
           className="w-full h-12 text-base font-semibold"
-          onClick={() => selectProtocolMutation.mutate({ protocolId: protocol.id, startNow: true })}
+          onClick={() => handleStartClick(true)}
           disabled={selectProtocolMutation.isPending}
         >
           {selectProtocolMutation.isPending ? "Starting..." : "Start This Program Now"}
@@ -448,12 +461,39 @@ export default function ClientProtocolDetail() {
         <Button
           variant="outline"
           className="w-full h-10 text-sm"
-          onClick={() => selectProtocolMutation.mutate({ protocolId: protocol.id, startNow: false })}
+          onClick={() => handleStartClick(false)}
           disabled={selectProtocolMutation.isPending}
         >
           Save program for later
         </Button>
       </div>
+
+      <ConfirmReplacementDialog
+        open={confirmReplaceOpen}
+        onOpenChange={setConfirmReplaceOpen}
+        kind="protocol"
+        newLabel={protocol.name}
+        currentLabel={currentProtocolLabel ?? null}
+        onConfirm={() => {
+          setConfirmReplaceOpen(false);
+          selectProtocolMutation.mutate({ protocolId: protocol.id, startNow: pendingStartNow });
+        }}
+      />
+
+      <CrossSellOtherSideDialog
+        open={crossSellOpen}
+        onOpenChange={setCrossSellOpen}
+        justChanged="protocol"
+        newLabel={protocol.name}
+        onChangeOther={() => {
+          setCrossSellOpen(false);
+          navigate("/client/keto-types");
+        }}
+        onViewProgram={() => {
+          setCrossSellOpen(false);
+          navigate("/client/complete-plan");
+        }}
+      />
     </ClientLayout>
   );
 }
