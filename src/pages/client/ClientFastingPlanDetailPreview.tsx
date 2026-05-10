@@ -1522,6 +1522,8 @@ function DemoBlock({
 export default function ClientFastingPlanDetailPreview() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
+  const location = useLocation();
+  const isCombinedView = location.pathname === "/client/complete-plan";
   const clientId = useEffectiveClientId();
   const queryClient = useQueryClient();
 
