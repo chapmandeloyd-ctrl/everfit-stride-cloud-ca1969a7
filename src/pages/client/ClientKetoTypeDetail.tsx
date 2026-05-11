@@ -231,12 +231,10 @@ export default function ClientKetoTypeDetail() {
       queryClient.invalidateQueries({ queryKey: ["fasting-gate-state"] });
       queryClient.invalidateQueries({ queryKey: ["fasting-profile-data"] });
       toast.success(`${ketoType?.abbreviation} — ${ketoType?.name} set as your keto type`);
-      // Cross-sell only if the user already has the other half of the pair.
-      if (hasActivePlan) {
-        setCrossSellOpen(true);
-      } else {
-        setPairDialogOpen(true);
-      }
+      // New synergy flow: skip the legacy cross-sell and pair dialogs and
+      // route straight to the Complete Plan view (the user has already
+      // confirmed the program via the Recap modal).
+      navigate("/client/complete-plan");
     },
   });
 
