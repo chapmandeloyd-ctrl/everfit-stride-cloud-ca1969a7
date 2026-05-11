@@ -1804,10 +1804,16 @@ export default function ClientFastingPlanDetailPreview() {
             .eq("client_id", clientId)
             .eq("is_active", true);
         }
+        // assigned_by must equal auth.uid() per RLS policy. When a trainer is
+        // impersonating a client, clientId is the impersonated client's id —
+        // not the authenticated user — so we resolve auth.uid() explicitly.
+        const { data: authData } = await supabase.auth.getUser();
+        const authUid = authData.user?.id;
+        if (!authUid) throw new Error("Not signed in");
         const { error: ketoErr } = await supabase.from("client_keto_assignments").insert({
           client_id: clientId,
           keto_type_id: pendingKeto.id,
-          assigned_by: clientId,
+          assigned_by: authUid,
           is_active: true,
         });
         if (ketoErr) throw ketoErr;
@@ -1819,6 +1825,9 @@ export default function ClientFastingPlanDetailPreview() {
       queryClient.invalidateQueries({ queryKey: ["fasting-detail-feature-settings", clientId] });
       queryClient.invalidateQueries({ queryKey: ["fasting-detail-keto-assignment", clientId] });
       queryClient.invalidateQueries({ queryKey: ["client-keto-assignment", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["fasting-card-keto-type", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["complete-plan-keto", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["complete-plan-keto-type"] });
       queryClient.invalidateQueries({ queryKey: ["fasting-gate-state"] });
       toast.success("Synergy program saved");
       navigate("/client/complete-plan");

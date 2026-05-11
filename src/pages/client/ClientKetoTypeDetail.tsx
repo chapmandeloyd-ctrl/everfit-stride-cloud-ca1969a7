@@ -202,12 +202,16 @@ export default function ClientKetoTypeDetail() {
           .update({ is_active: false })
           .eq("id", activeAssignment.id);
       }
-      await supabase.from("client_keto_assignments").insert({
+      const { data: authData } = await supabase.auth.getUser();
+      const authUid = authData.user?.id;
+      if (!authUid) throw new Error("Not signed in");
+      const { error: insErr } = await supabase.from("client_keto_assignments").insert({
         client_id: clientId,
         keto_type_id: ketoType.id,
-        assigned_by: clientId,
+        assigned_by: authUid,
         is_active: true,
       });
+      if (insErr) throw insErr;
       // If a live fast is running, end it (the user already confirmed in the
       // pre-step) but KEEP their active protocol so the cross-sell can offer
       // the option to change it. Don't nuke the other half of the pair.
@@ -230,6 +234,9 @@ export default function ClientKetoTypeDetail() {
       queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting", clientId] });
       queryClient.invalidateQueries({ queryKey: ["fasting-gate-state"] });
       queryClient.invalidateQueries({ queryKey: ["fasting-profile-data"] });
+      queryClient.invalidateQueries({ queryKey: ["fasting-card-keto-type", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["complete-plan-keto", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["complete-plan-keto-type"] });
       toast.success(`${ketoType?.abbreviation} — ${ketoType?.name} set as your keto type`);
       // New synergy flow: skip the legacy cross-sell and pair dialogs and
       // route straight to the Complete Plan view (the user has already
@@ -274,10 +281,13 @@ export default function ClientKetoTypeDetail() {
           .update({ is_active: false })
           .eq("id", (activeAssignment as { id: string }).id);
       }
+      const { data: authData } = await supabase.auth.getUser();
+      const authUid = authData.user?.id;
+      if (!authUid) throw new Error("Not signed in");
       const { error: ketoErr } = await supabase.from("client_keto_assignments").insert({
         client_id: clientId,
         keto_type_id: ketoType.id,
-        assigned_by: clientId,
+        assigned_by: authUid,
         is_active: true,
       });
       if (ketoErr) throw ketoErr;
@@ -313,6 +323,9 @@ export default function ClientKetoTypeDetail() {
       queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting", clientId] });
       queryClient.invalidateQueries({ queryKey: ["fasting-detail-feature-settings", clientId] });
       queryClient.invalidateQueries({ queryKey: ["fasting-gate-state"] });
+      queryClient.invalidateQueries({ queryKey: ["fasting-card-keto-type", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["complete-plan-keto", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["complete-plan-keto-type"] });
       toast.success("Synergy program saved");
       navigate("/client/complete-plan");
     },
