@@ -1691,7 +1691,11 @@ export default function ClientFastingPlanDetailPreview() {
     };
   }, [planType, quickPlan, program]);
 
-  const defaultKetoId = assignedKeto?.id ? assignedKeto.id.toLowerCase() : "skd";
+  const defaultKetoId = (() => {
+    const candidate = assignedKeto?.abbreviation?.toLowerCase();
+    if (candidate && KETO_TYPES.some((k) => k.id === candidate)) return candidate;
+    return "skd";
+  })();
 
   const preferredTimes = useMemo(
     () => ({
