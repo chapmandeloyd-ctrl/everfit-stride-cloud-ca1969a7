@@ -947,8 +947,8 @@ function SynergyContent({
   windowOpensAt: string;
   windowClosesAt: string;
 }) {
-  const keto = KETO_TYPES.find((k) => k.id === ketoId)!;
-  const baseCopy = SYNERGY_COPY[ketoId] ?? SYNERGY_COPY.skd;
+  const keto = KETO_TYPES.find((k) => k.id === ketoId) ?? KETO_TYPES[0];
+  const baseCopy = SYNERGY_COPY[keto.id] ?? SYNERGY_COPY.skd;
   // Rewrite hardcoded "14h" / "14-hour" references to the live plan's hours.
   const copy = {
     intro: baseCopy.intro
@@ -1691,7 +1691,11 @@ export default function ClientFastingPlanDetailPreview() {
     };
   }, [planType, quickPlan, program]);
 
-  const defaultKetoId = assignedKeto?.id ? assignedKeto.id.toLowerCase() : "skd";
+  const defaultKetoId = (() => {
+    const candidate = assignedKeto?.abbreviation?.toLowerCase();
+    if (candidate && KETO_TYPES.some((k) => k.id === candidate)) return candidate;
+    return "skd";
+  })();
 
   const preferredTimes = useMemo(
     () => ({
