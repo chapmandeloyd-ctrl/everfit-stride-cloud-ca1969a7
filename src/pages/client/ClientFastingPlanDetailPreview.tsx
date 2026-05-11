@@ -2191,8 +2191,9 @@ export default function ClientFastingPlanDetailPreview() {
               Here's a recap
             </div>
             <p className="text-sm mb-4" style={{ color: MUTED }}>
-              By keeping your current keto type, you're updating your fasting
-              protocol only. Your new KSOM-360 Synergy program will be:
+              {pendingKeto
+                ? "You're building your KSOM-360 Synergy program with a new fasting protocol AND a new keto type:"
+                : "By keeping your current keto type, you're updating your fasting protocol only. Your new KSOM-360 Synergy program will be:"}
             </p>
 
             <div className="space-y-2 mb-5">
@@ -2217,11 +2218,24 @@ export default function ClientFastingPlanDetailPreview() {
                 style={{ background: SURFACE, border: `1px solid ${GOLD}22` }}
               >
                 <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: MUTED }}>
-                  Keto Type <span style={{ color: GOLD_SOFT }}>(unchanged)</span>
+                  Keto Type{" "}
+                  <span style={{ color: GOLD_SOFT }}>
+                    {pendingKeto ? "(new)" : "(unchanged)"}
+                  </span>
                 </div>
-                <div className="text-sm font-semibold" style={{ color: IVORY }}>
-                  {ketoLabel}
-                </div>
+                {pendingKeto ? (
+                  <div className="text-sm" style={{ color: IVORY }}>
+                    <span style={{ color: MUTED, textDecoration: "line-through" }}>
+                      {ketoLabel ?? "None"}
+                    </span>
+                    <span className="mx-2" style={{ color: GOLD }}>→</span>
+                    <span className="font-semibold">{pendingKeto.label}</span>
+                  </div>
+                ) : (
+                  <div className="text-sm font-semibold" style={{ color: IVORY }}>
+                    {ketoLabel}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -2236,13 +2250,19 @@ export default function ClientFastingPlanDetailPreview() {
               <button
                 className="flex-1 h-11 rounded-lg text-xs uppercase tracking-wider font-semibold"
                 style={{ background: GOLD, color: "#000" }}
-                disabled={setProtocolMutation.isPending}
+                disabled={setProtocolMutation.isPending || pairWithKetoMutation.isPending}
                 onClick={() => {
                   setRecapOpen(false);
-                  setProtocolMutation.mutate();
+                  if (pendingKeto) {
+                    pairWithKetoMutation.mutate();
+                  } else {
+                    setProtocolMutation.mutate();
+                  }
                 }}
               >
-                {setProtocolMutation.isPending ? "Saving…" : "Confirm changes"}
+                {setProtocolMutation.isPending || pairWithKetoMutation.isPending
+                  ? "Saving…"
+                  : "Confirm changes"}
               </button>
             </div>
           </div>
