@@ -377,6 +377,63 @@ export function SynergyPreviewPanel({ clientId, trainerId }: SynergyPreviewPanel
           </div>
         </div>
 
+        {/* Quick Plan duration (1-30 days) — required */}
+        {showDurationField && (
+          <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-wide text-primary">
+                  Quick Plan Duration {pendingQuickPlanId ? "— required" : ""}
+                </p>
+                <p className="text-[10px] text-muted-foreground">
+                  How many days should this plan run? (1–30)
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Input
+                type="number"
+                min={1}
+                max={30}
+                placeholder="Days"
+                value={effectiveDurationValue}
+                onChange={(e) => setDurationInput(e.target.value)}
+                className="h-9 w-24"
+              />
+              <span className="text-xs text-muted-foreground">days</span>
+              <Button
+                size="sm"
+                className="ml-auto gap-1"
+                disabled={
+                  assignProtocolMutation.isPending ||
+                  !effectiveDurationValue ||
+                  Number(effectiveDurationValue) < 1 ||
+                  Number(effectiveDurationValue) > 30 ||
+                  (!pendingQuickPlanId && Number(effectiveDurationValue) === currentDurationDays)
+                }
+                onClick={() => {
+                  const days = Number(effectiveDurationValue);
+                  const id = pendingQuickPlanId || quickPlanId;
+                  if (!id) return;
+                  assignProtocolMutation.mutate({ id, type: "quick_plan", durationDays: days });
+                }}
+              >
+                <Check className="h-3.5 w-3.5" />
+                {pendingQuickPlanId ? "Assign" : "Update"}
+              </Button>
+              {pendingQuickPlanId && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => { setPendingQuickPlanId(null); setDurationInput(""); }}
+                >
+                  Cancel
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Keto Macro Editor - visible when a keto type is assigned */}
         {ketoType && (
           <KetoMacroEditor
