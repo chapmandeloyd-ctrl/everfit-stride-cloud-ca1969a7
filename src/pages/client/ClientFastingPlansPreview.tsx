@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { X, Lock } from "lucide-react";
+import { Star } from "lucide-react";
 import lionLogo from "@/assets/logo.png";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
@@ -150,6 +151,34 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
     <p className="text-[10px] uppercase tracking-[0.4em]" style={{ color: MUTED }}>
       {children}
     </p>
+  );
+}
+
+function CurrentBanner({ kind, name }: { kind: "plan" | "program"; name: string }) {
+  return (
+    <div
+      className="flex items-center gap-3 px-4 py-3 rounded-sm"
+      style={{
+        background: `${GOLD}12`,
+        border: `1px solid ${GOLD}55`,
+      }}
+    >
+      <Star className="h-4 w-4 shrink-0" style={{ color: GOLD }} fill={GOLD} />
+      <div className="flex-1 min-w-0">
+        <p
+          className="text-[10px] uppercase tracking-[0.3em]"
+          style={{ color: GOLD }}
+        >
+          You're viewing your current {kind === "plan" ? "fasting window" : "program"}
+        </p>
+        <p
+          className="text-sm font-light truncate"
+          style={{ color: IVORY, fontFamily: "Georgia, serif" }}
+        >
+          {name}
+        </p>
+      </div>
+    </div>
   );
 }
 
@@ -475,7 +504,7 @@ export default function ClientFastingPlansPreview() {
               if (!yours) return null;
               return (
                 <section className="space-y-3">
-                  <SectionLabel>Your Current Plan</SectionLabel>
+                  <CurrentBanner kind="plan" name={yours.name} />
                   <ProtocolBigCard
                     eyebrow={`${yours.fast_hours}hr fasting`}
                     name={yours.name}
@@ -579,7 +608,7 @@ export default function ClientFastingPlansPreview() {
                   : yours.fast_target_hours ?? null;
               return (
                 <div className="space-y-3 mb-6">
-                  <SectionLabel>Your Current Program</SectionLabel>
+                  <CurrentBanner kind="program" name={yours.name} />
                   <ProtocolBigCard
                     eyebrow={eyebrow}
                     name={yours.name}
