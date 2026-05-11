@@ -177,6 +177,49 @@ export default function ClientKetoTypeDetail() {
   const [synergyConfirmOpen, setSynergyConfirmOpen] = useState(false);
   const [recapOpen, setRecapOpen] = useState(false);
 
+  const deactivateCurrentAssignment = async () => {
+    if (!activeAssignment?.id) return;
+
+    const { error } = await supabase
+      .from("client_keto_assignments")
+      .update({ is_active: false })
+      .eq("id", activeAssignment.id);
+
+    if (error) throw error;
+  };
+
+  const createAssignment = async (nextKetoTypeId: string) => {
+    const { data: authData } = await supabase.auth.getUser();
+    const authUid = authData.user?.id;
+
+    if (!authUid) throw new Error("Not signed in");
+
+    const { error } = await supabase.from("client_keto_assignments").insert({
+      client_id: clientId,
+      keto_type_id: nextKetoTypeId,
+      assigned_by: authUid,
+      is_active: true,
+    });
+
+    if (error) throw error;
+  };
+
+  const endLiveFastIfNeeded = async () => {
+    if (!hasLiveFast) return;
+
+    const { error } = await supabase
+      .from("client_feature_settings")
+      .update({
+        active_fast_start_at: null,
+        active_fast_target_hours: null,
+        eating_window_ends_at: null,
+        last_fast_ended_at: new Date().toISOString(),
+      })
+      .eq("client_id", clientId);
+
+    if (error) throw error;
+  };
+
   // Resolve the currently-active keto type's label so the replacement
   // confirm dialog can show what's being replaced.
   const { data: currentKetoLabel } = useQuery({
@@ -196,45 +239,21 @@ export default function ClientKetoTypeDetail() {
   const setActive = useMutation({
     mutationFn: async () => {
       if (!clientId || !ketoType) throw new Error("Missing data");
-      if (activeAssignment) {
-        await supabase
-          .from("client_keto_assignments")
-          .update({ is_active: false })
-          .eq("id", activeAssignment.id);
-      }
-      const { data: authData } = await supabase.auth.getUser();
-      const authUid = authData.user?.id;
-      if (!authUid) throw new Error("Not signed in");
-      const { error: insErr } = await supabase.from("client_keto_assignments").insert({
-        client_id: clientId,
-        keto_type_id: ketoType.id,
-        assigned_by: authUid,
-        is_active: true,
-      });
-      if (insErr) throw insErr;
-      // If a live fast is running, end it (the user already confirmed in the
-      // pre-step) but KEEP their active protocol so the cross-sell can offer
-      // the option to change it. Don't nuke the other half of the pair.
-      if (hasLiveFast) {
-        await supabase
-          .from("client_feature_settings")
-          .update({
-            active_fast_start_at: null,
-            active_fast_target_hours: null,
-            eating_window_ends_at: null,
-            last_fast_ended_at: new Date().toISOString(),
-          })
-          .eq("client_id", clientId);
-      }
+      await deactivateCurrentAssignment();
+      await createAssignment(ketoType.id);
+      await endLiveFastIfNeeded();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["client-keto-assignment"] });
+      queryClient.invalidateQueries({ queryKey: ["client-keto-assignment", clientId] });
       queryClient.invalidateQueries({ queryKey: ["client-plan-for-synergy", clientId] });
       queryClient.invalidateQueries({ queryKey: ["my-feature-settings", clientId] });
       queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting", clientId] });
       queryClient.invalidateQueries({ queryKey: ["fasting-gate-state"] });
       queryClient.invalidateQueries({ queryKey: ["fasting-profile-data"] });
       queryClient.invalidateQueries({ queryKey: ["fasting-card-keto-type", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["assigned-plan-keto", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["keto-preview-feature-settings", clientId] });
       queryClient.invalidateQueries({ queryKey: ["complete-plan-keto", clientId] });
       queryClient.invalidateQueries({ queryKey: ["complete-plan-keto-type"] });
       toast.success(`${ketoType?.abbreviation} — ${ketoType?.name} set as your keto type`);
@@ -243,6 +262,7 @@ export default function ClientKetoTypeDetail() {
       // confirmed the program via the Recap modal).
       navigate("/client/complete-plan");
     },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Could not update your keto type"),
   });
 
   const handleSetClick = () => {
@@ -275,22 +295,8 @@ export default function ClientKetoTypeDetail() {
       if (!pendingProtocol) throw new Error("No protocol selected");
 
       // 1) Swap keto assignment
-      if (activeAssignment) {
-        await supabase
-          .from("client_keto_assignments")
-          .update({ is_active: false })
-          .eq("id", (activeAssignment as { id: string }).id);
-      }
-      const { data: authData } = await supabase.auth.getUser();
-      const authUid = authData.user?.id;
-      if (!authUid) throw new Error("Not signed in");
-      const { error: ketoErr } = await supabase.from("client_keto_assignments").insert({
-        client_id: clientId,
-        keto_type_id: ketoType.id,
-        assigned_by: authUid,
-        is_active: true,
-      });
-      if (ketoErr) throw ketoErr;
+      await deactivateCurrentAssignment();
+      await createAssignment(ketoType.id);
 
       // 2) Update protocol selection
       const updates: Record<string, unknown> = {};
