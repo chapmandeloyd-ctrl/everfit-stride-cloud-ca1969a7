@@ -2046,7 +2046,7 @@ export default function ClientFastingPlanDetailPreview() {
                   style={{ background: SURFACE, border: `1px solid ${GOLD}55` }}
                   onClick={() => {
                     setSynergyConfirmOpen(false);
-                    setProtocolMutation.mutate();
+                    setRecapOpen(true);
                   }}
                   disabled={setProtocolMutation.isPending}
                 >
