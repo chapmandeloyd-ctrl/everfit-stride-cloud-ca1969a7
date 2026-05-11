@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
-import { X, Lock } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { X, Lock, Sparkles } from "lucide-react";
 import { Star } from "lucide-react";
 import lionLogo from "@/assets/logo.png";
 import { supabase } from "@/integrations/supabase/client";
@@ -400,8 +400,18 @@ function ProtocolBigCard({
 
 export default function ClientFastingPlansPreview() {
   const navigate = useNavigate();
+  const location = useLocation();
   const clientId = useEffectiveClientId();
   const [tab, setTab] = useState<"windows" | "programs">("windows");
+
+  // Pending pairing handoff from the keto detail page. When set, the user is
+  // mid-flight building their KSOM-360 Synergy program and is here to pick a
+  // fasting protocol to pair with the chosen keto type.
+  const pendingKeto = (location.state as {
+    pendingKeto?: { id: string; label: string };
+  } | null)?.pendingKeto ?? null;
+
+  const navStateExtra = pendingKeto ? { state: { pendingKeto } } : undefined;
 
   // Pull the client's current assignment + lock state so we can mark every
   // card the admin has NOT assigned as locked.
@@ -506,6 +516,34 @@ export default function ClientFastingPlansPreview() {
       </div>
 
       <div className="px-5 pt-4 pb-12 space-y-8">
+        {pendingKeto && (
+          <div
+            className="flex items-start gap-3 px-4 py-3 rounded-lg"
+            style={{
+              background: `${GOLD}12`,
+              border: `1px solid ${GOLD}55`,
+            }}
+          >
+            <Sparkles className="h-4 w-4 shrink-0 mt-0.5" style={{ color: GOLD }} />
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] uppercase tracking-[0.3em]" style={{ color: GOLD }}>
+                Building your KSOM-360 Synergy program
+              </p>
+              <p className="text-sm font-light" style={{ color: IVORY, fontFamily: "Georgia, serif" }}>
+                Pick a fasting protocol to pair with{" "}
+                <span className="font-semibold">{pendingKeto.label}</span>
+              </p>
+            </div>
+            <button
+              onClick={() => navigate(-1)}
+              className="text-[10px] uppercase tracking-wider px-2 py-1"
+              style={{ color: MUTED }}
+            >
+              Cancel
+            </button>
+          </div>
+        )}
+
         <div className="space-y-2">
           <p className="text-[10px] uppercase tracking-[0.4em]" style={{ color: GOLD }}>
             The Protocol
@@ -550,6 +588,7 @@ export default function ClientFastingPlansPreview() {
                     onClick={() =>
                       navigate(
                         `/client/fasting-plan-detail-preview?type=quick&id=${yours.id}`,
+                        navStateExtra,
                       )
                     }
                   />
@@ -575,6 +614,7 @@ export default function ClientFastingPlansPreview() {
                   onClick={() =>
                     navigate(
                       `/client/fasting-plan-detail-preview?type=quick&id=${recommended.id}`,
+                      navStateExtra,
                     )
                   }
                 />
@@ -607,6 +647,7 @@ export default function ClientFastingPlansPreview() {
                         onClick={() =>
                           navigate(
                             `/client/fasting-plan-detail-preview?type=quick&id=${p.id}`,
+                            navStateExtra,
                           )
                         }
                       />
@@ -653,6 +694,7 @@ export default function ClientFastingPlansPreview() {
                     onClick={() =>
                       navigate(
                         `/client/fasting-plan-detail-preview?type=program&id=${yours.id}`,
+                        navStateExtra,
                       )
                     }
                   />
@@ -689,6 +731,7 @@ export default function ClientFastingPlansPreview() {
                     onClick={() =>
                       navigate(
                         `/client/fasting-plan-detail-preview?type=program&id=${p.id}`,
+                        navStateExtra,
                       )
                     }
                   />

@@ -1715,6 +1715,11 @@ export default function ClientFastingPlanDetailPreview() {
   const [synergyConfirmOpen, setSynergyConfirmOpen] = useState(false);
   const [recapOpen, setRecapOpen] = useState(false);
 
+  // Pending keto handoff — when the user arrived here from the keto detail
+  // page after choosing "Browse other protocols", we pair the chosen keto
+  // type with whatever protocol they pick instead of replacing it.
+  const pendingKeto = (location.state as { pendingKeto?: { id: string; label: string } } | null)?.pendingKeto ?? null;
+
   const isActivePlan =
     !!planId &&
     ((planType === "program" && featureSettings?.selected_protocol_id === planId) ||
@@ -1755,6 +1760,66 @@ export default function ClientFastingPlanDetailPreview() {
       setPairDialogOpen(true);
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Could not save protocol"),
+  });
+
+  // Paired mutation — sets BOTH the new protocol AND the new keto type
+  // in one shot. Used when the user arrived from the keto library with
+  // a pendingKeto handoff (Synergy program build).
+  const pairWithKetoMutation = useMutation({
+    mutationFn: async () => {
+      if (!clientId) throw new Error("Not signed in");
+      if (!planId) throw new Error("No plan selected");
+      if (!pendingKeto) throw new Error("No keto type selected");
+
+      // 1) Update protocol selection
+      const updates: Record<string, unknown> = {
+        preferred_eating_window_opens_at: uiTimeToSqlTime(times.opensAt),
+        preferred_eating_window_closes_at: uiTimeToSqlTime(times.closesAt),
+      };
+      if (planType === "quick") {
+        updates.selected_quick_plan_id = planId;
+        updates.selected_protocol_id = null;
+        updates.protocol_start_date = null;
+      } else {
+        updates.selected_protocol_id = planId;
+        updates.selected_quick_plan_id = null;
+        updates.protocol_start_date = new Date().toISOString().slice(0, 10);
+      }
+      const { error: protocolErr } = await supabase
+        .from("client_feature_settings")
+        .update(updates)
+        .eq("client_id", clientId);
+      if (protocolErr) throw protocolErr;
+
+      // 2) Swap keto assignment
+      if (ketoAssignment?.keto_type_id !== pendingKeto.id) {
+        if (ketoAssignment) {
+          await supabase
+            .from("client_keto_assignments")
+            .update({ is_active: false })
+            .eq("client_id", clientId)
+            .eq("is_active", true);
+        }
+        const { error: ketoErr } = await supabase.from("client_keto_assignments").insert({
+          client_id: clientId,
+          keto_type_id: pendingKeto.id,
+          assigned_by: clientId,
+          is_active: true,
+        });
+        if (ketoErr) throw ketoErr;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["my-feature-settings", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["fasting-detail-feature-settings", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["fasting-detail-keto-assignment", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["client-keto-assignment", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["fasting-gate-state"] });
+      toast.success("Synergy program saved");
+      navigate("/client/complete-plan");
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Could not save program"),
   });
 
   const reviewedAt = (featureSettings as any)?.plan_reviewed_at as string | null | undefined;
@@ -1985,11 +2050,20 @@ export default function ClientFastingPlanDetailPreview() {
           <button
             className="w-full h-14 rounded-lg text-base font-bold disabled:opacity-60"
             style={{ backgroundColor: GOLD, color: BLACK }}
-            onClick={() => setSynergyConfirmOpen(true)}
-            disabled={setProtocolMutation.isPending || !planId}
+            onClick={() => {
+              if (pendingKeto) {
+                // Pair flow — straight to recap (both sides change).
+                setRecapOpen(true);
+              } else {
+                setSynergyConfirmOpen(true);
+              }
+            }}
+            disabled={setProtocolMutation.isPending || pairWithKetoMutation.isPending || !planId}
           >
-            {setProtocolMutation.isPending
+            {setProtocolMutation.isPending || pairWithKetoMutation.isPending
               ? "Setting..."
+              : pendingKeto
+              ? `Pair with ${pendingKeto.label}`
               : `Set ${plan.name}`}
           </button>
         )}
@@ -2064,7 +2138,15 @@ export default function ClientFastingPlanDetailPreview() {
                 style={{ background: SURFACE, border: `1px solid ${GOLD}33` }}
                 onClick={() => {
                   setSynergyConfirmOpen(false);
-                  navigate("/client/keto-types");
+                  navigate("/client/keto-types", {
+                    state: {
+                      pendingProtocol: {
+                        type: planType,
+                        id: planId,
+                        name: plan.name,
+                      },
+                    },
+                  });
                 }}
               >
                 <div className="text-xs uppercase tracking-wider mb-1" style={{ color: GOLD_SOFT }}>
@@ -2109,8 +2191,9 @@ export default function ClientFastingPlanDetailPreview() {
               Here's a recap
             </div>
             <p className="text-sm mb-4" style={{ color: MUTED }}>
-              By keeping your current keto type, you're updating your fasting
-              protocol only. Your new KSOM-360 Synergy program will be:
+              {pendingKeto
+                ? "You're building your KSOM-360 Synergy program with a new fasting protocol AND a new keto type:"
+                : "By keeping your current keto type, you're updating your fasting protocol only. Your new KSOM-360 Synergy program will be:"}
             </p>
 
             <div className="space-y-2 mb-5">
@@ -2135,11 +2218,24 @@ export default function ClientFastingPlanDetailPreview() {
                 style={{ background: SURFACE, border: `1px solid ${GOLD}22` }}
               >
                 <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: MUTED }}>
-                  Keto Type <span style={{ color: GOLD_SOFT }}>(unchanged)</span>
+                  Keto Type{" "}
+                  <span style={{ color: GOLD_SOFT }}>
+                    {pendingKeto ? "(new)" : "(unchanged)"}
+                  </span>
                 </div>
-                <div className="text-sm font-semibold" style={{ color: IVORY }}>
-                  {ketoLabel}
-                </div>
+                {pendingKeto ? (
+                  <div className="text-sm" style={{ color: IVORY }}>
+                    <span style={{ color: MUTED, textDecoration: "line-through" }}>
+                      {ketoLabel ?? "None"}
+                    </span>
+                    <span className="mx-2" style={{ color: GOLD }}>→</span>
+                    <span className="font-semibold">{pendingKeto.label}</span>
+                  </div>
+                ) : (
+                  <div className="text-sm font-semibold" style={{ color: IVORY }}>
+                    {ketoLabel}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -2154,13 +2250,19 @@ export default function ClientFastingPlanDetailPreview() {
               <button
                 className="flex-1 h-11 rounded-lg text-xs uppercase tracking-wider font-semibold"
                 style={{ background: GOLD, color: "#000" }}
-                disabled={setProtocolMutation.isPending}
+                disabled={setProtocolMutation.isPending || pairWithKetoMutation.isPending}
                 onClick={() => {
                   setRecapOpen(false);
-                  setProtocolMutation.mutate();
+                  if (pendingKeto) {
+                    pairWithKetoMutation.mutate();
+                  } else {
+                    setProtocolMutation.mutate();
+                  }
                 }}
               >
-                {setProtocolMutation.isPending ? "Saving…" : "Confirm changes"}
+                {setProtocolMutation.isPending || pairWithKetoMutation.isPending
+                  ? "Saving…"
+                  : "Confirm changes"}
               </button>
             </div>
           </div>

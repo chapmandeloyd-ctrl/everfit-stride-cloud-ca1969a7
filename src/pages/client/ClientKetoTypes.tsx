@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
-import { X, Lock } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { X, Lock, Sparkles } from "lucide-react";
 import { Star } from "lucide-react";
 import lionLogo from "@/assets/logo.png";
 import { supabase } from "@/integrations/supabase/client";
@@ -165,8 +165,18 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 
 export default function ClientKetoTypes() {
   const navigate = useNavigate();
+  const location = useLocation();
   const clientId = useEffectiveClientId();
   const queryClient = useQueryClient();
+
+  // Pending pairing handoff from the protocol detail page. When set, the user
+  // is mid-flight building their KSOM-360 Synergy program and is here to pick
+  // a keto type to pair with the chosen protocol.
+  const pendingProtocol = (location.state as {
+    pendingProtocol?: { type: "quick" | "program"; id: string; name: string };
+  } | null)?.pendingProtocol ?? null;
+
+  const navState = pendingProtocol ? { state: { pendingProtocol } } : undefined;
 
   // Realtime: refresh when trainer updates keto macros
   useEffect(() => {
@@ -268,6 +278,34 @@ export default function ClientKetoTypes() {
       </div>
 
       <div className="px-5 pt-4 pb-12 space-y-8">
+        {pendingProtocol && (
+          <div
+            className="flex items-start gap-3 px-4 py-3 rounded-lg"
+            style={{
+              background: `${GOLD}12`,
+              border: `1px solid ${GOLD}55`,
+            }}
+          >
+            <Sparkles className="h-4 w-4 shrink-0 mt-0.5" style={{ color: GOLD }} />
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] uppercase tracking-[0.3em]" style={{ color: GOLD }}>
+                Building your KSOM-360 Synergy program
+              </p>
+              <p className="text-sm font-light" style={{ color: IVORY, fontFamily: "Georgia, serif" }}>
+                Pick a keto type to pair with{" "}
+                <span className="font-semibold">{pendingProtocol.name}</span>
+              </p>
+            </div>
+            <button
+              onClick={() => navigate(-1)}
+              className="text-[10px] uppercase tracking-wider px-2 py-1"
+              style={{ color: MUTED }}
+            >
+              Cancel
+            </button>
+          </div>
+        )}
+
         <div className="space-y-2">
           <p className="text-[10px] uppercase tracking-[0.4em]" style={{ color: GOLD }}>
             The Nutrition Framework
@@ -326,7 +364,7 @@ export default function ClientKetoTypes() {
                 locked={false}
                 isAssigned={true}
                 assignedName={assignedKetoLabel}
-                onClick={() => navigate(`/client/keto-types/${assignedKeto.id}`)}
+                onClick={() => navigate(`/client/keto-types/${assignedKeto.id}`, navState)}
               />
             </div>
           </section>
@@ -380,7 +418,7 @@ export default function ClientKetoTypes() {
                     locked={locked}
                     isAssigned={isAssigned}
                     assignedName={assignedKetoLabel}
-                    onClick={() => navigate(`/client/keto-types/${kt.id}`)}
+                    onClick={() => navigate(`/client/keto-types/${kt.id}`, navState)}
                   />
                 );
               })}
