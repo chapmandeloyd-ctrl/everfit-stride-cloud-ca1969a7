@@ -1377,6 +1377,7 @@ export type Database = {
           protocol_assigned_by: string | null
           protocol_completed: boolean
           protocol_start_date: string | null
+          quick_plan_duration_days: number | null
           quiet_hours_end: string | null
           quiet_hours_start: string | null
           require_coach_approval_plans: boolean
@@ -1481,6 +1482,7 @@ export type Database = {
           protocol_assigned_by?: string | null
           protocol_completed?: boolean
           protocol_start_date?: string | null
+          quick_plan_duration_days?: number | null
           quiet_hours_end?: string | null
           quiet_hours_start?: string | null
           require_coach_approval_plans?: boolean
@@ -1585,6 +1587,7 @@ export type Database = {
           protocol_assigned_by?: string | null
           protocol_completed?: boolean
           protocol_start_date?: string | null
+          quick_plan_duration_days?: number | null
           quiet_hours_end?: string | null
           quiet_hours_start?: string | null
           require_coach_approval_plans?: boolean
