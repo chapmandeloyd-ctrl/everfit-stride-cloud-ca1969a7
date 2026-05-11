@@ -1797,7 +1797,8 @@ export default function ClientFastingPlanDetailPreview() {
           await supabase
             .from("client_keto_assignments")
             .update({ is_active: false })
-            .eq("id", (ketoAssignment as { id: string }).id);
+            .eq("client_id", clientId)
+            .eq("is_active", true);
         }
         const { error: ketoErr } = await supabase.from("client_keto_assignments").insert({
           client_id: clientId,
