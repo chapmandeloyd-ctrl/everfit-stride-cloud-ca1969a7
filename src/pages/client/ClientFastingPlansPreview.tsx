@@ -470,7 +470,35 @@ export default function ClientFastingPlansPreview() {
           <>
             {loadingQ && <p style={{ color: MUTED }} className="text-xs">Loading…</p>}
 
-            {recommended && (
+            {assignedQuickId && (() => {
+              const yours = quickPlans.find((p) => p.id === assignedQuickId);
+              if (!yours) return null;
+              return (
+                <section className="space-y-3">
+                  <SectionLabel>Your Current Plan</SectionLabel>
+                  <ProtocolBigCard
+                    eyebrow={`${yours.fast_hours}hr fasting`}
+                    name={yours.name}
+                    desc={yours.description ?? ""}
+                    bigNumber={yours.fast_hours}
+                    fastHours={yours.fast_hours}
+                    eatHours={yours.fast_hours > 24 ? null : 24 - yours.fast_hours}
+                    eatValue={yours.fast_hours > 24 ? +(yours.fast_hours / 24).toFixed(yours.fast_hours % 24 === 0 ? 0 : 1) : null}
+                    eatLabel="Days"
+                    locked={false}
+                    assigned={true}
+                    assignedName={assignedQuickLabel}
+                    onClick={() =>
+                      navigate(
+                        `/client/fasting-plan-detail-preview?type=quick&id=${yours.id}`,
+                      )
+                    }
+                  />
+                </section>
+              );
+            })()}
+
+            {recommended && recommended.id !== assignedQuickId && (
               <section className="space-y-3">
                 <SectionLabel>Recommended for you</SectionLabel>
                 <ProtocolBigCard
@@ -495,7 +523,9 @@ export default function ClientFastingPlansPreview() {
             )}
 
             {TIER_ORDER.map((tier) => {
-              const items = grouped[tier];
+              const items = (grouped[tier] || []).filter(
+                (p) => p.id !== assignedQuickId && p.id !== recommended?.id,
+              );
               if (!items || items.length === 0) return null;
               return (
                 <section key={tier} className="space-y-3">
@@ -532,9 +562,46 @@ export default function ClientFastingPlansPreview() {
         {tab === "programs" && (
           <section className="space-y-3">
             {loadingP && <p style={{ color: MUTED }} className="text-xs">Loading…</p>}
+            {assignedProtocolId && (() => {
+              const yours = protocols.find((p) => p.id === assignedProtocolId);
+              if (!yours) return null;
+              const eyebrow =
+                yours.duration_days && yours.duration_days > 0
+                  ? `${yours.duration_days}-day program`
+                  : yours.fast_target_hours
+                  ? `${yours.fast_target_hours}hr target`
+                  : "Ongoing protocol";
+              const fastH = yours.fast_target_hours ?? null;
+              const eatH = fastH ? 24 - fastH : null;
+              const big =
+                yours.duration_days && yours.duration_days > 0
+                  ? yours.duration_days
+                  : yours.fast_target_hours ?? null;
+              return (
+                <div className="space-y-3 mb-6">
+                  <SectionLabel>Your Current Program</SectionLabel>
+                  <ProtocolBigCard
+                    eyebrow={eyebrow}
+                    name={yours.name}
+                    desc={yours.description}
+                    bigNumber={big}
+                    fastHours={fastH}
+                    eatHours={eatH}
+                    locked={false}
+                    assigned={true}
+                    assignedName={assignedProtocolLabel}
+                    onClick={() =>
+                      navigate(
+                        `/client/fasting-plan-detail-preview?type=program&id=${yours.id}`,
+                      )
+                    }
+                  />
+                </div>
+              );
+            })()}
             <SectionLabel>All Programs</SectionLabel>
             <div className="space-y-3">
-              {protocols.map((p) => {
+              {protocols.filter((p) => p.id !== assignedProtocolId).map((p) => {
                 const eyebrow =
                   p.duration_days && p.duration_days > 0
                     ? `${p.duration_days}-day program`
