@@ -1387,8 +1387,9 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
             />
           )}
 
-          {/* Day progress sub-card */}
-          {hasDuration && !isMaintenanceMode && dayNumber >= activeProtocol!.duration_days ? (
+          {/* Day progress sub-card — only when the protocol has actually completed
+              (final day has fully elapsed). A 1-day plan on day 1 must NOT show this. */}
+          {hasDuration && !isMaintenanceMode && rawDaysElapsed > activeProtocol!.duration_days ? (
             <div className="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-3 flex items-center gap-3 border border-white/10">
               <div className="text-center">
                 <span className="text-2xl font-black text-white">{dayNumber}</span>
