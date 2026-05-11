@@ -560,6 +560,7 @@ export default function ClientFastingPlansPreview() {
                     onClick={() =>
                       navigate(
                         `/client/fasting-plan-detail-preview?type=quick&id=${yours.id}`,
+                        navStateExtra,
                       )
                     }
                   />
@@ -585,6 +586,7 @@ export default function ClientFastingPlansPreview() {
                   onClick={() =>
                     navigate(
                       `/client/fasting-plan-detail-preview?type=quick&id=${recommended.id}`,
+                      navStateExtra,
                     )
                   }
                 />
@@ -617,6 +619,7 @@ export default function ClientFastingPlansPreview() {
                         onClick={() =>
                           navigate(
                             `/client/fasting-plan-detail-preview?type=quick&id=${p.id}`,
+                            navStateExtra,
                           )
                         }
                       />
@@ -663,6 +666,7 @@ export default function ClientFastingPlansPreview() {
                     onClick={() =>
                       navigate(
                         `/client/fasting-plan-detail-preview?type=program&id=${yours.id}`,
+                        navStateExtra,
                       )
                     }
                   />
@@ -699,6 +703,7 @@ export default function ClientFastingPlansPreview() {
                     onClick={() =>
                       navigate(
                         `/client/fasting-plan-detail-preview?type=program&id=${p.id}`,
+                        navStateExtra,
                       )
                     }
                   />
