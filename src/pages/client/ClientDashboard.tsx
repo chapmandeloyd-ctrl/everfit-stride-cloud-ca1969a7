@@ -772,7 +772,12 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
     : 0;
 
   // Protocol completion detection
-  const isProtocolComplete = hasProtocol && hasDuration && dayNumber >= activeProtocol!.duration_days && !featureSettings?.protocol_completed;
+  // Completion fires only AFTER the final day has elapsed (calendar day > duration),
+  // so a 1-day plan stays active on day 1 and completes on day 2.
+  const rawDaysElapsed = effectivePlanStartDate
+    ? differenceInCalendarDays(startOfDay(new Date()), effectivePlanStartDate) + 1
+    : 0;
+  const isProtocolComplete = hasProtocol && hasDuration && rawDaysElapsed > activeProtocol!.duration_days && !featureSettings?.protocol_completed;
 
   // Auto-show completion dialog when protocol day reaches duration
   useEffect(() => {
