@@ -277,7 +277,7 @@ export function KetoMacroEditor({
                 <>
                   <Input
                     type="number"
-                    className="h-7 w-16 text-xs text-center"
+                    className="h-7 w-20 text-xs text-center px-2"
                     value={fatG}
                     onChange={(e) => setFatFromGrams(Math.max(0, +e.target.value))}
                   />
@@ -288,7 +288,7 @@ export function KetoMacroEditor({
                 <>
                   <Input
                     type="number"
-                    className="h-7 w-14 text-xs text-center"
+                    className="h-7 w-16 text-xs text-center px-2"
                     value={fat}
                     onChange={(e) => setFat(Math.max(0, Math.min(100, +e.target.value)))}
                   />
@@ -325,7 +325,7 @@ export function KetoMacroEditor({
                 <>
                   <Input
                     type="number"
-                    className="h-7 w-16 text-xs text-center"
+                    className="h-7 w-20 text-xs text-center px-2"
                     value={proteinG}
                     onChange={(e) => setProteinFromGrams(Math.max(0, +e.target.value))}
                   />
@@ -336,7 +336,7 @@ export function KetoMacroEditor({
                 <>
                   <Input
                     type="number"
-                    className="h-7 w-14 text-xs text-center"
+                    className="h-7 w-16 text-xs text-center px-2"
                     value={protein}
                     onChange={(e) => setProtein(Math.max(0, Math.min(100, +e.target.value)))}
                   />
@@ -373,7 +373,7 @@ export function KetoMacroEditor({
                 <>
                   <Input
                     type="number"
-                    className="h-7 w-16 text-xs text-center"
+                    className="h-7 w-20 text-xs text-center px-2"
                     value={carbG}
                     onChange={(e) => setCarbsFromGrams(Math.max(0, +e.target.value))}
                   />
@@ -384,7 +384,7 @@ export function KetoMacroEditor({
                 <>
                   <Input
                     type="number"
-                    className="h-7 w-14 text-xs text-center"
+                    className="h-7 w-16 text-xs text-center px-2"
                     value={carbs}
                     onChange={(e) => setCarbs(Math.max(0, Math.min(100, +e.target.value)))}
                   />
@@ -417,7 +417,7 @@ export function KetoMacroEditor({
           <Label className="text-xs">Carb Limit (g)</Label>
           <Input
             type="number"
-            className="h-7 w-16 text-xs text-center"
+            className="h-7 w-20 text-xs text-center px-2"
             value={carbLimit ?? ""}
             onChange={(e) => setCarbLimit(e.target.value ? +e.target.value : null)}
             placeholder="—"
