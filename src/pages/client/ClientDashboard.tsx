@@ -214,13 +214,24 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
   // the client doesn't yet have real assignments. Remove once onboarding wires
   // real assignments through the trainer.
   const PREVIEW_COACH_START_NOW = true;
-  const activeProtocol = activeProtocolRaw ?? (PREVIEW_COACH_START_NOW ? {
-    id: "preview-16-8",
-    name: "16:8 Daily",
-    duration_days: 28,
-    fast_target_hours: 16,
-    difficulty_level: "intermediate",
-  } : null);
+  // If a quick plan is assigned (no program), synthesize a protocol-shaped
+  // object from it so the dashboard reflects the actual assignment instead of
+  // falling back to the mock "16:8 Daily" preview.
+  const activeProtocol = activeProtocolRaw
+    ?? (activeQuickPlan ? {
+      id: activeQuickPlan.id,
+      name: activeQuickPlan.name,
+      duration_days: 28,
+      fast_target_hours: activeQuickPlan.fast_hours,
+      difficulty_level: activeQuickPlan.intensity_tier || "intermediate",
+    } : null)
+    ?? (PREVIEW_COACH_START_NOW ? {
+      id: "preview-16-8",
+      name: "16:8 Daily",
+      duration_days: 28,
+      fast_target_hours: 16,
+      difficulty_level: "intermediate",
+    } : null);
   const activeKetoType = activeKetoTypeRaw ?? (PREVIEW_COACH_START_NOW ? {
     id: "preview-tkd",
     name: "Targeted Keto",
