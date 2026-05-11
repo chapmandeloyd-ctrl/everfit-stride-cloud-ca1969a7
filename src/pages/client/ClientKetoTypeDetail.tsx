@@ -242,13 +242,14 @@ export default function ClientKetoTypeDetail() {
 
   const handleSetClick = () => {
     // If they're replacing an existing keto type, confirm first.
-    if (activeAssignment && activeAssignment.keto_type_id !== ketoType?.id) {
-      setConfirmReplaceOpen(true);
-    } else if (hasLiveFast) {
-      setConfirmEndFastOpen(true);
-    } else {
-      setActive.mutate();
+    if (pendingProtocol) {
+      // Pair flow — straight to recap (both sides change).
+      setRecapOpen(true);
+      return;
     }
+    // No-pending flow → open Synergy popup so user can choose: keep current
+    // protocol (recap-only) OR browse other protocols.
+    setSynergyConfirmOpen(true);
   };
 
   // After the user confirms replacement, gate on the live-fast flow if needed.
@@ -260,6 +261,65 @@ export default function ClientKetoTypeDetail() {
       setActive.mutate();
     }
   };
+
+  // Paired mutation — when arriving with pendingProtocol, set BOTH the new
+  // keto type AND the new fasting protocol in one shot.
+  const pairWithProtocolMutation = useMutation({
+    mutationFn: async () => {
+      if (!clientId || !ketoType) throw new Error("Missing data");
+      if (!pendingProtocol) throw new Error("No protocol selected");
+
+      // 1) Swap keto assignment
+      if (activeAssignment) {
+        await supabase
+          .from("client_keto_assignments")
+          .update({ is_active: false })
+          .eq("id", (activeAssignment as { id: string }).id);
+      }
+      const { error: ketoErr } = await supabase.from("client_keto_assignments").insert({
+        client_id: clientId,
+        keto_type_id: ketoType.id,
+        assigned_by: clientId,
+        is_active: true,
+      });
+      if (ketoErr) throw ketoErr;
+
+      // 2) Update protocol selection
+      const updates: Record<string, unknown> = {};
+      if (pendingProtocol.type === "quick") {
+        updates.selected_quick_plan_id = pendingProtocol.id;
+        updates.selected_protocol_id = null;
+        updates.protocol_start_date = null;
+      } else {
+        updates.selected_protocol_id = pendingProtocol.id;
+        updates.selected_quick_plan_id = null;
+        updates.protocol_start_date = new Date().toISOString().slice(0, 10);
+      }
+      // End any live fast since the pair is changing.
+      if (hasLiveFast) {
+        updates.active_fast_start_at = null;
+        updates.active_fast_target_hours = null;
+        updates.eating_window_ends_at = null;
+        updates.last_fast_ended_at = new Date().toISOString();
+      }
+      const { error: protocolErr } = await supabase
+        .from("client_feature_settings")
+        .update(updates)
+        .eq("client_id", clientId);
+      if (protocolErr) throw protocolErr;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["client-keto-assignment"] });
+      queryClient.invalidateQueries({ queryKey: ["client-plan-for-synergy", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["my-feature-settings", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["fasting-detail-feature-settings", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["fasting-gate-state"] });
+      toast.success("Synergy program saved");
+      navigate("/client/complete-plan");
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Could not save program"),
+  });
 
   if (!ketoType) {
     return (
