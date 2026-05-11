@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
-import { X, Lock } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { X, Lock, Sparkles } from "lucide-react";
 import { Star } from "lucide-react";
 import lionLogo from "@/assets/logo.png";
 import { supabase } from "@/integrations/supabase/client";
