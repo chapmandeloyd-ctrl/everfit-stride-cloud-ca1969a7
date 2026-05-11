@@ -754,9 +754,21 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
     || (activeQuickPlan ? `${activeQuickPlan.fast_hours}h Fast` : null)
     || `${featureSettings?.active_fast_target_hours || 16}h Fast`;
   const hasDuration = !!activeProtocol?.duration_days;
-
-  const startDate = featureSettings?.protocol_start_date ? new Date(featureSettings.protocol_start_date + "T00:00:00") : new Date();
-  const dayNumber = hasDuration ? Math.min(differenceInCalendarDays(new Date(), startDate) + 1, activeProtocol!.duration_days) : 0;
+  const effectivePlanStartDate = hasQuickPlan
+    ? (featureSettings?.active_fast_start_at
+        ? startOfDay(parseISO(featureSettings.active_fast_start_at))
+        : null)
+    : (featureSettings?.protocol_start_date
+        ? startOfDay(parseISO(featureSettings.protocol_start_date))
+        : null);
+  const dayNumber = hasDuration
+    ? effectivePlanStartDate
+      ? Math.min(
+          Math.max(differenceInCalendarDays(startOfDay(new Date()), effectivePlanStartDate) + 1, 1),
+          activeProtocol!.duration_days,
+        )
+      : 1
+    : 0;
 
   // Protocol completion detection
   const isProtocolComplete = hasProtocol && hasDuration && dayNumber >= activeProtocol!.duration_days && !featureSettings?.protocol_completed;

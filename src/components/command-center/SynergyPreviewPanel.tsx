@@ -129,7 +129,13 @@ export function SynergyPreviewPanel({ clientId, trainerId }: SynergyPreviewPanel
       } else {
         // Fetch quick plan hours for active_fast_target_hours
         const { data: qp } = await supabase.from("quick_fasting_plans").select("fast_hours").eq("id", id).single();
-        updates = { selected_quick_plan_id: id, selected_protocol_id: null, protocol_assigned_by: trainerId, active_fast_target_hours: qp?.fast_hours ?? null };
+        updates = {
+          selected_quick_plan_id: id,
+          selected_protocol_id: null,
+          protocol_start_date: null,
+          protocol_assigned_by: trainerId,
+          active_fast_target_hours: qp?.fast_hours ?? null,
+        };
       }
       const { error } = await supabase
         .from("client_feature_settings")
