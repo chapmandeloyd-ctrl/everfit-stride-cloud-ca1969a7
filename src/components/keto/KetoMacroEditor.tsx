@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Percent, Scale, Globe } from "lucide-react";
+import { Percent, Scale, Globe, AlertTriangle } from "lucide-react";
 
 interface KetoMacroEditorProps {
   ketoTypeId: string;
@@ -240,12 +240,22 @@ export function KetoMacroEditor({
               </Button>
             </div>
             {!isGrams && (
-              <span className={`text-xs font-medium ${total === 100 ? "text-green-600" : "text-destructive"}`}>
+              <span className={`text-xs font-bold ${total === 100 ? "text-green-600" : "text-destructive"}`}>
                 {total}%
               </span>
             )}
           </div>
         </div>
+
+        {/* Total alert */}
+        {!isGrams && total !== 100 && (
+          <div className="flex items-center gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-2.5 py-1.5 text-[11px] font-semibold text-destructive">
+            <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0" />
+            <span>
+              Macros total {total}% — must equal 100% ({total > 100 ? `reduce by ${total - 100}%` : `add ${100 - total}%`})
+            </span>
+          </div>
+        )}
 
         {/* Mode indicator */}
         <div className="text-[10px] text-muted-foreground bg-muted/50 rounded px-2 py-1 flex items-center gap-1">
