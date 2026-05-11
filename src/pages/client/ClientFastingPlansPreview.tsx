@@ -182,6 +182,34 @@ function CurrentBanner({ kind, name }: { kind: "plan" | "program"; name: string 
   );
 }
 
+function EmptyBanner({ kind }: { kind: "plan" | "program" }) {
+  return (
+    <div
+      className="flex items-center gap-3 px-4 py-3 rounded-sm"
+      style={{
+        background: `${MUTED}10`,
+        border: `1px dashed ${MUTED}55`,
+      }}
+    >
+      <Star className="h-4 w-4 shrink-0" style={{ color: MUTED }} />
+      <div className="flex-1 min-w-0">
+        <p
+          className="text-[10px] uppercase tracking-[0.3em]"
+          style={{ color: MUTED }}
+        >
+          No {kind === "plan" ? "fasting window" : "program"} assigned
+        </p>
+        <p
+          className="text-sm font-light"
+          style={{ color: MUTED, fontFamily: "Georgia, serif" }}
+        >
+          Clients will see their current {kind === "plan" ? "fasting window" : "program"} pinned here.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function ProtocolBigCard({
   eyebrow,
   name,
@@ -498,6 +526,8 @@ export default function ClientFastingPlansPreview() {
         {tab === "windows" && (
           <>
             {loadingQ && <p style={{ color: MUTED }} className="text-xs">Loading…</p>}
+
+            {!loadingQ && !assignedQuickId && <EmptyBanner kind="plan" />}
 
             {assignedQuickId && (() => {
               const yours = quickPlans.find((p) => p.id === assignedQuickId);
