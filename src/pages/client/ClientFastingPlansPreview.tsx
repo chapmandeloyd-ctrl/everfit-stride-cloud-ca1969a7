@@ -400,8 +400,18 @@ function ProtocolBigCard({
 
 export default function ClientFastingPlansPreview() {
   const navigate = useNavigate();
+  const location = useLocation();
   const clientId = useEffectiveClientId();
   const [tab, setTab] = useState<"windows" | "programs">("windows");
+
+  // Pending pairing handoff from the keto detail page. When set, the user is
+  // mid-flight building their KSOM-360 Synergy program and is here to pick a
+  // fasting protocol to pair with the chosen keto type.
+  const pendingKeto = (location.state as {
+    pendingKeto?: { id: string; label: string };
+  } | null)?.pendingKeto ?? null;
+
+  const navStateExtra = pendingKeto ? { state: { pendingKeto } } : undefined;
 
   // Pull the client's current assignment + lock state so we can mark every
   // card the admin has NOT assigned as locked.
