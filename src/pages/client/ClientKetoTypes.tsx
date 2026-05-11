@@ -332,6 +332,32 @@ export default function ClientKetoTypes() {
           </section>
         )}
 
+        {!assignedKeto && !isLoading && (
+          <div
+            className="flex items-center gap-3 px-4 py-3 rounded-sm"
+            style={{
+              background: `${MUTED}10`,
+              border: `1px dashed ${MUTED}55`,
+            }}
+          >
+            <Star className="h-4 w-4 shrink-0" style={{ color: MUTED }} />
+            <div className="flex-1 min-w-0">
+              <p
+                className="text-[10px] uppercase tracking-[0.3em]"
+                style={{ color: MUTED }}
+              >
+                No keto type assigned
+              </p>
+              <p
+                className="text-sm font-light"
+                style={{ color: MUTED, fontFamily: "Georgia, serif" }}
+              >
+                Clients will see their current keto type pinned here.
+              </p>
+            </div>
+          </div>
+        )}
+
         {grouped.map((group) => {
           const items = group.items.filter((t) => t.id !== assignedKetoId);
           if (items.length === 0) return null;
