@@ -1688,6 +1688,7 @@ export default function ClientFastingPlanDetailPreview() {
   const lastPersistedTimesRef = useRef(preferredTimes);
 
   const [pairDialogOpen, setPairDialogOpen] = useState(false);
+  const [synergyConfirmOpen, setSynergyConfirmOpen] = useState(false);
 
   const isActivePlan =
     !!planId &&
@@ -1959,7 +1960,7 @@ export default function ClientFastingPlanDetailPreview() {
           <button
             className="w-full h-14 rounded-lg text-base font-bold disabled:opacity-60"
             style={{ backgroundColor: GOLD, color: BLACK }}
-            onClick={() => setProtocolMutation.mutate()}
+            onClick={() => setSynergyConfirmOpen(true)}
             disabled={setProtocolMutation.isPending || !planId}
           >
             {setProtocolMutation.isPending
@@ -1986,6 +1987,80 @@ export default function ClientFastingPlanDetailPreview() {
         }}
         onSaveForLater={() => setPairDialogOpen(false)}
       />
+
+      {/* Synergy confirmation — appears BEFORE assigning the protocol */}
+      {synergyConfirmOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.7)" }}
+          onClick={() => setSynergyConfirmOpen(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl p-6"
+            style={{ background: SURFACE_2, border: `1px solid ${GOLD}33` }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              className="text-[10px] uppercase tracking-[0.35em] mb-2"
+              style={{ color: GOLD }}
+            >
+              KSOM-360 Synergy
+            </div>
+            <div className="text-xl font-semibold mb-2" style={{ color: IVORY }}>
+              Build your complete program
+            </div>
+            <p className="text-sm mb-5" style={{ color: MUTED }}>
+              {plan.name} works best when paired with a keto type. Pick how you'd
+              like to complete your KSOM-360 Synergy program.
+            </p>
+
+            <div className="space-y-2">
+              {hasKeto && (
+                <button
+                  className="w-full text-left rounded-xl p-4"
+                  style={{ background: SURFACE, border: `1px solid ${GOLD}55` }}
+                  onClick={() => {
+                    setSynergyConfirmOpen(false);
+                    setProtocolMutation.mutate();
+                  }}
+                  disabled={setProtocolMutation.isPending}
+                >
+                  <div className="text-xs uppercase tracking-wider mb-1" style={{ color: GOLD }}>
+                    Keep current keto type
+                  </div>
+                  <div className="text-sm font-semibold" style={{ color: IVORY }}>
+                    {ketoLabel}
+                  </div>
+                </button>
+              )}
+
+              <button
+                className="w-full text-left rounded-xl p-4"
+                style={{ background: SURFACE, border: `1px solid ${GOLD}33` }}
+                onClick={() => {
+                  setSynergyConfirmOpen(false);
+                  navigate("/client/keto-types");
+                }}
+              >
+                <div className="text-xs uppercase tracking-wider mb-1" style={{ color: GOLD_SOFT }}>
+                  Browse other keto types
+                </div>
+                <div className="text-sm font-semibold" style={{ color: IVORY }}>
+                  Explore the full keto library
+                </div>
+              </button>
+            </div>
+
+            <button
+              className="w-full mt-4 h-10 rounded-lg text-xs uppercase tracking-wider"
+              style={{ color: MUTED }}
+              onClick={() => setSynergyConfirmOpen(false)}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
