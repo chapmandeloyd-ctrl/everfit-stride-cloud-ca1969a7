@@ -2050,11 +2050,20 @@ export default function ClientFastingPlanDetailPreview() {
           <button
             className="w-full h-14 rounded-lg text-base font-bold disabled:opacity-60"
             style={{ backgroundColor: GOLD, color: BLACK }}
-            onClick={() => setSynergyConfirmOpen(true)}
-            disabled={setProtocolMutation.isPending || !planId}
+            onClick={() => {
+              if (pendingKeto) {
+                // Pair flow — straight to recap (both sides change).
+                setRecapOpen(true);
+              } else {
+                setSynergyConfirmOpen(true);
+              }
+            }}
+            disabled={setProtocolMutation.isPending || pairWithKetoMutation.isPending || !planId}
           >
-            {setProtocolMutation.isPending
+            {setProtocolMutation.isPending || pairWithKetoMutation.isPending
               ? "Setting..."
+              : pendingKeto
+              ? `Pair with ${pendingKeto.label}`
               : `Set ${plan.name}`}
           </button>
         )}
