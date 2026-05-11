@@ -621,6 +621,7 @@ export default function ClientFastingPlansPreview() {
         {tab === "programs" && (
           <section className="space-y-3">
             {loadingP && <p style={{ color: MUTED }} className="text-xs">Loading…</p>}
+            {!loadingP && !assignedProtocolId && <EmptyBanner kind="program" />}
             {assignedProtocolId && (() => {
               const yours = protocols.find((p) => p.id === assignedProtocolId);
               if (!yours) return null;
