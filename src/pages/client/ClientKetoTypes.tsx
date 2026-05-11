@@ -336,7 +336,7 @@ export default function ClientKetoTypes() {
                 locked={false}
                 isAssigned={true}
                 assignedName={assignedKetoLabel}
-                onClick={() => navigate(`/client/keto-types/${assignedKeto.id}`)}
+                onClick={() => navigate(`/client/keto-types/${assignedKeto.id}`, navState)}
               />
             </div>
           </section>
@@ -390,7 +390,7 @@ export default function ClientKetoTypes() {
                     locked={locked}
                     isAssigned={isAssigned}
                     assignedName={assignedKetoLabel}
-                    onClick={() => navigate(`/client/keto-types/${kt.id}`)}
+                    onClick={() => navigate(`/client/keto-types/${kt.id}`, navState)}
                   />
                 );
               })}
