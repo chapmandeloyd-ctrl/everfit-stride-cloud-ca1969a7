@@ -516,6 +516,34 @@ export default function ClientFastingPlansPreview() {
       </div>
 
       <div className="px-5 pt-4 pb-12 space-y-8">
+        {pendingKeto && (
+          <div
+            className="flex items-start gap-3 px-4 py-3 rounded-lg"
+            style={{
+              background: `${GOLD}12`,
+              border: `1px solid ${GOLD}55`,
+            }}
+          >
+            <Sparkles className="h-4 w-4 shrink-0 mt-0.5" style={{ color: GOLD }} />
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] uppercase tracking-[0.3em]" style={{ color: GOLD }}>
+                Building your KSOM-360 Synergy program
+              </p>
+              <p className="text-sm font-light" style={{ color: IVORY, fontFamily: "Georgia, serif" }}>
+                Pick a fasting protocol to pair with{" "}
+                <span className="font-semibold">{pendingKeto.label}</span>
+              </p>
+            </div>
+            <button
+              onClick={() => navigate(-1)}
+              className="text-[10px] uppercase tracking-wider px-2 py-1"
+              style={{ color: MUTED }}
+            >
+              Cancel
+            </button>
+          </div>
+        )}
+
         <div className="space-y-2">
           <p className="text-[10px] uppercase tracking-[0.4em]" style={{ color: GOLD }}>
             The Protocol
