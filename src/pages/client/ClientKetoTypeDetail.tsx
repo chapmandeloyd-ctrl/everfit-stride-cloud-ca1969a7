@@ -393,9 +393,11 @@ export default function ClientKetoTypeDetail() {
             className="w-full h-14 text-base font-bold text-white"
             style={{ backgroundColor: GOLD }}
             onClick={handleSetClick}
-            disabled={setActive.isPending}
+            disabled={setActive.isPending || pairWithProtocolMutation.isPending}
           >
-            Set {ketoType.abbreviation} — {ketoType.name}
+            {pendingProtocol
+              ? `Pair with ${pendingProtocol.name}`
+              : `Set ${ketoType.abbreviation} — ${ketoType.name}`}
           </Button>
         )}
         <p className="text-xs text-center text-muted-foreground mt-2">
