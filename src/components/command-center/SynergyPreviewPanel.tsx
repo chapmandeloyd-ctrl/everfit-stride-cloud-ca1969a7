@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Loader2, RefreshCw, Zap, Pencil } from "lucide-react";
+import { Sparkles, Loader2, RefreshCw, Zap, Pencil, Check } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { usePlanSynergy } from "@/hooks/usePlanSynergy";
@@ -25,13 +26,18 @@ interface SynergyPreviewPanelProps {
 export function SynergyPreviewPanel({ clientId, trainerId }: SynergyPreviewPanelProps) {
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
+  // When the trainer picks a quick plan, we DEFER the DB write until they
+  // also enter a duration (1-30 days). `pendingQuickPlanId` holds the chosen
+  // plan; `durationInput` is the user's day entry (string for input control).
+  const [pendingQuickPlanId, setPendingQuickPlanId] = useState<string | null>(null);
+  const [durationInput, setDurationInput] = useState<string>("");
 
   const { data: featureSettings } = useQuery({
     queryKey: ["synergy-panel-settings", clientId],
     queryFn: async () => {
       const { data } = await supabase
         .from("client_feature_settings")
-        .select("selected_protocol_id, selected_quick_plan_id")
+        .select("selected_protocol_id, selected_quick_plan_id, quick_plan_duration_days")
         .eq("client_id", clientId)
         .maybeSingle();
       return data;
@@ -122,11 +128,14 @@ export function SynergyPreviewPanel({ clientId, trainerId }: SynergyPreviewPanel
   );
 
   const assignProtocolMutation = useMutation({
-    mutationFn: async ({ id, type }: { id: string; type: "program" | "quick_plan" }) => {
+    mutationFn: async ({ id, type, durationDays }: { id: string; type: "program" | "quick_plan"; durationDays?: number }) => {
       let updates: Record<string, unknown>;
       if (type === "program") {
-        updates = { selected_protocol_id: id, selected_quick_plan_id: null, protocol_assigned_by: trainerId, active_fast_target_hours: null };
+        updates = { selected_protocol_id: id, selected_quick_plan_id: null, quick_plan_duration_days: null, protocol_assigned_by: trainerId, active_fast_target_hours: null };
       } else {
+        if (!durationDays || durationDays < 1 || durationDays > 30) {
+          throw new Error("Duration must be between 1 and 30 days");
+        }
         // Fetch quick plan hours for active_fast_target_hours
         const { data: qp } = await supabase.from("quick_fasting_plans").select("fast_hours").eq("id", id).single();
         updates = {
@@ -135,6 +144,7 @@ export function SynergyPreviewPanel({ clientId, trainerId }: SynergyPreviewPanel
           protocol_start_date: null,
           protocol_assigned_by: trainerId,
           active_fast_target_hours: qp?.fast_hours ?? null,
+          quick_plan_duration_days: durationDays,
         };
       }
       const { error } = await supabase
@@ -147,9 +157,12 @@ export function SynergyPreviewPanel({ clientId, trainerId }: SynergyPreviewPanel
       queryClient.invalidateQueries({ queryKey: ["synergy-panel-settings"] });
       queryClient.invalidateQueries({ queryKey: ["plan-synergy"] });
       queryClient.invalidateQueries({ queryKey: ["my-feature-settings"] });
+      queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting"] });
+      setPendingQuickPlanId(null);
+      setDurationInput("");
       toast.success("Protocol assigned!");
     },
-    onError: () => toast.error("Failed to assign protocol"),
+    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Failed to assign protocol"),
   });
 
   const assignKetoMutation = useMutation({
