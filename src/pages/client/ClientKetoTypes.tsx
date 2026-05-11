@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { X, Lock } from "lucide-react";
+import { Star } from "lucide-react";
 import lionLogo from "@/assets/logo.png";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
@@ -291,7 +292,29 @@ export default function ClientKetoTypes() {
 
         {assignedKeto && (
           <section className="space-y-3">
-            <SectionLabel>Your Current Keto Type</SectionLabel>
+            <div
+              className="flex items-center gap-3 px-4 py-3 rounded-sm"
+              style={{
+                background: `${GOLD}12`,
+                border: `1px solid ${GOLD}55`,
+              }}
+            >
+              <Star className="h-4 w-4 shrink-0" style={{ color: GOLD }} fill={GOLD} />
+              <div className="flex-1 min-w-0">
+                <p
+                  className="text-[10px] uppercase tracking-[0.3em]"
+                  style={{ color: GOLD }}
+                >
+                  You're viewing your current keto type
+                </p>
+                <p
+                  className="text-sm font-light truncate"
+                  style={{ color: IVORY, fontFamily: "Georgia, serif" }}
+                >
+                  {assignedKeto.abbreviation} — {assignedKeto.name}
+                </p>
+              </div>
+            </div>
             <div className="space-y-3">
               <KetoLionCard
                 abbreviation={assignedKeto.abbreviation}
