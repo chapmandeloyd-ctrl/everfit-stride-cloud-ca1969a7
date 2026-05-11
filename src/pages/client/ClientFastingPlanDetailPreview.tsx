@@ -1617,6 +1617,30 @@ export default function ClientFastingPlanDetailPreview() {
 
   const assignedKeto = ketoAssignment?.keto_types as { id: string; abbreviation: string; name: string } | null;
 
+  // Currently-assigned plan name (the one being REPLACED). May differ from the
+  // previewed plan when the user is browsing a new protocol.
+  const { data: currentAssignedPlan } = useQuery({
+    queryKey: ["fasting-detail-current-assigned", assignedPlanType, assignedPlanId],
+    enabled: !!assignedPlanId && !!assignedPlanType,
+    queryFn: async () => {
+      if (!assignedPlanId || !assignedPlanType) return null;
+      if (assignedPlanType === "quick") {
+        const { data } = await supabase
+          .from("quick_fasting_plans")
+          .select("id, name")
+          .eq("id", assignedPlanId)
+          .maybeSingle();
+        return data;
+      }
+      const { data } = await supabase
+        .from("fasting_protocols")
+        .select("id, name")
+        .eq("id", assignedPlanId)
+        .maybeSingle();
+      return data;
+    },
+  });
+
   const plan: PlanView = useMemo(() => {
     if (planType === "quick" && quickPlan) {
       const fast = quickPlan.fast_hours ?? 14;
