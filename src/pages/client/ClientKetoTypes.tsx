@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
-import { X, Lock } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { X, Lock, Sparkles } from "lucide-react";
 import { Star } from "lucide-react";
 import lionLogo from "@/assets/logo.png";
 import { supabase } from "@/integrations/supabase/client";
@@ -165,8 +165,18 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 
 export default function ClientKetoTypes() {
   const navigate = useNavigate();
+  const location = useLocation();
   const clientId = useEffectiveClientId();
   const queryClient = useQueryClient();
+
+  // Pending pairing handoff from the protocol detail page. When set, the user
+  // is mid-flight building their KSOM-360 Synergy program and is here to pick
+  // a keto type to pair with the chosen protocol.
+  const pendingProtocol = (location.state as {
+    pendingProtocol?: { type: "quick" | "program"; id: string; name: string };
+  } | null)?.pendingProtocol ?? null;
+
+  const navState = pendingProtocol ? { state: { pendingProtocol } } : undefined;
 
   // Realtime: refresh when trainer updates keto macros
   useEffect(() => {
