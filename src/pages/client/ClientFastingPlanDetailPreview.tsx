@@ -947,8 +947,8 @@ function SynergyContent({
   windowOpensAt: string;
   windowClosesAt: string;
 }) {
-  const keto = KETO_TYPES.find((k) => k.id === ketoId)!;
-  const baseCopy = SYNERGY_COPY[ketoId] ?? SYNERGY_COPY.skd;
+  const keto = KETO_TYPES.find((k) => k.id === ketoId) ?? KETO_TYPES[0];
+  const baseCopy = SYNERGY_COPY[keto.id] ?? SYNERGY_COPY.skd;
   // Rewrite hardcoded "14h" / "14-hour" references to the live plan's hours.
   const copy = {
     intro: baseCopy.intro
