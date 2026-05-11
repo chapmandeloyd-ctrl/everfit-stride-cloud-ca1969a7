@@ -2064,7 +2064,15 @@ export default function ClientFastingPlanDetailPreview() {
                 style={{ background: SURFACE, border: `1px solid ${GOLD}33` }}
                 onClick={() => {
                   setSynergyConfirmOpen(false);
-                  navigate("/client/keto-types");
+                  navigate("/client/keto-types", {
+                    state: {
+                      pendingProtocol: {
+                        type: planType,
+                        id: planId,
+                        name: plan.name,
+                      },
+                    },
+                  });
                 }}
               >
                 <div className="text-xs uppercase tracking-wider mb-1" style={{ color: GOLD_SOFT }}>
