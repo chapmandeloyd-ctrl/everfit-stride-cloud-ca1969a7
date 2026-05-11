@@ -174,6 +174,8 @@ export default function ClientKetoTypeDetail() {
   const [confirmEndFastOpen, setConfirmEndFastOpen] = useState(false);
   const [confirmReplaceOpen, setConfirmReplaceOpen] = useState(false);
   const [crossSellOpen, setCrossSellOpen] = useState(false);
+  const [synergyConfirmOpen, setSynergyConfirmOpen] = useState(false);
+  const [recapOpen, setRecapOpen] = useState(false);
 
   // Resolve the currently-active keto type's label so the replacement
   // confirm dialog can show what's being replaced.
