@@ -1688,6 +1688,7 @@ export default function ClientFastingPlanDetailPreview() {
   const lastPersistedTimesRef = useRef(preferredTimes);
 
   const [pairDialogOpen, setPairDialogOpen] = useState(false);
+  const [synergyConfirmOpen, setSynergyConfirmOpen] = useState(false);
 
   const isActivePlan =
     !!planId &&
