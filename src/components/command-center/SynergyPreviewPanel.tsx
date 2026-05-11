@@ -306,7 +306,15 @@ export function SynergyPreviewPanel({ clientId, trainerId }: SynergyPreviewPanel
               value={currentProtocolValue}
               onValueChange={(val) => {
                 const [type, id] = val.split(":");
-                assignProtocolMutation.mutate({ id, type: type as "program" | "quick_plan" });
+                if (type === "quick_plan") {
+                  // Defer mutation until trainer enters required duration (1-30 days)
+                  setPendingQuickPlanId(id);
+                  setDurationInput(currentDurationDays != null && id === quickPlanId ? String(currentDurationDays) : "");
+                } else {
+                  setPendingQuickPlanId(null);
+                  setDurationInput("");
+                  assignProtocolMutation.mutate({ id, type: "program" });
+                }
               }}
             >
               <SelectTrigger className="h-10">
