@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { toast } from "sonner";
@@ -28,6 +28,11 @@ import {
 // protocol/keto pairing experience (overrides any per-type color from DB).
 // Brand signature gold — matches --ring-fasting: hsl(43, 65%, 52%)
 const GOLD = "#D9A82E";
+const IVORY = "hsl(40 20% 92%)";
+const MUTED = "hsl(40 10% 65%)";
+const SURFACE = "hsl(0 0% 7%)";
+const SURFACE_2 = "hsl(0 0% 10%)";
+const GOLD_SOFT = "#B58A1F";
 
 interface KetoType {
   id: string;
@@ -52,8 +57,16 @@ interface KetoType {
 export default function ClientKetoTypeDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const clientId = useEffectiveClientId();
   const queryClient = useQueryClient();
+
+  // Pending protocol handoff — when set, the user is mid-flight building
+  // their KSOM-360 Synergy program: a new fasting protocol was just chosen
+  // and they're here to pick the keto half of the pair.
+  const pendingProtocol = (location.state as {
+    pendingProtocol?: { type: "quick" | "program"; id: string; name: string };
+  } | null)?.pendingProtocol ?? null;
 
   const { data: ketoType } = useQuery({
     queryKey: ["keto-type", id],
