@@ -218,7 +218,14 @@ export function SynergyPreviewPanel({ clientId, trainerId }: SynergyPreviewPanel
     ...(allQuickPlans?.map(p => ({ id: p.id, label: `${p.name} (${p.fast_hours}h)`, type: "quick_plan" as const })) || []),
   ];
 
-  const currentProtocolValue = activeProtocolId ? `${protocolType}:${activeProtocolId}` : "";
+  const currentProtocolValue = pendingQuickPlanId
+    ? `quick_plan:${pendingQuickPlanId}`
+    : activeProtocolId ? `${protocolType}:${activeProtocolId}` : "";
+  const currentDurationDays = (featureSettings as { quick_plan_duration_days?: number | null } | null | undefined)?.quick_plan_duration_days ?? null;
+  const showDurationField = !!pendingQuickPlanId || (!!quickPlanId && !pendingQuickPlanId);
+  const effectiveDurationValue = pendingQuickPlanId
+    ? durationInput
+    : (durationInput !== "" ? durationInput : (currentDurationDays != null ? String(currentDurationDays) : ""));
 
   // If in editing mode, show the manual editor
   if (isEditing && hasBoth && protocolType && activeProtocolId && ketoTypeId) {
