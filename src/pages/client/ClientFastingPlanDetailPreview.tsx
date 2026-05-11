@@ -2086,6 +2086,86 @@ export default function ClientFastingPlanDetailPreview() {
           </div>
         </div>
       )}
+
+      {/* Recap confirmation — shown after "Keep current keto type" before assigning */}
+      {recapOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.7)" }}
+          onClick={() => setRecapOpen(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl p-6"
+            style={{ background: SURFACE_2, border: `1px solid ${GOLD}33` }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              className="text-[10px] uppercase tracking-[0.35em] mb-2"
+              style={{ color: GOLD }}
+            >
+              Confirm your changes
+            </div>
+            <div className="text-xl font-semibold mb-3" style={{ color: IVORY }}>
+              Here's a recap
+            </div>
+            <p className="text-sm mb-4" style={{ color: MUTED }}>
+              By keeping your current keto type, you're updating your fasting
+              protocol only. Your new KSOM-360 Synergy program will be:
+            </p>
+
+            <div className="space-y-2 mb-5">
+              <div
+                className="rounded-xl p-3"
+                style={{ background: SURFACE, border: `1px solid ${GOLD}22` }}
+              >
+                <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: MUTED }}>
+                  Fasting Protocol
+                </div>
+                <div className="text-sm" style={{ color: IVORY }}>
+                  <span style={{ color: MUTED, textDecoration: "line-through" }}>
+                    {currentAssignedPlan?.name ?? "None"}
+                  </span>
+                  <span className="mx-2" style={{ color: GOLD }}>→</span>
+                  <span className="font-semibold">{plan.name}</span>
+                </div>
+              </div>
+
+              <div
+                className="rounded-xl p-3"
+                style={{ background: SURFACE, border: `1px solid ${GOLD}22` }}
+              >
+                <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: MUTED }}>
+                  Keto Type <span style={{ color: GOLD_SOFT }}>(unchanged)</span>
+                </div>
+                <div className="text-sm font-semibold" style={{ color: IVORY }}>
+                  {ketoLabel}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                className="flex-1 h-11 rounded-lg text-xs uppercase tracking-wider"
+                style={{ background: SURFACE, color: MUTED, border: `1px solid ${GOLD}22` }}
+                onClick={() => setRecapOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="flex-1 h-11 rounded-lg text-xs uppercase tracking-wider font-semibold"
+                style={{ background: GOLD, color: "#000" }}
+                disabled={setProtocolMutation.isPending}
+                onClick={() => {
+                  setRecapOpen(false);
+                  setProtocolMutation.mutate();
+                }}
+              >
+                {setProtocolMutation.isPending ? "Saving…" : "Confirm changes"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
