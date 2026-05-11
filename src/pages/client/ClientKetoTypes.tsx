@@ -289,11 +289,34 @@ export default function ClientKetoTypes() {
           </p>
         )}
 
-        {grouped.map((group) => (
+        {assignedKeto && (
+          <section className="space-y-3">
+            <SectionLabel>Your Current Keto Type</SectionLabel>
+            <div className="space-y-3">
+              <KetoLionCard
+                abbreviation={assignedKeto.abbreviation}
+                name={assignedKeto.name}
+                subtitle={assignedKeto.subtitle ?? assignedKeto.description}
+                fatPct={assignedKeto.fat_pct}
+                proteinPct={assignedKeto.protein_pct}
+                carbsPct={assignedKeto.carbs_pct}
+                locked={false}
+                isAssigned={true}
+                assignedName={assignedKetoLabel}
+                onClick={() => navigate(`/client/keto-types/${assignedKeto.id}`)}
+              />
+            </div>
+          </section>
+        )}
+
+        {grouped.map((group) => {
+          const items = group.items.filter((t) => t.id !== assignedKetoId);
+          if (items.length === 0) return null;
+          return (
           <section key={group.category.id} className="space-y-3">
             <SectionLabel>{group.category.name}</SectionLabel>
             <div className="space-y-3">
-              {group.items.map((kt) => {
+              {items.map((kt) => {
                 const isAssigned = kt.id === assignedKetoId;
                 const locked = isLocked && !isAssigned;
                 return (
@@ -314,7 +337,8 @@ export default function ClientKetoTypes() {
               })}
             </div>
           </section>
-        ))}
+          );
+        })}
 
         {!isLoading && grouped.length === 0 && (
           <p style={{ color: MUTED }} className="text-xs">
