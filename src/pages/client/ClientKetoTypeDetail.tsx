@@ -469,6 +469,184 @@ export default function ClientKetoTypeDetail() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Synergy popup — choose how to complete the KSOM-360 Synergy program */}
+      {synergyConfirmOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.7)" }}
+          onClick={() => setSynergyConfirmOpen(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl p-6"
+            style={{ background: SURFACE_2, border: `1px solid ${GOLD}33` }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-[10px] uppercase tracking-[0.35em] mb-2" style={{ color: GOLD }}>
+              KSOM-360 Synergy
+            </div>
+            <div className="text-xl font-semibold mb-2" style={{ color: IVORY }}>
+              Build your complete program
+            </div>
+            <p className="text-sm mb-5" style={{ color: MUTED }}>
+              {ketoType.abbreviation} — {ketoType.name} works best when paired
+              with a fasting protocol. Pick how you'd like to complete your
+              KSOM-360 Synergy program.
+            </p>
+
+            <div className="space-y-2">
+              {hasActivePlan && (
+                <button
+                  className="w-full text-left rounded-xl p-4"
+                  style={{ background: SURFACE, border: `1px solid ${GOLD}55` }}
+                  onClick={() => {
+                    setSynergyConfirmOpen(false);
+                    setRecapOpen(true);
+                  }}
+                  disabled={setActive.isPending}
+                >
+                  <div className="text-xs uppercase tracking-wider mb-1" style={{ color: GOLD }}>
+                    Keep current protocol
+                  </div>
+                  <div className="text-sm font-semibold" style={{ color: IVORY }}>
+                    {activePlanName ?? "Your active fasting protocol"}
+                  </div>
+                </button>
+              )}
+
+              <button
+                className="w-full text-left rounded-xl p-4"
+                style={{ background: SURFACE, border: `1px solid ${GOLD}33` }}
+                onClick={() => {
+                  setSynergyConfirmOpen(false);
+                  navigate("/client/fasting-plans-preview", {
+                    state: {
+                      pendingKeto: {
+                        id: ketoType.id,
+                        label: `${ketoType.abbreviation} — ${ketoType.name}`,
+                      },
+                    },
+                  });
+                }}
+              >
+                <div className="text-xs uppercase tracking-wider mb-1" style={{ color: GOLD_SOFT }}>
+                  Browse other protocols
+                </div>
+                <div className="text-sm font-semibold" style={{ color: IVORY }}>
+                  Explore the full fasting library
+                </div>
+              </button>
+            </div>
+
+            <button
+              className="w-full mt-4 h-10 rounded-lg text-xs uppercase tracking-wider"
+              style={{ color: MUTED }}
+              onClick={() => setSynergyConfirmOpen(false)}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Recap confirmation — final step before assigning */}
+      {recapOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.7)" }}
+          onClick={() => setRecapOpen(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl p-6"
+            style={{ background: SURFACE_2, border: `1px solid ${GOLD}33` }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-[10px] uppercase tracking-[0.35em] mb-2" style={{ color: GOLD }}>
+              Confirm your changes
+            </div>
+            <div className="text-xl font-semibold mb-3" style={{ color: IVORY }}>
+              Here's a recap
+            </div>
+            <p className="text-sm mb-4" style={{ color: MUTED }}>
+              {pendingProtocol
+                ? "You're building your KSOM-360 Synergy program with a new fasting protocol AND a new keto type:"
+                : "By keeping your current fasting protocol, you're updating your keto type only. Your new KSOM-360 Synergy program will be:"}
+            </p>
+
+            <div className="space-y-2 mb-5">
+              <div className="rounded-xl p-3" style={{ background: SURFACE, border: `1px solid ${GOLD}22` }}>
+                <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: MUTED }}>
+                  Keto Type
+                </div>
+                <div className="text-sm" style={{ color: IVORY }}>
+                  <span style={{ color: MUTED, textDecoration: "line-through" }}>
+                    {currentKetoLabel ?? "None"}
+                  </span>
+                  <span className="mx-2" style={{ color: GOLD }}>→</span>
+                  <span className="font-semibold">
+                    {ketoType.abbreviation} — {ketoType.name}
+                  </span>
+                </div>
+              </div>
+
+              <div className="rounded-xl p-3" style={{ background: SURFACE, border: `1px solid ${GOLD}22` }}>
+                <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: MUTED }}>
+                  Fasting Protocol{" "}
+                  <span style={{ color: GOLD_SOFT }}>
+                    {pendingProtocol ? "(new)" : "(unchanged)"}
+                  </span>
+                </div>
+                {pendingProtocol ? (
+                  <div className="text-sm" style={{ color: IVORY }}>
+                    <span style={{ color: MUTED, textDecoration: "line-through" }}>
+                      {activePlanName ?? "None"}
+                    </span>
+                    <span className="mx-2" style={{ color: GOLD }}>→</span>
+                    <span className="font-semibold">{pendingProtocol.name}</span>
+                  </div>
+                ) : (
+                  <div className="text-sm font-semibold" style={{ color: IVORY }}>
+                    {activePlanName ?? "None"}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {hasLiveFast && (
+              <p className="text-[11px] mb-3" style={{ color: GOLD_SOFT }}>
+                Note: your active fast will end so the new program can take effect.
+              </p>
+            )}
+
+            <div className="flex gap-2">
+              <button
+                className="flex-1 h-11 rounded-lg text-xs uppercase tracking-wider"
+                style={{ background: SURFACE, color: MUTED, border: `1px solid ${GOLD}22` }}
+                onClick={() => setRecapOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="flex-1 h-11 rounded-lg text-xs uppercase tracking-wider font-semibold"
+                style={{ background: GOLD, color: "#000" }}
+                disabled={setActive.isPending || pairWithProtocolMutation.isPending}
+                onClick={() => {
+                  setRecapOpen(false);
+                  if (pendingProtocol) {
+                    pairWithProtocolMutation.mutate();
+                  } else {
+                    setActive.mutate();
+                  }
+                }}
+              >
+                {setActive.isPending || pairWithProtocolMutation.isPending
+                  ? "Saving…"
+                  : "Confirm changes"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </ClientLayout>
   );
 }
