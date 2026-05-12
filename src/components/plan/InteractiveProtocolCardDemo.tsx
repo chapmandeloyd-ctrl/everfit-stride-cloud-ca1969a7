@@ -437,19 +437,41 @@ export const CardFront = memo(function CardFront({
       <div className="relative flex h-full flex-col p-6">
         <div className="flex items-center gap-3 mb-4">
           <div
-            className={`relative h-14 w-14 rounded-2xl flex items-center justify-center bg-gradient-to-br ${protocol.iconGradient}`}
+            className={`relative h-14 w-14 rounded-[18px] flex items-center justify-center overflow-hidden bg-gradient-to-br ${protocol.iconGradient}`}
             style={{
               boxShadow:
-                "inset 2px 2px 3px hsl(0 0% 100% / 0.5), inset -3px -3px 6px hsl(0 0% 0% / 0.5), 0 6px 14px hsl(0 0% 0% / 0.45), 0 2px 4px hsl(0 0% 0% / 0.3)",
+                "inset 2px 3px 4px hsl(0 0% 100% / 0.55), inset -3px -4px 8px hsl(0 0% 0% / 0.55), inset 0 0 0 1px hsl(0 0% 100% / 0.18), 0 10px 20px hsl(0 0% 0% / 0.55), 0 3px 6px hsl(0 0% 0% / 0.4)",
             }}
           >
+            {/* Top gloss highlight — gives the molded 3D 'app icon' look */}
+            <span
+              aria-hidden
+              className="pointer-events-none absolute inset-x-0 top-0 h-1/2 rounded-t-[18px]"
+              style={{
+                background:
+                  "linear-gradient(180deg, hsl(0 0% 100% / 0.35) 0%, hsl(0 0% 100% / 0.08) 60%, transparent 100%)",
+              }}
+            />
+            {/* Bottom shade — deepens the bevel */}
+            <span
+              aria-hidden
+              className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2"
+              style={{
+                background:
+                  "linear-gradient(0deg, hsl(0 0% 0% / 0.30) 0%, transparent 100%)",
+              }}
+            />
             {pulse && (
               <span
-                className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${protocol.iconGradient} opacity-60 animate-[icon-pulse_2.4s_ease-in-out_infinite]`}
+                className={`absolute inset-0 rounded-[18px] bg-gradient-to-br ${protocol.iconGradient} opacity-60 animate-[icon-pulse_2.4s_ease-in-out_infinite]`}
                 aria-hidden
               />
             )}
-            <Icon className="relative h-7 w-7 text-white drop-shadow-lg" strokeWidth={2.5} />
+            <Icon
+              className="relative h-7 w-7 text-white"
+              strokeWidth={2.25}
+              style={{ filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.45))" }}
+            />
           </div>
 
           <div className="min-w-0 flex-1">
