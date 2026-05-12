@@ -399,6 +399,43 @@ function FullHeightPreviewExtra({ protocol, animate }: { protocol: DemoProtocol;
   );
 }
 
+/**
+ * Mid-card filler for the front face. Sits between the variant extra
+ * (e.g. timeline) and the bottom "Coach read" pill so the card never has
+ * an empty dead-zone when the front is height-matched to the back.
+ * Skips its chip row when the variant already renders chips, to avoid duplication.
+ */
+function FrontMidFiller({
+  protocol,
+  variant,
+}: {
+  protocol: DemoProtocol;
+  variant: FrontExtraVariant;
+}) {
+  const hasChips = variant === "feelChips" || variant === "timelineAndChips" || variant === "difficulty";
+  const benefit = protocol.content.benefits?.[0];
+  return (
+    <div className="space-y-3">
+      {!hasChips && <FeelChipsExtra protocol={protocol} />}
+      {benefit && (
+        <div
+          className="flex items-center gap-2 rounded-xl border border-border/60 px-3 py-2"
+          style={{
+            background: "linear-gradient(145deg, hsl(var(--muted) / 0.55), hsl(var(--muted) / 0.18))",
+          }}
+        >
+          <Sparkles className={`h-3.5 w-3.5 shrink-0 ${protocol.accentColorClass}`} />
+          <p className="text-[11px] font-semibold leading-snug line-clamp-2">{benefit}</p>
+        </div>
+      )}
+      <div className="flex items-center justify-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.18em] text-muted-foreground/80">
+        <RotateCcw className="h-2.5 w-2.5" />
+        <span>Tap card for full breakdown</span>
+      </div>
+    </div>
+  );
+}
+
 function TiltyIconTile({
   Icon,
   iconGradient,
@@ -654,6 +691,7 @@ export const CardFront = memo(function CardFront({
           ) : (
             <div className="flex h-full flex-col justify-between gap-4">
               <FrontExtra variant={frontExtra} protocol={protocol} animate={animateStats} />
+              <FrontMidFiller protocol={protocol} variant={frontExtra} />
               <div className="space-y-3">
                 <div className="rounded-xl border border-border/60 px-3 py-2" style={{
                   background: "linear-gradient(145deg, hsl(var(--muted) / 0.6), hsl(var(--muted) / 0.22))"
