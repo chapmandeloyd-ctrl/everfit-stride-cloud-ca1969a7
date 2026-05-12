@@ -1,5 +1,5 @@
 import { ClientLayout } from "@/components/ClientLayout";
-import fastingCardBgGoldImg from "@/assets/fasting-timer-bg-gold.png";
+import fastingCardBgGoldImg from "@/assets/fasting-timer-bg.png";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
