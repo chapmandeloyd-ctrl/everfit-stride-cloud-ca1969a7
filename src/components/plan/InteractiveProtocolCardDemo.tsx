@@ -399,6 +399,109 @@ function FullHeightPreviewExtra({ protocol, animate }: { protocol: DemoProtocol;
   );
 }
 
+function TiltyIconTile({
+  Icon,
+  iconGradient,
+  pulse = true,
+}: {
+  Icon: LucideIcon;
+  iconGradient: string;
+  pulse?: boolean;
+}) {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const [tilt, setTilt] = useState<{ rx: number; ry: number; pressed: boolean }>({
+    rx: 0,
+    ry: 0,
+    pressed: false,
+  });
+
+  const handleMove = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const el = ref.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width;
+    const py = (e.clientY - r.top) / r.height;
+    const ry = (px - 0.5) * 26;
+    const rx = (0.5 - py) * 26;
+    setTilt((t) => ({ ...t, rx, ry }));
+  };
+  const reset = () => setTilt({ rx: 0, ry: 0, pressed: false });
+
+  return (
+    <div style={{ perspective: "500px" }} className="shrink-0">
+      <div
+        ref={ref}
+        onPointerMove={handleMove}
+        onPointerDown={() => setTilt((t) => ({ ...t, pressed: true }))}
+        onPointerUp={reset}
+        onPointerLeave={reset}
+        onPointerCancel={reset}
+        className={`relative h-16 w-16 rounded-[22px] flex items-center justify-center overflow-hidden bg-gradient-to-br ${iconGradient} touch-none cursor-pointer will-change-transform`}
+        style={{
+          transform: `rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg) scale(${tilt.pressed ? 0.94 : 1})`,
+          transition:
+            tilt.rx === 0 && tilt.ry === 0
+              ? "transform 350ms cubic-bezier(0.34, 1.56, 0.64, 1)"
+              : "transform 80ms ease-out",
+          transformStyle: "preserve-3d",
+          boxShadow:
+            "inset 3px 4px 6px hsl(0 0% 100% / 0.65), inset -4px -6px 10px hsl(0 0% 0% / 0.7), inset 0 0 0 1px hsl(0 0% 100% / 0.22), 0 14px 26px hsl(0 0% 0% / 0.6), 0 4px 8px hsl(0 0% 0% / 0.45), 0 0 22px hsl(var(--primary) / 0.18)",
+        }}
+      >
+        {/* Specular blob — follows tilt for live highlight */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute"
+          style={{
+            top: `${6 - tilt.rx * 0.6}%`,
+            left: `${12 + tilt.ry * 0.6}%`,
+            right: `${20 - tilt.ry * 0.6}%`,
+            height: "42%",
+            borderRadius: "100%",
+            background:
+              "radial-gradient(ellipse at 35% 30%, hsl(0 0% 100% / 0.85) 0%, hsl(0 0% 100% / 0.35) 35%, hsl(0 0% 100% / 0) 70%)",
+            filter: "blur(1px)",
+            transition: "all 80ms ease-out",
+          }}
+        />
+        <span
+          aria-hidden
+          className="pointer-events-none absolute h-1.5 w-2.5 rounded-full"
+          style={{
+            top: `${14 - tilt.rx * 0.4}%`,
+            left: `${22 + tilt.ry * 0.4}%`,
+            background: "hsl(0 0% 100% / 0.95)",
+            filter: "blur(0.5px)",
+            transition: "all 80ms ease-out",
+          }}
+        />
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3"
+          style={{
+            background:
+              "radial-gradient(ellipse at 50% 110%, hsl(0 0% 0% / 0.55) 0%, hsl(0 0% 0% / 0.18) 45%, transparent 75%)",
+          }}
+        />
+        {pulse && (
+          <span
+            className={`absolute inset-0 rounded-[22px] bg-gradient-to-br ${iconGradient} opacity-50 animate-[icon-pulse_2.4s_ease-in-out_infinite]`}
+            aria-hidden
+          />
+        )}
+        <Icon
+          className="relative h-7 w-7 text-white pointer-events-none"
+          strokeWidth={2.25}
+          style={{
+            filter:
+              "drop-shadow(0 -1px 0 rgba(255,255,255,0.55)) drop-shadow(0 2px 2px rgba(0,0,0,0.55)) drop-shadow(0 4px 6px rgba(0,0,0,0.45))",
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
 export const CardFront = memo(function CardFront({
   protocol,
   showChevron = true,
