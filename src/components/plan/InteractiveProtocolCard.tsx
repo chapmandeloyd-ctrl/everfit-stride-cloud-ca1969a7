@@ -245,7 +245,7 @@ export function InteractiveProtocolCard({
 
     if (e.pointerType === "touch") {
       suppressClickRef.current = true;
-      if (!shouldSuppress && !isInteractiveTarget(e.target)) {
+      if (!isMobile && !shouldSuppress && !isInteractiveTarget(e.target)) {
         setFlipped((current) => !current);
       }
     } else {
@@ -333,6 +333,45 @@ export function InteractiveProtocolCard({
     </>
   );
 
+  if (isMobile) {
+    return (
+      <div className={`relative pt-6 pb-4 ${dimmed ? "opacity-60 grayscale-[20%]" : ""}`}>
+        <CardStackBackdrop />
+
+        <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+          {liveMessage}
+        </div>
+
+        <div className="relative overflow-hidden rounded-2xl border border-border" style={faceStyle}>
+          <button
+            type="button"
+            data-no-flip
+            aria-label={flipped ? `Hide ${protocolName} details` : `Show ${protocolName} details`}
+            aria-expanded={flipped}
+            onClick={() => setFlipped((current) => !current)}
+            className="absolute top-3 right-3 z-30 inline-flex min-h-[36px] items-center rounded-full border border-primary/40 bg-background/85 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-primary shadow-sm backdrop-blur-sm transition-colors hover:bg-background"
+          >
+            {flipped ? "Show summary" : "View details"}
+          </button>
+
+          {flipped ? (
+            <BackContent protocol={protocol} onClose={handleClose} extraAction={backActions} />
+          ) : (
+            <CardFront
+              protocol={protocol}
+              showChevron={false}
+              pulse={false}
+              shimmer={false}
+              animateStats={false}
+              frontExtra={frontExtra}
+              dimmed={dimmed}
+            />
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       ref={tiltRef}
@@ -401,7 +440,7 @@ export function InteractiveProtocolCard({
         tabIndex={0}
         aria-label={ariaLabel}
         aria-pressed={flipped}
-        className="relative rounded-2xl group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        className={`relative rounded-2xl group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${isMobile ? "pt-10" : ""}`}
         style={innerStyle}
         onPointerDown={onDown}
         onPointerMove={onMoveCheck}
@@ -410,6 +449,22 @@ export function InteractiveProtocolCard({
         onClickCapture={onClickCapture}
         onKeyDown={onKeyDown}
       >
+        {isMobile && (
+          <button
+            type="button"
+            data-no-flip
+            aria-label={flipped ? `Show ${protocolName} summary` : `Show ${protocolName} details`}
+            aria-pressed={flipped}
+            onClick={(e) => {
+              e.stopPropagation();
+              setFlipped((current) => !current);
+            }}
+            className="absolute top-3 right-3 z-30 inline-flex min-h-[36px] items-center rounded-full border border-primary/40 bg-background/85 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-primary shadow-sm backdrop-blur-sm transition-colors hover:bg-background"
+          >
+            {flipped ? "Show summary" : "View details"}
+          </button>
+        )}
+
         <div
           className="absolute inset-0 overflow-hidden rounded-2xl border border-border"
           style={{ ...faceStyle, backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden" }}
