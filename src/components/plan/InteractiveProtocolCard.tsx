@@ -343,20 +343,22 @@ export function InteractiveProtocolCard({
         </div>
 
         <div className="relative overflow-hidden rounded-2xl border border-border" style={faceStyle}>
-          <div className="absolute top-4 right-4 z-30">
-            <button
-              type="button"
-              data-no-flip
-              aria-label={flipped ? `Hide ${protocolName} details` : `Show ${protocolName} details`}
-              aria-expanded={flipped}
-              onClick={() => setFlipped((current) => !current)}
-              className="inline-flex h-11 max-w-[calc(100vw-7rem)] items-center justify-center whitespace-nowrap rounded-full border border-primary/40 bg-background/90 px-3.5 text-[8px] font-bold uppercase tracking-[0.14em] text-primary shadow-sm backdrop-blur-sm transition-colors hover:bg-background sm:h-10 sm:px-4 sm:text-[9px]"
-            >
-              {flipped ? "Show summary" : "View details"}
-            </button>
-          </div>
+          {!flipped && (
+            <div className="absolute top-4 right-4 z-30">
+              <button
+                type="button"
+                data-no-flip
+                aria-label={flipped ? `Hide ${protocolName} details` : `Show ${protocolName} details`}
+                aria-expanded={flipped}
+                onClick={() => setFlipped((current) => !current)}
+                className="inline-flex h-11 max-w-[calc(100vw-7rem)] items-center justify-center whitespace-nowrap rounded-full border border-primary/40 bg-background/90 px-3.5 text-[8px] font-bold uppercase tracking-[0.14em] text-primary shadow-sm backdrop-blur-sm transition-colors hover:bg-background sm:h-10 sm:px-4 sm:text-[9px]"
+              >
+                View details
+              </button>
+            </div>
+          )}
 
-          <div className="pt-12">
+          <div className={flipped ? undefined : "pt-12"}>
           {flipped ? (
             <BackContent protocol={protocol} onClose={handleClose} extraAction={backActions} />
           ) : (
