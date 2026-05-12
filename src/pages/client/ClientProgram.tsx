@@ -235,6 +235,9 @@ export default function ClientProgram() {
     [],
   );
 
+  /* ── 5. Accordion: only one card expanded at a time ── */
+  const [openCard, setOpenCard] = useState<"protocol" | "keto" | null>(null);
+
   /* ── 6. Render ── */
   const hasProgram = !!protocolDemo && !!ketoType;
 
@@ -298,6 +301,8 @@ export default function ClientProgram() {
               }
               onMeasureHeight={makeOnMeasure("protocol")}
               forcedHeight={tallest > 0 ? tallest : undefined}
+              expanded={openCard === "protocol"}
+              onExpandedChange={(next) => setOpenCard(next ? "protocol" : null)}
             />
           </section>
         )}
@@ -327,6 +332,8 @@ export default function ClientProgram() {
                 isCurrent
                 onMeasureHeight={makeOnMeasure("keto")}
                 forcedHeight={tallest > 0 ? tallest : undefined}
+                expanded={openCard === "keto"}
+                onExpandedChange={(next) => setOpenCard(next ? "keto" : null)}
               />
             </button>
           </section>

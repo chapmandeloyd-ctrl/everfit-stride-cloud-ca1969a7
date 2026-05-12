@@ -60,6 +60,10 @@ export interface InteractiveProtocolCardProps {
   onFlippedChange?: (next: boolean) => void;
   /** Disable the built-in front-face tap/click flip handling. Defaults to true (flip is off app-wide). */
   disableTapToFlip?: boolean;
+  /** Optional controlled expand state. When provided, the card uses it instead of internal state. */
+  expanded?: boolean;
+  /** Called whenever the user requests an expand state change. */
+  onExpandedChange?: (next: boolean) => void;
 }
 
 function isLowMemoryDevice() {
@@ -94,6 +98,8 @@ export function InteractiveProtocolCard({
   flipped: controlledFlipped,
   onFlippedChange,
   disableTapToFlip = true,
+  expanded: controlledExpanded,
+  onExpandedChange,
 }: InteractiveProtocolCardProps) {
   const isMobileViewport = typeof window !== "undefined" ? window.innerWidth < 1024 : false;
   const isMobile = useIsMobile() || isMobileViewport;
@@ -101,7 +107,13 @@ export function InteractiveProtocolCard({
   const disableHeavyInteractions = isMobile || reduceMotionWork;
   const [internalFlipped, setInternalFlipped] = useState(false);
   const flipped = controlledFlipped ?? internalFlipped;
-  const [expanded, setExpanded] = useState(false);
+  const [internalExpanded, setInternalExpanded] = useState(false);
+  const expanded = controlledExpanded ?? internalExpanded;
+  const setExpanded = useCallback((updater: boolean | ((prev: boolean) => boolean)) => {
+    const next = typeof updater === "function" ? (updater as (p: boolean) => boolean)(expanded) : updater;
+    if (controlledExpanded === undefined) setInternalExpanded(next);
+    onExpandedChange?.(next);
+  }, [controlledExpanded, expanded, onExpandedChange]);
   const tiltRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
   const startX = useRef<number | null>(null);

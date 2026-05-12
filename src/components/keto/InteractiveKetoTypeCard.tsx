@@ -49,6 +49,9 @@ export interface InteractiveKetoTypeCardProps {
   hideExportPdf?: boolean;
   /** Visually dim the card (e.g. when locked in the library). Hides detail sections. */
   dimmed?: boolean;
+  /** Optional controlled expand state — for accordion behavior in a list. */
+  expanded?: boolean;
+  onExpandedChange?: (next: boolean) => void;
 }
 
 /* ----------------------------- color mapping ----------------------------- */
@@ -242,6 +245,8 @@ export function InteractiveKetoTypeCard({
   coachRead,
   hideExportPdf = false,
   dimmed = false,
+  expanded,
+  onExpandedChange,
 }: InteractiveKetoTypeCardProps) {
   const palette = paletteFromHex(themeColor || ketoType.color);
   const { toast } = useToast();
@@ -329,6 +334,8 @@ export function InteractiveKetoTypeCard({
       onMeasureHeight={onMeasureHeight}
       backExtraAction={exportAction}
       dimmed={dimmed}
+      expanded={expanded}
+      onExpandedChange={onExpandedChange}
     />
   );
 }
