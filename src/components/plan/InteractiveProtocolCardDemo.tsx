@@ -453,6 +453,7 @@ function TiltyIconTile({
           e.stopPropagation();
           reset();
         }}
+        className={`relative h-16 w-16 rounded-[22px] flex items-center justify-center overflow-hidden bg-gradient-to-br ${iconGradient} touch-none cursor-pointer will-change-transform`}
         style={{
           transform: `rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg) scale(${tilt.pressed ? 0.94 : 1})`,
           transition:
