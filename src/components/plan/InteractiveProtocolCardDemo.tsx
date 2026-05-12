@@ -654,6 +654,7 @@ export const CardFront = memo(function CardFront({
           ) : (
             <div className="flex h-full flex-col justify-between gap-4">
               <FrontExtra variant={frontExtra} protocol={protocol} animate={animateStats} />
+              <FrontMidFiller protocol={protocol} variant={frontExtra} />
               <div className="space-y-3">
                 <div className="rounded-xl border border-border/60 px-3 py-2" style={{
                   background: "linear-gradient(145deg, hsl(var(--muted) / 0.6), hsl(var(--muted) / 0.22))"
