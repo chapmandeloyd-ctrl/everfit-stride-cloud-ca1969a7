@@ -299,6 +299,7 @@ export function InteractiveProtocolCard({
   const ariaLabel = flipped
     ? `${protocolName} details card. Press Enter, Space, or tap to return to summary.`
     : `${protocolName} summary card. Press Enter, Space, or tap to view details.`;
+  const useExplicitFlipControl = isMobile;
 
   const innerStyle: CSSProperties = {
     transformStyle: "preserve-3d",
@@ -397,19 +398,35 @@ export function InteractiveProtocolCard({
 
       <div
         ref={innerRef}
-        role="button"
-        tabIndex={0}
+        role={useExplicitFlipControl ? undefined : "button"}
+        tabIndex={useExplicitFlipControl ? -1 : 0}
         aria-label={ariaLabel}
         aria-pressed={flipped}
-        className="relative rounded-2xl group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        className={`relative rounded-2xl group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${useExplicitFlipControl ? "cursor-default" : "cursor-pointer"}`}
         style={innerStyle}
         onPointerDown={onDown}
         onPointerMove={onMoveCheck}
         onPointerUp={onUp}
         onPointerCancel={onCancel}
-        onClickCapture={onClickCapture}
-        onKeyDown={onKeyDown}
+        onClickCapture={useExplicitFlipControl ? undefined : onClickCapture}
+        onKeyDown={useExplicitFlipControl ? undefined : onKeyDown}
       >
+        {useExplicitFlipControl && (
+          <button
+            type="button"
+            data-no-flip
+            aria-label={flipped ? `Show ${protocolName} summary` : `Show ${protocolName} details`}
+            aria-pressed={flipped}
+            onClick={(e) => {
+              e.stopPropagation();
+              setFlipped((current) => !current);
+            }}
+            className="absolute top-3 right-3 z-30 inline-flex min-h-[36px] items-center rounded-full border border-primary/40 bg-background/85 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-primary shadow-sm backdrop-blur-sm transition-colors hover:bg-background"
+          >
+            {flipped ? "Show summary" : "View details"}
+          </button>
+        )}
+
         <div
           className="absolute inset-0 overflow-hidden rounded-2xl border border-border"
           style={{ ...faceStyle, backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden" }}
