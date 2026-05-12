@@ -49,8 +49,6 @@ export interface InteractiveKetoTypeCardProps {
   hideExportPdf?: boolean;
   /** Visually dim the card (e.g. when locked in the library). Hides detail sections. */
   dimmed?: boolean;
-  /** Compact mode: hides detail sections and front-face filler. Use when the card navigates to a detail page. */
-  compact?: boolean;
 }
 
 /* ----------------------------- color mapping ----------------------------- */
@@ -244,7 +242,6 @@ export function InteractiveKetoTypeCard({
   coachRead,
   hideExportPdf = false,
   dimmed = false,
-  compact = false,
 }: InteractiveKetoTypeCardProps) {
   const palette = paletteFromHex(themeColor || ketoType.color);
   const { toast } = useToast();
@@ -323,7 +320,7 @@ export function InteractiveKetoTypeCard({
   return (
     <InteractiveProtocolCard
       protocol={protocol}
-      frontExtra={compact ? "none" : "coachQuote"}
+      frontExtra="coachQuote"
       onOpen={onOpen}
       openLabel={openLabel}
       flipCancelHorizontalPx={flipCancelHorizontalPx}
@@ -332,7 +329,6 @@ export function InteractiveKetoTypeCard({
       onMeasureHeight={onMeasureHeight}
       backExtraAction={exportAction}
       dimmed={dimmed}
-      compact={compact}
     />
   );
 }

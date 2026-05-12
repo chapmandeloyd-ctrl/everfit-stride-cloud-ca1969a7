@@ -60,13 +60,6 @@ export interface InteractiveProtocolCardProps {
   onFlippedChange?: (next: boolean) => void;
   /** Disable the built-in front-face tap/click flip handling. Defaults to true (flip is off app-wide). */
   disableTapToFlip?: boolean;
-  /**
-   * Compact mode for list/program views. Hides the front-face filler (coach
-   * read / timeline) AND the stacked ProtocolDetailSections below the card
-   * so the card shrinks to just icon + title + stat tiles. Use when the card
-   * navigates to a full detail page on tap.
-   */
-  compact?: boolean;
 }
 
 function isLowMemoryDevice() {
@@ -101,7 +94,6 @@ export function InteractiveProtocolCard({
   flipped: controlledFlipped,
   onFlippedChange,
   disableTapToFlip = true,
-  compact = false,
 }: InteractiveProtocolCardProps) {
   const isMobileViewport = typeof window !== "undefined" ? window.innerWidth < 1024 : false;
   const isMobile = useIsMobile() || isMobileViewport;
@@ -350,7 +342,7 @@ export function InteractiveProtocolCard({
   // Locked cards (dimmed) hide their detail sections entirely so the library
   // only reveals full info once a plan is active/scheduled.
   const renderDetailSections = () => {
-    if (dimmed || compact) return null;
+    if (dimmed) return null;
     return (
       <div data-no-flip>
         <ProtocolDetailSections protocol={protocol} />
@@ -409,7 +401,6 @@ export function InteractiveProtocolCard({
             animateStats={false}
             frontExtra={frontExtra}
             dimmed={dimmed}
-            compact={compact}
           />
         </div>
         {renderDetailSections()}
@@ -446,7 +437,6 @@ export function InteractiveProtocolCard({
               shimmer={false}
               animateStats={false}
               frontExtra={frontExtra}
-              compact={compact}
             />
           </div>
           <div ref={backMeasureRef} className="rounded-2xl border border-border">
@@ -510,7 +500,6 @@ export function InteractiveProtocolCard({
             animateStats={!disableHeavyInteractions}
             frontExtra={frontExtra}
             dimmed={dimmed}
-            compact={compact}
           />
         </div>
       </div>
