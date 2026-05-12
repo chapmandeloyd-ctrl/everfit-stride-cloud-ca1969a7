@@ -68,12 +68,14 @@ export function InteractiveProtocolCard({
   const innerRef = useRef<HTMLDivElement>(null);
   const startX = useRef<number | null>(null);
   const startY = useRef<number | null>(null);
+  const startScrollY = useRef<number>(0);
   const moved = useRef(false);
   const frameRef = useRef<number | null>(null);
   const measureFrameRef = useRef<number | null>(null);
   const pendingTiltRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const activePointerId = useRef<number | null>(null);
   const suppressClickRef = useRef(false);
+  const lastPointerTypeRef = useRef<string | null>(null);
   const touchHintShownRef = useRef(false);
   const frontMeasureRef = useRef<HTMLDivElement>(null);
   const backMeasureRef = useRef<HTMLDivElement>(null);
@@ -214,8 +216,10 @@ export function InteractiveProtocolCard({
     if ((e.pointerType === "mouse" && e.button !== 0) || isInteractiveTarget(e.target)) return;
 
     activePointerId.current = e.pointerId;
+    lastPointerTypeRef.current = e.pointerType;
     startX.current = e.clientX;
     startY.current = e.clientY;
+    startScrollY.current = typeof window !== "undefined" ? window.scrollY : 0;
     moved.current = false;
 
     if (e.pointerType === "touch" && !touchHintShownRef.current) {
@@ -230,12 +234,24 @@ export function InteractiveProtocolCard({
 
     const deltaX = Math.abs(e.clientX - startX.current);
     const deltaY = Math.abs(e.clientY - startY.current);
-    if (deltaX > flipCancelHorizontalPx || deltaY > flipCancelVerticalPx) moved.current = true;
+    const scrollDelta = Math.abs((typeof window !== "undefined" ? window.scrollY : 0) - startScrollY.current);
+    if (deltaX > flipCancelHorizontalPx || deltaY > flipCancelVerticalPx || scrollDelta > 2) moved.current = true;
   };
 
   const onUp = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (activePointerId.current !== e.pointerId) return;
-    suppressClickRef.current = moved.current;
+    const scrollDelta = Math.abs((typeof window !== "undefined" ? window.scrollY : 0) - startScrollY.current);
+    const shouldSuppress = moved.current || scrollDelta > 2;
+
+    if (e.pointerType === "touch") {
+      suppressClickRef.current = true;
+      if (!shouldSuppress && !isInteractiveTarget(e.target)) {
+        setFlipped((current) => !current);
+      }
+    } else {
+      suppressClickRef.current = shouldSuppress;
+    }
+
     if (e.pointerType === "touch") onTiltLeave();
     resetPress();
   };
@@ -254,6 +270,7 @@ export function InteractiveProtocolCard({
       suppressClickRef.current = false;
       return;
     }
+    if (lastPointerTypeRef.current === "touch") return;
     setFlipped((current) => !current);
   };
 
