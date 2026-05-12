@@ -260,7 +260,7 @@ export default function ClientKetoTypeDetail() {
       // New synergy flow: skip the legacy cross-sell and pair dialogs and
       // route straight to the Complete Plan view (the user has already
       // confirmed the program via the Recap modal).
-      navigate("/client/complete-plan");
+      navigate("/client/program");
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Could not update your keto type"),
   });
@@ -334,7 +334,7 @@ export default function ClientKetoTypeDetail() {
       queryClient.invalidateQueries({ queryKey: ["complete-plan-keto", clientId] });
       queryClient.invalidateQueries({ queryKey: ["complete-plan-keto-type"] });
       toast.success("Synergy program saved");
-      navigate("/client/complete-plan");
+      navigate("/client/program");
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Could not save program"),
   });
@@ -436,7 +436,7 @@ export default function ClientKetoTypeDetail() {
         }}
         onViewPaired={() => {
           setPairDialogOpen(false);
-          navigate("/client/complete-plan");
+          navigate("/client/program");
         }}
         onSaveForLater={() => setPairDialogOpen(false)}
       />
@@ -461,7 +461,7 @@ export default function ClientKetoTypeDetail() {
         }}
         onViewProgram={() => {
           setCrossSellOpen(false);
-          navigate("/client/complete-plan");
+          navigate("/client/program");
         }}
       />
 

@@ -189,13 +189,13 @@ export default function ClientPrograms() {
           <Button variant="ghost" size="icon" onClick={() => navigate("/client/dashboard")}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <h1 className="text-2xl font-bold">All Programs</h1>
+          <h1 className="text-2xl font-bold">All Protocols</h1>
         </div>
 
         {/* ── Current Program ── */}
         {(activeProtocol || activeQuickPlan) && (
           <div className="space-y-3">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-primary">Your Current Program</h2>
+            <h2 className="text-xs font-bold uppercase tracking-wider text-primary">Your Current Protocol</h2>
             {activeProtocol && renderProtocolCard(activeProtocol, true)}
             {activeQuickPlan && renderQuickPlanCard(activeQuickPlan, true)}
           </div>

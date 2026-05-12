@@ -97,6 +97,7 @@ import ClientKetoTypeCardDemo from "./pages/client/ClientKetoTypeCardDemo";
 import ClientFastingPlansPreview from "./pages/client/ClientFastingPlansPreview";
 import WindowsCardDemo from "./pages/client/WindowsCardDemo";
 import ClientFastingPlanDetailPreview from "./pages/client/ClientFastingPlanDetailPreview";
+import ClientProgram from "./pages/client/ClientProgram";
 import ProtocolStylesPreview from "./pages/preview/ProtocolStylesPreview";
 import ClientFastComplete from "./pages/client/ClientFastComplete";
 import ClientLabs from "./pages/client/ClientLabs";
@@ -254,7 +255,9 @@ const App = () => (
           <Route path="/client/quick-plans" element={<ProtectedRoute allowedRoles={["client"]}><FastingRouteGuard><ClientQuickPlans /></FastingRouteGuard></ProtectedRoute>} />
           <Route path="/client/quick-plan/:id" element={<ProtectedRoute allowedRoles={["client"]}><FastingRouteGuard><ClientQuickPlanDetail /></FastingRouteGuard></ProtectedRoute>} />
           <Route path="/client/protocol/:id" element={<ProtectedRoute allowedRoles={["client"]}><FastingRouteGuard><ClientProtocolDetail /></FastingRouteGuard></ProtectedRoute>} />
-          <Route path="/client/complete-plan" element={<ProtectedRoute allowedRoles={["client", "trainer"]}><ClientFastingPlanDetailPreview /></ProtectedRoute>} />
+          <Route path="/client/program" element={<ProtectedRoute allowedRoles={["client", "trainer"]}><ClientProgram /></ProtectedRoute>} />
+          {/* Legacy gold combined view kept as a backup, redirected to the new dark Program page. */}
+          <Route path="/client/complete-plan" element={<Navigate to="/client/program" replace />} />
           <Route path="/client/protocol-card-demo" element={<ProtectedRoute allowedRoles={["client"]}><ClientProtocolCardDemo /></ProtectedRoute>} />
           {/* Trainer-accessible alias for previewing the protocol card demo without impersonation */}
           <Route path="/protocol-card-demo" element={<ClientProtocolCardDemo />} />

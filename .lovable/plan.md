@@ -1,52 +1,84 @@
+## Goal
+Lock in the new terminology and ship a new dark **Program** page that combines the assigned Protocol + Keto Type + Daily Meal Timeline. Keep the old gold complete-plan code as a backup but make it unreachable.
 
+## Terminology lock
+- **Protocol** = fasting half (e.g. Classic 16:8)
+- **Keto Type** = nutrition half (SKD, HPKD…)
+- **Program** = Protocol + Keto Type combined
 
-## Problem
-The swipe-down gesture isn't triggering because the **Play/Pause button (`absolute inset-0`) covers the entire circular preview**, intercepting pointer events before framer-motion's drag handler can read them. On desktop especially, mouse-down on the button doesn't propagate as a drag start.
+## Step 1 — Rename on `/client/programs`
+File: `src/pages/client/ClientPrograms.tsx`
+- "All Programs" → **"All Protocols"**
+- "Your Current Program" → **"Your Current Protocol"**
+(Route stays `/client/programs` — internal only, no nav links break.)
 
-Secondary issues:
-- 120px drag threshold is too strict for the small circle on desktop
-- No visual feedback during drag (the circle doesn't actually follow the finger far enough)
-- ChevronDown hint button is also competing with draggable area
+## Step 2 — Hide gold complete-plan (keep file as backup)
+- Keep `src/pages/client/ClientFastingPlanDetailPreview.tsx` untouched (backup).
+- In `src/App.tsx`, remove the `/client/complete-plan` route so it 404s / falls through.
+- Repoint every `navigate("/client/complete-plan")` and click handler to the **new** `/client/program` route:
+  - `src/components/dashboard/AssignedPlanCard.tsx`
+  - `src/pages/client/ClientDashboard.tsx`
+  - `src/pages/client/ClientProfile.tsx`
+  - `src/pages/client/ClientProtocolDetail.tsx`
+  - `src/pages/client/ClientKetoTypeDetail.tsx` (post-assign navigations)
+  - `src/pages/client/ClientFastingPlanDetailPreview.tsx` (the inner navs — leave or repoint; either way unreachable)
+- Result: gold UI still exists in the repo for reference but no UI surface links to it.
 
-## Fix Plan
+## Step 3 — New dark Program page at `/client/program`
+New file: `src/pages/client/ClientProgram.tsx` + route in `App.tsx`.
 
-**1. Restructure the circle layout (`PortalPlayer.tsx`)**
-- Make the play/pause button a small centered control (~64px), NOT a full-overlay button
-- This frees up the rest of the circle as a clean drag surface
-- Keep `e.stopPropagation()` on the button so taps don't trigger drags
+Layout (mobile-first, `max-w-md mx-auto`, dark theme, electric red primary):
 
-**2. Improve drag responsiveness**
-- Lower threshold from `120px` → `80px` (or velocity > 300)
-- Increase `dragElastic` to `0.7` so the circle visibly follows the cursor more
-- Add `onDrag` console feedback removed; add visual scale/opacity transform tied to dragY for clear feedback
-
-**3. Add a dedicated "Tap to enter" fallback**
-- Add an explicit **"Enter Portal"** button below the swipe hint
-- Guarantees the immersive mode is reachable even if drag fails on a given device
-- Same pattern Portal app uses (chevron is tappable too)
-
-**4. Make the chevron hint clickable**
-- Wrap the "Swipe down to enter" hint in a button that triggers `setImmersive(true)` on click
-- Best of both worlds: gesture for mobile, tap for desktop
-
-**5. Same treatment in immersive mode**
-- "Swipe up to exit" chevron becomes tappable to collapse back
-
-## Technical Detail
 ```text
-BEFORE                          AFTER
-┌─────────────────┐            ┌─────────────────┐
-│ [drag wrapper]  │            │ [drag wrapper]  │
-│  ┌───────────┐  │            │  ┌───────────┐  │
-│  │ <video>   │  │            │  │ <video>   │  │
-│  │           │  │            │  │           │  │
-│  │ [BUTTON   │  │  →         │  │   [btn]   │  │ ← small centered
-│  │  inset-0] │  │            │  │           │  │   button only
-│  │  blocks   │  │            │  │           │  │
-│  │  drag     │  │            │  └───────────┘  │
-│  └───────────┘  │            │                 │
-└─────────────────┘            └─────────────────┘
+[← back]  Your Program
+─────────────────────────────
+Why it works  (1 short paragraph, dynamic by protocol+keto)
+─────────────────────────────
+PROTOCOL
+<InteractiveProtocolCard status="current" />     (assigned, dark flip card)
+─────────────────────────────
+KETO TYPE
+<InteractiveKetoTypeCard dimmed=false />          (assigned, dark flip card)
+─────────────────────────────
+DAILY MEAL TIMELINE
+- Daily totals strip (Cal / Fat / Carbs / Protein) — red+teal chips
+- Vertical dotted rail w/ 4 blocks: Fast → Break-Fast → Lunch → Dinner
+- Each meal: time, label, description, macro chips
+─────────────────────────────
+[ Browse Protocols ]   [ Browse Keto Types ]
 ```
 
-No database/migration changes needed — purely a UI/gesture fix in `src/components/portal/PortalPlayer.tsx`.
+### Data sources
+- **Assigned Protocol** → `client_feature_settings.selected_protocol_id` → `fasting_protocols` row (same query as `ClientPrograms`).
+- **Assigned Keto Type** → existing keto-type query used by `ClientKetoTypes` (DB-driven `color`, `how_it_works`, `built_for`, `carb_limit_grams`).
+- **Eating-window times** → derived from `fasting_protocols.description.daily_structure` (same `pickWindowTimes` logic as gold page — extract into `src/lib/programWindow.ts`).
+- **Meal Timeline content** → port `MEAL_PLANS` + `CHANGE_HIGHLIGHTS` constants from the gold file into a new shared module `src/lib/programMealPlans.ts`. Pure visual data, no behavior change. (The gold page's data is already hardcoded; we keep parity now and can wire it to AI/DB later.)
+- **Time-shifting** → reuse `parseTime/toMinutes/fromMinutes/formatTime` helpers (extract to `src/lib/timeWindow.ts`).
 
+### Theming
+- All colors via semantic tokens: `bg-background`, `text-foreground`, `border-border`, `text-primary` (electric red), `text-muted-foreground`.
+- Macro dots: keep meaning but use tokens — `text-primary` (Cal), `text-amber-300` (Fat), `text-sky-400` (Carbs), `text-violet-400` (Protein).
+- No gold (`#GOLD`, ivory). No inline HSL strings.
+
+### What it does NOT include (parity with gold page minus noise)
+- No keto-type comparison switcher (the assigned type is the only one shown — full library lives on `/client/keto-types`).
+- No "What changed" delta strip (only relevant when comparing types).
+- No bookmark / wheel picker / synergy primer carousel.
+
+## Step 4 — Verify in browser
+- Navigate to `/client/program` as a paired client; confirm:
+  - Both flip cards render and flip
+  - Timeline renders 4 blocks with macro chips
+  - "Browse Protocols" → `/client/programs`, "Browse Keto Types" → `/client/keto-types`
+  - `/client/complete-plan` no longer renders (route gone, links repointed)
+
+## Files touched
+- Edit: `src/pages/client/ClientPrograms.tsx` (headers)
+- Edit: `src/App.tsx` (drop complete-plan route, add /client/program route)
+- Edit: 5 files repointing navigate() targets
+- New: `src/pages/client/ClientProgram.tsx`
+- New: `src/lib/programMealPlans.ts` (ported constants)
+- New: `src/lib/timeWindow.ts` (shared time helpers)
+
+## Open question
+The Daily Meal Timeline in the gold page is **hardcoded mock data**, not from the DB. I'll port it as-is so the new page renders the same content. If you want it driven by real meals (from the meal-planning system or AI), that's a follow-up. OK to proceed with ported mock data for now?
