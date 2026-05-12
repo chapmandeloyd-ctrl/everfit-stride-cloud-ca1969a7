@@ -222,19 +222,15 @@ export default function ClientKetoTypes() {
             <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-primary">
               Your Current Keto Type
             </p>
-            <button
-              type="button"
-              onClick={() => navigate(`/client/keto-types/${assignedKeto.id}`, navState)}
-              className="block w-full text-left"
-            >
-              <InteractiveKetoTypeCard
-                ketoType={toKetoCardData(assignedKeto)}
-                themeColor={assignedKeto.color || undefined}
-                isCurrent
-                onMeasureHeight={makeOnMeasure(assignedKeto.id)}
-                forcedHeight={tallest > 0 ? tallest : undefined}
-              />
-            </button>
+            <InteractiveKetoTypeCard
+              ketoType={toKetoCardData(assignedKeto)}
+              themeColor={assignedKeto.color || undefined}
+              isCurrent
+              onOpen={() => navigate(`/client/keto-types/${assignedKeto.id}`, navState)}
+              openLabel="Open keto details"
+              onMeasureHeight={makeOnMeasure(assignedKeto.id)}
+              forcedHeight={tallest > 0 ? tallest : undefined}
+            />
           </section>
         )}
 
@@ -249,23 +245,17 @@ export default function ClientKetoTypes() {
               <div className="space-y-6">
                 {items.map((kt) => {
                   return (
-                    <button
+                    <InteractiveKetoTypeCard
                       key={kt.id}
-                      type="button"
-                      onClick={() =>
-                        navigate(`/client/keto-types/${kt.id}`, navState)
-                      }
-                      className="block w-full text-left"
-                    >
-                      <InteractiveKetoTypeCard
-                        ketoType={toKetoCardData(kt)}
-                        themeColor={kt.color || undefined}
-                        isCurrent={false}
-                        dimmed
-                        onMeasureHeight={makeOnMeasure(kt.id)}
-                        forcedHeight={tallest > 0 ? tallest : undefined}
-                      />
-                    </button>
+                      ketoType={toKetoCardData(kt)}
+                      themeColor={kt.color || undefined}
+                      isCurrent={false}
+                      dimmed
+                      onOpen={() => navigate(`/client/keto-types/${kt.id}`, navState)}
+                      openLabel="Open keto details"
+                      onMeasureHeight={makeOnMeasure(kt.id)}
+                      forcedHeight={tallest > 0 ? tallest : undefined}
+                    />
                   );
                 })}
               </div>
