@@ -95,7 +95,7 @@ export default function ClientExploreChallenge() {
           className="relative h-56 flex items-center justify-center overflow-hidden"
           style={{ background: SURFACE, borderBottom: `1px solid ${HAIRLINE}` }}
         >
-          <LionWatermark opacity={0.14} />
+          <LionWatermark opacity={0.04} />
           <div className="relative">
             <ChallengeBadge
               label={challenge.badge_label}
