@@ -245,7 +245,7 @@ export function InteractiveProtocolCard({
 
     if (e.pointerType === "touch") {
       suppressClickRef.current = true;
-      if (!shouldSuppress && !isInteractiveTarget(e.target)) {
+      if (!isMobile && !shouldSuppress && !isInteractiveTarget(e.target)) {
         setFlipped((current) => !current);
       }
     } else {
