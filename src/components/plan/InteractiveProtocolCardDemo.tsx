@@ -528,6 +528,9 @@ export const CardFront = memo(function CardFront({
   animateStats = true,
   frontExtra = "none",
   dimmed = false,
+  expandable = false,
+  expanded = true,
+  onToggleExpanded,
 }: {
   protocol: DemoProtocol;
   showChevron?: boolean;
@@ -536,6 +539,9 @@ export const CardFront = memo(function CardFront({
   animateStats?: boolean;
   frontExtra?: FrontExtraVariant;
   dimmed?: boolean;
+  expandable?: boolean;
+  expanded?: boolean;
+  onToggleExpanded?: () => void;
 }) {
   const Icon = protocol.icon;
   return (
@@ -623,7 +629,27 @@ export const CardFront = memo(function CardFront({
         </div>
 
         <div className="mt-5 flex-1">
-          {frontExtra === "none" ? (
+          {expandable && (
+            <button
+              type="button"
+              data-no-flip
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleExpanded?.();
+              }}
+              className="w-full inline-flex items-center justify-center gap-1.5 rounded-full border border-border/60 px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors mb-3"
+              style={{
+                background: "linear-gradient(145deg, hsl(var(--muted) / 0.55), hsl(var(--muted) / 0.2))",
+              }}
+              aria-expanded={expanded}
+            >
+              <ChevronRight
+                className={`h-3.5 w-3.5 transition-transform ${expanded ? "rotate-90" : ""}`}
+              />
+              {expanded ? "Tap to collapse" : "Tap for details"}
+            </button>
+          )}
+          {expandable && !expanded ? null : frontExtra === "none" ? (
             <FullHeightPreviewExtra protocol={protocol} animate={animateStats} />
           ) : (
             <div className="flex h-full flex-col justify-between gap-4">
