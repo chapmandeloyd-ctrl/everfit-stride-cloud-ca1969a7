@@ -298,6 +298,8 @@ export default function ClientProgram() {
               }
               onMeasureHeight={makeOnMeasure("protocol")}
               forcedHeight={tallest > 0 ? tallest : undefined}
+              expanded={openCard === "protocol"}
+              onExpandedChange={(next) => setOpenCard(next ? "protocol" : null)}
             />
           </section>
         )}
@@ -327,6 +329,8 @@ export default function ClientProgram() {
                 isCurrent
                 onMeasureHeight={makeOnMeasure("keto")}
                 forcedHeight={tallest > 0 ? tallest : undefined}
+                expanded={openCard === "keto"}
+                onExpandedChange={(next) => setOpenCard(next ? "keto" : null)}
               />
             </button>
           </section>
