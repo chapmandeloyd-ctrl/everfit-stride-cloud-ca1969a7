@@ -24,15 +24,15 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-// Brand gold — keto type detail uses gold theming to align with the
-// protocol/keto pairing experience (overrides any per-type color from DB).
-// Brand signature gold — matches --ring-fasting: hsl(43, 65%, 52%)
-const GOLD = "#D9A82E";
+// Brand electric red — keto type detail now uses the project primary red
+// to align with the rest of the KSOM-360 surfaces (replaces the legacy
+// gold theme that no longer matches the app).
+const GOLD = "#CC1A1A";
 const IVORY = "hsl(40 20% 92%)";
 const MUTED = "hsl(40 10% 65%)";
 const SURFACE = "hsl(0 0% 7%)";
 const SURFACE_2 = "hsl(0 0% 10%)";
-const GOLD_SOFT = "#B58A1F";
+const GOLD_SOFT = "#991010";
 
 interface KetoType {
   id: string;
@@ -356,7 +356,7 @@ export default function ClientKetoTypeDetail() {
 
   return (
     <ClientLayout>
-      <div className="px-3 pt-4 pb-32 space-y-4 w-full">
+      <div className="px-3 pt-4 pb-56 space-y-4 w-full">
         {/* Back button */}
         <button
           className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
