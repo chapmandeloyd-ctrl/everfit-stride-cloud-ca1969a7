@@ -333,6 +333,45 @@ export function InteractiveProtocolCard({
     </>
   );
 
+  if (isMobile) {
+    return (
+      <div className={`relative pt-6 pb-4 ${dimmed ? "opacity-60 grayscale-[20%]" : ""}`}>
+        <CardStackBackdrop />
+
+        <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+          {liveMessage}
+        </div>
+
+        <div className="relative overflow-hidden rounded-2xl border border-border" style={faceStyle}>
+          <button
+            type="button"
+            data-no-flip
+            aria-label={flipped ? `Hide ${protocolName} details` : `Show ${protocolName} details`}
+            aria-expanded={flipped}
+            onClick={() => setFlipped((current) => !current)}
+            className="absolute top-3 right-3 z-30 inline-flex min-h-[36px] items-center rounded-full border border-primary/40 bg-background/85 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-primary shadow-sm backdrop-blur-sm transition-colors hover:bg-background"
+          >
+            {flipped ? "Show summary" : "View details"}
+          </button>
+
+          {flipped ? (
+            <BackContent protocol={protocol} onClose={handleClose} extraAction={backActions} />
+          ) : (
+            <CardFront
+              protocol={protocol}
+              showChevron={false}
+              pulse={false}
+              shimmer={false}
+              animateStats={false}
+              frontExtra={frontExtra}
+              dimmed={dimmed}
+            />
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       ref={tiltRef}
