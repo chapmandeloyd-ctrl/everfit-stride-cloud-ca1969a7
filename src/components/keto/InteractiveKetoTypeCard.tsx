@@ -244,6 +244,7 @@ export function InteractiveKetoTypeCard({
   coachRead,
   hideExportPdf = false,
   dimmed = false,
+  compact = false,
 }: InteractiveKetoTypeCardProps) {
   const palette = paletteFromHex(themeColor || ketoType.color);
   const { toast } = useToast();
@@ -322,7 +323,7 @@ export function InteractiveKetoTypeCard({
   return (
     <InteractiveProtocolCard
       protocol={protocol}
-      frontExtra="coachQuote"
+      frontExtra={compact ? "none" : "coachQuote"}
       onOpen={onOpen}
       openLabel={openLabel}
       flipCancelHorizontalPx={flipCancelHorizontalPx}
@@ -331,6 +332,7 @@ export function InteractiveKetoTypeCard({
       onMeasureHeight={onMeasureHeight}
       backExtraAction={exportAction}
       dimmed={dimmed}
+      compact={compact}
     />
   );
 }
