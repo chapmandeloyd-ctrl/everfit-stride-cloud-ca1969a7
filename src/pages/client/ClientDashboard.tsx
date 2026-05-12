@@ -1,5 +1,5 @@
 import { ClientLayout } from "@/components/ClientLayout";
-import fastingCardBgGoldImg from "@/assets/fasting-timer-bg-gold.png";
+import fastingCardBgGoldImg from "@/assets/fasting-timer-bg.png";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -968,7 +968,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
           className="absolute inset-0 bg-cover bg-center"
           style={{
             backgroundImage: `url(${fastingCardBgGoldImg})`,
-            filter: "grayscale(1) brightness(0.95)",
+            filter: "brightness(0.95)",
           }}
         />
         {/* Dark overlay for text readability */}
