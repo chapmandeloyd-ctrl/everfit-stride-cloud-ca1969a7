@@ -272,12 +272,10 @@ export default function ClientKetoTypeDetail() {
       return;
     }
     // Mirror the protocol-detail flow exactly:
-    // - If there is an active fasting protocol, open the Synergy picker
-    //   ("Keep current protocol" / "Browse other protocols"). Choosing
-    //   "Keep current protocol" then opens the Recap modal showing the
-    //   keto change with protocol unchanged.
-    // - Otherwise (no active protocol) go straight to the Recap modal.
-    setRecapOpen(true);
+    // Open the Synergy picker ("Keep current protocol" / "Browse other
+    // protocols"). Choosing "Keep current protocol" then opens the
+    // Recap modal showing the keto change with protocol unchanged.
+    setSynergyConfirmOpen(true);
   };
 
   // After the user confirms replacement, gate on the live-fast flow if needed.
