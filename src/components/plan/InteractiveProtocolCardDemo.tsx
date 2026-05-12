@@ -622,7 +622,7 @@ export const CardFront = memo(function CardFront({
               <button
                 type="button"
                 data-no-flip
-                className="inline-flex items-center gap-1.5 text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+                className="mt-10 inline-flex items-center gap-1.5 text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
                 aria-label="Locked — tap for unlock options"
               >
                 <Lock className="h-4 w-4" />
