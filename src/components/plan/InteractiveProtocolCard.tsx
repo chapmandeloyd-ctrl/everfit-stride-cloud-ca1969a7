@@ -344,6 +344,7 @@ export function InteractiveProtocolCard({
   // only reveals full info once a plan is active/scheduled.
   const renderDetailSections = () => {
     if (dimmed) return null;
+    if (!expanded) return null;
     return (
       <div data-no-flip>
         <ProtocolDetailSections protocol={protocol} />
