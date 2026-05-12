@@ -17,10 +17,10 @@ import { LionWatermark } from "@/components/explore/LionWatermark";
 
 const BG = "hsl(0 0% 4%)";
 const SURFACE = "hsl(0 0% 6%)";
-const GOLD = "hsl(42 70% 55%)";
-const IVORY = "hsl(40 20% 92%)";
-const MUTED = "hsl(40 10% 65%)";
-const HAIRLINE = "hsl(42 70% 55% / 0.25)";
+const GOLD = "hsl(0 78% 50%)"; // electric red accent (kept name to minimize churn)
+const IVORY = "hsl(0 0% 96%)";
+const MUTED = "hsl(0 0% 60%)";
+const HAIRLINE = "hsl(0 78% 50% / 0.25)";
 
 export default function ClientExploreChallenge() {
   const { id } = useParams<{ id: string }>();
