@@ -49,6 +49,8 @@ export interface InteractiveKetoTypeCardProps {
   hideExportPdf?: boolean;
   /** Visually dim the card (e.g. when locked in the library). Hides detail sections. */
   dimmed?: boolean;
+  /** Compact mode: hides detail sections and front-face filler. Use when the card navigates to a detail page. */
+  compact?: boolean;
 }
 
 /* ----------------------------- color mapping ----------------------------- */
