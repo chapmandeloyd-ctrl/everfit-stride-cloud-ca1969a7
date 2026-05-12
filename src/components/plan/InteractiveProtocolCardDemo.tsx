@@ -430,7 +430,7 @@ function FrontMidFiller({
       )}
       <div className="flex items-center justify-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.18em] text-muted-foreground/80">
         <RotateCcw className="h-2.5 w-2.5" />
-        <span>Tap card for full breakdown</span>
+        <span>Use view details for full breakdown</span>
       </div>
     </div>
   );
