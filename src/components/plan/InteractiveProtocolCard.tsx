@@ -343,14 +343,14 @@ export function InteractiveProtocolCard({
         </div>
 
         <div className="relative overflow-hidden rounded-2xl border border-border" style={faceStyle}>
-          <div className="absolute top-4 left-0 right-0 z-30 flex justify-end px-5">
+          <div className="absolute top-4 left-0 right-0 z-30 flex justify-end px-6">
             <button
               type="button"
               data-no-flip
               aria-label={flipped ? `Hide ${protocolName} details` : `Show ${protocolName} details`}
               aria-expanded={flipped}
               onClick={() => setFlipped((current) => !current)}
-              className="inline-flex min-h-[36px] items-center rounded-full border border-primary/40 bg-background/85 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-primary shadow-sm backdrop-blur-sm transition-colors hover:bg-background"
+              className="inline-flex min-h-[34px] max-w-full items-center justify-center rounded-full border border-primary/40 bg-background/85 px-4 py-1 text-[9px] font-bold uppercase tracking-[0.18em] text-primary shadow-sm backdrop-blur-sm transition-colors hover:bg-background sm:min-h-[36px] sm:px-5 sm:text-[10px]"
             >
               {flipped ? "Show summary" : "View details"}
             </button>
