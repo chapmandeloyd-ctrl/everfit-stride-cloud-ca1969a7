@@ -462,7 +462,8 @@ function TiltyIconTile({
               : "transform 80ms ease-out",
           transformStyle: "preserve-3d",
           boxShadow:
-            "inset 3px 4px 6px hsl(0 0% 100% / 0.65), inset -4px -6px 10px hsl(0 0% 0% / 0.7), inset 0 0 0 1px hsl(0 0% 100% / 0.22), 0 14px 26px hsl(0 0% 0% / 0.6), 0 4px 8px hsl(0 0% 0% / 0.45), 0 0 22px hsl(var(--primary) / 0.18)",
+            "inset 3px 4px 6px hsl(0 0% 100% / 0.7), inset -3px -4px 8px hsl(0 0% 0% / 0.35), inset 0 0 0 1px hsl(0 0% 100% / 0.3), 0 14px 26px hsl(0 0% 0% / 0.55), 0 4px 8px hsl(0 0% 0% / 0.4), 0 0 22px hsl(var(--primary) / 0.18)",
+          filter: "saturate(1.55) brightness(1.18)",
         }}
       >
         {/* Specular blob — follows tilt for live highlight */}
@@ -497,7 +498,7 @@ function TiltyIconTile({
           className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3"
           style={{
             background:
-              "radial-gradient(ellipse at 50% 110%, hsl(0 0% 0% / 0.55) 0%, hsl(0 0% 0% / 0.18) 45%, transparent 75%)",
+              "radial-gradient(ellipse at 50% 115%, hsl(0 0% 0% / 0.28) 0%, hsl(0 0% 0% / 0.08) 45%, transparent 75%)",
           }}
         />
         {pulse && (
