@@ -24,15 +24,24 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-// Brand electric red — keto type detail now uses the project primary red
-// to align with the rest of the KSOM-360 surfaces (replaces the legacy
-// gold theme that no longer matches the app).
-const GOLD = "#CC1A1A";
+const ACCENT_FALLBACK = "#CC1A1A";
 const IVORY = "hsl(40 20% 92%)";
 const MUTED = "hsl(40 10% 65%)";
 const SURFACE = "hsl(0 0% 7%)";
 const SURFACE_2 = "hsl(0 0% 10%)";
-const GOLD_SOFT = "#991010";
+
+const isHexColor = (value?: string | null): value is string => !!value && /^#[0-9a-f]{6}$/i.test(value);
+
+const getAccentColor = (value?: string | null) => (isHexColor(value) ? value : ACCENT_FALLBACK);
+
+const getContrastTextColor = (hex: string) => {
+  const normalized = hex.replace("#", "");
+  const r = parseInt(normalized.slice(0, 2), 16);
+  const g = parseInt(normalized.slice(2, 4), 16);
+  const b = parseInt(normalized.slice(4, 6), 16);
+  const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+  return luminance > 0.62 ? "hsl(var(--background))" : "hsl(var(--primary-foreground))";
+};
 
 interface KetoType {
   id: string;
@@ -349,14 +358,16 @@ export default function ClientKetoTypeDetail() {
     );
   }
 
-  // Force gold theme for the standalone keto type view to match the
-  // protocol pairing aesthetic (overrides per-type DB colors).
-  const themedKetoType = { ...ketoType, color: GOLD };
-  const themedAllTypes = (allTypes || []).map((t) => ({ ...t, color: GOLD }));
+  const accent = getAccentColor(ketoType.color);
+  const accentSoft = `${accent}B3`;
+  const accentContrast = getContrastTextColor(accent);
+  const themedKetoType = { ...ketoType, color: accent };
+  const themedAllTypes = (allTypes || []).map((t) => ({ ...t, color: getAccentColor(t.color) }));
 
   return (
     <ClientLayout>
-      <div className="px-3 pt-4 pb-56 space-y-4 w-full">
+      <div className="px-3 pt-4 space-y-4 w-full"
+        style={{ paddingBottom: "calc(16rem + 3rem + max(env(safe-area-inset-bottom, 0px), 2px))" }}>
         {/* Back button */}
         <button
           className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -376,15 +387,23 @@ export default function ClientKetoTypeDetail() {
       </div>
 
       {/* Fixed bottom CTA — lifted above the client tab bar so it isn't clipped */}
-      <div className="fixed bottom-20 md:bottom-24 left-0 right-0 p-4 bg-background/95 backdrop-blur border-t z-20">
+      <div className="fixed left-0 right-0 border-t shadow-2xl z-20"
+        style={{
+          bottom: "calc(3rem + max(env(safe-area-inset-bottom, 0px), 2px))",
+          backgroundColor: "hsl(var(--background))",
+          paddingTop: "1rem",
+          paddingLeft: "max(env(safe-area-inset-left, 0px), 1rem)",
+          paddingRight: "max(env(safe-area-inset-right, 0px), 1rem)",
+          paddingBottom: "1rem",
+        }}>
         {isActive ? (
           <div className="space-y-2">
             <div
               className="w-full h-10 rounded-lg flex items-center justify-center text-xs font-bold uppercase tracking-wider"
               style={{
-                backgroundColor: `${GOLD}12`,
-                color: GOLD,
-                border: `1px solid ${GOLD}30`,
+                backgroundColor: `${accent}12`,
+                color: accent,
+                border: `1px solid ${accent}30`,
               }}
             >
               Your current keto type
@@ -399,7 +418,7 @@ export default function ClientKetoTypeDetail() {
               </Button>
               <Button
                 className="h-12 text-sm font-bold text-white"
-                style={{ backgroundColor: GOLD }}
+                style={{ backgroundColor: accent }}
                 onClick={() => navigate("/client/keto-types")}
               >
                 Browse other keto types
@@ -409,7 +428,7 @@ export default function ClientKetoTypeDetail() {
         ) : (
           <Button
             className="w-full h-14 text-base font-bold text-white"
-            style={{ backgroundColor: GOLD }}
+            style={{ backgroundColor: accent }}
             onClick={handleSetClick}
             disabled={setActive.isPending || pairWithProtocolMutation.isPending}
           >
@@ -497,10 +516,10 @@ export default function ClientKetoTypeDetail() {
         >
           <div
             className="w-full max-w-md rounded-2xl p-6"
-            style={{ background: SURFACE_2, border: `1px solid ${GOLD}33` }}
+            style={{ background: SURFACE_2, border: `1px solid ${accent}33` }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="text-[10px] uppercase tracking-[0.35em] mb-2" style={{ color: GOLD }}>
+            <div className="text-[10px] uppercase tracking-[0.35em] mb-2" style={{ color: accent }}>
               KSOM-360 Synergy
             </div>
             <div className="text-xl font-semibold mb-2" style={{ color: IVORY }}>
@@ -516,14 +535,14 @@ export default function ClientKetoTypeDetail() {
               {hasActivePlan && (
                 <button
                   className="w-full text-left rounded-xl p-4"
-                  style={{ background: SURFACE, border: `1px solid ${GOLD}55` }}
+                  style={{ background: SURFACE, border: `1px solid ${accent}55` }}
                   onClick={() => {
                     setSynergyConfirmOpen(false);
                     setRecapOpen(true);
                   }}
                   disabled={setActive.isPending}
                 >
-                  <div className="text-xs uppercase tracking-wider mb-1" style={{ color: GOLD }}>
+                  <div className="text-xs uppercase tracking-wider mb-1" style={{ color: accent }}>
                     Keep current protocol
                   </div>
                   <div className="text-sm font-semibold" style={{ color: IVORY }}>
@@ -534,7 +553,7 @@ export default function ClientKetoTypeDetail() {
 
               <button
                 className="w-full text-left rounded-xl p-4"
-                style={{ background: SURFACE, border: `1px solid ${GOLD}33` }}
+                style={{ background: SURFACE, border: `1px solid ${accent}33` }}
                 onClick={() => {
                   setSynergyConfirmOpen(false);
                   navigate("/client/fasting-plans-preview", {
@@ -547,7 +566,7 @@ export default function ClientKetoTypeDetail() {
                   });
                 }}
               >
-                <div className="text-xs uppercase tracking-wider mb-1" style={{ color: GOLD_SOFT }}>
+                <div className="text-xs uppercase tracking-wider mb-1" style={{ color: accentSoft }}>
                   Browse other protocols
                 </div>
                 <div className="text-sm font-semibold" style={{ color: IVORY }}>
@@ -579,10 +598,10 @@ export default function ClientKetoTypeDetail() {
         >
           <div
             className="w-full max-w-md rounded-2xl p-6 max-h-full overflow-y-auto"
-            style={{ background: SURFACE_2, border: `1px solid ${GOLD}33` }}
+            style={{ background: SURFACE_2, border: `1px solid ${accent}33` }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="text-[10px] uppercase tracking-[0.35em] mb-2" style={{ color: GOLD }}>
+            <div className="text-[10px] uppercase tracking-[0.35em] mb-2" style={{ color: accent }}>
               Confirm your changes
             </div>
             <div className="text-xl font-semibold mb-3" style={{ color: IVORY }}>
@@ -595,7 +614,7 @@ export default function ClientKetoTypeDetail() {
             </p>
 
             <div className="space-y-2 mb-5">
-              <div className="rounded-xl p-3" style={{ background: SURFACE, border: `1px solid ${GOLD}22` }}>
+              <div className="rounded-xl p-3" style={{ background: SURFACE, border: `1px solid ${accent}22` }}>
                 <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: MUTED }}>
                   Keto Type
                 </div>
@@ -603,17 +622,17 @@ export default function ClientKetoTypeDetail() {
                   <span style={{ color: MUTED, textDecoration: "line-through" }}>
                     {currentKetoLabel ?? "None"}
                   </span>
-                  <span className="mx-2" style={{ color: GOLD }}>→</span>
+                  <span className="mx-2" style={{ color: accent }}>→</span>
                   <span className="font-semibold">
                     {ketoType.abbreviation} — {ketoType.name}
                   </span>
                 </div>
               </div>
 
-              <div className="rounded-xl p-3" style={{ background: SURFACE, border: `1px solid ${GOLD}22` }}>
+              <div className="rounded-xl p-3" style={{ background: SURFACE, border: `1px solid ${accent}22` }}>
                 <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: MUTED }}>
                   Fasting Protocol{" "}
-                  <span style={{ color: GOLD_SOFT }}>
+                  <span style={{ color: accentSoft }}>
                     {pendingProtocol ? "(new)" : "(unchanged)"}
                   </span>
                 </div>
@@ -622,7 +641,7 @@ export default function ClientKetoTypeDetail() {
                     <span style={{ color: MUTED, textDecoration: "line-through" }}>
                       {activePlanName ?? "None"}
                     </span>
-                    <span className="mx-2" style={{ color: GOLD }}>→</span>
+                    <span className="mx-2" style={{ color: accent }}>→</span>
                     <span className="font-semibold">{pendingProtocol.name}</span>
                   </div>
                 ) : (
@@ -634,7 +653,7 @@ export default function ClientKetoTypeDetail() {
             </div>
 
             {hasLiveFast && (
-              <p className="text-[11px] mb-3" style={{ color: GOLD_SOFT }}>
+              <p className="text-[11px] mb-3" style={{ color: accentSoft }}>
                 Note: your active fast will end so the new program can take effect.
               </p>
             )}
@@ -642,14 +661,14 @@ export default function ClientKetoTypeDetail() {
             <div className="flex gap-2">
               <button
                 className="flex-1 h-11 rounded-lg text-xs uppercase tracking-wider"
-                style={{ background: SURFACE, color: MUTED, border: `1px solid ${GOLD}22` }}
+                style={{ background: SURFACE, color: MUTED, border: `1px solid ${accent}22` }}
                 onClick={() => setRecapOpen(false)}
               >
                 Cancel
               </button>
               <button
                 className="flex-1 h-11 rounded-lg text-xs uppercase tracking-wider font-semibold"
-                style={{ background: GOLD, color: "#000" }}
+                style={{ background: accent, color: accentContrast }}
                 disabled={setActive.isPending || pairWithProtocolMutation.isPending}
                 onClick={() => {
                   setRecapOpen(false);
