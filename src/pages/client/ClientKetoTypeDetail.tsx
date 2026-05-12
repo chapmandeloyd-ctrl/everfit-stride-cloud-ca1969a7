@@ -271,19 +271,13 @@ export default function ClientKetoTypeDetail() {
       setRecapOpen(true);
       return;
     }
-    // No-pending flow.
-    // If they have a current keto type, confirm the replacement first
-    // ("Replace LAZY with SKD?") before doing anything else.
-    if (activeAssignment?.keto_type_id && activeAssignment.keto_type_id !== ketoType?.id) {
-      setConfirmReplaceOpen(true);
-      return;
-    }
-    // First-time set (no current keto). Gate on live fast if needed.
-    if (hasLiveFast) {
-      setConfirmEndFastOpen(true);
-      return;
-    }
-    setActive.mutate();
+    // Mirror the protocol-detail flow exactly:
+    // - If there is an active fasting protocol, open the Synergy picker
+    //   ("Keep current protocol" / "Browse other protocols"). Choosing
+    //   "Keep current protocol" then opens the Recap modal showing the
+    //   keto change with protocol unchanged.
+    // - Otherwise (no active protocol) go straight to the Recap modal.
+    setRecapOpen(true);
   };
 
   // After the user confirms replacement, gate on the live-fast flow if needed.
