@@ -343,17 +343,20 @@ export function InteractiveProtocolCard({
         </div>
 
         <div className="relative overflow-hidden rounded-2xl border border-border" style={faceStyle}>
-          <button
-            type="button"
-            data-no-flip
-            aria-label={flipped ? `Hide ${protocolName} details` : `Show ${protocolName} details`}
-            aria-expanded={flipped}
-            onClick={() => setFlipped((current) => !current)}
-            className="absolute top-3 right-3 z-30 inline-flex min-h-[36px] items-center rounded-full border border-primary/40 bg-background/85 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-primary shadow-sm backdrop-blur-sm transition-colors hover:bg-background"
-          >
-            {flipped ? "Show summary" : "View details"}
-          </button>
+          <div className="absolute top-3 left-0 right-0 z-30 flex justify-end px-3">
+            <button
+              type="button"
+              data-no-flip
+              aria-label={flipped ? `Hide ${protocolName} details` : `Show ${protocolName} details`}
+              aria-expanded={flipped}
+              onClick={() => setFlipped((current) => !current)}
+              className="inline-flex min-h-[36px] items-center rounded-full border border-primary/40 bg-background/85 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-primary shadow-sm backdrop-blur-sm transition-colors hover:bg-background"
+            >
+              {flipped ? "Show summary" : "View details"}
+            </button>
+          </div>
 
+          <div className="pt-12">
           {flipped ? (
             <BackContent protocol={protocol} onClose={handleClose} extraAction={backActions} />
           ) : (
@@ -367,6 +370,7 @@ export function InteractiveProtocolCard({
               dimmed={dimmed}
             />
           )}
+          </div>
         </div>
       </div>
     );
