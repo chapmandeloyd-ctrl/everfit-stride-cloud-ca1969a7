@@ -437,40 +437,63 @@ export const CardFront = memo(function CardFront({
       <div className="relative flex h-full flex-col p-6">
         <div className="flex items-center gap-3 mb-4">
           <div
-            className={`relative h-14 w-14 rounded-[18px] flex items-center justify-center overflow-hidden bg-gradient-to-br ${protocol.iconGradient}`}
+            className={`relative h-16 w-16 rounded-[22px] flex items-center justify-center overflow-hidden bg-gradient-to-br ${protocol.iconGradient}`}
             style={{
+              // Sculpted bevel: bright top-left rim, deep bottom-right shadow inside,
+              // plus a soft outer drop + colored glow to make it float like a 3D blob.
               boxShadow:
-                "inset 2px 3px 4px hsl(0 0% 100% / 0.55), inset -3px -4px 8px hsl(0 0% 0% / 0.55), inset 0 0 0 1px hsl(0 0% 100% / 0.18), 0 10px 20px hsl(0 0% 0% / 0.55), 0 3px 6px hsl(0 0% 0% / 0.4)",
+                "inset 3px 4px 6px hsl(0 0% 100% / 0.65), inset -4px -6px 10px hsl(0 0% 0% / 0.7), inset 0 0 0 1px hsl(0 0% 100% / 0.22), 0 14px 26px hsl(0 0% 0% / 0.6), 0 4px 8px hsl(0 0% 0% / 0.45), 0 0 22px hsl(var(--primary) / 0.18)",
             }}
           >
-            {/* Top gloss highlight — gives the molded 3D 'app icon' look */}
+            {/* Specular blob — offset oval highlight that sells the molded glass dome */}
             <span
               aria-hidden
-              className="pointer-events-none absolute inset-x-0 top-0 h-1/2 rounded-t-[18px]"
+              className="pointer-events-none absolute"
               style={{
+                top: "6%",
+                left: "12%",
+                right: "20%",
+                height: "42%",
+                borderRadius: "100%",
                 background:
-                  "linear-gradient(180deg, hsl(0 0% 100% / 0.35) 0%, hsl(0 0% 100% / 0.08) 60%, transparent 100%)",
+                  "radial-gradient(ellipse at 35% 30%, hsl(0 0% 100% / 0.85) 0%, hsl(0 0% 100% / 0.35) 35%, hsl(0 0% 100% / 0) 70%)",
+                filter: "blur(1px)",
               }}
             />
-            {/* Bottom shade — deepens the bevel */}
+            {/* Tiny pin highlight for crispness */}
             <span
               aria-hidden
-              className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2"
+              className="pointer-events-none absolute h-1.5 w-2.5 rounded-full"
+              style={{
+                top: "14%",
+                left: "22%",
+                background: "hsl(0 0% 100% / 0.95)",
+                filter: "blur(0.5px)",
+              }}
+            />
+            {/* Bottom shade — deepens the dome curvature */}
+            <span
+              aria-hidden
+              className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3"
               style={{
                 background:
-                  "linear-gradient(0deg, hsl(0 0% 0% / 0.30) 0%, transparent 100%)",
+                  "radial-gradient(ellipse at 50% 110%, hsl(0 0% 0% / 0.55) 0%, hsl(0 0% 0% / 0.18) 45%, transparent 75%)",
               }}
             />
             {pulse && (
               <span
-                className={`absolute inset-0 rounded-[18px] bg-gradient-to-br ${protocol.iconGradient} opacity-60 animate-[icon-pulse_2.4s_ease-in-out_infinite]`}
+                className={`absolute inset-0 rounded-[22px] bg-gradient-to-br ${protocol.iconGradient} opacity-50 animate-[icon-pulse_2.4s_ease-in-out_infinite]`}
                 aria-hidden
               />
             )}
             <Icon
               className="relative h-7 w-7 text-white"
               strokeWidth={2.25}
-              style={{ filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.45))" }}
+              style={{
+                // Embossed icon: bright top-edge highlight + deep bottom shadow
+                filter:
+                  "drop-shadow(0 -1px 0 rgba(255,255,255,0.55)) drop-shadow(0 2px 2px rgba(0,0,0,0.55)) drop-shadow(0 4px 6px rgba(0,0,0,0.45))",
+              }}
             />
           </div>
 
