@@ -304,7 +304,7 @@ export function InteractiveKetoTypeCard({
     accentColorClass: palette.accentColorClass,
     iconGradient: palette.iconGradient,
     surfaceTintGradient: palette.surfaceTintGradient,
-    eyebrow: "Your Active Keto Type",
+    eyebrow: isCurrent ? "Your Active Keto Type" : "Keto Type",
     subEyebrow: ketoType.name,
     title: ketoType.abbreviation,
     titleSuffix: ketoType.subtitle ? ` — ${ketoType.subtitle}` : "",
@@ -313,7 +313,7 @@ export function InteractiveKetoTypeCard({
       { value: `${ketoType.protein_pct}%`, label: "Protein" },
       { value: `${ketoType.carbs_pct}%`, label: "Carbs" },
     ],
-    status: isCurrent ? "current" : null,
+    status: isCurrent ? "current" : "locked",
     content: buildContent(ketoType),
   };
 
