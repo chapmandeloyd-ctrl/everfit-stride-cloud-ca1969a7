@@ -322,7 +322,7 @@ export default function ClientProgram() {
         {protocolDemo && (
           <section className="space-y-3">
             <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary">
-              Protocol
+              Stage 1 · Protocol
             </p>
             <InteractiveProtocolCard
               protocol={protocolDemo}
@@ -351,7 +351,7 @@ export default function ClientProgram() {
         {ketoType && (
           <section className="space-y-3">
             <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary">
-              Keto Type
+              Stage 2 · Keto Type
             </p>
             <button
               type="button"
