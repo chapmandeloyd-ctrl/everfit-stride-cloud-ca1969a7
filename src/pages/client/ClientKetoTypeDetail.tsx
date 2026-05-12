@@ -417,8 +417,8 @@ export default function ClientKetoTypeDetail() {
                 Go back
               </Button>
               <Button
-                className="h-12 text-sm font-bold text-white"
-                style={{ backgroundColor: accent }}
+                className="h-12 text-sm font-bold"
+                style={{ backgroundColor: accent, color: accentContrast }}
                 onClick={() => navigate("/client/keto-types")}
               >
                 Browse other keto types
@@ -427,8 +427,8 @@ export default function ClientKetoTypeDetail() {
           </div>
         ) : (
           <Button
-            className="w-full h-14 text-base font-bold text-white"
-            style={{ backgroundColor: accent }}
+            className="w-full h-14 text-base font-bold"
+            style={{ backgroundColor: accent, color: accentContrast }}
             onClick={handleSetClick}
             disabled={setActive.isPending || pairWithProtocolMutation.isPending}
           >
