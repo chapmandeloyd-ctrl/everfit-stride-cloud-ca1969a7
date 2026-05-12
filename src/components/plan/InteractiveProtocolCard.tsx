@@ -222,7 +222,7 @@ export function InteractiveProtocolCard({
     startScrollY.current = typeof window !== "undefined" ? window.scrollY : 0;
     moved.current = false;
 
-    if (e.pointerType === "touch" && !touchHintShownRef.current) {
+    if (e.pointerType === "touch" && !touchHintShownRef.current && !isMobile) {
       touchHintShownRef.current = true;
       setTouchHint(`${protocolName} card. Tap card to flip between summary and details. Swipe vertically to scroll.`);
       window.setTimeout(() => setTouchHint(""), 4000);
