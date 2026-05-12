@@ -446,6 +446,7 @@ export function InteractiveProtocolCard({
               shimmer={false}
               animateStats={false}
               frontExtra={frontExtra}
+              compact={compact}
             />
           </div>
           <div ref={backMeasureRef} className="rounded-2xl border border-border">
@@ -509,6 +510,7 @@ export function InteractiveProtocolCard({
             animateStats={!disableHeavyInteractions}
             frontExtra={frontExtra}
             dimmed={dimmed}
+            compact={compact}
           />
         </div>
       </div>
