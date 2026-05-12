@@ -1490,7 +1490,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
             const isSelfGuided = !isCoachAssigned;
             // Always open the full library so the client sees every card
             // (assigned card highlighted, others locked when admin enforces it).
-            const protocolHref = "/client/fasting-plans-preview";
+            const protocolHref = "/client/programs";
             // Guard against preview placeholder ids (no real DB row) — route
             // to the picker so the detail page doesn't get stuck loading.
             const ketoIdIsReal =
