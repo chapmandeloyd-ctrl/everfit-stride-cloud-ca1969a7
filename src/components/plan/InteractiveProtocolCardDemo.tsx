@@ -453,7 +453,6 @@ function TiltyIconTile({
           e.stopPropagation();
           reset();
         }}
-        className={`relative h-16 w-16 rounded-[22px] flex items-center justify-center overflow-hidden bg-gradient-to-br ${iconGradient} touch-none cursor-pointer will-change-transform`}
         style={{
           transform: `rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg) scale(${tilt.pressed ? 0.94 : 1})`,
           transition:
@@ -462,7 +461,8 @@ function TiltyIconTile({
               : "transform 80ms ease-out",
           transformStyle: "preserve-3d",
           boxShadow:
-            "inset 3px 4px 6px hsl(0 0% 100% / 0.65), inset -4px -6px 10px hsl(0 0% 0% / 0.7), inset 0 0 0 1px hsl(0 0% 100% / 0.22), 0 14px 26px hsl(0 0% 0% / 0.6), 0 4px 8px hsl(0 0% 0% / 0.45), 0 0 22px hsl(var(--primary) / 0.18)",
+            "inset 3px 4px 6px hsl(0 0% 100% / 0.7), inset -3px -4px 8px hsl(0 0% 0% / 0.35), inset 0 0 0 1px hsl(0 0% 100% / 0.3), 0 14px 26px hsl(0 0% 0% / 0.55), 0 4px 8px hsl(0 0% 0% / 0.4), 0 0 22px hsl(var(--primary) / 0.18)",
+          filter: "saturate(1.55) brightness(1.18)",
         }}
       >
         {/* Specular blob — follows tilt for live highlight */}
