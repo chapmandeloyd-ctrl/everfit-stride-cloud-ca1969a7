@@ -528,6 +528,7 @@ export const CardFront = memo(function CardFront({
   animateStats = true,
   frontExtra = "none",
   dimmed = false,
+  compact = false,
 }: {
   protocol: DemoProtocol;
   showChevron?: boolean;
@@ -536,6 +537,7 @@ export const CardFront = memo(function CardFront({
   animateStats?: boolean;
   frontExtra?: FrontExtraVariant;
   dimmed?: boolean;
+  compact?: boolean;
 }) {
   const Icon = protocol.icon;
   return (
@@ -622,6 +624,7 @@ export const CardFront = memo(function CardFront({
           )}
         </div>
 
+        {compact ? null : (
         <div className="mt-5 flex-1">
           {frontExtra === "none" ? (
             <FullHeightPreviewExtra protocol={protocol} animate={animateStats} />
@@ -641,6 +644,7 @@ export const CardFront = memo(function CardFront({
             </div>
           )}
         </div>
+        )}
       </div>
     </>
   );

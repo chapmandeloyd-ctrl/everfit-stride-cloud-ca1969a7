@@ -287,18 +287,25 @@ export default function ClientProgram() {
             <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary">
               Stage 1 · Protocol
             </p>
-            <InteractiveProtocolCard
-              protocol={protocolDemo}
-              onOpen={() =>
+            <button
+              type="button"
+              onClick={() =>
                 navigate(
                   protocol
                     ? `/client/protocol/${protocol.id}`
                     : `/client/quick-plan/${quickPlan!.id}`,
                 )
               }
-              onMeasureHeight={makeOnMeasure("protocol")}
-              forcedHeight={tallest > 0 ? tallest : undefined}
-            />
+              className="block w-full text-left"
+              aria-label="Open protocol details"
+            >
+              <InteractiveProtocolCard
+                protocol={protocolDemo}
+                compact
+                onMeasureHeight={makeOnMeasure("protocol")}
+                forcedHeight={tallest > 0 ? tallest : undefined}
+              />
+            </button>
           </section>
         )}
 
@@ -325,6 +332,7 @@ export default function ClientProgram() {
                 ketoType={ketoToCard(ketoType)}
                 themeColor={ketoType.color || undefined}
                 isCurrent
+                compact
                 onMeasureHeight={makeOnMeasure("keto")}
                 forcedHeight={tallest > 0 ? tallest : undefined}
               />
