@@ -248,7 +248,6 @@ export default function ClientKetoTypes() {
               </p>
               <div className="space-y-6">
                 {items.map((kt) => {
-                  const locked = isLocked;
                   return (
                     <button
                       key={kt.id}
@@ -261,7 +260,8 @@ export default function ClientKetoTypes() {
                       <InteractiveKetoTypeCard
                         ketoType={toKetoCardData(kt)}
                         themeColor={kt.color || undefined}
-                        dimmed={locked}
+                        isCurrent={false}
+                        dimmed
                         onMeasureHeight={makeOnMeasure(kt.id)}
                         forcedHeight={tallest > 0 ? tallest : undefined}
                       />

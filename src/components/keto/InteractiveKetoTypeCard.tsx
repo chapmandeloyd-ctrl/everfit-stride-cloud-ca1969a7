@@ -233,7 +233,7 @@ export function InteractiveKetoTypeCard({
   themeColor,
   onOpen,
   openLabel = "Open keto details",
-  isCurrent = true,
+  isCurrent = false,
   flipCancelHorizontalPx,
   flipCancelVerticalPx,
   forcedHeight,
