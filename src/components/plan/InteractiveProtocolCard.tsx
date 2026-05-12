@@ -101,6 +101,7 @@ export function InteractiveProtocolCard({
   const disableHeavyInteractions = isMobile || reduceMotionWork;
   const [internalFlipped, setInternalFlipped] = useState(false);
   const flipped = controlledFlipped ?? internalFlipped;
+  const [expanded, setExpanded] = useState(false);
   const tiltRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
   const startX = useRef<number | null>(null);
@@ -401,6 +402,9 @@ export function InteractiveProtocolCard({
             animateStats={false}
             frontExtra={frontExtra}
             dimmed={dimmed}
+            expandable
+            expanded={expanded}
+            onToggleExpanded={() => setExpanded((v) => !v)}
           />
         </div>
         {renderDetailSections()}
