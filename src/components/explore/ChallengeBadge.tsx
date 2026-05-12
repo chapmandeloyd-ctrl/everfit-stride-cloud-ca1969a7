@@ -16,9 +16,9 @@ interface Props {
 }
 
 const SIZE_CLASSES = {
-  sm: "h-14 w-14 text-[11px]",
-  md: "h-20 w-20 text-base",
-  lg: "h-28 w-28 text-lg",
+  sm: "w-14 text-[10px]",
+  md: "w-20 text-xs",
+  lg: "w-28 text-sm",
 };
 
 const ASSETS: Record<ChallengeType, string> = {
@@ -66,25 +66,28 @@ export function ChallengeBadge({ label, type, size = "md", className }: Props) {
 
   return (
     <div
-      ref={ref}
-      onPointerMove={handleMove}
-      onPointerDown={() => setTilt((t) => ({ ...t, pressed: true }))}
-      onPointerUp={reset}
-      onPointerLeave={reset}
-      onPointerCancel={reset}
       className={cn(
-        "relative select-none touch-none cursor-pointer",
+        "flex flex-col items-center gap-1.5 select-none",
         SIZE_CLASSES[size],
         className
       )}
-      style={{
-        perspective: "600px",
-        filter: `drop-shadow(0 10px 18px rgba(0,0,0,0.55)) drop-shadow(0 0 14px ${aura})`,
-      }}
-      aria-hidden
     >
       <div
-        className="relative h-full w-full will-change-transform"
+        ref={ref}
+        onPointerMove={handleMove}
+        onPointerDown={() => setTilt((t) => ({ ...t, pressed: true }))}
+        onPointerUp={reset}
+        onPointerLeave={reset}
+        onPointerCancel={reset}
+        className="relative w-full aspect-square touch-none cursor-pointer"
+        style={{
+          perspective: "600px",
+          filter: `drop-shadow(0 10px 18px rgba(0,0,0,0.55)) drop-shadow(0 0 14px ${aura})`,
+        }}
+        aria-hidden
+      >
+        <div
+          className="relative h-full w-full will-change-transform"
         style={{
           transform: `rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg) scale(${tilt.pressed ? 0.94 : 1})`,
           transition:
@@ -111,19 +114,16 @@ export function ChallengeBadge({ label, type, size = "md", className }: Props) {
             transition: "background 80ms ease-out",
           }}
         />
-        {label ? (
-          <span
-            className="absolute inset-0 flex items-center justify-center font-extrabold leading-none tracking-[0.04em] text-white pointer-events-none"
-            style={{
-              fontFamily: "Georgia, serif",
-              textShadow:
-                "0 2px 4px rgba(0,0,0,0.7), 0 0 10px rgba(0,0,0,0.5)",
-            }}
-          >
-            {label}
-          </span>
-        ) : null}
+        </div>
       </div>
+      {label ? (
+        <span
+          className="font-extrabold uppercase tracking-[0.18em] text-white/90 leading-none"
+          style={{ fontFamily: "Georgia, serif" }}
+        >
+          {label}
+        </span>
+      ) : null}
     </div>
   );
 }
