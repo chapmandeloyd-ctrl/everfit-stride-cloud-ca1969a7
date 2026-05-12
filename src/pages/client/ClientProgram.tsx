@@ -19,17 +19,7 @@ import {
   InteractiveKetoTypeCard,
   type KetoTypeForCard,
 } from "@/components/keto/InteractiveKetoTypeCard";
-import {
-  MEAL_PLANS,
-  PROGRAM_BASELINE_OPENS,
-  resolveMealPlanKey,
-} from "@/lib/programMealPlans";
-import {
-  parseTime,
-  toMinutes,
-  shiftTimeString,
-  pickWindowTimes,
-} from "@/lib/timeWindow";
+
 
 /* ──────────────────────────────────────────────────────────────────────
    /client/program — Dark unified Program page.
@@ -89,13 +79,6 @@ function ketoToCard(kt: KetoTypeRow): KetoTypeForCard {
     color: kt.color,
   };
 }
-
-const MACRO_DOTS: Record<string, string> = {
-  Cal: "bg-primary",
-  Fat: "bg-amber-300",
-  Carbs: "bg-sky-400",
-  Protein: "bg-violet-400",
-};
 
 export default function ClientProgram() {
   const navigate = useNavigate();
@@ -240,27 +223,7 @@ export default function ClientProgram() {
     return null;
   }, [protocol, quickPlan]);
 
-  /* ── 4. Daily Meal Timeline data ── */
-  const windowOpensAt = useMemo(() => {
-    if (protocol) return pickWindowTimes(protocol.description).opensAt;
-    return PROGRAM_BASELINE_OPENS;
-  }, [protocol]);
-
-  const planKey = resolveMealPlanKey(ketoType?.abbreviation ?? null);
-  const mealPlan = MEAL_PLANS[planKey];
-
-  const shiftMinutes = useMemo(() => {
-    try {
-      return (
-        toMinutes(parseTime(windowOpensAt)) -
-        toMinutes(parseTime(PROGRAM_BASELINE_OPENS))
-      );
-    } catch {
-      return 0;
-    }
-  }, [windowOpensAt]);
-
-  /* ── 5. Uniform card heights ── */
+  /* ── 4. Uniform card heights ── */
   const [heights, setHeights] = useState<Record<string, number>>({});
   const tallest = useMemo(() => {
     const vals = Object.values(heights);
