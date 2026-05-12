@@ -299,7 +299,6 @@ export function InteractiveProtocolCard({
   const ariaLabel = flipped
     ? `${protocolName} details card. Press Enter, Space, or tap to return to summary.`
     : `${protocolName} summary card. Press Enter, Space, or tap to view details.`;
-  const useExplicitFlipControl = isMobile;
 
   const innerStyle: CSSProperties = {
     transformStyle: "preserve-3d",
@@ -398,20 +397,20 @@ export function InteractiveProtocolCard({
 
       <div
         ref={innerRef}
-        role={useExplicitFlipControl ? undefined : "button"}
-        tabIndex={useExplicitFlipControl ? -1 : 0}
+        role="button"
+        tabIndex={0}
         aria-label={ariaLabel}
         aria-pressed={flipped}
-        className={`relative rounded-2xl group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${useExplicitFlipControl ? "cursor-default" : "cursor-pointer"}`}
+        className={`relative rounded-2xl group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${isMobile ? "pt-10" : ""}`}
         style={innerStyle}
         onPointerDown={onDown}
         onPointerMove={onMoveCheck}
         onPointerUp={onUp}
         onPointerCancel={onCancel}
-        onClickCapture={useExplicitFlipControl ? undefined : onClickCapture}
-        onKeyDown={useExplicitFlipControl ? undefined : onKeyDown}
+        onClickCapture={onClickCapture}
+        onKeyDown={onKeyDown}
       >
-        {useExplicitFlipControl && (
+        {isMobile && (
           <button
             type="button"
             data-no-flip
