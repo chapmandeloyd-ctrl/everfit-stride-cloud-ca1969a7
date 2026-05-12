@@ -115,6 +115,7 @@ export default function ClientKetoTypeCardDemo() {
             <InteractiveKetoTypeCard
               ketoType={kt}
               themeColor={theme}
+              isCurrent
               onMeasureHeight={makeOnMeasure(kt.abbreviation)}
               forcedHeight={tallest > 0 ? tallest : undefined}
             />
