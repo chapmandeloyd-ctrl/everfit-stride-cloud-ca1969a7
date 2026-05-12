@@ -266,15 +266,24 @@ export default function ClientKetoTypeDetail() {
   });
 
   const handleSetClick = () => {
-    // If they're replacing an existing keto type, confirm first.
     if (pendingProtocol) {
       // Pair flow — straight to recap (both sides change).
       setRecapOpen(true);
       return;
     }
-    // No-pending flow → open Synergy popup so user can choose: keep current
-    // protocol (recap-only) OR browse other protocols.
-    setSynergyConfirmOpen(true);
+    // No-pending flow.
+    // If they have a current keto type, confirm the replacement first
+    // ("Replace LAZY with SKD?") before doing anything else.
+    if (activeAssignment?.keto_type_id && activeAssignment.keto_type_id !== ketoType?.id) {
+      setConfirmReplaceOpen(true);
+      return;
+    }
+    // First-time set (no current keto). Gate on live fast if needed.
+    if (hasLiveFast) {
+      setConfirmEndFastOpen(true);
+      return;
+    }
+    setActive.mutate();
   };
 
   // After the user confirms replacement, gate on the live-fast flow if needed.
