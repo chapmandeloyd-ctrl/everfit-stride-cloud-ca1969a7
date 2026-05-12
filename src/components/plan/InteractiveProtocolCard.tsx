@@ -1,4 +1,13 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type PointerEvent as ReactPointerEvent,
+  type SyntheticEvent,
+} from "react";
 import {
   CardStackBackdrop,
   CardFront,
@@ -6,64 +15,21 @@ import {
   type DemoProtocol,
   type FrontExtraVariant,
 } from "@/components/plan/InteractiveProtocolCardDemo";
-import { ProtocolDetailSections } from "@/components/plan/ProtocolDetailSections";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export interface InteractiveProtocolCardProps {
   protocol: DemoProtocol;
-  /** Visually dim the card (e.g. when locked). The whole card is still tap-to-flip. */
   dimmed?: boolean;
-  /** Optional secondary action when the user taps the "Open" pill on the back face. */
   onOpen?: () => void;
-  /** Label for the optional Open button on the back face. */
   openLabel?: string;
-  /**
-   * Which space-filler to render below the stat tiles on the front face.
-   * Defaults to "coachQuote" — the design with the red "Tap for details"
-   * pill in the middle, a Coach Follow-Up block, and a phase timeline.
-   */
   frontExtra?: FrontExtraVariant;
-  /**
-   * Pixels of horizontal travel allowed before a press is treated as a swipe
-   * (and therefore NOT a flip). Lower = more sensitive / easier to cancel a flip.
-   * Default: 8.
-   */
   flipCancelHorizontalPx?: number;
-  /**
-   * Pixels of vertical travel allowed before a press is treated as a scroll
-   * (and therefore NOT a flip). Lower = scroll wins more easily, fewer accidental flips.
-   * Default: 8.
-   */
   flipCancelVerticalPx?: number;
-  /**
-   * Optional fixed height (px) for the flip container. When provided, overrides
-   * the auto-measured height. Use this to make a list of cards uniform height
-   * (parent measures each card via `onMeasureHeight` and feeds back the max).
-   */
   forcedHeight?: number;
-  /**
-   * Called whenever the card's natural (auto-measured) height changes.
-   * Parent can collect these from sibling cards and re-render with `forcedHeight`
-   * set to the max so all cards in a list end up the same height.
-   */
   onMeasureHeight?: (heightPx: number) => void;
-  /**
-   * Optional element rendered inside the back-face header row, to the left of
-   * the "Flip" pill. Used by feature cards (e.g. keto) to add a contextual
-   * action like "Export as PDF" without coupling the shared component to
-   * any one feature.
-   */
   backExtraAction?: React.ReactNode;
-  /** Optional controlled flip state for parent-managed interactions. */
   flipped?: boolean;
-  /** Called whenever the card requests a flip state change. */
   onFlippedChange?: (next: boolean) => void;
-  /** Disable the built-in front-face tap/click flip handling. Defaults to true (flip is off app-wide). */
-  disableTapToFlip?: boolean;
-  /** Optional controlled expand state. When provided, the card uses it instead of internal state. */
-  expanded?: boolean;
-  /** Called whenever the user requests an expand state change. */
-  onExpandedChange?: (next: boolean) => void;
 }
 
 function isLowMemoryDevice() {
@@ -76,14 +42,6 @@ function isLowMemoryDevice() {
   return hasLowMemory || hasLowCpu;
 }
 
-/**
- * Production protocol card: flip-on-tap + 3D pointer tilt + premium surface.
- * Pulls front + back from the demo so demo and prod stay in lockstep.
- *
- * No swipe carousel — designed to be rendered as part of a vertical list
- * (e.g. on /client/programs) so each protocol gets its own card with its
- * own independent flip + tilt state.
- */
 export function InteractiveProtocolCard({
   protocol,
   dimmed,
@@ -97,23 +55,15 @@ export function InteractiveProtocolCard({
   backExtraAction,
   flipped: controlledFlipped,
   onFlippedChange,
-  disableTapToFlip = true,
-  expanded: controlledExpanded,
-  onExpandedChange,
 }: InteractiveProtocolCardProps) {
   const isMobileViewport = typeof window !== "undefined" ? window.innerWidth < 1024 : false;
   const isMobile = useIsMobile() || isMobileViewport;
   const reduceMotionWork = useMemo(() => isLowMemoryDevice(), []);
   const disableHeavyInteractions = isMobile || reduceMotionWork;
+
   const [internalFlipped, setInternalFlipped] = useState(false);
   const flipped = controlledFlipped ?? internalFlipped;
-  const [internalExpanded, setInternalExpanded] = useState(false);
-  const expanded = controlledExpanded ?? internalExpanded;
-  const setExpanded = useCallback((updater: boolean | ((prev: boolean) => boolean)) => {
-    const next = typeof updater === "function" ? (updater as (p: boolean) => boolean)(expanded) : updater;
-    if (controlledExpanded === undefined) setInternalExpanded(next);
-    onExpandedChange?.(next);
-  }, [controlledExpanded, expanded, onExpandedChange]);
+
   const tiltRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
   const startX = useRef<number | null>(null);
@@ -124,18 +74,36 @@ export function InteractiveProtocolCard({
   const pendingTiltRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const activePointerId = useRef<number | null>(null);
   const suppressClickRef = useRef(false);
-
-  // --- Auto-sizing: measure both faces and use the taller as the container height ---
+  const touchHintShownRef = useRef(false);
   const frontMeasureRef = useRef<HTMLDivElement>(null);
   const backMeasureRef = useRef<HTMLDivElement>(null);
+
   const [measuredHeight, setMeasuredHeight] = useState<number>(0);
+  const [hasFlipped, setHasFlipped] = useState(false);
+  const [visibleFlipToast, setVisibleFlipToast] = useState("");
+  const [touchHint, setTouchHint] = useState("");
 
-  const applyTiltTransform = useCallback((nextTilt: { x: number; y: number }) => {
-    const el = innerRef.current;
-    if (!el || flipped) return;
+  const effectiveHeight = forcedHeight ?? measuredHeight;
+  const protocolName = (protocol as any)?.name ?? (protocol as any)?.title ?? "protocol";
 
-    el.style.transform = `translateZ(0) rotateX(${nextTilt.x}deg) rotateY(${nextTilt.y}deg)`;
-  }, [flipped]);
+  const setFlipped = useCallback(
+    (next: boolean | ((prev: boolean) => boolean)) => {
+      const resolved = typeof next === "function" ? (next as (prev: boolean) => boolean)(flipped) : next;
+      if (controlledFlipped === undefined) setInternalFlipped(resolved);
+      onFlippedChange?.(resolved);
+    },
+    [controlledFlipped, flipped, onFlippedChange],
+  );
+
+  const applyTiltTransform = useCallback(
+    (nextTilt: { x: number; y: number }) => {
+      const el = innerRef.current;
+      if (!el || flipped) return;
+
+      el.style.transform = `translateZ(0) rotateX(${nextTilt.x}deg) rotateY(${nextTilt.y}deg)`;
+    },
+    [flipped],
+  );
 
   const scheduleMeasure = useCallback(() => {
     if (measureFrameRef.current !== null) return;
@@ -153,7 +121,7 @@ export function InteractiveProtocolCard({
   }, []);
 
   useEffect(() => {
-    if (isMobile || forcedHeight) return;
+    if (forcedHeight) return;
 
     const front = frontMeasureRef.current;
     const back = backMeasureRef.current;
@@ -162,7 +130,7 @@ export function InteractiveProtocolCard({
     scheduleMeasure();
 
     let ro: ResizeObserver | null = null;
-    if (!disableHeavyInteractions) {
+    if (!disableHeavyInteractions && typeof ResizeObserver !== "undefined") {
       ro = new ResizeObserver(scheduleMeasure);
       ro.observe(front);
       ro.observe(back);
@@ -178,30 +146,35 @@ export function InteractiveProtocolCard({
         measureFrameRef.current = null;
       }
     };
-  }, [isMobile, forcedHeight, disableHeavyInteractions, scheduleMeasure, protocol, frontExtra, backExtraAction]);
+  }, [forcedHeight, disableHeavyInteractions, scheduleMeasure, protocol, frontExtra, backExtraAction, onOpen, openLabel]);
 
   useEffect(() => {
-    if (isMobile || forcedHeight) return;
     if (measuredHeight > 0) onMeasureHeight?.(measuredHeight);
-  }, [isMobile, forcedHeight, measuredHeight, onMeasureHeight]);
-
-  const effectiveHeight = forcedHeight ?? measuredHeight;
+  }, [measuredHeight, onMeasureHeight]);
 
   useEffect(() => {
     return () => {
-      if (frameRef.current !== null) {
-        cancelAnimationFrame(frameRef.current);
-      }
-      if (measureFrameRef.current !== null) {
-        cancelAnimationFrame(measureFrameRef.current);
-      }
+      if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
+      if (measureFrameRef.current !== null) cancelAnimationFrame(measureFrameRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (flipped) setHasFlipped(true);
+  }, [flipped]);
+
+  useEffect(() => {
+    if (!hasFlipped) return;
+    setVisibleFlipToast(flipped ? "Showing details" : "Showing summary");
+    const timeoutId = window.setTimeout(() => setVisibleFlipToast(""), 1600);
+    return () => window.clearTimeout(timeoutId);
+  }, [flipped, hasFlipped]);
 
   const onTiltMove = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (disableHeavyInteractions || flipped || e.pointerType === "touch") return;
     const el = tiltRef.current;
     if (!el) return;
+
     const rect = el.getBoundingClientRect();
     const px = (e.clientX - rect.left) / rect.width;
     const py = (e.clientY - rect.top) / rect.height;
@@ -217,26 +190,18 @@ export function InteractiveProtocolCard({
       applyTiltTransform(pendingTiltRef.current);
     });
   };
-  const onTiltLeave = () => {
+
+  const onTiltLeave = useCallback(() => {
     if (frameRef.current !== null) {
       cancelAnimationFrame(frameRef.current);
       frameRef.current = null;
     }
     pendingTiltRef.current = { x: 0, y: 0 };
     applyTiltTransform(pendingTiltRef.current);
-  };
+  }, [applyTiltTransform]);
 
-  const setFlipped = useCallback((next: boolean | ((prev: boolean) => boolean)) => {
-    const resolved = typeof next === "function" ? (next as (prev: boolean) => boolean)(flipped) : next;
-    if (controlledFlipped === undefined) setInternalFlipped(resolved);
-    onFlippedChange?.(resolved);
-  }, [controlledFlipped, flipped, onFlippedChange]);
-
-  const handleClose = useCallback(() => setFlipped(false), [setFlipped]);
-  const handleOpen = useCallback((e?: React.SyntheticEvent) => {
-    e?.stopPropagation();
-    onOpen?.();
-  }, [onOpen]);
+  const isInteractiveTarget = (target: EventTarget | null) =>
+    target instanceof Element && Boolean(target.closest("button, a, input, select, textarea, label, [data-no-flip]"));
 
   const resetPress = () => {
     activePointerId.current = null;
@@ -245,56 +210,29 @@ export function InteractiveProtocolCard({
     moved.current = false;
   };
 
-  const onMobileFrontPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if ((e.pointerType === "mouse" && e.button !== 0) || isInteractiveTarget(e.target)) return;
-    activePointerId.current = e.pointerId;
-    startX.current = e.clientX;
-    startY.current = e.clientY;
-    moved.current = false;
-  };
-
-  const onMobileFrontPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (activePointerId.current !== e.pointerId || startX.current === null || startY.current === null) return;
-    const deltaX = Math.abs(e.clientX - startX.current);
-    const deltaY = Math.abs(e.clientY - startY.current);
-    if (deltaX > flipCancelHorizontalPx || deltaY > flipCancelVerticalPx) moved.current = true;
-  };
-
-  const onMobileFrontPointerUp = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (activePointerId.current !== e.pointerId) return;
-    const shouldFlip = !disableTapToFlip && !moved.current;
-    resetPress();
-    if (shouldFlip) setFlipped(true);
-  };
-
-  const onMobileFrontPointerCancel = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (activePointerId.current !== e.pointerId) return;
-    resetPress();
-  };
-
-  const isInteractiveTarget = (target: EventTarget | null) =>
-    target instanceof Element && Boolean(target.closest("button, a, input, select, textarea, label, [data-no-flip]"));
-
   const onDown = (e: ReactPointerEvent<HTMLDivElement>) => {
     if ((e.pointerType === "mouse" && e.button !== 0) || isInteractiveTarget(e.target)) return;
+
     activePointerId.current = e.pointerId;
     startX.current = e.clientX;
     startY.current = e.clientY;
     moved.current = false;
+
     if (e.pointerType === "touch" && !touchHintShownRef.current) {
       touchHintShownRef.current = true;
-      setTouchHint(
-        `${protocolName} card. Tap to flip between summary and details. Swipe vertically to scroll the page.`
-      );
+      setTouchHint(`${protocolName} card. Tap card to flip between summary and details. Swipe vertically to scroll.`);
       window.setTimeout(() => setTouchHint(""), 4000);
     }
   };
+
   const onMoveCheck = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (activePointerId.current !== e.pointerId || startX.current === null || startY.current === null) return;
+
     const deltaX = Math.abs(e.clientX - startX.current);
     const deltaY = Math.abs(e.clientY - startY.current);
     if (deltaX > flipCancelHorizontalPx || deltaY > flipCancelVerticalPx) moved.current = true;
   };
+
   const onUp = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (activePointerId.current !== e.pointerId) return;
     suppressClickRef.current = moved.current;
@@ -310,70 +248,40 @@ export function InteractiveProtocolCard({
     resetPress();
   };
 
-  const onClickCapture = (e: any) => {
+  const onClickCapture = (e: React.MouseEvent<HTMLDivElement>) => {
     if (isInteractiveTarget(e.target)) return;
     if (suppressClickRef.current) {
       suppressClickRef.current = false;
       return;
     }
-    if (disableTapToFlip) return;
-    setFlipped((f) => !f);
+    setFlipped((current) => !current);
   };
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (isInteractiveTarget(e.target)) return;
+
     if (e.key === " " || e.key === "Enter") {
       e.preventDefault();
-      if (disableTapToFlip) return;
-      setFlipped((f) => !f);
+      setFlipped((current) => !current);
     } else if (e.key === "Escape" && flipped) {
       e.preventDefault();
       setFlipped(false);
     }
   };
 
-  const protocolName = (protocol as any)?.name ?? (protocol as any)?.title ?? "protocol";
+  const handleClose = useCallback(() => setFlipped(false), [setFlipped]);
+  const handleOpen = useCallback(
+    (e?: SyntheticEvent) => {
+      e?.stopPropagation();
+      onOpen?.();
+    },
+    [onOpen],
+  );
+
+  const liveMessage = !hasFlipped ? "" : flipped ? `${protocolName} details shown.` : `${protocolName} summary shown.`;
   const ariaLabel = flipped
-    ? `${protocolName} details. Press Enter, Space, or Escape to return to summary.`
-    : `${protocolName} summary card. Press Enter or Space to view details.`;
-  const [hasFlipped, setHasFlipped] = useState(false);
-  useEffect(() => {
-    if (flipped) setHasFlipped(true);
-  }, [flipped]);
-  const liveMessage = !hasFlipped
-    ? ""
-    : flipped
-      ? `${protocolName} details shown.`
-      : `${protocolName} summary shown.`;
-
-  // Visible flip toast (mirrors the screen-reader announcement so sighted users
-  // also see the state change). Auto-hides after a short delay.
-  const [visibleFlipToast, setVisibleFlipToast] = useState("");
-
-  // Detail sections rendered as separate stacked card containers below the main
-  // protocol card — matches the original always-visible layout.
-  // Locked cards (dimmed) hide their detail sections entirely so the library
-  // only reveals full info once a plan is active/scheduled.
-  const renderDetailSections = () => {
-    if (dimmed) return null;
-    if (!expanded) return null;
-    return (
-      <div data-no-flip>
-        <ProtocolDetailSections protocol={protocol} />
-      </div>
-    );
-  };
-
-  useEffect(() => {
-    if (!hasFlipped) return;
-    setVisibleFlipToast(flipped ? "Showing details" : "Showing summary");
-    const t = window.setTimeout(() => setVisibleFlipToast(""), 1600);
-    return () => window.clearTimeout(t);
-  }, [flipped, hasFlipped]);
-
-  // One-time touch hint: announced the first time a touch interaction starts on this card.
-  const [touchHint, setTouchHint] = useState("");
-  const touchHintShownRef = useRef(false);
+    ? `${protocolName} details card. Press Enter, Space, or tap to return to summary.`
+    : `${protocolName} summary card. Press Enter, Space, or tap to view details.`;
 
   const innerStyle: CSSProperties = {
     transformStyle: "preserve-3d",
@@ -385,45 +293,28 @@ export function InteractiveProtocolCard({
     minHeight: effectiveHeight > 0 ? undefined : 320,
   };
 
-  const surfaceStyle: CSSProperties = {
+  const faceStyle: CSSProperties = {
     background:
       "linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--card)) 60%, hsl(var(--muted) / 0.6) 100%)",
     boxShadow:
       "0 24px 48px -16px hsl(0 0% 0% / 0.55), 0 12px 24px -10px hsl(0 0% 0% / 0.4), 0 4px 8px -2px hsl(0 0% 0% / 0.25), inset 0 1px 0 hsl(0 0% 100% / 0.1), inset 0 -1px 0 hsl(0 0% 0% / 0.3)",
   };
 
-  if (isMobile) {
-    return (
-      <div className={`relative pt-6 pb-4 select-none ${dimmed ? "opacity-60 grayscale-[20%]" : ""}`}>
-        <CardStackBackdrop />
-
-        <div
-          role="status"
-          aria-live="polite"
-          aria-atomic="true"
-          className="sr-only"
+  const backActions = !backExtraAction && !onOpen ? undefined : (
+    <>
+      {backExtraAction}
+      {onOpen && (
+        <button
+          type="button"
+          data-no-flip
+          onClick={handleOpen}
+          className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-primary transition-colors hover:bg-primary/15"
         >
-          {liveMessage}
-        </div>
-
-        <div className="relative rounded-2xl overflow-hidden border border-border" style={surfaceStyle}>
-          <CardFront
-            protocol={protocol}
-            showChevron={false}
-            pulse={false}
-            shimmer={false}
-            animateStats={false}
-            frontExtra={frontExtra}
-            dimmed={dimmed}
-            expandable
-            expanded={expanded}
-            onToggleExpanded={() => setExpanded((v) => !v)}
-          />
-        </div>
-        {renderDetailSections()}
-      </div>
-    );
-  }
+          {openLabel}
+        </button>
+      )}
+    </>
+  );
 
   return (
     <div
@@ -437,9 +328,6 @@ export function InteractiveProtocolCard({
     >
       <CardStackBackdrop />
 
-      {/* Hidden measurement layer — renders both faces off-screen at full width
-          so we can size the flip container to the taller of the two. Pointer
-          events disabled and aria-hidden so it's invisible to users + a11y. */}
       {forcedHeight === undefined && (
         <div
           aria-hidden="true"
@@ -454,36 +342,30 @@ export function InteractiveProtocolCard({
               shimmer={false}
               animateStats={false}
               frontExtra={frontExtra}
+              dimmed={dimmed}
             />
           </div>
           <div ref={backMeasureRef} className="rounded-2xl border border-border">
-            <BackContent protocol={protocol} extraAction={backExtraAction} />
+            <BackContent protocol={protocol} onClose={handleClose} extraAction={backActions} />
           </div>
         </div>
       )}
 
-      <div
-        role="status"
-        aria-live="polite"
-        aria-atomic="true"
-        className="sr-only"
-      >
+      <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
         {liveMessage}
       </div>
 
-      {/* Visible flip toast — small pill at the top-center of the card */}
       <div
         aria-hidden="true"
-        className={`pointer-events-none absolute top-2 left-1/2 -translate-x-1/2 z-30 transition-all duration-200 ${
-          visibleFlipToast ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-1"
+        className={`pointer-events-none absolute top-2 left-1/2 z-30 -translate-x-1/2 transition-all duration-200 ${
+          visibleFlipToast ? "translate-y-0 opacity-100" : "-translate-y-1 opacity-0"
         }`}
       >
         {visibleFlipToast && (
           <div
             className="rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-primary-foreground shadow-lg"
             style={{
-              backgroundImage:
-                "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.85) 100%)",
+              backgroundImage: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.85) 100%)",
               boxShadow: "0 6px 18px -4px hsl(var(--primary) / 0.55)",
             }}
           >
@@ -492,22 +374,28 @@ export function InteractiveProtocolCard({
         )}
       </div>
 
-      <div
-        role="status"
-        aria-live="polite"
-        aria-atomic="true"
-        className="sr-only"
-      >
+      <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
         {touchHint}
       </div>
 
       <div
         ref={innerRef}
-        className="relative rounded-2xl group"
+        role="button"
+        tabIndex={0}
+        aria-label={ariaLabel}
+        aria-pressed={flipped}
+        className="relative rounded-2xl group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        style={innerStyle}
+        onPointerDown={onDown}
+        onPointerMove={onMoveCheck}
+        onPointerUp={onUp}
+        onPointerCancel={onCancel}
+        onClickCapture={onClickCapture}
+        onKeyDown={onKeyDown}
       >
         <div
-          className="relative overflow-hidden rounded-2xl border border-border"
-          style={surfaceStyle}
+          className="absolute inset-0 overflow-hidden rounded-2xl border border-border"
+          style={{ ...faceStyle, backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden" }}
         >
           <CardFront
             protocol={protocol}
@@ -519,8 +407,19 @@ export function InteractiveProtocolCard({
             dimmed={dimmed}
           />
         </div>
+
+        <div
+          className="absolute inset-0 overflow-hidden rounded-2xl border border-border"
+          style={{
+            ...faceStyle,
+            backfaceVisibility: "hidden",
+            WebkitBackfaceVisibility: "hidden",
+            transform: "rotateY(180deg)",
+          }}
+        >
+          <BackContent protocol={protocol} onClose={handleClose} extraAction={backActions} />
+        </div>
       </div>
-      {renderDetailSections()}
     </div>
   );
 }

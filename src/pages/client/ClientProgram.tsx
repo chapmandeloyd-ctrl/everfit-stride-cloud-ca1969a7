@@ -235,10 +235,7 @@ export default function ClientProgram() {
     [],
   );
 
-  /* ── 5. Accordion: only one card expanded at a time ── */
-  const [openCard, setOpenCard] = useState<"protocol" | "keto" | null>(null);
-
-  /* ── 6. Render ── */
+  /* ── 5. Render ── */
   const hasProgram = !!protocolDemo && !!ketoType;
 
   return (
@@ -301,8 +298,6 @@ export default function ClientProgram() {
               }
               onMeasureHeight={makeOnMeasure("protocol")}
               forcedHeight={tallest > 0 ? tallest : undefined}
-              expanded={openCard === "protocol"}
-              onExpandedChange={(next) => setOpenCard(next ? "protocol" : null)}
             />
           </section>
         )}
@@ -321,21 +316,15 @@ export default function ClientProgram() {
             <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary">
               Stage 2 · Keto Type
             </p>
-            <button
-              type="button"
-              onClick={() => navigate(`/client/keto-types/${ketoType.id}`)}
-              className="block w-full text-left"
-            >
-              <InteractiveKetoTypeCard
-                ketoType={ketoToCard(ketoType)}
-                themeColor={ketoType.color || undefined}
-                isCurrent
-                onMeasureHeight={makeOnMeasure("keto")}
-                forcedHeight={tallest > 0 ? tallest : undefined}
-                expanded={openCard === "keto"}
-                onExpandedChange={(next) => setOpenCard(next ? "keto" : null)}
-              />
-            </button>
+            <InteractiveKetoTypeCard
+              ketoType={ketoToCard(ketoType)}
+              themeColor={ketoType.color || undefined}
+              isCurrent
+              onOpen={() => navigate(`/client/keto-types/${ketoType.id}`)}
+              openLabel="Open keto details"
+              onMeasureHeight={makeOnMeasure("keto")}
+              forcedHeight={tallest > 0 ? tallest : undefined}
+            />
           </section>
         )}
 
