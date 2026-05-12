@@ -498,7 +498,7 @@ function TiltyIconTile({
           className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3"
           style={{
             background:
-              "radial-gradient(ellipse at 50% 110%, hsl(0 0% 0% / 0.55) 0%, hsl(0 0% 0% / 0.18) 45%, transparent 75%)",
+              "radial-gradient(ellipse at 50% 115%, hsl(0 0% 0% / 0.28) 0%, hsl(0 0% 0% / 0.08) 45%, transparent 75%)",
           }}
         />
         {pulse && (
