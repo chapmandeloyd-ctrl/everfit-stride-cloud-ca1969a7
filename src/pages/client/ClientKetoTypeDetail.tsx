@@ -578,12 +578,15 @@ export default function ClientKetoTypeDetail() {
       {/* Recap confirmation — final step before assigning */}
       {recapOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
-          style={{ background: "rgba(0,0,0,0.7)" }}
+          className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-4 overflow-y-auto"
+          style={{
+            background: "rgba(0,0,0,0.7)",
+            paddingBottom: "calc(1rem + env(safe-area-inset-bottom) + 96px)",
+          }}
           onClick={() => setRecapOpen(false)}
         >
           <div
-            className="w-full max-w-md rounded-2xl p-6"
+            className="w-full max-w-md rounded-2xl p-6 max-h-full overflow-y-auto"
             style={{ background: SURFACE_2, border: `1px solid ${GOLD}33` }}
             onClick={(e) => e.stopPropagation()}
           >
