@@ -537,7 +537,7 @@ export default function ClientKetoTypeDetail() {
                 style={{ background: SURFACE, border: `1px solid ${GOLD}33` }}
                 onClick={() => {
                   setSynergyConfirmOpen(false);
-                  navigate("/client/programs", {
+                  navigate("/client/fasting-plans-preview", {
                     state: {
                       pendingKeto: {
                         id: ketoType.id,
