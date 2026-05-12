@@ -1,57 +1,20 @@
-import { useEffect } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useNavigate } from "react-router-dom";
-import { X, Lock, Sparkles } from "lucide-react";
-import { Star } from "lucide-react";
-import lionLogo from "@/assets/logo.png";
+import { ArrowLeft, Sparkles, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { ClientLayout } from "@/components/ClientLayout";
+import {
+  InteractiveKetoTypeCard,
+  type KetoTypeForCard,
+} from "@/components/keto/InteractiveKetoTypeCard";
 
 /**
- * Editorial Black & Gold preview of the entire KSOM keto type library.
- * Mirrors ClientFastingPlansPreview so the "View Keto Type" entry point
- * matches the "View Protocol" entry point exactly (lion + big numbers).
+ * Dark-style keto library — mirrors ClientPrograms (/client/programs).
+ * Uses InteractiveKetoTypeCard (tap-to-flip) for every keto type, grouped
+ * by category, with the assigned type pinned at top as "Your Current".
  */
-
-const GOLD = "hsl(42 70% 55%)";
-const IVORY = "hsl(40 20% 92%)";
-const MUTED = "hsl(40 10% 65%)";
-const BLACK = "hsl(0 0% 4%)";
-const CARD_BG = "hsl(0 0% 7%)";
-
-function LockedBadge({ assignedName }: { assignedName?: string | null }) {
-  const tooltipText = assignedName
-    ? `Your coach has locked plan selection. Currently active: ${assignedName}. Message your coach to switch.`
-    : "Your coach has locked plan selection. Only the keto type they assigned is active — message your coach to switch.";
-  return (
-    <TooltipProvider delayDuration={150}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <span
-            role="button"
-            tabIndex={0}
-            aria-label="Locked by your coach"
-            onClick={(e) => e.stopPropagation()}
-            className="absolute top-3 right-3 inline-flex items-center gap-1 px-2 py-1 rounded-full text-[9px] uppercase tracking-widest font-bold z-20 cursor-help"
-            style={{
-              background: `${GOLD}15`,
-              color: GOLD,
-              border: `1px solid ${GOLD}50`,
-              pointerEvents: "auto",
-            }}
-          >
-            <Lock className="h-2.5 w-2.5" />
-            Locked
-          </span>
-        </TooltipTrigger>
-        <TooltipContent side="left" className="max-w-[220px] text-xs leading-snug">
-          {tooltipText}
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  );
-}
 
 interface KetoCategory {
   id: string;
@@ -69,98 +32,30 @@ interface KetoType {
   fat_pct: number;
   protein_pct: number;
   carbs_pct: number;
+  carb_limit_grams: number | null;
   difficulty: string;
+  how_it_works: string | null;
+  built_for: string[] | null;
   category_id: string;
   color: string;
   order_index: number;
 }
 
-function KetoLionCard({
-  abbreviation,
-  name,
-  subtitle,
-  fatPct,
-  proteinPct,
-  carbsPct,
-  locked,
-  isAssigned,
-  onClick,
-  assignedName,
-}: {
-  abbreviation: string;
-  name: string;
-  subtitle: string | null;
-  fatPct: number;
-  proteinPct: number;
-  carbsPct: number;
-  locked: boolean;
-  isAssigned: boolean;
-  onClick: () => void;
-  assignedName?: string | null;
-}) {
-  // The "big numbers" treatment: show ABBR (e.g. CKD) as the headline number
-  // and the full name as the editorial title underneath.
-  const split = `${Math.round(fatPct)}/${Math.round(proteinPct)}/${Math.round(carbsPct)}`;
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="relative w-full text-left overflow-hidden p-5 transition active:scale-[0.99]"
-      style={{ background: CARD_BG, border: `1px solid ${GOLD}30` }}
-    >
-      <img
-        src={lionLogo}
-        alt=""
-        aria-hidden
-        className="absolute -right-10 top-1/2 -translate-y-1/2 w-44 h-44 object-contain pointer-events-none"
-        style={{
-          filter: "sepia(1) hue-rotate(-15deg) saturate(2.5) brightness(1.2)",
-          opacity: locked ? 0.08 : 0.18,
-        }}
-      />
-      {locked && (
-        <LockedBadge assignedName={assignedName} />
-      )}
-      {isAssigned && !locked && (
-        <div
-          className="absolute top-3 right-3 inline-flex items-center gap-1 px-2 py-1 rounded-full text-[9px] uppercase tracking-widest font-bold"
-          style={{ background: GOLD, color: BLACK }}
-        >
-          ★ Yours
-        </div>
-      )}
-      <div className="relative space-y-2 max-w-[62%]">
-        <p className="text-[10px] uppercase tracking-[0.3em]" style={{ color: GOLD }}>
-          {split} F/P/C
-        </p>
-        <p
-          className="text-3xl font-light tracking-tight leading-none"
-          style={{ color: GOLD, fontFamily: "Georgia, serif" }}
-        >
-          {abbreviation}
-        </p>
-        <h3
-          className="text-lg font-light tracking-tight leading-tight"
-          style={{ color: locked ? MUTED : IVORY, fontFamily: "Georgia, serif" }}
-        >
-          {name}
-        </h3>
-        {subtitle && (
-          <p className="text-xs leading-relaxed line-clamp-2" style={{ color: MUTED }}>
-            {subtitle}
-          </p>
-        )}
-      </div>
-    </button>
-  );
-}
-
-function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="text-[10px] uppercase tracking-[0.4em]" style={{ color: MUTED }}>
-      {children}
-    </p>
-  );
+function toKetoCardData(kt: KetoType): KetoTypeForCard {
+  return {
+    abbreviation: kt.abbreviation,
+    name: kt.name,
+    subtitle: kt.subtitle,
+    description: kt.description,
+    difficulty: kt.difficulty,
+    fat_pct: kt.fat_pct,
+    protein_pct: kt.protein_pct,
+    carbs_pct: kt.carbs_pct,
+    carb_limit_grams: kt.carb_limit_grams,
+    how_it_works: kt.how_it_works,
+    built_for: kt.built_for,
+    color: kt.color,
+  };
 }
 
 export default function ClientKetoTypes() {
@@ -213,7 +108,7 @@ export default function ClientKetoTypes() {
       const { data, error } = await supabase
         .from("keto_types")
         .select(
-          "id, abbreviation, name, subtitle, description, fat_pct, protein_pct, carbs_pct, difficulty, category_id, color, order_index",
+          "id, abbreviation, name, subtitle, description, fat_pct, protein_pct, carbs_pct, carb_limit_grams, difficulty, how_it_works, built_for, category_id, color, order_index",
         )
         .eq("is_active", true)
         .order("order_index");
@@ -256,9 +151,6 @@ export default function ClientKetoTypes() {
   const assignedKetoId = activeAssignment?.keto_type_id ?? null;
 
   const assignedKeto = ketoTypes?.find((k) => k.id === assignedKetoId) ?? null;
-  const assignedKetoLabel = assignedKeto
-    ? `${assignedKeto.abbreviation} — ${assignedKeto.name}`
-    : null;
 
   const grouped =
     categories?.map((cat) => ({
@@ -266,173 +158,127 @@ export default function ClientKetoTypes() {
       items: ketoTypes?.filter((t) => t.category_id === cat.id) || [],
     })).filter((g) => g.items.length > 0) || [];
 
-  return (
-    <div className="min-h-screen" style={{ background: BLACK }}>
-      <div
-        className="sticky top-0 z-10 flex items-center gap-2 p-3"
-        style={{ background: BLACK, borderBottom: `1px solid ${GOLD}20` }}
-      >
-        <button onClick={() => navigate(-1)} className="p-2" style={{ color: IVORY }}>
-          <X className="h-5 w-5" />
-        </button>
-      </div>
+  // Uniform card heights across the whole list.
+  const [heights, setHeights] = useState<Record<string, number>>({});
+  const tallest = useMemo(() => {
+    const vals = Object.values(heights);
+    return vals.length ? Math.max(...vals) : 0;
+  }, [heights]);
+  const makeOnMeasure = useCallback(
+    (key: string) => (h: number) => {
+      setHeights((prev) => (prev[key] === h ? prev : { ...prev, [key]: h }));
+    },
+    [],
+  );
 
-      <div className="px-5 pt-4 pb-12 space-y-8">
-        {pendingProtocol && (
-          <div
-            className="flex items-start gap-3 px-4 py-3 rounded-lg"
-            style={{
-              background: `${GOLD}12`,
-              border: `1px solid ${GOLD}55`,
-            }}
+  return (
+    <ClientLayout>
+      <div className="max-w-md mx-auto px-4 pt-4 pb-32 space-y-6">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => navigate(-1)}
+            className="p-2 -ml-2 text-foreground/80 hover:text-foreground"
+            aria-label="Back"
           >
-            <Sparkles className="h-4 w-4 shrink-0 mt-0.5" style={{ color: GOLD }} />
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          <h1 className="text-2xl font-black tracking-tight">All Keto Types</h1>
+        </div>
+
+        {pendingProtocol && (
+          <div className="flex items-start gap-3 px-4 py-3 rounded-lg border border-primary/40 bg-primary/10">
+            <Sparkles className="h-4 w-4 shrink-0 mt-0.5 text-primary" />
             <div className="flex-1 min-w-0">
-              <p className="text-[10px] uppercase tracking-[0.3em]" style={{ color: GOLD }}>
+              <p className="text-[10px] uppercase tracking-[0.3em] text-primary font-bold">
                 Building your KSOM-360 Synergy program
               </p>
-              <p className="text-sm font-light" style={{ color: IVORY, fontFamily: "Georgia, serif" }}>
+              <p className="text-sm">
                 Pick a keto type to pair with{" "}
                 <span className="font-semibold">{pendingProtocol.name}</span>
               </p>
             </div>
             <button
               onClick={() => navigate(-1)}
-              className="text-[10px] uppercase tracking-wider px-2 py-1"
-              style={{ color: MUTED }}
+              className="text-[10px] uppercase tracking-wider px-2 py-1 text-muted-foreground"
             >
               Cancel
             </button>
           </div>
         )}
 
-        <div className="space-y-2">
-          <p className="text-[10px] uppercase tracking-[0.4em]" style={{ color: GOLD }}>
-            The Nutrition Framework
-          </p>
-          <h1
-            className="text-4xl font-light tracking-tight"
-            style={{ color: IVORY, fontFamily: "Georgia, serif" }}
-          >
-            Keto types
-          </h1>
-          <p className="text-xs" style={{ color: MUTED }}>
-            {ketoTypes?.length ?? 0} keto frameworks · curated by category
-            {isLocked && " · locked by your coach"}
-          </p>
-        </div>
+        {isLocked && (
+          <div className="flex items-center gap-2 px-3 py-2 rounded-md border border-amber-500/30 bg-amber-500/10 text-amber-300 text-xs">
+            <ShieldCheck className="h-3.5 w-3.5" />
+            Plan selection is locked by your coach.
+          </div>
+        )}
 
         {isLoading && (
-          <p style={{ color: MUTED }} className="text-xs">
-            Loading…
-          </p>
+          <p className="text-xs text-muted-foreground">Loading…</p>
         )}
 
         {assignedKeto && (
           <section className="space-y-3">
-            <div
-              className="flex items-center gap-3 px-4 py-3 rounded-sm"
-              style={{
-                background: `${GOLD}12`,
-                border: `1px solid ${GOLD}55`,
-              }}
+            <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-primary">
+              Your Current Keto Type
+            </p>
+            <button
+              type="button"
+              onClick={() => navigate(`/client/keto-types/${assignedKeto.id}`, navState)}
+              className="block w-full text-left"
             >
-              <Star className="h-4 w-4 shrink-0" style={{ color: GOLD }} fill={GOLD} />
-              <div className="flex-1 min-w-0">
-                <p
-                  className="text-[10px] uppercase tracking-[0.3em]"
-                  style={{ color: GOLD }}
-                >
-                  You're viewing your current keto type
-                </p>
-                <p
-                  className="text-sm font-light truncate"
-                  style={{ color: IVORY, fontFamily: "Georgia, serif" }}
-                >
-                  {assignedKeto.abbreviation} — {assignedKeto.name}
-                </p>
-              </div>
-            </div>
-            <div className="space-y-3">
-              <KetoLionCard
-                abbreviation={assignedKeto.abbreviation}
-                name={assignedKeto.name}
-                subtitle={assignedKeto.subtitle ?? assignedKeto.description}
-                fatPct={assignedKeto.fat_pct}
-                proteinPct={assignedKeto.protein_pct}
-                carbsPct={assignedKeto.carbs_pct}
-                locked={false}
-                isAssigned={true}
-                assignedName={assignedKetoLabel}
-                onClick={() => navigate(`/client/keto-types/${assignedKeto.id}`, navState)}
+              <InteractiveKetoTypeCard
+                ketoType={toKetoCardData(assignedKeto)}
+                themeColor={assignedKeto.color || undefined}
+                isCurrent
+                onMeasureHeight={makeOnMeasure(assignedKeto.id)}
+                forcedHeight={tallest > 0 ? tallest : undefined}
               />
-            </div>
+            </button>
           </section>
-        )}
-
-        {!assignedKeto && !isLoading && (
-          <div
-            className="flex items-center gap-3 px-4 py-3 rounded-sm"
-            style={{
-              background: `${MUTED}10`,
-              border: `1px dashed ${MUTED}55`,
-            }}
-          >
-            <Star className="h-4 w-4 shrink-0" style={{ color: MUTED }} />
-            <div className="flex-1 min-w-0">
-              <p
-                className="text-[10px] uppercase tracking-[0.3em]"
-                style={{ color: MUTED }}
-              >
-                No keto type assigned
-              </p>
-              <p
-                className="text-sm font-light"
-                style={{ color: MUTED, fontFamily: "Georgia, serif" }}
-              >
-                Clients will see their current keto type pinned here.
-              </p>
-            </div>
-          </div>
         )}
 
         {grouped.map((group) => {
           const items = group.items.filter((t) => t.id !== assignedKetoId);
           if (items.length === 0) return null;
           return (
-          <section key={group.category.id} className="space-y-3">
-            <SectionLabel>{group.category.name}</SectionLabel>
-            <div className="space-y-3">
-              {items.map((kt) => {
-                const isAssigned = kt.id === assignedKetoId;
-                const locked = isLocked && !isAssigned;
-                return (
-                  <KetoLionCard
-                    key={kt.id}
-                    abbreviation={kt.abbreviation}
-                    name={kt.name}
-                    subtitle={kt.subtitle ?? kt.description}
-                    fatPct={kt.fat_pct}
-                    proteinPct={kt.protein_pct}
-                    carbsPct={kt.carbs_pct}
-                    locked={locked}
-                    isAssigned={isAssigned}
-                    assignedName={assignedKetoLabel}
-                    onClick={() => navigate(`/client/keto-types/${kt.id}`, navState)}
-                  />
-                );
-              })}
-            </div>
-          </section>
+            <section key={group.category.id} className="space-y-3">
+              <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-muted-foreground">
+                {group.category.name}
+              </p>
+              <div className="space-y-6">
+                {items.map((kt) => {
+                  const locked = isLocked;
+                  return (
+                    <button
+                      key={kt.id}
+                      type="button"
+                      onClick={() =>
+                        navigate(`/client/keto-types/${kt.id}`, navState)
+                      }
+                      className="block w-full text-left"
+                    >
+                      <InteractiveKetoTypeCard
+                        ketoType={toKetoCardData(kt)}
+                        themeColor={kt.color || undefined}
+                        dimmed={locked}
+                        onMeasureHeight={makeOnMeasure(kt.id)}
+                        forcedHeight={tallest > 0 ? tallest : undefined}
+                      />
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
           );
         })}
 
         {!isLoading && grouped.length === 0 && (
-          <p style={{ color: MUTED }} className="text-xs">
+          <p className="text-xs text-muted-foreground">
             No keto types available yet. Your coach will set these up for you.
           </p>
         )}
       </div>
-    </div>
+    </ClientLayout>
   );
 }
