@@ -235,6 +235,9 @@ export default function ClientProgram() {
     [],
   );
 
+  /* ── 5. Accordion: only one card expanded at a time ── */
+  const [openCard, setOpenCard] = useState<"protocol" | "keto" | null>(null);
+
   /* ── 6. Render ── */
   const hasProgram = !!protocolDemo && !!ketoType;
 
