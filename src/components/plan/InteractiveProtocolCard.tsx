@@ -343,7 +343,7 @@ export function InteractiveProtocolCard({
         </div>
 
         <div className="relative overflow-hidden rounded-2xl border border-border" style={faceStyle}>
-          <div className="absolute top-3 left-0 right-0 z-30 flex justify-end px-3">
+          <div className="absolute top-4 left-0 right-0 z-30 flex justify-end px-5">
             <button
               type="button"
               data-no-flip
