@@ -332,7 +332,45 @@ export default function ClientProgram() {
           </section>
         )}
 
-        {/* Daily Meal Timeline */}
+        {/* Program recap + Start CTA */}
+        {hasProgram && protocolDemo && ketoType && (
+          <section className="rounded-2xl border border-primary/30 bg-gradient-to-b from-primary/10 to-transparent p-5 space-y-4">
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary mb-2">
+                Program Recap
+              </p>
+              <p className="text-sm text-foreground/80 leading-relaxed">
+                You're running{" "}
+                <span className="font-semibold text-foreground">{protocolDemo.title}</span>{" "}
+                paired with{" "}
+                <span className="font-semibold text-foreground">{ketoType.name}</span>{" "}
+                ({ketoType.fat_pct}/{ketoType.protein_pct}/{ketoType.carbs_pct} F/P/C).
+                Fast clean, refill clean — daily.
+              </p>
+            </div>
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <div className="rounded-lg border border-border bg-card/60 p-2">
+                <div className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground">Stage 1</div>
+                <div className="text-xs font-bold text-foreground mt-0.5">Protocol</div>
+              </div>
+              <div className="rounded-lg border border-border bg-card/60 p-2">
+                <div className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground">Stage 2</div>
+                <div className="text-xs font-bold text-foreground mt-0.5">Keto Type</div>
+              </div>
+              <div className="rounded-lg border border-primary/40 bg-primary/10 p-2">
+                <div className="text-[9px] uppercase tracking-[0.2em] text-primary">Stage 3</div>
+                <div className="text-xs font-bold text-foreground mt-0.5">Execute</div>
+              </div>
+            </div>
+            <Button
+              className="w-full font-bold"
+              onClick={() => navigate("/client/dashboard")}
+            >
+              Start Your Program
+            </Button>
+          </section>
+        )}
+
         {/* Browse CTAs */}
         <div className="grid grid-cols-2 gap-2 pt-2">
           <Button
