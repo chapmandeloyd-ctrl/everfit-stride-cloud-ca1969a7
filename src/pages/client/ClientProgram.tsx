@@ -289,13 +289,6 @@ export default function ClientProgram() {
             </p>
             <InteractiveProtocolCard
               protocol={protocolDemo}
-              onOpen={() =>
-                navigate(
-                  protocol
-                    ? `/client/protocol/${protocol.id}`
-                    : `/client/quick-plan/${quickPlan!.id}`,
-                )
-              }
               onMeasureHeight={makeOnMeasure("protocol")}
               forcedHeight={tallest > 0 ? tallest : undefined}
             />
