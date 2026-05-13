@@ -85,6 +85,8 @@ function ketoToCard(kt: KetoTypeRow): KetoTypeForCard {
 export default function ClientProgram() {
   const navigate = useNavigate();
   const clientId = useEffectiveClientId();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   /* ── 1. Assignment IDs ── */
   const { data: assignments } = useQuery({
