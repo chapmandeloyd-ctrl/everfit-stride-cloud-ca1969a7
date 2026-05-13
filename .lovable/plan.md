@@ -1,84 +1,92 @@
-## Goal
-Lock in the new terminology and ship a new dark **Program** page that combines the assigned Protocol + Keto Type + Daily Meal Timeline. Keep the old gold complete-plan code as a backup but make it unreachable.
+# KSOM360 Premium Onboarding — Build Plan
 
-## Terminology lock
-- **Protocol** = fasting half (e.g. Classic 16:8)
-- **Keto Type** = nutrition half (SKD, HPKD…)
-- **Program** = Protocol + Keto Type combined
+A complete replacement for the current 6-step `ClientOnboarding.tsx` with a premium, clinically-toned metabolic assessment flow. Existing engine intro/questions stay available but are bypassed when the new flow runs.
 
-## Step 1 — Rename on `/client/programs`
-File: `src/pages/client/ClientPrograms.tsx`
-- "All Programs" → **"All Protocols"**
-- "Your Current Program" → **"Your Current Protocol"**
-(Route stays `/client/programs` — internal only, no nav links break.)
+## Flow (10 screens)
 
-## Step 2 — Hide gold complete-plan (keep file as backup)
-- Keep `src/pages/client/ClientFastingPlanDetailPreview.tsx` untouched (backup).
-- In `src/App.tsx`, remove the `/client/complete-plan` route so it 404s / falls through.
-- Repoint every `navigate("/client/complete-plan")` and click handler to the **new** `/client/program` route:
-  - `src/components/dashboard/AssignedPlanCard.tsx`
-  - `src/pages/client/ClientDashboard.tsx`
-  - `src/pages/client/ClientProfile.tsx`
-  - `src/pages/client/ClientProtocolDetail.tsx`
-  - `src/pages/client/ClientKetoTypeDetail.tsx` (post-assign navigations)
-  - `src/pages/client/ClientFastingPlanDetailPreview.tsx` (the inner navs — leave or repoint; either way unreachable)
-- Result: gold UI still exists in the repo for reference but no UI surface links to it.
+1. **Welcome** — "Your metabolism tells a story." Animated metabolic ring, particle glow, single CTA.
+2. **Body Metrics** — Age, Sex, Height, Weight, Goal Weight (optional). Live body silhouette + sliders.
+3. **Activity Level** — 5 premium selectable cards (Sedentary → Athlete) with helper text.
+4. **Health & Goals** — Multi-select goal cards (10 options).
+5. **Metabolic Snapshot** — Calculated BMI + classification, metabolic strain category, gauge, rings, supportive (never-shaming) copy + "The good news" + improvement cards.
+6. **System Intro** — "You don't need another diet." 3 animated cards: FUEL / TRAIN / RESTORE.
+7. **Coaching Style** — Guided ("Most Effective", elevated card) vs Self-Guided ("Flexible").
+8. **Fasting Synergy** — Recommend ONE based on BMI + activity + age + goals; "See Other Options" reveals the 4 synergies.
+9. **First Week Preview** — Premium timeline: fasting/eating window, hydration, movement, recovery, meal previews.
+10. **Activate** — Success animation + "Activate My Plan" / "Explore Dashboard".
 
-## Step 3 — New dark Program page at `/client/program`
-New file: `src/pages/client/ClientProgram.tsx` + route in `App.tsx`.
+Top progress indicator on every step. Smooth fade/scale transitions between steps.
 
-Layout (mobile-first, `max-w-md mx-auto`, dark theme, electric red primary):
+## Recommendation logic (client-side)
 
 ```text
-[← back]  Your Program
-─────────────────────────────
-Why it works  (1 short paragraph, dynamic by protocol+keto)
-─────────────────────────────
-PROTOCOL
-<InteractiveProtocolCard status="current" />     (assigned, dark flip card)
-─────────────────────────────
-KETO TYPE
-<InteractiveKetoTypeCard dimmed=false />          (assigned, dark flip card)
-─────────────────────────────
-DAILY MEAL TIMELINE
-- Daily totals strip (Cal / Fat / Carbs / Protein) — red+teal chips
-- Vertical dotted rail w/ 4 blocks: Fast → Break-Fast → Lunch → Dinner
-- Each meal: time, label, description, macro chips
-─────────────────────────────
-[ Browse Protocols ]   [ Browse Keto Types ]
+if BMI >= 30 OR activity in [Sedentary, Lightly]    → Metabolic Reset (12–14h)
+elif BMI 25–29.9 AND goals include Fat Loss/Belly   → Fat Loss Accelerator (16:8)
+elif activity in [Highly, Athlete] AND age < 45     → Performance Fuel System
+elif BMI < 25 AND experience suggests advanced      → Advanced Metabolic Protocol (18:6/OMAD)
+else                                                → Fat Loss Accelerator (default)
 ```
 
-### Data sources
-- **Assigned Protocol** → `client_feature_settings.selected_protocol_id` → `fasting_protocols` row (same query as `ClientPrograms`).
-- **Assigned Keto Type** → existing keto-type query used by `ClientKetoTypes` (DB-driven `color`, `how_it_works`, `built_for`, `carb_limit_grams`).
-- **Eating-window times** → derived from `fasting_protocols.description.daily_structure` (same `pickWindowTimes` logic as gold page — extract into `src/lib/programWindow.ts`).
-- **Meal Timeline content** → port `MEAL_PLANS` + `CHANGE_HIGHLIGHTS` constants from the gold file into a new shared module `src/lib/programMealPlans.ts`. Pure visual data, no behavior change. (The gold page's data is already hardcoded; we keep parity now and can wire it to AI/DB later.)
-- **Time-shifting** → reuse `parseTime/toMinutes/fromMinutes/formatTime` helpers (extract to `src/lib/timeWindow.ts`).
+Metabolic score (0–100): weighted BMI band (50%) + activity (30%) + goal alignment (20%).
 
-### Theming
-- All colors via semantic tokens: `bg-background`, `text-foreground`, `border-border`, `text-primary` (electric red), `text-muted-foreground`.
-- Macro dots: keep meaning but use tokens — `text-primary` (Cal), `text-amber-300` (Fat), `text-sky-400` (Carbs), `text-violet-400` (Protein).
-- No gold (`#GOLD`, ivory). No inline HSL strings.
+## Database schema
 
-### What it does NOT include (parity with gold page minus noise)
-- No keto-type comparison switcher (the assigned type is the only one shown — full library lives on `/client/keto-types`).
-- No "What changed" delta strip (only relevant when comparing types).
-- No bookmark / wheel picker / synergy primer carousel.
+New migration creates three tables, all with RLS keyed to `auth.uid() = client_id` plus trainer-of-client read access via existing `is_trainer_of_client()`:
 
-## Step 4 — Verify in browser
-- Navigate to `/client/program` as a paired client; confirm:
-  - Both flip cards render and flip
-  - Timeline renders 4 blocks with macro chips
-  - "Browse Protocols" → `/client/programs`, "Browse Keto Types" → `/client/keto-types`
-  - `/client/complete-plan` no longer renders (route gone, links repointed)
+- **`onboarding_progress`** — `client_id`, `current_step`, `completed`, `completed_at`, `data jsonb`
+- **`user_metabolic_profile`** — `client_id`, `age`, `sex`, `height_cm`, `weight_kg`, `goal_weight_kg`, `bmi`, `bmi_class`, `activity_level`, `goals text[]`, `metabolic_score`, `metabolic_strain`
+- **`fasting_synergy_selection`** — `client_id`, `synergy_key`, `coaching_style` (guided|self), `recommended_synergy`, `selected_at`
 
-## Files touched
-- Edit: `src/pages/client/ClientPrograms.tsx` (headers)
-- Edit: `src/App.tsx` (drop complete-plan route, add /client/program route)
-- Edit: 5 files repointing navigate() targets
-- New: `src/pages/client/ClientProgram.tsx`
-- New: `src/lib/programMealPlans.ts` (ported constants)
-- New: `src/lib/timeWindow.ts` (shared time helpers)
+Also flip `profiles.onboarding_completed = true` on finish (existing column).
 
-## Open question
-The Daily Meal Timeline in the gold page is **hardcoded mock data**, not from the DB. I'll port it as-is so the new page renders the same content. If you want it driven by real meals (from the meal-planning system or AI), that's a follow-up. OK to proceed with ported mock data for now?
+## File structure
+
+```text
+src/pages/client/ClientOnboarding.tsx          (rewritten — orchestrator)
+src/components/onboarding/premium/
+  ├─ OnboardingShell.tsx                       (progress bar, transitions, dark bg)
+  ├─ steps/
+  │   ├─ WelcomeStep.tsx
+  │   ├─ BodyMetricsStep.tsx
+  │   ├─ ActivityLevelStep.tsx
+  │   ├─ GoalsStep.tsx
+  │   ├─ MetabolicSnapshotStep.tsx
+  │   ├─ SystemIntroStep.tsx
+  │   ├─ CoachingStyleStep.tsx
+  │   ├─ FastingSynergyStep.tsx
+  │   ├─ FirstWeekStep.tsx
+  │   └─ ActivateStep.tsx
+  ├─ MetabolicGauge.tsx                        (SVG arc gauge)
+  ├─ BodySilhouette.tsx                        (SVG, scales by BMI)
+  ├─ MetabolicRing.tsx                         (animated SVG ring)
+  └─ ParticleField.tsx                         (CSS particles, no heavy lib)
+src/lib/onboarding/
+  ├─ metabolicCalc.ts                          (BMI, classification, score, strain)
+  ├─ synergyRecommender.ts                     (recommendation logic)
+  └─ synergies.ts                              (4 synergy definitions)
+```
+
+## Styling
+
+- Pure black background (`hsl(var(--background))`) with electric red primary `#CC1A1A` and KSOM-360 teal accents — already in design tokens, no new colors.
+- Glassmorphism: `bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl`.
+- Space Grotesk headings, Inter body (per project Core).
+- Animations: `animate-fade-in`, `animate-scale-in`, custom CSS for ring sweep and particle drift. No new animation libs.
+- Mobile-first; max-w-md container; large tap targets.
+
+## Wiring
+
+- Route `/client/onboarding` already exists → keeps same path.
+- `useEffectiveClientId()` for client id.
+- All writes via supabase client; final step navigates to `/client/dashboard`.
+- The legacy `EngineIntroStep`/`EngineQuestionsStep` files are left in place untouched (not imported by new flow) — safe rollback.
+
+## Out of scope
+
+- No changes to fasting timer, dashboard, or any other route.
+- No new external libraries.
+- No imagery generation — using SVG + CSS gradients for premium look (faster, no asset cost).
+
+## Approval needed
+
+Reply "go" to proceed; I'll run the migration first, then build the components.
