@@ -181,7 +181,7 @@ export default function ClientOnboarding() {
       step={step}
       totalSteps={TOTAL}
       onBack={back}
-      showParticles={step <= 2 || step === 10}
+      showParticles={step <= 2 || step === 11}
     >
       {step === 1 && <WelcomeStep onNext={next} />}
       {step === 2 && (
