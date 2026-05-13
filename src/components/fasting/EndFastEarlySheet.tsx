@@ -256,7 +256,7 @@ export function EndFastEarlySheet({
       <SheetContent
         side="bottom"
         className="bg-black border-t p-0 max-h-[92vh] overflow-y-auto"
-        style={{ borderColor: "hsl(42 70% 55% / 0.25)" }}
+        style={{ borderColor: "hsl(var(--primary) / 0.3)" }}
       >
         <div className="px-5 pt-6 pb-8 max-w-md mx-auto space-y-5">
           {step === "just_started" ? (
@@ -265,19 +265,19 @@ export function EndFastEarlySheet({
               <div className="space-y-2 text-center">
                 <div
                   className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full"
-                  style={{ backgroundColor: "hsl(42 70% 55% / 0.12)" }}
+                  style={{ backgroundColor: "hsl(var(--primary) / 0.12)" }}
                 >
-                  <AlertCircle className="h-3 w-3" style={{ color: "hsl(42 70% 55%)" }} />
+                  <AlertCircle className="h-3 w-3" style={{ color: "hsl(var(--primary))" }} />
                   <p
                     className="text-[10px] font-medium uppercase tracking-[0.25em]"
-                    style={{ color: "hsl(42 70% 55%)" }}
+                    style={{ color: "hsl(var(--primary))" }}
                   >
                     Just started · {elapsedTotalMins} min in
                   </p>
                 </div>
                 <h2
                   className="text-2xl font-light"
-                  style={{ fontFamily: "Georgia, serif", color: "hsl(40 20% 92%)" }}
+                  style={{ color: "hsl(var(--foreground))" }}
                 >
                   Did you mean to start this fast?
                 </h2>
@@ -290,8 +290,8 @@ export function EndFastEarlySheet({
                 <Button
                   className="w-full h-14 text-sm font-semibold uppercase tracking-widest"
                   style={{
-                    backgroundColor: "hsl(42 70% 55%)",
-                    color: "hsl(0 0% 8%)",
+                    backgroundColor: "hsl(var(--primary))",
+                    color: "hsl(var(--primary-foreground))",
                   }}
                   onClick={() => {
                     onCancelMistake?.();
@@ -308,8 +308,8 @@ export function EndFastEarlySheet({
                   variant="ghost"
                   className="w-full h-12 text-sm font-medium uppercase tracking-widest border bg-transparent hover:bg-white/[0.03]"
                   style={{
-                    borderColor: "hsl(42 70% 55% / 0.4)",
-                    color: "hsl(40 20% 92%)",
+                    borderColor: "hsl(var(--primary) / 0.45)",
+                    color: "hsl(var(--foreground))",
                   }}
                   onClick={() => {
                     onEndAndNotifyTrainer?.({ elapsedHours: Math.round(elapsedH * 100) / 100 });
@@ -328,8 +328,8 @@ export function EndFastEarlySheet({
                       variant="ghost"
                       className="w-full h-12 text-sm font-medium uppercase tracking-widest border bg-transparent hover:bg-white/[0.03]"
                       style={{
-                        borderColor: "hsl(42 70% 55% / 0.25)",
-                        color: "hsl(40 20% 88%)",
+                        borderColor: "hsl(var(--primary) / 0.3)",
+                        color: "hsl(var(--foreground) / 0.9)",
                       }}
                       onClick={() => handleEndSkipFuel("skipped_fuel_just_started")}
                     >
@@ -344,7 +344,7 @@ export function EndFastEarlySheet({
                         type="checkbox"
                         checked={notifyTrainer}
                         onChange={(e) => setNotifyTrainer(e.target.checked)}
-                        className="h-3.5 w-3.5 rounded border-white/30 bg-transparent accent-amber-500"
+                        className="h-3.5 w-3.5 rounded border-white/30 bg-transparent accent-[hsl(var(--primary))]"
                       />
                       <span className="text-[11px] text-white/55">Notify my trainer</span>
                     </label>
@@ -368,13 +368,13 @@ export function EndFastEarlySheet({
               <div className="space-y-1 text-center">
                 <p
                   className="text-[9px] font-medium uppercase tracking-[0.28em]"
-                  style={{ color: "hsl(42 70% 55%)" }}
+                  style={{ color: "hsl(var(--primary))" }}
                 >
                   Pause before you end
                 </p>
                 <h2
                   className="text-base font-light leading-tight sm:text-lg"
-                  style={{ fontFamily: "Georgia, serif", color: "hsl(40 20% 92%)" }}
+                  style={{ color: "hsl(var(--foreground))" }}
                 >
                   {formatElapsedHeader(elapsedHrs, elapsedMins)}
                 </h2>
@@ -386,7 +386,7 @@ export function EndFastEarlySheet({
               {/* Diagnosis (static) */}
               <div
                 className="rounded-lg border p-4 space-y-3"
-                style={{ borderColor: "hsl(42 70% 55% / 0.25)", backgroundColor: "hsl(42 70% 55% / 0.04)" }}
+                style={{ borderColor: "hsl(var(--primary) / 0.3)", backgroundColor: "hsl(var(--primary) / 0.05)" }}
               >
                 <p className="text-sm leading-relaxed text-white/85">
                   {diagnosis.headline}
@@ -402,7 +402,7 @@ export function EndFastEarlySheet({
                   ) : aiLine ? (
                     <p
                       className="text-[13px] italic leading-snug border-l-2 pl-3 animate-in fade-in duration-500"
-                      style={{ color: "hsl(40 20% 88%)", borderColor: "hsl(42 70% 55%)" }}
+                      style={{ color: "hsl(var(--foreground) / 0.9)", borderColor: "hsl(var(--primary))" }}
                     >
                       {aiLine}
                     </p>
@@ -422,9 +422,9 @@ export function EndFastEarlySheet({
                       key={s.id}
                       onClick={() => handleSuggestionTap(s.id)}
                       className="w-full flex items-center gap-3 px-4 py-3.5 rounded-lg border bg-white/[0.02] hover:bg-white/[0.05] transition-colors text-left"
-                      style={{ borderColor: "hsl(42 70% 55% / 0.2)" }}
+                      style={{ borderColor: "hsl(var(--primary) / 0.25)" }}
                     >
-                      <Icon className="h-4 w-4 shrink-0" style={{ color: "hsl(42 70% 55%)" }} />
+                      <Icon className="h-4 w-4 shrink-0" style={{ color: "hsl(var(--primary))" }} />
                       <span className="text-sm text-white/90 flex-1">{s.label}</span>
                     </button>
                   );
@@ -448,13 +448,13 @@ export function EndFastEarlySheet({
               <div className="space-y-1.5 text-center">
                 <p
                   className="text-[10px] font-medium uppercase tracking-[0.3em]"
-                  style={{ color: "hsl(42 70% 55%)" }}
+                  style={{ color: "hsl(var(--primary))" }}
                 >
                   One last thing
                 </p>
                 <h2
                   className="text-2xl font-light"
-                  style={{ fontFamily: "Georgia, serif", color: "hsl(40 20% 92%)" }}
+                  style={{ color: "hsl(var(--foreground))" }}
                 >
                   Why are you ending?
                 </h2>
@@ -472,16 +472,16 @@ export function EndFastEarlySheet({
                       onClick={() => setReason(r.id)}
                       className="w-full flex items-center gap-3 px-4 py-3 rounded-lg border text-left transition-colors"
                       style={{
-                        borderColor: selected ? "hsl(42 70% 55%)" : "hsl(42 70% 55% / 0.2)",
-                        backgroundColor: selected ? "hsl(42 70% 55% / 0.1)" : "transparent",
-                        color: selected ? "hsl(40 20% 95%)" : "hsl(40 10% 75%)",
+                        borderColor: selected ? "hsl(var(--primary))" : "hsl(var(--primary) / 0.25)",
+                        backgroundColor: selected ? "hsl(var(--primary) / 0.1)" : "transparent",
+                        color: selected ? "hsl(var(--foreground))" : "hsl(var(--foreground) / 0.75)",
                       }}
                     >
                       <span className="text-sm flex-1">{r.label}</span>
                       {selected && (
                         <span
                           className="h-2 w-2 rounded-full"
-                          style={{ backgroundColor: "hsl(42 70% 55%)" }}
+                          style={{ backgroundColor: "hsl(var(--primary))" }}
                         />
                       )}
                     </button>
@@ -507,7 +507,7 @@ export function EndFastEarlySheet({
                 <Button
                   variant="ghost"
                   className="h-12 text-sm font-medium uppercase tracking-widest bg-transparent border hover:bg-transparent"
-                  style={{ borderColor: "hsl(42 70% 55% / 0.4)", color: "hsl(40 20% 92%)" }}
+                  style={{ borderColor: "hsl(var(--primary) / 0.45)", color: "hsl(var(--foreground))" }}
                   onClick={() => setStep("coach")}
                 >
                   Back
@@ -523,11 +523,11 @@ export function EndFastEarlySheet({
               </div>
 
               {onEndSkipFuel && (
-                <div className="pt-3 border-t" style={{ borderColor: "hsl(42 70% 55% / 0.15)" }}>
+                <div className="pt-3 border-t" style={{ borderColor: "hsl(var(--primary) / 0.2)" }}>
                   <Button
                     variant="ghost"
                     className="w-full h-11 text-xs font-medium uppercase tracking-widest border bg-transparent hover:bg-white/[0.03]"
-                    style={{ borderColor: "hsl(42 70% 55% / 0.25)", color: "hsl(40 20% 88%)" }}
+                    style={{ borderColor: "hsl(var(--primary) / 0.3)", color: "hsl(var(--foreground) / 0.9)" }}
                     disabled={!reason}
                     onClick={() => handleEndSkipFuel()}
                   >
@@ -542,7 +542,7 @@ export function EndFastEarlySheet({
                       type="checkbox"
                       checked={notifyTrainer}
                       onChange={(e) => setNotifyTrainer(e.target.checked)}
-                      className="h-3.5 w-3.5 rounded border-white/30 bg-transparent accent-amber-500"
+                      className="h-3.5 w-3.5 rounded border-white/30 bg-transparent accent-[hsl(var(--primary))]"
                     />
                     <span className="text-[11px] text-white/55">Notify my trainer</span>
                   </label>
