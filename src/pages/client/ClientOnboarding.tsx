@@ -90,7 +90,7 @@ export default function ClientOnboarding() {
     const merged = { ...state, ...partial };
     setState(merged);
     try {
-      await supabase.from("onboarding_progress").upsert(
+      await (supabase as any).from("onboarding_progress").upsert(
         {
           client_id: clientId,
           current_step: step + 1,
@@ -112,7 +112,7 @@ export default function ClientOnboarding() {
     setLoading(true);
     try {
       // Metabolic profile
-      await supabase.from("user_metabolic_profile").upsert(
+      await (supabase as any).from("user_metabolic_profile").upsert(
         {
           client_id: clientId,
           age: state.age,
@@ -131,7 +131,7 @@ export default function ClientOnboarding() {
       );
 
       // Synergy
-      await supabase.from("fasting_synergy_selection").upsert(
+      await (supabase as any).from("fasting_synergy_selection").upsert(
         {
           client_id: clientId,
           synergy_key: state.synergy,
@@ -143,7 +143,7 @@ export default function ClientOnboarding() {
       );
 
       // Onboarding progress complete
-      await supabase.from("onboarding_progress").upsert(
+      await (supabase as any).from("onboarding_progress").upsert(
         {
           client_id: clientId,
           current_step: TOTAL,
