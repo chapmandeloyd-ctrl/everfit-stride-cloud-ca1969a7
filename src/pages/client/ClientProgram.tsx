@@ -356,9 +356,17 @@ export default function ClientProgram() {
             </div>
             <Button
               className="w-full font-bold"
-              onClick={() => navigate("/client/dashboard")}
+              onClick={() => startFastMutation.mutate()}
+              disabled={startFastMutation.isPending || !clientId}
             >
-              Start Your Program
+              {startFastMutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Starting…
+                </>
+              ) : (
+                "Start Your Program"
+              )}
             </Button>
           </section>
         )}
