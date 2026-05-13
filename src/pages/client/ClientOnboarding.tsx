@@ -1,223 +1,260 @@
-import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
+import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { CheckCircle2, Settings } from "lucide-react";
-import { toast } from "sonner";
-import { z } from "zod";
-import { useEngineMode } from "@/hooks/useEngineMode";
-import { ENGINE_ONBOARDING } from "@/components/onboarding/engineOnboardingContent";
-import EngineIntroStep from "@/components/onboarding/EngineIntroStep";
-import EngineQuestionsStep from "@/components/onboarding/EngineQuestionsStep";
+import OnboardingShell from "@/components/onboarding/premium/OnboardingShell";
+import WelcomeStep from "@/components/onboarding/premium/steps/WelcomeStep";
+import BodyMetricsStep from "@/components/onboarding/premium/steps/BodyMetricsStep";
+import ActivityLevelStep from "@/components/onboarding/premium/steps/ActivityLevelStep";
+import GoalsStep from "@/components/onboarding/premium/steps/GoalsStep";
+import MetabolicSnapshotStep from "@/components/onboarding/premium/steps/MetabolicSnapshotStep";
+import SystemIntroStep from "@/components/onboarding/premium/steps/SystemIntroStep";
+import CoachingStyleStep from "@/components/onboarding/premium/steps/CoachingStyleStep";
+import FastingSynergyStep from "@/components/onboarding/premium/steps/FastingSynergyStep";
+import FirstWeekStep from "@/components/onboarding/premium/steps/FirstWeekStep";
+import ActivateStep from "@/components/onboarding/premium/steps/ActivateStep";
+import {
+  computeSnapshot,
+  type ActivityLevel,
+  type Sex,
+} from "@/lib/onboarding/metabolicCalc";
+import { recommendSynergy } from "@/lib/onboarding/synergyRecommender";
+import type { SynergyKey } from "@/lib/onboarding/synergies";
 
-const profileSchema = z.object({
-  full_name: z.string().trim().min(2, "Name must be at least 2 characters").max(100),
-  height: z.string().optional(),
-  weight: z.string().optional(),
-});
+const TOTAL = 10;
+
+interface OnboardingState {
+  age: number;
+  sex: Sex;
+  heightCm: number;
+  weightKg: number;
+  goalWeightKg: number | null;
+  activity: ActivityLevel | null;
+  goals: string[];
+  coachingStyle: "guided" | "self" | null;
+  synergy: SynergyKey | null;
+}
+
+const INITIAL: OnboardingState = {
+  age: 0,
+  sex: "male",
+  heightCm: 0,
+  weightKg: 0,
+  goalWeightKg: null,
+  activity: null,
+  goals: [],
+  coachingStyle: null,
+  synergy: null,
+};
 
 export default function ClientOnboarding() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const { user } = useAuth();
   const clientId = useEffectiveClientId();
-  const { engineMode } = useEngineMode();
   const [step, setStep] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
+  const [state, setState] = useState<OnboardingState>(INITIAL);
+  const [loading, setLoading] = useState(false);
 
-  const [profileData, setProfileData] = useState({
-    full_name: "",
-    height: "",
-    weight: "",
-  });
+  const snap = useMemo(() => {
+    if (!state.heightCm || !state.weightKg || !state.activity) return null;
+    return computeSnapshot({
+      age: state.age,
+      sex: state.sex,
+      heightCm: state.heightCm,
+      weightKg: state.weightKg,
+      activity: state.activity,
+      goals: state.goals,
+    });
+  }, [state]);
 
-  const forcedEngineMode = (location.state as { engineMode?: keyof typeof ENGINE_ONBOARDING } | null)?.engineMode;
-  const activeEngineMode = (forcedEngineMode ?? engineMode) as keyof typeof ENGINE_ONBOARDING;
-  const content = ENGINE_ONBOARDING[activeEngineMode];
-  // Steps: 1-3 = intro screens, 4 = profile, 5 = engine questions, 6 = completion
-  const totalSteps = 6;
-  const progress = (step / totalSteps) * 100;
+  const recommended: SynergyKey | null = useMemo(() => {
+    if (!snap || !state.activity) return null;
+    return recommendSynergy(
+      {
+        age: state.age,
+        sex: state.sex,
+        heightCm: state.heightCm,
+        weightKg: state.weightKg,
+        activity: state.activity,
+        goals: state.goals,
+      },
+      snap,
+    );
+  }, [snap, state]);
 
-  const handleProfileSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const next = () => setStep((s) => Math.min(TOTAL, s + 1));
+  const back = step > 1 ? () => setStep((s) => Math.max(1, s - 1)) : undefined;
+
+  const persistDraft = async (partial: Partial<OnboardingState>) => {
+    if (!clientId) return;
+    const merged = { ...state, ...partial };
+    setState(merged);
     try {
-      profileSchema.parse(profileData);
-      const { error } = await supabase
-        .from("profiles")
-        .update({ full_name: profileData.full_name.trim() })
-        .eq("id", clientId);
-      if (error) throw error;
-
-      if (profileData.height || profileData.weight) {
-        const { error: progressError } = await supabase
-          .from("progress_entries")
-          .insert({
-            client_id: clientId!,
-            weight: profileData.weight ? parseFloat(profileData.weight) : null,
-            notes: profileData.height ? `Height: ${profileData.height}` : null,
-          });
-        if (progressError) throw progressError;
-      }
-      setStep(5);
-    } catch (error: any) {
-      if (error instanceof z.ZodError) {
-        toast.error(error.errors[0].message);
-      } else {
-        toast.error(error.message || "Failed to update profile");
-      }
+      await (supabase as any).from("onboarding_progress").upsert(
+        {
+          client_id: clientId,
+          current_step: step + 1,
+          completed: false,
+          data: merged as any,
+        },
+        { onConflict: "client_id" },
+      );
+    } catch {
+      // non-blocking
     }
   };
 
-  const handleQuestionsSubmit = async (answers: Record<string, string | number | boolean>) => {
-    setIsLoading(true);
+  const finalize = async (target: "dashboard") => {
+    if (!clientId || !snap || !state.activity || !state.synergy || !state.coachingStyle) {
+      toast.error("Missing onboarding data");
+      return;
+    }
+    setLoading(true);
     try {
-      // Store onboarding answers as JSON in profiles
-      const { error } = await supabase
+      // Metabolic profile
+      await (supabase as any).from("user_metabolic_profile").upsert(
+        {
+          client_id: clientId,
+          age: state.age,
+          sex: state.sex,
+          height_cm: state.heightCm,
+          weight_kg: state.weightKg,
+          goal_weight_kg: state.goalWeightKg,
+          bmi: snap.bmi,
+          bmi_class: snap.bmiClass,
+          activity_level: state.activity,
+          goals: state.goals,
+          metabolic_score: snap.metabolicScore,
+          metabolic_strain: snap.strain,
+        },
+        { onConflict: "client_id" },
+      );
+
+      // Synergy
+      await (supabase as any).from("fasting_synergy_selection").upsert(
+        {
+          client_id: clientId,
+          synergy_key: state.synergy,
+          coaching_style: state.coachingStyle,
+          recommended_synergy: recommended,
+          selected_at: new Date().toISOString(),
+        },
+        { onConflict: "client_id" },
+      );
+
+      // Onboarding progress complete
+      await (supabase as any).from("onboarding_progress").upsert(
+        {
+          client_id: clientId,
+          current_step: TOTAL,
+          completed: true,
+          completed_at: new Date().toISOString(),
+          data: state as any,
+        },
+        { onConflict: "client_id" },
+      );
+
+      // Profile flag + auto-seed weight/height as a progress entry
+      await supabase
         .from("profiles")
-        .update({
-          onboarding_completed: true,
-          onboarding_answers: answers as any,
-        })
+        .update({ onboarding_completed: true })
         .eq("id", clientId);
-      if (error) throw error;
 
-      // Handle fasting toggle if answered during onboarding
-      if (answers.include_fasting !== undefined && activeEngineMode !== "athletic") {
-        await supabase
-          .from("client_feature_settings")
-          .update({ fasting_enabled: !!answers.include_fasting })
-          .eq("client_id", clientId);
-      }
+      await supabase.from("progress_entries").insert({
+        client_id: clientId,
+        weight: state.weightKg ? +(state.weightKg * 2.20462).toFixed(1) : null,
+        notes: state.heightCm ? `Height: ${state.heightCm} cm` : null,
+      });
 
-      setStep(6);
-      setTimeout(() => {
-        navigate("/client/dashboard");
-        toast.success("Welcome! Your profile is all set up.");
-      }, 2000);
-    } catch (error: any) {
-      toast.error(error.message || "Failed to save preferences");
+      toast.success("Welcome to KSOM360");
+      navigate(target === "dashboard" ? "/client/dashboard" : "/client/dashboard");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not activate plan");
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/5 p-4">
-      <div className="w-full max-w-2xl">
-        <div className="text-center mb-8">
-          <img src="/logo.png" alt="KSOM-360" className="h-16 w-16 rounded-2xl object-contain mx-auto mb-4" />
-          <h1 className="text-3xl font-bold text-foreground">Welcome to KSOM-360!</h1>
-          <p className="text-muted-foreground mt-2">Let's get you started on your fitness journey</p>
-        </div>
-
-        <div className="mb-8">
-          <Progress value={progress} className="h-2" />
-          <p className="text-sm text-muted-foreground text-center mt-2">
-            Step {step} of {totalSteps}
-          </p>
-        </div>
-
-        {/* Steps 1-3: Engine Intro Screens */}
-        {step >= 1 && step <= 3 && (
-          <EngineIntroStep
-            screen={content.introScreens[step - 1]}
-            screenIndex={step - 1}
-            totalIntroScreens={3}
-            tone={content.tone}
-            onContinue={() => setStep(step + 1)}
-          />
-        )}
-
-        {/* Step 4: Profile */}
-        {step === 4 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Settings className="h-5 w-5" /> Set Up Your Profile
-              </CardTitle>
-              <CardDescription>Tell us a bit about yourself</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleProfileSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="full_name">Full Name *</Label>
-                  <Input
-                    id="full_name"
-                    value={profileData.full_name}
-                    onChange={(e) => setProfileData({ ...profileData, full_name: e.target.value })}
-                    placeholder="John Doe"
-                    required
-                    maxLength={100}
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="height">Height (optional)</Label>
-                    <Input
-                      id="height"
-                      value={profileData.height}
-                      onChange={(e) => setProfileData({ ...profileData, height: e.target.value })}
-                      placeholder="5'10&quot;"
-                      maxLength={20}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="weight">Weight (lbs, optional)</Label>
-                    <Input
-                      id="weight"
-                      type="number"
-                      value={profileData.weight}
-                      onChange={(e) => setProfileData({ ...profileData, weight: e.target.value })}
-                      placeholder="180"
-                      min="0"
-                      max="1000"
-                    />
-                  </div>
-                </div>
-                <div className="flex gap-2 pt-4">
-                  <Button type="button" variant="outline" onClick={() => setStep(3)}>
-                    Back
-                  </Button>
-                  <Button type="submit" className="flex-1">
-                    Continue
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Step 5: Engine-Specific Questions */}
-        {step === 5 && (
-          <EngineQuestionsStep
-            questions={content.questions}
-            tone={content.tone}
-            onSubmit={handleQuestionsSubmit}
-            isLoading={isLoading}
-          />
-        )}
-
-        {/* Step 6: Completion */}
-        {step === 6 && (
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center space-y-4">
-                <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-primary/10 mb-4">
-                  <CheckCircle2 className="h-8 w-8 text-primary" />
-                </div>
-                <h2 className="text-2xl font-bold">You're All Set!</h2>
-                <p className="text-muted-foreground">Redirecting you to your dashboard...</p>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      </div>
-    </div>
+    <OnboardingShell
+      step={step}
+      totalSteps={TOTAL}
+      onBack={back}
+      showParticles={step <= 2 || step === 10}
+    >
+      {step === 1 && <WelcomeStep onNext={next} />}
+      {step === 2 && (
+        <BodyMetricsStep
+          initial={{
+            age: state.age,
+            sex: state.sex,
+            heightCm: state.heightCm,
+            weightKg: state.weightKg,
+            goalWeightKg: state.goalWeightKg,
+          }}
+          onNext={(d) => {
+            persistDraft(d);
+            next();
+          }}
+        />
+      )}
+      {step === 3 && (
+        <ActivityLevelStep
+          initial={state.activity}
+          onNext={(a) => {
+            persistDraft({ activity: a });
+            next();
+          }}
+        />
+      )}
+      {step === 4 && (
+        <GoalsStep
+          initial={state.goals}
+          onNext={(g) => {
+            persistDraft({ goals: g });
+            next();
+          }}
+        />
+      )}
+      {step === 5 && snap && (
+        <MetabolicSnapshotStep
+          snap={snap}
+          bmi={snap.bmi}
+          bmiClass={snap.bmiClass}
+          sex={state.sex}
+          onNext={next}
+        />
+      )}
+      {step === 6 && <SystemIntroStep onNext={next} />}
+      {step === 7 && (
+        <CoachingStyleStep
+          initial={state.coachingStyle}
+          onNext={(s) => {
+            persistDraft({ coachingStyle: s });
+            next();
+          }}
+        />
+      )}
+      {step === 8 && recommended && (
+        <FastingSynergyStep
+          recommended={recommended}
+          initial={state.synergy}
+          onNext={(k) => {
+            persistDraft({ synergy: k });
+            next();
+          }}
+        />
+      )}
+      {step === 9 && state.synergy && (
+        <FirstWeekStep synergyKey={state.synergy} onNext={next} />
+      )}
+      {step === 10 && (
+        <ActivateStep
+          loading={loading}
+          onActivate={() => finalize("dashboard")}
+          onExplore={() => finalize("dashboard")}
+        />
+      )}
+    </OnboardingShell>
   );
 }
