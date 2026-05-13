@@ -11,6 +11,7 @@ import GoalsStep from "@/components/onboarding/premium/steps/GoalsStep";
 import MetabolicSnapshotStep from "@/components/onboarding/premium/steps/MetabolicSnapshotStep";
 import SystemIntroStep from "@/components/onboarding/premium/steps/SystemIntroStep";
 import CoachingStyleStep from "@/components/onboarding/premium/steps/CoachingStyleStep";
+import SynergyEducationStep from "@/components/onboarding/premium/steps/SynergyEducationStep";
 import FastingSynergyStep from "@/components/onboarding/premium/steps/FastingSynergyStep";
 import FirstWeekStep from "@/components/onboarding/premium/steps/FirstWeekStep";
 import ActivateStep from "@/components/onboarding/premium/steps/ActivateStep";
@@ -22,7 +23,7 @@ import {
 import { recommendSynergy } from "@/lib/onboarding/synergyRecommender";
 import type { SynergyKey } from "@/lib/onboarding/synergies";
 
-const TOTAL = 10;
+const TOTAL = 11;
 
 interface OnboardingState {
   age: number;
@@ -235,7 +236,13 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 8 && recommended && (
+      {step === 8 && state.coachingStyle && (
+        <SynergyEducationStep
+          coachingStyle={state.coachingStyle}
+          onNext={next}
+        />
+      )}
+      {step === 9 && recommended && (
         <FastingSynergyStep
           recommended={recommended}
           initial={state.synergy}
@@ -245,10 +252,10 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 9 && state.synergy && (
+      {step === 10 && state.synergy && (
         <FirstWeekStep synergyKey={state.synergy} onNext={next} />
       )}
-      {step === 10 && (
+      {step === 11 && (
         <ActivateStep
           loading={loading}
           onActivate={() => finalize("dashboard")}
