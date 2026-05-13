@@ -226,8 +226,7 @@ export default function ClientKetoTypes() {
               ketoType={toKetoCardData(assignedKeto)}
               themeColor={assignedKeto.color || undefined}
               isCurrent
-              onOpen={() => navigate(`/client/keto-types/${assignedKeto.id}`, navState)}
-              openLabel="Open keto details"
+              hideExportPdf
               onMeasureHeight={makeOnMeasure(assignedKeto.id)}
               forcedHeight={tallest > 0 ? tallest : undefined}
             />
@@ -251,8 +250,7 @@ export default function ClientKetoTypes() {
                       themeColor={kt.color || undefined}
                       isCurrent={false}
                       dimmed
-                      onOpen={() => navigate(`/client/keto-types/${kt.id}`, navState)}
-                      openLabel="Open keto details"
+                      hideExportPdf
                       onMeasureHeight={makeOnMeasure(kt.id)}
                       forcedHeight={tallest > 0 ? tallest : undefined}
                     />
