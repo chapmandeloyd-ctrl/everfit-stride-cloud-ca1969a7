@@ -6,16 +6,16 @@ type Style = "guided" | "self";
 
 const FEATURES: Record<Style, string[]> = {
   guided: [
-    "Coach accountability",
+    "Your coach assigns your synergy program",
     "Personalized fasting adjustments",
-    "Progress reviews",
-    "Direct support",
+    "Progress reviews & accountability",
+    "Direct coach support",
     "Structured guidance",
   ],
   self: [
-    "Fasting protocols",
-    "Tracking tools",
-    "Meal guidance",
+    "Choose your own synergy program",
+    "Full fasting protocol library",
+    "Tracking tools & meal guidance",
     "Progress scoring",
   ],
 };
@@ -32,7 +32,7 @@ export default function CoachingStyleStep({
     <div className="flex h-full flex-col gap-5">
       <div>
         <h2 className="text-2xl font-semibold tracking-tight">Choose your coaching style</h2>
-        <p className="mt-1 text-sm text-white/60">Both unlock the full system.</p>
+        <p className="mt-1 text-sm text-white/60">Both unlock the full system — pick how you want your synergy program assigned.</p>
       </div>
 
       <button
@@ -84,7 +84,7 @@ export default function CoachingStyleStep({
           size="lg"
           className="h-14 w-full rounded-2xl text-base font-medium"
         >
-          {sel === "guided" ? "Apply For Coaching" : sel === "self" ? "Continue Self-Guided" : "Continue"}
+          {sel === "guided" ? "Continue With Guided Coaching" : sel === "self" ? "Continue Self-Guided" : "Continue"}
         </Button>
       </div>
     </div>
