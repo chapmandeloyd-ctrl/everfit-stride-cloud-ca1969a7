@@ -26,9 +26,30 @@ const SEX_OPTIONS: { key: Sex; label: string }[] = [
 
 export default function BodyMetricsStep({ initial, onNext }: Props) {
   const [data, setData] = useState<Data>(initial);
-  const bmi = computeBmi(data.heightCm, data.weightKg);
+  // Imperial display state derived from metric storage
+  const initialFeet = data.heightCm ? Math.floor(data.heightCm / 2.54 / 12) : 0;
+  const initialInches = data.heightCm
+    ? Math.round((data.heightCm / 2.54) - initialFeet * 12)
+    : 0;
+  const [feet, setFeet] = useState<number>(initialFeet);
+  const [inches, setInches] = useState<number>(initialInches);
+  const [lbs, setLbs] = useState<number>(
+    data.weightKg ? +(data.weightKg * 2.20462).toFixed(0) : 0,
+  );
+  const [goalLbs, setGoalLbs] = useState<number | null>(
+    data.goalWeightKg ? +(data.goalWeightKg * 2.20462).toFixed(0) : null,
+  );
 
-  const valid = data.age >= 13 && data.heightCm >= 120 && data.weightKg >= 30;
+  const heightCm = +(((feet * 12) + inches) * 2.54).toFixed(1);
+  const weightKg = +(lbs / 2.20462).toFixed(1);
+  const goalWeightKg = goalLbs ? +(goalLbs / 2.20462).toFixed(1) : null;
+
+  const bmi = computeBmi(heightCm, weightKg);
+  const valid = data.age >= 13 && heightCm >= 120 && weightKg >= 30;
+
+  const handleNext = () => {
+    onNext({ ...data, heightCm, weightKg, goalWeightKg });
+  };
 
   return (
     <div className="flex h-full flex-col gap-6">
@@ -74,35 +95,41 @@ export default function BodyMetricsStep({ initial, onNext }: Props) {
             />
           </div>
           <div>
-            <Label className="text-white/60">Height (cm)</Label>
+            <Label className="text-white/60">Weight (lbs)</Label>
             <Input
               type="number"
-              value={data.heightCm || ""}
-              onChange={(e) => setData({ ...data, heightCm: parseFloat(e.target.value) || 0 })}
+              value={lbs || ""}
+              onChange={(e) => setLbs(parseFloat(e.target.value) || 0)}
               className="mt-1 border-white/10 bg-white/[0.03]"
-              placeholder="175"
+              placeholder="180"
             />
           </div>
           <div>
-            <Label className="text-white/60">Weight (kg)</Label>
-            <Input
-              type="number"
-              value={data.weightKg || ""}
-              onChange={(e) => setData({ ...data, weightKg: parseFloat(e.target.value) || 0 })}
-              className="mt-1 border-white/10 bg-white/[0.03]"
-              placeholder="80"
-            />
+            <Label className="text-white/60">Height</Label>
+            <div className="mt-1 grid grid-cols-2 gap-2">
+              <Input
+                type="number"
+                value={feet || ""}
+                onChange={(e) => setFeet(parseInt(e.target.value) || 0)}
+                className="border-white/10 bg-white/[0.03]"
+                placeholder="ft"
+              />
+              <Input
+                type="number"
+                value={inches || ""}
+                onChange={(e) => setInches(parseInt(e.target.value) || 0)}
+                className="border-white/10 bg-white/[0.03]"
+                placeholder="in"
+              />
+            </div>
           </div>
           <div>
-            <Label className="text-white/60">Goal weight (kg)</Label>
+            <Label className="text-white/60">Goal weight (lbs)</Label>
             <Input
               type="number"
-              value={data.goalWeightKg || ""}
+              value={goalLbs || ""}
               onChange={(e) =>
-                setData({
-                  ...data,
-                  goalWeightKg: e.target.value ? parseFloat(e.target.value) : null,
-                })
+                setGoalLbs(e.target.value ? parseFloat(e.target.value) : null)
               }
               className="mt-1 border-white/10 bg-white/[0.03]"
               placeholder="Optional"
@@ -114,7 +141,7 @@ export default function BodyMetricsStep({ initial, onNext }: Props) {
       <div className="mt-auto pb-2">
         <Button
           disabled={!valid}
-          onClick={() => onNext(data)}
+          onClick={handleNext}
           size="lg"
           className="h-14 w-full rounded-2xl text-base font-medium"
         >
