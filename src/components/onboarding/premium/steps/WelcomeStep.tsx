@@ -5,14 +5,14 @@ import lionLogo from "@/assets/logo.png";
 export default function WelcomeStep({ onNext }: { onNext: () => void }) {
   return (
     <div className="flex h-full flex-col items-center justify-between text-center">
-      <div className="flex-1 flex flex-col items-center justify-center gap-10">
+      <div className="flex-1 flex flex-col items-center justify-center gap-14">
         <div className="animate-scale-in relative">
-          <MetabolicRing size={240} progress={68} sublabel="KSOM360" />
+          <MetabolicRing size={240} progress={68} />
           <img
             src={lionLogo}
             alt="KSOM360"
-            className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-[58%] w-20 h-20 object-contain"
-            style={{ filter: "grayscale(1) brightness(1.4) opacity(0.9)" }}
+            className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-36 object-contain"
+            style={{ filter: "grayscale(1) brightness(1.4) opacity(0.95)" }}
           />
         </div>
         <div className="space-y-3">
@@ -24,7 +24,7 @@ export default function WelcomeStep({ onNext }: { onNext: () => void }) {
           </p>
         </div>
       </div>
-      <div className="w-full pb-4">
+      <div className="w-full pb-4 pt-8">
         <Button onClick={onNext} size="lg" className="h-14 w-full rounded-2xl text-base font-medium">
           Begin Assessment
         </Button>
