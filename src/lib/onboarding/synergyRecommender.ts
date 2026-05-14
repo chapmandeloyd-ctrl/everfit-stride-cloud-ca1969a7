@@ -93,6 +93,28 @@ function getExperienceCeiling(profile?: FastingRecommendationProfile): SynergyKe
   return fromOrdinal(ceiling);
 }
 
+function getExperienceTarget(profile?: FastingRecommendationProfile): SynergyKey {
+  if (!profile?.experienceLevel) return "fat_loss_accelerator";
+
+  let target =
+    {
+      none: 0,
+      casual: 1,
+      regular: 2,
+      advanced: 3,
+    }[profile.experienceLevel] ?? 1;
+
+  const longest = profile.longestFastHours ?? 0;
+  if (longest >= 16) target += 1;
+  if (longest >= 20) target += 1;
+
+  if (profile.tolerance === "easy") target += 1;
+  if (profile.tolerance === "challenging") target -= 1;
+  if (profile.tolerance === "difficult") target -= 2;
+
+  return fromOrdinal(target);
+}
+
 function getPhysiologyCeiling(input: MetabolicInputs, snap: MetabolicSnapshot): SynergyKey {
   const { activity, age } = input;
   const bmi = snap.bmi;
@@ -142,7 +164,11 @@ export function recommendSynergy(
     return "metabolic_reset";
   }
 
-  const pick = getGoalTarget(input, snap);
+  const goalPick = getGoalTarget(input, snap);
+  const experiencePick = getExperienceTarget(profile);
+  const pick = fromOrdinal(
+    Math.round((toOrdinal(goalPick) + toOrdinal(experiencePick)) / 2),
+  );
   const floor = getExperienceFloor(profile);
   const ceiling = fromOrdinal(
     Math.min(
