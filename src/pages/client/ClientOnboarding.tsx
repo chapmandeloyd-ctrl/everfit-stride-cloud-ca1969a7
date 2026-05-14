@@ -8,6 +8,9 @@ import WelcomeStep from "@/components/onboarding/premium/steps/WelcomeStep";
 import BodyMetricsStep from "@/components/onboarding/premium/steps/BodyMetricsStep";
 import ActivityLevelStep from "@/components/onboarding/premium/steps/ActivityLevelStep";
 import GoalsStep from "@/components/onboarding/premium/steps/GoalsStep";
+import FastingExperienceStep, {
+  type FastingExperienceData,
+} from "@/components/onboarding/premium/steps/FastingExperienceStep";
 import MetabolicSnapshotStep from "@/components/onboarding/premium/steps/MetabolicSnapshotStep";
 import SystemIntroStep from "@/components/onboarding/premium/steps/SystemIntroStep";
 import CoachingStyleStep from "@/components/onboarding/premium/steps/CoachingStyleStep";
@@ -23,7 +26,7 @@ import {
 import { recommendSynergy } from "@/lib/onboarding/synergyRecommender";
 import type { SynergyKey } from "@/lib/onboarding/synergies";
 
-const TOTAL = 11;
+const TOTAL = 12;
 
 interface OnboardingState {
   age: number;
@@ -33,6 +36,7 @@ interface OnboardingState {
   goalWeightKg: number | null;
   activity: ActivityLevel | null;
   goals: string[];
+  fastingExperience: FastingExperienceData | null;
   coachingStyle: "guided" | "self" | null;
   synergy: SynergyKey | null;
 }
@@ -45,6 +49,7 @@ const INITIAL: OnboardingState = {
   goalWeightKg: null,
   activity: null,
   goals: [],
+  fastingExperience: null,
   coachingStyle: null,
   synergy: null,
 };
@@ -80,6 +85,8 @@ export default function ClientOnboarding() {
         goals: state.goals,
       },
       snap,
+      state.fastingExperience?.experienceLevel,
+      state.fastingExperience?.safetyFlags as any,
     );
   }, [snap, state]);
 
@@ -127,6 +134,10 @@ export default function ClientOnboarding() {
           goals: state.goals,
           metabolic_score: snap.metabolicScore,
           metabolic_strain: snap.strain,
+          fasting_experience_level: state.fastingExperience?.experienceLevel ?? null,
+          longest_fast_hours: state.fastingExperience?.longestFastHours ?? null,
+          fasting_tolerance: state.fastingExperience?.tolerance ?? null,
+          safety_flags: state.fastingExperience?.safetyFlags ?? [],
         },
         { onConflict: "client_id" },
       );
@@ -181,7 +192,7 @@ export default function ClientOnboarding() {
       step={step}
       totalSteps={TOTAL}
       onBack={back}
-      showParticles={step <= 2 || step === 11}
+      showParticles={step <= 2 || step === TOTAL}
     >
       {step === 1 && <WelcomeStep onNext={next} />}
       {step === 2 && (
@@ -217,7 +228,16 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 5 && snap && (
+      {step === 5 && (
+        <FastingExperienceStep
+          initial={state.fastingExperience}
+          onNext={(d) => {
+            persistDraft({ fastingExperience: d });
+            next();
+          }}
+        />
+      )}
+      {step === 6 && snap && (
         <MetabolicSnapshotStep
           snap={snap}
           bmi={snap.bmi}
@@ -226,8 +246,8 @@ export default function ClientOnboarding() {
           onNext={next}
         />
       )}
-      {step === 6 && <SystemIntroStep onNext={next} />}
-      {step === 7 && (
+      {step === 7 && <SystemIntroStep onNext={next} />}
+      {step === 8 && (
         <CoachingStyleStep
           initial={state.coachingStyle}
           onNext={(s) => {
@@ -236,13 +256,13 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 8 && state.coachingStyle && (
+      {step === 9 && state.coachingStyle && (
         <SynergyEducationStep
           coachingStyle={state.coachingStyle}
           onNext={next}
         />
       )}
-      {step === 9 && recommended && (
+      {step === 10 && recommended && (
         <FastingSynergyStep
           recommended={recommended}
           initial={state.synergy}
@@ -252,10 +272,10 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 10 && state.synergy && (
+      {step === 11 && state.synergy && (
         <FirstWeekStep synergyKey={state.synergy} onNext={next} />
       )}
-      {step === 11 && (
+      {step === 12 && (
         <ActivateStep
           loading={loading}
           onActivate={() => finalize("dashboard")}
