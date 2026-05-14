@@ -41,7 +41,7 @@ export default function FastingSynergyStep({
               }`}
             >
               {isRec && (
-                <div className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-full bg-[hsl(var(--primary))] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
+                <div className="mb-3 inline-flex items-center gap-1 rounded-full bg-[hsl(var(--primary))] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
                   <Sparkles className="h-3 w-3" /> Recommended
                 </div>
               )}
