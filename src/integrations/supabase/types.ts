@@ -4256,6 +4256,44 @@ export type Database = {
         }
         Relationships: []
       }
+      fasting_synergy_selection: {
+        Row: {
+          client_id: string
+          coaching_style: string | null
+          created_at: string
+          recommended_synergy: string | null
+          selected_at: string
+          synergy_key: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          coaching_style?: string | null
+          created_at?: string
+          recommended_synergy?: string | null
+          selected_at?: string
+          synergy_key: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          coaching_style?: string | null
+          created_at?: string
+          recommended_synergy?: string | null
+          selected_at?: string
+          synergy_key?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fasting_synergy_selection_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fasting_webhook_log: {
         Row: {
           client_id: string
@@ -6723,6 +6761,44 @@ export type Database = {
             foreignKeyName: "nutrition_logs_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      onboarding_progress: {
+        Row: {
+          client_id: string
+          completed: boolean
+          completed_at: string | null
+          created_at: string
+          current_step: number
+          data: Json
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          current_step?: number
+          data?: Json
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          current_step?: number
+          data?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "onboarding_progress_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -9255,6 +9331,77 @@ export type Database = {
             columns: ["challenge_id"]
             isOneToOne: false
             referencedRelation: "challenges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_metabolic_profile: {
+        Row: {
+          activity_level: string | null
+          age: number | null
+          bmi: number | null
+          bmi_class: string | null
+          client_id: string
+          created_at: string
+          fasting_experience_level: string | null
+          fasting_tolerance: string | null
+          goal_weight_kg: number | null
+          goals: string[] | null
+          height_cm: number | null
+          longest_fast_hours: number | null
+          metabolic_score: number | null
+          metabolic_strain: string | null
+          safety_flags: string[] | null
+          sex: string | null
+          updated_at: string
+          weight_kg: number | null
+        }
+        Insert: {
+          activity_level?: string | null
+          age?: number | null
+          bmi?: number | null
+          bmi_class?: string | null
+          client_id: string
+          created_at?: string
+          fasting_experience_level?: string | null
+          fasting_tolerance?: string | null
+          goal_weight_kg?: number | null
+          goals?: string[] | null
+          height_cm?: number | null
+          longest_fast_hours?: number | null
+          metabolic_score?: number | null
+          metabolic_strain?: string | null
+          safety_flags?: string[] | null
+          sex?: string | null
+          updated_at?: string
+          weight_kg?: number | null
+        }
+        Update: {
+          activity_level?: string | null
+          age?: number | null
+          bmi?: number | null
+          bmi_class?: string | null
+          client_id?: string
+          created_at?: string
+          fasting_experience_level?: string | null
+          fasting_tolerance?: string | null
+          goal_weight_kg?: number | null
+          goals?: string[] | null
+          height_cm?: number | null
+          longest_fast_hours?: number | null
+          metabolic_score?: number | null
+          metabolic_strain?: string | null
+          safety_flags?: string[] | null
+          sex?: string | null
+          updated_at?: string
+          weight_kg?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_metabolic_profile_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
