@@ -25,6 +25,7 @@ import {
 } from "@/lib/onboarding/metabolicCalc";
 import { recommendSynergy } from "@/lib/onboarding/synergyRecommender";
 import type { SynergyKey } from "@/lib/onboarding/synergies";
+import { computeReadinessScore } from "@/lib/onboarding/readinessScore";
 
 const TOTAL = 12;
 
@@ -88,6 +89,18 @@ export default function ClientOnboarding() {
       state.fastingExperience ?? undefined,
     );
   }, [snap, state]);
+
+  const readinessScore = useMemo(
+    () =>
+      computeReadinessScore({
+        activity: state.activity,
+        goals: state.goals,
+        fastingExperience: state.fastingExperience,
+        coachingStyle: state.coachingStyle,
+        hasBodyMetrics: !!(state.heightCm && state.weightKg),
+      }),
+    [state],
+  );
 
   const next = () => setStep((s) => Math.min(TOTAL, s + 1));
   const back = step > 1 ? () => setStep((s) => Math.max(1, s - 1)) : undefined;
@@ -277,6 +290,7 @@ export default function ClientOnboarding() {
       {step === 12 && (
         <ActivateStep
           loading={loading}
+          score={readinessScore}
           onActivate={() => finalize("dashboard")}
           onExplore={() => finalize("dashboard")}
         />
