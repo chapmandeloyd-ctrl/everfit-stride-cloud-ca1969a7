@@ -85,8 +85,7 @@ export default function ClientOnboarding() {
         goals: state.goals,
       },
       snap,
-      state.fastingExperience?.experienceLevel,
-      state.fastingExperience?.safetyFlags as any,
+      state.fastingExperience ?? undefined,
     );
   }, [snap, state]);
 
