@@ -1,13 +1,37 @@
 import { Button } from "@/components/ui/button";
 import MetabolicRing from "../MetabolicRing";
 import lionLogo from "@/assets/logo.png";
+import { useEffect, useState } from "react";
 
 export default function WelcomeStep({ onNext }: { onNext: () => void }) {
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const target = 68;
+    const duration = 1600; // ms
+    const start = performance.now();
+    let raf = 0;
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / duration);
+      // ease-out cubic
+      const eased = 1 - Math.pow(1 - t, 3);
+      setProgress(Math.round(eased * target));
+      if (t < 1) raf = requestAnimationFrame(tick);
+    };
+    const delay = setTimeout(() => {
+      raf = requestAnimationFrame(tick);
+    }, 250);
+    return () => {
+      clearTimeout(delay);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
+
   return (
     <div className="flex h-full flex-col items-center justify-between text-center">
       <div className="flex-1 flex flex-col items-center justify-center gap-14">
         <div className="animate-scale-in relative">
-          <MetabolicRing size={240} progress={68} />
+          <MetabolicRing size={240} progress={progress} />
           <img
             src={lionLogo}
             alt="KSOM360"
