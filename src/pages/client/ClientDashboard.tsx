@@ -94,6 +94,14 @@ import { useLiveActivity } from "@/hooks/useLiveActivity";
 import { CoachingCard } from "@/components/dashboard/CoachingCard";
 import { WelcomeCard } from "@/components/client/WelcomeCard";
 import { PlanLockedDialog } from "@/components/PlanLockedDialog";
+import {
+  getActiveCustomFastPlan,
+  getActiveCustomEatPlan,
+  setActiveCustomFastPlan,
+  setActiveCustomEatPlan,
+  CUSTOM_PLAN_HEX,
+  type CustomManualPlan,
+} from "@/lib/customManualPlans";
 
 const SHOW_WEIGHT_TRACKER = false;
 
