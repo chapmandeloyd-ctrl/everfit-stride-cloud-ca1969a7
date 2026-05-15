@@ -233,6 +233,7 @@ function PlanSheet({ plan, onClose }: { plan: CustomManualPlan | null; onClose: 
   const clientId = useEffectiveClientId();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const [eatHours, setEatHours] = useState<number>(plan?.eatHours ?? 0);
   const [fastHours, setFastHours] = useState<number>(plan?.fastHours ?? 0);
@@ -301,6 +302,8 @@ function PlanSheet({ plan, onClose }: { plan: CustomManualPlan | null; onClose: 
         description: plan?.name,
       });
       onClose();
+      // Take the user straight to the lion timer on the dashboard.
+      navigate("/client/dashboard");
     },
     onError: (e: any) => {
       toast({ title: "Couldn't start plan", description: e.message, variant: "destructive" });
