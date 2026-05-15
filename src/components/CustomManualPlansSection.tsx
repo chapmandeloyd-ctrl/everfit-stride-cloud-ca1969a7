@@ -226,6 +226,7 @@ function DynamicPlanCard({
 }
 
 function PlanSheet({ plan, onClose }: { plan: CustomManualPlan | null; onClose: () => void }) {
+  // see DynamicSheetShell below
   const clientId = useEffectiveClientId();
   const { toast } = useToast();
   const queryClient = useQueryClient();
