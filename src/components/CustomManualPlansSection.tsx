@@ -176,7 +176,8 @@ function DynamicPlanCard({
               >
                 {plan.name}
               </h3>
-              <p className="text-sm text-muted-foreground mt-1.5">{plan.tagline}</p>
+              <p className="text-[13px] font-semibold text-foreground/90 mt-1.5">{plan.tagline}</p>
+              <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{plan.description}</p>
             </div>
             <div
               aria-hidden
