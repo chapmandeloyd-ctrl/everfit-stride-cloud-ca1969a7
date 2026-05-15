@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import { ClientOverviewTab } from "@/components/command-center/ClientOverviewTab";
 import { ClientSettingsTab } from "@/components/command-center/ClientSettingsTab";
 import { CoachCommandCenterTab } from "@/components/command-center/CoachCommandCenterTab";
+import { CustomManualPlansTab } from "@/components/command-center/CustomManualPlansTab";
 import { GroupedTrainingTab } from "@/components/command-center/GroupedTrainingTab";
 import { GroupedNutritionTab } from "@/components/command-center/GroupedNutritionTab";
 import { GroupedProgressTab } from "@/components/command-center/GroupedProgressTab";
@@ -232,6 +233,7 @@ export default function ClientCommandCenter() {
         <Tabs defaultValue="overview" className="space-y-6">
           <TabsList className="w-full justify-start overflow-x-auto flex-nowrap">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="manual-plans">Manual Plans</TabsTrigger>
             <TabsTrigger value="command">Command Center</TabsTrigger>
             <TabsTrigger value="training">Training</TabsTrigger>
             <TabsTrigger value="schedule">Schedule</TabsTrigger>
@@ -244,6 +246,9 @@ export default function ClientCommandCenter() {
 
           <TabsContent value="overview">
             <ClientOverviewTab clientId={clientId!} trainerId={user?.id!} />
+          </TabsContent>
+          <TabsContent value="manual-plans">
+            <CustomManualPlansTab clientId={clientId!} trainerId={user?.id!} />
           </TabsContent>
           <TabsContent value="command">
             <CoachCommandCenterTab clientId={clientId!} trainerId={user?.id!} />
