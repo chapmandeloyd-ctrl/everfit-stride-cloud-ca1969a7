@@ -300,15 +300,25 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
   const hasEatingWindow = !!featureSettings?.eating_window_ends_at && new Date(featureSettings.eating_window_ends_at) > now;
 
   // Sync custom-plan tags from localStorage whenever the active fast / eating
-  // window flips. Also clears stale tags if the underlying session ended.
+  // window timestamps change. We key off the timestamp itself (not just the
+  // boolean) so that starting a NEW custom fast immediately after an old one
+  // ends — or right on top of an already-active fast — re-reads the tag.
   useEffect(() => {
-    setCustomFastPlan(isFasting ? getActiveCustomFastPlan() : null);
-    if (!isFasting) setActiveCustomFastPlan(null);
-  }, [isFasting]);
+    if (featureSettings?.active_fast_start_at) {
+      setCustomFastPlan(getActiveCustomFastPlan());
+    } else {
+      setCustomFastPlan(null);
+      setActiveCustomFastPlan(null);
+    }
+  }, [featureSettings?.active_fast_start_at]);
   useEffect(() => {
-    setCustomEatPlan(hasEatingWindow ? getActiveCustomEatPlan() : null);
-    if (!hasEatingWindow) setActiveCustomEatPlan(null);
-  }, [hasEatingWindow]);
+    if (hasEatingWindow) {
+      setCustomEatPlan(getActiveCustomEatPlan());
+    } else {
+      setCustomEatPlan(null);
+      setActiveCustomEatPlan(null);
+    }
+  }, [hasEatingWindow, featureSettings?.eating_window_ends_at]);
 
   // Tick every second while fasting or eating window is active
   useEffect(() => {
