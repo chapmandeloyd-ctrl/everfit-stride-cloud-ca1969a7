@@ -36,18 +36,6 @@ export const CUSTOM_MANUAL_PLANS: CustomManualPlan[] = [
     accent: "text-violet-400",
   },
   {
-    id: "easy-start",
-    name: "Easy Start",
-    tagline: "Perfect for beginners",
-    description:
-      "Include your sleep hours in the fasting period and eat as usual.",
-    fastHours: 12,
-    eatHours: 12,
-    lockedEat: true,
-    defaultOpenHour: 8,
-    accent: "text-amber-300",
-  },
-  {
     id: "daily",
     name: "Daily Plan",
     tagline: "Make fasting a daily pattern",
@@ -82,18 +70,6 @@ export const CUSTOM_MANUAL_PLANS: CustomManualPlan[] = [
     eatRange: [1, 6],
     defaultOpenHour: 18,
     accent: "text-rose-300",
-  },
-  {
-    id: "warrior",
-    name: "The Warrior Diet",
-    tagline: "One of the strictest plans",
-    description:
-      "Fast all day, then eat one abundant meal in the evening.",
-    fastHours: 20,
-    eatHours: 4,
-    lockedEat: true,
-    defaultOpenHour: 13,
-    accent: "text-pink-400",
   },
   {
     id: "fasting-goal",
