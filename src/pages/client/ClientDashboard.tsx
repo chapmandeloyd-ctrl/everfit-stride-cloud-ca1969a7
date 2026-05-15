@@ -532,6 +532,14 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
       queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting"] });
       queryClient.invalidateQueries({ queryKey: ["fasting-gate-state"] });
       queryClient.invalidateQueries({ queryKey: ["today-fasting-log"] });
+      // Custom-plan tag follows the fast — when the fast ends, hand the tag
+      // off to the eating window (if one opened) so its chrome matches too.
+      if (customFastPlan) {
+        if (!result?.endedEarly) setActiveCustomEatPlan(customFastPlan.id);
+        setActiveCustomFastPlan(null);
+        setCustomEatPlan(getActiveCustomEatPlan());
+        setCustomFastPlan(null);
+      }
       if (result?.endedEarly) {
         toast({
           title: "Fast ended early",
