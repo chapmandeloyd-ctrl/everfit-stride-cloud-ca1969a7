@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Lock, Minus, Plus, Hourglass, UtensilsCrossed, Clock } from "lucide-react";
+import { Lock, Minus, Plus, Hourglass, UtensilsCrossed, Clock, ChevronRight, Sparkles } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
@@ -32,53 +32,171 @@ export function CustomManualPlansSection() {
         Set your own window. Some plans have locked durations.
       </p>
 
-      <div className="space-y-3">
-        {CUSTOM_MANUAL_PLANS.map((plan) => (
-          <Card
-            key={plan.id}
-            className="cursor-pointer overflow-hidden bg-card border-border transition-all hover:border-primary/40 active:scale-[0.99]"
-            onClick={() => setActive(plan)}
-          >
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex-1 min-w-0">
-                  {!plan.manual && !plan.goalMode && (
-                    <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
-                      {plan.fastHours}hr fasting
-                    </p>
-                  )}
-                  <h3 className={`text-xl font-black tracking-tight ${plan.accent}`}>
-                    {plan.name}
-                  </h3>
-                  <p className="text-sm text-muted-foreground mt-0.5">{plan.tagline}</p>
-                </div>
-                {(plan.lockedEat || plan.lockedFast) && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary shrink-0">
-                    <Lock className="h-3 w-3" /> Locked
-                  </span>
-                )}
-              </div>
-              {!plan.manual && (
-                <div className="mt-3 flex items-center gap-4 text-xs">
-                  <div className="flex items-center gap-1.5">
-                    <Hourglass className="h-3.5 w-3.5 text-primary" />
-                    <span className="font-semibold">{plan.fastHours}h</span>
-                    <span className="text-muted-foreground">fast</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <UtensilsCrossed className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span className="font-semibold">{plan.eatHours}h</span>
-                    <span className="text-muted-foreground">eat</span>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+      <div className="space-y-4">
+        {CUSTOM_MANUAL_PLANS.map((plan, idx) => (
+          <DynamicPlanCard key={plan.id} plan={plan} index={idx} onClick={() => setActive(plan)} />
         ))}
       </div>
 
       <PlanSheet plan={active} onClose={() => setActive(null)} />
     </div>
+  );
+}
+
+/* ---------- Dynamic, premium-feeling plan card ---------- */
+
+function accentToHex(accent: string): string {
+  // map tailwind accent classes to a representative HSL for gradients/glow
+  if (accent.includes("violet")) return "262 83% 70%";
+  if (accent.includes("emerald")) return "152 76% 55%";
+  if (accent.includes("teal")) return "172 76% 55%";
+  if (accent.includes("rose")) return "350 90% 75%";
+  if (accent.includes("fuchsia")) return "292 84% 65%";
+  return "0 84% 60%";
+}
+
+function DynamicPlanCard({
+  plan,
+  index,
+  onClick,
+}: {
+  plan: CustomManualPlan;
+  index: number;
+  onClick: () => void;
+}) {
+  const hsl = accentToHex(plan.accent);
+  const ratio = plan.manual
+    ? 0.5
+    : Math.max(0, Math.min(1, plan.fastHours / 24));
+
+  return (
+    <button
+      onClick={onClick}
+      className="group relative w-full text-left animate-fade-in"
+      style={{ animationDelay: `${index * 60}ms` }}
+    >
+      {/* Outer glow ring */}
+      <div
+        className="absolute -inset-[1px] rounded-2xl opacity-60 group-hover:opacity-100 transition-opacity duration-500 blur-[2px]"
+        style={{
+          background: `linear-gradient(135deg, hsl(${hsl} / 0.55), transparent 40%, hsl(${hsl} / 0.35))`,
+        }}
+      />
+      {/* Card surface */}
+      <div
+        className="relative overflow-hidden rounded-2xl border border-white/5 transition-transform duration-300 group-active:scale-[0.985]"
+        style={{
+          background:
+            "linear-gradient(160deg, hsl(var(--card)) 0%, hsl(var(--card)) 55%, hsl(var(--muted) / 0.5) 100%)",
+          boxShadow:
+            `0 24px 48px -20px hsl(${hsl} / 0.45), 0 8px 24px -10px hsl(0 0% 0% / 0.55), inset 0 1px 0 hsl(0 0% 100% / 0.06), inset 0 -1px 0 hsl(0 0% 0% / 0.4)`,
+        }}
+      >
+        {/* Animated accent orb */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-16 -right-16 h-44 w-44 rounded-full opacity-40 blur-3xl transition-all duration-700 group-hover:opacity-70 group-hover:scale-110"
+          style={{ background: `radial-gradient(circle, hsl(${hsl} / 0.9), transparent 70%)` }}
+        />
+        {/* Shimmer sweep on hover */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out"
+          style={{
+            background:
+              "linear-gradient(110deg, transparent 30%, hsl(0 0% 100% / 0.07) 50%, transparent 70%)",
+          }}
+        />
+
+        <div className="relative p-5">
+          {/* Top row: icon badge + locked chip */}
+          <div className="flex items-start justify-between gap-3 mb-3">
+            <div
+              className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10"
+              style={{
+                background: `linear-gradient(135deg, hsl(${hsl} / 0.25), hsl(${hsl} / 0.05))`,
+                boxShadow: `inset 0 0 12px hsl(${hsl} / 0.25)`,
+              }}
+            >
+              {plan.manual ? (
+                <Sparkles className="h-5 w-5" style={{ color: `hsl(${hsl})` }} />
+              ) : (
+                <Hourglass className="h-5 w-5" style={{ color: `hsl(${hsl})` }} />
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              {!plan.manual && !plan.goalMode && (
+                <span
+                  className="rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-widest"
+                  style={{
+                    background: `hsl(${hsl} / 0.15)`,
+                    color: `hsl(${hsl})`,
+                    border: `1px solid hsl(${hsl} / 0.35)`,
+                  }}
+                >
+                  {plan.fastHours}h fast
+                </span>
+              )}
+              {(plan.lockedEat || plan.lockedFast) && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-1 text-[10px] font-semibold text-primary border border-primary/30">
+                  <Lock className="h-3 w-3" /> Locked
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Title + tagline */}
+          <div className="flex items-end justify-between gap-3">
+            <div className="min-w-0">
+              <h3
+                className={`text-2xl font-black tracking-tight leading-none ${plan.accent} drop-shadow-[0_2px_12px_rgba(0,0,0,0.4)]`}
+              >
+                {plan.name}
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1.5">{plan.tagline}</p>
+            </div>
+            <div
+              className="shrink-0 flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-background/50 transition-transform duration-300 group-hover:translate-x-1"
+              style={{ boxShadow: `inset 0 0 10px hsl(${hsl} / 0.3)` }}
+            >
+              <ChevronRight className="h-4 w-4" style={{ color: `hsl(${hsl})` }} />
+            </div>
+          </div>
+
+          {/* Stats / progress bar */}
+          {!plan.manual ? (
+            <div className="mt-4 space-y-2.5">
+              <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider">
+                <span className="flex items-center gap-1.5" style={{ color: `hsl(${hsl})` }}>
+                  <Hourglass className="h-3.5 w-3.5" /> {plan.fastHours}h fast
+                </span>
+                <span className="flex items-center gap-1.5 text-muted-foreground">
+                  {plan.eatHours}h eat <UtensilsCrossed className="h-3.5 w-3.5" />
+                </span>
+              </div>
+              <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted/40">
+                <div
+                  className="absolute inset-y-0 left-0 rounded-full transition-all duration-700"
+                  style={{
+                    width: `${ratio * 100}%`,
+                    background: `linear-gradient(90deg, hsl(${hsl} / 0.9), hsl(${hsl} / 0.5))`,
+                    boxShadow: `0 0 12px hsl(${hsl} / 0.6)`,
+                  }}
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="mt-4 flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+              <span
+                className="h-1.5 w-1.5 rounded-full animate-pulse"
+                style={{ background: `hsl(${hsl})` }}
+              />
+              Tap to open or start anytime
+            </div>
+          )}
+        </div>
+      </div>
+    </button>
   );
 }
 
