@@ -254,12 +254,19 @@ function PlanSheet({ plan, onClose }: { plan: CustomManualPlan | null; onClose: 
 
       if (mode === "fast") {
         updates.active_fast_start_at = now.toISOString();
-        updates.active_fast_target_hours = plan.goalMode ? fastHours : plan.fastHours;
+        // Manual plan = open-ended fast; default 24h target so the timer has
+        // something to render. The user ends it manually whenever.
+        updates.active_fast_target_hours = plan.goalMode
+          ? fastHours
+          : plan.manual
+            ? 24
+            : plan.fastHours;
         updates.eating_window_ends_at = null;
       } else {
-        const ends = new Date(now.getTime() + eatHours * 3600 * 1000);
+        const effectiveEatHours = plan.manual && eatHours <= 0 ? 8 : eatHours;
+        const ends = new Date(now.getTime() + effectiveEatHours * 3600 * 1000);
         updates.eating_window_ends_at = ends.toISOString();
-        updates.eating_window_hours = eatHours;
+        updates.eating_window_hours = effectiveEatHours;
         updates.active_fast_start_at = null;
         updates.active_fast_target_hours = null;
       }
@@ -273,6 +280,9 @@ function PlanSheet({ plan, onClose }: { plan: CustomManualPlan | null; onClose: 
     onSuccess: (_d, mode) => {
       queryClient.invalidateQueries({ queryKey: ["meal-engine-state"] });
       queryClient.invalidateQueries({ queryKey: ["my-feature-settings"] });
+      queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting"] });
+      queryClient.invalidateQueries({ queryKey: ["fasting-gate-state"] });
+      queryClient.invalidateQueries({ queryKey: ["today-fasting-log"] });
       queryClient.invalidateQueries({ queryKey: ["client-feature-settings"] });
       toast({
         title: mode === "fast" ? "Fast started" : "Eating window opened",
