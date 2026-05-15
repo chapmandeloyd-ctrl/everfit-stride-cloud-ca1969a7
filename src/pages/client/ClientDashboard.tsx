@@ -1081,6 +1081,15 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
           <div className="pt-1">
             {featureSettings.fast_lock_pin ? (
               <HoldToEndButton onHoldComplete={() => setShowVerifyPin(true)} />
+            ) : isManualOpenFast ? (
+              <Button
+                variant="destructive"
+                className="w-full h-12 text-base"
+                disabled={endFastMutation.isPending}
+                onClick={() => endFastMutation.mutate()}
+              >
+                End Fast
+              </Button>
             ) : (
               <Button variant="destructive" className="w-full h-12 text-base" onClick={() => setShowEndFastEarlySheet(true)}>
                 End Fast
