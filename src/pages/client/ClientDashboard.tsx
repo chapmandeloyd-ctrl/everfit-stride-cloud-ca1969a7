@@ -116,6 +116,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
   const [showCloseEatingWindowConfirm, setShowCloseEatingWindowConfirm] = useState(false);
   const [showEndFastEarlySheet, setShowEndFastEarlySheet] = useState(false);
   const [showEndEatingWindowSheet, setShowEndEatingWindowSheet] = useState(false);
+  const [showEndManualFastConfirm, setShowEndManualFastConfirm] = useState(false);
   // Custom Manual Plan overrides — populated from localStorage when the user
   // started a fast / eating window from /client/custom-plans. They re-key off
   // the active fast/eating window so they reset whenever those flip.
