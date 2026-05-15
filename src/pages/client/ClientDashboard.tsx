@@ -1313,7 +1313,22 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                   variant="ghost"
                   className="w-full h-12 text-sm font-medium uppercase tracking-widest bg-transparent border hover:bg-transparent"
                   style={{ borderColor: "hsl(42 70% 55%)", color: "hsl(42 70% 55%)" }}
-                  onClick={() => {
+                  onClick={async () => {
+                    if (isManualOpenEat) {
+                      // Open-ended manual eating window — close immediately,
+                      // no coaching sheet, no "are you sure".
+                      await supabase
+                        .from("client_feature_settings")
+                        .update({ eating_window_ends_at: null })
+                        .eq("client_id", clientId);
+                      setActiveCustomEatPlan(null);
+                      setCustomEatPlan(null);
+                      queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting", clientId] });
+                      queryClient.invalidateQueries({ queryKey: ["my-feature-settings", clientId] });
+                      queryClient.invalidateQueries({ queryKey: ["fasting-profile-data"] });
+                      navigate("/client/dashboard");
+                      return;
+                    }
                     setEatingWindowSheetIntent("end_window");
                     setShowEndEatingWindowSheet(true);
                   }}
