@@ -90,3 +90,50 @@ export const CUSTOM_MANUAL_PLANS: CustomManualPlan[] = [
 export function getCustomManualPlan(id: string): CustomManualPlan | undefined {
   return CUSTOM_MANUAL_PLANS.find((p) => p.id === id);
 }
+
+/**
+ * Hex color used to theme the dashboard timer chrome (header pill, accents)
+ * when a custom plan is active. Mirrors each plan's `accent` Tailwind class.
+ */
+export const CUSTOM_PLAN_HEX: Record<string, string> = {
+  manual: "#a78bfa",            // violet-400
+  daily: "#34d399",             // emerald-400
+  "flexible-light": "#5eead4", // teal-300
+  "flexible-advanced": "#fda4af", // rose-300
+  "fasting-goal": "#e879f9",   // fuchsia-400
+};
+
+const ACTIVE_KEY = "ksom_active_custom_plan_id";
+const EATING_KEY = "ksom_active_custom_plan_eat_id";
+
+export function setActiveCustomFastPlan(id: string | null) {
+  try {
+    if (id) localStorage.setItem(ACTIVE_KEY, id);
+    else localStorage.removeItem(ACTIVE_KEY);
+  } catch {}
+}
+
+export function getActiveCustomFastPlan(): CustomManualPlan | null {
+  try {
+    const id = localStorage.getItem(ACTIVE_KEY);
+    return id ? getCustomManualPlan(id) ?? null : null;
+  } catch {
+    return null;
+  }
+}
+
+export function setActiveCustomEatPlan(id: string | null) {
+  try {
+    if (id) localStorage.setItem(EATING_KEY, id);
+    else localStorage.removeItem(EATING_KEY);
+  } catch {}
+}
+
+export function getActiveCustomEatPlan(): CustomManualPlan | null {
+  try {
+    const id = localStorage.getItem(EATING_KEY);
+    return id ? getCustomManualPlan(id) ?? null : null;
+  } catch {
+    return null;
+  }
+}

@@ -94,6 +94,14 @@ import { useLiveActivity } from "@/hooks/useLiveActivity";
 import { CoachingCard } from "@/components/dashboard/CoachingCard";
 import { WelcomeCard } from "@/components/client/WelcomeCard";
 import { PlanLockedDialog } from "@/components/PlanLockedDialog";
+import {
+  getActiveCustomFastPlan,
+  getActiveCustomEatPlan,
+  setActiveCustomFastPlan,
+  setActiveCustomEatPlan,
+  CUSTOM_PLAN_HEX,
+  type CustomManualPlan,
+} from "@/lib/customManualPlans";
 
 const SHOW_WEIGHT_TRACKER = false;
 
@@ -108,6 +116,15 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
   const [showCloseEatingWindowConfirm, setShowCloseEatingWindowConfirm] = useState(false);
   const [showEndFastEarlySheet, setShowEndFastEarlySheet] = useState(false);
   const [showEndEatingWindowSheet, setShowEndEatingWindowSheet] = useState(false);
+  // Custom Manual Plan overrides — populated from localStorage when the user
+  // started a fast / eating window from /client/custom-plans. They re-key off
+  // the active fast/eating window so they reset whenever those flip.
+  const [customFastPlan, setCustomFastPlan] = useState<CustomManualPlan | null>(() => getActiveCustomFastPlan());
+  const [customEatPlan, setCustomEatPlan] = useState<CustomManualPlan | null>(() => getActiveCustomEatPlan());
+  // Keep custom-plan state in sync with localStorage whenever the active fast
+  // or eating window flips (e.g. user just hit Start from /client/custom-plans
+  // and navigated back). Also clears state when the underlying session ends
+  // outside of our mutations (e.g. via another tab).
   const [showAssignedProgramSheet, setShowAssignedProgramSheet] = useState(false);
   const [showWhatCanIDrink, setShowWhatCanIDrink] = useState(false);
   const [showCoachWaitLock, setShowCoachWaitLock] = useState(false);
@@ -281,6 +298,17 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
 
   const isFasting = !!featureSettings?.active_fast_start_at;
   const hasEatingWindow = !!featureSettings?.eating_window_ends_at && new Date(featureSettings.eating_window_ends_at) > now;
+
+  // Sync custom-plan tags from localStorage whenever the active fast / eating
+  // window flips. Also clears stale tags if the underlying session ended.
+  useEffect(() => {
+    setCustomFastPlan(isFasting ? getActiveCustomFastPlan() : null);
+    if (!isFasting) setActiveCustomFastPlan(null);
+  }, [isFasting]);
+  useEffect(() => {
+    setCustomEatPlan(hasEatingWindow ? getActiveCustomEatPlan() : null);
+    if (!hasEatingWindow) setActiveCustomEatPlan(null);
+  }, [hasEatingWindow]);
 
   // Tick every second while fasting or eating window is active
   useEffect(() => {
@@ -519,6 +547,14 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
       queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting"] });
       queryClient.invalidateQueries({ queryKey: ["fasting-gate-state"] });
       queryClient.invalidateQueries({ queryKey: ["today-fasting-log"] });
+      // Custom-plan tag follows the fast — when the fast ends, hand the tag
+      // off to the eating window (if one opened) so its chrome matches too.
+      if (customFastPlan) {
+        if (!result?.endedEarly) setActiveCustomEatPlan(customFastPlan.id);
+        setActiveCustomFastPlan(null);
+        setCustomEatPlan(getActiveCustomEatPlan());
+        setCustomFastPlan(null);
+      }
       if (result?.endedEarly) {
         toast({
           title: "Fast ended early",
@@ -751,9 +787,18 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
   const hasProtocol = (!!featureSettings?.selected_protocol_id && !!activeProtocolRaw) || (PREVIEW_COACH_START_NOW && !!activeProtocol);
 
   const isCoachAssigned = !!featureSettings?.protocol_assigned_by;
-  const planName = activeProtocol?.name 
+  const basePlanName = activeProtocol?.name 
     || (activeQuickPlan ? `${activeQuickPlan.fast_hours}h Fast` : null)
     || `${featureSettings?.active_fast_target_hours || 16}h Fast`;
+  // Custom plan overrides everything — we still render the lion timer, only
+  // the chrome (header pill, name, accent color, end-fast flow) changes.
+  const isFastingState = !!featureSettings?.active_fast_start_at;
+  const isEatingState = !!featureSettings?.eating_window_ends_at && new Date(featureSettings.eating_window_ends_at) > now;
+  const activeCustomPlan = isFastingState ? customFastPlan : isEatingState ? customEatPlan : null;
+  const planName = activeCustomPlan?.name || basePlanName;
+  const planAccentHex = activeCustomPlan ? CUSTOM_PLAN_HEX[activeCustomPlan.id] : null;
+  const isManualOpenFast = !!(isFastingState && customFastPlan?.manual);
+  const isManualOpenEat = !!(isEatingState && customEatPlan?.manual);
   const hasDuration = !!activeProtocol?.duration_days;
   const effectivePlanStartDate = hasQuickPlan
     ? (featureSettings?.active_fast_start_at
@@ -977,15 +1022,36 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 space-y-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <p className="text-xs font-bold text-white/70 uppercase tracking-wider">{isMaintenanceMode ? "Maintenance Schedule" : "Fasting Program"}</p>
-                {!isMaintenanceMode && (
+                <p
+                  className="text-xs font-bold uppercase tracking-wider"
+                  style={{ color: planAccentHex ?? undefined }}
+                >
+                  {isMaintenanceMode
+                    ? "Maintenance Schedule"
+                    : activeCustomPlan
+                      ? "Custom Plan"
+                      : "Fasting Program"}
+                </p>
+                {!isMaintenanceMode && !activeCustomPlan && (
                   <Badge className="text-[10px] px-2 py-0.5 bg-primary/20 text-primary border border-primary/30 hover:bg-primary/20 font-semibold">
                     {isCoachAssigned ? "Coach Assigned" : "My Assigned"}
                   </Badge>
                 )}
+                {activeCustomPlan && (
+                  <Badge
+                    className="text-[10px] px-2 py-0.5 font-semibold border"
+                    style={{
+                      backgroundColor: `${planAccentHex}1f`,
+                      color: planAccentHex ?? undefined,
+                      borderColor: `${planAccentHex}55`,
+                    }}
+                  >
+                    {isManualOpenFast ? "Open-ended" : `${featureSettings.active_fast_target_hours}h Goal`}
+                  </Badge>
+                )}
               </div>
               <h3 className="mt-0.5 text-lg font-black leading-tight text-white">{isMaintenanceMode ? (maintenanceLabel || "Maintenance") : planName}</h3>
-              {activeKetoType && !isMaintenanceMode && (
+              {activeKetoType && !isMaintenanceMode && !activeCustomPlan && (
                 <div className="flex items-center gap-2 mt-1">
                   <div
                     className="flex h-5 w-auto items-center gap-1.5 rounded-full px-2 text-[10px] font-bold"
@@ -998,7 +1064,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                 </div>
               )}
             </div>
-            {hasDuration && !isMaintenanceMode && (
+            {hasDuration && !isMaintenanceMode && !activeCustomPlan && (
               <Badge variant="secondary" className="shrink-0 rounded-full border-0 bg-white/15 px-3 py-1 text-xs font-bold text-white">
                 Day {dayNumber} / {activeProtocol!.duration_days}
               </Badge>
@@ -1030,6 +1096,15 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
           <div className="pt-1">
             {featureSettings.fast_lock_pin ? (
               <HoldToEndButton onHoldComplete={() => setShowVerifyPin(true)} />
+            ) : isManualOpenFast ? (
+              <Button
+                variant="destructive"
+                className="w-full h-12 text-base"
+                disabled={endFastMutation.isPending}
+                onClick={() => endFastMutation.mutate()}
+              >
+                End Fast
+              </Button>
             ) : (
               <Button variant="destructive" className="w-full h-12 text-base" onClick={() => setShowEndFastEarlySheet(true)}>
                 End Fast
@@ -1144,16 +1219,28 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                 <div className="flex items-center gap-2 flex-wrap">
                   <p
                     className="text-[10px] font-medium uppercase tracking-[0.4em]"
-                    style={{ color: "hsl(42 70% 55%)" }}
+                    style={{ color: planAccentHex ?? "hsl(42 70% 55%)" }}
                   >
-                    {isMaintenanceMode ? "Maintenance Schedule" : "Fasting Program"}
+                    {isMaintenanceMode
+                      ? "Maintenance Schedule"
+                      : activeCustomPlan
+                        ? "Custom Plan"
+                        : "Fasting Program"}
                   </p>
-                  {!isMaintenanceMode && (
+                  {!isMaintenanceMode && !activeCustomPlan && (
                     <Badge
                       className="text-[10px] px-2 py-0.5 font-medium bg-transparent"
                       style={{ borderColor: "hsl(42 70% 55%)", color: "hsl(42 70% 55%)" }}
                     >
                       {isCoachAssigned ? "Coach Assigned" : "My Assigned"}
+                    </Badge>
+                  )}
+                  {activeCustomPlan && (
+                    <Badge
+                      className="text-[10px] px-2 py-0.5 font-medium border bg-transparent"
+                      style={{ borderColor: planAccentHex ?? undefined, color: planAccentHex ?? undefined }}
+                    >
+                      {isManualOpenEat ? "Open-ended" : `${featureSettings.eating_window_hours ?? 8}h Window`}
                     </Badge>
                   )}
                 </div>
@@ -1163,7 +1250,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                 >
                   {isMaintenanceMode ? (maintenanceLabel || "Maintenance") : planName}
                 </h3>
-                {activeKetoType && !isMaintenanceMode && (
+                {activeKetoType && !isMaintenanceMode && !activeCustomPlan && (
                   <div className="flex items-center gap-2 mt-1">
                     <div
                       className="h-5 w-auto px-2 rounded-full flex items-center gap-1.5 text-[10px] font-bold"
@@ -1176,7 +1263,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                   </div>
                 )}
               </div>
-              {hasDuration && !isMaintenanceMode && (
+              {hasDuration && !isMaintenanceMode && !activeCustomPlan && (
                 <Badge
                   variant="outline"
                   className="text-[10px] font-medium px-3 py-1 rounded-full shrink-0 bg-transparent uppercase tracking-widest"
@@ -1241,7 +1328,22 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                   variant="ghost"
                   className="w-full h-12 text-sm font-medium uppercase tracking-widest bg-transparent border hover:bg-transparent"
                   style={{ borderColor: "hsl(42 70% 55%)", color: "hsl(42 70% 55%)" }}
-                  onClick={() => {
+                  onClick={async () => {
+                    if (isManualOpenEat) {
+                      // Open-ended manual eating window — close immediately,
+                      // no coaching sheet, no "are you sure".
+                      await supabase
+                        .from("client_feature_settings")
+                        .update({ eating_window_ends_at: null })
+                        .eq("client_id", clientId);
+                      setActiveCustomEatPlan(null);
+                      setCustomEatPlan(null);
+                      queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting", clientId] });
+                      queryClient.invalidateQueries({ queryKey: ["my-feature-settings", clientId] });
+                      queryClient.invalidateQueries({ queryKey: ["fasting-profile-data"] });
+                      navigate("/client/dashboard");
+                      return;
+                    }
                     setEatingWindowSheetIntent("end_window");
                     setShowEndEatingWindowSheet(true);
                   }}
