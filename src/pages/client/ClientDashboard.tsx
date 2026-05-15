@@ -1112,7 +1112,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                 variant="destructive"
                 className="w-full h-12 text-base"
                 disabled={endFastMutation.isPending}
-                onClick={() => endFastMutation.mutate()}
+                onClick={() => setShowEndManualFastConfirm(true)}
               >
                 End Fast
               </Button>
