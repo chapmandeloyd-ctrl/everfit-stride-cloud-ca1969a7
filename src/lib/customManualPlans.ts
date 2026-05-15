@@ -28,7 +28,7 @@ export const CUSTOM_MANUAL_PLANS: CustomManualPlan[] = [
     name: "Manual Plan",
     tagline: "Go your own pace",
     description:
-      "Control your fasting by opening fasting and eating windows manually.",
+      "Take full control of your fasting. Open and close your eating window whenever you want — no fixed schedule, no pressure. Perfect for days when life doesn't follow a clock and you want to listen to your body instead.",
     fastHours: 0,
     eatHours: 0,
     manual: true,
@@ -40,7 +40,7 @@ export const CUSTOM_MANUAL_PLANS: CustomManualPlan[] = [
     name: "Daily Plan",
     tagline: "Make fasting a daily pattern",
     description:
-      "Your eating window and fasting start at the same time every day.",
+      "Build a rhythm your body can rely on. Your eating window opens and closes at the same time every day, training your metabolism, hunger and energy to follow a steady pattern. The simplest way to turn fasting into a real habit.",
     fastHours: 14,
     eatHours: 10,
     eatRange: [8, 12],
@@ -52,7 +52,7 @@ export const CUSTOM_MANUAL_PLANS: CustomManualPlan[] = [
     name: "Flexible Light",
     tagline: "Good for getting started",
     description:
-      "Adjust your eating window to fit your schedule and how you feel.",
+      "An excellent plan to start your fasting journey. Adjust your eating window to fit your schedule and how you feel each day, and slowly find the perfect rhythm of fasting that works for your body and your life.",
     fastHours: 15,
     eatHours: 9,
     eatRange: [6, 10],
@@ -64,7 +64,7 @@ export const CUSTOM_MANUAL_PLANS: CustomManualPlan[] = [
     name: "Flexible Advanced",
     tagline: "Adjust your fasting goals",
     description:
-      "Vary your eating window between 0.5h and 6h.",
+      "For experienced fasters ready to go deeper. Vary your eating window between 1 and 6 hours to push into longer fasts, deeper ketosis and stronger autophagy — while still keeping the flexibility to adapt to your day.",
     fastHours: 22,
     eatHours: 2,
     eatRange: [1, 6],
@@ -76,7 +76,7 @@ export const CUSTOM_MANUAL_PLANS: CustomManualPlan[] = [
     name: "Fasting Goal",
     tagline: "Don't watch the clock",
     description:
-      "Focus on how much you're fasting or eating instead of fixed times.",
+      "Stop watching the clock and focus on the goal. Choose how long you want to fast or how long you want to eat, and just hit the target — no fixed open or close times. Ideal for unpredictable days and travel.",
     fastHours: 19,
     eatHours: 5,
     goalMode: true,
