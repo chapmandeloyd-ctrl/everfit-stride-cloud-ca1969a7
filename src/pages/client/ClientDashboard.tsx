@@ -444,14 +444,20 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
     }) => {
       const nowTs = new Date();
       const startAt = featureSettings?.active_fast_start_at;
-      const targetHours = featureSettings?.active_fast_target_hours || 16;
+      const hasTarget = !!featureSettings?.active_fast_target_hours;
+      const isManual = !hasTarget; // manual/open-ended fasts have no target
       const trainerId = featureSettings?.trainer_id;
 
       // Calculate actual hours fasted
       const actualMs = startAt ? nowTs.getTime() - new Date(startAt).getTime() : 0;
       const actualHours = Math.round((actualMs / 3600000) * 100) / 100;
+      // For manual fasts, treat the elapsed time as the target so the log
+      // shows "completed" with 100% credit instead of being flagged as partial.
+      const targetHours = hasTarget
+        ? featureSettings!.active_fast_target_hours!
+        : Math.max(actualHours, 0.01);
       const completionPct = Math.min(Math.round((actualHours / targetHours) * 100), 100);
-      const endedEarly = actualHours < targetHours;
+      const endedEarly = !isManual && actualHours < targetHours;
 
       const eatingWindowHours = featureSettings?.eating_window_hours || 8;
       const shouldOpenEatingWindow = !endedEarly;
@@ -533,8 +539,10 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
         emitActivityEvent({
           clientId,
           eventType: endedEarly ? "fast_ended_early" : "fast_completed",
-          title: endedEarly ? "Fast ended early" : "Fast completed",
-          subtitle: `${actualHours.toFixed(1)}h of ${targetHours}h (${completionPct}%)`,
+          title: endedEarly ? "Fast ended early" : (isManual ? "Manual fast completed" : "Fast completed"),
+          subtitle: isManual
+            ? `${actualHours.toFixed(1)}h fasted`
+            : `${actualHours.toFixed(1)}h of ${targetHours}h (${completionPct}%)`,
           category: "fasting",
           icon: endedEarly ? "stop-circle" : "check-circle",
           metadata: { actual_hours: actualHours, target_hours: targetHours, completion_pct: completionPct, reason: (intervention && (intervention as any).reason) ?? null },
