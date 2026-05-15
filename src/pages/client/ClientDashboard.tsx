@@ -764,9 +764,18 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
   const hasProtocol = (!!featureSettings?.selected_protocol_id && !!activeProtocolRaw) || (PREVIEW_COACH_START_NOW && !!activeProtocol);
 
   const isCoachAssigned = !!featureSettings?.protocol_assigned_by;
-  const planName = activeProtocol?.name 
+  const basePlanName = activeProtocol?.name 
     || (activeQuickPlan ? `${activeQuickPlan.fast_hours}h Fast` : null)
     || `${featureSettings?.active_fast_target_hours || 16}h Fast`;
+  // Custom plan overrides everything — we still render the lion timer, only
+  // the chrome (header pill, name, accent color, end-fast flow) changes.
+  const isFastingState = !!featureSettings?.active_fast_start_at;
+  const isEatingState = !!featureSettings?.eating_window_ends_at && new Date(featureSettings.eating_window_ends_at) > now;
+  const activeCustomPlan = isFastingState ? customFastPlan : isEatingState ? customEatPlan : null;
+  const planName = activeCustomPlan?.name || basePlanName;
+  const planAccentHex = activeCustomPlan ? CUSTOM_PLAN_HEX[activeCustomPlan.id] : null;
+  const isManualOpenFast = !!(isFastingState && customFastPlan?.manual);
+  const isManualOpenEat = !!(isEatingState && customEatPlan?.manual);
   const hasDuration = !!activeProtocol?.duration_days;
   const effectivePlanStartDate = hasQuickPlan
     ? (featureSettings?.active_fast_start_at
