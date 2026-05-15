@@ -121,6 +121,10 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
   // the active fast/eating window so they reset whenever those flip.
   const [customFastPlan, setCustomFastPlan] = useState<CustomManualPlan | null>(() => getActiveCustomFastPlan());
   const [customEatPlan, setCustomEatPlan] = useState<CustomManualPlan | null>(() => getActiveCustomEatPlan());
+  // Keep custom-plan state in sync with localStorage whenever the active fast
+  // or eating window flips (e.g. user just hit Start from /client/custom-plans
+  // and navigated back). Also clears state when the underlying session ends
+  // outside of our mutations (e.g. via another tab).
   const [showAssignedProgramSheet, setShowAssignedProgramSheet] = useState(false);
   const [showWhatCanIDrink, setShowWhatCanIDrink] = useState(false);
   const [showCoachWaitLock, setShowCoachWaitLock] = useState(false);
