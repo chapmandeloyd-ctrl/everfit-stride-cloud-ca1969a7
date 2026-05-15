@@ -1,8 +1,8 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Lock, Minus, Plus, Hourglass, UtensilsCrossed, Clock, ChevronRight, Sparkles } from "lucide-react";
+import { Lock, Minus, Plus, Hourglass, UtensilsCrossed, Clock, ChevronRight, Sparkles, ArrowLeft, CheckCircle2, ArrowRight } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
@@ -208,6 +208,7 @@ function PlanSheet({ plan, onClose }: { plan: CustomManualPlan | null; onClose: 
   const [eatHours, setEatHours] = useState<number>(plan?.eatHours ?? 0);
   const [fastHours, setFastHours] = useState<number>(plan?.fastHours ?? 0);
   const [openHour, setOpenHour] = useState<number>(plan?.defaultOpenHour ?? 8);
+  const [pendingMode, setPendingMode] = useState<"fast" | "eat" | null>(null);
 
   // Reset state when plan changes
   useMemo(() => {
@@ -215,6 +216,7 @@ function PlanSheet({ plan, onClose }: { plan: CustomManualPlan | null; onClose: 
       setEatHours(plan.eatHours);
       setFastHours(plan.fastHours);
       setOpenHour(plan.defaultOpenHour);
+      setPendingMode(null);
     }
   }, [plan?.id]);
 
@@ -266,6 +268,32 @@ function PlanSheet({ plan, onClose }: { plan: CustomManualPlan | null; onClose: 
   const eatMax = plan.eatRange?.[1] ?? eatHours;
   const fastMin = plan.fastRange?.[0] ?? fastHours;
   const fastMax = plan.fastRange?.[1] ?? fastHours;
+
+  // Default action for non-manual plans is "fast" (we start the fast,
+  // eating opens after it ends)
+  const requestStart = (mode: "fast" | "eat") => setPendingMode(mode);
+
+  if (pendingMode) {
+    return (
+      <Sheet open={!!plan} onOpenChange={(o) => !o && onClose()}>
+        <SheetContent
+          side="bottom"
+          className="rounded-t-2xl max-h-[92vh] overflow-y-auto bg-background border-border"
+        >
+          <ConfirmPreview
+            plan={plan}
+            mode={pendingMode}
+            fastHours={plan.goalMode ? fastHours : plan.fastHours}
+            eatHours={eatHours}
+            openHour={openHour}
+            isPending={start.isPending}
+            onBack={() => setPendingMode(null)}
+            onConfirm={() => start.mutate(pendingMode)}
+          />
+        </SheetContent>
+      </Sheet>
+    );
+  }
 
   return (
     <Sheet open={!!plan} onOpenChange={(o) => !o && onClose()}>
@@ -367,8 +395,7 @@ function PlanSheet({ plan, onClose }: { plan: CustomManualPlan | null; onClose: 
               </p>
               <Button
                 className="w-full h-12 text-base font-bold"
-                onClick={() => start.mutate("eat")}
-                disabled={start.isPending}
+                onClick={() => requestStart("eat")}
               >
                 Open Eating Window
               </Button>
@@ -376,8 +403,7 @@ function PlanSheet({ plan, onClose }: { plan: CustomManualPlan | null; onClose: 
               <Button
                 variant="secondary"
                 className="w-full h-12 text-base font-bold"
-                onClick={() => start.mutate("fast")}
-                disabled={start.isPending}
+                onClick={() => requestStart("fast")}
               >
                 Start Fasting
               </Button>
@@ -385,15 +411,226 @@ function PlanSheet({ plan, onClose }: { plan: CustomManualPlan | null; onClose: 
           ) : (
             <Button
               className="w-full h-12 text-base font-bold"
-              onClick={() => start.mutate("fast")}
-              disabled={start.isPending}
+              onClick={() => requestStart("fast")}
             >
-              {start.isPending ? "Starting..." : "Start Plan"}
+              Review &amp; Start
             </Button>
           )}
         </div>
       </SheetContent>
     </Sheet>
+  );
+}
+
+/* ---------- Confirmation / preview screen ---------- */
+
+function ConfirmPreview({
+  plan,
+  mode,
+  fastHours,
+  eatHours,
+  openHour,
+  isPending,
+  onBack,
+  onConfirm,
+}: {
+  plan: CustomManualPlan;
+  mode: "fast" | "eat";
+  fastHours: number;
+  eatHours: number;
+  openHour: number;
+  isPending: boolean;
+  onBack: () => void;
+  onConfirm: () => void;
+}) {
+  // live-update "now" so the preview times stay accurate while the sheet is open
+  const [now, setNow] = useState<Date>(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 30_000);
+    return () => clearInterval(id);
+  }, []);
+
+  const fastStart = now;
+  const fastEnd = new Date(now.getTime() + fastHours * 3600 * 1000);
+  const eatStartFromFast = fastEnd;
+  const eatEndFromFast = new Date(fastEnd.getTime() + eatHours * 3600 * 1000);
+
+  // Manual eating-now path uses the picked open hour instead of "now"
+  const manualEatStart = now;
+  const manualEatEnd = new Date(now.getTime() + eatHours * 3600 * 1000);
+
+  const fmt = (d: Date) =>
+    d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  const fmtDay = (d: Date) => {
+    const sameDay = d.toDateString() === now.toDateString();
+    if (sameDay) return "Today";
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return d.toDateString() === tomorrow.toDateString() ? "Tomorrow" : d.toLocaleDateString([], { weekday: "short" });
+  };
+
+  return (
+    <>
+      <SheetHeader className="text-left">
+        <button
+          onClick={onBack}
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors mb-1"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" /> Edit
+        </button>
+        <SheetTitle className="text-xl font-black">Confirm your plan</SheetTitle>
+        <p className={`text-sm font-bold ${plan.accent}`}>{plan.name}</p>
+      </SheetHeader>
+
+      <div className="mt-4 space-y-3">
+        {mode === "fast" ? (
+          <>
+            {/* Fasting window */}
+            <WindowRow
+              kind="fast"
+              title="Fasting Window"
+              hours={fastHours}
+              startLabel={`${fmtDay(fastStart)} • ${fmt(fastStart)}`}
+              endLabel={`${fmtDay(fastEnd)} • ${fmt(fastEnd)}`}
+              startCaption="Starts"
+              endCaption="Ends"
+            />
+            {/* Eating window that follows */}
+            {!plan.manual && eatHours > 0 && (
+              <WindowRow
+                kind="eat"
+                title="Eating Window"
+                hours={eatHours}
+                startLabel={`${fmtDay(eatStartFromFast)} • ${fmt(eatStartFromFast)}`}
+                endLabel={`${fmtDay(eatEndFromFast)} • ${fmt(eatEndFromFast)}`}
+                startCaption="Opens"
+                endCaption="Closes"
+              />
+            )}
+          </>
+        ) : (
+          <WindowRow
+            kind="eat"
+            title="Eating Window"
+            hours={eatHours}
+            startLabel={`${fmtDay(manualEatStart)} • ${fmt(manualEatStart)}`}
+            endLabel={`${fmtDay(manualEatEnd)} • ${fmt(manualEatEnd)}`}
+            startCaption="Opens now"
+            endCaption="Closes"
+          />
+        )}
+
+        <Card className="bg-muted/20 border-border">
+          <CardContent className="p-3 text-xs text-muted-foreground text-center">
+            You can end this {mode === "fast" ? "fast" : "eating window"} early at any time from your dashboard.
+          </CardContent>
+        </Card>
+
+        <div className="space-y-2 pt-1">
+          <Button
+            className="w-full h-12 text-base font-bold"
+            onClick={onConfirm}
+            disabled={isPending}
+          >
+            <CheckCircle2 className="h-5 w-5 mr-2" />
+            {isPending ? "Starting..." : `Confirm & Start ${mode === "fast" ? "Fast" : "Eating Window"}`}
+          </Button>
+          <Button
+            variant="ghost"
+            className="w-full h-11 text-sm font-semibold"
+            onClick={onBack}
+            disabled={isPending}
+          >
+            Back to edit
+          </Button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function WindowRow({
+  kind,
+  title,
+  hours,
+  startLabel,
+  endLabel,
+  startCaption,
+  endCaption,
+}: {
+  kind: "fast" | "eat";
+  title: string;
+  hours: number;
+  startLabel: string;
+  endLabel: string;
+  startCaption: string;
+  endCaption: string;
+}) {
+  const isFast = kind === "fast";
+  const accentHsl = isFast ? "0 84% 60%" : "152 76% 55%";
+  const Icon = isFast ? Hourglass : UtensilsCrossed;
+
+  return (
+    <div
+      className="relative overflow-hidden rounded-2xl border border-white/5 p-4"
+      style={{
+        background:
+          "linear-gradient(160deg, hsl(var(--card)) 0%, hsl(var(--card)) 60%, hsl(var(--muted) / 0.4) 100%)",
+        boxShadow: `0 12px 32px -16px hsl(${accentHsl} / 0.4), inset 0 1px 0 hsl(0 0% 100% / 0.05)`,
+      }}
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-12 -right-12 h-32 w-32 rounded-full blur-3xl opacity-40"
+        style={{ background: `radial-gradient(circle, hsl(${accentHsl} / 0.7), transparent 70%)` }}
+      />
+      <div className="relative">
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <div className="flex items-center gap-2">
+            <div
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10"
+              style={{
+                background: `linear-gradient(135deg, hsl(${accentHsl} / 0.25), hsl(${accentHsl} / 0.05))`,
+              }}
+            >
+              <Icon className="h-4 w-4" style={{ color: `hsl(${accentHsl})` }} />
+            </div>
+            <p className="text-[11px] font-black uppercase tracking-wider text-muted-foreground">
+              {title}
+            </p>
+          </div>
+          <span
+            className="rounded-full px-2.5 py-1 text-[11px] font-black"
+            style={{
+              background: `hsl(${accentHsl} / 0.15)`,
+              color: `hsl(${accentHsl})`,
+              border: `1px solid hsl(${accentHsl} / 0.35)`,
+            }}
+          >
+            {hours}h
+          </span>
+        </div>
+
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+          <div className="min-w-0">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              {startCaption}
+            </p>
+            <p className="text-base font-black mt-0.5 truncate">{startLabel}</p>
+          </div>
+          <ArrowRight
+            className="h-4 w-4 shrink-0"
+            style={{ color: `hsl(${accentHsl})` }}
+          />
+          <div className="min-w-0 text-right">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              {endCaption}
+            </p>
+            <p className="text-base font-black mt-0.5 truncate">{endLabel}</p>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
