@@ -11,11 +11,14 @@ import { FastingStructureComparison } from "@/components/FastingStructureCompari
 import { LifestylePlanSelector } from "@/components/LifestylePlanSelector";
 import { TransformationPathCard } from "@/components/TransformationPathCard";
 import { useEngineMode } from "@/hooks/useEngineMode";
+import { CustomManualPlansSection } from "@/components/CustomManualPlansSection";
+import { useClientFeatureSettings } from "@/hooks/useClientFeatureSettings";
 
 export default function ClientChooseProtocol() {
   const navigate = useNavigate();
   const [focusFilter, setFocusFilter] = useState<string | null>(null);
   const { engineMode, config, isLoading: engineLoading } = useEngineMode();
+  const { settings } = useClientFeatureSettings();
 
   if (engineLoading) {
     return (
@@ -47,6 +50,10 @@ export default function ClientChooseProtocol() {
             <TransformationPathCard />
             <ProgramsSelector navigate={navigate} />
             <QuickPlansSelector navigate={navigate} />
+
+            {(settings as any)?.custom_manual_plans_enabled && (
+              <CustomManualPlansSection />
+            )}
 
             <FastingStructureComparison />
             <FastingSafetyNotice />

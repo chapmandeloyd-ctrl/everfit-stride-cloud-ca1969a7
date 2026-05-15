@@ -160,6 +160,21 @@ function FastingStrictModeSettings({ settings, toggleMutation }: { settings: any
             <span>12h</span>
           </div>
         </div>
+        <Separator />
+        <div className="flex items-center justify-between py-2">
+          <div>
+            <Label className="text-sm font-medium">Custom Manual Plans</Label>
+            <p className="text-xs text-muted-foreground">
+              Show the 7-plan custom manual fasting picker (Manual, Easy Start, Daily, Flexible Light/Advanced, Warrior, Fasting Goal) on the client's fasting page
+            </p>
+          </div>
+          <Switch
+            checked={(settings as any)?.custom_manual_plans_enabled ?? false}
+            onCheckedChange={(checked) =>
+              toggleMutation.mutate({ key: "custom_manual_plans_enabled" as any, value: checked })
+            }
+          />
+        </div>
       </CardContent>
     </Card>
   );
