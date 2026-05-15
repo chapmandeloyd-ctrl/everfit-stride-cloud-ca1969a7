@@ -516,7 +516,11 @@ function ConfirmPreview({
               title="Fasting Window"
               hours={fastHours}
               startLabel={`${fmtDay(fastStart)} • ${fmt(fastStart)}`}
-              endLabel={`${fmtDay(fastEnd)} • ${fmt(fastEnd)}`}
+              endLabel={
+                plan.manual
+                  ? "When you end it"
+                  : `${fmtDay(fastEnd)} • ${fmt(fastEnd)}`
+              }
               startCaption="Starts"
               endCaption="Ends"
             />
