@@ -575,6 +575,11 @@ function ConfirmPreview({
 }
 
 function WindowRow({
+  // placeholder marker
+  // (real impl below)
+  ...args
+}: any): any { return _WindowRow(args); }
+function _WindowRow({
   kind,
   title,
   hours,
