@@ -1181,6 +1181,30 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
             clientId={clientId}
             activeFastStartAt={featureSettings.active_fast_start_at}
           />
+
+          {/* Confirm before ending an open-ended manual fast */}
+          <AlertDialog open={showEndManualFastConfirm} onOpenChange={setShowEndManualFastConfirm}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>End your fast?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to end this manual fast? Your time fasted will be saved to your timeline and your eating window will open.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Keep fasting</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => {
+                    setShowEndManualFastConfirm(false);
+                    endFastMutation.mutate();
+                  }}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  End Fast
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </CardContent>
         </Card>
         {clientId && <BeveragesTodayCard clientId={clientId} />}
