@@ -303,18 +303,20 @@ function PlanSheet({ plan, onClose }: { plan: CustomManualPlan | null; onClose: 
       <Sheet open={!!plan} onOpenChange={(o) => !o && onClose()}>
         <SheetContent
           side="bottom"
-          className="rounded-t-2xl max-h-[92vh] overflow-y-auto bg-background border-border"
+          className="rounded-t-2xl max-h-[92vh] overflow-y-auto bg-background border-border p-0"
         >
-          <ConfirmPreview
-            plan={plan}
-            mode={pendingMode}
-            fastHours={plan.goalMode ? fastHours : plan.fastHours}
-            eatHours={eatHours}
-            openHour={openHour}
-            isPending={start.isPending}
-            onBack={() => setPendingMode(null)}
-            onConfirm={() => start.mutate(pendingMode)}
-          />
+          <DynamicSheetShell plan={plan}>
+            <ConfirmPreview
+              plan={plan}
+              mode={pendingMode}
+              fastHours={plan.goalMode ? fastHours : plan.fastHours}
+              eatHours={eatHours}
+              openHour={openHour}
+              isPending={start.isPending}
+              onBack={() => setPendingMode(null)}
+              onConfirm={() => start.mutate(pendingMode)}
+            />
+          </DynamicSheetShell>
         </SheetContent>
       </Sheet>
     );
@@ -322,18 +324,14 @@ function PlanSheet({ plan, onClose }: { plan: CustomManualPlan | null; onClose: 
 
   return (
     <Sheet open={!!plan} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent side="bottom" className="rounded-t-2xl max-h-[92vh] overflow-y-auto bg-background border-border">
-        <SheetHeader className="text-left">
-          <SheetTitle className={`text-2xl font-black ${plan.accent}`}>{plan.name}</SheetTitle>
-          <p className="text-sm text-muted-foreground">{plan.description}</p>
+      <SheetContent side="bottom" className="rounded-t-2xl max-h-[92vh] overflow-y-auto bg-background border-border p-0">
+        <DynamicSheetShell plan={plan} showHero>
           {!plan.manual && !plan.goalMode && (
-            <p className="text-xs font-semibold text-foreground mt-1">
+            <p className="text-xs font-bold uppercase tracking-wider text-foreground/80 mb-3">
               {plan.fastHours}hr fasting — {eatHours}hr eating
             </p>
           )}
-        </SheetHeader>
-
-        <div className="mt-4 space-y-4">
+          <div className="space-y-4">
           {plan.goalMode ? (
             <>
               <Stepper
@@ -441,7 +439,8 @@ function PlanSheet({ plan, onClose }: { plan: CustomManualPlan | null; onClose: 
               Review &amp; Start
             </Button>
           )}
-        </div>
+          </div>
+        </DynamicSheetShell>
       </SheetContent>
     </Sheet>
   );
