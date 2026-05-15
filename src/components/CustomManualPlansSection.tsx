@@ -10,6 +10,8 @@ import { useToast } from "@/hooks/use-toast";
 import {
   CUSTOM_MANUAL_PLANS,
   type CustomManualPlan,
+  setActiveCustomFastPlan,
+  setActiveCustomEatPlan,
 } from "@/lib/customManualPlans";
 
 function formatHour(h: number): string {
