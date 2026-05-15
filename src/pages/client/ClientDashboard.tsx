@@ -1007,15 +1007,36 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 space-y-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <p className="text-xs font-bold text-white/70 uppercase tracking-wider">{isMaintenanceMode ? "Maintenance Schedule" : "Fasting Program"}</p>
-                {!isMaintenanceMode && (
+                <p
+                  className="text-xs font-bold uppercase tracking-wider"
+                  style={{ color: planAccentHex ?? undefined }}
+                >
+                  {isMaintenanceMode
+                    ? "Maintenance Schedule"
+                    : activeCustomPlan
+                      ? "Custom Plan"
+                      : "Fasting Program"}
+                </p>
+                {!isMaintenanceMode && !activeCustomPlan && (
                   <Badge className="text-[10px] px-2 py-0.5 bg-primary/20 text-primary border border-primary/30 hover:bg-primary/20 font-semibold">
                     {isCoachAssigned ? "Coach Assigned" : "My Assigned"}
                   </Badge>
                 )}
+                {activeCustomPlan && (
+                  <Badge
+                    className="text-[10px] px-2 py-0.5 font-semibold border"
+                    style={{
+                      backgroundColor: `${planAccentHex}1f`,
+                      color: planAccentHex ?? undefined,
+                      borderColor: `${planAccentHex}55`,
+                    }}
+                  >
+                    {isManualOpenFast ? "Open-ended" : `${featureSettings.active_fast_target_hours}h Goal`}
+                  </Badge>
+                )}
               </div>
               <h3 className="mt-0.5 text-lg font-black leading-tight text-white">{isMaintenanceMode ? (maintenanceLabel || "Maintenance") : planName}</h3>
-              {activeKetoType && !isMaintenanceMode && (
+              {activeKetoType && !isMaintenanceMode && !activeCustomPlan && (
                 <div className="flex items-center gap-2 mt-1">
                   <div
                     className="flex h-5 w-auto items-center gap-1.5 rounded-full px-2 text-[10px] font-bold"
@@ -1028,7 +1049,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                 </div>
               )}
             </div>
-            {hasDuration && !isMaintenanceMode && (
+            {hasDuration && !isMaintenanceMode && !activeCustomPlan && (
               <Badge variant="secondary" className="shrink-0 rounded-full border-0 bg-white/15 px-3 py-1 text-xs font-bold text-white">
                 Day {dayNumber} / {activeProtocol!.duration_days}
               </Badge>
