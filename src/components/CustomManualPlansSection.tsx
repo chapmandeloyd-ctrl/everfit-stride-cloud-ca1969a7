@@ -709,3 +709,78 @@ function Stepper({
     </div>
   );
 }
+
+/* ---------- Dynamic sheet shell — gives the open sheet color/depth ---------- */
+
+function DynamicSheetShell({
+  plan,
+  showHero,
+  children,
+}: {
+  plan: CustomManualPlan;
+  showHero?: boolean;
+  children: React.ReactNode;
+}) {
+  const hsl = accentToHex(plan.accent);
+  const Icon = plan.manual ? Sparkles : Hourglass;
+
+  return (
+    <div className="relative overflow-hidden">
+      {/* Tinted accent background */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background: `radial-gradient(120% 70% at 0% 0%, hsl(${hsl} / 0.22), transparent 55%), radial-gradient(120% 70% at 100% 0%, hsl(${hsl} / 0.14), transparent 60%), linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--background)) 100%)`,
+        }}
+      />
+      {/* Top decorative orbs */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-24 -right-16 h-64 w-64 rounded-full blur-3xl opacity-50"
+        style={{ background: `radial-gradient(circle, hsl(${hsl} / 0.7), transparent 70%)` }}
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-10 -left-20 h-52 w-52 rounded-full blur-3xl opacity-30"
+        style={{ background: `radial-gradient(circle, hsl(${hsl} / 0.6), transparent 70%)` }}
+      />
+      {/* Subtle grid texture */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-[0.04] mix-blend-overlay"
+        style={{
+          backgroundImage:
+            "linear-gradient(hsl(0 0% 100%) 1px, transparent 1px), linear-gradient(90deg, hsl(0 0% 100%) 1px, transparent 1px)",
+          backgroundSize: "28px 28px",
+        }}
+      />
+
+      <div className="relative px-6 pt-6 pb-8">
+        {showHero && (
+          <div className="mb-5">
+            <div
+              className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 mb-3"
+              style={{
+                background: `linear-gradient(135deg, hsl(${hsl} / 0.3), hsl(${hsl} / 0.08))`,
+                boxShadow: `inset 0 0 14px hsl(${hsl} / 0.3), 0 8px 20px -6px hsl(${hsl} / 0.4)`,
+              }}
+            >
+              <Icon className="h-6 w-6" style={{ color: `hsl(${hsl})` }} />
+            </div>
+            <SheetTitle
+              className={`text-3xl font-black tracking-tight leading-tight ${plan.accent} drop-shadow-[0_2px_16px_rgba(0,0,0,0.5)]`}
+            >
+              {plan.name}
+            </SheetTitle>
+            <p className="text-sm font-semibold text-foreground/85 mt-2">{plan.tagline}</p>
+            <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">
+              {plan.description}
+            </p>
+          </div>
+        )}
+        {children}
+      </div>
+    </div>
+  );
+}
