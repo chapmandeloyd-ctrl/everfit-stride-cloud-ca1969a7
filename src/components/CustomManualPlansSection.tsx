@@ -278,6 +278,15 @@ function PlanSheet({ plan, onClose }: { plan: CustomManualPlan | null; onClose: 
         .update(updates)
         .eq("client_id", clientId);
       if (error) throw error;
+      // Tag which custom plan is now driving the timer/eating window so the
+      // dashboard can override labels + accent colors.
+      if (mode === "fast") {
+        setActiveCustomFastPlan(plan.id);
+        setActiveCustomEatPlan(null);
+      } else {
+        setActiveCustomEatPlan(plan.id);
+        setActiveCustomFastPlan(null);
+      }
     },
     onSuccess: (_d, mode) => {
       queryClient.invalidateQueries({ queryKey: ["meal-engine-state"] });
