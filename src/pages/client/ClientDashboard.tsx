@@ -309,7 +309,6 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
       setCustomFastPlan(getActiveCustomFastPlan());
     } else {
       setCustomFastPlan(null);
-      setActiveCustomFastPlan(null);
     }
   }, [featureSettings, featureSettings?.active_fast_start_at]);
   useEffect(() => {
@@ -318,7 +317,6 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
       setCustomEatPlan(getActiveCustomEatPlan());
     } else {
       setCustomEatPlan(null);
-      setActiveCustomEatPlan(null);
     }
   }, [featureSettings, hasEatingWindow, featureSettings?.eating_window_ends_at]);
 
