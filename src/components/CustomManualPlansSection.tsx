@@ -179,7 +179,8 @@ function DynamicPlanCard({
               <p className="text-sm text-muted-foreground mt-1.5">{plan.tagline}</p>
             </div>
             <div
-              className="shrink-0 flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-background/50 transition-transform duration-300 group-hover:translate-x-1"
+              aria-hidden
+              className="shrink-0 flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-background/50 transition-transform duration-300 group-hover:translate-x-1 group-focus-visible:translate-x-1"
               style={{ boxShadow: `inset 0 0 10px hsl(${hsl} / 0.3)` }}
             >
               <ChevronRight className="h-4 w-4" style={{ color: `hsl(${hsl})` }} />
