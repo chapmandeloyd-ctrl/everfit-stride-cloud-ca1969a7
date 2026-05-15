@@ -176,7 +176,8 @@ function DynamicPlanCard({
               >
                 {plan.name}
               </h3>
-              <p className="text-sm text-muted-foreground mt-1.5">{plan.tagline}</p>
+              <p className="text-[13px] font-semibold text-foreground/90 mt-1.5">{plan.tagline}</p>
+              <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{plan.description}</p>
             </div>
             <div
               aria-hidden
@@ -225,6 +226,7 @@ function DynamicPlanCard({
 }
 
 function PlanSheet({ plan, onClose }: { plan: CustomManualPlan | null; onClose: () => void }) {
+  // see DynamicSheetShell below
   const clientId = useEffectiveClientId();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -302,18 +304,20 @@ function PlanSheet({ plan, onClose }: { plan: CustomManualPlan | null; onClose: 
       <Sheet open={!!plan} onOpenChange={(o) => !o && onClose()}>
         <SheetContent
           side="bottom"
-          className="rounded-t-2xl max-h-[92vh] overflow-y-auto bg-background border-border"
+          className="rounded-t-2xl max-h-[92vh] overflow-y-auto bg-background border-border p-0"
         >
-          <ConfirmPreview
-            plan={plan}
-            mode={pendingMode}
-            fastHours={plan.goalMode ? fastHours : plan.fastHours}
-            eatHours={eatHours}
-            openHour={openHour}
-            isPending={start.isPending}
-            onBack={() => setPendingMode(null)}
-            onConfirm={() => start.mutate(pendingMode)}
-          />
+          <DynamicSheetShell plan={plan}>
+            <ConfirmPreview
+              plan={plan}
+              mode={pendingMode}
+              fastHours={plan.goalMode ? fastHours : plan.fastHours}
+              eatHours={eatHours}
+              openHour={openHour}
+              isPending={start.isPending}
+              onBack={() => setPendingMode(null)}
+              onConfirm={() => start.mutate(pendingMode)}
+            />
+          </DynamicSheetShell>
         </SheetContent>
       </Sheet>
     );
@@ -321,18 +325,14 @@ function PlanSheet({ plan, onClose }: { plan: CustomManualPlan | null; onClose: 
 
   return (
     <Sheet open={!!plan} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent side="bottom" className="rounded-t-2xl max-h-[92vh] overflow-y-auto bg-background border-border">
-        <SheetHeader className="text-left">
-          <SheetTitle className={`text-2xl font-black ${plan.accent}`}>{plan.name}</SheetTitle>
-          <p className="text-sm text-muted-foreground">{plan.description}</p>
+      <SheetContent side="bottom" className="rounded-t-2xl max-h-[92vh] overflow-y-auto bg-background border-border p-0">
+        <DynamicSheetShell plan={plan} showHero>
           {!plan.manual && !plan.goalMode && (
-            <p className="text-xs font-semibold text-foreground mt-1">
+            <p className="text-xs font-bold uppercase tracking-wider text-foreground/80 mb-3">
               {plan.fastHours}hr fasting — {eatHours}hr eating
             </p>
           )}
-        </SheetHeader>
-
-        <div className="mt-4 space-y-4">
+          <div className="space-y-4">
           {plan.goalMode ? (
             <>
               <Stepper
@@ -440,7 +440,8 @@ function PlanSheet({ plan, onClose }: { plan: CustomManualPlan | null; onClose: 
               Review &amp; Start
             </Button>
           )}
-        </div>
+          </div>
+        </DynamicSheetShell>
       </SheetContent>
     </Sheet>
   );
@@ -704,6 +705,81 @@ function Stepper({
         >
           <Plus className="h-4 w-4" />
         </Button>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Dynamic sheet shell — gives the open sheet color/depth ---------- */
+
+function DynamicSheetShell({
+  plan,
+  showHero,
+  children,
+}: {
+  plan: CustomManualPlan;
+  showHero?: boolean;
+  children: React.ReactNode;
+}) {
+  const hsl = accentToHex(plan.accent);
+  const Icon = plan.manual ? Sparkles : Hourglass;
+
+  return (
+    <div className="relative overflow-hidden">
+      {/* Tinted accent background */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background: `radial-gradient(120% 70% at 0% 0%, hsl(${hsl} / 0.22), transparent 55%), radial-gradient(120% 70% at 100% 0%, hsl(${hsl} / 0.14), transparent 60%), linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--background)) 100%)`,
+        }}
+      />
+      {/* Top decorative orbs */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-24 -right-16 h-64 w-64 rounded-full blur-3xl opacity-50"
+        style={{ background: `radial-gradient(circle, hsl(${hsl} / 0.7), transparent 70%)` }}
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-10 -left-20 h-52 w-52 rounded-full blur-3xl opacity-30"
+        style={{ background: `radial-gradient(circle, hsl(${hsl} / 0.6), transparent 70%)` }}
+      />
+      {/* Subtle grid texture */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-[0.04] mix-blend-overlay"
+        style={{
+          backgroundImage:
+            "linear-gradient(hsl(0 0% 100%) 1px, transparent 1px), linear-gradient(90deg, hsl(0 0% 100%) 1px, transparent 1px)",
+          backgroundSize: "28px 28px",
+        }}
+      />
+
+      <div className="relative px-6 pt-6 pb-8">
+        {showHero && (
+          <div className="mb-5">
+            <div
+              className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 mb-3"
+              style={{
+                background: `linear-gradient(135deg, hsl(${hsl} / 0.3), hsl(${hsl} / 0.08))`,
+                boxShadow: `inset 0 0 14px hsl(${hsl} / 0.3), 0 8px 20px -6px hsl(${hsl} / 0.4)`,
+              }}
+            >
+              <Icon className="h-6 w-6" style={{ color: `hsl(${hsl})` }} />
+            </div>
+            <SheetTitle
+              className={`text-3xl font-black tracking-tight leading-tight ${plan.accent} drop-shadow-[0_2px_16px_rgba(0,0,0,0.5)]`}
+            >
+              {plan.name}
+            </SheetTitle>
+            <p className="text-sm font-semibold text-foreground/85 mt-2">{plan.tagline}</p>
+            <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">
+              {plan.description}
+            </p>
+          </div>
+        )}
+        {children}
       </div>
     </div>
   );
