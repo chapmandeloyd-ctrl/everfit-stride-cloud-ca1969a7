@@ -284,7 +284,11 @@ function PlanSheet({ plan, onClose }: { plan: CustomManualPlan | null; onClose: 
       // dashboard can override labels + accent colors.
       if (mode === "fast") {
         setActiveCustomFastPlan(plan.id);
-        setActiveCustomEatPlan(null);
+        // Pre-tag the eating window with the same custom plan, so when the
+        // fast auto-completes into the eating window the dashboard keeps the
+        // custom-plan branding instead of falling back to the assigned
+        // protocol's labels (e.g. "14-Day Morning Clarity / Coach Assigned").
+        setActiveCustomEatPlan(plan.id);
       } else {
         setActiveCustomEatPlan(plan.id);
         setActiveCustomFastPlan(null);
