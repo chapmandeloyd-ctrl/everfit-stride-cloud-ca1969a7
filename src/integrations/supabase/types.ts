@@ -1310,6 +1310,7 @@ export type Database = {
           client_wod_builder_enabled: boolean
           created_at: string
           current_level: number
+          custom_manual_plans_enabled: boolean
           daily_checkin_enabled: boolean
           dashboard_hero_image_url: string | null
           dashboard_hero_message: string | null
@@ -1415,6 +1416,7 @@ export type Database = {
           client_wod_builder_enabled?: boolean
           created_at?: string
           current_level?: number
+          custom_manual_plans_enabled?: boolean
           daily_checkin_enabled?: boolean
           dashboard_hero_image_url?: string | null
           dashboard_hero_message?: string | null
@@ -1520,6 +1522,7 @@ export type Database = {
           client_wod_builder_enabled?: boolean
           created_at?: string
           current_level?: number
+          custom_manual_plans_enabled?: boolean
           daily_checkin_enabled?: boolean
           dashboard_hero_image_url?: string | null
           dashboard_hero_message?: string | null
