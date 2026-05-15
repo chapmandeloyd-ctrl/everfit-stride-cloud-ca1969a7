@@ -1,6 +1,7 @@
-import { CalendarDays, Compass, Activity, User } from "lucide-react";
+import { CalendarDays, Compass, Activity, User, Clock } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useClientFeatureSettings } from "@/hooks/useClientFeatureSettings";
 
 interface NavItem {
   label: string;
@@ -8,7 +9,7 @@ interface NavItem {
   icon: React.ElementType;
 }
 
-const navItems: NavItem[] = [
+const baseItems: NavItem[] = [
   { label: "Today", to: "/client/dashboard", icon: CalendarDays },
   { label: "Timeline", to: "/client/timeline", icon: Activity },
   { label: "Explore", to: "/client/explore", icon: Compass },
@@ -16,6 +17,15 @@ const navItems: NavItem[] = [
 ];
 
 export function ClientBottomNav() {
+  const { settings } = useClientFeatureSettings();
+  const customEnabled = (settings as any)?.custom_manual_plans_enabled;
+  const navItems: NavItem[] = customEnabled
+    ? [
+        ...baseItems.slice(0, 3),
+        { label: "Custom", to: "/client/custom-plans", icon: Clock },
+        ...baseItems.slice(3),
+      ]
+    : baseItems;
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border" style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 2px)' }}>
       <div className="flex items-center justify-around h-12">
