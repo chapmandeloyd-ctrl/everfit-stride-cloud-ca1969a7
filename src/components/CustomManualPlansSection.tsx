@@ -69,17 +69,40 @@ function DynamicPlanCard({
     ? 0.5
     : Math.max(0, Math.min(1, plan.fastHours / 24));
 
+  const ariaLabel = plan.manual
+    ? `${plan.name}: ${plan.tagline}. Manual plan — open or start anytime.`
+    : plan.goalMode
+      ? `${plan.name}: ${plan.tagline}. Goal mode, ${plan.fastHours} hour fast and ${plan.eatHours} hour eating window.`
+      : `${plan.name}: ${plan.tagline}. ${plan.fastHours} hour fast, ${plan.eatHours} hour eating window.${plan.lockedEat || plan.lockedFast ? " Some durations are locked." : ""}`;
+
   return (
     <button
       onClick={onClick}
-      className="group relative w-full text-left animate-fade-in"
+      type="button"
+      aria-label={ariaLabel}
+      className="group relative w-full text-left animate-fade-in rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       style={{ animationDelay: `${index * 60}ms` }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
+        }
+      }}
     >
       {/* Outer glow ring */}
       <div
-        className="absolute -inset-[1px] rounded-2xl opacity-60 group-hover:opacity-100 transition-opacity duration-500 blur-[2px]"
+        aria-hidden
+        className="absolute -inset-[1px] rounded-2xl opacity-60 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-500 blur-[2px]"
         style={{
           background: `linear-gradient(135deg, hsl(${hsl} / 0.55), transparent 40%, hsl(${hsl} / 0.35))`,
+        }}
+      />
+      {/* Keyboard focus ring — uses accent color */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -inset-[3px] rounded-[18px] opacity-0 group-focus-visible:opacity-100 transition-opacity"
+        style={{
+          boxShadow: `0 0 0 2px hsl(${hsl}), 0 0 0 4px hsl(var(--background))`,
         }}
       />
       {/* Card surface */}
