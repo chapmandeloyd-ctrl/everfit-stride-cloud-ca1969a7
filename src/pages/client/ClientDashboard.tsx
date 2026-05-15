@@ -304,21 +304,23 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
   // boolean) so that starting a NEW custom fast immediately after an old one
   // ends — or right on top of an already-active fast — re-reads the tag.
   useEffect(() => {
+    if (typeof featureSettings === "undefined") return;
     if (featureSettings?.active_fast_start_at) {
       setCustomFastPlan(getActiveCustomFastPlan());
     } else {
       setCustomFastPlan(null);
       setActiveCustomFastPlan(null);
     }
-  }, [featureSettings?.active_fast_start_at]);
+  }, [featureSettings, featureSettings?.active_fast_start_at]);
   useEffect(() => {
+    if (typeof featureSettings === "undefined") return;
     if (hasEatingWindow) {
       setCustomEatPlan(getActiveCustomEatPlan());
     } else {
       setCustomEatPlan(null);
       setActiveCustomEatPlan(null);
     }
-  }, [hasEatingWindow, featureSettings?.eating_window_ends_at]);
+  }, [featureSettings, hasEatingWindow, featureSettings?.eating_window_ends_at]);
 
   // Tick every second while fasting or eating window is active
   useEffect(() => {
