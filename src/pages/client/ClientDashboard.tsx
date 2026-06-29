@@ -132,6 +132,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
   const [eatingWindowSheetIntent, setEatingWindowSheetIntent] = useState<"end_window" | "choose_next_fast">("end_window");
   const liveActivity = useLiveActivity();
   const { toast } = useToast();
+  const { data: pace } = useSmartPace();
 
   const { data: featureSettings } = useQuery({
     queryKey: ["my-feature-settings-fasting", clientId],
