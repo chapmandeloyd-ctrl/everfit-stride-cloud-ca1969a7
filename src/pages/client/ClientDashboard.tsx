@@ -1019,7 +1019,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
 
     return (
       <div id="fasting-protocol-card" className="space-y-3">
-        {SHOW_WEIGHT_TRACKER && pace?.enabled && pace?.goal && (
+        {SHOW_WEIGHT_TRACKER && (
           <div className="space-y-2">
             <h2 className="text-lg font-bold text-foreground px-1">KSOM-360 Smart Weight Tracker</h2>
             <SmartPaceBanner allowRender />
