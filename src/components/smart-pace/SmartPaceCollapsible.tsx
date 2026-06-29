@@ -5,6 +5,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useSmartPace } from "@/hooks/useSmartPace";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,6 +21,7 @@ export function SmartPaceCollapsible() {
   const { data } = useSmartPace();
   const clientId = useEffectiveClientId();
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
 
   // Latest weight entry — for compact "now" reading on the card face.
   const { data: latestWeight } = useQuery({
@@ -54,7 +56,29 @@ export function SmartPaceCollapsible() {
     staleTime: 30_000,
   });
 
-  if (!data?.enabled || !data.goal) return null;
+  // Empty state — render a clean CTA card so every client sees the tracker section.
+  if (!data?.enabled || !data.goal) {
+    return (
+      <button
+        type="button"
+        onClick={() => navigate("/client/pace")}
+        className="w-full flex items-center gap-3 rounded-2xl border border-dashed border-border bg-card/60 p-4 text-left transition hover:bg-muted/40 active:scale-[0.995]"
+      >
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted/60">
+          <Scale className="h-5 w-5 text-muted-foreground" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="text-xs font-bold uppercase tracking-wide text-foreground">
+            Smart Pace not set up
+          </div>
+          <p className="text-sm text-muted-foreground truncate">
+            Tap to set your weight goal and start tracking
+          </p>
+        </div>
+        <ChevronDown className="h-4 w-4 shrink-0 -rotate-90 text-muted-foreground" />
+      </button>
+    );
+  }
 
   const { todayTargetLbs, status, progressPct } = data;
 
