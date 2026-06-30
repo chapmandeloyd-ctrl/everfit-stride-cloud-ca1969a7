@@ -1653,14 +1653,15 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
             );
           })()}
 
-          {/* "View Your Assigned Program" — only when BOTH halves are assigned */}
+          {/* "View Today's Playbook" — only when BOTH halves are assigned.
+              Routes to the day-by-day Playbook (keto type + coaching items). */}
           {programFullyAssigned && (
             <Button
               variant="ghost"
               className="w-full h-11 text-sm font-medium gap-2 bg-white/5 hover:bg-white/10 text-white border border-white/10 backdrop-blur-md"
-              onClick={() => navigate("/client/complete-plan")}
+              onClick={() => navigate("/client/playbook")}
             >
-              View Your Assigned Program
+              View Today's Playbook
             </Button>
           )}
 
