@@ -40,7 +40,7 @@ const DAY_LABELS = [
 ];
 
 const TRIGGER_OPTIONS = [
-  { v: "", label: "Specific time" },
+  { v: "__abs__", label: "Specific time" },
   { v: "wakeup", label: "Wake-up" },
   { v: "sleep", label: "Sleep" },
   { v: "pre_workout", label: "Pre-workout" },
@@ -246,13 +246,13 @@ function ItemRow({ item, onSave, onDelete }: { item: any; onSave: (p: any) => vo
         <div>
           <Label className="text-[10px] uppercase tracking-wider">Trigger</Label>
           <Select
-            value={local.relative_trigger ?? ""}
-            onValueChange={(v) => setLocal({ ...local, relative_trigger: v || null })}
+            value={local.relative_trigger ?? "__abs__"}
+            onValueChange={(v) => setLocal({ ...local, relative_trigger: v === "__abs__" ? null : v })}
           >
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               {TRIGGER_OPTIONS.map((t) => (
-                <SelectItem key={t.v || "abs"} value={t.v}>{t.label}</SelectItem>
+                <SelectItem key={t.v} value={t.v}>{t.label}</SelectItem>
               ))}
             </SelectContent>
           </Select>
