@@ -1513,7 +1513,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                 </div>
               )}
               {!isMaintenanceMode && (
-                <Badge className="mt-2 text-[10px] px-2 py-0.5 bg-amber-400/15 text-amber-300 border border-amber-300/40 hover:bg-amber-400/15 font-semibold uppercase tracking-wider">
+                <Badge className="mt-2 text-[10px] px-2 py-0.5 bg-primary/15 text-primary border border-primary/40 hover:bg-primary/15 font-semibold uppercase tracking-wider">
                   {isCoachAssigned ? "Coach Assigned" : "My Assigned"}
                 </Badge>
               )}
@@ -1677,7 +1677,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
               <button
                 type="button"
                 onClick={onClick}
-                className="flex-1 h-8 rounded-full px-3 inline-flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wide bg-gradient-to-b from-amber-300 via-yellow-400 to-amber-600 text-black shadow-[0_1px_6px_-1px_rgba(251,191,36,0.5)] ring-1 ring-amber-300/70 hover:brightness-110 active:scale-[0.98] transition"
+                className="flex-1 h-8 rounded-full px-3 inline-flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wide bg-gradient-to-b from-primary via-primary to-primary/80 text-primary-foreground shadow-[0_1px_8px_-1px_hsl(var(--primary)/0.55)] ring-1 ring-primary/70 hover:brightness-110 active:scale-[0.98] transition"
               >
                 {(locked || isLocked) && <Shield className="h-3 w-3" />}
                 {label}
@@ -1687,7 +1687,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
             return (
               <div className="space-y-2">
                 {isSelfGuided ? (
-                  <div className="flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-300">
+                  <div className="flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-primary">
                     <Shield className="h-3 w-3" />
                     My Assigned
                   </div>
@@ -1698,18 +1698,18 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                         Your program is queued up — your coach will hand you the keys when the timing's right.
                       </p>
                     )}
-                    <div className="flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-300/90">
+                    <div className="flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-primary/90">
                       <Shield className="h-3 w-3" />
                       Locked by your coach
                     </div>
                   </div>
                 ) : isCoachStartNow ? (
-                  <div className="flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-300">
+                  <div className="flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-primary">
                     <Shield className="h-3 w-3" />
                     Coach Assigned
                   </div>
                 ) : isLocked ? (
-                  <div className="flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-300/90">
+                  <div className="flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-primary/90">
                     <Shield className="h-3 w-3" />
                     Locked by your coach
                   </div>
