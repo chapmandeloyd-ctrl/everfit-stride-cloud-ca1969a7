@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardLayout } from "@/components/DashboardLayout";
@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
-import { Trash2, Plus, Save, Pill } from "lucide-react";
+import { Trash2, Plus, Save, Pill, Sunrise, Moon as MoonIcon, Eye } from "lucide-react";
 import { useSupplements, useTrainerSchedule } from "@/hooks/useTrainerPlaybook";
 import { KETO_TYPE_LIST, KETO_TYPES, type KetoTypeCode } from "@/lib/ketoTypes";
 import { toast } from "sonner";
@@ -267,6 +267,13 @@ function ScheduleEditor() {
           ))}
         </CardContent>
       </Card>
+
+      <FullDayPreview
+        items={items}
+        fastHours={
+          (protocolOptions.find((x: any) => x.id === effectiveId) as any)?.fast_target_hours ?? 16
+        }
+      />
     </div>
   );
 }
@@ -426,6 +433,7 @@ function ItemRow({ item, onSave, onDelete }: { item: any; onSave: (p: any) => vo
 function SupplementsEditor() {
   const { data: supplements, upsert, remove } = useSupplements();
   const [draft, setDraft] = useState({ name: "", default_dose: "", default_timing: "", notes: "" });
+  // placeholder marker
 
   return (
     <div className="space-y-4">
@@ -480,5 +488,157 @@ function SupplementsEditor() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+// ============================================================================
+// Full Day Preview — live timeline with Window Opens/Closes dividers
+// ============================================================================
+const ANCHOR_DEFAULTS: Record<string, number> = {
+  wakeup: 7 * 60,
+  sleep: 22 * 60,
+  pre_workout: 17 * 60,
+  post_workout: 18 * 60,
+};
+
+function minToClock(min: number): string {
+  const m = ((min % 1440) + 1440) % 1440;
+  const h = Math.floor(m / 60);
+  const mm = m % 60;
+  const period = h >= 12 ? "PM" : "AM";
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${h12}:${mm.toString().padStart(2, "0")} ${period}`;
+}
+
+function FullDayPreview({ items, fastHours }: { items: any[]; fastHours: number }) {
+  const [windowOpen, setWindowOpen] = useState("12:00");
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 30000);
+    return () => clearInterval(t);
+  }, []);
+
+  const [openH, openM] = windowOpen.split(":").map((x) => parseInt(x, 10));
+  const openMin = (openH || 0) * 60 + (openM || 0);
+  const eatingHours = Math.max(0, 24 - (fastHours || 16));
+  const closeMin = openMin + eatingHours * 60;
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+
+  const resolved = useMemo(() => {
+    const list: Array<{ kind: "item" | "divider"; min: number | null; data: any; key: string }> = [];
+    for (const it of items) {
+      let min: number | null = null;
+      if (it.time_of_day) {
+        const [h, m] = it.time_of_day.split(":").map((x: string) => parseInt(x, 10));
+        min = h * 60 + (m || 0);
+      } else if (it.relative_trigger) {
+        const off = it.offset_minutes ?? 0;
+        if (it.relative_trigger === "window_open") min = openMin + off;
+        else if (it.relative_trigger === "window_close") min = closeMin + off;
+        else if (ANCHOR_DEFAULTS[it.relative_trigger] != null)
+          min = ANCHOR_DEFAULTS[it.relative_trigger] + off;
+      }
+      list.push({ kind: "item", min, data: it, key: it.id });
+    }
+    list.push({ kind: "divider", min: openMin, data: { label: "Window Opens", Icon: Sunrise, tint: "text-emerald-300", bg: "bg-emerald-500/10 border-emerald-500/30" }, key: "div-open" });
+    list.push({ kind: "divider", min: closeMin, data: { label: "Window Closes", Icon: MoonIcon, tint: "text-amber-300", bg: "bg-amber-500/10 border-amber-500/30" }, key: "div-close" });
+    return list.sort((a, b) => {
+      if (a.min == null) return 1;
+      if (b.min == null) return -1;
+      return a.min - b.min;
+    });
+  }, [items, openMin, closeMin]);
+
+  let cursorInserted = false;
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Eye className="h-4 w-4 text-primary" />
+          <CardTitle>Full Day Preview</CardTitle>
+        </div>
+        <div className="flex items-center gap-2">
+          <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">Window opens at</Label>
+          <Input
+            type="time"
+            value={windowOpen}
+            onChange={(e) => setWindowOpen(e.target.value || "12:00")}
+            className="w-[110px]"
+          />
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="mb-3 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+          <span className="rounded-full bg-muted/40 border border-border px-2 py-0.5">
+            Fasting <strong className="text-foreground">{fastHours}h</strong>
+          </span>
+          <span className="rounded-full bg-muted/40 border border-border px-2 py-0.5">
+            Eating window <strong className="text-foreground">{eatingHours}h</strong>
+          </span>
+          <span className="rounded-full bg-muted/40 border border-border px-2 py-0.5">
+            Window <strong className="text-foreground">{minToClock(openMin)}</strong> → <strong className="text-foreground">{minToClock(closeMin)}</strong>
+          </span>
+          <span className="ml-auto rounded-full bg-primary/15 text-primary border border-primary/30 px-2 py-0.5 font-semibold">
+            Now {minToClock(nowMin)}
+          </span>
+        </div>
+
+        {resolved.length === 2 && (
+          <p className="text-xs text-muted-foreground">No steps yet — add some above and they'll appear here on the timeline.</p>
+        )}
+
+        <ul className="space-y-1.5">
+          {resolved.map((row) => {
+            const nodes: JSX.Element[] = [];
+            // Inject live cursor before first row whose min >= nowMin
+            if (!cursorInserted && row.min != null && row.min >= nowMin) {
+              cursorInserted = true;
+              nodes.push(
+                <li key="now-cursor" className="flex items-center gap-2 py-1">
+                  <div className="h-px flex-1 bg-primary/60" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-primary">Now · {minToClock(nowMin)}</span>
+                  <div className="h-px flex-1 bg-primary/60" />
+                </li>
+              );
+            }
+            if (row.kind === "divider") {
+              const { label, Icon, tint, bg } = row.data;
+              nodes.push(
+                <li key={row.key} className={`flex items-center gap-2 rounded-xl border px-3 py-2 ${bg}`}>
+                  <Icon className={`h-4 w-4 ${tint}`} />
+                  <span className={`text-xs font-bold uppercase tracking-wider ${tint}`}>{label}</span>
+                  <span className="ml-auto text-xs font-semibold text-muted-foreground">{minToClock(row.min!)}</span>
+                </li>
+              );
+            } else {
+              const it = row.data;
+              const meta = getStepTypeMeta(it.step_type);
+              const Icon = meta.icon;
+              nodes.push(
+                <li key={row.key} className={`flex items-center gap-2 rounded-xl border px-3 py-2 ${meta.tint}`}>
+                  <Icon className={`h-4 w-4 shrink-0 ${meta.color}`} />
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-semibold truncate">{it.label}</div>
+                    {it.note && <div className="text-[11px] text-muted-foreground truncate">{it.note}</div>}
+                  </div>
+                  <span className="text-xs font-semibold text-muted-foreground shrink-0">
+                    {row.min != null ? minToClock(row.min) : "—"}
+                  </span>
+                </li>
+              );
+            }
+            return nodes;
+          })}
+          {!cursorInserted && (
+            <li className="flex items-center gap-2 py-1">
+              <div className="h-px flex-1 bg-primary/60" />
+              <span className="text-[10px] font-bold uppercase tracking-wider text-primary">Now · {minToClock(nowMin)}</span>
+              <div className="h-px flex-1 bg-primary/60" />
+            </li>
+          )}
+        </ul>
+      </CardContent>
+    </Card>
   );
 }
