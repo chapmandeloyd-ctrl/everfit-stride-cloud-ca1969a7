@@ -35,8 +35,6 @@ import { useImpersonation } from "@/hooks/useImpersonation";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { getDietStylePreset } from "@/lib/dietStyles";
 import { SportEventCompletionDialog } from "@/components/SportEventCompletionDialog";
-import { usePlaybookSchedule } from "@/hooks/usePlaybookSchedule";
-import { resolveKetoForWeekday } from "@/lib/ketoTypes";
 
 // Mirror of getCutLevelMeta on ClientNutrition page so dashboard card stays in sync.
 function getCutLevelMeta(adjustment?: number | null) {
@@ -141,7 +139,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
     queryFn: async () => {
       const { data, error } = await supabase
         .from("client_feature_settings")
-        .select("selected_protocol_id, selected_quick_plan_id, quick_plan_duration_days, assigned_protocol_duration_days, protocol_start_date, active_fast_start_at, active_fast_target_hours, last_fast_ended_at, last_fast_completed_at, eating_window_ends_at, eating_window_hours, fasting_strict_mode, protocol_assigned_by, fasting_card_subtitle, fasting_card_image_url, eating_window_card_image_url, fast_lock_pin, protocol_completed, maintenance_mode, maintenance_schedule_type, trainer_id, lock_client_plan_choice")
+        .select("selected_protocol_id, selected_quick_plan_id, quick_plan_duration_days, protocol_start_date, active_fast_start_at, active_fast_target_hours, last_fast_ended_at, last_fast_completed_at, eating_window_ends_at, eating_window_hours, fasting_strict_mode, protocol_assigned_by, fasting_card_subtitle, fasting_card_image_url, eating_window_card_image_url, fast_lock_pin, protocol_completed, maintenance_mode, maintenance_schedule_type, trainer_id, lock_client_plan_choice")
         .eq("client_id", clientId)
         .maybeSingle();
       if (error) throw error;
@@ -149,7 +147,6 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
         selected_protocol_id: string | null;
         selected_quick_plan_id: string | null;
         quick_plan_duration_days: number | null;
-        assigned_protocol_duration_days: number | null;
         protocol_start_date: string | null;
         active_fast_start_at: string | null;
         active_fast_target_hours: number | null;
@@ -232,37 +229,6 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
     enabled: !!clientId,
   });
 
-  // Playbook override — if the trainer has published a Daily Playbook for the
-  // selected protocol, today's resolved keto type takes precedence over the
-  // static client_keto_assignments value (Option 2 behavior).
-  const { data: playbookSchedule } = usePlaybookSchedule(
-    featureSettings?.selected_protocol_id ?? null,
-  );
-  const todaysPlaybookKetoCode = (() => {
-    if (!playbookSchedule) return null;
-    const wd = new Date().getDay();
-    if (!playbookSchedule.active_days.includes(wd)) return null;
-    return resolveKetoForWeekday({
-      mode: playbookSchedule.keto_mode,
-      defaultType: playbookSchedule.default_keto_type,
-      overrides: playbookSchedule.overrides,
-      weekday: wd,
-    });
-  })();
-  const { data: playbookKetoRow } = useQuery({
-    queryKey: ["fasting-card-keto-playbook", todaysPlaybookKetoCode],
-    enabled: !!todaysPlaybookKetoCode,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("keto_types")
-        .select("id, name, abbreviation, color, fat_pct, protein_pct, carbs_pct")
-        .eq("abbreviation", todaysPlaybookKetoCode!)
-        .eq("is_active", true)
-        .maybeSingle();
-      return data;
-    },
-  });
-
   // TEMP PREVIEW: when previewing the "coachStartNow" lion card, fall back
   // to mock 16:8 protocol + TKD keto type so the full card renders even when
   // the client doesn't yet have real assignments. Remove once onboarding wires
@@ -271,14 +237,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
   // If a quick plan is assigned (no program), synthesize a protocol-shaped
   // object from it so the dashboard reflects the actual assignment instead of
   // falling back to the mock "16:8 Daily" preview.
-  const activeProtocol = (activeProtocolRaw
-    ? {
-        ...activeProtocolRaw,
-        // Trainer-set per-client duration overrides the protocol default.
-        duration_days:
-          featureSettings?.assigned_protocol_duration_days ?? activeProtocolRaw.duration_days,
-      }
-    : null)
+  const activeProtocol = activeProtocolRaw
     ?? (activeQuickPlan ? {
       id: activeQuickPlan.id,
       name: activeQuickPlan.name,
@@ -293,7 +252,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
       fast_target_hours: 16,
       difficulty_level: "intermediate",
     } : null);
-  const activeKetoTypeBase = activeKetoTypeRaw ?? (PREVIEW_COACH_START_NOW ? {
+  const activeKetoType = activeKetoTypeRaw ?? (PREVIEW_COACH_START_NOW ? {
     id: "preview-tkd",
     name: "Targeted Keto",
     abbreviation: "TKD",
@@ -302,11 +261,6 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
     protein_pct: 25,
     carbs_pct: 10,
   } : null);
-
-  // Today's playbook keto (if published) overrides the static assignment so
-  // the SKD chip, macros tile and "View Keto Type" pill reflect what the
-  // trainer scheduled for today.
-  const activeKetoType = playbookKetoRow ?? activeKetoTypeBase;
 
   // Meal slideshow photos for the eating window card
   const { data: mealPhotos = [] } = useQuery({
@@ -1661,15 +1615,14 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
             );
           })()}
 
-          {/* "View Today's Playbook" — only when BOTH halves are assigned.
-              Routes to the day-by-day Playbook (keto type + coaching items). */}
+          {/* "View Your Assigned Program" — only when BOTH halves are assigned */}
           {programFullyAssigned && (
             <Button
               variant="ghost"
               className="w-full h-11 text-sm font-medium gap-2 bg-white/5 hover:bg-white/10 text-white border border-white/10 backdrop-blur-md"
-              onClick={() => navigate("/client/playbook")}
+              onClick={() => navigate("/client/complete-plan")}
             >
-              View Today's Playbook
+              View Your Assigned Program
             </Button>
           )}
 

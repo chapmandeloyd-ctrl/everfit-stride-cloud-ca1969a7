@@ -1,7 +1,6 @@
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Zap, Flame, Utensils, Dumbbell, Scale, Lock } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -43,7 +42,7 @@ export function QuickControlPanel({ clientId, trainerId }: Props) {
     queryFn: async () => {
       const [settingsRes, ketoRes] = await Promise.all([
         supabase.from("client_feature_settings")
-          .select("fasting_enabled, selected_protocol_id, assigned_protocol_duration_days, macros_enabled, training_enabled, smart_pace_enabled, lock_client_plan_choice")
+          .select("fasting_enabled, selected_protocol_id, macros_enabled, training_enabled, smart_pace_enabled, lock_client_plan_choice")
           .eq("client_id", clientId)
           .maybeSingle(),
         supabase.from("client_keto_assignments")
@@ -58,7 +57,6 @@ export function QuickControlPanel({ clientId, trainerId }: Props) {
         training_enabled: settingsRes.data?.training_enabled ?? false,
         smart_pace_enabled: settingsRes.data?.smart_pace_enabled ?? false,
         selected_protocol_id: settingsRes.data?.selected_protocol_id || null,
-        assigned_protocol_duration_days: settingsRes.data?.assigned_protocol_duration_days ?? null,
         keto_type_id: ketoRes.data?.keto_type_id || null,
         lock_client_plan_choice: settingsRes.data?.lock_client_plan_choice ?? false,
       };
@@ -106,19 +104,6 @@ export function QuickControlPanel({ clientId, trainerId }: Props) {
       queryClient.invalidateQueries({ queryKey: ["quick-control-settings", clientId] });
       queryClient.invalidateQueries({ queryKey: ["client-health-scores"] });
       toast({ title: "Protocol assigned" });
-    },
-  });
-
-  const setDurationMutation = useMutation({
-    mutationFn: async (days: number | null) => {
-      const { error } = await supabase.from("client_feature_settings")
-        .update({ assigned_protocol_duration_days: days })
-        .eq("client_id", clientId);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["quick-control-settings", clientId] });
-      toast({ title: "Duration updated" });
     },
   });
 
@@ -210,31 +195,6 @@ export function QuickControlPanel({ clientId, trainerId }: Props) {
             </Select>
           </div>
         </div>
-
-        {/* Per-client protocol duration (days). Empty = ongoing / use protocol default. */}
-        {settings?.selected_protocol_id && (
-          <div className="space-y-1">
-            <label className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider px-1">
-              Duration (days) — leave empty for ongoing
-            </label>
-            <Input
-              type="number"
-              min={1}
-              max={365}
-              inputMode="numeric"
-              className="h-9 text-xs bg-background"
-              placeholder="e.g. 14, 21, 28"
-              defaultValue={settings?.assigned_protocol_duration_days ?? ""}
-              onBlur={(e) => {
-                const raw = e.target.value.trim();
-                const next = raw === "" ? null : Math.max(1, Math.min(365, parseInt(raw, 10) || 0)) || null;
-                if (next !== (settings?.assigned_protocol_duration_days ?? null)) {
-                  setDurationMutation.mutate(next);
-                }
-              }}
-            />
-          </div>
-        )}
 
         {/* Coach-only assignment lock */}
         <label

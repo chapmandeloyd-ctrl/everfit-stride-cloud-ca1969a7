@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LayoutDashboard, Users, Dumbbell, Calendar, CalendarClock, MessageSquare, Settings, TrendingUp, Target, CheckSquare, FileText, Play, Tags, Calculator, Activity, Heart, GraduationCap, Library, ChevronDown, ChevronRight, BookOpen, MonitorPlay, Zap, Bell, Compass, Database, ClipboardList } from "lucide-react";
+import { LayoutDashboard, Users, Dumbbell, Calendar, CalendarClock, MessageSquare, Settings, TrendingUp, Target, CheckSquare, FileText, Play, Tags, Calculator, Activity, Heart, GraduationCap, Library, ChevronDown, ChevronRight, BookOpen, MonitorPlay, Zap, Bell, Compass, Database } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import {
@@ -39,7 +39,6 @@ const libraryItems = [
   { title: "Macro Calculator", url: "/macro-calculator", icon: Calculator },
   { title: "Macro Tracking", url: "/macro-tracking", icon: Activity },
   { title: "Keto Types", url: "/keto-types", icon: Zap },
-  { title: "Protocol Playbook", url: "/playbook", icon: ClipboardList },
 ];
 
 const onDemandItems = [

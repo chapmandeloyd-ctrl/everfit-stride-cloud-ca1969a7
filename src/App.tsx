@@ -50,7 +50,6 @@ import WorkoutCollectionDetail from "./pages/WorkoutCollectionDetail";
 import WorkoutLabels from "./pages/WorkoutLabels";
 import StudioPrograms from "./pages/StudioPrograms";
 import Programs from "./pages/Programs";
-import TrainerPlaybook from "./pages/trainer/TrainerPlaybook";
 import Recipes from "./pages/Recipes";
 import RecipeDetail from "./pages/RecipeDetail";
 import RecipeBooks from "./pages/RecipeBooks";
@@ -66,7 +65,6 @@ import ClientHealth from "./pages/client/ClientHealth";
 import ClientHealthConnect from "./pages/client/ClientHealthConnect";
 import ClientBadges from "./pages/client/ClientBadges";
 import ClientTimeline from "./pages/client/ClientTimeline";
-import ClientPlaybook from "./pages/client/ClientPlaybook";
 import ClientMealPlan from "./pages/client/ClientMealPlan";
 import ClientMealSelect from "./pages/client/ClientMealSelect";
 import ClientHealthReminders from "./pages/client/ClientHealthReminders";
@@ -181,7 +179,6 @@ const App = () => (
           <Route path="/studio-programs" element={<ProtectedRoute allowedRoles={["trainer"]}><StudioPrograms /></ProtectedRoute>} />
           <Route path="/studio-programs/:id" element={<ProtectedRoute allowedRoles={["trainer"]}><StudioProgramDetail /></ProtectedRoute>} />
           <Route path="/programs" element={<ProtectedRoute allowedRoles={["trainer"]}><Programs /></ProtectedRoute>} />
-         <Route path="/playbook" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerPlaybook /></ProtectedRoute>} />
           <Route path="/recipes" element={<ProtectedRoute allowedRoles={["trainer"]}><Recipes /></ProtectedRoute>} />
           <Route path="/recipes/:id" element={<ProtectedRoute allowedRoles={["trainer"]}><RecipeDetail /></ProtectedRoute>} />
           <Route path="/recipe-books" element={<ProtectedRoute allowedRoles={["trainer"]}><RecipeBooks /></ProtectedRoute>} />
@@ -204,7 +201,6 @@ const App = () => (
           {/* Client Routes */}
           <Route path="/client/dashboard" element={<ProtectedRoute allowedRoles={["client"]}><ClientDashboard /></ProtectedRoute>} />
           <Route path="/client/timeline" element={<ProtectedRoute allowedRoles={["client"]}><ClientTimeline /></ProtectedRoute>} />
-          <Route path="/client/playbook" element={<ProtectedRoute allowedRoles={["client"]}><ClientPlaybook /></ProtectedRoute>} />
           <Route path="/client/pace" element={<ProtectedRoute allowedRoles={["client"]}><ClientSmartPace /></ProtectedRoute>} />
           <Route path="/dev/pace-preview" element={<SmartPacePreview />} />
           <Route path="/client/daily-score" element={<ProtectedRoute allowedRoles={["client"]}><ClientDailyScore /></ProtectedRoute>} />
