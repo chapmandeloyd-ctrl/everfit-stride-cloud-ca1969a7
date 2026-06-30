@@ -231,6 +231,37 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
     enabled: !!clientId,
   });
 
+  // Playbook override — if the trainer has published a Daily Playbook for the
+  // selected protocol, today's resolved keto type takes precedence over the
+  // static client_keto_assignments value (Option 2 behavior).
+  const { data: playbookSchedule } = usePlaybookSchedule(
+    featureSettings?.selected_protocol_id ?? null,
+  );
+  const todaysPlaybookKetoCode = (() => {
+    if (!playbookSchedule) return null;
+    const wd = new Date().getDay();
+    if (!playbookSchedule.active_days.includes(wd)) return null;
+    return resolveKetoForWeekday({
+      mode: playbookSchedule.keto_mode,
+      defaultType: playbookSchedule.default_keto_type,
+      overrides: playbookSchedule.overrides,
+      weekday: wd,
+    });
+  })();
+  const { data: playbookKetoRow } = useQuery({
+    queryKey: ["fasting-card-keto-playbook", todaysPlaybookKetoCode],
+    enabled: !!todaysPlaybookKetoCode,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("keto_types")
+        .select("id, name, abbreviation, color, fat_pct, protein_pct, carbs_pct")
+        .eq("abbreviation", todaysPlaybookKetoCode!)
+        .eq("is_active", true)
+        .maybeSingle();
+      return data;
+    },
+  });
+
   // TEMP PREVIEW: when previewing the "coachStartNow" lion card, fall back
   // to mock 16:8 protocol + TKD keto type so the full card renders even when
   // the client doesn't yet have real assignments. Remove once onboarding wires
