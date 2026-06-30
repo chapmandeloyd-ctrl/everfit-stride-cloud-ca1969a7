@@ -1,5 +1,7 @@
 import { Sparkles, Brain, CalendarClock, AlertTriangle, Flame, ShieldCheck } from "lucide-react";
 import type { DemoProtocol } from "@/components/plan/InteractiveProtocolCardDemo";
+import { DailyPlaybook } from "@/components/playbook/DailyPlaybook";
+import { usePlaybookSchedule } from "@/hooks/usePlaybookSchedule";
 
 interface SectionCardProps {
   children: React.ReactNode;
@@ -25,6 +27,8 @@ interface ProtocolDetailSectionsProps {
  */
 export function ProtocolDetailSections({ protocol }: ProtocolDetailSectionsProps) {
   const { content, accentColorClass, iconGradient } = protocol;
+  const { data: playbook } = usePlaybookSchedule(protocol.id);
+  const hasPlaybook = !!playbook;
 
   return (
     <div className="mt-4 space-y-3">
@@ -121,8 +125,10 @@ export function ProtocolDetailSections({ protocol }: ProtocolDetailSectionsProps
         </SectionCard>
       )}
 
-      {/* Daily Schedule */}
-      {content.schedule?.length > 0 && (
+      {/* Daily Schedule — playbook (live) or static fallback */}
+      {hasPlaybook ? (
+        <DailyPlaybook protocolId={protocol.id} accentColorClass={accentColorClass} />
+      ) : content.schedule?.length > 0 && (
         <SectionCard>
           <div className="flex items-center gap-2 mb-3">
             <CalendarClock className={`h-4 w-4 ${accentColorClass}`} />
