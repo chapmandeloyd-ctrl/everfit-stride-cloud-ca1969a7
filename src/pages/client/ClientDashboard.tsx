@@ -271,7 +271,14 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
   // If a quick plan is assigned (no program), synthesize a protocol-shaped
   // object from it so the dashboard reflects the actual assignment instead of
   // falling back to the mock "16:8 Daily" preview.
-  const activeProtocol = activeProtocolRaw
+  const activeProtocol = (activeProtocolRaw
+    ? {
+        ...activeProtocolRaw,
+        // Trainer-set per-client duration overrides the protocol default.
+        duration_days:
+          featureSettings?.assigned_protocol_duration_days ?? activeProtocolRaw.duration_days,
+      }
+    : null)
     ?? (activeQuickPlan ? {
       id: activeQuickPlan.id,
       name: activeQuickPlan.name,
