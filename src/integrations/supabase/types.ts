@@ -7319,6 +7319,134 @@ export type Database = {
           },
         ]
       }
+      protocol_daily_schedules: {
+        Row: {
+          active_days: number[]
+          client_id: string | null
+          created_at: string
+          default_keto_type: string | null
+          id: string
+          keto_mode: string
+          protocol_id: string | null
+          trainer_id: string
+          updated_at: string
+        }
+        Insert: {
+          active_days?: number[]
+          client_id?: string | null
+          created_at?: string
+          default_keto_type?: string | null
+          id?: string
+          keto_mode?: string
+          protocol_id?: string | null
+          trainer_id: string
+          updated_at?: string
+        }
+        Update: {
+          active_days?: number[]
+          client_id?: string | null
+          created_at?: string
+          default_keto_type?: string | null
+          id?: string
+          keto_mode?: string
+          protocol_id?: string | null
+          trainer_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      protocol_schedule_items: {
+        Row: {
+          created_at: string
+          id: string
+          keto_type_filter: string[] | null
+          label: string
+          note: string | null
+          offset_minutes: number | null
+          order_index: number
+          relative_trigger: string | null
+          schedule_id: string
+          supplement_id: string | null
+          time_of_day: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          keto_type_filter?: string[] | null
+          label: string
+          note?: string | null
+          offset_minutes?: number | null
+          order_index?: number
+          relative_trigger?: string | null
+          schedule_id: string
+          supplement_id?: string | null
+          time_of_day?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          keto_type_filter?: string[] | null
+          label?: string
+          note?: string | null
+          offset_minutes?: number | null
+          order_index?: number
+          relative_trigger?: string | null
+          schedule_id?: string
+          supplement_id?: string | null
+          time_of_day?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "protocol_schedule_items_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "protocol_daily_schedules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "protocol_schedule_items_supplement_id_fkey"
+            columns: ["supplement_id"]
+            isOneToOne: false
+            referencedRelation: "supplements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      protocol_schedule_keto_overrides: {
+        Row: {
+          created_at: string
+          id: string
+          keto_type: string
+          schedule_id: string
+          weekday: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          keto_type: string
+          schedule_id: string
+          weekday: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          keto_type?: string
+          schedule_id?: string
+          weekday?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "protocol_schedule_keto_overrides_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "protocol_daily_schedules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       push_subscription_removals: {
         Row: {
           created_at: string
@@ -8774,6 +8902,42 @@ export type Database = {
           is_published?: boolean | null
           name?: string
           status?: string
+          trainer_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      supplements: {
+        Row: {
+          created_at: string
+          default_dose: string | null
+          default_timing: string | null
+          id: string
+          is_active: boolean
+          name: string
+          notes: string | null
+          trainer_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          default_dose?: string | null
+          default_timing?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          notes?: string | null
+          trainer_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          default_dose?: string | null
+          default_timing?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          notes?: string | null
           trainer_id?: string
           updated_at?: string
         }
