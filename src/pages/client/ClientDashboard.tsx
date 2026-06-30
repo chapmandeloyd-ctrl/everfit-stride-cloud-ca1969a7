@@ -817,6 +817,9 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
   const activeCustomPlan = isFastingState ? customFastPlan : isEatingState ? customEatPlan : null;
   const planName = activeCustomPlan?.name || basePlanName;
   const planAccentHex = activeCustomPlan ? CUSTOM_PLAN_HEX[activeCustomPlan.id] : null;
+  const timerAccent = planAccentHex ?? "hsl(var(--primary))";
+  const timerAccentMuted = planAccentHex ? `${planAccentHex}55` : "hsl(var(--primary) / 0.45)";
+  const timerAccentSubtle = planAccentHex ? `${planAccentHex}1f` : "hsl(var(--primary) / 0.14)";
   const isManualOpenFast = !!(isFastingState && customFastPlan?.manual);
   const isManualOpenEat = !!(isEatingState && customEatPlan?.manual);
   const hasDuration = !!activeProtocol?.duration_days;
@@ -1239,7 +1242,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
     return (
       <Card
         className="overflow-hidden border shadow-lg"
-        style={{ backgroundColor: "hsl(0 0% 4%)", borderColor: "hsl(42 70% 55% / 0.25)" }}
+        style={{ backgroundColor: "hsl(var(--background))", borderColor: timerAccentMuted }}
       >
         <div className="relative">
           {/* Editorial Black & Gold — faint gold lion watermark */}
@@ -1249,21 +1252,23 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
             aria-hidden="true"
             className="absolute inset-0 m-auto w-[120%] h-[120%] object-contain pointer-events-none"
             style={{
-              filter: "sepia(1) hue-rotate(-15deg) saturate(2.5) brightness(1.2)",
+              filter: activeCustomPlan
+                ? "sepia(1) hue-rotate(-15deg) saturate(2.5) brightness(1.2)"
+                : "sepia(1) hue-rotate(310deg) saturate(6) brightness(0.85)",
               opacity: 0.1,
             }}
           />
 
           <CardContent
             className="px-5 pt-8 pb-6 space-y-4 relative"
-            style={{ color: "hsl(40 20% 92%)" }}
+            style={{ color: "hsl(var(--foreground))" }}
           >
             <div className="flex items-start justify-between">
               <div className="space-y-1">
                 <div className="flex items-center gap-2 flex-wrap">
                   <p
                     className="text-[10px] font-medium uppercase tracking-[0.4em]"
-                    style={{ color: planAccentHex ?? "hsl(42 70% 55%)" }}
+                    style={{ color: timerAccent }}
                   >
                     {isMaintenanceMode
                       ? "Maintenance Schedule"
@@ -1274,7 +1279,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                   {!isMaintenanceMode && !activeCustomPlan && (
                     <Badge
                       className="text-[10px] px-2 py-0.5 font-medium bg-transparent"
-                      style={{ borderColor: "hsl(42 70% 55%)", color: "hsl(42 70% 55%)" }}
+                      style={{ borderColor: timerAccentMuted, color: timerAccent, backgroundColor: timerAccentSubtle }}
                     >
                       {isCoachAssigned ? "Coach Assigned" : "My Assigned"}
                     </Badge>
@@ -1290,7 +1295,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                 </div>
                 <h3
                   className="text-2xl font-light tracking-tight mt-1"
-                  style={{ fontFamily: "Georgia, serif", color: "hsl(40 20% 92%)" }}
+                  style={{ fontFamily: "Georgia, serif", color: "hsl(var(--foreground))" }}
                 >
                   {isMaintenanceMode ? (maintenanceLabel || "Maintenance") : planName}
                 </h3>
@@ -1301,8 +1306,8 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                       style={{ backgroundColor: `${activeKetoType.color || '#ef4444'}20`, color: activeKetoType.color || '#ef4444' }}
                     >
                       {activeKetoType.abbreviation}
-                      <span style={{ color: "hsl(40 10% 65%)" }}>·</span>
-                      <span className="font-medium" style={{ color: "hsl(40 10% 65%)" }}>{activeKetoType.name}</span>
+                      <span style={{ color: "hsl(var(--muted-foreground))" }}>·</span>
+                      <span className="font-medium" style={{ color: "hsl(var(--muted-foreground))" }}>{activeKetoType.name}</span>
                     </div>
                   </div>
                 )}
@@ -1311,7 +1316,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                 <Badge
                   variant="outline"
                   className="text-[10px] font-medium px-3 py-1 rounded-full shrink-0 bg-transparent uppercase tracking-widest"
-                  style={{ borderColor: "hsl(42 70% 55%)", color: "hsl(42 70% 55%)" }}
+                  style={{ borderColor: timerAccentMuted, color: timerAccent, backgroundColor: timerAccentSubtle }}
                 >
                   Day {dayNumber} / {activeProtocol!.duration_days}
                 </Badge>
@@ -1320,7 +1325,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                 <Badge
                   variant="outline"
                   className="text-[10px] uppercase tracking-widest bg-transparent"
-                  style={{ borderColor: "hsl(42 70% 55%)", color: "hsl(42 70% 55%)" }}
+                  style={{ borderColor: timerAccentMuted, color: timerAccent, backgroundColor: timerAccentSubtle }}
                 >
                   Maintenance
                 </Badge>
@@ -1329,22 +1334,22 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
             <div className="text-center py-6">
               <Badge
                 className="mb-3 bg-transparent uppercase tracking-[0.3em] text-[10px] font-medium"
-                style={{ borderColor: "hsl(42 70% 55%)", color: "hsl(42 70% 55%)" }}
+                style={{ borderColor: timerAccentMuted, color: timerAccent, backgroundColor: timerAccentSubtle }}
               >
                 Eating Window
               </Badge>
               <p
                 className="text-5xl font-light tabular-nums tracking-tight"
-                style={{ fontFamily: "Georgia, serif", color: "hsl(40 20% 92%)" }}
+                style={{ fontFamily: "Georgia, serif", color: "hsl(var(--foreground))" }}
               >
                 {ewTimeStr}
               </p>
-              <p className="text-sm mt-2" style={{ color: "hsl(40 10% 65%)" }}>
+              <p className="text-sm mt-2" style={{ color: "hsl(var(--muted-foreground))" }}>
                 Closes in {ewH}h {ewM}m
               </p>
               <p
                 className="text-xs font-medium mt-2 uppercase tracking-[0.3em]"
-                style={{ color: "hsl(42 70% 55%)" }}
+                style={{ color: timerAccent }}
               >
                 Meals are available
               </p>
@@ -1352,14 +1357,14 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                 {featureSettings?.last_fast_ended_at && (
                   <span
                     className="text-[11px] px-3 py-1.5 rounded-sm border bg-transparent"
-                    style={{ borderColor: "hsl(42 70% 55% / 0.4)", color: "hsl(40 10% 65%)" }}
+                    style={{ borderColor: timerAccentMuted, color: "hsl(var(--muted-foreground))", backgroundColor: timerAccentSubtle }}
                   >
                     Fast ended: {format(new Date(featureSettings.last_fast_ended_at), "MMM d, h:mm a")}
                   </span>
                 )}
                 <span
                   className="text-[11px] px-3 py-1.5 rounded-sm border bg-transparent"
-                  style={{ borderColor: "hsl(42 70% 55% / 0.4)", color: "hsl(40 10% 65%)" }}
+                  style={{ borderColor: timerAccentMuted, color: "hsl(var(--muted-foreground))", backgroundColor: timerAccentSubtle }}
                 >
                   Window closes: {format(ewEnd, "MMM d, h:mm a")}
                 </span>
@@ -1371,7 +1376,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                 <Button
                   variant="ghost"
                   className="w-full h-12 text-sm font-medium uppercase tracking-widest bg-transparent border hover:bg-transparent"
-                  style={{ borderColor: "hsl(42 70% 55%)", color: "hsl(42 70% 55%)" }}
+                  style={{ borderColor: timerAccent, color: timerAccent, backgroundColor: timerAccentSubtle }}
                   onClick={async () => {
                     if (isManualOpenEat) {
                       // Open-ended manual eating window — close immediately,
@@ -1398,7 +1403,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
               <Button
                 variant="ghost"
                 className="w-full h-12 text-sm font-medium uppercase tracking-widest bg-transparent border hover:bg-transparent"
-                style={{ borderColor: "hsl(42 70% 55% / 0.5)", color: "hsl(40 20% 92%)" }}
+                style={{ borderColor: timerAccentMuted, color: "hsl(var(--foreground))" }}
                 onClick={() => {
                   if (ewRemainingMs > 0) {
                     setEatingWindowSheetIntent("choose_next_fast");
@@ -1508,7 +1513,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                 </div>
               )}
               {!isMaintenanceMode && (
-                <Badge className="mt-2 text-[10px] px-2 py-0.5 bg-amber-400/15 text-amber-300 border border-amber-300/40 hover:bg-amber-400/15 font-semibold uppercase tracking-wider">
+                <Badge className="mt-2 text-[10px] px-2 py-0.5 bg-primary/15 text-primary border border-primary/40 hover:bg-primary/15 font-semibold uppercase tracking-wider">
                   {isCoachAssigned ? "Coach Assigned" : "My Assigned"}
                 </Badge>
               )}
@@ -1672,7 +1677,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
               <button
                 type="button"
                 onClick={onClick}
-                className="flex-1 h-8 rounded-full px-3 inline-flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wide bg-gradient-to-b from-amber-300 via-yellow-400 to-amber-600 text-black shadow-[0_1px_6px_-1px_rgba(251,191,36,0.5)] ring-1 ring-amber-300/70 hover:brightness-110 active:scale-[0.98] transition"
+                className="flex-1 h-8 rounded-full px-3 inline-flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wide bg-gradient-to-b from-primary via-primary to-primary/80 text-primary-foreground shadow-[0_1px_8px_-1px_hsl(var(--primary)/0.55)] ring-1 ring-primary/70 hover:brightness-110 active:scale-[0.98] transition"
               >
                 {(locked || isLocked) && <Shield className="h-3 w-3" />}
                 {label}
@@ -1682,7 +1687,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
             return (
               <div className="space-y-2">
                 {isSelfGuided ? (
-                  <div className="flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-300">
+                  <div className="flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-primary">
                     <Shield className="h-3 w-3" />
                     My Assigned
                   </div>
@@ -1693,18 +1698,18 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                         Your program is queued up — your coach will hand you the keys when the timing's right.
                       </p>
                     )}
-                    <div className="flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-300/90">
+                    <div className="flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-primary/90">
                       <Shield className="h-3 w-3" />
                       Locked by your coach
                     </div>
                   </div>
                 ) : isCoachStartNow ? (
-                  <div className="flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-300">
+                  <div className="flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-primary">
                     <Shield className="h-3 w-3" />
                     Coach Assigned
                   </div>
                 ) : isLocked ? (
-                  <div className="flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-300/90">
+                  <div className="flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-primary/90">
                     <Shield className="h-3 w-3" />
                     Locked by your coach
                   </div>
