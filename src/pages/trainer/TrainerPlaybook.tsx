@@ -378,8 +378,6 @@ function ItemRow({ item, onSave, onDelete }: { item: any; onSave: (p: any) => vo
           })()}
         />
       </div>
-        />
-      </div>
 
       <div>
         <Label className="text-[10px] uppercase tracking-wider">Show only on keto days</Label>
