@@ -21,7 +21,7 @@ function useProtocolOptions() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("fasting_protocols")
-        .select("id, name")
+        .select("id, name, description, category, difficulty_level, fast_target_hours")
         .order("name");
       if (error) throw error;
       return data ?? [];
@@ -94,15 +94,53 @@ function ScheduleEditor() {
         <CardHeader>
           <CardTitle>Protocol</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-3">
           <Select value={effectiveId} onValueChange={setProtocolId}>
             <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
+            <SelectContent className="max-h-[60vh]">
               {protocolOptions.map((p: any) => (
-                <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                <SelectItem key={p.id} value={p.id}>
+                  <div className="flex flex-col py-0.5">
+                    <span className="font-semibold">{p.name}</span>
+                    <span className="text-[11px] text-muted-foreground line-clamp-2 max-w-[420px]">
+                      {p.fast_target_hours ? `${p.fast_target_hours}h fast · ` : ""}
+                      {p.difficulty_level ? `${p.difficulty_level} · ` : ""}
+                      {p.description ?? ""}
+                    </span>
+                  </div>
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
+
+          {(() => {
+            const p = protocolOptions.find((x: any) => x.id === effectiveId) as any;
+            if (!p) return null;
+            return (
+              <div className="rounded-xl border border-border bg-muted/30 p-3 space-y-2">
+                <div className="flex flex-wrap gap-1.5">
+                  {p.category && (
+                    <span className="rounded-full bg-primary/15 text-primary border border-primary/30 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+                      {p.category}
+                    </span>
+                  )}
+                  {p.fast_target_hours && (
+                    <span className="rounded-full bg-muted text-foreground/80 border border-border px-2 py-0.5 text-[10px] font-semibold">
+                      {p.fast_target_hours}h fast
+                    </span>
+                  )}
+                  {p.difficulty_level && (
+                    <span className="rounded-full bg-muted text-foreground/80 border border-border px-2 py-0.5 text-[10px] font-semibold capitalize">
+                      {p.difficulty_level}
+                    </span>
+                  )}
+                </div>
+                {p.description && (
+                  <p className="text-sm text-muted-foreground leading-relaxed">{p.description}</p>
+                )}
+              </div>
+            );
+          })()}
         </CardContent>
       </Card>
 
