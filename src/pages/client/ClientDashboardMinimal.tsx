@@ -8,6 +8,7 @@ import { DailyRingsPinnedHeader } from "@/components/rings/DailyRingsCard";
 import { WaterTrackerCard } from "@/components/client/WaterTrackerCard";
 import { StepTrackerCard } from "@/components/client/StepTrackerCard";
 import { DailyJournalCard } from "@/components/daily-journal/DailyJournalCard";
+import { CalendarClock, ChevronRight } from "lucide-react";
 
 /**
  * Minimal client dashboard — Fasting + Smart Pace + Health tracking tiles.
@@ -43,6 +44,25 @@ export default function ClientDashboardMinimal() {
 
         {/* Fasting timer / protocol */}
         <FastingProtocolCard clientId={clientId} navigate={navigate} />
+
+        {/* Daily Playbook entry */}
+        <button
+          onClick={() => navigate("/client/playbook")}
+          className="w-full flex items-center justify-between rounded-2xl border border-border bg-card p-4 text-left hover:bg-muted/30 transition"
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15 text-primary">
+              <CalendarClock className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="font-bold">Today's Playbook</div>
+              <div className="text-xs text-muted-foreground">
+                Keto type, timing & supplements for today
+              </div>
+            </div>
+          </div>
+          <ChevronRight className="h-5 w-5 text-muted-foreground" />
+        </button>
 
         {/* Daily Journal — mood, body, meals */}
         {clientId && <DailyJournalCard />}
