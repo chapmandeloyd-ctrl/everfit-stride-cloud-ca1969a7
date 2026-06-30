@@ -22,7 +22,7 @@ export default function ClientPlaybook() {
     queryFn: async () => {
       const { data } = await supabase
         .from("client_feature_settings")
-        .select("selected_protocol_id, protocol_assigned_by")
+        .select("selected_protocol_id, protocol_assigned_by, assigned_protocol_duration_days")
         .eq("client_id", clientId!)
         .maybeSingle();
       return data;
@@ -45,6 +45,9 @@ export default function ClientPlaybook() {
   });
 
   const { data: schedule, isLoading: scheduleLoading } = usePlaybookSchedule(protocolId);
+
+  const effectiveDurationDays =
+    settings?.assigned_protocol_duration_days ?? protocol?.duration_days ?? null;
 
   return (
     <ClientLayout>
@@ -99,7 +102,10 @@ export default function ClientPlaybook() {
                 </div>
                 <div className="text-lg font-bold">{protocol.name}</div>
                 <div className="text-xs text-muted-foreground">
-                  {protocol.fast_target_hours}h fast · {protocol.duration_days}-day protocol
+                  {protocol.fast_target_hours}h fast ·{" "}
+                  {effectiveDurationDays && effectiveDurationDays > 0
+                    ? `${effectiveDurationDays}-day protocol`
+                    : "Ongoing protocol"}
                 </div>
               </div>
             )}
