@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { CalendarClock, Pill, Info } from "lucide-react";
+import { getStepTypeMeta } from "@/lib/playbookStepTypes";
 import { KETO_TYPES, resolveKetoForWeekday, type KetoTypeCode } from "@/lib/ketoTypes";
 import { usePlaybookSchedule, type PlaybookItem } from "@/hooks/usePlaybookSchedule";
 import { KetoTypeSheet } from "./KetoTypeSheet";
@@ -144,24 +145,34 @@ export function DailyPlaybook({ protocolId, accentColorClass = "text-primary" }:
       {/* Timeline */}
       {isActive && visibleItems.length > 0 && (
         <ul className="space-y-2">
-          {visibleItems.map((it) => (
-            <li key={it.id} className="rounded-xl bg-muted/40 px-3 py-2.5">
-              <div className="flex items-baseline justify-between gap-2">
-                <span className="text-sm font-bold">{it.label}</span>
-                <span className="text-xs font-semibold text-muted-foreground">{relativeLabel(it)}</span>
-              </div>
-              {it.note && <p className="mt-1 text-xs text-muted-foreground leading-relaxed">{it.note}</p>}
-              {it.supplement && (
-                <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-background/60 border border-border px-2 py-0.5 text-[11px]">
-                  <Pill className="h-3 w-3" />
-                  <span className="font-medium">{it.supplement.name}</span>
-                  {it.supplement.default_dose && (
-                    <span className="text-muted-foreground">· {it.supplement.default_dose}</span>
-                  )}
+          {visibleItems.map((it) => {
+            const meta = getStepTypeMeta(it.step_type);
+            const Icon = meta.icon;
+            return (
+              <li key={it.id} className={`rounded-xl border px-3 py-2.5 ${meta.tint}`}>
+                <div className="flex items-baseline justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Icon className={`h-4 w-4 shrink-0 ${meta.color}`} />
+                    <span className="text-sm font-bold truncate">{it.label}</span>
+                    <span className={`text-[9px] uppercase tracking-wider font-bold ${meta.color}`}>
+                      {meta.label}
+                    </span>
+                  </div>
+                  <span className="text-xs font-semibold text-muted-foreground shrink-0">{relativeLabel(it)}</span>
                 </div>
-              )}
-            </li>
-          ))}
+                {it.note && <p className="mt-1 text-xs text-muted-foreground leading-relaxed">{it.note}</p>}
+                {it.supplement && (
+                  <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-background/60 border border-border px-2 py-0.5 text-[11px]">
+                    <Pill className="h-3 w-3" />
+                    <span className="font-medium">{it.supplement.name}</span>
+                    {it.supplement.default_dose && (
+                      <span className="text-muted-foreground">· {it.supplement.default_dose}</span>
+                    )}
+                  </div>
+                )}
+              </li>
+            );
+          })}
         </ul>
       )}
 

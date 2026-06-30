@@ -19,6 +19,7 @@ export interface PlaybookItem {
   id: string;
   order_index: number;
   label: string;
+  step_type: string | null;
   time_of_day: string | null;
   relative_trigger: string | null;
   offset_minutes: number | null;
