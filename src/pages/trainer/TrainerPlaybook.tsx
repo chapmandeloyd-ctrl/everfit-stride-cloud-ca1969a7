@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,17 +15,19 @@ import { useSupplements, useTrainerSchedule } from "@/hooks/useTrainerPlaybook";
 import { KETO_TYPE_LIST, KETO_TYPES, type KetoTypeCode } from "@/lib/ketoTypes";
 import { toast } from "sonner";
 
-const PROTOCOL_OPTIONS = [
-  { id: "classic-16-8", label: "Classic 16:8" },
-  { id: "18-6", label: "18:6" },
-  { id: "20-4", label: "20:4" },
-  { id: "omad-24h", label: "OMAD 24h" },
-  { id: "warrior-36h", label: "Warrior 36h" },
-  { id: "extended-48h", label: "Extended 48h" },
-  { id: "extended-72h", label: "Extended 72h" },
-  { id: "extended-96h", label: "Extended 96h" },
-  { id: "extended-120h", label: "Extended 120h" },
-];
+function useProtocolOptions() {
+  return useQuery({
+    queryKey: ["trainer-playbook-protocols"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("fasting_protocols")
+        .select("id, name")
+        .order("name");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
 
 const DAY_LABELS = [
   { i: 0, label: "Sun" },
@@ -74,9 +78,11 @@ export default function TrainerPlaybook() {
 }
 
 function ScheduleEditor() {
-  const [protocolId, setProtocolId] = useState<string>(PROTOCOL_OPTIONS[0].id);
+  const { data: protocolOptions = [] } = useProtocolOptions();
+  const [protocolId, setProtocolId] = useState<string>("");
+  const effectiveId = protocolId || protocolOptions[0]?.id || "";
   const { schedule, overrides, items, upsertSchedule, setOverride, upsertItem, deleteItem } =
-    useTrainerSchedule(protocolId);
+    useTrainerSchedule(effectiveId);
 
   const ensure = async (patch: any) => {
     await upsertSchedule.mutateAsync({ ...schedule, ...patch });
@@ -89,11 +95,11 @@ function ScheduleEditor() {
           <CardTitle>Protocol</CardTitle>
         </CardHeader>
         <CardContent>
-          <Select value={protocolId} onValueChange={setProtocolId}>
+          <Select value={effectiveId} onValueChange={setProtocolId}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              {PROTOCOL_OPTIONS.map((p) => (
-                <SelectItem key={p.id} value={p.id}>{p.label}</SelectItem>
+              {protocolOptions.map((p: any) => (
+                <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
