@@ -590,6 +590,11 @@ function minToClock(min: number): string {
   return `${h12}:${mm.toString().padStart(2, "0")} ${period}`;
 }
 
+function timeToMinutes(time: string): number {
+  const [h, m] = time.split(":").map((x) => parseInt(x, 10));
+  return (Number.isFinite(h) ? h : 0) * 60 + (Number.isFinite(m) ? m : 0);
+}
+
 function FullDayPreview({ items, fastHours }: { items: any[]; fastHours: number }) {
   const [windowOpen, setWindowOpen] = useState("12:00");
   const [now, setNow] = useState(() => new Date());
