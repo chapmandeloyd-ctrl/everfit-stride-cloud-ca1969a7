@@ -1,0 +1,1 @@
+ALTER TABLE public.protocol_schedule_items ADD COLUMN IF NOT EXISTS step_type text NOT NULL DEFAULT 'coaching';

@@ -7369,6 +7369,7 @@ export type Database = {
           order_index: number
           relative_trigger: string | null
           schedule_id: string
+          step_type: string
           supplement_id: string | null
           time_of_day: string | null
           updated_at: string
@@ -7383,6 +7384,7 @@ export type Database = {
           order_index?: number
           relative_trigger?: string | null
           schedule_id: string
+          step_type?: string
           supplement_id?: string | null
           time_of_day?: string | null
           updated_at?: string
@@ -7397,6 +7399,7 @@ export type Database = {
           order_index?: number
           relative_trigger?: string | null
           schedule_id?: string
+          step_type?: string
           supplement_id?: string | null
           time_of_day?: string | null
           updated_at?: string
