@@ -1,92 +1,68 @@
-# KSOM360 Premium Onboarding — Build Plan
+## Goal
+Turn the protocol card's "Daily Schedule" into the **complete daily playbook** — fasting windows, days of week, per-day keto type, and timed nutrition/supplement instructions — all editable by the trainer.
 
-A complete replacement for the current 6-step `ClientOnboarding.tsx` with a premium, clinically-toned metabolic assessment flow. Existing engine intro/questions stay available but are bypassed when the new flow runs.
+## New trainer controls per protocol assignment
 
-## Flow (10 screens)
+1. **Active days of the week** (Mon–Sun checkboxes). Default: all 7. Off-days show "Rest — eat to maintenance" instead of the fasting window.
+2. **Keto type per day** with two modes:
+   - **Simple mode (default):** one keto type applies to all active days (one tap).
+   - **Advanced mode:** different keto type per weekday (e.g. Mon TKD, Tue SKD, Wed HPKD, Sat CKD).
+3. **Daily timeline items** — ordered list of timed instructions:
+   - Stop eating · 8:00 PM
+   - Eating window opens · 12:00 PM — *Break fast with HPKD-friendly meal (high protein ~30g)*
+   - Pre-workout · 30 min before — *Light carbs only if TKD day*
+   - Post-workout · within 30 min — *Creatine 5g + protein meal*
+   - Mid-window · 3:00 PM — *Largest meal, focus on fats*
+   - Window closes · 8:00 PM
+   - Each item: title, time (or relative trigger), keto-type-aware note, optional supplement reference.
 
-1. **Welcome** — "Your metabolism tells a story." Animated metabolic ring, particle glow, single CTA.
-2. **Body Metrics** — Age, Sex, Height, Weight, Goal Weight (optional). Live body silhouette + sliders.
-3. **Activity Level** — 5 premium selectable cards (Sedentary → Athlete) with helper text.
-4. **Health & Goals** — Multi-select goal cards (10 options).
-5. **Metabolic Snapshot** — Calculated BMI + classification, metabolic strain category, gauge, rings, supportive (never-shaming) copy + "The good news" + improvement cards.
-6. **System Intro** — "You don't need another diet." 3 animated cards: FUEL / TRAIN / RESTORE.
-7. **Coaching Style** — Guided ("Most Effective", elevated card) vs Self-Guided ("Flexible").
-8. **Fasting Synergy** — Recommend ONE based on BMI + activity + age + goals; "See Other Options" reveals the 4 synergies.
-9. **First Week Preview** — Premium timeline: fasting/eating window, hydration, movement, recovery, meal previews.
-10. **Activate** — Success animation + "Activate My Plan" / "Explore Dashboard".
+## New supplement library (trainer-managed)
 
-Top progress indicator on every step. Smooth fade/scale transitions between steps.
+Tiny library so timeline items can reference real supplement entries instead of free text:
+- name (Creatine, Electrolytes, MCT Oil, Magnesium…)
+- default dose (e.g. "5 g")
+- default timing hint (e.g. "post-workout")
+- notes (when to skip, what to take with)
 
-## Recommendation logic (client-side)
+Trainer creates once, reuses across all protocols.
 
-```text
-if BMI >= 30 OR activity in [Sedentary, Lightly]    → Metabolic Reset (12–14h)
-elif BMI 25–29.9 AND goals include Fat Loss/Belly   → Fat Loss Accelerator (16:8)
-elif activity in [Highly, Athlete] AND age < 45     → Performance Fuel System
-elif BMI < 25 AND experience suggests advanced      → Advanced Metabolic Protocol (18:6/OMAD)
-else                                                → Fat Loss Accelerator (default)
-```
+## Client experience
 
-Metabolic score (0–100): weighted BMI band (50%) + activity (30%) + goal alignment (20%).
+On the protocol card, **Daily Schedule** becomes the hero section:
+- Top row: keto type chip for *today* (HPKD) + tap to see what HPKD means → opens explainer sheet (macros, ratios, sample foods, who it's for).
+- Active-days strip: M T W T F S S with dots showing which days are scheduled.
+- Vertical timeline with times + keto-aware coaching lines + supplement chips.
+- Rest days show a calm "Rest day — eat to maintenance" card instead.
 
-## Database schema
+## Technical plan (for your reference)
 
-New migration creates three tables, all with RLS keyed to `auth.uid() = client_id` plus trainer-of-client read access via existing `is_trainer_of_client()`:
+**New tables**
+- `supplements` — id, trainer_id, name, default_dose, default_timing, notes, is_active
+- `protocol_daily_schedules` — id, protocol_id (or assignment_id), client_id (nullable for templates), keto_mode ('simple'|'advanced'), default_keto_type, active_days (int[] 0–6)
+- `protocol_schedule_keto_overrides` — schedule_id, weekday (0–6), keto_type — only used in advanced mode
+- `protocol_schedule_items` — schedule_id, order_index, label, time_of_day (nullable), relative_trigger (nullable: 'pre_workout'|'post_workout'|'wakeup'|'sleep'), offset_minutes, note, supplement_id (nullable), keto_type_filter (nullable — show only on those keto days)
 
-- **`onboarding_progress`** — `client_id`, `current_step`, `completed`, `completed_at`, `data jsonb`
-- **`user_metabolic_profile`** — `client_id`, `age`, `sex`, `height_cm`, `weight_kg`, `goal_weight_kg`, `bmi`, `bmi_class`, `activity_level`, `goals text[]`, `metabolic_score`, `metabolic_strain`
-- **`fasting_synergy_selection`** — `client_id`, `synergy_key`, `coaching_style` (guided|self), `recommended_synergy`, `selected_at`
+All public-schema tables get GRANTs + RLS (trainer writes own rows; clients read their assigned schedule).
 
-Also flip `profiles.onboarding_completed = true` on finish (existing column).
+**UI changes** (read-only summary)
+- `src/components/FastingProtocolCard.tsx` — Daily Schedule section becomes the new timeline component. Existing fasting timer logic untouched per memory constraint.
+- New `src/components/protocol/ProtocolScheduleEditor.tsx` (trainer side, in trainer protocol editor).
+- New `src/components/protocol/KetoTypeChip.tsx` + `KetoTypeExplainerSheet.tsx` for the client side.
+- New trainer page section: `src/pages/trainer/SupplementsLibrary.tsx`.
+- Hooks: `useProtocolSchedule(protocolId, clientId)`, `useSupplements()`.
 
-## File structure
+**Migration delivery:** I'll output the SQL for you to apply yourself per your preferences.
 
-```text
-src/pages/client/ClientOnboarding.tsx          (rewritten — orchestrator)
-src/components/onboarding/premium/
-  ├─ OnboardingShell.tsx                       (progress bar, transitions, dark bg)
-  ├─ steps/
-  │   ├─ WelcomeStep.tsx
-  │   ├─ BodyMetricsStep.tsx
-  │   ├─ ActivityLevelStep.tsx
-  │   ├─ GoalsStep.tsx
-  │   ├─ MetabolicSnapshotStep.tsx
-  │   ├─ SystemIntroStep.tsx
-  │   ├─ CoachingStyleStep.tsx
-  │   ├─ FastingSynergyStep.tsx
-  │   ├─ FirstWeekStep.tsx
-  │   └─ ActivateStep.tsx
-  ├─ MetabolicGauge.tsx                        (SVG arc gauge)
-  ├─ BodySilhouette.tsx                        (SVG, scales by BMI)
-  ├─ MetabolicRing.tsx                         (animated SVG ring)
-  └─ ParticleField.tsx                         (CSS particles, no heavy lib)
-src/lib/onboarding/
-  ├─ metabolicCalc.ts                          (BMI, classification, score, strain)
-  ├─ synergyRecommender.ts                     (recommendation logic)
-  └─ synergies.ts                              (4 synergy definitions)
-```
+## Build order
 
-## Styling
+1. DB schema + grants/RLS (you apply).
+2. Supplement library (trainer page + CRUD).
+3. Protocol schedule editor (trainer side) — days, keto mode, timeline items.
+4. Client-side rendering inside the existing protocol card (replaces current "Daily Schedule").
+5. Keto type explainer sheet.
+6. Verify live on Classic 16:8 with a Mon=TKD / Tue=SKD test setup.
 
-- Pure black background (`hsl(var(--background))`) with electric red primary `#CC1A1A` and KSOM-360 teal accents — already in design tokens, no new colors.
-- Glassmorphism: `bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl`.
-- Space Grotesk headings, Inter body (per project Core).
-- Animations: `animate-fade-in`, `animate-scale-in`, custom CSS for ring sweep and particle drift. No new animation libs.
-- Mobile-first; max-w-md container; large tap targets.
-
-## Wiring
-
-- Route `/client/onboarding` already exists → keeps same path.
-- `useEffectiveClientId()` for client id.
-- All writes via supabase client; final step navigates to `/client/dashboard`.
-- The legacy `EngineIntroStep`/`EngineQuestionsStep` files are left in place untouched (not imported by new flow) — safe rollback.
-
-## Out of scope
-
-- No changes to fasting timer, dashboard, or any other route.
-- No new external libraries.
-- No imagery generation — using SVG + CSS gradients for premium look (faster, no asset cost).
-
-## Approval needed
-
-Reply "go" to proceed; I'll run the migration first, then build the components.
+## Out of scope (for now)
+- Pushing supplement reminders as notifications (can come later via Habit Loop).
+- Auto-syncing schedule changes to active fasts already in progress.
+- AI-generated schedule defaults (can layer on later).
