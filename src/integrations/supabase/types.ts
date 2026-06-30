@@ -1297,6 +1297,7 @@ export type Database = {
           allow_custom_goal_text: boolean
           allow_level_auto_advance: boolean
           allow_plan_suggestions: boolean
+          assigned_protocol_duration_days: number | null
           athletic_safety_lock: boolean
           auto_advance_levels: boolean
           auto_level_advance_enabled: boolean
@@ -1403,6 +1404,7 @@ export type Database = {
           allow_custom_goal_text?: boolean
           allow_level_auto_advance?: boolean
           allow_plan_suggestions?: boolean
+          assigned_protocol_duration_days?: number | null
           athletic_safety_lock?: boolean
           auto_advance_levels?: boolean
           auto_level_advance_enabled?: boolean
@@ -1509,6 +1511,7 @@ export type Database = {
           allow_custom_goal_text?: boolean
           allow_level_auto_advance?: boolean
           allow_plan_suggestions?: boolean
+          assigned_protocol_duration_days?: number | null
           athletic_safety_lock?: boolean
           auto_advance_levels?: boolean
           auto_level_advance_enabled?: boolean
