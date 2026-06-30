@@ -37,7 +37,7 @@ export default function ClientPlaybook() {
     queryFn: async () => {
       const { data } = await supabase
         .from("fasting_protocols")
-        .select("id, name, fast_hours, eat_hours")
+        .select("id, name, fast_target_hours, duration_days")
         .eq("id", protocolId!)
         .maybeSingle();
       return data;
@@ -99,7 +99,7 @@ export default function ClientPlaybook() {
                 </div>
                 <div className="text-lg font-bold">{protocol.name}</div>
                 <div className="text-xs text-muted-foreground">
-                  {protocol.fast_hours}h fast · {protocol.eat_hours}h eating window
+                  {protocol.fast_target_hours}h fast · {protocol.duration_days}-day protocol
                 </div>
               </div>
             )}
