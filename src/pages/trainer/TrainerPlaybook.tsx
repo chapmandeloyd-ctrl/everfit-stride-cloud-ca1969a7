@@ -433,6 +433,7 @@ function ItemRow({ item, onSave, onDelete }: { item: any; onSave: (p: any) => vo
 function SupplementsEditor() {
   const { data: supplements, upsert, remove } = useSupplements();
   const [draft, setDraft] = useState({ name: "", default_dose: "", default_timing: "", notes: "" });
+  // placeholder marker
 
   return (
     <div className="space-y-4">
