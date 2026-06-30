@@ -50,6 +50,7 @@ import WorkoutCollectionDetail from "./pages/WorkoutCollectionDetail";
 import WorkoutLabels from "./pages/WorkoutLabels";
 import StudioPrograms from "./pages/StudioPrograms";
 import Programs from "./pages/Programs";
+import TrainerPlaybook from "./pages/trainer/TrainerPlaybook";
 import Recipes from "./pages/Recipes";
 import RecipeDetail from "./pages/RecipeDetail";
 import RecipeBooks from "./pages/RecipeBooks";
@@ -179,6 +180,7 @@ const App = () => (
           <Route path="/studio-programs" element={<ProtectedRoute allowedRoles={["trainer"]}><StudioPrograms /></ProtectedRoute>} />
           <Route path="/studio-programs/:id" element={<ProtectedRoute allowedRoles={["trainer"]}><StudioProgramDetail /></ProtectedRoute>} />
           <Route path="/programs" element={<ProtectedRoute allowedRoles={["trainer"]}><Programs /></ProtectedRoute>} />
+         <Route path="/playbook" element={<ProtectedRoute allowedRoles={["trainer"]}><TrainerPlaybook /></ProtectedRoute>} />
           <Route path="/recipes" element={<ProtectedRoute allowedRoles={["trainer"]}><Recipes /></ProtectedRoute>} />
           <Route path="/recipes/:id" element={<ProtectedRoute allowedRoles={["trainer"]}><RecipeDetail /></ProtectedRoute>} />
           <Route path="/recipe-books" element={<ProtectedRoute allowedRoles={["trainer"]}><RecipeBooks /></ProtectedRoute>} />
