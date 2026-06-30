@@ -35,6 +35,8 @@ import { useImpersonation } from "@/hooks/useImpersonation";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { getDietStylePreset } from "@/lib/dietStyles";
 import { SportEventCompletionDialog } from "@/components/SportEventCompletionDialog";
+import { usePlaybookSchedule } from "@/hooks/usePlaybookSchedule";
+import { resolveKetoForWeekday } from "@/lib/ketoTypes";
 
 // Mirror of getCutLevelMeta on ClientNutrition page so dashboard card stays in sync.
 function getCutLevelMeta(adjustment?: number | null) {
@@ -229,6 +231,37 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
     enabled: !!clientId,
   });
 
+  // Playbook override — if the trainer has published a Daily Playbook for the
+  // selected protocol, today's resolved keto type takes precedence over the
+  // static client_keto_assignments value (Option 2 behavior).
+  const { data: playbookSchedule } = usePlaybookSchedule(
+    featureSettings?.selected_protocol_id ?? null,
+  );
+  const todaysPlaybookKetoCode = (() => {
+    if (!playbookSchedule) return null;
+    const wd = new Date().getDay();
+    if (!playbookSchedule.active_days.includes(wd)) return null;
+    return resolveKetoForWeekday({
+      mode: playbookSchedule.keto_mode,
+      defaultType: playbookSchedule.default_keto_type,
+      overrides: playbookSchedule.overrides,
+      weekday: wd,
+    });
+  })();
+  const { data: playbookKetoRow } = useQuery({
+    queryKey: ["fasting-card-keto-playbook", todaysPlaybookKetoCode],
+    enabled: !!todaysPlaybookKetoCode,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("keto_types")
+        .select("id, name, abbreviation, color, fat_pct, protein_pct, carbs_pct")
+        .eq("abbreviation", todaysPlaybookKetoCode!)
+        .eq("is_active", true)
+        .maybeSingle();
+      return data;
+    },
+  });
+
   // TEMP PREVIEW: when previewing the "coachStartNow" lion card, fall back
   // to mock 16:8 protocol + TKD keto type so the full card renders even when
   // the client doesn't yet have real assignments. Remove once onboarding wires
@@ -252,7 +285,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
       fast_target_hours: 16,
       difficulty_level: "intermediate",
     } : null);
-  const activeKetoType = activeKetoTypeRaw ?? (PREVIEW_COACH_START_NOW ? {
+  const activeKetoTypeBase = activeKetoTypeRaw ?? (PREVIEW_COACH_START_NOW ? {
     id: "preview-tkd",
     name: "Targeted Keto",
     abbreviation: "TKD",
@@ -261,6 +294,11 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
     protein_pct: 25,
     carbs_pct: 10,
   } : null);
+
+  // Today's playbook keto (if published) overrides the static assignment so
+  // the SKD chip, macros tile and "View Keto Type" pill reflect what the
+  // trainer scheduled for today.
+  const activeKetoType = playbookKetoRow ?? activeKetoTypeBase;
 
   // Meal slideshow photos for the eating window card
   const { data: mealPhotos = [] } = useQuery({
