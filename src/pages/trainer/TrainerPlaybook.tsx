@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardLayout } from "@/components/DashboardLayout";
@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
-import { Trash2, Plus, Save, Pill } from "lucide-react";
+import { Trash2, Plus, Save, Pill, Sunrise, Moon as MoonIcon, Eye } from "lucide-react";
 import { useSupplements, useTrainerSchedule } from "@/hooks/useTrainerPlaybook";
 import { KETO_TYPE_LIST, KETO_TYPES, type KetoTypeCode } from "@/lib/ketoTypes";
 import { toast } from "sonner";
@@ -267,6 +267,13 @@ function ScheduleEditor() {
           ))}
         </CardContent>
       </Card>
+
+      <FullDayPreview
+        items={items}
+        fastHours={
+          (protocolOptions.find((x: any) => x.id === effectiveId) as any)?.fast_target_hours ?? 16
+        }
+      />
     </div>
   );
 }
