@@ -30,8 +30,6 @@ export default function ClientPlaybook() {
   });
 
   const protocolId = settings?.selected_protocol_id ?? null;
-  const effectiveDurationDays =
-    settings?.assigned_protocol_duration_days ?? protocol?.duration_days ?? null;
 
   const { data: protocol } = useQuery({
     queryKey: ["client-playbook-protocol", protocolId],
@@ -47,6 +45,9 @@ export default function ClientPlaybook() {
   });
 
   const { data: schedule, isLoading: scheduleLoading } = usePlaybookSchedule(protocolId);
+
+  const effectiveDurationDays =
+    settings?.assigned_protocol_duration_days ?? protocol?.duration_days ?? null;
 
   return (
     <ClientLayout>
