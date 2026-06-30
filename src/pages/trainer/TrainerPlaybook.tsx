@@ -14,6 +14,7 @@ import { Trash2, Plus, Save, Pill } from "lucide-react";
 import { useSupplements, useTrainerSchedule } from "@/hooks/useTrainerPlaybook";
 import { KETO_TYPE_LIST, KETO_TYPES, type KetoTypeCode } from "@/lib/ketoTypes";
 import { toast } from "sonner";
+import { PLAYBOOK_STEP_TYPE_LIST, getStepTypeMeta } from "@/lib/playbookStepTypes";
 
 function useProtocolOptions() {
   return useQuery({
@@ -246,6 +247,7 @@ function ScheduleEditor() {
               upsertItem.mutate({
                 order_index: items.length,
                 label: "New step",
+                step_type: "coaching",
                 time_of_day: null,
                 relative_trigger: null,
                 offset_minutes: 0,
@@ -276,13 +278,37 @@ function ItemRow({ item, onSave, onDelete }: { item: any; onSave: (p: any) => vo
 
   return (
     <div className="rounded-xl border border-border bg-muted/20 p-3 space-y-2">
+      <div>
+        <Label className="text-[10px] uppercase tracking-wider">Step type</Label>
+        <div className="flex flex-wrap gap-1.5 mt-1">
+          {PLAYBOOK_STEP_TYPE_LIST.map((t) => {
+            const on = (local.step_type ?? "coaching") === t.code;
+            const Icon = t.icon;
+            return (
+              <button
+                key={t.code}
+                type="button"
+                onClick={() => setLocal({ ...local, step_type: t.code })}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold transition ${
+                  on ? `${t.tint} ${t.color}` : "border-border text-muted-foreground hover:bg-muted/40"
+                }`}
+              >
+                <Icon className="h-3.5 w-3.5" />
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         <div>
           <Label className="text-[10px] uppercase tracking-wider">Label</Label>
           <Input value={local.label} onChange={(e) => setLocal({ ...local, label: e.target.value })} />
+          <p className="text-[10px] text-muted-foreground mt-1">Short title shown on the client's timeline.</p>
         </div>
         <div>
-          <Label className="text-[10px] uppercase tracking-wider">Trigger</Label>
+          <Label className="text-[10px] uppercase tracking-wider">When</Label>
           <Select
             value={local.relative_trigger ?? "__abs__"}
             onValueChange={(v) => setLocal({ ...local, relative_trigger: v === "__abs__" ? null : v })}
@@ -294,25 +320,28 @@ function ItemRow({ item, onSave, onDelete }: { item: any; onSave: (p: any) => vo
               ))}
             </SelectContent>
           </Select>
+          <p className="text-[10px] text-muted-foreground mt-1">Anchor: a clock time or a moment in the day (window opens, wake-up, etc.).</p>
         </div>
 
         {!local.relative_trigger ? (
           <div>
-            <Label className="text-[10px] uppercase tracking-wider">Time</Label>
+            <Label className="text-[10px] uppercase tracking-wider">At (clock time)</Label>
             <Input
               type="time"
               value={local.time_of_day?.slice(0, 5) ?? ""}
               onChange={(e) => setLocal({ ...local, time_of_day: e.target.value || null })}
             />
+            <p className="text-[10px] text-muted-foreground mt-1">Exact time of day, e.g. 12:00 PM.</p>
           </div>
         ) : (
           <div>
-            <Label className="text-[10px] uppercase tracking-wider">Offset (min, negative = before)</Label>
+            <Label className="text-[10px] uppercase tracking-wider">Offset (minutes)</Label>
             <Input
               type="number"
               value={local.offset_minutes ?? 0}
               onChange={(e) => setLocal({ ...local, offset_minutes: parseInt(e.target.value, 10) || 0 })}
             />
+            <p className="text-[10px] text-muted-foreground mt-1">Negative = before the anchor (e.g. -30 = 30 min before).</p>
           </div>
         )}
 
@@ -334,12 +363,21 @@ function ItemRow({ item, onSave, onDelete }: { item: any; onSave: (p: any) => vo
       </div>
 
       <div>
-        <Label className="text-[10px] uppercase tracking-wider">Coaching note</Label>
+        <Label className="text-[10px] uppercase tracking-wider">Note / what to eat or do</Label>
         <Textarea
           rows={2}
           value={local.note ?? ""}
           onChange={(e) => setLocal({ ...local, note: e.target.value })}
-          placeholder="e.g. Break fast with HPKD-friendly high protein meal (~30g)"
+          placeholder={(() => {
+            const t = local.step_type ?? "coaching";
+            if (t === "meal") return "e.g. Break fast: 4oz salmon, 1 avocado, leafy greens with olive oil";
+            if (t === "drink") return "e.g. 16oz water + electrolytes (sodium, potassium, magnesium)";
+            if (t === "supplement") return "e.g. Take with first meal, with water";
+            if (t === "milestone") return "e.g. Window opens — break your fast slowly";
+            return "e.g. Quick mindset check — rate energy 1–10 before eating";
+          })()}
+        />
+      </div>
         />
       </div>
 
