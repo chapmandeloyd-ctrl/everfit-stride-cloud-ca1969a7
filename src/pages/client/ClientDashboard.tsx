@@ -285,7 +285,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
       fast_target_hours: 16,
       difficulty_level: "intermediate",
     } : null);
-  const activeKetoType = activeKetoTypeRaw ?? (PREVIEW_COACH_START_NOW ? {
+  const activeKetoTypeBase = activeKetoTypeRaw ?? (PREVIEW_COACH_START_NOW ? {
     id: "preview-tkd",
     name: "Targeted Keto",
     abbreviation: "TKD",
