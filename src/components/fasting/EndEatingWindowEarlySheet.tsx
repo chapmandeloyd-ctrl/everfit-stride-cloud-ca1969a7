@@ -66,13 +66,12 @@ export function EndEatingWindowEarlySheet({
       <SheetContent
         side="bottom"
         className="bg-black border-t p-0 max-h-[88vh] overflow-y-auto"
-        style={{ borderColor: "hsl(42 70% 55% / 0.25)" }}
+        style={{ borderColor: "rgba(252, 211, 77, 0.3)" }}
       >
         <div className="px-5 pt-6 pb-8 max-w-md mx-auto space-y-5">
           <div className="space-y-1.5 text-center">
             <p
-              className="text-[10px] font-medium uppercase tracking-[0.3em]"
-              style={{ color: "hsl(42 70% 55%)" }}
+              className="text-[10px] font-bold uppercase tracking-[0.3em] text-amber-300"
             >
               Quick check
             </p>
@@ -97,16 +96,15 @@ export function EndEatingWindowEarlySheet({
                   onClick={() => setReason(r.id)}
                   className="w-full flex items-center gap-3 px-4 py-3 rounded-lg border text-left transition-colors"
                   style={{
-                    borderColor: selected ? "hsl(42 70% 55%)" : "hsl(42 70% 55% / 0.2)",
-                    backgroundColor: selected ? "hsl(42 70% 55% / 0.1)" : "transparent",
+                    borderColor: selected ? "rgb(252, 211, 77)" : "rgba(252, 211, 77, 0.25)",
+                    backgroundColor: selected ? "rgba(252, 211, 77, 0.12)" : "transparent",
                     color: selected ? "hsl(40 20% 95%)" : "hsl(40 10% 75%)",
                   }}
                 >
                   <span className="text-sm flex-1">{r.label}</span>
                   {selected && (
                     <span
-                      className="h-2 w-2 rounded-full"
-                      style={{ backgroundColor: "hsl(42 70% 55%)" }}
+                      className="h-2 w-2 rounded-full bg-amber-300"
                     />
                   )}
                 </button>
@@ -117,15 +115,13 @@ export function EndEatingWindowEarlySheet({
           <div className="grid grid-cols-2 gap-2 pt-1">
             <Button
               variant="ghost"
-              className="h-12 text-sm font-medium uppercase tracking-widest bg-transparent border hover:bg-transparent"
-              style={{ borderColor: "hsl(42 70% 55% / 0.4)", color: "hsl(40 20% 92%)" }}
+              className="h-12 text-sm font-medium uppercase tracking-widest bg-transparent border border-amber-300/40 text-white hover:bg-amber-300/5"
               onClick={() => onOpenChange(false)}
             >
               Stay
             </Button>
             <Button
-              className="h-12 text-sm font-semibold uppercase tracking-widest"
-              style={{ backgroundColor: "hsl(42 70% 55%)", color: "hsl(0 0% 8%)" }}
+              className="h-12 text-sm font-bold uppercase tracking-widest text-black bg-gradient-to-b from-amber-300 via-yellow-400 to-amber-600 ring-1 ring-amber-300/70 shadow-[0_1px_6px_-1px_rgba(251,191,36,0.5)] hover:brightness-110"
               disabled={!reason}
               onClick={handleConfirm}
             >
