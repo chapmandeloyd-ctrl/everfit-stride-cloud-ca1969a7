@@ -295,6 +295,11 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
     carbs_pct: 10,
   } : null);
 
+  // Today's playbook keto (if published) overrides the static assignment so
+  // the SKD chip, macros tile and "View Keto Type" pill reflect what the
+  // trainer scheduled for today.
+  const activeKetoType = playbookKetoRow ?? activeKetoTypeBase;
+
   // Meal slideshow photos for the eating window card
   const { data: mealPhotos = [] } = useQuery({
     queryKey: ["eating-window-meal-photos", clientId],
