@@ -9,6 +9,7 @@ import {
   InteractiveKetoTypeCard,
   type KetoTypeForCard,
 } from "@/components/keto/InteractiveKetoTypeCard";
+import { KetoPhaseCard } from "@/components/keto/KetoPhaseCard";
 
 /**
  * Dark-style keto library — mirrors ClientPrograms (/client/programs).
@@ -137,7 +138,7 @@ export default function ClientKetoTypes() {
       if (!clientId) return null;
       const { data, error } = await supabase
         .from("client_keto_assignments")
-        .select("keto_type_id")
+        .select("keto_type_id, assigned_at")
         .eq("client_id", clientId)
         .eq("is_active", true)
         .maybeSingle();
@@ -222,6 +223,10 @@ export default function ClientKetoTypes() {
             <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-primary">
               Your Current Keto Type
             </p>
+            <KetoPhaseCard
+              startDate={activeAssignment?.assigned_at ?? null}
+              themeColor={assignedKeto.color || undefined}
+            />
             <InteractiveKetoTypeCard
               ketoType={toKetoCardData(assignedKeto)}
               themeColor={assignedKeto.color || undefined}
