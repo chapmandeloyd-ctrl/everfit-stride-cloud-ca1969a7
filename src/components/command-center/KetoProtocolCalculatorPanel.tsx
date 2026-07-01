@@ -39,6 +39,9 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
         .from("client_keto_assignments")
         .select("keto_type_id, assigned_at, keto_types(abbreviation, name, protein_pct, carbs_pct, fat_pct, carb_limit_grams, color)")
         .eq("client_id", clientId)
+        .eq("is_active", true)
+        .order("assigned_at", { ascending: false })
+        .limit(1)
         .maybeSingle();
       return data;
     },
