@@ -64,7 +64,7 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
     queryFn: async () => {
       const { data } = await supabase
         .from("smart_pace_goals")
-        .select("goal_type")
+        .select("goal_direction")
         .eq("client_id", clientId)
         .eq("status", "active")
         .maybeSingle();
@@ -93,10 +93,10 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
     if (assignment?.assigned_at && !startDate) {
       setStartDate(new Date(assignment.assigned_at).toISOString().slice(0, 10));
     }
-    if (paceGoal?.goal_type) {
-      const g = paceGoal.goal_type.toLowerCase();
-      if (g.includes("loss") || g.includes("cut")) setGoal("cut");
-      else if (g.includes("gain") || g.includes("bulk")) setGoal("bulk");
+    if (paceGoal?.goal_direction) {
+      const g = String(paceGoal.goal_direction).toLowerCase();
+      if (g.includes("loss") || g.includes("cut") || g.includes("down")) setGoal("cut");
+      else if (g.includes("gain") || g.includes("bulk") || g.includes("up")) setGoal("bulk");
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assignment, weightLbs, paceGoal]);
