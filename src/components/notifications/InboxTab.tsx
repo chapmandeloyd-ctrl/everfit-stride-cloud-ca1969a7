@@ -84,6 +84,31 @@ export function InboxTab() {
     return () => io.disconnect();
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
+  // Realtime: refresh inbox instantly when a keto reminder is inserted/updated
+  useEffect(() => {
+    if (!userId) return;
+    const channel = supabase
+      .channel(`keto-inbox-${userId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "in_app_notifications",
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload) => {
+          const row: any = payload.new ?? payload.old;
+          if (row?.type !== "keto_phase_transition") return;
+          qc.invalidateQueries({ queryKey: ["trainer-keto-inbox", userId] });
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userId, qc]);
+
   const clientIds = useMemo(
     () => Array.from(new Set(notifications.map((n) => n.reference_id).filter(Boolean))) as string[],
     [notifications],
