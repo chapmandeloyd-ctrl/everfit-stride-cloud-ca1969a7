@@ -5533,6 +5533,33 @@ export type Database = {
           },
         ]
       }
+      keto_phase_notifications_log: {
+        Row: {
+          assignment_id: string
+          client_id: string
+          created_at: string
+          id: string
+          notified_at: string
+          phase: string
+        }
+        Insert: {
+          assignment_id: string
+          client_id: string
+          created_at?: string
+          id?: string
+          notified_at?: string
+          phase: string
+        }
+        Update: {
+          assignment_id?: string
+          client_id?: string
+          created_at?: string
+          id?: string
+          notified_at?: string
+          phase?: string
+        }
+        Relationships: []
+      }
       keto_types: {
         Row: {
           abbreviation: string
