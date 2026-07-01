@@ -6,10 +6,11 @@ import { QuickSendTab } from "@/components/notifications/QuickSendTab";
 import { TemplatesTab } from "@/components/notifications/TemplatesTab";
 import { HistoryTab } from "@/components/notifications/HistoryTab";
 import { PushDevicesTab } from "@/components/notifications/PushDevicesTab";
-import { Bell, FileText, History, Send, Smartphone, Zap } from "lucide-react";
+import { InboxTab } from "@/components/notifications/InboxTab";
+import { Bell, FileText, History, Inbox, Send, Smartphone, Zap } from "lucide-react";
 
 export default function NotificationCenter() {
-  const [activeTab, setActiveTab] = useState("quick");
+  const [activeTab, setActiveTab] = useState("inbox");
 
   return (
     <DashboardLayout>
@@ -25,7 +26,11 @@ export default function NotificationCenter() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid w-full max-w-2xl grid-cols-5">
+          <TabsList className="grid w-full max-w-3xl grid-cols-6">
+            <TabsTrigger value="inbox" className="flex items-center gap-1.5">
+              <Inbox className="h-4 w-4" />
+              Inbox
+            </TabsTrigger>
             <TabsTrigger value="quick" className="flex items-center gap-1.5">
               <Zap className="h-4 w-4" />
               Quick Send
@@ -47,6 +52,10 @@ export default function NotificationCenter() {
               Push Devices
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="inbox">
+            <InboxTab />
+          </TabsContent>
 
           <TabsContent value="quick">
             <QuickSendTab />
