@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo, useRef } from "react";
+import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,8 @@ import { ArrowRight, Check, Flame, Inbox, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 
 type PhaseFilter = "all" | "adjustment" | "maintenance";
+
+const PAGE_SIZE = 20;
 
 interface KetoNotification {
   id: string;
@@ -35,22 +37,52 @@ export function InboxTab() {
     queryFn: async () => (await supabase.auth.getUser()).data.user?.id ?? null,
   });
 
-  const { data: notifications = [], isLoading } = useQuery({
+  const {
+    data,
+    isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
     queryKey: ["trainer-keto-inbox", userId],
-    queryFn: async () => {
+    enabled: !!userId,
+    initialPageParam: 0,
+    refetchInterval: 60000,
+    queryFn: async ({ pageParam }) => {
+      const from = (pageParam as number) * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
       const { data, error } = await supabase
         .from("in_app_notifications")
         .select("id, title, body, reference_id, read_at, created_at")
         .eq("user_id", userId!)
         .eq("type", "keto_phase_transition")
         .order("created_at", { ascending: false })
-        .limit(100);
+        .range(from, to);
       if (error) throw error;
       return (data ?? []) as KetoNotification[];
     },
-    enabled: !!userId,
-    refetchInterval: 60000,
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage.length < PAGE_SIZE ? undefined : allPages.length,
   });
+
+  const notifications = useMemo(
+    () => (data?.pages.flat() ?? []) as KetoNotification[],
+    [data],
+  );
+
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!sentinelRef.current || !hasNextPage) return;
+    const el = sentinelRef.current;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !isFetchingNextPage) fetchNextPage();
+      },
+      { rootMargin: "300px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const clientIds = useMemo(
     () => Array.from(new Set(notifications.map((n) => n.reference_id).filter(Boolean))) as string[],
@@ -215,6 +247,13 @@ export function InboxTab() {
               </Card>
             );
           })}
+          <div ref={sentinelRef} />
+          {isFetchingNextPage && (
+            <p className="text-center text-xs text-muted-foreground py-3">Loading more…</p>
+          )}
+          {!hasNextPage && notifications.length > PAGE_SIZE && (
+            <p className="text-center text-xs text-muted-foreground py-3">You're all caught up.</p>
+          )}
         </div>
       )}
     </div>
