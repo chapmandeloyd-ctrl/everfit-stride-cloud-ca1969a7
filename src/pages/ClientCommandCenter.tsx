@@ -24,6 +24,7 @@ import { GroupedProgressTab } from "@/components/command-center/GroupedProgressT
 import { ClientWodsTab } from "@/components/command-center/ClientWodsTab";
 import { ClientTasksTab } from "@/components/command-center/ClientTasksTab";
 import { ClientCalendarTab } from "@/components/command-center/ClientCalendarTab";
+import { KetoProtocolCalculatorPanel } from "@/components/command-center/KetoProtocolCalculatorPanel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AUTH_URL } from "@/lib/appUrl";
 import { useImpersonation } from "@/hooks/useImpersonation";
@@ -240,6 +241,7 @@ export default function ClientCommandCenter() {
             <TabsTrigger value="tasks">Tasks</TabsTrigger>
             <TabsTrigger value="client-wods">Client WODs</TabsTrigger>
             <TabsTrigger value="nutrition">Nutrition</TabsTrigger>
+            <TabsTrigger value="protocol">Protocol</TabsTrigger>
             <TabsTrigger value="progress">Progress</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
@@ -267,6 +269,9 @@ export default function ClientCommandCenter() {
           </TabsContent>
           <TabsContent value="nutrition">
             <GroupedNutritionTab clientId={clientId!} trainerId={user?.id!} />
+          </TabsContent>
+          <TabsContent value="protocol">
+            <KetoProtocolCalculatorPanel clientId={clientId!} trainerId={user?.id!} />
           </TabsContent>
           <TabsContent value="progress">
             <GroupedProgressTab clientId={clientId!} trainerId={user?.id!} clientName={clientData?.client?.full_name} />
