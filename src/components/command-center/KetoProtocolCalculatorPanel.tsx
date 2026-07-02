@@ -463,6 +463,64 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
             </div>
           )}
 
+          <Separator />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <Label>Plan Type</Label>
+              <Select value={planType} onValueChange={(v) => setPlanType(v as PlanType)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="recurring">Recurring weekly</SelectItem>
+                  <SelectItem value="extended">Extended fast</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {planType === "recurring" ? (
+              <div>
+                <Label>Plan Length</Label>
+                <Select value={String(planLengthDays)} onValueChange={(v) => setPlanLengthDays(parseInt(v, 10))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1 day</SelectItem>
+                    <SelectItem value="3">3 days</SelectItem>
+                    <SelectItem value="7">7 days (week)</SelectItem>
+                    <SelectItem value="14">14 days</SelectItem>
+                    <SelectItem value="30">30 days</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <>
+                <div>
+                  <Label>Fast Duration</Label>
+                  <Select value={extendedPreset} onValueChange={(v) => setExtendedPreset(v as ExtendedPreset)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="24">24 hours</SelectItem>
+                      <SelectItem value="36">36 hours</SelectItem>
+                      <SelectItem value="48">48 hours (2 day)</SelectItem>
+                      <SelectItem value="72">72 hours (3 day)</SelectItem>
+                      <SelectItem value="120">120 hours (5 day)</SelectItem>
+                      <SelectItem value="custom">Custom hours…</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {extendedPreset === "custom" && (
+                  <div>
+                    <Label>Custom hours (12–240)</Label>
+                    <Input
+                      type="number"
+                      min={12}
+                      max={240}
+                      value={customFastHours}
+                      onChange={(e) => setCustomFastHours(parseInt(e.target.value || "0", 10))}
+                    />
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
           {plan && (
             <>
               <Separator />
@@ -479,7 +537,14 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
 
       {plan && (
         <Card>
-          <CardHeader><CardTitle className="text-base">Weekly Plan</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle className="text-base">
+              {plan.extended ? `Extended Fast Plan · ${plan.totalHours}h` : `Plan · ${planLengthDays} day${planLengthDays > 1 ? "s" : ""}`}
+            </CardTitle>
+            {plan.extended && plan.needsRefeed && (
+              <p className="text-xs text-muted-foreground">Includes an auto-generated refeed day for safe re-entry.</p>
+            )}
+          </CardHeader>
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
