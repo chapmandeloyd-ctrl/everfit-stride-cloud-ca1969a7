@@ -187,15 +187,29 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
   const { data: weightLbs } = useQuery({
     queryKey: ["latest-weight", clientId],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("client_metric_entries" as any)
-        .select("value, client_metrics!inner(metric_definitions!inner(name))")
+      const { data: defs } = await supabase
+        .from("metric_definitions")
+        .select("id")
+        .eq("name", "Weight")
+        .limit(1);
+      const defId = defs?.[0]?.id;
+      if (!defId) return null;
+      const { data: cm } = await supabase
+        .from("client_metrics")
+        .select("id")
         .eq("client_id", clientId)
-        .eq("client_metrics.metric_definitions.name", "Weight")
+        .eq("metric_definition_id", defId)
+        .limit(1);
+      const cmId = cm?.[0]?.id;
+      if (!cmId) return null;
+      const { data: entry } = await supabase
+        .from("metric_entries")
+        .select("value")
+        .eq("client_metric_id", cmId)
         .order("recorded_at", { ascending: false })
         .limit(1)
         .maybeSingle();
-      return (data as any)?.value ?? null;
+      return (entry as any)?.value ?? null;
     },
   });
 
