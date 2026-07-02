@@ -1659,6 +1659,20 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
               </div>
             );
           })()}
+
+          {/* Primary CTA — Start Fast (respects Schedule Alignment gate).
+              Hidden only when a coach has explicitly locked the plan and the
+              client hasn't been given the keys yet. */}
+          {(() => {
+            const isLocked = !!featureSettings?.lock_client_plan_choice;
+            const isCoachWait = isCoachAssigned && isLocked;
+            if (isCoachWait) return null;
+            return (
+              <div className="pt-1">
+                <StartFastGate onStart={() => startFastMutation.mutate()} />
+              </div>
+            );
+          })()}
         </CardContent>
       </Card>
 
