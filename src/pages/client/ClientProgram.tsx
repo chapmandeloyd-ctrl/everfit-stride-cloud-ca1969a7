@@ -21,6 +21,7 @@ import {
   InteractiveKetoTypeCard,
   type KetoTypeForCard,
 } from "@/components/keto/InteractiveKetoTypeCard";
+import { ClientWeekScheduleCard } from "@/components/client/ClientWeekScheduleCard";
 
 
 /* ──────────────────────────────────────────────────────────────────────
@@ -362,6 +363,8 @@ export default function ClientProgram() {
 
         {/* Program recap + Start CTA */}
         {hasProgram && protocolDemo && ketoType && (
+          <>
+            <ClientWeekScheduleCard />
           <section className="rounded-2xl border border-primary/30 bg-gradient-to-b from-primary/10 to-transparent p-5 space-y-4">
             <div>
               <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary mb-2">
@@ -405,6 +408,7 @@ export default function ClientProgram() {
               )}
             </Button>
           </section>
+          </>
         )}
 
         {/* Browse CTAs */}
