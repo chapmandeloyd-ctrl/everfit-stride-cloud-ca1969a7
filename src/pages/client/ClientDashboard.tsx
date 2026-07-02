@@ -2969,6 +2969,7 @@ export default function ClientDashboard() {
             case "fasting":
               return settings.fasting_enabled && !engineConfig.fastingDisabled && !isViewingOtherDay ? (
                 <div key="fasting" className="space-y-3">
+                  <ClientWeekStrip />
                   <FastingProtocolCard clientId={clientId} navigate={navigate} openEndFastFlowSignal={openEndFastFlowSignal} />
                   {clientId && <AssignedPlanCard clientId={clientId} />}
                   <TodaysWindowCard />
