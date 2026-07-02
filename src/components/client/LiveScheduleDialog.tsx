@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight, X, Utensils, Clock, Flame, Info, CalendarDay
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { ComputedPlan, PlanDay } from "@/lib/protocolPlan";
 import { StartFastGate } from "@/components/client/StartFastGate";
+import { useStartFast } from "@/hooks/useStartFast";
 
 type DayState = "eat" | "fast" | "refeed" | "lowcal";
 const STATE_COLOR: Record<DayState, string> = {
@@ -72,6 +73,8 @@ export function LiveScheduleDialog({
   open, onOpenChange, plan, todayIndex, accent, protocolName, ketoName, onStartFast,
 }: Props) {
   const isMobile = useIsMobile();
+  const startFast = useStartFast();
+  const handleStart = onStartFast ?? (() => startFast.mutate());
   const today = useMemo(() => new Date(), []);
   const [cursor, setCursor] = useState<Date>(() => new Date(today.getFullYear(), today.getMonth(), 1));
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -201,7 +204,7 @@ export function LiveScheduleDialog({
           today={today}
           accent={accent}
           onClose={() => setSelectedDate(null)}
-          onStartFast={onStartFast}
+          onStartFast={handleStart}
         />
       )}
     </div>
