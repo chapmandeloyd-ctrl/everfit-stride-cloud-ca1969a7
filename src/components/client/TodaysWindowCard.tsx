@@ -1,14 +1,18 @@
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Utensils, Flame, Info, ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Clock, Utensils, Flame, Info, ArrowRight, Calendar, ChevronRight } from "lucide-react";
 import { useClientComputedPlan } from "@/hooks/useClientComputedPlan";
+import { ProtocolPreviewDialog } from "@/components/protocol/ProtocolPreviewDialog";
 
 /**
  * Compact "Today's Window" card rendered directly below the lion FastingProtocolCard.
  * Read-only, presentation-only. Never modifies the lion card.
  */
 export function TodaysWindowCard() {
-  const { plan, dayIndex, ketoAccent } = useClientComputedPlan();
+  const { plan, dayIndex, ketoAccent, protocolName, ketoName } = useClientComputedPlan();
+  const [openFull, setOpenFull] = useState(false);
   if (!plan) return null;
   const today = plan.days[dayIndex];
   if (!today) return null;
@@ -110,7 +114,30 @@ export function TodaysWindowCard() {
             </p>
           </div>
         )}
+
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full border-primary/30 hover:border-primary/60 hover:bg-primary/5"
+          onClick={() => setOpenFull(true)}
+        >
+          <Calendar className="h-3.5 w-3.5 mr-2 text-primary" />
+          View Full Schedule
+          <ChevronRight className="h-3.5 w-3.5 ml-auto" />
+        </Button>
       </CardContent>
+
+      <ProtocolPreviewDialog
+        open={openFull}
+        onOpenChange={setOpenFull}
+        plan={plan}
+        title="Your Full Schedule"
+        subtitle={
+          protocolName && ketoName
+            ? `${protocolName} · ${ketoName}`
+            : protocolName ?? undefined
+        }
+      />
     </Card>
   );
 }
