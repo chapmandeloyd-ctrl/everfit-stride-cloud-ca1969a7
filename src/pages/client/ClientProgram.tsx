@@ -21,6 +21,7 @@ import {
   InteractiveKetoTypeCard,
   type KetoTypeForCard,
 } from "@/components/keto/InteractiveKetoTypeCard";
+import { ClientWeekScheduleCard } from "@/components/client/ClientWeekScheduleCard";
 
 
 /* ──────────────────────────────────────────────────────────────────────
