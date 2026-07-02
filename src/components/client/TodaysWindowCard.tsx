@@ -66,8 +66,7 @@ export function TodaysWindowCard() {
   };
 
   const states = plan.days.map(dayState);
-  const presentStates: DayState[] = (["eat", "fast", "refeed", "lowcal"] as DayState[])
-    .filter((s) => states.includes(s));
+  const ALL_STATES: DayState[] = ["eat", "lowcal", "fast", "refeed"];
 
   return (
     <Card className="overflow-hidden border-border/60 bg-card">
@@ -161,20 +160,18 @@ export function TodaysWindowCard() {
           })}
         </div>
 
-        {/* Legend — only dots present this cycle */}
-        {presentStates.length > 0 && (
-          <div className="flex items-center flex-wrap gap-x-3 gap-y-1 pt-0.5">
-            {presentStates.map((s) => (
-              <div key={s} className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                <span
-                  className="inline-block h-1.5 w-1.5 rounded-full"
-                  style={{ background: STATE_COLOR[s] }}
-                />
-                {STATE_LABEL[s]}
-              </div>
-            ))}
-          </div>
-        )}
+        {/* Legend key — always show all 4 states so clients learn the colors */}
+        <div className="flex items-center flex-wrap gap-x-3 gap-y-1 pt-0.5">
+          {ALL_STATES.map((s) => (
+            <div key={s} className="flex items-center gap-1 text-[10px] text-muted-foreground">
+              <span
+                className="inline-block h-2 w-2 rounded-full"
+                style={{ background: STATE_COLOR[s], boxShadow: `0 0 4px ${STATE_COLOR[s]}66` }}
+              />
+              {STATE_LABEL[s]}
+            </div>
+          ))}
+        </div>
 
         {isFastDay ? (
           <div className="rounded-lg border border-border/60 p-3 bg-muted/30">
