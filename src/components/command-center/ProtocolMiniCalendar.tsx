@@ -244,7 +244,17 @@ export function ProtocolMiniCalendar({ clientId }: { clientId: string }) {
             review:
               "bg-amber-500/15 text-amber-600 dark:text-amber-400 font-semibold rounded-md",
           }}
-          className="pointer-events-auto p-0"
+          className="pointer-events-auto p-0 w-full"
+          classNames={{
+            months: "flex flex-col w-full",
+            month: "space-y-4 w-full",
+            table: "w-full border-collapse",
+            head_row: "flex w-full",
+            head_cell: "text-muted-foreground rounded-md font-normal text-[0.8rem] flex-1 text-center",
+            row: "flex w-full mt-2",
+            cell: "flex-1 aspect-square text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+            day: "h-full w-full p-0 font-normal aria-selected:opacity-100 inline-flex items-center justify-center rounded-md hover:bg-accent hover:text-accent-foreground",
+          }}
           onDayClick={(day) => {
             const hit = events.find(
               (ev) =>
