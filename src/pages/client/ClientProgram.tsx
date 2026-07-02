@@ -317,34 +317,7 @@ export default function ClientProgram() {
                 What The Fast Is Doing
               </p>
             </div>
-            <div className="rounded-xl border border-border/60 bg-card p-4 space-y-4 overflow-hidden relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent pointer-events-none" />
-              <div className="relative space-y-3">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Assigned protocol</p>
-                    <h3 className="text-xl font-black mt-1">{protocolDemo.title}</h3>
-                  </div>
-                  <div className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-black text-primary shrink-0">
-                    {protocolDemo.stats[0]?.value ?? "Fast"}
-                  </div>
-                </div>
-                <p className="text-sm text-foreground/80 leading-relaxed">
-                  {protocolDemo.content.overview[0]}
-                </p>
-                <div className="space-y-2">
-                  {protocolDemo.content.phases.slice(0, 3).map((phase, index) => (
-                    <TimelineStep
-                      key={`${phase.range}-${phase.title}`}
-                      index={index + 1}
-                      title={phase.title}
-                      subtitle={phase.range}
-                      detail={phase.detail}
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
+            <InteractiveProtocolCard protocol={protocolDemo} />
           </section>
         )}
 
@@ -365,29 +338,12 @@ export default function ClientProgram() {
                 Why This Keto Type Fits
               </p>
             </div>
-            <div className="rounded-xl border border-border/60 bg-card p-4 space-y-4">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">{ketoType.abbreviation}</p>
-                  <h3 className="text-xl font-black mt-1">{ketoType.name}</h3>
-                  {ketoType.subtitle && <p className="text-xs text-muted-foreground mt-1">{ketoType.subtitle}</p>}
-                </div>
-                <div
-                  className="h-11 w-11 rounded-full border flex items-center justify-center font-black text-sm shrink-0"
-                  style={{ borderColor: ketoType.color || undefined, color: ketoType.color || undefined, background: `${ketoType.color || "hsl(var(--primary))"}18` }}
-                >
-                  {ketoType.abbreviation}
-                </div>
-              </div>
-              <p className="text-sm text-foreground/80 leading-relaxed">
-                {ketoType.how_it_works || ketoType.description || "Your keto type controls how calories and macros are distributed so the fasting window has the right fuel support."}
-              </p>
-              <div className="grid grid-cols-3 gap-2">
-                <MacroPill label="Fat" value={`${ketoType.fat_pct}%`} />
-                <MacroPill label="Protein" value={`${ketoType.protein_pct}%`} />
-                <MacroPill label="Carbs" value={`${ketoType.carbs_pct}%`} />
-              </div>
-            </div>
+            <InteractiveKetoTypeCard
+              ketoType={ketoTypeForCard(ketoType)}
+              themeColor={ketoType.color || undefined}
+              isCurrent
+              hideExportPdf
+            />
           </section>
         )}
 
