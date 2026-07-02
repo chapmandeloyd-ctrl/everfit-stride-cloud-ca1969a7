@@ -1,159 +1,31 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Utensils, Flame, Info } from "lucide-react";
-import { computePlan } from "@/lib/protocolPlan";
-import { useMemo } from "react";
+import { Clock, Utensils, Flame, Info, ArrowRight } from "lucide-react";
+import { useClientComputedPlan } from "@/hooks/useClientComputedPlan";
 
 /**
  * Compact "Today's Window" card rendered directly below the lion FastingProtocolCard.
  * Read-only, presentation-only. Never modifies the lion card.
  */
 export function TodaysWindowCard() {
-  const clientId = useEffectiveClientId();
-
-  const { data: settings } = useQuery({
-    queryKey: ["tw-settings", clientId],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("client_feature_settings")
-        .select("selected_protocol_id, selected_quick_plan_id, protocol_start_date, protocol_calc_inputs")
-        .eq("client_id", clientId!)
-        .maybeSingle();
-      return data;
-    },
-    enabled: !!clientId,
-  });
-
-  const protocolId = settings?.selected_protocol_id;
-  const quickId = settings?.selected_quick_plan_id;
-  const activeId = protocolId || quickId;
-
-  const { data: protocol } = useQuery({
-    queryKey: ["tw-protocol", activeId, !!protocolId],
-    queryFn: async () => {
-      if (protocolId) {
-        const { data } = await supabase
-          .from("fasting_protocols")
-          .select("name, fast_target_hours")
-          .eq("id", protocolId)
-          .maybeSingle();
-        return data;
-      }
-      const { data } = await supabase
-        .from("quick_fasting_plans")
-        .select("name, fast_hours")
-        .eq("id", quickId!)
-        .maybeSingle();
-      return data ? { name: data.name, fast_target_hours: data.fast_hours } : null;
-    },
-    enabled: !!activeId,
-  });
-
-  const { data: ketoAssignment } = useQuery({
-    queryKey: ["tw-keto", clientId],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("client_keto_assignments")
-        .select("keto_type_id")
-        .eq("client_id", clientId!)
-        .eq("is_active", true)
-        .maybeSingle();
-      return data;
-    },
-    enabled: !!clientId,
-  });
-
-  const { data: ketoType } = useQuery({
-    queryKey: ["tw-keto-type", ketoAssignment?.keto_type_id],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("keto_types")
-        .select("abbreviation, name, protein_pct, carbs_pct, fat_pct, color")
-        .eq("id", ketoAssignment!.keto_type_id!)
-        .maybeSingle();
-      return data;
-    },
-    enabled: !!ketoAssignment?.keto_type_id,
-  });
-
-  const { data: weightLbs } = useQuery({
-    queryKey: ["tw-weight", clientId],
-    queryFn: async () => {
-      if (!clientId) return null;
-      const { data: defs } = await supabase
-        .from("metric_definitions")
-        .select("id")
-        .eq("name", "Weight")
-        .limit(1);
-      const defId = defs?.[0]?.id;
-      if (!defId) return null;
-      const { data: cm } = await supabase
-        .from("client_metrics")
-        .select("id")
-        .eq("client_id", clientId)
-        .eq("metric_definition_id", defId)
-        .limit(1);
-      const cmId = cm?.[0]?.id;
-      if (!cmId) return null;
-      const { data: entry } = await supabase
-        .from("metric_entries")
-        .select("value")
-        .eq("client_metric_id", cmId)
-        .order("recorded_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      return (entry as any)?.value ?? null;
-    },
-    enabled: !!clientId,
-  });
-
-  const plan = useMemo(() => {
-    if (!ketoType || !protocol) return null;
-    const inputs: any = (settings as any)?.protocol_calc_inputs || {};
-    const ACTIVITY_MULT: Record<string, number> = {
-      sedentary: 13, light: 14.5, moderate: 16, active: 17.5, very_active: 19,
-    };
-    const GOAL_ADJUST: Record<string, number> = { cut: -0.20, maintain: 0, bulk: 0.10 };
-    const w = Number(inputs.weight) || Number(weightLbs) || 180;
-    const activityMult = ACTIVITY_MULT[inputs.activity] ?? 16;
-    const goalAdjust = inputs.goal === "custom"
-      ? -((Number(inputs.customDeficit) || 20) / 100)
-      : (GOAL_ADJUST[inputs.goal] ?? 0);
-    const planType = inputs.planType === "extended" ? "extended" : "recurring";
-    const planLengthDays = Number(inputs.planLengthDays) || 7;
-    const extendedTotalHours = inputs.extendedPreset === "custom"
-      ? (Number(inputs.customFastHours) || 48)
-      : (parseInt(inputs.extendedPreset, 10) || 48);
-    return computePlan({
-      weightLbs: w,
-      ketoType: ketoType as any,
-      protocol: { name: protocol.name, fast_target_hours: protocol.fast_target_hours },
-      activityMult,
-      goalAdjust,
-      planType,
-      planLengthDays,
-      extendedTotalHours,
-    });
-  }, [ketoType, weightLbs, protocol, settings]);
-
-  // Which day of the plan are we on?
-  const dayIndex = useMemo(() => {
-    if (!plan) return 0;
-    const start = settings?.protocol_start_date ? new Date(settings.protocol_start_date) : new Date();
-    const diffDays = Math.floor((Date.now() - start.getTime()) / 86_400_000);
-    return ((diffDays % plan.days.length) + plan.days.length) % plan.days.length;
-  }, [plan, settings?.protocol_start_date]);
-
+  const { plan, dayIndex, ketoAccent } = useClientComputedPlan();
   if (!plan) return null;
   const today = plan.days[dayIndex];
   if (!today) return null;
-
-  const accent = (ketoType as any)?.color || "hsl(var(--primary))";
+  const tomorrow = plan.days.length > 1 ? plan.days[(dayIndex + 1) % plan.days.length] : null;
+  const accent = ketoAccent || "hsl(var(--primary))";
   const isFastDay = today.adFast;
   const isRefeed = today.isRefeed;
+
+  const tomorrowSummary = tomorrow
+    ? tomorrow.adFast
+      ? `${tomorrow.fastWindow}`
+      : tomorrow.isRefeed
+      ? `Refeed · ${tomorrow.cal} kcal, ${tomorrow.carbG}g clean carbs`
+      : tomorrow.fastWindow.toLowerCase().startsWith("low-cal")
+      ? `Low-cal day · ~${tomorrow.cal} kcal`
+      : `Eat window ${tomorrow.eatStart} – ${tomorrow.eatEnd}`
+    : null;
 
   return (
     <Card className="overflow-hidden border-border/60 bg-card">
@@ -223,6 +95,18 @@ export function TodaysWindowCard() {
             <Info className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />
             <p className="text-[11px] text-foreground/80 leading-snug">
               Refeed day — prioritize clean carbs & lean protein. Avoid sugar and seed oils.
+            </p>
+          </div>
+        )}
+
+        {tomorrow && tomorrowSummary && (
+          <div className="flex items-center gap-2 rounded-lg border border-border/50 bg-muted/20 px-2.5 py-2">
+            <ArrowRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+            <p className="text-[11px] text-foreground/80 leading-snug min-w-0 truncate">
+              <span className="text-muted-foreground uppercase tracking-wider text-[9px] font-semibold mr-1.5">
+                Tomorrow
+              </span>
+              {tomorrowSummary}
             </p>
           </div>
         )}
