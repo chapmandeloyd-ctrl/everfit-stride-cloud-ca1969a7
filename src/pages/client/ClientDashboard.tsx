@@ -59,6 +59,7 @@ import { SwipeToDeleteWorkoutRow } from "@/components/workout/SwipeToDeleteWorko
 import { SwipeToDeleteTaskRow } from "@/components/tasks/SwipeToDeleteTaskRow";
 import { SpeedDialFAB } from "@/components/SpeedDialFAB";
 import { FastingStatusCard } from "@/components/client/FastingStatusCard";
+import { TodaysWindowCard } from "@/components/client/TodaysWindowCard";
 import { BuildWorkoutSheet } from "@/components/workout/BuildWorkoutSheet";
 
 import { ProgramsSelector } from "@/components/ProgramsSelector";
@@ -2968,6 +2969,7 @@ export default function ClientDashboard() {
               return settings.fasting_enabled && !engineConfig.fastingDisabled && !isViewingOtherDay ? (
                 <div key="fasting" className="space-y-3">
                   <FastingProtocolCard clientId={clientId} navigate={navigate} openEndFastFlowSignal={openEndFastFlowSignal} />
+                  <TodaysWindowCard />
                   {dashRecentFastLog && (
                     <FastingStatusCard
                       actualHours={dashRecentFastLog.actual_hours}
