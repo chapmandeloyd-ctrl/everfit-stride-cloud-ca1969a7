@@ -1,5 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import type { ComputedPlan } from "@/lib/protocolPlan";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Info } from "lucide-react";
 
 interface Props {
   plan: ComputedPlan;
@@ -99,18 +101,47 @@ export function ScheduleTotals({ plan }: { plan: ComputedPlan }) {
         </>
       ) : (
         <>
-          <Totals label="Daily Fast" value={fastWin} />
-          <Totals label="Eating Window" value={eatWin} />
+          <Totals
+            label="Daily Fast"
+            value={fastWin}
+            info="The overnight fasting window you repeat every day on this protocol (e.g. 16h for 16:8). Switch to a multi-day protocol like 5:2, ADF, or Eat-Stop-Eat and this tile is replaced by 'Fasting Days' since fasts vary day-to-day."
+          />
+          <Totals
+            label="Eating Window"
+            value={eatWin}
+            info="The daily window when you eat (break-fast → last meal). Only shown for recurring daily protocols. Multi-day protocols hide this because eating hours change on fast vs. eat vs. refeed days — see the day-by-day rows above."
+          />
         </>
       )}
     </div>
   );
 }
 
-function Totals({ label, value }: { label: string; value: string }) {
+function Totals({ label, value, info }: { label: string; value: string; info?: string }) {
   return (
     <div className="rounded-lg border border-border p-3">
-      <div className="text-[11px] uppercase tracking-wider text-muted-foreground">{label}</div>
+      <div className="text-[11px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+        {label}
+        {info && (
+          <TooltipProvider delayDuration={100}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  aria-label={`About ${label}`}
+                  className="inline-flex items-center justify-center text-muted-foreground/70 hover:text-foreground focus:outline-none focus:text-foreground"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Info className="h-3 w-3" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-[240px] text-xs leading-snug">
+                {info}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+      </div>
       <div className="font-semibold">{value}</div>
     </div>
   );
