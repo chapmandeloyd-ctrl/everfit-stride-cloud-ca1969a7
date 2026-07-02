@@ -62,6 +62,7 @@ import { FastingStatusCard } from "@/components/client/FastingStatusCard";
 import { TodaysWindowCard } from "@/components/client/TodaysWindowCard";
 import { ClientWeekStrip } from "@/components/client/ClientWeekStrip";
 import { StartFastGate } from "@/components/client/StartFastGate";
+import { openLiveSchedule } from "@/lib/liveScheduleBus";
 import { BuildWorkoutSheet } from "@/components/workout/BuildWorkoutSheet";
 
 import { ProgramsSelector } from "@/components/ProgramsSelector";
@@ -1669,7 +1670,15 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
             if (isCoachWait) return null;
             return (
               <div className="pt-1">
-                <StartFastGate onStart={() => startFastMutation.mutate()} />
+                <button
+                  type="button"
+                  onClick={() => openLiveSchedule()}
+                  className="w-full flex items-center justify-center gap-2 rounded-lg border border-primary/40 bg-primary/5 py-3 text-xs uppercase tracking-widest font-bold text-primary hover:bg-primary/10 transition-colors"
+                >
+                  <CalendarDays className="h-3.5 w-3.5" />
+                  Open Live Schedule to Start
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </button>
               </div>
             );
           })()}
