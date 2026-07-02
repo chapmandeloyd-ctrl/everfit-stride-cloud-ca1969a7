@@ -2917,7 +2917,6 @@ export default function ClientDashboard() {
                 <div key="fasting" className="space-y-3">
                   <ClientWeekStrip />
                   <FastingProtocolCard clientId={clientId} navigate={navigate} openEndFastFlowSignal={openEndFastFlowSignal} />
-                  <TodaysWindowCard />
                   {dashRecentFastLog && (
                     <FastingStatusCard
                       actualHours={dashRecentFastLog.actual_hours}
