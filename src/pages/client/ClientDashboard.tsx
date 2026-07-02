@@ -1614,64 +1614,13 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
             );
           })()}
 
-          {/* Gold pills — View Protocol + View Keto Type. Always present.
-              If admin has an assignment, they deep-link to the assigned detail page
-              (with big-numbers gold lion layout). Otherwise they open the browse
-              library where every card is locked except the assigned one. */}
+          {/* Assignment status badge only — full program details live on the
+              Program page (Explore → Program). No redundant "View" pills here. */}
           {(() => {
             const isLocked = !!featureSettings?.lock_client_plan_choice;
-            // Driven by real assignment + lock state:
-            //  - coach assigned + locked  → 'coachWait'    (locked badge + locked buttons + queued message)
-            //  - coach assigned + unlocked → 'coachStartNow' (Coach Assigned badge, buttons unlocked)
-            //  - no coach (self)          → 'selfGuided'   (My Assigned badge, buttons unlocked)
             const isCoachWait = isCoachAssigned && isLocked;
             const isCoachStartNow = isCoachAssigned && !isLocked;
             const isSelfGuided = !isCoachAssigned;
-            // Always open the full library so the client sees every card
-            // (assigned card highlighted, others locked when admin enforces it).
-            const protocolHref = "/client/programs";
-            // Guard against preview placeholder ids (no real DB row) — route
-            // to the picker so the detail page doesn't get stuck loading.
-            const ketoIdIsReal =
-              !!activeKetoType?.id && !String(activeKetoType.id).startsWith("preview-");
-            const ketoHref = ketoIdIsReal
-              ? `/client/keto-types/${activeKetoType!.id}`
-              : "/client/keto-types";
-
-            // When BOTH halves are set, tapping either pill should open the
-            // combined "Full Program" page (protocol + keto, working as one)
-            // instead of routing to the individual detail/library pages.
-            // Each pill always opens its own detail/library page, even when the
-            // full program is assigned. Only the dedicated "View Program" CTA
-            // routes to /client/complete-plan.
-            const protocolOnClick = () => {
-              if (isCoachWait) return setShowCoachWaitLock(true);
-              navigate(protocolHref);
-            };
-            const ketoOnClick = () => {
-              if (isCoachWait) return setShowCoachWaitLock(true);
-              navigate(ketoHref);
-            };
-
-            const PillButton = ({
-              label,
-              onClick,
-              locked,
-            }: {
-              label: string;
-              onClick: () => void;
-              locked?: boolean;
-            }) => (
-              <button
-                type="button"
-                onClick={onClick}
-                className="flex-1 h-8 rounded-full px-3 inline-flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wide bg-gradient-to-b from-primary via-primary to-primary/80 text-primary-foreground shadow-[0_1px_8px_-1px_hsl(var(--primary)/0.55)] ring-1 ring-primary/70 hover:brightness-110 active:scale-[0.98] transition"
-              >
-                {(locked || isLocked) && <Shield className="h-3 w-3" />}
-                {label}
-              </button>
-            );
-
             return (
               <div className="space-y-2">
                 {isSelfGuided ? (
@@ -1702,18 +1651,6 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                     Locked by your coach
                   </div>
                 ) : null}
-                <div className="flex items-center justify-between gap-2">
-                  <PillButton
-                    label="View Protocol"
-                    locked={isCoachWait}
-                    onClick={protocolOnClick}
-                  />
-                  <PillButton
-                    label="View Keto Type"
-                    locked={isCoachWait}
-                    onClick={ketoOnClick}
-                  />
-                </div>
                 <PlanLockedDialog
                   open={showCoachWaitLock}
                   onOpenChange={setShowCoachWaitLock}
