@@ -232,12 +232,12 @@ export function TodaysWindowCard({ onStartFast }: { onStartFast?: () => void } =
 
         <button
           type="button"
-          onClick={() => navigate("/client/program")}
-          className="w-full flex items-center justify-center gap-1.5 py-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors"
+          onClick={() => navigate("/client/program?v=why")}
+          className="w-full flex items-center justify-center gap-2 rounded-lg border border-primary/25 bg-primary/5 py-2 text-[11px] uppercase tracking-widest font-black text-primary hover:bg-primary/10 transition-colors"
         >
-          <BookOpen className="h-3 w-3" />
-          Why your plan works
-          <ChevronRight className="h-3 w-3" />
+          <BookOpen className="h-3.5 w-3.5" />
+          Why Your Plan Works
+          <ChevronRight className="h-3.5 w-3.5" />
         </button>
 
         <LiveScheduleDialog
