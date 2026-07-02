@@ -12,6 +12,10 @@ import { getDifficultyLabel } from "@/lib/fastingCategoryConfig";
 import { usePlanSynergy } from "@/hooks/usePlanSynergy";
 import { useEffect, useMemo } from "react";
 import fastingCardBgGoldImg from "@/assets/fasting-timer-bg-gold.png";
+import { useState } from "react";
+import { computePlan } from "@/lib/protocolPlan";
+import { ProtocolPreviewDialog } from "@/components/protocol/ProtocolPreviewDialog";
+import { CalendarDays } from "lucide-react";
 
 interface StructuredSynergy {
   keto_synergy: string;
@@ -106,6 +110,34 @@ export default function ClientCompletePlan() {
     },
     enabled: !!ketoTypeId,
   });
+
+  const { data: weightLbs } = useQuery({
+    queryKey: ["complete-plan-weight", clientId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("client_metric_entries" as any)
+        .select("value, client_metrics!inner(metric_definitions!inner(name))")
+        .eq("client_id", clientId!)
+        .eq("client_metrics.metric_definitions.name", "Weight")
+        .order("recorded_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return (data as any)?.value ?? null;
+    },
+    enabled: !!clientId,
+  });
+
+  const [scheduleOpen, setScheduleOpen] = useState(false);
+  const previewPlan = useMemo(() => {
+    if (!ketoType || !weightLbs || !protocol) return null;
+    return computePlan({
+      weightLbs: Number(weightLbs),
+      ketoType: ketoType as any,
+      protocol: { name: protocol.name, fast_target_hours: protocol.fast_target_hours },
+      planType: "recurring",
+      planLengthDays: 7,
+    });
+  }, [ketoType, weightLbs, protocol]);
 
   const protocolType = protocolId ? "program" : quickPlanId ? "quick_plan" : null;
   const { data: synergy } = usePlanSynergy(
@@ -372,6 +404,15 @@ export default function ClientCompletePlan() {
           </Button>
           <Button
             variant="outline"
+            className="w-full h-11 border-amber-300/30 bg-amber-300/5 text-amber-200 hover:bg-amber-300/10"
+            onClick={() => setScheduleOpen(true)}
+            disabled={!previewPlan}
+          >
+            <CalendarDays className="h-4 w-4 mr-2" />
+            Preview 7-Day Schedule
+          </Button>
+          <Button
+            variant="outline"
             className="w-full h-11 border-white/15 bg-white/5 text-white hover:bg-white/10"
             onClick={() => navigate("/client/dashboard")}
           >
@@ -380,6 +421,14 @@ export default function ClientCompletePlan() {
           </Button>
         </div>
       </div>
+
+      <ProtocolPreviewDialog
+        open={scheduleOpen}
+        onOpenChange={setScheduleOpen}
+        plan={previewPlan}
+        title="Your 7-Day Schedule"
+        subtitle={`${ketoType?.abbreviation ?? ""} · ${protocol?.name ?? ""}`}
+      />
     </ClientLayout>
   );
 }

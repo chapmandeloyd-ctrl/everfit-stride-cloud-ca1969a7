@@ -10,6 +10,9 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Calculator, Save, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
+import { Eye } from "lucide-react";
+import { computePlan } from "@/lib/protocolPlan";
+import { ProtocolPreviewDialog } from "@/components/protocol/ProtocolPreviewDialog";
 
 type Goal = "cut" | "maintain" | "bulk" | "custom";
 type Activity = "sedentary" | "light" | "moderate" | "active" | "very_active";
@@ -183,6 +186,7 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
   const [planLengthDays, setPlanLengthDays] = useState<number>(7);
   const [extendedPreset, setExtendedPreset] = useState<ExtendedPreset>("48");
   const [customFastHours, setCustomFastHours] = useState<number>(48);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem(storageKey);
@@ -324,6 +328,25 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
     toast.info("Reset to defaults");
   };
 
+  const previewPlan = useMemo(() => {
+    const w = parseFloat(weight);
+    if (!w || !kt) return null;
+    const selectedProtocol = allProtocols?.find(
+      (p) => p.id === featureSettings?.selected_protocol_id
+    );
+    const adjust = goal === "custom" ? -(customDeficit / 100) : GOAL_ADJUST[goal];
+    return computePlan({
+      weightLbs: w,
+      ketoType: kt as any,
+      protocol: selectedProtocol ? { name: selectedProtocol.name, fast_target_hours: selectedProtocol.fast_target_hours } : null,
+      activityMult: ACTIVITY_MULT[activity],
+      goalAdjust: adjust,
+      planType,
+      planLengthDays,
+      extendedTotalHours: extendedPreset === "custom" ? customFastHours : parseInt(extendedPreset, 10),
+    });
+  }, [weight, kt, allProtocols, featureSettings?.selected_protocol_id, goal, customDeficit, activity, planType, planLengthDays, extendedPreset, customFastHours]);
+
   if (!assignment) {
     return (
       <Card>
@@ -362,6 +385,9 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={handleReset}>
                 <RefreshCw className="h-4 w-4 mr-1" /> Reset
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setPreviewOpen(true)} disabled={!previewPlan}>
+                <Eye className="h-4 w-4 mr-1" /> Preview Full Schedule
               </Button>
               <Button size="sm" onClick={handleSave} disabled={!plan}>
                 <Save className="h-4 w-4 mr-1" /> Save
@@ -595,6 +621,16 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
           </CardContent>
         </Card>
       )}
+
+      <ProtocolPreviewDialog
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        plan={previewPlan}
+        title={previewPlan?.extended ? `Extended Fast · ${previewPlan.totalHours}h` : `Weekly Plan · ${planLengthDays} day${planLengthDays > 1 ? "s" : ""}`}
+        subtitle={`${kt?.abbreviation ?? ""} · ${previewPlan?.protocolName ?? "No protocol"}`}
+        onConfirm={handleSave}
+        confirmLabel="Save Protocol"
+      />
     </div>
   );
 }
