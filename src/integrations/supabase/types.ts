@@ -1317,6 +1317,7 @@ export type Database = {
           dashboard_hero_message: string | null
           dashboard_hero_text_color: string | null
           dashboard_hero_title: string | null
+          day_start_hour: number
           eating_window_card_image_url: string | null
           eating_window_card_message: string | null
           eating_window_card_text_color: string | null
@@ -1386,6 +1387,7 @@ export type Database = {
           require_coach_approval_plans: boolean
           restore_enabled: boolean
           restore_profile_type: string
+          schedule_timezone: string | null
           selected_protocol_id: string | null
           selected_quick_plan_id: string | null
           smart_pace_enabled: boolean
@@ -1425,6 +1427,7 @@ export type Database = {
           dashboard_hero_message?: string | null
           dashboard_hero_text_color?: string | null
           dashboard_hero_title?: string | null
+          day_start_hour?: number
           eating_window_card_image_url?: string | null
           eating_window_card_message?: string | null
           eating_window_card_text_color?: string | null
@@ -1494,6 +1497,7 @@ export type Database = {
           require_coach_approval_plans?: boolean
           restore_enabled?: boolean
           restore_profile_type?: string
+          schedule_timezone?: string | null
           selected_protocol_id?: string | null
           selected_quick_plan_id?: string | null
           smart_pace_enabled?: boolean
@@ -1533,6 +1537,7 @@ export type Database = {
           dashboard_hero_message?: string | null
           dashboard_hero_text_color?: string | null
           dashboard_hero_title?: string | null
+          day_start_hour?: number
           eating_window_card_image_url?: string | null
           eating_window_card_message?: string | null
           eating_window_card_text_color?: string | null
@@ -1602,6 +1607,7 @@ export type Database = {
           require_coach_approval_plans?: boolean
           restore_enabled?: boolean
           restore_profile_type?: string
+          schedule_timezone?: string | null
           selected_protocol_id?: string | null
           selected_quick_plan_id?: string | null
           smart_pace_enabled?: boolean
