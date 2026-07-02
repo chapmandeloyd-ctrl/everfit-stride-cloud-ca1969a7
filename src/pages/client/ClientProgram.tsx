@@ -1,7 +1,7 @@
-import { useCallback, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Sparkles, Flame, Beaker, TrendingUp, Repeat } from "lucide-react";
+import { ArrowLeft, Sparkles, Flame, Beaker, TrendingUp, Repeat, Timer, Utensils, ShieldCheck, Target, Droplets, Battery, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { ClientLayout } from "@/components/ClientLayout";
@@ -12,13 +12,8 @@ import {
   getDurationLabel,
 } from "@/lib/fastingCategoryConfig";
 import { LEVEL_TIERS, getTierForLevel } from "@/lib/quickPlanTierConfig";
-import { InteractiveProtocolCard } from "@/components/plan/InteractiveProtocolCard";
 import type { DemoProtocol } from "@/components/plan/InteractiveProtocolCardDemo";
 import { getProtocolCardContent } from "@/lib/protocolCardContent";
-import {
-  InteractiveKetoTypeCard,
-  type KetoTypeForCard,
-} from "@/components/keto/InteractiveKetoTypeCard";
 import { useClientComputedPlan } from "@/hooks/useClientComputedPlan";
 
 
@@ -62,23 +57,6 @@ interface KetoTypeRow {
   how_it_works: string | null;
   built_for: string[] | null;
   color: string;
-}
-
-function ketoToCard(kt: KetoTypeRow): KetoTypeForCard {
-  return {
-    abbreviation: kt.abbreviation,
-    name: kt.name,
-    subtitle: kt.subtitle,
-    description: kt.description,
-    difficulty: kt.difficulty,
-    fat_pct: kt.fat_pct,
-    protein_pct: kt.protein_pct,
-    carbs_pct: kt.carbs_pct,
-    carb_limit_grams: kt.carb_limit_grams,
-    how_it_works: kt.how_it_works,
-    built_for: kt.built_for,
-    color: kt.color,
-  };
 }
 
 export default function ClientProgram() {
@@ -225,19 +203,7 @@ export default function ClientProgram() {
     return null;
   }, [protocol, quickPlan]);
 
-  /* ── 4. Uniform card heights ── */
-  const [heights, setHeights] = useState<Record<string, number>>({});
-  const tallest = useMemo(() => {
-    const vals = Object.values(heights);
-    return vals.length ? Math.max(...vals) : 0;
-  }, [heights]);
-  const makeOnMeasure = useCallback(
-    (key: string) => (h: number) =>
-      setHeights((prev) => (prev[key] === h ? prev : { ...prev, [key]: h })),
-    [],
-  );
-
-  /* ── 5. Render ── */
+  /* ── 4. Render ── */
   const hasProgram = !!protocolDemo && !!ketoType;
 
   return (
@@ -252,27 +218,32 @@ export default function ClientProgram() {
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <h1 className="text-2xl font-black tracking-tight">Why It Works</h1>
+          <h1 className="text-2xl font-black tracking-tight">Why Your Plan Works</h1>
         </div>
 
-        {/* Hero — Why it works */}
-        {hasProgram && protocolDemo && ketoType && (
-          <div className="rounded-xl border border-primary/30 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="h-3.5 w-3.5 text-primary" />
-              <span className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary">
-                The Science of Your Plan
-              </span>
-            </div>
-            <p className="text-sm text-foreground/85 leading-relaxed">
-              <span className="font-semibold text-foreground">{protocolDemo.title}</span>{" "}
-              pairs with{" "}
-              <span className="font-semibold text-foreground">{ketoType.name}</span> to
-              keep glycogen low through the fast and refill cleanly with a fat-led,
-              protein-anchored eating window — that's your daily metabolic shape.
+        <div className="rounded-xl border border-primary/30 bg-gradient-to-br from-primary/15 via-card to-card p-4 space-y-4">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-primary" />
+            <span className="text-[10px] uppercase tracking-[0.3em] font-black text-primary">
+              Coaching Breakdown
+            </span>
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-xl font-black leading-tight">
+              This is the “why” behind today’s schedule.
+            </h2>
+            <p className="text-sm text-foreground/75 leading-relaxed">
+              The lion timer tells you what to do. The live schedule tells you when to do it.
+              This page explains why the fasting window, keto type, stage, and refeed logic work together.
             </p>
           </div>
-        )}
+          {hasProgram && protocolDemo && ketoType && (
+            <div className="grid grid-cols-2 gap-2">
+              <MiniSummary label="Protocol" value={protocolDemo.title} icon={<Timer className="h-3.5 w-3.5" />} />
+              <MiniSummary label="Keto Type" value={ketoType.abbreviation} icon={<Beaker className="h-3.5 w-3.5" />} />
+            </div>
+          )}
+        </div>
 
         {/* Your current stage */}
         <section className="space-y-3">
@@ -339,14 +310,37 @@ export default function ClientProgram() {
             <div className="flex items-center gap-2">
               <Flame className="h-3.5 w-3.5 text-primary" />
               <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary">
-                Your Fasting Protocol
+                What The Fast Is Doing
               </p>
             </div>
-            <InteractiveProtocolCard
-              protocol={protocolDemo}
-              onMeasureHeight={makeOnMeasure("protocol")}
-              forcedHeight={tallest > 0 ? tallest : undefined}
-            />
+            <div className="rounded-xl border border-border/60 bg-card p-4 space-y-4 overflow-hidden relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent pointer-events-none" />
+              <div className="relative space-y-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Assigned protocol</p>
+                    <h3 className="text-xl font-black mt-1">{protocolDemo.title}</h3>
+                  </div>
+                  <div className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-black text-primary shrink-0">
+                    {protocolDemo.stats[0]?.value ?? "Fast"}
+                  </div>
+                </div>
+                <p className="text-sm text-foreground/80 leading-relaxed">
+                  {protocolDemo.content.overview[0]}
+                </p>
+                <div className="space-y-2">
+                  {protocolDemo.content.phases.slice(0, 3).map((phase, index) => (
+                    <TimelineStep
+                      key={`${phase.range}-${phase.title}`}
+                      index={index + 1}
+                      title={phase.title}
+                      subtitle={phase.range}
+                      detail={phase.detail}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
           </section>
         )}
 
@@ -364,17 +358,65 @@ export default function ClientProgram() {
             <div className="flex items-center gap-2">
               <Beaker className="h-3.5 w-3.5 text-primary" />
               <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary">
-                Your Keto Type
+                Why This Keto Type Fits
               </p>
             </div>
-            <InteractiveKetoTypeCard
-              ketoType={ketoToCard(ketoType)}
-              themeColor={ketoType.color || undefined}
-              isCurrent
-              hideExportPdf
-              onMeasureHeight={makeOnMeasure("keto")}
-              forcedHeight={tallest > 0 ? tallest : undefined}
-            />
+            <div className="rounded-xl border border-border/60 bg-card p-4 space-y-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">{ketoType.abbreviation}</p>
+                  <h3 className="text-xl font-black mt-1">{ketoType.name}</h3>
+                  {ketoType.subtitle && <p className="text-xs text-muted-foreground mt-1">{ketoType.subtitle}</p>}
+                </div>
+                <div
+                  className="h-11 w-11 rounded-full border flex items-center justify-center font-black text-sm shrink-0"
+                  style={{ borderColor: ketoType.color || undefined, color: ketoType.color || undefined, background: `${ketoType.color || "hsl(var(--primary))"}18` }}
+                >
+                  {ketoType.abbreviation}
+                </div>
+              </div>
+              <p className="text-sm text-foreground/80 leading-relaxed">
+                {ketoType.how_it_works || ketoType.description || "Your keto type controls how calories and macros are distributed so the fasting window has the right fuel support."}
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                <MacroPill label="Fat" value={`${ketoType.fat_pct}%`} />
+                <MacroPill label="Protein" value={`${ketoType.protein_pct}%`} />
+                <MacroPill label="Carbs" value={`${ketoType.carbs_pct}%`} />
+              </div>
+            </div>
+          </section>
+        )}
+
+        {hasProgram && protocolDemo && ketoType && (
+          <section className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Target className="h-3.5 w-3.5 text-primary" />
+              <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary">
+                How To Execute It
+              </p>
+            </div>
+            <div className="grid gap-2">
+              <ExecutionCard
+                icon={<Flame className="h-4 w-4" />}
+                title="Fast window"
+                detail="Use the live schedule to start the correct day. The lion timer takes over once the fast begins."
+              />
+              <ExecutionCard
+                icon={<Utensils className="h-4 w-4" />}
+                title="Eating window"
+                detail="Break the fast on time, hit protein first, then keep carbs inside the keto type target."
+              />
+              <ExecutionCard
+                icon={<Droplets className="h-4 w-4" />}
+                title="Hydration + electrolytes"
+                detail="Longer or tighter fasting days need water, sodium, potassium, and magnesium consistency."
+              />
+              <ExecutionCard
+                icon={<Battery className="h-4 w-4" />}
+                title="Energy feedback"
+                detail="If energy crashes repeatedly, that is data for the coach to adjust protocol, calories, or refeed timing."
+              />
+            </div>
           </section>
         )}
 
@@ -398,6 +440,18 @@ export default function ClientProgram() {
               </p>
             </div>
           </section>
+        )}
+
+        {hasProgram && (
+          <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 flex items-start gap-3">
+            <ShieldCheck className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-black">Simple rule</p>
+              <p className="text-xs text-foreground/75 leading-relaxed mt-1">
+                Today page = status. Live Schedule = start the fast. Lion timer = track and finish it. This page = understand why.
+              </p>
+            </div>
+          </div>
         )}
 
         {/* Browse CTAs — only when the client is missing part of the program */}
@@ -425,6 +479,61 @@ export default function ClientProgram() {
         )}
       </div>
     </ClientLayout>
+  );
+}
+
+function MiniSummary({ label, value, icon }: { label: string; value: string; icon: React.ReactNode }) {
+  return (
+    <div className="rounded-lg border border-border/60 bg-card/60 p-3 min-w-0">
+      <div className="flex items-center gap-1.5 text-primary mb-1">
+        {icon}
+        <p className="text-[9px] uppercase tracking-widest font-black text-muted-foreground">{label}</p>
+      </div>
+      <p className="text-sm font-black truncate">{value}</p>
+    </div>
+  );
+}
+
+function TimelineStep({ index, title, subtitle, detail }: { index: number; title: string; subtitle: string; detail: string }) {
+  return (
+    <div className="flex gap-3 rounded-lg border border-border/50 bg-muted/20 p-3">
+      <div className="h-7 w-7 rounded-full bg-primary/10 border border-primary/30 text-primary flex items-center justify-center text-xs font-black shrink-0">
+        {index}
+      </div>
+      <div className="min-w-0">
+        <div className="flex items-baseline gap-2 flex-wrap">
+          <p className="text-sm font-black">{title}</p>
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">{subtitle}</p>
+        </div>
+        <p className="text-xs text-foreground/70 leading-relaxed mt-1">{detail}</p>
+      </div>
+    </div>
+  );
+}
+
+function MacroPill({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-border/60 bg-muted/20 p-2 text-center">
+      <p className="text-base font-black tabular-nums">{value}</p>
+      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">{label}</p>
+    </div>
+  );
+}
+
+function ExecutionCard({ icon, title, detail }: { icon: React.ReactNode; title: string; detail: string }) {
+  return (
+    <div className="rounded-xl border border-border/60 bg-card p-3 flex gap-3">
+      <div className="h-9 w-9 rounded-lg border border-primary/25 bg-primary/10 text-primary flex items-center justify-center shrink-0">
+        {icon}
+      </div>
+      <div className="min-w-0">
+        <div className="flex items-center gap-1.5">
+          <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
+          <p className="text-sm font-black">{title}</p>
+        </div>
+        <p className="text-xs text-foreground/70 leading-relaxed mt-1">{detail}</p>
+      </div>
+    </div>
   );
 }
 
