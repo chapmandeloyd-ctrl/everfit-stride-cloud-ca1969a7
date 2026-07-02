@@ -140,18 +140,18 @@ export function TodaysWindowCard() {
 
   return (
     <Card className="overflow-hidden border-border/60 bg-card">
-      <CardContent className="p-4 space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+      <CardContent className="p-3 sm:p-4 space-y-3">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center gap-2 min-w-0">
             <div
-              className="h-2 w-2 rounded-full"
+              className="h-2 w-2 rounded-full shrink-0"
               style={{ background: accent, boxShadow: `0 0 8px ${accent}` }}
             />
-            <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">
+            <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold truncate">
               Today's Window
             </p>
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 flex-wrap justify-end">
             {today.omad && <Badge variant="outline" className="text-[9px] px-1.5 py-0">OMAD</Badge>}
             {today.tight && !today.omad && <Badge variant="outline" className="text-[9px] px-1.5 py-0">Tight</Badge>}
             {isRefeed && (
@@ -193,7 +193,7 @@ export function TodaysWindowCard() {
         )}
 
         {!isFastDay && (
-          <div className="grid grid-cols-4 gap-2 pt-1">
+          <div className="grid grid-cols-2 min-[380px]:grid-cols-4 gap-2 pt-1">
             <MacroTile label="Cal" value={today.cal} />
             <MacroTile label="Protein" value={`${today.proteinG}g`} accent />
             <MacroTile label="Carbs" value={`${today.carbG}g`} />
@@ -216,12 +216,12 @@ export function TodaysWindowCard() {
 
 function WindowTile({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-border/60 p-2.5 bg-muted/20">
-      <div className="flex items-center gap-1.5 text-muted-foreground">
-        {icon}
-        <p className="text-[10px] uppercase tracking-wider font-medium">{label}</p>
+    <div className="rounded-lg border border-border/60 p-2.5 bg-muted/20 min-w-0">
+      <div className="flex items-center gap-1.5 text-muted-foreground min-w-0">
+        <span className="shrink-0">{icon}</span>
+        <p className="text-[10px] uppercase tracking-wider font-medium truncate">{label}</p>
       </div>
-      <p className="text-sm font-bold mt-1 tabular-nums">{value || "—"}</p>
+      <p className="text-sm font-bold mt-1 tabular-nums truncate">{value || "—"}</p>
     </div>
   );
 }

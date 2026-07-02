@@ -1074,16 +1074,16 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                   </Badge>
                 )}
               </div>
-              <h3 className="mt-0.5 text-lg font-black leading-tight text-white">{isMaintenanceMode ? (maintenanceLabel || "Maintenance") : planName}</h3>
+              <h3 className="mt-0.5 text-base sm:text-lg font-black leading-tight text-white break-words">{isMaintenanceMode ? (maintenanceLabel || "Maintenance") : planName}</h3>
               {activeKetoType && !isMaintenanceMode && !activeCustomPlan && (
-                <div className="flex items-center gap-2 mt-1">
+                <div className="flex items-center gap-2 mt-1 min-w-0">
                   <div
-                    className="flex h-5 w-auto items-center gap-1.5 rounded-full px-2 text-[10px] font-bold"
+                    className="flex h-5 max-w-full items-center gap-1.5 rounded-full px-2 text-[10px] font-bold overflow-hidden"
                     style={{ backgroundColor: `${activeKetoType.color || '#ef4444'}20`, color: activeKetoType.color || '#ef4444' }}
                   >
-                    {activeKetoType.abbreviation}
-                    <span className="text-white/50 font-normal">·</span>
-                    <span className="text-white/70 font-medium">{activeKetoType.name}</span>
+                    <span className="shrink-0">{activeKetoType.abbreviation}</span>
+                    <span className="text-white/50 font-normal shrink-0">·</span>
+                    <span className="text-white/70 font-medium truncate">{activeKetoType.name}</span>
                   </div>
                 </div>
               )}
