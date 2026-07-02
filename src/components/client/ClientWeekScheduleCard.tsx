@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, ChevronRight, Flame, Utensils } from "lucide-react";
 import { useClientComputedPlan } from "@/hooks/useClientComputedPlan";
 import { ProtocolPreviewDialog } from "@/components/protocol/ProtocolPreviewDialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Info } from "lucide-react";
 
 /**
  * Compact 7-day / extended-fast schedule strip for /client/program.
@@ -12,7 +14,7 @@ import { ProtocolPreviewDialog } from "@/components/protocol/ProtocolPreviewDial
  * "View Full Schedule" opens the same detailed sheet as trainer preview.
  */
 export function ClientWeekScheduleCard() {
-  const { plan, dayIndex, protocolName, ketoName, ketoAccent } = useClientComputedPlan();
+  const { plan, dayIndex, protocolName, ketoName, ketoAccent, stage } = useClientComputedPlan();
   const [openFull, setOpenFull] = useState(false);
 
   if (!plan) return null;
@@ -37,9 +39,32 @@ export function ClientWeekScheduleCard() {
   return (
     <section className="space-y-3">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary">
-          Stage 3 · This Week
-        </p>
+        <Popover>
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.3em] font-bold text-primary focus:outline-none"
+              aria-label={`Stage ${stage.number} — ${stage.label}. Tap for details.`}
+            >
+              <span>Stage {stage.number} · {stage.label}</span>
+              <Info className="h-3 w-3 opacity-70" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent side="bottom" align="start" className="w-72 text-xs space-y-2">
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-primary">
+                Stage {stage.number} of 3 · {stage.label}
+              </span>
+              <span className="text-[10px] text-muted-foreground">Day {stage.dayInProtocol}</span>
+            </div>
+            <p className="text-muted-foreground leading-snug">{stage.description}</p>
+            <div className="pt-1 border-t border-border/60 text-[10px] text-muted-foreground">
+              {stage.daysUntilNext !== null
+                ? `Next stage in ${stage.daysUntilNext} day${stage.daysUntilNext === 1 ? "" : "s"}.`
+                : "You've reached the final stage — keep the momentum going."}
+            </div>
+          </PopoverContent>
+        </Popover>
         <Badge
           variant="outline"
           className="text-[9px] uppercase tracking-wider border-border/60"
