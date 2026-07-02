@@ -1,17 +1,34 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Calendar } from "@/components/ui/calendar";
-import { CalendarDays, CircleDot, Flag } from "lucide-react";
+import { CalendarDays, CircleDot, Flag, Check } from "lucide-react";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 
 type EventItem = {
   date: Date;
   type: "checkin" | "review";
   label: string;
+  sourceId?: string;
+  sourceKind?: "recurring" | "homework" | "review";
+  frequency?: string | null;
 };
 
 export function ProtocolMiniCalendar({ clientId }: { clientId: string }) {
   const [month, setMonth] = useState<Date>(new Date());
+  const [pending, setPending] = useState<EventItem | null>(null);
+  const qc = useQueryClient();
 
   const { data } = useQuery({
     queryKey: ["protocol-mini-calendar", clientId],
@@ -23,7 +40,7 @@ export function ProtocolMiniCalendar({ clientId }: { clientId: string }) {
       const [{ data: schedules }, { data: settings }, { data: homework }] = await Promise.all([
         supabase
           .from("recurring_checkin_schedules")
-          .select("schedule_name, next_trigger_at, frequency")
+          .select("id, schedule_name, next_trigger_at, frequency")
           .eq("client_id", clientId)
           .gte("next_trigger_at", now.toISOString())
           .lte("next_trigger_at", horizon.toISOString())
@@ -35,11 +52,12 @@ export function ProtocolMiniCalendar({ clientId }: { clientId: string }) {
           .maybeSingle(),
         supabase
           .from("homework_checkins")
-          .select("title, due_at")
+          .select("id, subject, checkin_date, completed")
           .eq("client_id", clientId)
-          .gte("due_at", now.toISOString())
-          .lte("due_at", horizon.toISOString())
-          .order("due_at", { ascending: true }),
+          .eq("completed", false)
+          .gte("checkin_date", now.toISOString().slice(0, 10))
+          .lte("checkin_date", horizon.toISOString().slice(0, 10))
+          .order("checkin_date", { ascending: true }),
       ]);
 
       const events: EventItem[] = [];
@@ -55,7 +73,14 @@ export function ProtocolMiniCalendar({ clientId }: { clientId: string }) {
         let d = new Date(first);
         let guard = 0;
         while (d <= horizon && guard < 30) {
-          events.push({ date: new Date(d), type: "checkin", label: s.schedule_name || "Check-in" });
+          events.push({
+            date: new Date(d),
+            type: "checkin",
+            label: s.schedule_name || "Check-in",
+            sourceId: s.id,
+            sourceKind: "recurring",
+            frequency: s.frequency,
+          });
           d.setDate(d.getDate() + stepDays);
           guard++;
         }
@@ -63,8 +88,14 @@ export function ProtocolMiniCalendar({ clientId }: { clientId: string }) {
 
       // One-off homework check-ins
       for (const h of (homework as any[]) || []) {
-        if (h.due_at) {
-          events.push({ date: new Date(h.due_at), type: "checkin", label: h.title || "Homework" });
+        if (h.checkin_date) {
+          events.push({
+            date: new Date(h.checkin_date + "T09:00:00"),
+            type: "checkin",
+            label: h.subject || "Homework",
+            sourceId: h.id,
+            sourceKind: "homework",
+          });
         }
       }
 
@@ -75,7 +106,12 @@ export function ProtocolMiniCalendar({ clientId }: { clientId: string }) {
         const rev = new Date(startDate);
         rev.setDate(rev.getDate() + duration);
         if (rev >= now && rev <= horizon) {
-          events.push({ date: rev, type: "review", label: "Protocol review" });
+          events.push({
+            date: rev,
+            type: "review",
+            label: "Protocol review",
+            sourceKind: "review",
+          });
         }
       }
 
@@ -83,9 +119,57 @@ export function ProtocolMiniCalendar({ clientId }: { clientId: string }) {
     },
   });
 
+  const completeMutation = useMutation({
+    mutationFn: async (evt: EventItem) => {
+      const now = new Date();
+      if (evt.sourceKind === "recurring" && evt.sourceId) {
+        const stepDays =
+          evt.frequency === "daily" ? 1 :
+          evt.frequency === "weekly" ? 7 :
+          evt.frequency === "biweekly" ? 14 :
+          evt.frequency === "monthly" ? 30 : 7;
+        const next = new Date(evt.date);
+        next.setDate(next.getDate() + stepDays);
+        const { error } = await supabase
+          .from("recurring_checkin_schedules")
+          .update({
+            last_triggered_at: now.toISOString(),
+            next_trigger_at: next.toISOString(),
+          })
+          .eq("id", evt.sourceId);
+        if (error) throw error;
+      } else if (evt.sourceKind === "homework" && evt.sourceId) {
+        const { error } = await supabase
+          .from("homework_checkins")
+          .update({ completed: true })
+          .eq("id", evt.sourceId);
+        if (error) throw error;
+      } else if (evt.sourceKind === "review") {
+        // Renew the protocol cycle: start today, keep duration
+        const today = now.toISOString().slice(0, 10);
+        const { error } = await supabase
+          .from("client_feature_settings")
+          .update({ protocol_start_date: today })
+          .eq("client_id", clientId);
+        if (error) throw error;
+      }
+    },
+    onSuccess: (_res, evt) => {
+      toast.success(
+        evt.sourceKind === "review"
+          ? "Protocol review completed — cycle renewed"
+          : "Check-in marked completed"
+      );
+      qc.invalidateQueries({ queryKey: ["protocol-mini-calendar", clientId] });
+      qc.invalidateQueries({ queryKey: ["active-protocol-summary", clientId] });
+    },
+    onError: (err: any) => {
+      toast.error(err?.message || "Failed to update");
+    },
+    onSettled: () => setPending(null),
+  });
+
   const events = data || [];
-  const sameDay = (a: Date, b: Date) =>
-    a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 
   const checkinDays = events.filter((e) => e.type === "checkin").map((e) => e.date);
   const reviewDays = events.filter((e) => e.type === "review").map((e) => e.date);
@@ -144,20 +228,60 @@ export function ProtocolMiniCalendar({ clientId }: { clientId: string }) {
                   ) : (
                     <CircleDot className="h-3.5 w-3.5 text-primary shrink-0" />
                   )}
-                  <span className="truncate font-medium">{e.label}</span>
-                  <span className="ml-auto whitespace-nowrap text-muted-foreground">
+                  <span className="truncate font-medium min-w-0">{e.label}</span>
+                  <span className="whitespace-nowrap text-muted-foreground ml-auto">
                     {e.date.toLocaleDateString(undefined, {
                       weekday: "short",
                       month: "short",
                       day: "numeric",
                     })}
                   </span>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 px-2 shrink-0"
+                    onClick={() => setPending(e)}
+                    title={e.sourceKind === "review" ? "Mark review complete" : "Mark completed"}
+                  >
+                    <Check className="h-3.5 w-3.5" />
+                  </Button>
                 </li>
               ))}
             </ul>
           )}
         </div>
       </div>
+
+      <AlertDialog open={!!pending} onOpenChange={(o) => !o && setPending(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {pending?.sourceKind === "review"
+                ? "Mark protocol review completed?"
+                : "Mark this check-in completed?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {pending?.sourceKind === "review"
+                ? "This renews the current protocol cycle — the start date resets to today and the next review is pushed out by the assigned duration."
+                : pending?.sourceKind === "recurring"
+                ? `“${pending?.label}” will be marked done and the next occurrence will be scheduled automatically.`
+                : `“${pending?.label}” will be marked completed.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                if (pending) completeMutation.mutate(pending);
+              }}
+              disabled={completeMutation.isPending}
+            >
+              {completeMutation.isPending ? "Saving…" : "Mark completed"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
