@@ -77,12 +77,32 @@ export function ProtocolScheduleTable({ plan, compact }: Props) {
 
 export function ScheduleTotals({ plan }: { plan: ComputedPlan }) {
   const t = plan.totals;
+  const hasFastOrRefeed = t.fastingDays > 0 || t.refeedDays > 0;
+  // Recurring daily protocol: derive from the first eat day.
+  const sample = plan.days.find((d) => !d.adFast && !d.isRefeed) ?? plan.days[0];
+  const fastWin = sample?.fastWindow ?? "—";
+  const eatWin =
+    sample && sample.eatStart && sample.eatEnd
+      ? `${sample.eatStart} – ${sample.eatEnd}`
+      : "—";
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
       <Totals label="Avg Calories" value={`${t.avgCal} kcal`} />
       <Totals label="Total Fast Hours" value={`${t.totalFastHours}h`} />
-      <Totals label="Fasting Days" value={`${t.fastingDays}`} />
-      <Totals label={plan.extended && plan.needsRefeed ? "Refeed Day" : "Refeed Days"} value={`${t.refeedDays}`} />
+      {hasFastOrRefeed ? (
+        <>
+          <Totals label="Fasting Days" value={`${t.fastingDays}`} />
+          <Totals
+            label={plan.extended && plan.needsRefeed ? "Refeed Day" : "Refeed Days"}
+            value={`${t.refeedDays}`}
+          />
+        </>
+      ) : (
+        <>
+          <Totals label="Daily Fast" value={fastWin} />
+          <Totals label="Eating Window" value={eatWin} />
+        </>
+      )}
     </div>
   );
 }
