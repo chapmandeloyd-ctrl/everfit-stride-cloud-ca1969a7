@@ -480,6 +480,23 @@ function MacroPill({ label, value }: { label: string; value: string }) {
   );
 }
 
+function ketoTypeForCard(kt: KetoTypeRow): KetoTypeForCard {
+  return {
+    abbreviation: kt.abbreviation,
+    name: kt.name,
+    subtitle: kt.subtitle,
+    description: kt.description,
+    difficulty: kt.difficulty,
+    fat_pct: kt.fat_pct,
+    protein_pct: kt.protein_pct,
+    carbs_pct: kt.carbs_pct,
+    carb_limit_grams: kt.carb_limit_grams,
+    how_it_works: kt.how_it_works,
+    built_for: kt.built_for,
+    color: kt.color,
+  };
+}
+
 function ExecutionCard({ icon, title, detail }: { icon: React.ReactNode; title: string; detail: string }) {
   return (
     <div className="rounded-xl border border-border/60 bg-card p-3 flex gap-3">
