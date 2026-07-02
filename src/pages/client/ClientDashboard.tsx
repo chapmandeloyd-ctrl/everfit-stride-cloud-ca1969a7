@@ -1679,6 +1679,15 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                   Open Live Schedule to Start
                   <ChevronRight className="h-3.5 w-3.5" />
                 </button>
+                <button
+                  type="button"
+                  onClick={() => navigate("/client/program")}
+                  className="mt-2 w-full flex items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/5 py-2.5 text-[11px] uppercase tracking-widest font-bold text-white/80 hover:bg-white/10 hover:text-white transition-colors"
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Why your plan works
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </button>
               </div>
             );
           })()}
