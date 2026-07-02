@@ -11,7 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Calculator, Save, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
-type Goal = "cut" | "maintain" | "bulk";
+type Goal = "cut" | "maintain" | "bulk" | "custom";
 type Activity = "sedentary" | "light" | "moderate" | "active" | "very_active";
 
 interface Props { clientId: string; trainerId: string }
@@ -19,7 +19,7 @@ interface Props { clientId: string; trainerId: string }
 const ACTIVITY_MULT: Record<Activity, number> = {
   sedentary: 13, light: 14.5, moderate: 16, active: 17.5, very_active: 19,
 };
-const GOAL_ADJUST: Record<Goal, number> = { cut: -0.20, maintain: 0, bulk: 0.10 };
+const GOAL_ADJUST: Record<Exclude<Goal, "custom">, number> = { cut: -0.20, maintain: 0, bulk: 0.10 };
 const ACTIVITY_LABEL: Record<Activity, string> = {
   sedentary: "Sedentary (desk job)",
   light: "Light (1–3 days/wk)",
@@ -79,6 +79,7 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
   const [goal, setGoal] = useState<Goal>("maintain");
   const [activity, setActivity] = useState<Activity>("moderate");
   const [startDate, setStartDate] = useState<string>("");
+  const [customDeficit, setCustomDeficit] = useState<number>(20); // percent, 10..80
 
   useEffect(() => {
     const saved = localStorage.getItem(storageKey);
@@ -89,6 +90,7 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
         setGoal(s.goal ?? "maintain");
         setActivity(s.activity ?? "moderate");
         setStartDate(s.startDate ?? "");
+        if (typeof s.customDeficit === "number") setCustomDeficit(s.customDeficit);
         return;
       } catch {}
     }
@@ -110,7 +112,8 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
     const w = parseFloat(weight);
     if (!w || !kt) return null;
     const tdee = Math.round(w * ACTIVITY_MULT[activity]);
-    const target = Math.round(tdee * (1 + GOAL_ADJUST[goal]));
+    const adjust = goal === "custom" ? -(customDeficit / 100) : GOAL_ADJUST[goal];
+    const target = Math.round(tdee * (1 + adjust));
     const proteinFloor = Math.round(w * 0.9);
 
     const isCKD = kt.abbreviation === "CKD";
@@ -125,11 +128,11 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
       const eatEnd = "8:00 PM";
       return { day: d, isRefeed, cal, proteinG, carbG, fatG, fastWindow, eatStart, eatEnd };
     });
-    return { tdee, target, proteinFloor, days };
-  }, [weight, goal, activity, kt]);
+    return { tdee, target, proteinFloor, days, adjust };
+  }, [weight, goal, activity, kt, customDeficit]);
 
   const handleSave = () => {
-    localStorage.setItem(storageKey, JSON.stringify({ weight, goal, activity, startDate, savedAt: new Date().toISOString() }));
+    localStorage.setItem(storageKey, JSON.stringify({ weight, goal, activity, startDate, customDeficit, savedAt: new Date().toISOString() }));
     toast.success("Protocol saved for this client");
   };
 
@@ -187,6 +190,7 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
                   <SelectItem value="cut">Cut (-20%)</SelectItem>
                   <SelectItem value="maintain">Maintain</SelectItem>
                   <SelectItem value="bulk">Bulk (+10%)</SelectItem>
+                  <SelectItem value="custom">Custom deficit…</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -206,6 +210,34 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
               <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
             </div>
           </div>
+
+          {goal === "custom" && (
+            <div className="rounded-lg border border-border p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm">Custom deficit</Label>
+                <span className="text-sm font-semibold text-primary">-{customDeficit}%</span>
+              </div>
+              <input
+                type="range"
+                min={10}
+                max={80}
+                step={5}
+                value={customDeficit}
+                onChange={(e) => setCustomDeficit(parseInt(e.target.value, 10))}
+                className="w-full accent-primary"
+              />
+              <div className="flex justify-between text-[10px] text-muted-foreground">
+                <span>-10% (mild)</span>
+                <span>-40% (aggressive)</span>
+                <span>-80% (medical only)</span>
+              </div>
+              {customDeficit >= 50 && (
+                <p className="text-xs text-destructive">
+                  Warning: deficits above -40% are extreme and should only be used under medical supervision.
+                </p>
+              )}
+            </div>
+          )}
 
           {plan && (
             <>
