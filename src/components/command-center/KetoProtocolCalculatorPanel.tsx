@@ -131,7 +131,7 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
       } else {
         const { error } = await supabase
           .from("client_feature_settings")
-          .insert({ client_id: clientId, ...patch });
+          .insert([{ client_id: clientId, ...patch }] as any);
         if (error) throw error;
       }
     },
