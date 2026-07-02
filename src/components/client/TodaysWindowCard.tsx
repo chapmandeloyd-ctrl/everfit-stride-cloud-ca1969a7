@@ -111,9 +111,10 @@ export function TodaysWindowCard() {
   });
 
   const plan = useMemo(() => {
-    if (!ketoType || !weightLbs || !protocol) return null;
+    if (!ketoType || !protocol) return null;
+    const w = Number(weightLbs) || 180; // fallback so card renders before first weigh-in
     return computePlan({
-      weightLbs: Number(weightLbs),
+      weightLbs: w,
       ketoType: ketoType as any,
       protocol: { name: protocol.name, fast_target_hours: protocol.fast_target_hours },
       planType: "recurring",
