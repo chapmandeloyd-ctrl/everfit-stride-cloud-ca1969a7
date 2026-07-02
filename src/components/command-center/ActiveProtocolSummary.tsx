@@ -10,7 +10,7 @@ export function ActiveProtocolSummary({ clientId }: { clientId: string }) {
       const [{ data: keto }, { data: settings }, { data: schedules }] = await Promise.all([
         supabase
           .from("client_keto_assignments")
-          .select("keto_type:keto_types(name, code)")
+          .select("keto_type:keto_types(name, abbreviation)")
           .eq("client_id", clientId)
           .eq("is_active", true)
           .maybeSingle(),
@@ -32,7 +32,7 @@ export function ActiveProtocolSummary({ clientId }: { clientId: string }) {
       if (pid) {
         const { data: p } = await supabase
           .from("fasting_protocols")
-          .select("name, fasting_hours, eating_hours")
+          .select("name, fast_target_hours")
           .eq("id", pid)
           .maybeSingle();
         protocol = p;
@@ -47,7 +47,7 @@ export function ActiveProtocolSummary({ clientId }: { clientId: string }) {
       }
       const nextCheckin = (schedules as any)?.[0] || null;
       return {
-        ketoName: (keto as any)?.keto_type?.code || (keto as any)?.keto_type?.name || null,
+        ketoName: (keto as any)?.keto_type?.abbreviation || (keto as any)?.keto_type?.name || null,
         protocol,
         nextCheckin,
         protocolEndDate,
@@ -59,8 +59,8 @@ export function ActiveProtocolSummary({ clientId }: { clientId: string }) {
 
   const p = data.protocol;
   const fastLabel = p
-    ? p.fasting_hours && p.eating_hours
-      ? `${p.fasting_hours}:${p.eating_hours}`
+    ? p.fast_target_hours
+      ? `${p.fast_target_hours}:${Math.max(0, 24 - p.fast_target_hours)}`
       : p.name
     : null;
 
