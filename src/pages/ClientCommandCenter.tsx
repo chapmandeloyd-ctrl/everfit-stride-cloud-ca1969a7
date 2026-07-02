@@ -157,54 +157,54 @@ export default function ClientCommandCenter() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6">
+      <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 pb-24 sm:pb-6">
         {/* Client Header */}
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/clients")}>
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+          <Button variant="ghost" size="icon" className="shrink-0" onClick={() => navigate("/clients")}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <Avatar className="h-14 w-14 ring-2 ring-border">
+          <Avatar className="h-11 w-11 sm:h-14 sm:w-14 ring-2 ring-border shrink-0">
             <AvatarImage src={client?.avatar_url || undefined} />
-            <AvatarFallback className="bg-primary/10 text-primary font-bold text-lg">
+            <AvatarFallback className="bg-primary/10 text-primary font-bold text-base sm:text-lg">
               {clientName.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-foreground truncate">{clientName}</h1>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <h1 className="text-lg sm:text-2xl font-bold text-foreground truncate">{clientName}</h1>
               <Badge
                 variant="secondary"
-                className={`${statusColors[clientData.status] || ""} text-xs shrink-0`}
+                className={`${statusColors[clientData.status] || ""} text-[10px] sm:text-xs shrink-0`}
               >
                 {clientData.status}
               </Badge>
             </div>
-            <p className="text-sm text-muted-foreground">{client?.email}</p>
+            <p className="text-xs sm:text-sm text-muted-foreground truncate">{client?.email}</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 w-full sm:w-auto overflow-x-auto -mx-1 px-1 sm:mx-0 sm:px-0 sm:overflow-visible">
             <Button
               variant="outline"
               size="sm"
-              className="gap-2"
+              className="gap-1.5 sm:gap-2 shrink-0 px-2.5 sm:px-3"
               onClick={() => setPasswordChooserOpen(true)}
               disabled={resetPasswordMutation.isPending}
             >
               {resetPasswordMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Key className="h-4 w-4" />}
-              Credentials
+              <span className="hidden xs:inline sm:inline">Credentials</span>
             </Button>
             <Button
               variant="outline"
               size="sm"
-              className="gap-2"
+              className="gap-1.5 sm:gap-2 shrink-0 px-2.5 sm:px-3"
               onClick={() => navigate("/messages")}
             >
               <MessageSquare className="h-4 w-4" />
-              Message
+              <span className="hidden xs:inline sm:inline">Message</span>
             </Button>
             <Button
               variant="outline"
               size="sm"
-              className="gap-2"
+              className="gap-1.5 sm:gap-2 shrink-0 px-2.5 sm:px-3"
               onClick={() => {
                 if (!clientId) return;
                 setImpersonatedClientId(clientId);
@@ -216,23 +216,23 @@ export default function ClientCommandCenter() {
               title="Open this client's check-in reminder settings (preview as client)"
             >
               <Bell className="h-4 w-4" />
-              Reminders
+              <span className="hidden xs:inline sm:inline">Reminders</span>
             </Button>
             <Button
               variant="destructive"
               size="sm"
-              className="gap-2"
+              className="gap-1.5 sm:gap-2 shrink-0 px-2.5 sm:px-3"
               onClick={() => setDeleteOpen(true)}
             >
               <Trash2 className="h-4 w-4" />
-              Delete
+              <span className="hidden xs:inline sm:inline">Delete</span>
             </Button>
           </div>
         </div>
 
         {/* Tabbed Command Center */}
-        <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="w-full justify-start overflow-x-auto flex-nowrap">
+        <Tabs defaultValue="overview" className="space-y-4 sm:space-y-6">
+          <TabsList className="w-full justify-start overflow-x-auto flex-nowrap sticky top-0 z-20 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/70 h-auto p-1">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="manual-plans">Manual Plans</TabsTrigger>
             <TabsTrigger value="command">Command Center</TabsTrigger>
