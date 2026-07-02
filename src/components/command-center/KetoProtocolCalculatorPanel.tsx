@@ -217,8 +217,10 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
     const selectedProtocol = allProtocols?.find(
       (p) => p.id === featureSettings?.selected_protocol_id
     );
-    const fastHours = Math.min(23, Math.max(0, selectedProtocol?.fast_target_hours ?? 16));
-    const eatHours = Math.max(1, 24 - fastHours);
+    const rawFastHours = Math.max(0, selectedProtocol?.fast_target_hours ?? 16);
+    const isAlternateDay = rawFastHours >= 24;
+    const fastHours = isAlternateDay ? 24 : Math.min(23, rawFastHours);
+    const eatHours = isAlternateDay ? 24 : Math.max(1, 24 - fastHours);
     // Anchor eating window end at 8:00 PM (20:00) and work backward
     const eatEndHour = 20;
     const eatStartHour = ((eatEndHour - eatHours) % 24 + 24) % 24;
@@ -227,25 +229,31 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
       const hr = h % 12 === 0 ? 12 : h % 12;
       return `${hr}:00 ${period}`;
     };
-    const defaultFastLabel = `${fastHours}:${eatHours}`;
+    const defaultFastLabel = isAlternateDay ? "24h" : `${fastHours}:${eatHours}`;
     const defaultEatStart = fmt(eatStartHour);
     const defaultEatEnd = fmt(eatEndHour);
-    const isTightWindow = eatHours <= 4;
-    const isOmad = fastHours >= 20;
+    const isTightWindow = !isAlternateDay && eatHours <= 4;
+    const isOmad = !isAlternateDay && fastHours >= 20;
 
     const isCKD = kt.abbreviation === "CKD";
     const days = DAYS.map((d, i) => {
       const isRefeed = isCKD && (i === 5 || i === 6); // Sat/Sun
+      const isAdFastDay = isAlternateDay && i % 2 === 0; // Mon/Wed/Fri/Sun full fast
       const cal = isRefeed ? Math.round(target * 1.15) : target;
       const proteinG = Math.max(proteinFloor, Math.round((cal * (kt.protein_pct / 100)) / 4));
       const carbG = isRefeed ? Math.round((cal * 0.45) / 4) : Math.round((cal * (kt.carbs_pct / 100)) / 4);
       const fatG = Math.round((cal - proteinG * 4 - carbG * 4) / 9);
-      const fastWindow = isRefeed ? "14:10 (refeed)" : defaultFastLabel;
+      const fastWindow = isRefeed
+        ? "14:10 (refeed)"
+        : isAlternateDay
+          ? (isAdFastDay ? "24h fast" : "Eat day")
+          : defaultFastLabel;
       const eatStart = isRefeed ? "10:00 AM" : defaultEatStart;
       const eatEnd = defaultEatEnd;
-      const tight = !isRefeed && isTightWindow;
-      const omad = !isRefeed && isOmad;
-      return { day: d, isRefeed, cal, proteinG, carbG, fatG, fastWindow, eatStart, eatEnd, tight, omad };
+      const tight = !isRefeed && !isAlternateDay && isTightWindow;
+      const omad = !isRefeed && !isAlternateDay && isOmad;
+      const adFast = isAlternateDay && isAdFastDay;
+      return { day: d, isRefeed, cal: adFast ? 0 : cal, proteinG: adFast ? 0 : proteinG, carbG: adFast ? 0 : carbG, fatG: adFast ? 0 : fatG, fastWindow, eatStart, eatEnd, tight, omad, adFast };
     });
     return { tdee, target, proteinFloor, days, adjust, protocolName: selectedProtocol?.name };
   }, [weight, goal, activity, kt, customDeficit, allProtocols, featureSettings?.selected_protocol_id]);
