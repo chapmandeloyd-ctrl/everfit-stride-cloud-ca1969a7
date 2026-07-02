@@ -133,25 +133,23 @@ export function TodaysWindowCard() {
             return (
               <div
                 key={i}
-                className="rounded-lg border p-1.5 text-center min-w-0"
+                className="relative rounded-lg border px-1 pt-2.5 pb-1.5 text-center min-w-0"
                 style={{
                   borderColor: isToday ? accent : "hsl(var(--border) / 0.6)",
                   background: isToday ? `${accent}12` : "hsl(var(--muted) / 0.2)",
                   boxShadow: isToday ? `0 0 0 1px ${accent}55, 0 0 12px ${accent}33` : undefined,
                 }}
               >
-                <div className="flex items-center justify-center gap-1">
-                  <span
-                    className="inline-block h-1.5 w-1.5 rounded-full"
-                    style={{ background: dotColor, boxShadow: `0 0 4px ${dotColor}` }}
-                  />
-                  <p
-                    className="text-[10px] font-bold uppercase tracking-wider"
-                    style={{ color: isToday ? accent : undefined }}
-                  >
-                    {dayLabel(i)}
-                  </p>
-                </div>
+                <span
+                  className="absolute top-1 left-1/2 -translate-x-1/2 inline-block h-1.5 w-1.5 rounded-full"
+                  style={{ background: dotColor, boxShadow: `0 0 4px ${dotColor}` }}
+                />
+                <p
+                  className="text-[10px] font-bold uppercase tracking-wider truncate"
+                  style={{ color: isToday ? accent : undefined }}
+                >
+                  {dayLabel(i)}
+                </p>
                 <p className="text-[10px] font-semibold tabular-nums mt-0.5 truncate">
                   {shortDayLabel(d, st)}
                 </p>
