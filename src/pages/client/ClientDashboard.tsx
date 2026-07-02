@@ -61,6 +61,7 @@ import { SpeedDialFAB } from "@/components/SpeedDialFAB";
 import { FastingStatusCard } from "@/components/client/FastingStatusCard";
 import { TodaysWindowCard } from "@/components/client/TodaysWindowCard";
 import { ClientWeekStrip } from "@/components/client/ClientWeekStrip";
+import { StartFastGate } from "@/components/client/StartFastGate";
 import { BuildWorkoutSheet } from "@/components/workout/BuildWorkoutSheet";
 
 import { ProgramsSelector } from "@/components/ProgramsSelector";
@@ -930,9 +931,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
           <div className="text-center py-4">
             <p className="text-sm text-muted-foreground">Maintain your fasting routine at your own pace.</p>
           </div>
-          <Button className="w-full h-12 text-base" onClick={() => startFastMutation.mutate()}>
-            <Clock className="h-4 w-4 mr-2" /> Start Fast
-          </Button>
+          <StartFastGate onStart={() => startFastMutation.mutate()} />
           <Button variant="ghost" size="sm" className="w-full text-xs" onClick={() => navigate("/client/programs")}>
             Start a new protocol
           </Button>
@@ -1009,9 +1008,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
           <div className="text-center py-4">
             <p className="text-sm text-muted-foreground">Protocol complete — maintain your routine.</p>
           </div>
-          <Button className="w-full h-12 text-base" onClick={() => startFastMutation.mutate()}>
-            <Clock className="h-4 w-4 mr-2" /> Start Fast
-          </Button>
+          <StartFastGate onStart={() => startFastMutation.mutate()} />
           <Button variant="ghost" size="sm" className="w-full text-xs" onClick={() => navigate("/client/programs")}>
             Start a new protocol
           </Button>
@@ -1616,17 +1613,6 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
               </div>
             );
           })()}
-
-          {/* "View Your Assigned Program" — only when BOTH halves are assigned */}
-          {programFullyAssigned && (
-            <Button
-              variant="ghost"
-              className="w-full h-11 text-sm font-medium gap-2 bg-white/5 hover:bg-white/10 text-white border border-white/10 backdrop-blur-md"
-              onClick={() => navigate("/client/complete-plan?preview=1")}
-            >
-              View Your Assigned Program
-            </Button>
-          )}
 
           {/* Gold pills — View Protocol + View Keto Type. Always present.
               If admin has an assignment, they deep-link to the assigned detail page

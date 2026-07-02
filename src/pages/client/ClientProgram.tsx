@@ -1,13 +1,12 @@
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { ClientLayout } from "@/components/ClientLayout";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
 import {
   CATEGORY_CONFIG,
   getDifficultyLabel,
@@ -243,42 +242,6 @@ export default function ClientProgram() {
   /* ── 5. Render ── */
   const hasProgram = !!protocolDemo && !!ketoType;
 
-  /* ── Start Fast mutation ── */
-  const startFastMutation = useMutation({
-    mutationFn: async () => {
-      if (!clientId) throw new Error("No client selected");
-      const targetHours =
-        protocol?.fast_target_hours ?? quickPlan?.fast_hours ?? 16;
-      const startedAt = new Date().toISOString();
-      const { data, error } = await supabase
-        .from("client_feature_settings")
-        .update({
-          active_fast_start_at: startedAt,
-          active_fast_target_hours: targetHours,
-          last_fast_ended_at: null,
-          eating_window_ends_at: null,
-        })
-        .eq("client_id", clientId)
-        .select("client_id, active_fast_start_at")
-        .maybeSingle();
-      if (error) throw error;
-      if (!data?.active_fast_start_at) throw new Error("Fast timer could not be started.");
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting", clientId] });
-      queryClient.invalidateQueries({ queryKey: ["my-feature-settings", clientId] });
-      toast({ title: "Fast Started! 🔥", description: "Your fasting timer is now running." });
-      navigate("/client/dashboard");
-    },
-    onError: (error) => {
-      toast({
-        title: "Timer didn't start",
-        description: error instanceof Error ? error.message : "Could not start fast.",
-        variant: "destructive",
-      });
-    },
-  });
-
   return (
     <ClientLayout>
       <div className="max-w-md mx-auto px-4 pt-4 pb-32 space-y-6">
@@ -361,73 +324,32 @@ export default function ClientProgram() {
           </section>
         )}
 
-        {/* Program recap + Start CTA */}
-        {hasProgram && protocolDemo && ketoType && (
-          <>
-            <ClientWeekScheduleCard />
-          <section className="rounded-2xl border border-primary/30 bg-gradient-to-b from-primary/10 to-transparent p-5 space-y-4">
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary mb-2">
-                Program Recap
-              </p>
-              <p className="text-sm text-foreground/80 leading-relaxed">
-                You're running{" "}
-                <span className="font-semibold text-foreground">{protocolDemo.title}</span>{" "}
-                paired with{" "}
-                <span className="font-semibold text-foreground">{ketoType.name}</span>{" "}
-                ({ketoType.fat_pct}/{ketoType.protein_pct}/{ketoType.carbs_pct} F/P/C).
-                Fast clean, refill clean — daily.
-              </p>
-            </div>
-            <div className="grid grid-cols-3 gap-2 text-center">
-              <div className="rounded-lg border border-border bg-card/60 p-2">
-                <div className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground">Stage 1</div>
-                <div className="text-xs font-bold text-foreground mt-0.5">Protocol</div>
-              </div>
-              <div className="rounded-lg border border-border bg-card/60 p-2">
-                <div className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground">Stage 2</div>
-                <div className="text-xs font-bold text-foreground mt-0.5">Keto Type</div>
-              </div>
-              <div className="rounded-lg border border-primary/40 bg-primary/10 p-2">
-                <div className="text-[9px] uppercase tracking-[0.2em] text-primary">Stage 3</div>
-                <div className="text-xs font-bold text-foreground mt-0.5">Execute</div>
-              </div>
-            </div>
-            <Button
-              className="w-full font-bold"
-              onClick={() => startFastMutation.mutate()}
-              disabled={startFastMutation.isPending || !clientId}
-            >
-              {startFastMutation.isPending ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Starting…
-                </>
-              ) : (
-                "Start Your Program"
-              )}
-            </Button>
-          </section>
-          </>
-        )}
+        {/* Week schedule — shown when program is active */}
+        {hasProgram && protocolDemo && ketoType && <ClientWeekScheduleCard />}
 
-        {/* Browse CTAs */}
-        <div className="grid grid-cols-2 gap-2 pt-2">
-          <Button
-            variant="outline"
-            className="border-border"
-            onClick={() => navigate("/client/programs")}
-          >
-            Browse Protocols
-          </Button>
-          <Button
-            variant="outline"
-            className="border-border"
-            onClick={() => navigate("/client/keto-types")}
-          >
-            Browse Keto Types
-          </Button>
-        </div>
+        {/* Browse CTAs — only when the client is missing part of the program */}
+        {!hasProgram && (
+          <div className="grid grid-cols-2 gap-2 pt-2">
+            {!protocolDemo && (
+              <Button
+                variant="outline"
+                className="border-border"
+                onClick={() => navigate("/client/programs")}
+              >
+                Browse Protocols
+              </Button>
+            )}
+            {!ketoType && (
+              <Button
+                variant="outline"
+                className="border-border"
+                onClick={() => navigate("/client/keto-types")}
+              >
+                Browse Keto Types
+              </Button>
+            )}
+          </div>
+        )}
       </div>
     </ClientLayout>
   );

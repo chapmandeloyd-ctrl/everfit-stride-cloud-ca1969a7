@@ -5,7 +5,8 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Globe, Info } from "lucide-react";
+import { Clock, Globe, Info, Shield } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -40,7 +41,7 @@ export function ScheduleAlignmentPanel({ clientId }: Props) {
     queryFn: async () => {
       const { data } = await supabase
         .from("client_feature_settings")
-        .select("schedule_timezone, day_start_hour")
+        .select("schedule_timezone, day_start_hour, enforce_scheduled_start" as any)
         .eq("client_id", clientId)
         .maybeSingle();
       return data;
@@ -49,11 +50,13 @@ export function ScheduleAlignmentPanel({ clientId }: Props) {
 
   const [tz, setTz] = useState<string>("");
   const [dayStart, setDayStart] = useState<number>(0);
+  const [enforce, setEnforce] = useState<boolean>(false);
 
   useEffect(() => {
     if (data) {
       setTz((data as any).schedule_timezone ?? "");
       setDayStart(Number((data as any).day_start_hour ?? 0));
+      setEnforce(Boolean((data as any).enforce_scheduled_start ?? false));
     }
   }, [data]);
 
@@ -67,11 +70,12 @@ export function ScheduleAlignmentPanel({ clientId }: Props) {
       const payload = {
         schedule_timezone: tz || null,
         day_start_hour: dayStart,
+        enforce_scheduled_start: enforce,
       };
       if (existing?.id) {
         const { error } = await supabase
           .from("client_feature_settings")
-          .update(payload)
+          .update(payload as any)
           .eq("id", existing.id);
         if (error) throw error;
       } else {
@@ -84,6 +88,7 @@ export function ScheduleAlignmentPanel({ clientId }: Props) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["schedule-alignment", clientId] });
       qc.invalidateQueries({ queryKey: ["ccp-settings"] });
+      qc.invalidateQueries({ queryKey: ["ccp-enforce"] });
       toast.success("Schedule alignment saved");
     },
     onError: (e: any) => toast.error(e?.message ?? "Failed to save"),
@@ -150,6 +155,27 @@ export function ScheduleAlignmentPanel({ clientId }: Props) {
         >
           {save.isPending ? "Saving…" : "Save alignment"}
         </Button>
+
+        <div className="rounded-lg border border-border/60 bg-muted/20 p-3 space-y-2">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <Label className="text-xs flex items-center gap-1.5">
+                <Shield className="h-3.5 w-3.5 text-primary" />
+                Enforce scheduled start
+              </Label>
+              <p className="text-[11px] text-muted-foreground leading-snug mt-1">
+                Locks the client's <strong>Start Fast</strong> button until 30 min
+                before their scheduled fast start (when today's eating window closes).
+                Late starts &gt; 60 min are flagged.
+              </p>
+            </div>
+            <Switch
+              checked={enforce}
+              onCheckedChange={setEnforce}
+              aria-label="Enforce scheduled start"
+            />
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
