@@ -171,6 +171,43 @@ export function ProtocolMiniCalendar({ clientId }: { clientId: string }) {
     onSettled: () => setPending(null),
   });
 
+  const rescheduleMutation = useMutation({
+    mutationFn: async ({ evt, date }: { evt: EventItem; date: Date }) => {
+      if (evt.sourceKind === "recurring" && evt.sourceId) {
+        // Preserve time-of-day from the existing trigger
+        const next = new Date(date);
+        next.setHours(evt.date.getHours(), evt.date.getMinutes(), 0, 0);
+        const { error } = await supabase
+          .from("recurring_checkin_schedules")
+          .update({ next_trigger_at: next.toISOString() })
+          .eq("id", evt.sourceId);
+        if (error) throw error;
+      } else if (evt.sourceKind === "homework" && evt.sourceId) {
+        const iso = date.toISOString().slice(0, 10);
+        const { error } = await supabase
+          .from("homework_checkins")
+          .update({ checkin_date: iso })
+          .eq("id", evt.sourceId);
+        if (error) throw error;
+      }
+    },
+    onSuccess: (_r, { date }) => {
+      toast.success(
+        `Rescheduled to ${date.toLocaleDateString(undefined, {
+          weekday: "short",
+          month: "short",
+          day: "numeric",
+        })}`
+      );
+      qc.invalidateQueries({ queryKey: ["protocol-mini-calendar", clientId] });
+      qc.invalidateQueries({ queryKey: ["active-protocol-summary", clientId] });
+      setDetail(null);
+    },
+    onError: (err: any) => {
+      toast.error(err?.message || "Failed to reschedule");
+    },
+  });
+
   const events = data || [];
 
   const checkinDays = events.filter((e) => e.type === "checkin").map((e) => e.date);
@@ -278,7 +315,9 @@ export function ProtocolMiniCalendar({ clientId }: { clientId: string }) {
           setDetail(null);
           setPending(e);
         }}
+        onReschedule={(e, date) => rescheduleMutation.mutate({ evt: e, date })}
         completing={completeMutation.isPending}
+        rescheduling={rescheduleMutation.isPending}
       />
 
       <AlertDialog open={!!pending} onOpenChange={(o) => !o && setPending(null)}>

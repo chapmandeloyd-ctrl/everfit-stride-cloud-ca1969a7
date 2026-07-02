@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Sheet,
@@ -10,6 +11,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as DatePicker } from "@/components/ui/calendar";
 import {
   CalendarClock,
   CircleDot,
@@ -20,6 +23,7 @@ import {
   ArrowRight,
   Undo2,
   Check,
+  CalendarPlus,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
@@ -38,15 +42,22 @@ export function EventDetailDrawer({
   open,
   onOpenChange,
   onComplete,
+  onReschedule,
   completing,
+  rescheduling,
 }: {
   clientId: string;
   event: CalendarEventDetail | null;
   open: boolean;
   onOpenChange: (o: boolean) => void;
   onComplete: (e: CalendarEventDetail) => void;
+  onReschedule?: (e: CalendarEventDetail, newDate: Date) => void;
   completing?: boolean;
+  rescheduling?: boolean;
 }) {
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const canReschedule = event?.sourceKind === "recurring" || event?.sourceKind === "homework";
+
   const { data: protocol } = useQuery({
     queryKey: ["event-drawer-protocol", clientId],
     enabled: open && !!clientId,
@@ -252,7 +263,35 @@ export function EventDetailDrawer({
 
           {/* Complete action */}
           {event && (
-            <div className="pt-2">
+            <div className="pt-2 space-y-2">
+              {canReschedule && onReschedule && (
+                <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full gap-2"
+                      disabled={rescheduling}
+                    >
+                      <CalendarPlus className="h-4 w-4" />
+                      {rescheduling ? "Rescheduling…" : "Reschedule"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="end">
+                    <DatePicker
+                      mode="single"
+                      selected={event.date}
+                      onSelect={(d) => {
+                        if (!d) return;
+                        setPickerOpen(false);
+                        onReschedule(event, d);
+                      }}
+                      disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))}
+                      initialFocus
+                      className="p-3 pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+              )}
               <Button
                 className="w-full gap-2"
                 onClick={() => onComplete(event)}
