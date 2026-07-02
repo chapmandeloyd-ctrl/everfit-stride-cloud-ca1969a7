@@ -82,23 +82,39 @@ export function TodaysWindowCard() {
   const { data: weightLbs } = useQuery({
     queryKey: ["tw-weight", clientId],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("client_metric_entries" as any)
-        .select("value, client_metrics!inner(metric_definitions!inner(name))")
-        .eq("client_id", clientId!)
-        .eq("client_metrics.metric_definitions.name", "Weight")
+      if (!clientId) return null;
+      const { data: defs } = await supabase
+        .from("metric_definitions")
+        .select("id")
+        .eq("name", "Weight")
+        .limit(1);
+      const defId = defs?.[0]?.id;
+      if (!defId) return null;
+      const { data: cm } = await supabase
+        .from("client_metrics")
+        .select("id")
+        .eq("client_id", clientId)
+        .eq("metric_definition_id", defId)
+        .limit(1);
+      const cmId = cm?.[0]?.id;
+      if (!cmId) return null;
+      const { data: entry } = await supabase
+        .from("metric_entries")
+        .select("value")
+        .eq("client_metric_id", cmId)
         .order("recorded_at", { ascending: false })
         .limit(1)
         .maybeSingle();
-      return (data as any)?.value ?? null;
+      return (entry as any)?.value ?? null;
     },
     enabled: !!clientId,
   });
 
   const plan = useMemo(() => {
-    if (!ketoType || !weightLbs || !protocol) return null;
+    if (!ketoType || !protocol) return null;
+    const w = Number(weightLbs) || 180; // fallback so card renders before first weigh-in
     return computePlan({
-      weightLbs: Number(weightLbs),
+      weightLbs: w,
       ketoType: ketoType as any,
       protocol: { name: protocol.name, fast_target_hours: protocol.fast_target_hours },
       planType: "recurring",
