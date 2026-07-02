@@ -114,7 +114,7 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
     const tdee = Math.round(w * ACTIVITY_MULT[activity]);
     const adjust = goal === "custom" ? -(customDeficit / 100) : GOAL_ADJUST[goal];
     const target = Math.round(tdee * (1 + adjust));
-    const proteinFloor = Math.round(w * 0.9);
+    const proteinFloor = Math.round(w * 0.7);
 
     const isCKD = kt.abbreviation === "CKD";
     const days = DAYS.map((d, i) => {
