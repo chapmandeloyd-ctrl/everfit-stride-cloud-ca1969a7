@@ -124,7 +124,7 @@ serve(async (req) => {
         .in("client_id", clientIds),
       supabase
         .from("daily_checkins")
-        .select("client_id, checkin_date, mood_score")
+        .select("client_id, checkin_date")
         .in("client_id", clientIds)
         .eq("checkin_date", now.toISOString().slice(0, 10)),
     ]);
