@@ -15,6 +15,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { EventDetailDrawer } from "./EventDetailDrawer";
 
 type EventItem = {
   date: Date;
@@ -28,6 +29,7 @@ type EventItem = {
 export function ProtocolMiniCalendar({ clientId }: { clientId: string }) {
   const [month, setMonth] = useState<Date>(new Date());
   const [pending, setPending] = useState<EventItem | null>(null);
+  const [detail, setDetail] = useState<EventItem | null>(null);
   const qc = useQueryClient();
 
   const { data } = useQuery({
@@ -206,6 +208,15 @@ export function ProtocolMiniCalendar({ clientId }: { clientId: string }) {
               "bg-amber-500/15 text-amber-600 dark:text-amber-400 font-semibold rounded-md",
           }}
           className="pointer-events-auto p-0"
+          onDayClick={(day) => {
+            const hit = events.find(
+              (ev) =>
+                ev.date.getFullYear() === day.getFullYear() &&
+                ev.date.getMonth() === day.getMonth() &&
+                ev.date.getDate() === day.getDate()
+            );
+            if (hit) setDetail(hit);
+          }}
         />
 
         <div className="min-w-0">
@@ -228,7 +239,13 @@ export function ProtocolMiniCalendar({ clientId }: { clientId: string }) {
                   ) : (
                     <CircleDot className="h-3.5 w-3.5 text-primary shrink-0" />
                   )}
-                  <span className="truncate font-medium min-w-0">{e.label}</span>
+                  <button
+                    type="button"
+                    onClick={() => setDetail(e)}
+                    className="truncate font-medium min-w-0 text-left hover:text-primary transition-colors"
+                  >
+                    {e.label}
+                  </button>
                   <span className="whitespace-nowrap text-muted-foreground ml-auto">
                     {e.date.toLocaleDateString(undefined, {
                       weekday: "short",
@@ -251,6 +268,18 @@ export function ProtocolMiniCalendar({ clientId }: { clientId: string }) {
           )}
         </div>
       </div>
+
+      <EventDetailDrawer
+        clientId={clientId}
+        event={detail}
+        open={!!detail}
+        onOpenChange={(o) => !o && setDetail(null)}
+        onComplete={(e) => {
+          setDetail(null);
+          setPending(e);
+        }}
+        completing={completeMutation.isPending}
+      />
 
       <AlertDialog open={!!pending} onOpenChange={(o) => !o && setPending(null)}>
         <AlertDialogContent>
