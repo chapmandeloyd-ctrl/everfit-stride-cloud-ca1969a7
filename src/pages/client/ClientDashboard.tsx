@@ -2968,6 +2968,7 @@ export default function ClientDashboard() {
               return settings.fasting_enabled && !engineConfig.fastingDisabled && !isViewingOtherDay ? (
                 <div key="fasting" className="space-y-3">
                   <FastingProtocolCard clientId={clientId} navigate={navigate} openEndFastFlowSignal={openEndFastFlowSignal} />
+                  <TodaysWindowCard />
                   {dashRecentFastLog && (
                     <FastingStatusCard
                       actualHours={dashRecentFastLog.actual_hours}
