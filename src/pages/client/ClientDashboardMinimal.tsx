@@ -46,9 +46,6 @@ export default function ClientDashboardMinimal() {
         {/* Fasting timer / protocol */}
         <FastingProtocolCard clientId={clientId} navigate={navigate} />
 
-        {/* Assigned Plan quick access */}
-        {clientId && <AssignedPlanCard clientId={clientId} />}
-
         {/* Today's window (macros / eat window / fast day) */}
         <TodaysWindowCard />
 
