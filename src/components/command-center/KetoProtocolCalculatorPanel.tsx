@@ -453,7 +453,9 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
                         {d.omad && <Badge className="ml-2" variant="secondary">OMAD</Badge>}
                       </td>
                       <td className="p-3 text-muted-foreground">
-                        {d.tight ? (
+                        {d.adFast ? (
+                          <span className="italic">No eating window</span>
+                        ) : d.tight ? (
                           <span>
                             Break fast: <span className="text-foreground font-medium">{d.eatStart}</span>
                             <span className="mx-1">·</span>
