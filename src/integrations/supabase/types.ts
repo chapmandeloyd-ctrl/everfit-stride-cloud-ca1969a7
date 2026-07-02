@@ -7349,6 +7349,74 @@ export type Database = {
           },
         ]
       }
+      protocol_assignment_history: {
+        Row: {
+          assigned_by: string | null
+          client_id: string
+          created_at: string
+          id: string
+          note: string | null
+          previous_protocol_id: string | null
+          previous_protocol_name: string | null
+          protocol_id: string | null
+          protocol_name: string | null
+          source: string
+        }
+        Insert: {
+          assigned_by?: string | null
+          client_id: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          previous_protocol_id?: string | null
+          previous_protocol_name?: string | null
+          protocol_id?: string | null
+          protocol_name?: string | null
+          source?: string
+        }
+        Update: {
+          assigned_by?: string | null
+          client_id?: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          previous_protocol_id?: string | null
+          previous_protocol_name?: string | null
+          protocol_id?: string | null
+          protocol_name?: string | null
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "protocol_assignment_history_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "protocol_assignment_history_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "protocol_assignment_history_previous_protocol_id_fkey"
+            columns: ["previous_protocol_id"]
+            isOneToOne: false
+            referencedRelation: "fasting_protocols"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "protocol_assignment_history_protocol_id_fkey"
+            columns: ["protocol_id"]
+            isOneToOne: false
+            referencedRelation: "fasting_protocols"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       protocol_daily_schedules: {
         Row: {
           active_days: number[]
