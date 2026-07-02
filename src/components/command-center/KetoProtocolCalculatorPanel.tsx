@@ -13,6 +13,8 @@ import { toast } from "sonner";
 
 type Goal = "cut" | "maintain" | "bulk" | "custom";
 type Activity = "sedentary" | "light" | "moderate" | "active" | "very_active";
+type PlanType = "recurring" | "extended";
+type ExtendedPreset = "24" | "36" | "48" | "72" | "120" | "custom";
 
 interface Props { clientId: string; trainerId: string }
 
@@ -177,6 +179,10 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
   const [activity, setActivity] = useState<Activity>("moderate");
   const [startDate, setStartDate] = useState<string>("");
   const [customDeficit, setCustomDeficit] = useState<number>(20); // percent, 10..80
+  const [planType, setPlanType] = useState<PlanType>("recurring");
+  const [planLengthDays, setPlanLengthDays] = useState<number>(7);
+  const [extendedPreset, setExtendedPreset] = useState<ExtendedPreset>("48");
+  const [customFastHours, setCustomFastHours] = useState<number>(48);
 
   useEffect(() => {
     const saved = localStorage.getItem(storageKey);
@@ -188,6 +194,10 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
         setActivity(s.activity ?? "moderate");
         setStartDate(s.startDate ?? "");
         if (typeof s.customDeficit === "number") setCustomDeficit(s.customDeficit);
+        if (s.planType === "recurring" || s.planType === "extended") setPlanType(s.planType);
+        if (typeof s.planLengthDays === "number") setPlanLengthDays(s.planLengthDays);
+        if (typeof s.extendedPreset === "string") setExtendedPreset(s.extendedPreset as ExtendedPreset);
+        if (typeof s.customFastHours === "number") setCustomFastHours(s.customFastHours);
         return;
       } catch {}
     }
@@ -236,7 +246,50 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
     const isOmad = !isAlternateDay && fastHours >= 20;
 
     const isCKD = kt.abbreviation === "CKD";
-    const days = DAYS.map((d, i) => {
+
+    // ---------- Extended fast branch ----------
+    if (planType === "extended") {
+      const totalHours = extendedPreset === "custom"
+        ? Math.max(12, Math.min(240, customFastHours))
+        : parseInt(extendedPreset, 10);
+      const fastDayCount = Math.max(1, Math.ceil(totalHours / 24));
+      const needsRefeed = totalHours >= 36;
+      const refeedCal = Math.round(target * 0.7);
+      const refeedProteinG = Math.round(w * 1.0);
+      const refeedCarbG = 30;
+      const refeedFatG = Math.max(0, Math.round((refeedCal - refeedProteinG * 4 - refeedCarbG * 4) / 9));
+
+      const totalDays = fastDayCount + (needsRefeed ? 1 : 0);
+      const days = Array.from({ length: totalDays }).map((_, i) => {
+        const isRefeedDay = needsRefeed && i === totalDays - 1;
+        if (isRefeedDay) {
+          return {
+            day: `Day ${i + 1}`,
+            isRefeed: true,
+            cal: refeedCal, proteinG: refeedProteinG, carbG: refeedCarbG, fatG: refeedFatG,
+            fastWindow: "Refeed",
+            eatStart: "12:00 PM", eatEnd: "6:00 PM",
+            tight: false, omad: false, adFast: false,
+          };
+        }
+        const hoursLeft = totalHours - i * 24;
+        const hoursThisDay = Math.min(24, hoursLeft);
+        return {
+          day: `Day ${i + 1}`,
+          isRefeed: false,
+          cal: 0, proteinG: 0, carbG: 0, fatG: 0,
+          fastWindow: `${hoursThisDay}h fast · water + electrolytes`,
+          eatStart: "", eatEnd: "",
+          tight: false, omad: false, adFast: true,
+        };
+      });
+      return { tdee, target, proteinFloor, days, adjust, protocolName: `${totalHours}h extended fast`, extended: true, totalHours, needsRefeed };
+    }
+
+    // ---------- Recurring weekly branch ----------
+    const length = Math.max(1, Math.min(30, planLengthDays));
+    const days = Array.from({ length }).map((_, i) => {
+      const d = DAYS[i % 7];
       const isRefeed = isCKD && (i === 5 || i === 6); // Sat/Sun
       const isAdFastDay = isAlternateDay && i % 2 === 0; // Mon/Wed/Fri/Sun full fast
       const cal = isRefeed ? Math.round(target * 1.15) : target;
@@ -253,13 +306,13 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
       const tight = !isRefeed && !isAlternateDay && isTightWindow;
       const omad = !isRefeed && !isAlternateDay && isOmad;
       const adFast = isAlternateDay && isAdFastDay;
-      return { day: d, isRefeed, cal: adFast ? 0 : cal, proteinG: adFast ? 0 : proteinG, carbG: adFast ? 0 : carbG, fatG: adFast ? 0 : fatG, fastWindow, eatStart, eatEnd, tight, omad, adFast };
+      return { day: length > 7 ? `${d} ${Math.floor(i / 7) + 1}` : d, isRefeed, cal: adFast ? 0 : cal, proteinG: adFast ? 0 : proteinG, carbG: adFast ? 0 : carbG, fatG: adFast ? 0 : fatG, fastWindow, eatStart, eatEnd, tight, omad, adFast };
     });
-    return { tdee, target, proteinFloor, days, adjust, protocolName: selectedProtocol?.name };
-  }, [weight, goal, activity, kt, customDeficit, allProtocols, featureSettings?.selected_protocol_id]);
+    return { tdee, target, proteinFloor, days, adjust, protocolName: selectedProtocol?.name, extended: false };
+  }, [weight, goal, activity, kt, customDeficit, allProtocols, featureSettings?.selected_protocol_id, planType, planLengthDays, extendedPreset, customFastHours]);
 
   const handleSave = () => {
-    localStorage.setItem(storageKey, JSON.stringify({ weight, goal, activity, startDate, customDeficit, savedAt: new Date().toISOString() }));
+    localStorage.setItem(storageKey, JSON.stringify({ weight, goal, activity, startDate, customDeficit, planType, planLengthDays, extendedPreset, customFastHours, savedAt: new Date().toISOString() }));
     toast.success("Protocol saved for this client");
   };
 
