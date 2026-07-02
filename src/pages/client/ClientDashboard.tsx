@@ -61,6 +61,7 @@ import { SpeedDialFAB } from "@/components/SpeedDialFAB";
 import { FastingStatusCard } from "@/components/client/FastingStatusCard";
 import { TodaysWindowCard } from "@/components/client/TodaysWindowCard";
 import { ClientWeekStrip } from "@/components/client/ClientWeekStrip";
+import { StartFastGate } from "@/components/client/StartFastGate";
 import { BuildWorkoutSheet } from "@/components/workout/BuildWorkoutSheet";
 
 import { ProgramsSelector } from "@/components/ProgramsSelector";
