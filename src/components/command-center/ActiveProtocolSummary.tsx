@@ -16,13 +16,23 @@ export function ActiveProtocolSummary({ clientId }: { clientId: string }) {
           .maybeSingle(),
         supabase
           .from("client_feature_settings")
-          .select("selected_protocol_id, fasting_protocols:selected_protocol_id(name, fasting_hours, eating_hours)")
+          .select("selected_protocol_id")
           .eq("client_id", clientId)
           .maybeSingle(),
       ]);
+      let protocol: any = null;
+      const pid = (settings as any)?.selected_protocol_id;
+      if (pid) {
+        const { data: p } = await supabase
+          .from("fasting_protocols")
+          .select("name, fasting_hours, eating_hours")
+          .eq("id", pid)
+          .maybeSingle();
+        protocol = p;
+      }
       return {
         ketoName: (keto as any)?.keto_type?.code || (keto as any)?.keto_type?.name || null,
-        protocol: (settings as any)?.fasting_protocols || null,
+        protocol,
       };
     },
   });
