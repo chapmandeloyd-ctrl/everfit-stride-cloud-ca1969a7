@@ -230,6 +230,8 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
     const defaultFastLabel = `${fastHours}:${eatHours}`;
     const defaultEatStart = fmt(eatStartHour);
     const defaultEatEnd = fmt(eatEndHour);
+    const isTightWindow = eatHours <= 4;
+    const isOmad = fastHours >= 20;
 
     const isCKD = kt.abbreviation === "CKD";
     const days = DAYS.map((d, i) => {
@@ -241,7 +243,9 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
       const fastWindow = isRefeed ? "14:10 (refeed)" : defaultFastLabel;
       const eatStart = isRefeed ? "10:00 AM" : defaultEatStart;
       const eatEnd = defaultEatEnd;
-      return { day: d, isRefeed, cal, proteinG, carbG, fatG, fastWindow, eatStart, eatEnd };
+      const tight = !isRefeed && isTightWindow;
+      const omad = !isRefeed && isOmad;
+      return { day: d, isRefeed, cal, proteinG, carbG, fatG, fastWindow, eatStart, eatEnd, tight, omad };
     });
     return { tdee, target, proteinFloor, days, adjust, protocolName: selectedProtocol?.name };
   }, [weight, goal, activity, kt, customDeficit, allProtocols, featureSettings?.selected_protocol_id]);
