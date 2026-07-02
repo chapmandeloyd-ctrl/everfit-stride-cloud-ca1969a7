@@ -8,8 +8,9 @@ import { DailyRingsPinnedHeader } from "@/components/rings/DailyRingsCard";
 import { WaterTrackerCard } from "@/components/client/WaterTrackerCard";
 import { StepTrackerCard } from "@/components/client/StepTrackerCard";
 import { DailyJournalCard } from "@/components/daily-journal/DailyJournalCard";
-import { AssignedPlanCard } from "@/components/dashboard/AssignedPlanCard";
 import { LiveScheduleHost } from "@/components/client/LiveScheduleHost";
+import { openLiveSchedule } from "@/lib/liveScheduleBus";
+import { CalendarDays, ChevronRight } from "lucide-react";
 
 /**
  * Minimal client dashboard — Fasting + Smart Pace + Health tracking tiles.
@@ -45,6 +46,17 @@ export default function ClientDashboardMinimal() {
 
         {/* Fasting timer / protocol */}
         <FastingProtocolCard clientId={clientId} navigate={navigate} />
+        {clientId && (
+          <button
+            type="button"
+            onClick={() => openLiveSchedule()}
+            className="w-full flex items-center justify-center gap-2 rounded-lg border border-primary/40 bg-primary/5 py-3 text-xs uppercase tracking-widest font-bold text-primary hover:bg-primary/10 transition-colors"
+          >
+            <CalendarDays className="h-3.5 w-3.5" />
+            Open Live Schedule to Start
+            <ChevronRight className="h-3.5 w-3.5" />
+          </button>
+        )}
         <LiveScheduleHost />
 
         {/* Daily Journal — mood, body, meals */}
