@@ -18,7 +18,7 @@ export function useClientComputedPlan() {
     queryFn: async () => {
       const { data } = await supabase
         .from("client_feature_settings")
-        .select("selected_protocol_id, selected_quick_plan_id, protocol_start_date, protocol_calc_inputs")
+        .select("selected_protocol_id, selected_quick_plan_id, protocol_start_date, protocol_calc_inputs, schedule_timezone, day_start_hour")
         .eq("client_id", clientId!)
         .maybeSingle();
       return data;
@@ -140,10 +140,33 @@ export function useClientComputedPlan() {
 
   const dayIndex = useMemo(() => {
     if (!plan) return 0;
-    const start = settings?.protocol_start_date ? new Date(settings.protocol_start_date) : new Date();
-    const diffDays = Math.floor((Date.now() - start.getTime()) / 86_400_000);
+    const tz = (settings as any)?.schedule_timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const dayStartHour = Number((settings as any)?.day_start_hour ?? 0);
+    // Local YYYY-MM-DD in the client's tz, shifted by dayStartHour so pre-cutoff hours still count as "yesterday"
+    const localDateKey = (ms: number) => {
+      const shifted = new Date(ms - dayStartHour * 3_600_000);
+      try {
+        const parts = new Intl.DateTimeFormat("en-CA", {
+          timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit",
+        }).formatToParts(shifted);
+        const y = parts.find(p => p.type === "year")?.value;
+        const m = parts.find(p => p.type === "month")?.value;
+        const d = parts.find(p => p.type === "day")?.value;
+        return `${y}-${m}-${d}`;
+      } catch {
+        return shifted.toISOString().slice(0, 10);
+      }
+    };
+    const startMs = settings?.protocol_start_date
+      ? new Date(settings.protocol_start_date).getTime()
+      : Date.now();
+    const startKey = localDateKey(startMs);
+    const todayKey = localDateKey(Date.now());
+    const diffDays = Math.floor(
+      (Date.parse(todayKey + "T00:00:00Z") - Date.parse(startKey + "T00:00:00Z")) / 86_400_000
+    );
     return ((diffDays % plan.days.length) + plan.days.length) % plan.days.length;
-  }, [plan, settings?.protocol_start_date]);
+  }, [plan, settings?.protocol_start_date, (settings as any)?.schedule_timezone, (settings as any)?.day_start_hour]);
 
   return {
     plan,
