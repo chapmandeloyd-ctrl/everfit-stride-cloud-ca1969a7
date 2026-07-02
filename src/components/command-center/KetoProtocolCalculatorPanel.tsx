@@ -350,8 +350,40 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
     return { tdee, target, proteinFloor, days, adjust, protocolName: selectedProtocol?.name, extended: false };
   }, [weight, goal, activity, kt, customDeficit, allProtocols, featureSettings?.selected_protocol_id, planType, planLengthDays, extendedPreset, customFastHours]);
 
-  const handleSave = () => {
-    localStorage.setItem(storageKey, JSON.stringify({ weight, goal, activity, startDate, customDeficit, planType, planLengthDays, extendedPreset, customFastHours, savedAt: new Date().toISOString() }));
+  const handleSave = async () => {
+    const payload = {
+      weight: parseFloat(weight) || null,
+      goal,
+      activity,
+      startDate,
+      customDeficit,
+      planType,
+      planLengthDays,
+      extendedPreset,
+      customFastHours,
+      savedAt: new Date().toISOString(),
+    };
+    localStorage.setItem(storageKey, JSON.stringify(payload));
+    try {
+      const patch: any = {
+        protocol_calc_inputs: payload,
+        protocol_start_date: startDate || null,
+      };
+      const { data: existing } = await supabase
+        .from("client_feature_settings")
+        .select("client_id")
+        .eq("client_id", clientId)
+        .maybeSingle();
+      if (existing) {
+        await supabase.from("client_feature_settings").update(patch).eq("client_id", clientId);
+      } else {
+        await supabase.from("client_feature_settings").insert([{ client_id: clientId, ...patch }] as any);
+      }
+      queryClient.invalidateQueries({ queryKey: ["tw-settings"] });
+      queryClient.invalidateQueries({ queryKey: ["kpc-feature-settings", clientId] });
+    } catch (e) {
+      console.error("save protocol inputs failed", e);
+    }
     toast.success("Protocol saved for this client");
   };
 

@@ -1377,6 +1377,7 @@ export type Database = {
           preferred_eating_window_opens_at: string | null
           progress_photos_enabled: boolean
           protocol_assigned_by: string | null
+          protocol_calc_inputs: Json | null
           protocol_completed: boolean
           protocol_start_date: string | null
           quick_plan_duration_days: number | null
@@ -1484,6 +1485,7 @@ export type Database = {
           preferred_eating_window_opens_at?: string | null
           progress_photos_enabled?: boolean
           protocol_assigned_by?: string | null
+          protocol_calc_inputs?: Json | null
           protocol_completed?: boolean
           protocol_start_date?: string | null
           quick_plan_duration_days?: number | null
@@ -1591,6 +1593,7 @@ export type Database = {
           preferred_eating_window_opens_at?: string | null
           progress_photos_enabled?: boolean
           protocol_assigned_by?: string | null
+          protocol_calc_inputs?: Json | null
           protocol_completed?: boolean
           protocol_start_date?: string | null
           quick_plan_duration_days?: number | null

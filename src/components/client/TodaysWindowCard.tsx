@@ -19,7 +19,7 @@ export function TodaysWindowCard() {
     queryFn: async () => {
       const { data } = await supabase
         .from("client_feature_settings")
-        .select("selected_protocol_id, selected_quick_plan_id, protocol_start_date")
+        .select("selected_protocol_id, selected_quick_plan_id, protocol_start_date, protocol_calc_inputs")
         .eq("client_id", clientId!)
         .maybeSingle();
       return data;
@@ -112,15 +112,32 @@ export function TodaysWindowCard() {
 
   const plan = useMemo(() => {
     if (!ketoType || !protocol) return null;
-    const w = Number(weightLbs) || 180; // fallback so card renders before first weigh-in
+    const inputs: any = (settings as any)?.protocol_calc_inputs || {};
+    const ACTIVITY_MULT: Record<string, number> = {
+      sedentary: 13, light: 14.5, moderate: 16, active: 17.5, very_active: 19,
+    };
+    const GOAL_ADJUST: Record<string, number> = { cut: -0.20, maintain: 0, bulk: 0.10 };
+    const w = Number(inputs.weight) || Number(weightLbs) || 180;
+    const activityMult = ACTIVITY_MULT[inputs.activity] ?? 16;
+    const goalAdjust = inputs.goal === "custom"
+      ? -((Number(inputs.customDeficit) || 20) / 100)
+      : (GOAL_ADJUST[inputs.goal] ?? 0);
+    const planType = inputs.planType === "extended" ? "extended" : "recurring";
+    const planLengthDays = Number(inputs.planLengthDays) || 7;
+    const extendedTotalHours = inputs.extendedPreset === "custom"
+      ? (Number(inputs.customFastHours) || 48)
+      : (parseInt(inputs.extendedPreset, 10) || 48);
     return computePlan({
       weightLbs: w,
       ketoType: ketoType as any,
       protocol: { name: protocol.name, fast_target_hours: protocol.fast_target_hours },
-      planType: "recurring",
-      planLengthDays: 7,
+      activityMult,
+      goalAdjust,
+      planType,
+      planLengthDays,
+      extendedTotalHours,
     });
-  }, [ketoType, weightLbs, protocol]);
+  }, [ketoType, weightLbs, protocol, settings]);
 
   // Which day of the plan are we on?
   const dayIndex = useMemo(() => {
