@@ -1,92 +1,71 @@
-# KSOM360 Premium Onboarding — Build Plan
+## Goal
 
-A complete replacement for the current 6-step `ClientOnboarding.tsx` with a premium, clinically-toned metabolic assessment flow. Existing engine intro/questions stay available but are bypassed when the new flow runs.
+Replace the current `TodaysWindowCard` with a single, denser card that combines the 7-day cycle strip (from the Program page) with today's window, macros, and full-schedule CTA. Same file, same mount point, same data source — no logic changes anywhere else.
 
-## Flow (10 screens)
-
-1. **Welcome** — "Your metabolism tells a story." Animated metabolic ring, particle glow, single CTA.
-2. **Body Metrics** — Age, Sex, Height, Weight, Goal Weight (optional). Live body silhouette + sliders.
-3. **Activity Level** — 5 premium selectable cards (Sedentary → Athlete) with helper text.
-4. **Health & Goals** — Multi-select goal cards (10 options).
-5. **Metabolic Snapshot** — Calculated BMI + classification, metabolic strain category, gauge, rings, supportive (never-shaming) copy + "The good news" + improvement cards.
-6. **System Intro** — "You don't need another diet." 3 animated cards: FUEL / TRAIN / RESTORE.
-7. **Coaching Style** — Guided ("Most Effective", elevated card) vs Self-Guided ("Flexible").
-8. **Fasting Synergy** — Recommend ONE based on BMI + activity + age + goals; "See Other Options" reveals the 4 synergies.
-9. **First Week Preview** — Premium timeline: fasting/eating window, hydration, movement, recovery, meal previews.
-10. **Activate** — Success animation + "Activate My Plan" / "Explore Dashboard".
-
-Top progress indicator on every step. Smooth fade/scale transitions between steps.
-
-## Recommendation logic (client-side)
+## Final card structure (top → bottom)
 
 ```text
-if BMI >= 30 OR activity in [Sedentary, Lightly]    → Metabolic Reset (12–14h)
-elif BMI 25–29.9 AND goals include Fat Loss/Belly   → Fat Loss Accelerator (16:8)
-elif activity in [Highly, Athlete] AND age < 45     → Performance Fuel System
-elif BMI < 25 AND experience suggests advanced      → Advanced Metabolic Protocol (18:6/OMAD)
-else                                                → Fat Loss Accelerator (default)
+┌─────────────────────────────────────────────┐
+│ STAGE 1 · ADAPTATION (i)      [7-DAY CYCLE] │  ← header row (stage + cycle chip)
+│                                             │
+│ ● 16:8 Weekdays · Standard Ketogenic Diet   │  ← protocol + keto subtitle
+│                                             │
+│ Mon  Tue  Wed  Thu  Fri  Sat  Sun           │  ← 7 tiles, today highlighted w/ keto accent ring
+│ 16:8 16:8 16:8 16:8 16:8 16:8 16:8          │
+│  ●    ●    ●    ●    ●    ●    ●            │  ← dot color = state (green eat / red fast / blue refeed / yellow low-cal)
+│                                             │
+│ ● Eat  ● Fast  ● Refeed  ● Low-cal          │  ← legend, only dots present this week
+│                                             │
+│ ┌──── BREAK FAST ────┐ ┌── LAST MEAL BY ──┐│  ← today window (hidden on fast day)
+│ │ 🍴 12:00 PM        │ │ ⏰ 8:00 PM       ││
+│ └────────────────────┘ └──────────────────┘│
+│                                             │
+│ [1624 CAL] [203g PROTEIN] [20g C] [81g F]  │  ← macro row (hidden on fast day)
+│                                             │
+│ FAST DAY variant:                           │
+│ 🔥 24h fast · water + electrolytes          │
+│                                             │
+│ REFEED banner (if today):                   │
+│ ℹ Prioritize clean carbs & lean protein     │
+│                                             │
+│         VIEW FULL SCHEDULE  →               │  ← single footer CTA (routes to /client/program)
+└─────────────────────────────────────────────┘
 ```
 
-Metabolic score (0–100): weighted BMI band (50%) + activity (30%) + goal alignment (20%).
+## What's removed
 
-## Database schema
+- The separate "Tomorrow" row (folded into the schedule — visible via View Full Schedule).
+- The old "See your full program →" text link (replaced by the outlined "View Full Schedule" button).
+- No changes to the lion card, Start Fast gate, Smart Weight Tracker, or Program page.
 
-New migration creates three tables, all with RLS keyed to `auth.uid() = client_id` plus trainer-of-client read access via existing `is_trainer_of_client()`:
+## Implementation
 
-- **`onboarding_progress`** — `client_id`, `current_step`, `completed`, `completed_at`, `data jsonb`
-- **`user_metabolic_profile`** — `client_id`, `age`, `sex`, `height_cm`, `weight_kg`, `goal_weight_kg`, `bmi`, `bmi_class`, `activity_level`, `goals text[]`, `metabolic_score`, `metabolic_strain`
-- **`fasting_synergy_selection`** — `client_id`, `synergy_key`, `coaching_style` (guided|self), `recommended_synergy`, `selected_at`
+Single file edit: `src/components/client/TodaysWindowCard.tsx`.
 
-Also flip `profiles.onboarding_completed = true` on finish (existing column).
+1. Keep the same export name (`TodaysWindowCard`) and props signature (none) — no consumer changes.
+2. Reuse the existing `useClientComputedPlan()` hook — it already returns `plan.days`, `dayIndex`, `stage`, `ketoAccent`, `protocolName`, `ketoName`.
+3. Add a **stage header row**: `STAGE {n} · {label.toUpperCase()}` with the existing info `(i)` popover (short description from `stage.description`), and a pill on the right showing `{plan.days.length}-DAY CYCLE`.
+4. Add a **subtitle line**: `● {protocolName} · {ketoName}` (bullet uses `ketoAccent`).
+5. Add a **7-tile day strip**:
+   - Render `plan.days.map(...)`.
+   - Each tile: weekday label (Mon/Tue/... derived from `dayIndex` offset so today lands on the correct real weekday), a small state dot, and a compact label (`16:8`, `24h`, `Refeed`, `Low-cal`).
+   - Today's tile gets a 1px ring in `ketoAccent` + subtle glow.
+   - Dot color: green = eat, red = `adFast`, blue = `isRefeed`, yellow = low-cal (detected from `fastWindow.toLowerCase().startsWith("low-cal")`).
+6. **Legend**: render only the dot categories that appear in this week.
+7. Keep the existing **Break fast / Last meal by tiles** and **macro tiles** exactly as they render today (same `WindowTile` / `MacroTile` sub-components), only shown when `!isFastDay`.
+8. Keep the **fast-day** and **refeed** callouts.
+9. Replace the footer text link with an **outlined "View Full Schedule →" button** (border in `ketoAccent`, ghost fill) that navigates to `/client/program`.
 
-## File structure
+## Technical notes
 
-```text
-src/pages/client/ClientOnboarding.tsx          (rewritten — orchestrator)
-src/components/onboarding/premium/
-  ├─ OnboardingShell.tsx                       (progress bar, transitions, dark bg)
-  ├─ steps/
-  │   ├─ WelcomeStep.tsx
-  │   ├─ BodyMetricsStep.tsx
-  │   ├─ ActivityLevelStep.tsx
-  │   ├─ GoalsStep.tsx
-  │   ├─ MetabolicSnapshotStep.tsx
-  │   ├─ SystemIntroStep.tsx
-  │   ├─ CoachingStyleStep.tsx
-  │   ├─ FastingSynergyStep.tsx
-  │   ├─ FirstWeekStep.tsx
-  │   └─ ActivateStep.tsx
-  ├─ MetabolicGauge.tsx                        (SVG arc gauge)
-  ├─ BodySilhouette.tsx                        (SVG, scales by BMI)
-  ├─ MetabolicRing.tsx                         (animated SVG ring)
-  └─ ParticleField.tsx                         (CSS particles, no heavy lib)
-src/lib/onboarding/
-  ├─ metabolicCalc.ts                          (BMI, classification, score, strain)
-  ├─ synergyRecommender.ts                     (recommendation logic)
-  └─ synergies.ts                              (4 synergy definitions)
-```
+- No new dependencies. Uses existing `Card`, `Badge`, `lucide-react` icons, `useNavigate`.
+- Weekday labels: compute `startOfWeek` from today minus `dayIndex` days if `plan.days.length === 7`; otherwise show `Day 1 … Day N`.
+- No changes to `useClientComputedPlan`, `protocolPlan.ts`, dashboard mount, or Program page.
+- Fast-day tiles still render in the strip (so the week is always visible); the Break fast / Last meal / macro rows swap to the fast-day callout instead.
 
-## Styling
+## Verification
 
-- Pure black background (`hsl(var(--background))`) with electric red primary `#CC1A1A` and KSOM-360 teal accents — already in design tokens, no new colors.
-- Glassmorphism: `bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl`.
-- Space Grotesk headings, Inter body (per project Core).
-- Animations: `animate-fade-in`, `animate-scale-in`, custom CSS for ring sweep and particle drift. No new animation libs.
-- Mobile-first; max-w-md container; large tap targets.
-
-## Wiring
-
-- Route `/client/onboarding` already exists → keeps same path.
-- `useEffectiveClientId()` for client id.
-- All writes via supabase client; final step navigates to `/client/dashboard`.
-- The legacy `EngineIntroStep`/`EngineQuestionsStep` files are left in place untouched (not imported by new flow) — safe rollback.
-
-## Out of scope
-
-- No changes to fasting timer, dashboard, or any other route.
-- No new external libraries.
-- No imagery generation — using SVG + CSS gradients for premium look (faster, no asset cost).
-
-## Approval needed
-
-Reply "go" to proceed; I'll run the migration first, then build the components.
+After edit, browser-verify on `/client/dashboard`:
+1. Card shows stage header, 7-tile strip with today highlighted, window + macros, View Full Schedule button.
+2. Tapping View Full Schedule routes to `/client/program`.
+3. On a fast day, macro row is replaced by the fast callout but the 7-tile strip still renders.
