@@ -5,7 +5,7 @@ import { Clock, Utensils, Flame, Info, ChevronRight, Calendar, BookOpen } from "
 import { useClientComputedPlan } from "@/hooks/useClientComputedPlan";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { ProtocolPreviewDialog } from "@/components/protocol/ProtocolPreviewDialog";
+import { LiveScheduleDialog } from "@/components/client/LiveScheduleDialog";
 
 type DayState = "eat" | "fast" | "refeed" | "lowcal";
 const STATE_COLOR: Record<DayState, string> = {
@@ -45,7 +45,7 @@ function shortDayLabel(d: any, state: DayState): string {
  * Combines the stage header, 7-day cycle strip, today's window, and macros into a
  * single dense card. Read-only, presentation-only. Never modifies the lion card.
  */
-export function TodaysWindowCard() {
+export function TodaysWindowCard({ onStartFast }: { onStartFast?: () => void } = {}) {
   const { plan, dayIndex, ketoAccent, protocolName, ketoName, stage } = useClientComputedPlan();
   const navigate = useNavigate();
   const [scheduleOpen, setScheduleOpen] = useState(false);
@@ -224,7 +224,7 @@ export function TodaysWindowCard() {
           style={{ borderColor: accent, color: accent }}
         >
           <Calendar className="h-3.5 w-3.5" />
-          View Full Schedule
+          Open Live Schedule
           <ChevronRight className="h-3.5 w-3.5" />
         </button>
 
@@ -238,12 +238,15 @@ export function TodaysWindowCard() {
           <ChevronRight className="h-3 w-3" />
         </button>
 
-        <ProtocolPreviewDialog
+        <LiveScheduleDialog
           open={scheduleOpen}
           onOpenChange={setScheduleOpen}
           plan={plan}
-          title="Your Full Schedule"
-          subtitle={[protocolName, ketoName].filter(Boolean).join(" · ")}
+          todayIndex={dayIndex}
+          accent={accent}
+          protocolName={protocolName ?? undefined}
+          ketoName={ketoName ?? undefined}
+          onStartFast={onStartFast}
         />
       </CardContent>
     </Card>
