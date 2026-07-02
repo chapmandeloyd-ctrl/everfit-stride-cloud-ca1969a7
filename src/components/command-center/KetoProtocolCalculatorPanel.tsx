@@ -110,20 +110,30 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
 
   const assignProtocolMutation = useMutation({
     mutationFn: async (protocolId: string) => {
-      const { error } = await supabase
+      const patch = {
+        selected_protocol_id: protocolId,
+        selected_quick_plan_id: null,
+        quick_plan_duration_days: null,
+        protocol_assigned_by: trainerId,
+        active_fast_target_hours: null,
+      };
+      const { data: existing } = await supabase
         .from("client_feature_settings")
-        .upsert(
-          {
-            client_id: clientId,
-            selected_protocol_id: protocolId,
-            selected_quick_plan_id: null,
-            quick_plan_duration_days: null,
-            protocol_assigned_by: trainerId,
-            active_fast_target_hours: null,
-          },
-          { onConflict: "client_id" }
-        );
-      if (error) throw error;
+        .select("client_id")
+        .eq("client_id", clientId)
+        .maybeSingle();
+      if (existing) {
+        const { error } = await supabase
+          .from("client_feature_settings")
+          .update(patch)
+          .eq("client_id", clientId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("client_feature_settings")
+          .insert({ client_id: clientId, ...patch });
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["kpc-feature-settings", clientId] });
