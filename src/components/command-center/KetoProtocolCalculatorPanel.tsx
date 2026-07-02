@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,13 +31,14 @@ const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
   const storageKey = `keto-protocol-${clientId}`;
+  const queryClient = useQueryClient();
 
   const { data: assignment } = useQuery({
     queryKey: ["keto-assignment", clientId],
     queryFn: async () => {
       const { data } = await supabase
         .from("client_keto_assignments")
-        .select("keto_type_id, assigned_at, keto_types(abbreviation, name, protein_pct, carbs_pct, fat_pct, carb_limit_grams, color)")
+        .select("id, keto_type_id, assigned_at, keto_types(abbreviation, name, protein_pct, carbs_pct, fat_pct, carb_limit_grams, color)")
         .eq("client_id", clientId)
         .eq("is_active", true)
         .order("assigned_at", { ascending: false })
@@ -45,6 +46,89 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
         .maybeSingle();
       return data;
     },
+  });
+
+  const { data: allKetoTypes } = useQuery({
+    queryKey: ["kpc-all-keto-types"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("keto_types")
+        .select("id, abbreviation, name, color")
+        .eq("is_active", true)
+        .order("order_index");
+      return data || [];
+    },
+  });
+
+  const { data: allProtocols } = useQuery({
+    queryKey: ["kpc-all-protocols"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("fasting_protocols")
+        .select("id, name, fast_target_hours")
+        .order("name");
+      return data || [];
+    },
+  });
+
+  const { data: featureSettings } = useQuery({
+    queryKey: ["kpc-feature-settings", clientId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("client_feature_settings")
+        .select("selected_protocol_id")
+        .eq("client_id", clientId)
+        .maybeSingle();
+      return data;
+    },
+  });
+
+  const assignKetoMutation = useMutation({
+    mutationFn: async (ketoId: string) => {
+      if (assignment?.id) {
+        await supabase
+          .from("client_keto_assignments")
+          .update({ is_active: false })
+          .eq("id", assignment.id);
+      }
+      const { error } = await supabase.from("client_keto_assignments").insert({
+        client_id: clientId,
+        keto_type_id: ketoId,
+        assigned_by: trainerId,
+        is_active: true,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["keto-assignment", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["synergy-panel-keto", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["client-keto-assignment"] });
+      toast.success("Keto type updated");
+    },
+    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Failed to update keto type"),
+  });
+
+  const assignProtocolMutation = useMutation({
+    mutationFn: async (protocolId: string) => {
+      const { error } = await supabase
+        .from("client_feature_settings")
+        .update({
+          selected_protocol_id: protocolId,
+          selected_quick_plan_id: null,
+          quick_plan_duration_days: null,
+          protocol_assigned_by: trainerId,
+          active_fast_target_hours: null,
+        })
+        .eq("client_id", clientId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["kpc-feature-settings", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["synergy-panel-settings", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["my-feature-settings"] });
+      toast.success("Protocol assigned");
+    },
+    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Failed to assign protocol"),
   });
 
   const { data: weightLbs } = useQuery({
@@ -147,8 +231,21 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
   if (!assignment) {
     return (
       <Card>
-        <CardContent className="p-8 text-center text-muted-foreground">
-          Assign a keto type to this client before generating a protocol.
+        <CardContent className="p-6 space-y-4">
+          <p className="text-center text-muted-foreground">
+            Assign a keto type to this client to generate a protocol.
+          </p>
+          <div className="max-w-xs mx-auto">
+            <Label>Keto Type</Label>
+            <Select onValueChange={(v) => assignKetoMutation.mutate(v)}>
+              <SelectTrigger><SelectValue placeholder="Choose keto type…" /></SelectTrigger>
+              <SelectContent>
+                {allKetoTypes?.map(k => (
+                  <SelectItem key={k.id} value={k.id}>{k.abbreviation} · {k.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </CardContent>
       </Card>
     );
@@ -177,6 +274,37 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <Label>Keto Type</Label>
+              <Select
+                value={assignment.keto_type_id ?? undefined}
+                onValueChange={(v) => assignKetoMutation.mutate(v)}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {allKetoTypes?.map(k => (
+                    <SelectItem key={k.id} value={k.id}>{k.abbreviation} · {k.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Fasting Protocol</Label>
+              <Select
+                value={featureSettings?.selected_protocol_id ?? undefined}
+                onValueChange={(v) => assignProtocolMutation.mutate(v)}
+              >
+                <SelectTrigger><SelectValue placeholder="Choose protocol…" /></SelectTrigger>
+                <SelectContent>
+                  {allProtocols?.map(p => (
+                    <SelectItem key={p.id} value={p.id}>{p.name} ({p.fast_target_hours}h)</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <Separator />
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <div>
               <Label>Weight (lbs)</Label>
