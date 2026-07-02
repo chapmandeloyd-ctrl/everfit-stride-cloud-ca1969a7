@@ -621,6 +621,16 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
           </CardContent>
         </Card>
       )}
+
+      <ProtocolPreviewDialog
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        plan={previewPlan}
+        title={previewPlan?.extended ? `Extended Fast · ${previewPlan.totalHours}h` : `Weekly Plan · ${planLengthDays} day${planLengthDays > 1 ? "s" : ""}`}
+        subtitle={`${kt?.abbreviation ?? ""} · ${previewPlan?.protocolName ?? "No protocol"}`}
+        onConfirm={handleSave}
+        confirmLabel="Save Protocol"
+      />
     </div>
   );
 }
