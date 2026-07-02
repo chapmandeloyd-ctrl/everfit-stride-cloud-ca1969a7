@@ -10,7 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Calculator, Save, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
-import { Eye } from "lucide-react";
+import { Eye, Info } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { computePlan } from "@/lib/protocolPlan";
 import { ProtocolPreviewDialog } from "@/components/protocol/ProtocolPreviewDialog";
 
@@ -492,7 +493,36 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
           <Separator />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <Label>Plan Type</Label>
+              <div className="flex items-center gap-1.5">
+                <Label>Plan Type</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button type="button" aria-label="Plan type info" className="text-muted-foreground hover:text-foreground transition-colors">
+                      <Info className="h-3.5 w-3.5" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-80 text-sm space-y-3" side="right" align="start">
+                    <div>
+                      <div className="font-semibold text-primary">Recurring weekly</div>
+                      <p className="text-muted-foreground text-xs mt-1">
+                        Same fasting + eating window repeats every day (e.g. 16:8, 18:6, OMAD). Client eats daily.
+                      </p>
+                      <p className="text-xs mt-1"><span className="font-medium">Use when:</span> building a sustainable lifestyle, fat loss, insulin control, everyday keto.</p>
+                    </div>
+                    <Separator />
+                    <div>
+                      <div className="font-semibold text-primary">Extended fast</div>
+                      <p className="text-muted-foreground text-xs mt-1">
+                        One continuous fast of 24h–5+ days with no eating window. Auto-adds a refeed day for fasts ≥ 36h.
+                      </p>
+                      <p className="text-xs mt-1"><span className="font-medium">Use when:</span> therapeutic goals — autophagy, deep ketosis, breaking a stall, metabolic reset. Not daily.</p>
+                    </div>
+                    <div className="text-[11px] text-muted-foreground border-t pt-2">
+                      Rule of thumb: <span className="font-medium">Recurring = habit.</span> <span className="font-medium">Extended = event.</span>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </div>
               <Select value={planType} onValueChange={(v) => setPlanType(v as PlanType)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
