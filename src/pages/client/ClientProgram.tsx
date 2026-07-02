@@ -18,6 +18,7 @@ import { useClientComputedPlan } from "@/hooks/useClientComputedPlan";
 import { InteractiveProtocolCard } from "@/components/plan/InteractiveProtocolCard";
 import { InteractiveKetoTypeCard, type KetoTypeForCard } from "@/components/keto/InteractiveKetoTypeCard";
 import { openLiveSchedule } from "@/lib/liveScheduleBus";
+import { LiveScheduleHost } from "@/components/client/LiveScheduleHost";
 
 
 /* ──────────────────────────────────────────────────────────────────────
