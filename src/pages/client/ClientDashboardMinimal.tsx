@@ -9,7 +9,7 @@ import { WaterTrackerCard } from "@/components/client/WaterTrackerCard";
 import { StepTrackerCard } from "@/components/client/StepTrackerCard";
 import { DailyJournalCard } from "@/components/daily-journal/DailyJournalCard";
 import { AssignedPlanCard } from "@/components/dashboard/AssignedPlanCard";
-import { TodaysWindowCard } from "@/components/client/TodaysWindowCard";
+import { LiveScheduleHost } from "@/components/client/LiveScheduleHost";
 
 /**
  * Minimal client dashboard — Fasting + Smart Pace + Health tracking tiles.
@@ -45,9 +45,7 @@ export default function ClientDashboardMinimal() {
 
         {/* Fasting timer / protocol */}
         <FastingProtocolCard clientId={clientId} navigate={navigate} />
-
-        {/* Today's window (macros / eat window / fast day) */}
-        <TodaysWindowCard />
+        <LiveScheduleHost />
 
         {/* Daily Journal — mood, body, meals */}
         {clientId && <DailyJournalCard />}
