@@ -82,7 +82,7 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
     queryFn: async () => {
       const { data } = await supabase
         .from("client_feature_settings")
-        .select("selected_protocol_id")
+        .select("selected_protocol_id, assigned_protocol_duration_days")
         .eq("client_id", clientId)
         .maybeSingle();
       return data;
@@ -182,6 +182,37 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
       return { previousProtocolId: featureSettings?.selected_protocol_id ?? null };
     },
     onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Failed to assign protocol"),
+  });
+
+  // Persist the coach-assigned protocol duration to the DB so the client's
+  // Today card / lion header shows the accurate "Day X / N" reflecting what
+  // was actually assigned (not the protocol's built-in default).
+  const saveDurationMutation = useMutation({
+    mutationFn: async (days: number) => {
+      const { data: existing } = await supabase
+        .from("client_feature_settings")
+        .select("client_id")
+        .eq("client_id", clientId)
+        .maybeSingle();
+      if (existing) {
+        const { error } = await supabase
+          .from("client_feature_settings")
+          .update({ assigned_protocol_duration_days: days })
+          .eq("client_id", clientId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("client_feature_settings")
+          .insert([{ client_id: clientId, assigned_protocol_duration_days: days }] as any);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["kpc-feature-settings", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting"] });
+      queryClient.invalidateQueries({ queryKey: ["active-protocol-summary", clientId] });
+    },
+    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Failed to save duration"),
   });
 
   const { data: weightLbs } = useQuery({
