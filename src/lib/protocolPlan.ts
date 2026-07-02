@@ -81,22 +81,72 @@ export function computePlan(input: ComputePlanInput): ComputedPlan | null {
   const proteinFloor = Math.round(w * 0.7);
 
   const rawFastHours = Math.max(0, protocol?.fast_target_hours ?? 16);
-  const isAlternateDay = rawFastHours >= 24;
-  const fastHours = isAlternateDay ? 24 : Math.min(23, rawFastHours);
-  const eatHours = isAlternateDay ? 24 : Math.max(1, 24 - fastHours);
-  const eatEndHour = 20;
-  const eatStartHour = ((eatEndHour - eatHours) % 24 + 24) % 24;
+  const protoName = (protocol?.name ?? "").toLowerCase();
+
+  // Classify protocol pattern by name (falls back to uniform daily window).
+  type PatternKind = "5_2" | "4_3" | "eat_stop_eat" | "alternate_day" | "weekend_warrior" | "uniform";
+  const pattern: PatternKind =
+    /\b5\s*[:\-x/]\s*2\b/.test(protoName) || protoName.includes("5:2")
+      ? "5_2"
+      : /\b4\s*[:\-x/]\s*3\b/.test(protoName) || protoName.includes("4:3")
+      ? "4_3"
+      : protoName.includes("eat-stop-eat") || protoName.includes("eat stop eat")
+      ? "eat_stop_eat"
+      : protoName.includes("alternate")
+      ? "alternate_day"
+      : protoName.includes("weekend warrior")
+      ? "weekend_warrior"
+      : "uniform";
+
   const fmt = (h: number) => {
     const period = h >= 12 ? "PM" : "AM";
     const hr = h % 12 === 0 ? 12 : h % 12;
     return `${hr}:00 ${period}`;
   };
-  const defaultFastLabel = isAlternateDay ? "24h" : `${fastHours}:${eatHours}`;
-  const defaultEatStart = fmt(eatStartHour);
-  const defaultEatEnd = fmt(eatEndHour);
-  const isTightWindow = !isAlternateDay && eatHours <= 4;
-  const isOmad = !isAlternateDay && fastHours >= 20;
+  const windowFor = (fastH: number) => {
+    const fh = Math.min(23, Math.max(1, fastH));
+    const eh = 24 - fh;
+    const endHour = 20;
+    const startHour = ((endHour - eh) % 24 + 24) % 24;
+    return {
+      label: `${fh}:${eh}`,
+      eatStart: fmt(startHour),
+      eatEnd: fmt(endHour),
+      tight: eh <= 4,
+      omad: fh >= 20,
+      eatHours: eh,
+      fastHours: fh,
+    };
+  };
+
+  // Uniform daily window (used by non-patterned protocols + non-fast days in patterns).
+  const uniformFastHours = rawFastHours >= 24 ? 16 : Math.min(23, rawFastHours || 16);
+  const uniformWin = windowFor(uniformFastHours);
+  // Normal (16:8) eating day used within 5:2 / 4:3 / Eat-Stop-Eat / Weekend Warrior weekdays
+  const normalWin = windowFor(16);
   const isCKD = kt.abbreviation === "CKD";
+
+  // 5:2 / 4:3 "low-calorie fast" day target (women ~500, men ~600 — split difference: 550)
+  const lowCalTarget = 550;
+  const lowCalProteinFloor = Math.round(w * 0.5);
+
+  const buildLowCalDay = (label: string, dayName: string): PlanDay => {
+    const cal = lowCalTarget;
+    const proteinG = Math.max(lowCalProteinFloor, Math.round((cal * (kt.protein_pct / 100)) / 4));
+    const carbG = Math.round((cal * (kt.carbs_pct / 100)) / 4);
+    const fatG = Math.max(0, Math.round((cal - proteinG * 4 - carbG * 4) / 9));
+    return {
+      day: dayName,
+      isRefeed: false,
+      cal, proteinG, carbG, fatG,
+      fastWindow: label,
+      eatStart: "12:00 PM",
+      eatEnd: "1:00 PM",
+      tight: true,
+      omad: true,
+      adFast: false,
+    };
+  };
 
   let days: PlanDay[] = [];
   let extended = false;
@@ -136,32 +186,76 @@ export function computePlan(input: ComputePlanInput): ComputedPlan | null {
     });
   } else {
     const length = Math.max(1, Math.min(30, planLengthDays));
+    // Per-day classification: 0..6 (Mon..Sun) index within the week
+    // Kinds: "normal" (default eat day), "lowcal" (5:2 / 4:3 low-cal day),
+    // "fullfast" (24h fast day), "refeed" (CKD carb refeed), "long" (20h+ specific day)
+    type DayKind = "normal" | "lowcal" | "fullfast" | "refeed" | "long20";
+    const kindForWeekIdx = (wi: number): DayKind => {
+      if (pattern === "5_2") {
+        // Mon (0) + Thu (3) non-consecutive low-cal days
+        return wi === 0 || wi === 3 ? "lowcal" : "normal";
+      }
+      if (pattern === "4_3") {
+        // Mon / Wed / Fri low-cal (non-consecutive)
+        return wi === 0 || wi === 2 || wi === 4 ? "lowcal" : "normal";
+      }
+      if (pattern === "eat_stop_eat") {
+        // One full 24h fast midweek (Wed)
+        return wi === 2 ? "fullfast" : "normal";
+      }
+      if (pattern === "alternate_day") {
+        return wi % 2 === 0 ? "fullfast" : "normal";
+      }
+      if (pattern === "weekend_warrior") {
+        return wi === 5 || wi === 6 ? "long20" : "normal";
+      }
+      return "normal";
+    };
+
     days = Array.from({ length }).map((_, i) => {
-      const d = DAYS[i % 7];
-      const isRefeed = isCKD && (i === 5 || i === 6);
-      const isAdFastDay = isAlternateDay && i % 2 === 0;
-      const cal = isRefeed ? Math.round(target * 1.15) : target;
+      const weekIdx = i % 7;
+      const d = DAYS[weekIdx];
+      const dayName = length > 7 ? `${d} ${Math.floor(i / 7) + 1}` : d;
+      const isRefeed = isCKD && pattern === "uniform" && (weekIdx === 5 || weekIdx === 6);
+      let kind: DayKind = isRefeed ? "refeed" : kindForWeekIdx(weekIdx);
+
+      if (kind === "refeed") {
+        const cal = Math.round(target * 1.15);
+        const proteinG = Math.max(proteinFloor, Math.round((cal * (kt.protein_pct / 100)) / 4));
+        const carbG = Math.round((cal * 0.45) / 4);
+        const fatG = Math.round((cal - proteinG * 4 - carbG * 4) / 9);
+        return {
+          day: dayName, isRefeed: true,
+          cal, proteinG, carbG, fatG,
+          fastWindow: "14:10 (refeed)",
+          eatStart: "10:00 AM", eatEnd: "8:00 PM",
+          tight: false, omad: false, adFast: false,
+        };
+      }
+      if (kind === "lowcal") {
+        return buildLowCalDay("Low-cal day (~550 cal)", dayName);
+      }
+      if (kind === "fullfast") {
+        return {
+          day: dayName, isRefeed: false,
+          cal: 0, proteinG: 0, carbG: 0, fatG: 0,
+          fastWindow: "24h fast · water + electrolytes",
+          eatStart: "", eatEnd: "",
+          tight: false, omad: false, adFast: true,
+        };
+      }
+      // "normal" or "long20" — build an eating day with the appropriate window
+      const win = kind === "long20" ? windowFor(20) : (pattern === "uniform" ? uniformWin : normalWin);
+      const cal = target;
       const proteinG = Math.max(proteinFloor, Math.round((cal * (kt.protein_pct / 100)) / 4));
-      const carbG = isRefeed ? Math.round((cal * 0.45) / 4) : Math.round((cal * (kt.carbs_pct / 100)) / 4);
+      const carbG = Math.round((cal * (kt.carbs_pct / 100)) / 4);
       const fatG = Math.round((cal - proteinG * 4 - carbG * 4) / 9);
-      const fastWindow = isRefeed
-        ? "14:10 (refeed)"
-        : isAlternateDay
-          ? (isAdFastDay ? "24h fast" : "Eat day")
-          : defaultFastLabel;
-      const eatStart = isRefeed ? "10:00 AM" : defaultEatStart;
-      const eatEnd = defaultEatEnd;
-      const tight = !isRefeed && !isAlternateDay && isTightWindow;
-      const omad = !isRefeed && !isAlternateDay && isOmad;
-      const adFast = isAlternateDay && isAdFastDay;
       return {
-        day: length > 7 ? `${d} ${Math.floor(i / 7) + 1}` : d,
-        isRefeed,
-        cal: adFast ? 0 : cal,
-        proteinG: adFast ? 0 : proteinG,
-        carbG: adFast ? 0 : carbG,
-        fatG: adFast ? 0 : fatG,
-        fastWindow, eatStart, eatEnd, tight, omad, adFast,
+        day: dayName, isRefeed: false,
+        cal, proteinG, carbG, fatG,
+        fastWindow: win.label,
+        eatStart: win.eatStart, eatEnd: win.eatEnd,
+        tight: win.tight, omad: win.omad, adFast: false,
       };
     });
   }
@@ -180,7 +274,10 @@ export function computePlan(input: ComputePlanInput): ComputedPlan | null {
       return s + (m ? parseInt(m[1], 10) : 24);
     }
     if (d.isRefeed) return s + 14;
-    return s + (isAlternateDay ? 0 : fastHours);
+    // Derive from label "H:E" if present
+    const m = /^(\d+):(\d+)$/.exec(d.fastWindow);
+    if (m) return s + parseInt(m[1], 10);
+    return s + uniformWin.fastHours;
   }, 0);
 
   return {
