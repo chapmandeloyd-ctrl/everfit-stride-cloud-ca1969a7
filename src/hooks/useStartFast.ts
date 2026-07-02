@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
-import { useClientFeatureSettings } from "@/hooks/useClientFeatureSettings";
 import { emitActivityEvent } from "@/lib/activityEvents";
 import { useToast } from "@/hooks/use-toast";
 
@@ -12,14 +11,20 @@ import { useToast } from "@/hooks/use-toast";
  */
 export function useStartFast() {
   const clientId = useEffectiveClientId();
-  const { settings } = useClientFeatureSettings();
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   return useMutation({
     mutationFn: async () => {
       if (!clientId) throw new Error("No client selected");
-      const targetHours = settings?.active_fast_target_hours || 16;
+      // Look up existing target (or fall back to 16h). Kept lightweight — the
+      // full protocol-aware resolution still lives in ClientDashboard.
+      const { data: existing } = await supabase
+        .from("client_feature_settings")
+        .select("active_fast_target_hours")
+        .eq("client_id", clientId)
+        .maybeSingle();
+      const targetHours = (existing as any)?.active_fast_target_hours || 16;
       const startedAt = new Date().toISOString();
       const { data, error } = await supabase
         .from("client_feature_settings")
