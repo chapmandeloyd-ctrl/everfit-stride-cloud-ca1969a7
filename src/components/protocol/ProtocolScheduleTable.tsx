@@ -26,7 +26,15 @@ export function ProtocolScheduleTable({ plan, compact }: Props) {
             <tr key={d.day} className={`border-t border-border ${d.isRefeed ? "bg-primary/5" : ""}`}>
               <td className="p-3 font-medium">
                 {d.day}
-                {d.isRefeed && <Badge className="ml-2" variant="outline">Refeed</Badge>}
+                {d.isRefeed && (
+                  <Badge
+                    className="ml-2 border-primary/40 bg-primary/10 text-primary"
+                    variant="outline"
+                    title={`Refeed day · ${d.cal} kcal · ${d.proteinG}g protein · keep carbs ≤ ${d.carbG}g from clean sources (berries, squash, rice)`}
+                  >
+                    Refeed · {d.cal} kcal · {d.proteinG}g P · ≤{d.carbG}g C
+                  </Badge>
+                )}
               </td>
               <td className="p-3">
                 {d.fastWindow}
@@ -35,6 +43,13 @@ export function ProtocolScheduleTable({ plan, compact }: Props) {
               <td className="p-3 text-muted-foreground">
                 {d.adFast ? (
                   <span className="italic">No eating window</span>
+                ) : d.isRefeed ? (
+                  <span>
+                    {d.eatStart} – {d.eatEnd}
+                    <span className="block text-[11px] text-primary/80 mt-0.5">
+                      Low-carb refeed · prioritize lean protein + clean carbs, no sugars or seed oils
+                    </span>
+                  </span>
                 ) : d.tight ? (
                   <span>
                     Break fast: <span className="text-foreground font-medium">{d.eatStart}</span>
