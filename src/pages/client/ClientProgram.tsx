@@ -437,7 +437,30 @@ export default function ClientProgram() {
             )}
           </div>
         )}
+
+        {/* Bottom navigation pills */}
+        <div className="grid grid-cols-2 gap-2 pt-4">
+          <Button
+            variant="outline"
+            className="rounded-full border-border/60 bg-card/60 h-11 font-black"
+            onClick={() => navigate("/client/dashboard")}
+          >
+            <Home className="h-4 w-4 mr-2" />
+            Back to Today
+          </Button>
+          <Button
+            className="rounded-full h-11 font-black bg-primary text-primary-foreground hover:bg-primary/90"
+            onClick={() => {
+              navigate("/client/dashboard");
+              setTimeout(() => openLiveSchedule(), 250);
+            }}
+          >
+            <CalendarDays className="h-4 w-4 mr-2" />
+            Full Schedule
+          </Button>
+        </div>
       </div>
+      <LiveScheduleHost />
     </ClientLayout>
   );
 }
