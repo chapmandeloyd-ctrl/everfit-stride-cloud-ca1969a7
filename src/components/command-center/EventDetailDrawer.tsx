@@ -124,7 +124,10 @@ export function EventDetailDrawer({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
+      <SheetContent
+        side="bottom"
+        className="h-[92vh] sm:h-auto sm:max-h-[92vh] w-full sm:max-w-md sm:side-right overflow-y-auto rounded-t-2xl sm:rounded-none px-4 sm:px-6 pb-[calc(env(safe-area-inset-bottom)+16px)]"
+      >
         <SheetHeader>
           <div className="flex items-center gap-2">
             {isReview ? (
@@ -276,7 +279,11 @@ export function EventDetailDrawer({
                       {rescheduling ? "Rescheduling…" : "Reschedule"}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="end">
+                  <PopoverContent
+                    className="w-[calc(100vw-2rem)] sm:w-auto max-w-sm p-0"
+                    align="center"
+                    side="top"
+                  >
                     <DatePicker
                       mode="single"
                       selected={event.date}

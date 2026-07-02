@@ -218,7 +218,7 @@ export function ProtocolMiniCalendar({ clientId }: { clientId: string }) {
     .slice(0, 5);
 
   return (
-    <div className="rounded-xl border border-border bg-card p-3 sm:p-4">
+    <div className="rounded-xl border border-border bg-card p-2 sm:p-4 min-w-0">
       <div className="flex items-center gap-2 mb-3">
         <CalendarDays className="h-4 w-4 text-primary" />
         <h3 className="text-sm font-semibold">Upcoming Schedule</h3>
@@ -232,7 +232,7 @@ export function ProtocolMiniCalendar({ clientId }: { clientId: string }) {
         </div>
       </div>
 
-      <div className="grid gap-3 sm:gap-4 md:grid-cols-[auto,1fr]">
+      <div className="grid gap-3 sm:gap-4 md:grid-cols-[auto,1fr] min-w-0">
         <Calendar
           mode="single"
           month={month}
