@@ -35,7 +35,7 @@ export function useClientHealthScores(trainerId: string | undefined) {
       const today = new Date().toISOString().split("T")[0];
 
       // 2. Batch fetch all data in parallel
-      const [settingsRes, ketoRes, macroRes, mealsRes, fastingRes, weeklyRes] = await Promise.all([
+      const [settingsRes, ketoRes, macroRes, mealsRes, fastingRes, engineRes] = await Promise.all([
         supabase
           .from("client_feature_settings")
           .select("client_id, fasting_enabled, selected_protocol_id, fasting_protocols(name)")
@@ -62,11 +62,10 @@ export function useClientHealthScores(trainerId: string | undefined) {
           .order("started_at", { ascending: false })
           .limit(100),
         supabase
-          .from("client_weekly_summaries" as any)
-          .select("client_id, streak_days, macro_adherence_pct, fasting_adherence_pct, score_status")
+          .from("engine_scores")
+          .select("client_id, streak_days, computed_at")
           .in("client_id", clientIds)
-          .order("week_start", { ascending: false })
-          .limit(clientIds.length),
+          .order("computed_at", { ascending: false }),
       ]);
 
       // Build lookup maps
@@ -100,9 +99,9 @@ export function useClientHealthScores(trainerId: string | undefined) {
         fastingByClient.set(f.client_id, arr);
       });
 
-      // Weekly summaries
+      // Latest engine score per client (streak)
       const weeklyMap = new Map<string, any>();
-      (weeklyRes.data || []).forEach((w: any) => {
+      (engineRes.data || []).forEach((w: any) => {
         if (!weeklyMap.has(w.client_id)) weeklyMap.set(w.client_id, w);
       });
 
@@ -115,13 +114,13 @@ export function useClientHealthScores(trainerId: string | undefined) {
         const weekly = weeklyMap.get(cid);
         const fastingRates = fastingByClient.get(cid) || [];
 
-        const macroAdherence = weekly?.macro_adherence_pct ?? (
+        const macroAdherence = (
           macros?.target_calories && meals.calories > 0
             ? Math.min(Math.round((meals.calories / macros.target_calories) * 100), 100)
             : 0
         );
 
-        const fastingConsistency = weekly?.fasting_adherence_pct ?? (
+        const fastingConsistency = (
           fastingRates.length > 0
             ? Math.round(fastingRates.reduce((a: number, b: number) => a + b, 0) / fastingRates.length)
             : 0

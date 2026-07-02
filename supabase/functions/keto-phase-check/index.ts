@@ -17,7 +17,7 @@ Deno.serve(async (req) => {
 
   const { data: assignments, error } = await supabase
     .from("client_keto_assignments")
-    .select("client_id, keto_type_id, assigned_at")
+    .select("id, client_id, keto_type_id, assigned_at")
     .eq("is_active", true);
 
   if (error) {
@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
     const { data: existing } = await supabase
       .from("keto_phase_notifications_log")
       .select("id")
-      .eq("client_id", a.client_id)
+      .eq("assignment_id", a.id)
       .eq("phase", phase)
       .maybeSingle();
     if (existing) continue;
@@ -90,6 +90,7 @@ Deno.serve(async (req) => {
     });
 
     await supabase.from("keto_phase_notifications_log").insert({
+      assignment_id: a.id,
       client_id: a.client_id,
       phase,
     });

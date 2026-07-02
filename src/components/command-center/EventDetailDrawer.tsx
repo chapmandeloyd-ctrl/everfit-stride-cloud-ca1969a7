@@ -65,7 +65,7 @@ export function EventDetailDrawer({
       const [{ data: keto }, { data: settings }] = await Promise.all([
         supabase
           .from("client_keto_assignments")
-          .select("keto_type:keto_types(name, code)")
+          .select("keto_type:keto_types(name, abbreviation)")
           .eq("client_id", clientId)
           .eq("is_active", true)
           .maybeSingle(),
@@ -80,13 +80,13 @@ export function EventDetailDrawer({
       if (pid) {
         const { data: p } = await supabase
           .from("fasting_protocols")
-          .select("name, fasting_hours, eating_hours")
+          .select("name, fast_target_hours")
           .eq("id", pid)
           .maybeSingle();
         proto = p;
       }
       return {
-        ketoName: (keto as any)?.keto_type?.code || (keto as any)?.keto_type?.name || null,
+        ketoName: (keto as any)?.keto_type?.abbreviation || (keto as any)?.keto_type?.name || null,
         protocol: proto,
         startDate: (settings as any)?.protocol_start_date || null,
         durationDays: (settings as any)?.assigned_protocol_duration_days || null,
@@ -115,8 +115,8 @@ export function EventDetailDrawer({
   });
 
   const fastLabel = protocol?.protocol
-    ? protocol.protocol.fasting_hours && protocol.protocol.eating_hours
-      ? `${protocol.protocol.fasting_hours}:${protocol.protocol.eating_hours}`
+    ? protocol.protocol.fast_target_hours
+      ? `${protocol.protocol.fast_target_hours}:${Math.max(0, 24 - protocol.protocol.fast_target_hours)}`
       : protocol.protocol.name
     : null;
 
