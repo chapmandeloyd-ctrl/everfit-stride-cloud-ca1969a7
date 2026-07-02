@@ -174,5 +174,53 @@ export function useClientComputedPlan() {
     protocolName: protocol?.name ?? null,
     ketoName: (ketoType as any)?.name ?? null,
     ketoAccent: (ketoType as any)?.color ?? null,
+    stage: computeStage(settings?.protocol_start_date),
+  };
+}
+
+export type ProtocolStage = {
+  number: 1 | 2 | 3;
+  label: string;
+  description: string;
+  dayInProtocol: number;
+  daysUntilNext: number | null; // null when at final stage
+};
+
+/**
+ * Keto adaptation phases derived from the protocol start date:
+ *  Stage 1 — Adaptation      (days 1–14)   fuel switch, keto flu window
+ *  Stage 2 — Fat-Adapted     (days 15–42)  stable ketones, energy normalizes
+ *  Stage 3 — Metabolic Flex  (day 43+)     fully adapted, flexible fasting
+ */
+export function computeStage(startDate: string | null | undefined): ProtocolStage {
+  const startMs = startDate ? new Date(startDate).getTime() : Date.now();
+  const dayInProtocol = Math.max(
+    1,
+    Math.floor((Date.now() - startMs) / 86_400_000) + 1
+  );
+  if (dayInProtocol <= 14) {
+    return {
+      number: 1,
+      label: "Adaptation",
+      description: "Your body is switching from sugar to fat for fuel. Keto-flu is normal — hydrate and lean on electrolytes.",
+      dayInProtocol,
+      daysUntilNext: 15 - dayInProtocol,
+    };
+  }
+  if (dayInProtocol <= 42) {
+    return {
+      number: 2,
+      label: "Fat-Adapted",
+      description: "Ketones are stable and energy is coming back. Fasts feel easier and cravings drop.",
+      dayInProtocol,
+      daysUntilNext: 43 - dayInProtocol,
+    };
+  }
+  return {
+    number: 3,
+    label: "Metabolic Flex",
+    description: "Fully fat-adapted. You can flex between fasting, keto, and refeeds without losing momentum.",
+    dayInProtocol,
+    daysUntilNext: null,
   };
 }
