@@ -20,7 +20,6 @@ import {
   InteractiveKetoTypeCard,
   type KetoTypeForCard,
 } from "@/components/keto/InteractiveKetoTypeCard";
-import { ClientWeekScheduleCard } from "@/components/client/ClientWeekScheduleCard";
 
 
 /* ──────────────────────────────────────────────────────────────────────
@@ -323,9 +322,6 @@ export default function ClientProgram() {
             />
           </section>
         )}
-
-        {/* Week schedule — shown when program is active */}
-        {hasProgram && protocolDemo && ketoType && <ClientWeekScheduleCard />}
 
         {/* Browse CTAs — only when the client is missing part of the program */}
         {!hasProgram && (
