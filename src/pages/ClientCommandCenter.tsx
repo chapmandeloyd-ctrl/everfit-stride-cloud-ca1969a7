@@ -27,6 +27,7 @@ import { ClientCalendarTab } from "@/components/command-center/ClientCalendarTab
 import { KetoProtocolCalculatorPanel } from "@/components/command-center/KetoProtocolCalculatorPanel";
 import { ActiveProtocolSummary } from "@/components/command-center/ActiveProtocolSummary";
 import { ProtocolHistorySection } from "@/components/command-center/ProtocolHistorySection";
+import { ProtocolMiniCalendar } from "@/components/command-center/ProtocolMiniCalendar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AUTH_URL } from "@/lib/appUrl";
 import { useImpersonation } from "@/hooks/useImpersonation";
@@ -277,6 +278,7 @@ export default function ClientCommandCenter() {
           <TabsContent value="protocol">
             <div className="space-y-4 sm:space-y-6">
               <KetoProtocolCalculatorPanel clientId={clientId!} trainerId={user?.id!} />
+              <ProtocolMiniCalendar clientId={clientId!} />
               <ProtocolHistorySection clientId={clientId!} />
             </div>
           </TabsContent>
