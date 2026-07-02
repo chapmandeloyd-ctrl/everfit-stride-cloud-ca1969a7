@@ -13,6 +13,8 @@ import { toast } from "sonner";
 
 type Goal = "cut" | "maintain" | "bulk" | "custom";
 type Activity = "sedentary" | "light" | "moderate" | "active" | "very_active";
+type PlanType = "recurring" | "extended";
+type ExtendedPreset = "24" | "36" | "48" | "72" | "120" | "custom";
 
 interface Props { clientId: string; trainerId: string }
 
@@ -177,6 +179,10 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
   const [activity, setActivity] = useState<Activity>("moderate");
   const [startDate, setStartDate] = useState<string>("");
   const [customDeficit, setCustomDeficit] = useState<number>(20); // percent, 10..80
+  const [planType, setPlanType] = useState<PlanType>("recurring");
+  const [planLengthDays, setPlanLengthDays] = useState<number>(7);
+  const [extendedPreset, setExtendedPreset] = useState<ExtendedPreset>("48");
+  const [customFastHours, setCustomFastHours] = useState<number>(48);
 
   useEffect(() => {
     const saved = localStorage.getItem(storageKey);
@@ -188,6 +194,10 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
         setActivity(s.activity ?? "moderate");
         setStartDate(s.startDate ?? "");
         if (typeof s.customDeficit === "number") setCustomDeficit(s.customDeficit);
+        if (s.planType === "recurring" || s.planType === "extended") setPlanType(s.planType);
+        if (typeof s.planLengthDays === "number") setPlanLengthDays(s.planLengthDays);
+        if (typeof s.extendedPreset === "string") setExtendedPreset(s.extendedPreset as ExtendedPreset);
+        if (typeof s.customFastHours === "number") setCustomFastHours(s.customFastHours);
         return;
       } catch {}
     }
@@ -236,7 +246,50 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
     const isOmad = !isAlternateDay && fastHours >= 20;
 
     const isCKD = kt.abbreviation === "CKD";
-    const days = DAYS.map((d, i) => {
+
+    // ---------- Extended fast branch ----------
+    if (planType === "extended") {
+      const totalHours = extendedPreset === "custom"
+        ? Math.max(12, Math.min(240, customFastHours))
+        : parseInt(extendedPreset, 10);
+      const fastDayCount = Math.max(1, Math.ceil(totalHours / 24));
+      const needsRefeed = totalHours >= 36;
+      const refeedCal = Math.round(target * 0.7);
+      const refeedProteinG = Math.round(w * 1.0);
+      const refeedCarbG = 30;
+      const refeedFatG = Math.max(0, Math.round((refeedCal - refeedProteinG * 4 - refeedCarbG * 4) / 9));
+
+      const totalDays = fastDayCount + (needsRefeed ? 1 : 0);
+      const days = Array.from({ length: totalDays }).map((_, i) => {
+        const isRefeedDay = needsRefeed && i === totalDays - 1;
+        if (isRefeedDay) {
+          return {
+            day: `Day ${i + 1}`,
+            isRefeed: true,
+            cal: refeedCal, proteinG: refeedProteinG, carbG: refeedCarbG, fatG: refeedFatG,
+            fastWindow: "Refeed",
+            eatStart: "12:00 PM", eatEnd: "6:00 PM",
+            tight: false, omad: false, adFast: false,
+          };
+        }
+        const hoursLeft = totalHours - i * 24;
+        const hoursThisDay = Math.min(24, hoursLeft);
+        return {
+          day: `Day ${i + 1}`,
+          isRefeed: false,
+          cal: 0, proteinG: 0, carbG: 0, fatG: 0,
+          fastWindow: `${hoursThisDay}h fast · water + electrolytes`,
+          eatStart: "", eatEnd: "",
+          tight: false, omad: false, adFast: true,
+        };
+      });
+      return { tdee, target, proteinFloor, days, adjust, protocolName: `${totalHours}h extended fast`, extended: true, totalHours, needsRefeed };
+    }
+
+    // ---------- Recurring weekly branch ----------
+    const length = Math.max(1, Math.min(30, planLengthDays));
+    const days = Array.from({ length }).map((_, i) => {
+      const d = DAYS[i % 7];
       const isRefeed = isCKD && (i === 5 || i === 6); // Sat/Sun
       const isAdFastDay = isAlternateDay && i % 2 === 0; // Mon/Wed/Fri/Sun full fast
       const cal = isRefeed ? Math.round(target * 1.15) : target;
@@ -253,13 +306,13 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
       const tight = !isRefeed && !isAlternateDay && isTightWindow;
       const omad = !isRefeed && !isAlternateDay && isOmad;
       const adFast = isAlternateDay && isAdFastDay;
-      return { day: d, isRefeed, cal: adFast ? 0 : cal, proteinG: adFast ? 0 : proteinG, carbG: adFast ? 0 : carbG, fatG: adFast ? 0 : fatG, fastWindow, eatStart, eatEnd, tight, omad, adFast };
+      return { day: length > 7 ? `${d} ${Math.floor(i / 7) + 1}` : d, isRefeed, cal: adFast ? 0 : cal, proteinG: adFast ? 0 : proteinG, carbG: adFast ? 0 : carbG, fatG: adFast ? 0 : fatG, fastWindow, eatStart, eatEnd, tight, omad, adFast };
     });
-    return { tdee, target, proteinFloor, days, adjust, protocolName: selectedProtocol?.name };
-  }, [weight, goal, activity, kt, customDeficit, allProtocols, featureSettings?.selected_protocol_id]);
+    return { tdee, target, proteinFloor, days, adjust, protocolName: selectedProtocol?.name, extended: false };
+  }, [weight, goal, activity, kt, customDeficit, allProtocols, featureSettings?.selected_protocol_id, planType, planLengthDays, extendedPreset, customFastHours]);
 
   const handleSave = () => {
-    localStorage.setItem(storageKey, JSON.stringify({ weight, goal, activity, startDate, customDeficit, savedAt: new Date().toISOString() }));
+    localStorage.setItem(storageKey, JSON.stringify({ weight, goal, activity, startDate, customDeficit, planType, planLengthDays, extendedPreset, customFastHours, savedAt: new Date().toISOString() }));
     toast.success("Protocol saved for this client");
   };
 
@@ -410,6 +463,64 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
             </div>
           )}
 
+          <Separator />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <Label>Plan Type</Label>
+              <Select value={planType} onValueChange={(v) => setPlanType(v as PlanType)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="recurring">Recurring weekly</SelectItem>
+                  <SelectItem value="extended">Extended fast</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {planType === "recurring" ? (
+              <div>
+                <Label>Plan Length</Label>
+                <Select value={String(planLengthDays)} onValueChange={(v) => setPlanLengthDays(parseInt(v, 10))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1 day</SelectItem>
+                    <SelectItem value="3">3 days</SelectItem>
+                    <SelectItem value="7">7 days (week)</SelectItem>
+                    <SelectItem value="14">14 days</SelectItem>
+                    <SelectItem value="30">30 days</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <>
+                <div>
+                  <Label>Fast Duration</Label>
+                  <Select value={extendedPreset} onValueChange={(v) => setExtendedPreset(v as ExtendedPreset)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="24">24 hours</SelectItem>
+                      <SelectItem value="36">36 hours</SelectItem>
+                      <SelectItem value="48">48 hours (2 day)</SelectItem>
+                      <SelectItem value="72">72 hours (3 day)</SelectItem>
+                      <SelectItem value="120">120 hours (5 day)</SelectItem>
+                      <SelectItem value="custom">Custom hours…</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {extendedPreset === "custom" && (
+                  <div>
+                    <Label>Custom hours (12–240)</Label>
+                    <Input
+                      type="number"
+                      min={12}
+                      max={240}
+                      value={customFastHours}
+                      onChange={(e) => setCustomFastHours(parseInt(e.target.value || "0", 10))}
+                    />
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
           {plan && (
             <>
               <Separator />
@@ -426,7 +537,14 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
 
       {plan && (
         <Card>
-          <CardHeader><CardTitle className="text-base">Weekly Plan</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle className="text-base">
+              {plan.extended ? `Extended Fast Plan · ${plan.totalHours}h` : `Plan · ${planLengthDays} day${planLengthDays > 1 ? "s" : ""}`}
+            </CardTitle>
+            {plan.extended && plan.needsRefeed && (
+              <p className="text-xs text-muted-foreground">Includes an auto-generated refeed day for safe re-entry.</p>
+            )}
+          </CardHeader>
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
