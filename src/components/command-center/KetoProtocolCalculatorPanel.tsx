@@ -112,14 +112,17 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
     mutationFn: async (protocolId: string) => {
       const { error } = await supabase
         .from("client_feature_settings")
-        .update({
-          selected_protocol_id: protocolId,
-          selected_quick_plan_id: null,
-          quick_plan_duration_days: null,
-          protocol_assigned_by: trainerId,
-          active_fast_target_hours: null,
-        })
-        .eq("client_id", clientId);
+        .upsert(
+          {
+            client_id: clientId,
+            selected_protocol_id: protocolId,
+            selected_quick_plan_id: null,
+            quick_plan_duration_days: null,
+            protocol_assigned_by: trainerId,
+            active_fast_target_hours: null,
+          },
+          { onConflict: "client_id" }
+        );
       if (error) throw error;
     },
     onSuccess: () => {
