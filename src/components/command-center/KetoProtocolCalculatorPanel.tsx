@@ -297,6 +297,15 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assignment, weightLbs, paceGoal]);
 
+  // Seed the Plan Length from the coach-saved assignment duration (DB is source of truth).
+  useEffect(() => {
+    const d = (featureSettings as any)?.assigned_protocol_duration_days;
+    if (typeof d === "number" && d > 0 && d !== planLengthDays) {
+      setPlanLengthDays(d);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [featureSettings?.assigned_protocol_duration_days]);
+
   const kt = assignment?.keto_types as any;
 
   const plan = useMemo(() => {
@@ -644,8 +653,15 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
             </div>
             {planType === "recurring" ? (
               <div>
-                <Label>Plan Length</Label>
-                <Select value={String(planLengthDays)} onValueChange={(v) => setPlanLengthDays(parseInt(v, 10))}>
+                <Label>Assignment Duration</Label>
+                <Select
+                  value={String(planLengthDays)}
+                  onValueChange={(v) => {
+                    const n = parseInt(v, 10);
+                    setPlanLengthDays(n);
+                    saveDurationMutation.mutate(n);
+                  }}
+                >
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="1">1 day</SelectItem>
@@ -653,8 +669,13 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
                     <SelectItem value="7">7 days (week)</SelectItem>
                     <SelectItem value="14">14 days</SelectItem>
                     <SelectItem value="30">30 days</SelectItem>
+                    <SelectItem value="60">60 days</SelectItem>
+                    <SelectItem value="90">90 days</SelectItem>
                   </SelectContent>
                 </Select>
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  This is the "Day X / N" the client sees on the lion card.
+                </p>
               </div>
             ) : (
               <>
