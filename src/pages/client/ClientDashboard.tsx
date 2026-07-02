@@ -931,9 +931,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
           <div className="text-center py-4">
             <p className="text-sm text-muted-foreground">Maintain your fasting routine at your own pace.</p>
           </div>
-          <Button className="w-full h-12 text-base" onClick={() => startFastMutation.mutate()}>
-            <Clock className="h-4 w-4 mr-2" /> Start Fast
-          </Button>
+          <StartFastGate onStart={() => startFastMutation.mutate()} />
           <Button variant="ghost" size="sm" className="w-full text-xs" onClick={() => navigate("/client/programs")}>
             Start a new protocol
           </Button>
