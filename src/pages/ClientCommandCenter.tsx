@@ -26,6 +26,7 @@ import { ClientTasksTab } from "@/components/command-center/ClientTasksTab";
 import { ClientCalendarTab } from "@/components/command-center/ClientCalendarTab";
 import { KetoProtocolCalculatorPanel } from "@/components/command-center/KetoProtocolCalculatorPanel";
 import { ActiveProtocolSummary } from "@/components/command-center/ActiveProtocolSummary";
+import { ProtocolHistorySection } from "@/components/command-center/ProtocolHistorySection";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AUTH_URL } from "@/lib/appUrl";
 import { useImpersonation } from "@/hooks/useImpersonation";
@@ -274,7 +275,10 @@ export default function ClientCommandCenter() {
             <GroupedNutritionTab clientId={clientId!} trainerId={user?.id!} />
           </TabsContent>
           <TabsContent value="protocol">
-            <KetoProtocolCalculatorPanel clientId={clientId!} trainerId={user?.id!} />
+            <div className="space-y-4 sm:space-y-6">
+              <KetoProtocolCalculatorPanel clientId={clientId!} trainerId={user?.id!} />
+              <ProtocolHistorySection clientId={clientId!} />
+            </div>
           </TabsContent>
           <TabsContent value="progress">
             <GroupedProgressTab clientId={clientId!} trainerId={user?.id!} clientName={clientData?.client?.full_name} />
