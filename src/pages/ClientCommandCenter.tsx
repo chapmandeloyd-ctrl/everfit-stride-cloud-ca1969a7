@@ -25,6 +25,7 @@ import { ClientWodsTab } from "@/components/command-center/ClientWodsTab";
 import { ClientTasksTab } from "@/components/command-center/ClientTasksTab";
 import { ClientCalendarTab } from "@/components/command-center/ClientCalendarTab";
 import { KetoProtocolCalculatorPanel } from "@/components/command-center/KetoProtocolCalculatorPanel";
+import { ActiveProtocolSummary } from "@/components/command-center/ActiveProtocolSummary";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AUTH_URL } from "@/lib/appUrl";
 import { useImpersonation } from "@/hooks/useImpersonation";
@@ -229,6 +230,8 @@ export default function ClientCommandCenter() {
             </Button>
           </div>
         </div>
+
+        {clientId && <ActiveProtocolSummary clientId={clientId} />}
 
         {/* Tabbed Command Center */}
         <Tabs defaultValue="overview" className="space-y-4 sm:space-y-6">
