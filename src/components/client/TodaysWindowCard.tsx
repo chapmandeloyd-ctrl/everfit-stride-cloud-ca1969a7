@@ -4,8 +4,9 @@ import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover
 import { Clock, Utensils, Flame, Info, ChevronRight, Calendar, BookOpen } from "lucide-react";
 import { useClientComputedPlan } from "@/hooks/useClientComputedPlan";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LiveScheduleDialog } from "@/components/client/LiveScheduleDialog";
+import { subscribeLiveScheduleOpen } from "@/lib/liveScheduleBus";
 
 type DayState = "eat" | "fast" | "refeed" | "lowcal";
 const STATE_COLOR: Record<DayState, string> = {
@@ -49,6 +50,7 @@ export function TodaysWindowCard({ onStartFast }: { onStartFast?: () => void } =
   const { plan, dayIndex, ketoAccent, protocolName, ketoName, stage } = useClientComputedPlan();
   const navigate = useNavigate();
   const [scheduleOpen, setScheduleOpen] = useState(false);
+  useEffect(() => subscribeLiveScheduleOpen(() => setScheduleOpen(true)), []);
   if (!plan) return null;
   const today = plan.days[dayIndex];
   if (!today) return null;
