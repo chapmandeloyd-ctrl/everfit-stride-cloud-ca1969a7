@@ -236,7 +236,7 @@ export function TodaysWindowCard({ onStartFast }: { onStartFast?: () => void } =
           className="w-full flex items-center justify-center gap-1.5 py-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors"
         >
           <BookOpen className="h-3 w-3" />
-          Learn about your protocol
+          Why your plan works
           <ChevronRight className="h-3 w-3" />
         </button>
 
