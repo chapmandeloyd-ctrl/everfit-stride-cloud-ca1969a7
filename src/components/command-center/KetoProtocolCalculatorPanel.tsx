@@ -115,7 +115,8 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
   });
 
   const assignProtocolMutation = useMutation({
-    mutationFn: async (protocolId: string | null) => {
+    mutationFn: async (vars: string | null | { protocolId: string | null; source?: string }) => {
+      const protocolId = typeof vars === "object" && vars !== null ? vars.protocolId : vars;
       const patch = {
         selected_protocol_id: protocolId as any,
         selected_quick_plan_id: null,
@@ -140,17 +141,37 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
           .insert([{ client_id: clientId, ...patch }] as any);
         if (error) throw error;
       }
+      return { protocolId };
     },
-    onSuccess: (_data, newProtocolId, context: any) => {
+    onSuccess: async (_data, vars, context: any) => {
+      const newProtocolId = typeof vars === "object" && vars !== null ? vars.protocolId : vars;
+      const source = typeof vars === "object" && vars !== null && vars.source ? vars.source : "assign";
       queryClient.invalidateQueries({ queryKey: ["kpc-feature-settings", clientId] });
       queryClient.invalidateQueries({ queryKey: ["synergy-panel-settings", clientId] });
       queryClient.invalidateQueries({ queryKey: ["my-feature-settings"] });
+      queryClient.invalidateQueries({ queryKey: ["protocol-history", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["active-protocol-summary", clientId] });
       const prev = context?.previousProtocolId ?? null;
+      // Log history entry (best-effort)
+      const newName = allProtocols?.find((p) => p.id === newProtocolId)?.name ?? null;
+      const prevName = allProtocols?.find((p) => p.id === prev)?.name ?? null;
+      try {
+        await (supabase.from("protocol_assignment_history" as any) as any).insert({
+          client_id: clientId,
+          assigned_by: trainerId,
+          protocol_id: newProtocolId,
+          protocol_name: newName,
+          previous_protocol_id: prev,
+          previous_protocol_name: prevName,
+          source,
+        });
+        queryClient.invalidateQueries({ queryKey: ["protocol-history", clientId] });
+      } catch { /* ignore */ }
       if (prev !== newProtocolId) {
         toast.success("Protocol assigned", {
           action: {
             label: "Undo",
-            onClick: () => assignProtocolMutation.mutate(prev),
+            onClick: () => assignProtocolMutation.mutate({ protocolId: prev, source: "undo" }),
           },
         });
       } else {
