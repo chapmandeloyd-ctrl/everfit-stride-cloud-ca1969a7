@@ -143,7 +143,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
     queryFn: async () => {
       const { data, error } = await supabase
         .from("client_feature_settings")
-        .select("selected_protocol_id, selected_quick_plan_id, quick_plan_duration_days, protocol_start_date, active_fast_start_at, active_fast_target_hours, last_fast_ended_at, last_fast_completed_at, eating_window_ends_at, eating_window_hours, fasting_strict_mode, protocol_assigned_by, fasting_card_subtitle, fasting_card_image_url, eating_window_card_image_url, fast_lock_pin, protocol_completed, maintenance_mode, maintenance_schedule_type, trainer_id, lock_client_plan_choice")
+        .select("selected_protocol_id, selected_quick_plan_id, quick_plan_duration_days, assigned_protocol_duration_days, protocol_start_date, active_fast_start_at, active_fast_target_hours, last_fast_ended_at, last_fast_completed_at, eating_window_ends_at, eating_window_hours, fasting_strict_mode, protocol_assigned_by, fasting_card_subtitle, fasting_card_image_url, eating_window_card_image_url, fast_lock_pin, protocol_completed, maintenance_mode, maintenance_schedule_type, trainer_id, lock_client_plan_choice")
         .eq("client_id", clientId)
         .maybeSingle();
       if (error) throw error;
@@ -151,6 +151,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
         selected_protocol_id: string | null;
         selected_quick_plan_id: string | null;
         quick_plan_duration_days: number | null;
+        assigned_protocol_duration_days: number | null;
         protocol_start_date: string | null;
         active_fast_start_at: string | null;
         active_fast_target_hours: number | null;
@@ -241,7 +242,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
   // If a quick plan is assigned (no program), synthesize a protocol-shaped
   // object from it so the dashboard reflects the actual assignment instead of
   // falling back to the mock "16:8 Daily" preview.
-  const activeProtocol = activeProtocolRaw
+  const activeProtocolBase = activeProtocolRaw
     ?? (activeQuickPlan ? {
       id: activeQuickPlan.id,
       name: activeQuickPlan.name,
@@ -256,6 +257,18 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
       fast_target_hours: 16,
       difficulty_level: "intermediate",
     } : null);
+  // Coach-assigned duration wins over the protocol's built-in default so the
+  // lion card's "Day X / N" reflects what was actually assigned to this client.
+  const assignedDuration = featureSettings?.assigned_protocol_duration_days;
+  const activeProtocol = activeProtocolBase
+    ? {
+        ...activeProtocolBase,
+        duration_days:
+          typeof assignedDuration === "number" && assignedDuration > 0
+            ? assignedDuration
+            : activeProtocolBase.duration_days,
+      }
+    : null;
   const activeKetoType = activeKetoTypeRaw ?? (PREVIEW_COACH_START_NOW ? {
     id: "preview-tkd",
     name: "Targeted Keto",
