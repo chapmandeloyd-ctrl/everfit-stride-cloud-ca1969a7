@@ -1,9 +1,11 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import { Clock, Utensils, Flame, Info, ChevronRight, Calendar } from "lucide-react";
+import { Clock, Utensils, Flame, Info, ChevronRight, Calendar, BookOpen } from "lucide-react";
 import { useClientComputedPlan } from "@/hooks/useClientComputedPlan";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { ProtocolPreviewDialog } from "@/components/protocol/ProtocolPreviewDialog";
 
 type DayState = "eat" | "fast" | "refeed" | "lowcal";
 const STATE_COLOR: Record<DayState, string> = {
@@ -46,6 +48,7 @@ function shortDayLabel(d: any, state: DayState): string {
 export function TodaysWindowCard() {
   const { plan, dayIndex, ketoAccent, protocolName, ketoName, stage } = useClientComputedPlan();
   const navigate = useNavigate();
+  const [scheduleOpen, setScheduleOpen] = useState(false);
   if (!plan) return null;
   const today = plan.days[dayIndex];
   if (!today) return null;
@@ -216,7 +219,7 @@ export function TodaysWindowCard() {
 
         <button
           type="button"
-          onClick={() => navigate("/client/program")}
+          onClick={() => setScheduleOpen(true)}
           className="w-full mt-1 flex items-center justify-center gap-2 rounded-lg border py-2.5 text-[11px] uppercase tracking-widest font-semibold transition-colors hover:bg-muted/40"
           style={{ borderColor: accent, color: accent }}
         >
@@ -224,6 +227,24 @@ export function TodaysWindowCard() {
           View Full Schedule
           <ChevronRight className="h-3.5 w-3.5" />
         </button>
+
+        <button
+          type="button"
+          onClick={() => navigate("/client/program")}
+          className="w-full flex items-center justify-center gap-1.5 py-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <BookOpen className="h-3 w-3" />
+          Learn about your protocol
+          <ChevronRight className="h-3 w-3" />
+        </button>
+
+        <ProtocolPreviewDialog
+          open={scheduleOpen}
+          onOpenChange={setScheduleOpen}
+          plan={plan}
+          title="Your Full Schedule"
+          subtitle={[protocolName, ketoName].filter(Boolean).join(" · ")}
+        />
       </CardContent>
     </Card>
   );
