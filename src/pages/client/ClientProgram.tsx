@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Sparkles, Flame, Beaker, TrendingUp, Repeat, Timer, Utensils, ShieldCheck, Target, Droplets, Battery, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Sparkles, Flame, Beaker, TrendingUp, Repeat, Timer, Utensils, ShieldCheck, Target, Droplets, Battery, CheckCircle2, CalendarDays, Home } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { ClientLayout } from "@/components/ClientLayout";
@@ -15,6 +15,9 @@ import { LEVEL_TIERS, getTierForLevel } from "@/lib/quickPlanTierConfig";
 import type { DemoProtocol } from "@/components/plan/InteractiveProtocolCardDemo";
 import { getProtocolCardContent } from "@/lib/protocolCardContent";
 import { useClientComputedPlan } from "@/hooks/useClientComputedPlan";
+import { InteractiveProtocolCard } from "@/components/plan/InteractiveProtocolCard";
+import { InteractiveKetoTypeCard, type KetoTypeForCard } from "@/components/keto/InteractiveKetoTypeCard";
+import { openLiveSchedule } from "@/lib/liveScheduleBus";
 
 
 /* ──────────────────────────────────────────────────────────────────────
