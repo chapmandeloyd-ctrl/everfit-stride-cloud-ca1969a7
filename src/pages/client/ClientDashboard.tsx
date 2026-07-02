@@ -1614,17 +1614,6 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
             );
           })()}
 
-          {/* "View Your Assigned Program" — only when BOTH halves are assigned */}
-          {programFullyAssigned && (
-            <Button
-              variant="ghost"
-              className="w-full h-11 text-sm font-medium gap-2 bg-white/5 hover:bg-white/10 text-white border border-white/10 backdrop-blur-md"
-              onClick={() => navigate("/client/complete-plan?preview=1")}
-            >
-              View Your Assigned Program
-            </Button>
-          )}
-
           {/* Gold pills — View Protocol + View Keto Type. Always present.
               If admin has an assignment, they deep-link to the assigned detail page
               (with big-numbers gold lion layout). Otherwise they open the browse
