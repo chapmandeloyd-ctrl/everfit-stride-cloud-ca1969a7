@@ -115,9 +115,9 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
   });
 
   const assignProtocolMutation = useMutation({
-    mutationFn: async (protocolId: string) => {
+    mutationFn: async (protocolId: string | null) => {
       const patch = {
-        selected_protocol_id: protocolId,
+        selected_protocol_id: protocolId as any,
         selected_quick_plan_id: null,
         quick_plan_duration_days: null,
         protocol_assigned_by: trainerId,
@@ -141,11 +141,24 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
         if (error) throw error;
       }
     },
-    onSuccess: () => {
+    onSuccess: (_data, newProtocolId, context: any) => {
       queryClient.invalidateQueries({ queryKey: ["kpc-feature-settings", clientId] });
       queryClient.invalidateQueries({ queryKey: ["synergy-panel-settings", clientId] });
       queryClient.invalidateQueries({ queryKey: ["my-feature-settings"] });
-      toast.success("Protocol assigned");
+      const prev = context?.previousProtocolId ?? null;
+      if (prev !== newProtocolId) {
+        toast.success("Protocol assigned", {
+          action: {
+            label: "Undo",
+            onClick: () => assignProtocolMutation.mutate(prev),
+          },
+        });
+      } else {
+        toast.success("Protocol reverted");
+      }
+    },
+    onMutate: async () => {
+      return { previousProtocolId: featureSettings?.selected_protocol_id ?? null };
     },
     onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Failed to assign protocol"),
   });
