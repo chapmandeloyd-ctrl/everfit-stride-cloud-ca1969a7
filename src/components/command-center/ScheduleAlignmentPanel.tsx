@@ -77,7 +77,7 @@ export function ScheduleAlignmentPanel({ clientId }: Props) {
       } else {
         const { error } = await supabase
           .from("client_feature_settings")
-          .insert({ client_id: clientId, ...payload });
+          .insert([{ client_id: clientId, ...payload }] as any);
         if (error) throw error;
       }
     },
