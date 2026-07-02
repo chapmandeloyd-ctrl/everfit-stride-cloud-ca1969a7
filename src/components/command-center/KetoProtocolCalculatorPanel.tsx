@@ -440,8 +440,21 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
                         {d.day}
                         {d.isRefeed && <Badge className="ml-2" variant="outline">Refeed</Badge>}
                       </td>
-                      <td className="p-3">{d.fastWindow}</td>
-                      <td className="p-3 text-muted-foreground">{d.eatStart} – {d.eatEnd}</td>
+                      <td className="p-3">
+                        {d.fastWindow}
+                        {d.omad && <Badge className="ml-2" variant="secondary">OMAD</Badge>}
+                      </td>
+                      <td className="p-3 text-muted-foreground">
+                        {d.tight ? (
+                          <span>
+                            Break fast: <span className="text-foreground font-medium">{d.eatStart}</span>
+                            <span className="mx-1">·</span>
+                            Last meal by: <span className="text-foreground font-medium">{d.eatEnd}</span>
+                          </span>
+                        ) : (
+                          <>{d.eatStart} – {d.eatEnd}</>
+                        )}
+                      </td>
                       <td className="p-3 text-right">{d.cal}</td>
                       <td className="p-3 text-right">{d.proteinG}g</td>
                       <td className="p-3 text-right">{d.carbG}g</td>
