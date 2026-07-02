@@ -263,7 +263,35 @@ export function EventDetailDrawer({
 
           {/* Complete action */}
           {event && (
-            <div className="pt-2">
+            <div className="pt-2 space-y-2">
+              {canReschedule && onReschedule && (
+                <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full gap-2"
+                      disabled={rescheduling}
+                    >
+                      <CalendarPlus className="h-4 w-4" />
+                      {rescheduling ? "Rescheduling…" : "Reschedule"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="end">
+                    <DatePicker
+                      mode="single"
+                      selected={event.date}
+                      onSelect={(d) => {
+                        if (!d) return;
+                        setPickerOpen(false);
+                        onReschedule(event, d);
+                      }}
+                      disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))}
+                      initialFocus
+                      className="p-3 pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+              )}
               <Button
                 className="w-full gap-2"
                 onClick={() => onComplete(event)}
