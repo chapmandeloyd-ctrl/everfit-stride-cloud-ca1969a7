@@ -84,8 +84,7 @@ function ketoToCard(kt: KetoTypeRow): KetoTypeForCard {
 export default function ClientProgram() {
   const navigate = useNavigate();
   const clientId = useEffectiveClientId();
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
+  const { stage } = useClientComputedPlan();
 
   /* ── 1. Assignment IDs ── */
   const { data: assignments } = useQuery({
@@ -253,19 +252,19 @@ export default function ClientProgram() {
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <h1 className="text-2xl font-black tracking-tight">Your Program</h1>
+          <h1 className="text-2xl font-black tracking-tight">Why It Works</h1>
         </div>
 
-        {/* Why it works */}
+        {/* Hero — Why it works */}
         {hasProgram && protocolDemo && ketoType && (
-          <div className="rounded-lg border border-primary/30 bg-primary/5 p-4">
+          <div className="rounded-xl border border-primary/30 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-4">
             <div className="flex items-center gap-2 mb-2">
               <Sparkles className="h-3.5 w-3.5 text-primary" />
               <span className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary">
-                Why it works
+                The Science of Your Plan
               </span>
             </div>
-            <p className="text-sm text-foreground/80 leading-relaxed">
+            <p className="text-sm text-foreground/85 leading-relaxed">
               <span className="font-semibold text-foreground">{protocolDemo.title}</span>{" "}
               pairs with{" "}
               <span className="font-semibold text-foreground">{ketoType.name}</span> to
@@ -274,6 +273,56 @@ export default function ClientProgram() {
             </p>
           </div>
         )}
+
+        {/* Your current stage */}
+        <section className="space-y-3">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="h-3.5 w-3.5 text-primary" />
+            <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary">
+              Your Current Stage
+            </p>
+          </div>
+          <div className="rounded-xl border border-border/60 bg-card p-4 space-y-3">
+            <div className="flex items-baseline justify-between gap-2">
+              <h3 className="text-lg font-black tracking-tight">
+                Stage {stage.number} · {stage.label}
+              </h3>
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                Day {stage.dayInProtocol}
+              </span>
+            </div>
+            <p className="text-sm text-foreground/80 leading-relaxed">{stage.description}</p>
+            <div className="grid grid-cols-3 gap-1.5 pt-1">
+              {[1, 2, 3].map((n) => {
+                const active = n === stage.number;
+                const past = n < stage.number;
+                const labels = ["Adaptation", "Fat-Adapted", "Metabolic Flex"];
+                return (
+                  <div
+                    key={n}
+                    className={`rounded-lg border p-2 text-center ${
+                      active
+                        ? "border-primary bg-primary/10"
+                        : past
+                        ? "border-primary/30 bg-primary/5 opacity-70"
+                        : "border-border/60 bg-muted/20 opacity-50"
+                    }`}
+                  >
+                    <p className={`text-[10px] font-bold ${active ? "text-primary" : "text-muted-foreground"}`}>
+                      STAGE {n}
+                    </p>
+                    <p className="text-[10px] mt-0.5 truncate">{labels[n - 1]}</p>
+                  </div>
+                );
+              })}
+            </div>
+            {stage.daysUntilNext != null && (
+              <p className="text-[11px] text-muted-foreground">
+                {stage.daysUntilNext} days until next stage
+              </p>
+            )}
+          </div>
+        </section>
 
         {/* Empty states */}
         {!protocolDemo && (
@@ -287,9 +336,12 @@ export default function ClientProgram() {
         {/* Protocol */}
         {protocolDemo && (
           <section className="space-y-3">
-            <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary">
-              Stage 1 · Protocol
-            </p>
+            <div className="flex items-center gap-2">
+              <Flame className="h-3.5 w-3.5 text-primary" />
+              <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary">
+                Your Fasting Protocol
+              </p>
+            </div>
             <InteractiveProtocolCard
               protocol={protocolDemo}
               onMeasureHeight={makeOnMeasure("protocol")}
@@ -309,9 +361,12 @@ export default function ClientProgram() {
         {/* Keto Type */}
         {ketoType && (
           <section className="space-y-3">
-            <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary">
-              Stage 2 · Keto Type
-            </p>
+            <div className="flex items-center gap-2">
+              <Beaker className="h-3.5 w-3.5 text-primary" />
+              <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary">
+                Your Keto Type
+              </p>
+            </div>
             <InteractiveKetoTypeCard
               ketoType={ketoToCard(ketoType)}
               themeColor={ketoType.color || undefined}
@@ -320,6 +375,28 @@ export default function ClientProgram() {
               onMeasureHeight={makeOnMeasure("keto")}
               forcedHeight={tallest > 0 ? tallest : undefined}
             />
+          </section>
+        )}
+
+        {/* Refeed education (CKD/refeed cycles) */}
+        {ketoType?.abbreviation === "CKD" && (
+          <section className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Repeat className="h-3.5 w-3.5 text-primary" />
+              <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary">
+                Refeed Days
+              </p>
+            </div>
+            <div className="rounded-xl border border-border/60 bg-card p-4 space-y-2">
+              <p className="text-sm text-foreground/85 leading-relaxed">
+                Refeed days strategically reload muscle glycogen without kicking you out of adaptation
+                long-term. Prioritize clean carbs (rice, potatoes, fruit) with lean protein — avoid
+                sugar and seed oils.
+              </p>
+              <p className="text-[11px] text-muted-foreground">
+                Your schedule places refeeds automatically based on your protocol.
+              </p>
+            </div>
           </section>
         )}
 
