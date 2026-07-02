@@ -6,7 +6,7 @@ import {
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { getDifficultyLabel } from "@/lib/fastingCategoryConfig";
 import { usePlanSynergy } from "@/hooks/usePlanSynergy";
@@ -33,6 +33,7 @@ export default function ClientCompletePlan() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
 
   const { data: featureSettings } = useQuery({
     queryKey: ["complete-plan-settings", clientId],
@@ -138,6 +139,13 @@ export default function ClientCompletePlan() {
       planLengthDays: 7,
     });
   }, [ketoType, weightLbs, protocol]);
+
+  // Auto-open the 7-day preview when arriving via ?preview=1 from the lion dashboard.
+  useEffect(() => {
+    if (searchParams.get("preview") === "1" && previewPlan) {
+      setScheduleOpen(true);
+    }
+  }, [searchParams, previewPlan]);
 
   const protocolType = protocolId ? "program" : quickPlanId ? "quick_plan" : null;
   const { data: synergy } = usePlanSynergy(
