@@ -107,10 +107,13 @@ export function useScheduledFastGate(): ScheduledFastGate {
     queryFn: async () => {
       const { data } = await supabase
         .from("client_feature_settings")
-        .select("enforce_scheduled_start, schedule_timezone")
+        .select("enforce_scheduled_start, schedule_timezone" as any)
         .eq("client_id", clientId!)
         .maybeSingle();
-      return data as { enforce_scheduled_start: boolean | null; schedule_timezone: string | null } | null;
+      return data as unknown as {
+        enforce_scheduled_start: boolean | null;
+        schedule_timezone: string | null;
+      } | null;
     },
     enabled: !!clientId,
   });
