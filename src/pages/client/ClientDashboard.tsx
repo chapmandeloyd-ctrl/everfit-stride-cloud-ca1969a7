@@ -59,6 +59,7 @@ import { SwipeToDeleteWorkoutRow } from "@/components/workout/SwipeToDeleteWorko
 import { SwipeToDeleteTaskRow } from "@/components/tasks/SwipeToDeleteTaskRow";
 import { SpeedDialFAB } from "@/components/SpeedDialFAB";
 import { FastingStatusCard } from "@/components/client/FastingStatusCard";
+import { TodaysWindowCard } from "@/components/client/TodaysWindowCard";
 import { BuildWorkoutSheet } from "@/components/workout/BuildWorkoutSheet";
 
 import { ProgramsSelector } from "@/components/ProgramsSelector";
