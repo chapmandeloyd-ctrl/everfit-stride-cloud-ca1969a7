@@ -144,9 +144,9 @@ export default function ClientCompletePlan() {
 
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const previewPlan = useMemo(() => {
-    if (!ketoType || !weightLbs || !protocol) return null;
+    if (!ketoType || !protocol) return null;
     return computePlan({
-      weightLbs: Number(weightLbs),
+      weightLbs: Number(weightLbs) || 180,
       ketoType: ketoType as any,
       protocol: { name: protocol.name, fast_target_hours: protocol.fast_target_hours },
       planType: "recurring",
