@@ -117,21 +117,6 @@ export function LiveScheduleDialog({
   const dayInProtocol = startDate ? Math.max(1, daysBetween(startDate, today) + 1) : null;
   const isComplete = endDate ? startOfDay(today) > endDate : false;
 
-  // Which days in the window were fast/refeed target days (for completion summary)
-  const fastDayIndexes = useMemo(() => {
-    if (!startDate || !assignedDurationDays) return [] as number[];
-    const out: number[] = [];
-    for (let i = 0; i < assignedDurationDays; i++) {
-      const d = new Date(startDate);
-      d.setDate(startDate.getDate() + i);
-      const { plan: pd } = dayFor(d);
-      const st = dayState(pd);
-      if (st === "fast" || st === "refeed") out.push(i);
-    }
-    return out;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [startDate, assignedDurationDays, todayIndex, len]);
-
   const logsByDay = useMemo(() => {
     const map = new Map<string, { actual: number; target: number; pct: number; status: string }>();
     for (const log of fastingLogs || []) {
