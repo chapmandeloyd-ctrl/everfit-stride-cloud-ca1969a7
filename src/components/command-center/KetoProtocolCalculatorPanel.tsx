@@ -587,6 +587,30 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
               <Button size="sm" onClick={handleSave} disabled={!plan}>
                 <Save className="h-4 w-4 mr-1" /> Save
               </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" size="sm" disabled={resetting}>
+                    <RotateCcw className="h-4 w-4 mr-1" /> Reset Plan
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Reset entire plan?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Clears the assigned protocol, keto type, scheduled calendar,
+                      and saved completion for this client — leaving them as if no
+                      plan was ever assigned. Weigh-ins, workouts, fasting history,
+                      and badges are kept.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleFullPlanReset}>
+                      Yes, reset plan
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </div>
         </CardHeader>
