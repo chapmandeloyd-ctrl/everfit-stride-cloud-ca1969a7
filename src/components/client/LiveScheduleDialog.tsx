@@ -93,6 +93,7 @@ type HistoryStatus = "completed" | "partial" | "missed" | null;
 /** Phase 1: Live Schedule — Month view + tap-to-detail day sheet. */
 export function LiveScheduleDialog({
   open, onOpenChange, plan, todayIndex, accent, protocolName, ketoName, onStartFast,
+  protocolStartDate, assignedDurationDays, fastingLogs,
 }: Props) {
   const isMobile = useIsMobile();
   const startFast = useStartFast();
@@ -100,6 +101,36 @@ export function LiveScheduleDialog({
   const today = useMemo(() => new Date(), []);
   const [cursor, setCursor] = useState<Date>(() => new Date(today.getFullYear(), today.getMonth(), 1));
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+
+  const startDate = useMemo(
+    () => protocolStartDate ? startOfDay(new Date(protocolStartDate)) : null,
+    [protocolStartDate]
+  );
+  const endDate = useMemo(() => {
+    if (!startDate || !assignedDurationDays) return null;
+    const e = new Date(startDate);
+    e.setDate(e.getDate() + assignedDurationDays - 1);
+    return e;
+  }, [startDate, assignedDurationDays]);
+  const dayInProtocol = startDate ? Math.max(1, daysBetween(startDate, today) + 1) : null;
+  const isComplete = endDate ? startOfDay(today) > endDate : false;
+
+  const logsByDay = useMemo(() => {
+    const map = new Map<string, { actual: number; target: number; pct: number; status: string }>();
+    for (const log of fastingLogs || []) {
+      const key = dateKey(new Date(log.ended_at));
+      const prev = map.get(key);
+      if (!prev || Number(log.completion_pct) > prev.pct) {
+        map.set(key, {
+          actual: Number(log.actual_hours),
+          target: Number(log.target_hours),
+          pct: Number(log.completion_pct),
+          status: log.status,
+        });
+      }
+    }
+    return map;
+  }, [fastingLogs]);
 
   const cells = useMemo(() => {
     const start = startOfMonthGrid(cursor);
@@ -117,6 +148,28 @@ export function LiveScheduleDialog({
     return { plan: plan.days[idx], idx };
   };
 
+  const categorize = (d: Date): {
+    inWindow: boolean; beforeStart: boolean; afterEnd: boolean; history: HistoryStatus;
+  } => {
+    const day = startOfDay(d);
+    const beforeStart = startDate ? day < startDate : false;
+    const afterEnd = endDate ? day > endDate : false;
+    const inWindow = !beforeStart && !afterEnd;
+    const isPast = day < startOfDay(today);
+    let history: HistoryStatus = null;
+    if (inWindow && isPast) {
+      const { plan: pd } = dayFor(d);
+      const st = dayState(pd);
+      if (st === "fast" || st === "refeed") {
+        const log = logsByDay.get(dateKey(d));
+        if (!log) history = "missed";
+        else if (log.pct >= 100) history = "completed";
+        else history = "partial";
+      }
+    }
+    return { inWindow, beforeStart, afterEnd, history };
+  };
+
   const monthLabel = cursor.toLocaleDateString(undefined, { month: "long", year: "numeric" });
   const monthNav = (dir: -1 | 1) => {
     const c = new Date(cursor);
@@ -124,10 +177,59 @@ export function LiveScheduleDialog({
     setCursor(c);
   };
 
-  const selected = selectedDate ? { date: selectedDate, ...dayFor(selectedDate) } : null;
+  const selected = selectedDate
+    ? { date: selectedDate, ...dayFor(selectedDate), meta: categorize(selectedDate) }
+    : null;
+
+  const firedRef = useRef(false);
+  useEffect(() => {
+    if (!open || !isComplete || firedRef.current) return;
+    firedRef.current = true;
+    const end = Date.now() + 1200;
+    const frame = () => {
+      confetti({ particleCount: 4, angle: 60, spread: 55, origin: { x: 0 }, colors: [accent, "#ffffff"] });
+      confetti({ particleCount: 4, angle: 120, spread: 55, origin: { x: 1 }, colors: [accent, "#ffffff"] });
+      if (Date.now() < end) requestAnimationFrame(frame);
+    };
+    frame();
+  }, [open, isComplete, accent]);
 
   const body = (
     <div className="space-y-4">
+      {startDate && assignedDurationDays && (
+        isComplete ? (
+          <div className="rounded-xl border p-4 flex items-start gap-3"
+            style={{ borderColor: `${accent}55`, background: `${accent}12` }}>
+            <Trophy className="h-5 w-5 shrink-0 mt-0.5" style={{ color: accent }} />
+            <div className="space-y-1">
+              <p className="text-sm font-bold" style={{ color: accent }}>
+                You completed your {assignedDurationDays}-day fasting plan!
+              </p>
+              <p className="text-xs text-muted-foreground leading-snug">
+                Amazing work. You and your coach will go over your next plan — you're ready to take
+                your fasting to the next level.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between rounded-lg border border-border/50 bg-muted/20 px-3 py-2">
+            <p className="text-xs font-semibold whitespace-nowrap">
+              Day <span style={{ color: accent }}>{Math.min(dayInProtocol!, assignedDurationDays)}</span> of {assignedDurationDays}
+            </p>
+            <div className="h-1.5 flex-1 mx-3 rounded-full bg-muted overflow-hidden">
+              <div className="h-full rounded-full transition-all"
+                style={{
+                  width: `${Math.min(100, (dayInProtocol! / assignedDurationDays) * 100)}%`,
+                  background: accent,
+                }} />
+            </div>
+            <p className="text-[10px] text-muted-foreground tabular-nums whitespace-nowrap">
+              {Math.max(0, assignedDurationDays - dayInProtocol!)}d left
+            </p>
+          </div>
+        )
+      )}
+
       {/* Header row: month nav */}
       <div className="flex items-center justify-between">
         <button
