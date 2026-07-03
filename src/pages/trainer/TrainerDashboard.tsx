@@ -15,6 +15,7 @@ import {
   Plus,
   ChevronRight,
   MessageSquare,
+  AlertTriangle,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { Tables } from "@/integrations/supabase/types";
@@ -30,6 +31,10 @@ export default function TrainerDashboard() {
   const [search, setSearch] = useState("");
   const [todayAppointments, setTodayAppointments] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [notStartedIds, setNotStartedIds] = useState<Set<string>>(new Set());
+  const [notStartedDetails, setNotStartedDetails] = useState<
+    Record<string, { startDate: string; daysOverdue: number }>
+  >({});
 
   useEffect(() => {
     if (!profile?.id) return;
@@ -38,7 +43,7 @@ export default function TrainerDashboard() {
       // Fetch clients assigned to this trainer
       const { data: featureSettings } = await supabase
         .from("client_feature_settings")
-        .select("client_id")
+        .select("client_id, protocol_start_date")
         .eq("trainer_id", profile.id);
 
       if (featureSettings && featureSettings.length > 0) {
@@ -50,6 +55,49 @@ export default function TrainerDashboard() {
           .eq("role", "client");
 
         setClients(clientProfiles || []);
+
+        // Compute "hasn't started": start_date is today or past AND no fasting_log since then
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const candidates = (featureSettings ?? []).filter(
+          (fs) =>
+            fs.protocol_start_date &&
+            new Date(fs.protocol_start_date as string) <= today,
+        );
+        if (candidates.length > 0) {
+          const candidateIds = candidates.map((c) => c.client_id);
+          const earliest = candidates.reduce(
+            (min, c) =>
+              !min || (c.protocol_start_date as string) < min
+                ? (c.protocol_start_date as string)
+                : min,
+            "" as string,
+          );
+          const { data: logs } = await supabase
+            .from("fasting_log")
+            .select("client_id")
+            .in("client_id", candidateIds)
+            .gte("start_time", earliest + "T00:00:00Z");
+          const startedSet = new Set((logs ?? []).map((l) => l.client_id));
+          const missing = new Set<string>();
+          const details: Record<string, { startDate: string; daysOverdue: number }> = {};
+          for (const c of candidates) {
+            if (!startedSet.has(c.client_id)) {
+              missing.add(c.client_id);
+              const sd = String(c.protocol_start_date).slice(0, 10);
+              const overdue = Math.max(
+                0,
+                Math.round(
+                  (today.getTime() - new Date(sd + "T00:00:00Z").getTime()) /
+                    86_400_000,
+                ),
+              );
+              details[c.client_id] = { startDate: sd, daysOverdue: overdue };
+            }
+          }
+          setNotStartedIds(missing);
+          setNotStartedDetails(details);
+        }
       }
 
       // Today's appointments count
@@ -174,6 +222,56 @@ export default function TrainerDashboard() {
         </Card>
       </div>
 
+      {/* Not started card */}
+      {notStartedIds.size > 0 && (
+        <Card className="border-destructive/30 bg-destructive/5">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              <CardTitle className="text-base">
+                {notStartedIds.size} client{notStartedIds.size === 1 ? "" : "s"} haven't started their plan
+              </CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="space-y-2">
+              {clients
+                .filter((c) => notStartedIds.has(c.id))
+                .map((c) => {
+                  const d = notStartedDetails[c.id];
+                  return (
+                    <button
+                      key={c.id}
+                      onClick={() => navigate(`/clients/${c.id}`)}
+                      className="flex w-full items-center gap-3 rounded-lg bg-background/60 hover:bg-background transition-colors px-3 py-2 text-left"
+                    >
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={c.avatar_url || undefined} />
+                        <AvatarFallback className="text-xs">
+                          {getInitials(c.full_name, c.email)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold truncate">
+                          {c.full_name || c.email}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {d?.daysOverdue === 0
+                            ? `Starts today · not logged yet`
+                            : `${d?.daysOverdue}d overdue · started ${d?.startDate}`}
+                        </p>
+                      </div>
+                      <Badge variant="destructive" className="text-[10px]">
+                        Not started
+                      </Badge>
+                    </button>
+                  );
+                })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Client list */}
       <Card className="border-none shadow-sm">
         <CardHeader className="pb-3">
@@ -223,6 +321,12 @@ export default function TrainerDashboard() {
                     </p>
                     <p className="text-xs text-muted-foreground truncate">{client.email}</p>
                   </div>
+                  {notStartedIds.has(client.id) && (
+                    <Badge variant="destructive" className="text-[10px] gap-1">
+                      <AlertTriangle className="h-3 w-3" />
+                      Not started
+                    </Badge>
+                  )}
                   <Badge variant="secondary" className="text-xs capitalize">
                     {client.subscription_tier}
                   </Badge>
