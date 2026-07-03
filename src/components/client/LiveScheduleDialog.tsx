@@ -1,13 +1,14 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ChevronLeft, ChevronRight, X, Utensils, Clock, Flame, Info, CalendarDays } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, Utensils, Clock, Flame, Info, CalendarDays, Check, AlertTriangle, Lock, Trophy } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { ComputedPlan, PlanDay } from "@/lib/protocolPlan";
 import { StartFastGate } from "@/components/client/StartFastGate";
 import { useStartFast } from "@/hooks/useStartFast";
+import confetti from "canvas-confetti";
 
 type DayState = "eat" | "fast" | "refeed" | "lowcal";
 const STATE_COLOR: Record<DayState, string> = {
@@ -75,7 +76,19 @@ interface Props {
   protocolName?: string;
   ketoName?: string;
   onStartFast?: () => void;
+  protocolStartDate?: string | null;
+  assignedDurationDays?: number | null;
+  fastingLogs?: Array<{
+    started_at: string;
+    ended_at: string;
+    target_hours: number;
+    actual_hours: number;
+    completion_pct: number;
+    status: string;
+  }>;
 }
+
+type HistoryStatus = "completed" | "partial" | "missed" | null;
 
 /** Phase 1: Live Schedule — Month view + tap-to-detail day sheet. */
 export function LiveScheduleDialog({
