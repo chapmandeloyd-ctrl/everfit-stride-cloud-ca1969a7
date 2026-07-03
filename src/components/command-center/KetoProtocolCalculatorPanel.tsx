@@ -8,12 +8,23 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Calculator, Save, RefreshCw } from "lucide-react";
+import { Calculator, Save, RefreshCw, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { Eye, Info } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { computePlan } from "@/lib/protocolPlan";
 import { ProtocolPreviewDialog } from "@/components/protocol/ProtocolPreviewDialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 type Goal = "cut" | "maintain" | "bulk" | "custom";
 type Activity = "sedentary" | "light" | "moderate" | "active" | "very_active";
@@ -449,6 +460,69 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
     toast.info("Reset to defaults");
   };
 
+  const [resetting, setResetting] = useState(false);
+  const handleFullPlanReset = async () => {
+    setResetting(true);
+    try {
+      // 1. Deactivate keto assignment(s)
+      await supabase
+        .from("client_keto_assignments")
+        .update({ is_active: false })
+        .eq("client_id", clientId);
+
+      // 2. Clear plan fields on client_feature_settings
+      await supabase
+        .from("client_feature_settings")
+        .update({
+          selected_protocol_id: null,
+          protocol_start_date: null,
+          protocol_calc_inputs: null,
+          protocol_completed: false,
+          assigned_protocol_duration_days: null,
+          selected_quick_plan_id: null,
+          quick_plan_duration_days: null,
+        } as any)
+        .eq("client_id", clientId);
+
+      // 3. Delete scheduled calendar items for this client
+      await (supabase.from("protocol_schedule_items" as any) as any)
+        .delete()
+        .eq("client_id", clientId);
+      await (supabase.from("protocol_schedule_keto_overrides" as any) as any)
+        .delete()
+        .eq("client_id", clientId);
+
+      // 4. Delete saved completion snapshots
+      await (supabase.from("plan_completions" as any) as any)
+        .delete()
+        .eq("client_id", clientId);
+
+      // 5. Clear synergy selection
+      await supabase
+        .from("fasting_synergy_selection")
+        .delete()
+        .eq("client_id", clientId);
+
+      // 6. Clear local cache
+      localStorage.removeItem(storageKey);
+
+      // 7. Refresh all related queries
+      queryClient.invalidateQueries({ queryKey: ["keto-assignment", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["kpc-feature-settings", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["tw-settings"] });
+      queryClient.invalidateQueries({ queryKey: ["protocol-schedule", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["plan-completions", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["protocol-history", clientId] });
+
+      toast.success("Plan cleared. Client is ready for a fresh assignment.");
+    } catch (e: any) {
+      console.error("[reset plan] failed:", e);
+      toast.error(e?.message || "Reset failed");
+    } finally {
+      setResetting(false);
+    }
+  };
+
   const previewPlan = useMemo(() => {
     const w = parseFloat(weight);
     if (!w || !kt) return null;
@@ -513,6 +587,30 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
               <Button size="sm" onClick={handleSave} disabled={!plan}>
                 <Save className="h-4 w-4 mr-1" /> Save
               </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" size="sm" disabled={resetting}>
+                    <RotateCcw className="h-4 w-4 mr-1" /> Reset Plan
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Reset entire plan?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Clears the assigned protocol, keto type, scheduled calendar,
+                      and saved completion for this client — leaving them as if no
+                      plan was ever assigned. Weigh-ins, workouts, fasting history,
+                      and badges are kept.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleFullPlanReset}>
+                      Yes, reset plan
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </div>
         </CardHeader>
