@@ -1,7 +1,10 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Trophy, Check, AlertTriangle, X, Share2, Copy, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
+import { Link } from "react-router-dom";
 
 type Log = {
   started_at: string;
@@ -32,6 +35,7 @@ export function PlanCompletionSummary({
 }: Props) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [busy, setBusy] = useState(false);
+  const clientId = useEffectiveClientId();
 
   const stats = useMemo(() => {
     const byDay = new Map<string, { pct: number; actual: number; target: number }>();
@@ -63,6 +67,40 @@ export function PlanCompletionSummary({
     const successRate = totalTargets ? Math.round((completed / totalTargets) * 100) : 0;
     return { completed, partial, missed, totalTargets, totalHours, targetHours, successRate };
   }, [fastingLogs, fastDayIndexes, startDate, durationDays]);
+
+  // Persist completion snapshot (idempotent via unique client_id/start_date/duration_days)
+  const savedRef = useRef(false);
+  useEffect(() => {
+    if (savedRef.current || !clientId || !startDate || !durationDays) return;
+    if (stats.totalTargets === 0) return;
+    savedRef.current = true;
+    const endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + durationDays - 1);
+    const iso = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    supabase
+      .from("plan_completions" as any)
+      .upsert(
+        {
+          client_id: clientId,
+          protocol_name: protocolName ?? null,
+          keto_name: ketoName ?? null,
+          start_date: iso(startDate),
+          end_date: iso(endDate),
+          duration_days: durationDays,
+          completed_count: stats.completed,
+          partial_count: stats.partial,
+          missed_count: stats.missed,
+          total_hours: Math.round(stats.totalHours * 10) / 10,
+          target_hours: Math.round(stats.targetHours * 10) / 10,
+          success_rate: stats.successRate,
+        },
+        { onConflict: "client_id,start_date,duration_days" }
+      )
+      .then(({ error }) => {
+        if (error) console.warn("[plan_completions] save failed:", error.message);
+      });
+  }, [clientId, startDate, durationDays, protocolName, ketoName, stats]);
 
   const shareText = useMemo(() => {
     const lines = [
@@ -221,6 +259,13 @@ export function PlanCompletionSummary({
       <p className="text-xs text-muted-foreground leading-snug">
         Amazing work — you and your coach will review results and set your next plan.
       </p>
+      <Link
+        to="/client/plan-history"
+        className="block text-center text-xs font-semibold underline underline-offset-4"
+        style={{ color: accent }}
+      >
+        View plan history →
+      </Link>
     </div>
   );
 }

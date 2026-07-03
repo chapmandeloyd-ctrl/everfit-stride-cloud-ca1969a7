@@ -6903,6 +6903,63 @@ export type Database = {
           },
         ]
       }
+      plan_completions: {
+        Row: {
+          client_id: string
+          completed_count: number
+          created_at: string
+          duration_days: number
+          end_date: string
+          id: string
+          keto_name: string | null
+          metadata: Json
+          missed_count: number
+          partial_count: number
+          protocol_name: string | null
+          start_date: string
+          success_rate: number
+          target_hours: number
+          total_hours: number
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          completed_count?: number
+          created_at?: string
+          duration_days: number
+          end_date: string
+          id?: string
+          keto_name?: string | null
+          metadata?: Json
+          missed_count?: number
+          partial_count?: number
+          protocol_name?: string | null
+          start_date: string
+          success_rate?: number
+          target_hours?: number
+          total_hours?: number
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          completed_count?: number
+          created_at?: string
+          duration_days?: number
+          end_date?: string
+          id?: string
+          keto_name?: string | null
+          metadata?: Json
+          missed_count?: number
+          partial_count?: number
+          protocol_name?: string | null
+          start_date?: string
+          success_rate?: number
+          target_hours?: number
+          total_hours?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       plan_synergy_content: {
         Row: {
           created_at: string

@@ -65,6 +65,7 @@ import ClientHealth from "./pages/client/ClientHealth";
 import ClientHealthConnect from "./pages/client/ClientHealthConnect";
 import ClientBadges from "./pages/client/ClientBadges";
 import ClientTimeline from "./pages/client/ClientTimeline";
+import ClientPlanHistory from "./pages/client/ClientPlanHistory";
 import ClientMealPlan from "./pages/client/ClientMealPlan";
 import ClientMealSelect from "./pages/client/ClientMealSelect";
 import ClientHealthReminders from "./pages/client/ClientHealthReminders";
@@ -201,6 +202,7 @@ const App = () => (
           {/* Client Routes */}
           <Route path="/client/dashboard" element={<ProtectedRoute allowedRoles={["client"]}><ClientDashboard /></ProtectedRoute>} />
           <Route path="/client/timeline" element={<ProtectedRoute allowedRoles={["client"]}><ClientTimeline /></ProtectedRoute>} />
+          <Route path="/client/plan-history" element={<ProtectedRoute allowedRoles={["client", "trainer"]}><ClientPlanHistory /></ProtectedRoute>} />
           <Route path="/client/pace" element={<ProtectedRoute allowedRoles={["client"]}><ClientSmartPace /></ProtectedRoute>} />
           <Route path="/dev/pace-preview" element={<SmartPacePreview />} />
           <Route path="/client/daily-score" element={<ProtectedRoute allowedRoles={["client"]}><ClientDailyScore /></ProtectedRoute>} />
