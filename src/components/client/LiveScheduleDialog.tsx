@@ -150,6 +150,20 @@ export function LiveScheduleDialog({
     return { plan: plan.days[idx], idx };
   };
 
+  const fastDayIndexes = useMemo(() => {
+    if (!startDate || !assignedDurationDays) return [] as number[];
+    const out: number[] = [];
+    for (let i = 0; i < assignedDurationDays; i++) {
+      const d = new Date(startDate);
+      d.setDate(startDate.getDate() + i);
+      const { plan: pd } = dayFor(d);
+      const st = dayState(pd);
+      if (st === "fast" || st === "refeed") out.push(i);
+    }
+    return out;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [startDate, assignedDurationDays, todayIndex, len]);
+
   const categorize = (d: Date): {
     inWindow: boolean; beforeStart: boolean; afterEnd: boolean; history: HistoryStatus;
   } => {
