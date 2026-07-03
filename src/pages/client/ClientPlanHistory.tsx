@@ -1,9 +1,17 @@
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Trophy, Check, AlertTriangle, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { format } from "date-fns";
 
 type Row = {
@@ -25,6 +33,7 @@ type Row = {
 export default function ClientPlanHistory() {
   const navigate = useNavigate();
   const clientId = useEffectiveClientId();
+  const [selected, setSelected] = useState<Row | null>(null);
 
   const { data: rows, isLoading } = useQuery({
     queryKey: ["plan-completions", clientId],
@@ -68,7 +77,16 @@ export default function ClientPlanHistory() {
           rows.map((r) => (
             <div
               key={r.id}
-              className="rounded-2xl border border-border/60 bg-card/60 p-4"
+              role="button"
+              tabIndex={0}
+              onClick={() => setSelected(r)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setSelected(r);
+                }
+              }}
+              className="rounded-2xl border border-border/60 bg-card/60 p-4 cursor-pointer transition hover:border-primary/60 hover:bg-card/80"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
@@ -105,13 +123,168 @@ export default function ClientPlanHistory() {
                   Fasted <span className="font-semibold text-foreground tabular-nums">{Math.round(r.total_hours)}h</span> of{" "}
                   <span className="tabular-nums">{Math.round(r.target_hours)}h</span>
                 </span>
-                <span>Saved {format(new Date(r.created_at), "MMM d")}</span>
+                <span className="text-primary font-semibold">View details →</span>
               </div>
             </div>
           ))
         )}
       </div>
+
+      <PlanDetailsDialog
+        row={selected}
+        clientId={clientId}
+        onClose={() => setSelected(null)}
+      />
     </div>
+  );
+}
+
+type FastLog = {
+  started_at: string;
+  ended_at: string;
+  target_hours: number;
+  actual_hours: number;
+  completion_pct: number;
+  status: string;
+};
+
+function dateKey(d: Date) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function PlanDetailsDialog({
+  row,
+  clientId,
+  onClose,
+}: {
+  row: Row | null;
+  clientId: string | null | undefined;
+  onClose: () => void;
+}) {
+  const open = !!row;
+
+  const { data: logs, isLoading } = useQuery({
+    queryKey: ["plan-completion-logs", row?.id],
+    enabled: open && !!clientId && !!row,
+    queryFn: async () => {
+      const start = new Date(row!.start_date);
+      const end = new Date(row!.end_date);
+      end.setDate(end.getDate() + 1);
+      const { data, error } = await supabase
+        .from("fasting_log")
+        .select("started_at,ended_at,target_hours,actual_hours,completion_pct,status")
+        .eq("client_id", clientId!)
+        .gte("ended_at", start.toISOString())
+        .lt("ended_at", end.toISOString())
+        .order("ended_at", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as FastLog[];
+    },
+  });
+
+  const days = useMemo(() => {
+    if (!row) return [];
+    const byDay = new Map<string, FastLog>();
+    for (const l of logs || []) {
+      const k = dateKey(new Date(l.ended_at));
+      const prev = byDay.get(k);
+      if (!prev || Number(l.completion_pct) > Number(prev.completion_pct)) {
+        byDay.set(k, l);
+      }
+    }
+    const start = new Date(row.start_date);
+    const out: Array<{ date: Date; log: FastLog | null }> = [];
+    for (let i = 0; i < row.duration_days; i++) {
+      const d = new Date(start);
+      d.setDate(start.getDate() + i);
+      out.push({ date: d, log: byDay.get(dateKey(d)) ?? null });
+    }
+    return out;
+  }, [logs, row]);
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>
+            {row?.duration_days}-day plan · day-by-day
+          </DialogTitle>
+          <DialogDescription>
+            {row
+              ? `${format(new Date(row.start_date), "MMM d")} – ${format(
+                  new Date(row.end_date),
+                  "MMM d, yyyy"
+                )}${row.protocol_name ? ` · ${row.protocol_name}` : ""}`
+              : ""}
+          </DialogDescription>
+        </DialogHeader>
+
+        {isLoading ? (
+          <p className="text-sm text-muted-foreground">Loading…</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {days.map(({ date, log }, i) => {
+              const pct = log ? Number(log.completion_pct) : 0;
+              const state: "completed" | "partial" | "missed" = !log
+                ? "missed"
+                : pct >= 100
+                ? "completed"
+                : "partial";
+              const color =
+                state === "completed"
+                  ? "#22c55e"
+                  : state === "partial"
+                  ? "#f59e0b"
+                  : "#ef4444";
+              const Icon =
+                state === "completed" ? Check : state === "partial" ? AlertTriangle : X;
+              return (
+                <div
+                  key={i}
+                  className="rounded-xl border p-3 flex items-center gap-3"
+                  style={{ borderColor: `${color}44`, background: `${color}10` }}
+                >
+                  <div
+                    className="h-8 w-8 rounded-full flex items-center justify-center shrink-0"
+                    style={{ background: `${color}22`, color }}
+                  >
+                    <Icon className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-baseline justify-between gap-2">
+                      <p className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">
+                        Day {i + 1}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">
+                        {format(date, "EEE, MMM d")}
+                      </p>
+                    </div>
+                    <p className="text-sm font-bold capitalize" style={{ color }}>
+                      {state}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground tabular-nums">
+                      {log
+                        ? `${Number(log.actual_hours).toFixed(1)}h of ${Number(
+                            log.target_hours
+                          ).toFixed(1)}h · ${Math.round(pct)}%`
+                        : "No fast logged"}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {row && (
+          <div className="grid grid-cols-3 gap-2 pt-2 border-t border-border/50">
+            <Stat icon={<Check className="h-3.5 w-3.5" />} label="Completed" value={row.completed_count} color="#22c55e" />
+            <Stat icon={<AlertTriangle className="h-3.5 w-3.5" />} label="Partial" value={row.partial_count} color="#f59e0b" />
+            <Stat icon={<X className="h-3.5 w-3.5" />} label="Missed" value={row.missed_count} color="#ef4444" />
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
 
