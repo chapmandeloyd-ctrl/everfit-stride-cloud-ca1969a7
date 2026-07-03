@@ -406,16 +406,19 @@ export function LiveScheduleDialog({
 }
 
 function DayDetail({
-  date, day, today, accent, onClose, onStartFast,
+  date, day, today, accent, onClose, onStartFast, meta, log,
 }: {
   date: Date; day: PlanDay; today: Date; accent: string;
   onClose: () => void; onStartFast?: () => void;
+  meta: { inWindow: boolean; beforeStart: boolean; afterEnd: boolean; history: HistoryStatus };
+  log?: { actual: number; target: number; pct: number; status: string };
 }) {
   const st = dayState(day);
   const isToday = isSameDay(date, today);
   const isPast = date < new Date(today.getFullYear(), today.getMonth(), today.getDate());
   const isFuture = !isToday && !isPast;
   const dateLabel = date.toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" });
+  const outOfWindow = meta.beforeStart || meta.afterEnd;
 
   return (
     <div
@@ -425,18 +428,23 @@ function DayDetail({
       <div className="flex items-start justify-between gap-2">
         <div>
           <p className="text-[10px] uppercase tracking-widest font-bold" style={{ color: accent }}>
-            {isToday ? "Today" : isPast ? "Past" : "Upcoming"}
+            {meta.beforeStart ? "Before start" : meta.afterEnd ? "After plan" : isToday ? "Today" : isPast ? "Past" : "Upcoming"}
           </p>
           <p className="text-base font-bold">{dateLabel}</p>
         </div>
         <div className="flex items-center gap-1.5">
-          <Badge
-            variant="outline"
-            className="text-[10px] px-2 py-0.5"
-            style={{ borderColor: STATE_COLOR[st], color: STATE_COLOR[st] }}
-          >
-            {STATE_LABEL[st]}
-          </Badge>
+          {meta.history === "missed" ? (
+            <Badge variant="outline" className="text-[10px] px-2 py-0.5 border-red-500 text-red-500">Missed</Badge>
+          ) : meta.history === "completed" ? (
+            <Badge variant="outline" className="text-[10px] px-2 py-0.5 border-emerald-500 text-emerald-500">Completed</Badge>
+          ) : meta.history === "partial" ? (
+            <Badge variant="outline" className="text-[10px] px-2 py-0.5 border-amber-500 text-amber-500">Partial</Badge>
+          ) : (
+            <Badge variant="outline" className="text-[10px] px-2 py-0.5"
+              style={{ borderColor: STATE_COLOR[st], color: STATE_COLOR[st] }}>
+              {STATE_LABEL[st]}
+            </Badge>
+          )}
           <button
             type="button"
             onClick={onClose}
@@ -480,21 +488,47 @@ function DayDetail({
         </div>
       )}
 
-      {/* Start Fast lives here — only on today */}
-      {isToday && onStartFast && (
+      {isPast && log && (
+        <div className="rounded-lg border border-border/60 bg-background/40 p-3 space-y-1">
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Your log</p>
+          <p className="text-sm font-bold tabular-nums">
+            {log.actual.toFixed(1)}h <span className="text-muted-foreground font-normal">/ {log.target.toFixed(1)}h target</span>
+          </p>
+          <p className="text-[11px] text-muted-foreground">{log.pct.toFixed(0)}% of target</p>
+        </div>
+      )}
+      {isPast && !log && meta.history === "missed" && (
+        <div className="flex items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/5 p-2">
+          <AlertTriangle className="h-3.5 w-3.5 text-red-500 shrink-0 mt-0.5" />
+          <p className="text-[11px] text-foreground/80 leading-snug">
+            No fast was logged for this day. Only your coach can adjust this.
+          </p>
+        </div>
+      )}
+
+      {/* Start Fast lives here — only on today, within the window */}
+      {isToday && !outOfWindow && onStartFast && (
         <div className="pt-1">
           <StartFastGate onStart={onStartFast} />
         </div>
       )}
 
-      {isFuture && (
+      {isFuture && !outOfWindow && (
         <p className="text-[11px] text-muted-foreground">
           You'll be able to start this day's fast when the time arrives.
         </p>
       )}
-      {isPast && (
+      {isPast && !meta.history && (
         <p className="text-[11px] text-muted-foreground">
           Past day — read-only history.
+        </p>
+      )}
+      {meta.beforeStart && (
+        <p className="text-[11px] text-muted-foreground">Your plan hasn't started yet.</p>
+      )}
+      {meta.afterEnd && (
+        <p className="text-[11px] text-muted-foreground">
+          Your assigned plan is complete. Check in with your coach for what's next.
         </p>
       )}
     </div>
