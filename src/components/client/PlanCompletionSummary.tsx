@@ -113,17 +113,73 @@ export function PlanCompletionSummary({
     return lines.join("\n");
   }, [durationDays, protocolName, ketoName, stats]);
 
+  const renderCardToBlob = async (): Promise<Blob | null> => {
+    const node = cardRef.current;
+    if (!node) return null;
+    const rect = node.getBoundingClientRect();
+    const w = Math.ceil(rect.width);
+    const h = Math.ceil(rect.height);
+    const clone = node.cloneNode(true) as HTMLElement;
+    const bg = getComputedStyle(document.body).backgroundColor || "#000";
+    const svg = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}">
+        <foreignObject width="100%" height="100%">
+          <div xmlns="http://www.w3.org/1999/xhtml" style="background:${bg};padding:0;margin:0;font-family:Inter,system-ui,sans-serif;color:#fff;">
+            ${clone.outerHTML}
+          </div>
+        </foreignObject>
+      </svg>`;
+    const svgBlob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
+    const url = URL.createObjectURL(svgBlob);
+    try {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      await new Promise<void>((res, rej) => {
+        img.onload = () => res();
+        img.onerror = () => rej(new Error("img load"));
+        img.src = url;
+      });
+      const canvas = document.createElement("canvas");
+      canvas.width = w * 2;
+      canvas.height = h * 2;
+      const ctx = canvas.getContext("2d")!;
+      ctx.scale(2, 2);
+      ctx.drawImage(img, 0, 0);
+      return await new Promise<Blob | null>((res) => canvas.toBlob((b) => res(b), "image/png"));
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  };
+
   const handleShare = async () => {
     setBusy(true);
     try {
+      const blob = await renderCardToBlob().catch(() => null);
+      const file = blob
+        ? new File([blob], `fasting-plan-${durationDays}day-results.png`, { type: "image/png" })
+        : null;
+      const shareData: ShareData = {
+        title: "My fasting plan results",
+        text: shareText,
+      };
+      if (file && (navigator as any).canShare?.({ files: [file] })) {
+        (shareData as any).files = [file];
+      }
       if (navigator.share) {
-        await navigator.share({ title: "My fasting plan results", text: shareText });
+        await navigator.share(shareData);
       } else {
         await navigator.clipboard.writeText(shareText);
         toast.success("Results copied to clipboard");
       }
     } catch (e: any) {
-      if (e?.name !== "AbortError") toast.error("Couldn't share — try copy instead");
+      if (e?.name !== "AbortError") {
+        try {
+          await navigator.clipboard.writeText(shareText);
+          toast.success("Summary copied instead");
+        } catch {
+          toast.error("Couldn't share");
+        }
+      }
     } finally {
       setBusy(false);
     }
@@ -135,44 +191,18 @@ export function PlanCompletionSummary({
   };
 
   const handleDownload = async () => {
-    const node = cardRef.current;
-    if (!node) return;
     setBusy(true);
     try {
-      // Render to a canvas via SVG foreignObject
-      const rect = node.getBoundingClientRect();
-      const w = Math.ceil(rect.width);
-      const h = Math.ceil(rect.height);
-      const clone = node.cloneNode(true) as HTMLElement;
-      // Inline computed background color of body so the export isn't transparent
-      const bg = getComputedStyle(document.body).backgroundColor || "#000";
-      const svg = `
-        <svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}">
-          <foreignObject width="100%" height="100%">
-            <div xmlns="http://www.w3.org/1999/xhtml" style="background:${bg};padding:0;margin:0;font-family:Inter,system-ui,sans-serif;color:#fff;">
-              ${clone.outerHTML}
-            </div>
-          </foreignObject>
-        </svg>`;
-      const blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      await new Promise<void>((res, rej) => { img.onload = () => res(); img.onerror = () => rej(new Error("img load")); img.src = url; });
-      const canvas = document.createElement("canvas");
-      canvas.width = w * 2; canvas.height = h * 2;
-      const ctx = canvas.getContext("2d")!;
-      ctx.scale(2, 2);
-      ctx.drawImage(img, 0, 0);
-      URL.revokeObjectURL(url);
-      const pngUrl = canvas.toDataURL("image/png");
+      const blob = await renderCardToBlob();
+      if (!blob) throw new Error("render failed");
+      const pngUrl = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = pngUrl;
       a.download = `fasting-plan-${durationDays}day-results.png`;
       a.click();
+      URL.revokeObjectURL(pngUrl);
       toast.success("Saved to your device");
     } catch {
-      // Fallback: just copy text
       await navigator.clipboard.writeText(shareText);
       toast.success("Image export unsupported — summary copied instead");
     } finally {
