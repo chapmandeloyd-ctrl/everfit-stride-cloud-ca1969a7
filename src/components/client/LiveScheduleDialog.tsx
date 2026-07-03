@@ -56,6 +56,15 @@ function daysBetween(a: Date, b: Date) {
   const bx = new Date(b.getFullYear(), b.getMonth(), b.getDate()).getTime();
   return Math.round((bx - ax) / ms);
 }
+function startOfDay(d: Date): Date {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+function dateKey(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
 
 interface Props {
   open: boolean;
