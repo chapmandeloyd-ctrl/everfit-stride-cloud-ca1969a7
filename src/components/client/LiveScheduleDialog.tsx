@@ -9,6 +9,7 @@ import type { ComputedPlan, PlanDay } from "@/lib/protocolPlan";
 import { StartFastGate } from "@/components/client/StartFastGate";
 import { useStartFast } from "@/hooks/useStartFast";
 import confetti from "canvas-confetti";
+import { PlanCompletionSummary } from "@/components/client/PlanCompletionSummary";
 
 type DayState = "eat" | "fast" | "refeed" | "lowcal";
 const STATE_COLOR: Record<DayState, string> = {
@@ -86,6 +87,7 @@ interface Props {
     completion_pct: number;
     status: string;
   }>;
+  clientName?: string;
 }
 
 type HistoryStatus = "completed" | "partial" | "missed" | null;
@@ -93,7 +95,7 @@ type HistoryStatus = "completed" | "partial" | "missed" | null;
 /** Phase 1: Live Schedule — Month view + tap-to-detail day sheet. */
 export function LiveScheduleDialog({
   open, onOpenChange, plan, todayIndex, accent, protocolName, ketoName, onStartFast,
-  protocolStartDate, assignedDurationDays, fastingLogs,
+  protocolStartDate, assignedDurationDays, fastingLogs, clientName,
 }: Props) {
   const isMobile = useIsMobile();
   const startFast = useStartFast();
@@ -148,6 +150,20 @@ export function LiveScheduleDialog({
     return { plan: plan.days[idx], idx };
   };
 
+  const fastDayIndexes = useMemo(() => {
+    if (!startDate || !assignedDurationDays) return [] as number[];
+    const out: number[] = [];
+    for (let i = 0; i < assignedDurationDays; i++) {
+      const d = new Date(startDate);
+      d.setDate(startDate.getDate() + i);
+      const { plan: pd } = dayFor(d);
+      const st = dayState(pd);
+      if (st === "fast" || st === "refeed") out.push(i);
+    }
+    return out;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [startDate, assignedDurationDays, todayIndex, len]);
+
   const categorize = (d: Date): {
     inWindow: boolean; beforeStart: boolean; afterEnd: boolean; history: HistoryStatus;
   } => {
@@ -198,19 +214,16 @@ export function LiveScheduleDialog({
     <div className="space-y-4">
       {startDate && assignedDurationDays && (
         isComplete ? (
-          <div className="rounded-xl border p-4 flex items-start gap-3"
-            style={{ borderColor: `${accent}55`, background: `${accent}12` }}>
-            <Trophy className="h-5 w-5 shrink-0 mt-0.5" style={{ color: accent }} />
-            <div className="space-y-1">
-              <p className="text-sm font-bold" style={{ color: accent }}>
-                You completed your {assignedDurationDays}-day fasting plan!
-              </p>
-              <p className="text-xs text-muted-foreground leading-snug">
-                Amazing work. You and your coach will go over your next plan — you're ready to take
-                your fasting to the next level.
-              </p>
-            </div>
-          </div>
+          <PlanCompletionSummary
+            accent={accent}
+            protocolName={protocolName}
+            ketoName={ketoName}
+            startDate={startDate}
+            durationDays={assignedDurationDays}
+            fastingLogs={fastingLogs}
+            fastDayIndexes={fastDayIndexes}
+            clientName={clientName}
+          />
         ) : (
           <div className="flex items-center justify-between rounded-lg border border-border/50 bg-muted/20 px-3 py-2">
             <p className="text-xs font-semibold whitespace-nowrap">
