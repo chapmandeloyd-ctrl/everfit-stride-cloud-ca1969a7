@@ -1,13 +1,14 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ChevronLeft, ChevronRight, X, Utensils, Clock, Flame, Info, CalendarDays } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, Utensils, Clock, Flame, Info, CalendarDays, Check, AlertTriangle, Lock, Trophy } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { ComputedPlan, PlanDay } from "@/lib/protocolPlan";
 import { StartFastGate } from "@/components/client/StartFastGate";
 import { useStartFast } from "@/hooks/useStartFast";
+import confetti from "canvas-confetti";
 
 type DayState = "eat" | "fast" | "refeed" | "lowcal";
 const STATE_COLOR: Record<DayState, string> = {
@@ -56,6 +57,15 @@ function daysBetween(a: Date, b: Date) {
   const bx = new Date(b.getFullYear(), b.getMonth(), b.getDate()).getTime();
   return Math.round((bx - ax) / ms);
 }
+function startOfDay(d: Date): Date {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+function dateKey(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
 
 interface Props {
   open: boolean;
@@ -66,11 +76,24 @@ interface Props {
   protocolName?: string;
   ketoName?: string;
   onStartFast?: () => void;
+  protocolStartDate?: string | null;
+  assignedDurationDays?: number | null;
+  fastingLogs?: Array<{
+    started_at: string;
+    ended_at: string;
+    target_hours: number;
+    actual_hours: number;
+    completion_pct: number;
+    status: string;
+  }>;
 }
+
+type HistoryStatus = "completed" | "partial" | "missed" | null;
 
 /** Phase 1: Live Schedule — Month view + tap-to-detail day sheet. */
 export function LiveScheduleDialog({
   open, onOpenChange, plan, todayIndex, accent, protocolName, ketoName, onStartFast,
+  protocolStartDate, assignedDurationDays, fastingLogs,
 }: Props) {
   const isMobile = useIsMobile();
   const startFast = useStartFast();
@@ -78,6 +101,36 @@ export function LiveScheduleDialog({
   const today = useMemo(() => new Date(), []);
   const [cursor, setCursor] = useState<Date>(() => new Date(today.getFullYear(), today.getMonth(), 1));
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+
+  const startDate = useMemo(
+    () => protocolStartDate ? startOfDay(new Date(protocolStartDate)) : null,
+    [protocolStartDate]
+  );
+  const endDate = useMemo(() => {
+    if (!startDate || !assignedDurationDays) return null;
+    const e = new Date(startDate);
+    e.setDate(e.getDate() + assignedDurationDays - 1);
+    return e;
+  }, [startDate, assignedDurationDays]);
+  const dayInProtocol = startDate ? Math.max(1, daysBetween(startDate, today) + 1) : null;
+  const isComplete = endDate ? startOfDay(today) > endDate : false;
+
+  const logsByDay = useMemo(() => {
+    const map = new Map<string, { actual: number; target: number; pct: number; status: string }>();
+    for (const log of fastingLogs || []) {
+      const key = dateKey(new Date(log.ended_at));
+      const prev = map.get(key);
+      if (!prev || Number(log.completion_pct) > prev.pct) {
+        map.set(key, {
+          actual: Number(log.actual_hours),
+          target: Number(log.target_hours),
+          pct: Number(log.completion_pct),
+          status: log.status,
+        });
+      }
+    }
+    return map;
+  }, [fastingLogs]);
 
   const cells = useMemo(() => {
     const start = startOfMonthGrid(cursor);
@@ -95,6 +148,28 @@ export function LiveScheduleDialog({
     return { plan: plan.days[idx], idx };
   };
 
+  const categorize = (d: Date): {
+    inWindow: boolean; beforeStart: boolean; afterEnd: boolean; history: HistoryStatus;
+  } => {
+    const day = startOfDay(d);
+    const beforeStart = startDate ? day < startDate : false;
+    const afterEnd = endDate ? day > endDate : false;
+    const inWindow = !beforeStart && !afterEnd;
+    const isPast = day < startOfDay(today);
+    let history: HistoryStatus = null;
+    if (inWindow && isPast) {
+      const { plan: pd } = dayFor(d);
+      const st = dayState(pd);
+      if (st === "fast" || st === "refeed") {
+        const log = logsByDay.get(dateKey(d));
+        if (!log) history = "missed";
+        else if (log.pct >= 100) history = "completed";
+        else history = "partial";
+      }
+    }
+    return { inWindow, beforeStart, afterEnd, history };
+  };
+
   const monthLabel = cursor.toLocaleDateString(undefined, { month: "long", year: "numeric" });
   const monthNav = (dir: -1 | 1) => {
     const c = new Date(cursor);
@@ -102,10 +177,59 @@ export function LiveScheduleDialog({
     setCursor(c);
   };
 
-  const selected = selectedDate ? { date: selectedDate, ...dayFor(selectedDate) } : null;
+  const selected = selectedDate
+    ? { date: selectedDate, ...dayFor(selectedDate), meta: categorize(selectedDate) }
+    : null;
+
+  const firedRef = useRef(false);
+  useEffect(() => {
+    if (!open || !isComplete || firedRef.current) return;
+    firedRef.current = true;
+    const end = Date.now() + 1200;
+    const frame = () => {
+      confetti({ particleCount: 4, angle: 60, spread: 55, origin: { x: 0 }, colors: [accent, "#ffffff"] });
+      confetti({ particleCount: 4, angle: 120, spread: 55, origin: { x: 1 }, colors: [accent, "#ffffff"] });
+      if (Date.now() < end) requestAnimationFrame(frame);
+    };
+    frame();
+  }, [open, isComplete, accent]);
 
   const body = (
     <div className="space-y-4">
+      {startDate && assignedDurationDays && (
+        isComplete ? (
+          <div className="rounded-xl border p-4 flex items-start gap-3"
+            style={{ borderColor: `${accent}55`, background: `${accent}12` }}>
+            <Trophy className="h-5 w-5 shrink-0 mt-0.5" style={{ color: accent }} />
+            <div className="space-y-1">
+              <p className="text-sm font-bold" style={{ color: accent }}>
+                You completed your {assignedDurationDays}-day fasting plan!
+              </p>
+              <p className="text-xs text-muted-foreground leading-snug">
+                Amazing work. You and your coach will go over your next plan — you're ready to take
+                your fasting to the next level.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between rounded-lg border border-border/50 bg-muted/20 px-3 py-2">
+            <p className="text-xs font-semibold whitespace-nowrap">
+              Day <span style={{ color: accent }}>{Math.min(dayInProtocol!, assignedDurationDays)}</span> of {assignedDurationDays}
+            </p>
+            <div className="h-1.5 flex-1 mx-3 rounded-full bg-muted overflow-hidden">
+              <div className="h-full rounded-full transition-all"
+                style={{
+                  width: `${Math.min(100, (dayInProtocol! / assignedDurationDays) * 100)}%`,
+                  background: accent,
+                }} />
+            </div>
+            <p className="text-[10px] text-muted-foreground tabular-nums whitespace-nowrap">
+              {Math.max(0, assignedDurationDays - dayInProtocol!)}d left
+            </p>
+          </div>
+        )
+      )}
+
       {/* Header row: month nav */}
       <div className="flex items-center justify-between">
         <button
@@ -147,6 +271,12 @@ export function LiveScheduleDialog({
           const isToday = isSameDay(d, today);
           const isPast = d < new Date(today.getFullYear(), today.getMonth(), today.getDate());
           const isSel = selectedDate ? isSameDay(d, selectedDate) : false;
+          const meta = categorize(d);
+          const outOfWindow = meta.beforeStart || meta.afterEnd;
+          const historyColor =
+            meta.history === "completed" ? "#22c55e" :
+            meta.history === "partial" ? "#f59e0b" :
+            meta.history === "missed" ? "#ef4444" : null;
           return (
             <button
               key={i}
@@ -155,27 +285,45 @@ export function LiveScheduleDialog({
               className="relative aspect-square rounded-md border text-left p-1 transition-all min-w-0"
               style={{
                 borderColor: isToday || isSel ? accent : "hsl(var(--border) / 0.5)",
-                background: isToday ? `${accent}18` : isSel ? `${accent}10` : "hsl(var(--muted) / 0.15)",
-                opacity: inMonth ? 1 : 0.35,
+                background: meta.history === "missed"
+                  ? "rgba(239, 68, 68, 0.10)"
+                  : outOfWindow
+                    ? "hsl(var(--muted) / 0.08)"
+                    : isToday ? `${accent}18` : isSel ? `${accent}10` : "hsl(var(--muted) / 0.15)",
+                opacity: !inMonth ? 0.3 : outOfWindow ? 0.55 : 1,
                 boxShadow: isToday ? `0 0 0 1px ${accent}66, 0 0 10px ${accent}33` : undefined,
               }}
               aria-label={`${d.toDateString()} — ${STATE_LABEL[st]}`}
             >
-              <span
-                className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full"
-                style={{ background: color, boxShadow: `0 0 4px ${color}` }}
-              />
+              {outOfWindow ? (
+                <Lock className="absolute top-1 right-1 h-2.5 w-2.5 text-muted-foreground" />
+              ) : historyColor ? (
+                meta.history === "completed" ? (
+                  <Check className="absolute top-0.5 right-0.5 h-3 w-3" style={{ color: historyColor }} />
+                ) : meta.history === "missed" ? (
+                  <X className="absolute top-0.5 right-0.5 h-3 w-3" style={{ color: historyColor }} />
+                ) : (
+                  <AlertTriangle className="absolute top-0.5 right-0.5 h-2.5 w-2.5" style={{ color: historyColor }} />
+                )
+              ) : (
+                <span className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full"
+                  style={{ background: color, boxShadow: `0 0 4px ${color}` }} />
+              )}
               <p
                 className="text-[11px] font-bold leading-none tabular-nums"
                 style={{ color: isToday ? accent : undefined }}
               >
                 {d.getDate()}
               </p>
-              <p
-                className="text-[8px] uppercase tracking-wider mt-1 truncate"
-                style={{ color: isPast ? "hsl(var(--muted-foreground))" : undefined }}
-              >
-                {shortDayLabel(pd, st)}
+              <p className="text-[8px] uppercase tracking-wider mt-1 truncate"
+                style={{
+                  color: meta.history === "missed" ? "#ef4444"
+                    : outOfWindow || isPast ? "hsl(var(--muted-foreground))" : undefined
+                }}>
+                {outOfWindow
+                  ? (meta.beforeStart ? "—" : "Done")
+                  : meta.history === "missed" ? "Missed"
+                  : shortDayLabel(pd, st)}
               </p>
             </button>
           );
@@ -193,6 +341,15 @@ export function LiveScheduleDialog({
             {STATE_LABEL[s]}
           </div>
         ))}
+        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+          <Check className="h-2.5 w-2.5 text-emerald-500" /> Completed
+        </div>
+        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+          <AlertTriangle className="h-2.5 w-2.5 text-amber-500" /> Partial
+        </div>
+        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+          <X className="h-2.5 w-2.5 text-red-500" /> Missed
+        </div>
         <span className="text-[10px] text-muted-foreground ml-auto">Tap any day for details</span>
       </div>
 
@@ -205,6 +362,8 @@ export function LiveScheduleDialog({
           accent={accent}
           onClose={() => setSelectedDate(null)}
           onStartFast={handleStart}
+          meta={selected.meta}
+          log={logsByDay.get(dateKey(selected.date))}
         />
       )}
     </div>
@@ -247,16 +406,19 @@ export function LiveScheduleDialog({
 }
 
 function DayDetail({
-  date, day, today, accent, onClose, onStartFast,
+  date, day, today, accent, onClose, onStartFast, meta, log,
 }: {
   date: Date; day: PlanDay; today: Date; accent: string;
   onClose: () => void; onStartFast?: () => void;
+  meta: { inWindow: boolean; beforeStart: boolean; afterEnd: boolean; history: HistoryStatus };
+  log?: { actual: number; target: number; pct: number; status: string };
 }) {
   const st = dayState(day);
   const isToday = isSameDay(date, today);
   const isPast = date < new Date(today.getFullYear(), today.getMonth(), today.getDate());
   const isFuture = !isToday && !isPast;
   const dateLabel = date.toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" });
+  const outOfWindow = meta.beforeStart || meta.afterEnd;
 
   return (
     <div
@@ -266,18 +428,23 @@ function DayDetail({
       <div className="flex items-start justify-between gap-2">
         <div>
           <p className="text-[10px] uppercase tracking-widest font-bold" style={{ color: accent }}>
-            {isToday ? "Today" : isPast ? "Past" : "Upcoming"}
+            {meta.beforeStart ? "Before start" : meta.afterEnd ? "After plan" : isToday ? "Today" : isPast ? "Past" : "Upcoming"}
           </p>
           <p className="text-base font-bold">{dateLabel}</p>
         </div>
         <div className="flex items-center gap-1.5">
-          <Badge
-            variant="outline"
-            className="text-[10px] px-2 py-0.5"
-            style={{ borderColor: STATE_COLOR[st], color: STATE_COLOR[st] }}
-          >
-            {STATE_LABEL[st]}
-          </Badge>
+          {meta.history === "missed" ? (
+            <Badge variant="outline" className="text-[10px] px-2 py-0.5 border-red-500 text-red-500">Missed</Badge>
+          ) : meta.history === "completed" ? (
+            <Badge variant="outline" className="text-[10px] px-2 py-0.5 border-emerald-500 text-emerald-500">Completed</Badge>
+          ) : meta.history === "partial" ? (
+            <Badge variant="outline" className="text-[10px] px-2 py-0.5 border-amber-500 text-amber-500">Partial</Badge>
+          ) : (
+            <Badge variant="outline" className="text-[10px] px-2 py-0.5"
+              style={{ borderColor: STATE_COLOR[st], color: STATE_COLOR[st] }}>
+              {STATE_LABEL[st]}
+            </Badge>
+          )}
           <button
             type="button"
             onClick={onClose}
@@ -321,21 +488,47 @@ function DayDetail({
         </div>
       )}
 
-      {/* Start Fast lives here — only on today */}
-      {isToday && onStartFast && (
+      {isPast && log && (
+        <div className="rounded-lg border border-border/60 bg-background/40 p-3 space-y-1">
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Your log</p>
+          <p className="text-sm font-bold tabular-nums">
+            {log.actual.toFixed(1)}h <span className="text-muted-foreground font-normal">/ {log.target.toFixed(1)}h target</span>
+          </p>
+          <p className="text-[11px] text-muted-foreground">{log.pct.toFixed(0)}% of target</p>
+        </div>
+      )}
+      {isPast && !log && meta.history === "missed" && (
+        <div className="flex items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/5 p-2">
+          <AlertTriangle className="h-3.5 w-3.5 text-red-500 shrink-0 mt-0.5" />
+          <p className="text-[11px] text-foreground/80 leading-snug">
+            No fast was logged for this day. Only your coach can adjust this.
+          </p>
+        </div>
+      )}
+
+      {/* Start Fast lives here — only on today, within the window */}
+      {isToday && !outOfWindow && onStartFast && (
         <div className="pt-1">
           <StartFastGate onStart={onStartFast} />
         </div>
       )}
 
-      {isFuture && (
+      {isFuture && !outOfWindow && (
         <p className="text-[11px] text-muted-foreground">
           You'll be able to start this day's fast when the time arrives.
         </p>
       )}
-      {isPast && (
+      {isPast && !meta.history && (
         <p className="text-[11px] text-muted-foreground">
           Past day — read-only history.
+        </p>
+      )}
+      {meta.beforeStart && (
+        <p className="text-[11px] text-muted-foreground">Your plan hasn't started yet.</p>
+      )}
+      {meta.afterEnd && (
+        <p className="text-[11px] text-muted-foreground">
+          Your assigned plan is complete. Check in with your coach for what's next.
         </p>
       )}
     </div>
