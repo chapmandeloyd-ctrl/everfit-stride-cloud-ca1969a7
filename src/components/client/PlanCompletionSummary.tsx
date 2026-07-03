@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
+import { Link } from "react-router-dom";
 
 type Log = {
   started_at: string;
@@ -258,6 +259,13 @@ export function PlanCompletionSummary({
       <p className="text-xs text-muted-foreground leading-snug">
         Amazing work — you and your coach will review results and set your next plan.
       </p>
+      <Link
+        to="/client/plan-history"
+        className="block text-center text-xs font-semibold underline underline-offset-4"
+        style={{ color: accent }}
+      >
+        View plan history →
+      </Link>
     </div>
   );
 }
