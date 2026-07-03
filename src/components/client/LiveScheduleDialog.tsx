@@ -271,6 +271,12 @@ export function LiveScheduleDialog({
           const isToday = isSameDay(d, today);
           const isPast = d < new Date(today.getFullYear(), today.getMonth(), today.getDate());
           const isSel = selectedDate ? isSameDay(d, selectedDate) : false;
+          const meta = categorize(d);
+          const outOfWindow = meta.beforeStart || meta.afterEnd;
+          const historyColor =
+            meta.history === "completed" ? "#22c55e" :
+            meta.history === "partial" ? "#f59e0b" :
+            meta.history === "missed" ? "#ef4444" : null;
           return (
             <button
               key={i}
@@ -279,27 +285,45 @@ export function LiveScheduleDialog({
               className="relative aspect-square rounded-md border text-left p-1 transition-all min-w-0"
               style={{
                 borderColor: isToday || isSel ? accent : "hsl(var(--border) / 0.5)",
-                background: isToday ? `${accent}18` : isSel ? `${accent}10` : "hsl(var(--muted) / 0.15)",
-                opacity: inMonth ? 1 : 0.35,
+                background: meta.history === "missed"
+                  ? "rgba(239, 68, 68, 0.10)"
+                  : outOfWindow
+                    ? "hsl(var(--muted) / 0.08)"
+                    : isToday ? `${accent}18` : isSel ? `${accent}10` : "hsl(var(--muted) / 0.15)",
+                opacity: !inMonth ? 0.3 : outOfWindow ? 0.55 : 1,
                 boxShadow: isToday ? `0 0 0 1px ${accent}66, 0 0 10px ${accent}33` : undefined,
               }}
               aria-label={`${d.toDateString()} — ${STATE_LABEL[st]}`}
             >
-              <span
-                className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full"
-                style={{ background: color, boxShadow: `0 0 4px ${color}` }}
-              />
+              {outOfWindow ? (
+                <Lock className="absolute top-1 right-1 h-2.5 w-2.5 text-muted-foreground" />
+              ) : historyColor ? (
+                meta.history === "completed" ? (
+                  <Check className="absolute top-0.5 right-0.5 h-3 w-3" style={{ color: historyColor }} />
+                ) : meta.history === "missed" ? (
+                  <X className="absolute top-0.5 right-0.5 h-3 w-3" style={{ color: historyColor }} />
+                ) : (
+                  <AlertTriangle className="absolute top-0.5 right-0.5 h-2.5 w-2.5" style={{ color: historyColor }} />
+                )
+              ) : (
+                <span className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full"
+                  style={{ background: color, boxShadow: `0 0 4px ${color}` }} />
+              )}
               <p
                 className="text-[11px] font-bold leading-none tabular-nums"
                 style={{ color: isToday ? accent : undefined }}
               >
                 {d.getDate()}
               </p>
-              <p
-                className="text-[8px] uppercase tracking-wider mt-1 truncate"
-                style={{ color: isPast ? "hsl(var(--muted-foreground))" : undefined }}
-              >
-                {shortDayLabel(pd, st)}
+              <p className="text-[8px] uppercase tracking-wider mt-1 truncate"
+                style={{
+                  color: meta.history === "missed" ? "#ef4444"
+                    : outOfWindow || isPast ? "hsl(var(--muted-foreground))" : undefined
+                }}>
+                {outOfWindow
+                  ? (meta.beforeStart ? "—" : "Done")
+                  : meta.history === "missed" ? "Missed"
+                  : shortDayLabel(pd, st)}
               </p>
             </button>
           );
@@ -317,6 +341,15 @@ export function LiveScheduleDialog({
             {STATE_LABEL[s]}
           </div>
         ))}
+        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+          <Check className="h-2.5 w-2.5 text-emerald-500" /> Completed
+        </div>
+        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+          <AlertTriangle className="h-2.5 w-2.5 text-amber-500" /> Partial
+        </div>
+        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+          <X className="h-2.5 w-2.5 text-red-500" /> Missed
+        </div>
         <span className="text-[10px] text-muted-foreground ml-auto">Tap any day for details</span>
       </div>
 
@@ -329,6 +362,8 @@ export function LiveScheduleDialog({
           accent={accent}
           onClose={() => setSelectedDate(null)}
           onStartFast={handleStart}
+          meta={selected.meta}
+          log={logsByDay.get(dateKey(selected.date))}
         />
       )}
     </div>
