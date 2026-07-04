@@ -63,6 +63,7 @@ import { TodaysWindowCard } from "@/components/client/TodaysWindowCard";
 import { ClientWeekStrip } from "@/components/client/ClientWeekStrip";
 import { StartFastGate } from "@/components/client/StartFastGate";
 import { openLiveSchedule } from "@/lib/liveScheduleBus";
+import { LiveScheduleHost } from "@/components/client/LiveScheduleHost";
 import { BuildWorkoutSheet } from "@/components/workout/BuildWorkoutSheet";
 
 import { ProgramsSelector } from "@/components/ProgramsSelector";
