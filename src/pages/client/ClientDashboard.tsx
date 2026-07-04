@@ -2100,6 +2100,36 @@ export default function ClientDashboard() {
     return () => { supabase.removeChannel(channel); };
   }, [clientId, queryClient]);
 
+  // Realtime: auto-refresh the today card when the trainer resets or reassigns the plan
+  useEffect(() => {
+    if (!clientId) return;
+    const channel = supabase
+      .channel(`dashboard-plan-realtime-${clientId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "client_feature_settings", filter: `client_id=eq.${clientId}` },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting", clientId] });
+          queryClient.invalidateQueries({ queryKey: ["my-feature-settings", clientId] });
+          queryClient.invalidateQueries({ queryKey: ["active-fasting-protocol"] });
+          queryClient.invalidateQueries({ queryKey: ["coach-tip-protocol"] });
+          queryClient.invalidateQueries({ queryKey: ["ccp-settings", clientId] });
+          queryClient.invalidateQueries({ queryKey: ["ccp-protocol"] });
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "client_keto_assignments", filter: `client_id=eq.${clientId}` },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["ccp-keto", clientId] });
+          queryClient.invalidateQueries({ queryKey: ["ccp-keto-type"] });
+          queryClient.invalidateQueries({ queryKey: ["client-keto-assignment"] });
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [clientId, queryClient]);
+
 
   // Quick macro edit mutation
   const saveMacrosMutation = useMutation({
