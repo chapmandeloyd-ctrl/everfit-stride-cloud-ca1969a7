@@ -17,6 +17,9 @@ import getMyHabitsTool from "./tools/get-my-habits";
 import logHabitCompletionTool from "./tools/log-habit-completion";
 import getMyActiveFastTool from "./tools/get-my-active-fast";
 import getMyRecentWorkoutsTool from "./tools/get-my-recent-workouts";
+import logBodyWeightTool from "./tools/log-body-weight";
+import logMealFromRecipeTool from "./tools/log-meal-from-recipe";
+import resetClientPlanTool from "./tools/reset-client-plan";
 
 // Build the OAuth issuer from the Supabase project ref so the direct
 // `<ref>.supabase.co` host is used (required by mcp-js issuer verification).
@@ -46,6 +49,7 @@ export default defineMcp({
     createClientTaskTool,
     addClientNoteTool,
     sendCoachingMessageTool,
+    resetClientPlanTool,
     // Client (acts as self)
     getMyProgressTool,
     getMyRecentWorkoutsTool,
@@ -55,5 +59,7 @@ export default defineMcp({
     logHabitCompletionTool,
     logMyWaterTool,
     getMyActiveFastTool,
+    logBodyWeightTool,
+    logMealFromRecipeTool,
   ],
 });
