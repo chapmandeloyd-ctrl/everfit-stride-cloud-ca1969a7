@@ -519,7 +519,8 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
       queryClient.invalidateQueries({ queryKey: ["ccp-keto", clientId] });
       queryClient.invalidateQueries({ queryKey: ["ccp-keto-type"] });
       queryClient.invalidateQueries({ queryKey: ["active-protocol-summary", clientId] });
-      queryClient.invalidateQueries({ queryKey: ["stage-timeline", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["stage-timeline-settings", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["ccp-enforce"] });
       queryClient.invalidateQueries({ queryKey: ["schedule-alignment", clientId] });
       queryClient.invalidateQueries({ queryKey: ["synergy-panel-keto", clientId] });
       queryClient.invalidateQueries({ queryKey: ["synergy-panel-settings", clientId] });
