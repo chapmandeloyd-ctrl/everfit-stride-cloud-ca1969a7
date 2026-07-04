@@ -15,7 +15,21 @@ type ConnectedClient = {
   logo_uri: string | null;
   scopes: string | null;
   granted_at: string;
+  last_active_at: string | null;
 };
+
+function formatLastActive(iso: string | null): string {
+  if (!iso) return "Never used";
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const mins = Math.round(diffMs / 60000);
+  if (mins < 1) return "Active now";
+  if (mins < 60) return `${mins} min ago`;
+  const hrs = Math.round(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.round(hrs / 24);
+  if (days < 30) return `${days}d ago`;
+  return new Date(iso).toLocaleDateString();
+}
 
 async function callManage(action: "list" | "revoke", extra?: Record<string, unknown>) {
   const { data, error } = await supabase.functions.invoke("manage-mcp-connections", {
@@ -107,8 +121,7 @@ export function ConnectedAssistants() {
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Connected {new Date(c.granted_at).toLocaleDateString()}
-                    {c.scopes ? ` · ${c.scopes}` : ""}
+                    Connected {new Date(c.granted_at).toLocaleDateString()} · Last active {formatLastActive(c.last_active_at)}
                   </p>
                 </div>
                 <Button
