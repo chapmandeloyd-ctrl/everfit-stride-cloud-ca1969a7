@@ -38,14 +38,41 @@ var whoami_default = defineTool2({
 });
 
 // src/lib/mcp/tools/list-my-clients.ts
-import { createClient } from "npm:@supabase/supabase-js@^2.98.0";
 import { defineTool as defineTool3 } from "npm:@lovable.dev/mcp-js@0.20.0";
-function sb(ctx) {
-  return createClient(process.env.SUPABASE_URL, process.env.SUPABASE_PUBLISHABLE_KEY, {
-    global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
-    auth: { persistSession: false, autoRefreshToken: false }
-  });
+
+// src/lib/mcp/_supabase.ts
+import { createClient } from "npm:@supabase/supabase-js@^2.98.0";
+function supabaseAsUser(ctx) {
+  return createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_PUBLISHABLE_KEY,
+    {
+      global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
+      auth: { persistSession: false, autoRefreshToken: false }
+    }
+  );
 }
+function notAuthed() {
+  return {
+    content: [{ type: "text", text: "Not authenticated" }],
+    isError: true
+  };
+}
+function errorResult(message) {
+  return {
+    content: [{ type: "text", text: message }],
+    isError: true
+  };
+}
+function jsonResult(payload, structuredKey) {
+  const text = JSON.stringify(payload, null, 2);
+  return {
+    content: [{ type: "text", text }],
+    structuredContent: structuredKey ? { [structuredKey]: payload } : payload
+  };
+}
+
+// src/lib/mcp/tools/list-my-clients.ts
 var list_my_clients_default = defineTool3({
   name: "list_my_clients",
   title: "List my clients",
@@ -53,14 +80,10 @@ var list_my_clients_default = defineTool3({
   inputSchema: {},
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: async (_input, ctx) => {
-    if (!ctx.isAuthenticated()) {
-      return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
-    }
-    const supabase = sb(ctx);
+    if (!ctx.isAuthenticated()) return notAuthed();
+    const supabase = supabaseAsUser(ctx);
     const { data, error } = await supabase.from("trainer_clients").select("client_id, status, assigned_at, profiles:client_id ( full_name, email, engine_mode )").eq("trainer_id", ctx.getUserId());
-    if (error) {
-      return { content: [{ type: "text", text: error.message }], isError: true };
-    }
+    if (error) return errorResult(error.message);
     const rows = (data ?? []).map((r) => ({
       client_id: r.client_id,
       status: r.status,
@@ -69,10 +92,7 @@ var list_my_clients_default = defineTool3({
       email: r.profiles?.email ?? null,
       engine_mode: r.profiles?.engine_mode ?? null
     }));
-    return {
-      content: [{ type: "text", text: JSON.stringify(rows, null, 2) }],
-      structuredContent: { clients: rows }
-    };
+    return jsonResult(rows, "clients");
   }
 });
 
@@ -80,7 +100,7 @@ var list_my_clients_default = defineTool3({
 import { createClient as createClient2 } from "npm:@supabase/supabase-js@^2.98.0";
 import { defineTool as defineTool4 } from "npm:@lovable.dev/mcp-js@0.20.0";
 import { z as z2 } from "npm:zod@^3.25";
-function sb2(ctx) {
+function sb(ctx) {
   return createClient2(process.env.SUPABASE_URL, process.env.SUPABASE_PUBLISHABLE_KEY, {
     global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
     auth: { persistSession: false, autoRefreshToken: false }
@@ -98,7 +118,7 @@ var get_client_progress_default = defineTool4({
     if (!ctx.isAuthenticated()) {
       return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
     }
-    const supabase = sb2(ctx);
+    const supabase = sb(ctx);
     const { data, error } = await supabase.from("client_weekly_summaries").select("*").eq("client_id", client_id).order("updated_at", { ascending: false }).limit(1).maybeSingle();
     if (error) {
       return { content: [{ type: "text", text: error.message }], isError: true };
@@ -117,7 +137,7 @@ var get_client_progress_default = defineTool4({
 import { createClient as createClient3 } from "npm:@supabase/supabase-js@^2.98.0";
 import { defineTool as defineTool5 } from "npm:@lovable.dev/mcp-js@0.20.0";
 import { z as z3 } from "npm:zod@^3.25";
-function sb3(ctx) {
+function sb2(ctx) {
   return createClient3(process.env.SUPABASE_URL, process.env.SUPABASE_PUBLISHABLE_KEY, {
     global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
     auth: { persistSession: false, autoRefreshToken: false }
@@ -139,7 +159,7 @@ var create_client_task_default = defineTool5({
     if (!ctx.isAuthenticated()) {
       return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
     }
-    const supabase = sb3(ctx);
+    const supabase = sb2(ctx);
     const { data, error } = await supabase.from("client_tasks").insert({
       trainer_id: ctx.getUserId(),
       client_id,
