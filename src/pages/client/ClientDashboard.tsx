@@ -2124,7 +2124,8 @@ export default function ClientDashboard() {
             !n.selected_quick_plan_id &&
             !n.protocol_start_date;
           if (wasCleared) {
-            toast.info("Your coach reset your plan", {
+            toast({
+              title: "Your coach reset your plan",
               description: "Your dashboard has been refreshed with a clean slate.",
             });
           }
