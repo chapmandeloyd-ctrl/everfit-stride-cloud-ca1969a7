@@ -52,8 +52,33 @@ Deno.serve(async (req) => {
         .is("revoked_at", null);
       if (error) throw error;
 
-      const items = (data ?? [])
-        .filter((r: any) => !r.oauth_clients?.deleted_at)
+      // For each active consent, look up the most recent session (refreshed_at)
+      // for that (user, oauth_client) pair. `refreshed_at` bumps on token
+      // refresh — approximately once per hour while an assistant is active.
+      const activeConsents = (data ?? []).filter((r: any) => !r.oauth_clients?.deleted_at);
+      const clientIds = activeConsents.map((r: any) => r.client_id);
+
+      let lastActiveByClient = new Map<string, string>();
+      if (clientIds.length > 0) {
+        const { data: sessions, error: sessErr } = await admin
+          .schema("auth" as any)
+          .from("sessions")
+          .select("oauth_client_id, refreshed_at, created_at")
+          .eq("user_id", userId)
+          .in("oauth_client_id", clientIds);
+        if (sessErr) throw sessErr;
+        for (const s of sessions ?? []) {
+          const stamp = (s as any).refreshed_at ?? (s as any).created_at;
+          if (!stamp) continue;
+          const key = (s as any).oauth_client_id as string;
+          const prev = lastActiveByClient.get(key);
+          if (!prev || new Date(stamp) > new Date(prev)) {
+            lastActiveByClient.set(key, stamp);
+          }
+        }
+      }
+
+      const items = activeConsents
         .map((r: any) => ({
           consent_id: r.id,
           client_id: r.client_id,
@@ -62,6 +87,7 @@ Deno.serve(async (req) => {
           logo_uri: r.oauth_clients?.logo_uri ?? null,
           scopes: r.scopes,
           granted_at: r.granted_at,
+          last_active_at: lastActiveByClient.get(r.client_id) ?? null,
         }));
       return new Response(JSON.stringify({ items }), { status: 200, headers: jsonHeaders });
     }
@@ -88,10 +114,19 @@ Deno.serve(async (req) => {
         .eq("user_id", userId)
         .eq("client_id", body.client_id);
 
+      // 3) Kill active sessions for this (user, client) so existing access
+      //    tokens can't refresh — immediate revocation instead of ~1hr wait.
+      await admin
+        .schema("auth" as any)
+        .from("sessions")
+        .delete()
+        .eq("user_id", userId)
+        .eq("oauth_client_id", body.client_id);
+
       return new Response(
         JSON.stringify({
           ok: true,
-          note: "Consent revoked. Any active access token (max ~1 hour) will fail on next refresh.",
+          note: "Consent revoked and sessions killed. Active access tokens will fail on next refresh (~1 hour max).",
         }),
         { status: 200, headers: jsonHeaders },
       );
