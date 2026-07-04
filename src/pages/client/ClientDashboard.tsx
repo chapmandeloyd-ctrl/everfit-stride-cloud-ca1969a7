@@ -2108,13 +2108,26 @@ export default function ClientDashboard() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "client_feature_settings", filter: `client_id=eq.${clientId}` },
-        () => {
+        (payload: any) => {
           queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting", clientId] });
           queryClient.invalidateQueries({ queryKey: ["my-feature-settings", clientId] });
           queryClient.invalidateQueries({ queryKey: ["active-fasting-protocol"] });
           queryClient.invalidateQueries({ queryKey: ["coach-tip-protocol"] });
           queryClient.invalidateQueries({ queryKey: ["ccp-settings", clientId] });
           queryClient.invalidateQueries({ queryKey: ["ccp-protocol"] });
+          // Detect a coach-triggered reset: both plan IDs cleared and no start date.
+          const n = payload?.new || {};
+          const o = payload?.old || {};
+          const wasCleared =
+            (o.selected_protocol_id || o.selected_quick_plan_id) &&
+            !n.selected_protocol_id &&
+            !n.selected_quick_plan_id &&
+            !n.protocol_start_date;
+          if (wasCleared) {
+            toast.info("Your coach reset your plan", {
+              description: "Your dashboard has been refreshed with a clean slate.",
+            });
+          }
         }
       )
       .on(
