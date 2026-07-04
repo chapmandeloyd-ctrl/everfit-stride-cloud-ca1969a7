@@ -4,6 +4,7 @@ import { NudgeSettings } from "@/components/NudgeSettings";
 import { ClientRemindersSection } from "@/components/ClientRemindersSection";
 import { HabitLoopSettings } from "@/components/notifications/HabitLoopSettings";
 import { PushStatusCard } from "@/components/notifications/PushStatusCard";
+import { ConnectedAssistants } from "@/components/settings/ConnectedAssistants";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -206,6 +207,8 @@ export default function ClientSettings() {
           <NudgeSettings />
 
           <ClientRemindersSection />
+
+          <ConnectedAssistants />
         </div>
       </div>
     </ClientLayout>

@@ -12,6 +12,7 @@ import { FastingCardEditor } from "@/components/settings/FastingCardEditor";
 import { DefaultDashboardLayoutEditor } from "@/components/settings/DefaultDashboardLayoutEditor";
 import { PdfBrandingEditor } from "@/components/settings/PdfBrandingEditor";
 import { ZapierWebhookCard } from "@/components/settings/ZapierWebhookCard";
+import { ConnectedAssistants } from "@/components/settings/ConnectedAssistants";
 import { useState } from "react";
 
 export default function TrainerSettings() {
@@ -98,6 +99,8 @@ export default function TrainerSettings() {
 
         {/* Onboarding Flows Preview */}
         <OnboardingPreviewSection />
+
+        <ConnectedAssistants />
       </div>
 
       <AddCardioActivityDialog
