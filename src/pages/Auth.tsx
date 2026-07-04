@@ -4,11 +4,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Eye, EyeOff, Shield } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 
 export default function Auth() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  // Preserve a same-origin relative `next` so OAuth-consent flows return home.
+  const rawNext = searchParams.get("next") || "";
+  const nextPath = rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : null;
+  const goPostAuth = (fallback: string) => {
+    if (nextPath) {
+      window.location.href = nextPath;
+    } else {
+      navigate(fallback);
+    }
+  };
   const [isLoading, setIsLoading] = useState(false);
   const [tab, setTab] = useState<"signin" | "admin">("signin");
   const [signInData, setSignInData] = useState({ email: "", password: "" });
@@ -29,9 +40,9 @@ export default function Auth() {
           .single();
 
         if (profile?.role === "client") {
-          navigate(!profile.onboarding_completed ? "/client/onboarding" : "/client/dashboard");
+          goPostAuth(!profile.onboarding_completed ? "/client/onboarding" : "/client/dashboard");
         } else {
-          navigate("/");
+          goPostAuth("/");
         }
       }
     };
@@ -62,9 +73,9 @@ export default function Auth() {
 
         toast.success("Signed in successfully!");
         if (profile?.role === "client") {
-          navigate(!profile.onboarding_completed ? "/client/onboarding" : "/client/dashboard");
+          goPostAuth(!profile.onboarding_completed ? "/client/onboarding" : "/client/dashboard");
         } else {
-          navigate("/");
+          goPostAuth("/");
         }
       }
     } catch (error: any) {

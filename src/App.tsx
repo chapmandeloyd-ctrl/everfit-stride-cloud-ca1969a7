@@ -20,6 +20,7 @@ import Goals from "./pages/Goals";
 import TaskLibrary from "./pages/TaskLibrary";
 import AdminDataConsole from "./pages/AdminDataConsole";
 import Auth from "./pages/Auth";
+import OAuthConsent from "./pages/OAuthConsent";
 import Unsubscribe from "./pages/Unsubscribe";
 import PortalMockup from "./pages/PortalMockup";
 import ClientDashboard from "./pages/client/ClientDashboardMinimal";
@@ -145,6 +146,7 @@ const App = () => (
         <ImpersonationProvider>
         <Routes>
           <Route path="/auth" element={<Auth />} />
+          <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/guardian/:token" element={<GuardianSummary />} />
