@@ -37,18 +37,145 @@ var whoami_default = defineTool2({
   }
 });
 
+// src/lib/mcp/tools/list-my-clients.ts
+import { createClient } from "npm:@supabase/supabase-js@^2.98.0";
+import { defineTool as defineTool3 } from "npm:@lovable.dev/mcp-js@0.20.0";
+function sb(ctx) {
+  return createClient(process.env.SUPABASE_URL, process.env.SUPABASE_PUBLISHABLE_KEY, {
+    global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
+    auth: { persistSession: false, autoRefreshToken: false }
+  });
+}
+var list_my_clients_default = defineTool3({
+  name: "list_my_clients",
+  title: "List my clients",
+  description: "List clients linked to the signed-in trainer via trainer_clients, joined with each client's profile (name, email).",
+  inputSchema: {},
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async (_input, ctx) => {
+    if (!ctx.isAuthenticated()) {
+      return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
+    }
+    const supabase = sb(ctx);
+    const { data, error } = await supabase.from("trainer_clients").select("client_id, status, assigned_at, profiles:client_id ( full_name, email, engine_mode )").eq("trainer_id", ctx.getUserId());
+    if (error) {
+      return { content: [{ type: "text", text: error.message }], isError: true };
+    }
+    const rows = (data ?? []).map((r) => ({
+      client_id: r.client_id,
+      status: r.status,
+      assigned_at: r.assigned_at,
+      full_name: r.profiles?.full_name ?? null,
+      email: r.profiles?.email ?? null,
+      engine_mode: r.profiles?.engine_mode ?? null
+    }));
+    return {
+      content: [{ type: "text", text: JSON.stringify(rows, null, 2) }],
+      structuredContent: { clients: rows }
+    };
+  }
+});
+
+// src/lib/mcp/tools/get-client-progress.ts
+import { createClient as createClient2 } from "npm:@supabase/supabase-js@^2.98.0";
+import { defineTool as defineTool4 } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { z as z2 } from "npm:zod@^3.25";
+function sb2(ctx) {
+  return createClient2(process.env.SUPABASE_URL, process.env.SUPABASE_PUBLISHABLE_KEY, {
+    global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
+    auth: { persistSession: false, autoRefreshToken: false }
+  });
+}
+var get_client_progress_default = defineTool4({
+  name: "get_client_progress",
+  title: "Get client progress",
+  description: "Return the latest weekly summary for a client (adherence score, avg score 7d, completion, trend, deltas). Requires the caller to be the client's trainer (RLS enforced).",
+  inputSchema: {
+    client_id: z2.string().uuid().describe("The client's profile id (UUID).")
+  },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ client_id }, ctx) => {
+    if (!ctx.isAuthenticated()) {
+      return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
+    }
+    const supabase = sb2(ctx);
+    const { data, error } = await supabase.from("client_weekly_summaries").select("*").eq("client_id", client_id).order("updated_at", { ascending: false }).limit(1).maybeSingle();
+    if (error) {
+      return { content: [{ type: "text", text: error.message }], isError: true };
+    }
+    if (!data) {
+      return { content: [{ type: "text", text: "No progress summary found for this client." }] };
+    }
+    return {
+      content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
+      structuredContent: { summary: data }
+    };
+  }
+});
+
+// src/lib/mcp/tools/create-client-task.ts
+import { createClient as createClient3 } from "npm:@supabase/supabase-js@^2.98.0";
+import { defineTool as defineTool5 } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { z as z3 } from "npm:zod@^3.25";
+function sb3(ctx) {
+  return createClient3(process.env.SUPABASE_URL, process.env.SUPABASE_PUBLISHABLE_KEY, {
+    global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
+    auth: { persistSession: false, autoRefreshToken: false }
+  });
+}
+var create_client_task_default = defineTool5({
+  name: "create_client_task",
+  title: "Create client task",
+  description: "Assign a task to one of the signed-in trainer's clients. The trainer_id is taken from the OAuth token, never from input.",
+  inputSchema: {
+    client_id: z3.string().uuid().describe("Target client's profile id."),
+    name: z3.string().min(1).describe("Short task name shown to the client."),
+    description: z3.string().optional().describe("Optional longer description."),
+    task_type: z3.enum(["general", "progress_photo", "body_metrics", "form", "habit"]).default("general").describe("Task category."),
+    due_date: z3.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().describe("Optional due date, YYYY-MM-DD.")
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+  handler: async ({ client_id, name, description, task_type, due_date }, ctx) => {
+    if (!ctx.isAuthenticated()) {
+      return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
+    }
+    const supabase = sb3(ctx);
+    const { data, error } = await supabase.from("client_tasks").insert({
+      trainer_id: ctx.getUserId(),
+      client_id,
+      name,
+      description: description ?? null,
+      task_type,
+      due_date: due_date ?? null
+    }).select().single();
+    if (error) {
+      return { content: [{ type: "text", text: error.message }], isError: true };
+    }
+    return {
+      content: [{ type: "text", text: `Task created: ${data.id}` }],
+      structuredContent: { task: data }
+    };
+  }
+});
+
 // src/lib/mcp/index.ts
 var projectRef = "eexxmfuknqttujecbcho";
 var mcp_default = defineMcp({
   name: "ksom-360-mcp",
   title: "KSOM-360 MCP",
   version: "0.1.0",
-  instructions: "Read-only starter tools for KSOM-360. Use `echo` to verify connectivity and `whoami` to confirm the signed-in coach or client.",
+  instructions: "Tools for KSOM-360. Use `echo`/`whoami` to verify connectivity. Trainers can `list_my_clients`, `get_client_progress` for one client, and `create_client_task` to assign a task. All calls run as the signed-in user with RLS enforced.",
   auth: auth.oauth.issuer({
     issuer: `https://${projectRef}.supabase.co/auth/v1`,
     acceptedAudiences: "authenticated"
   }),
-  tools: [echo_default, whoami_default]
+  tools: [
+    echo_default,
+    whoami_default,
+    list_my_clients_default,
+    get_client_progress_default,
+    create_client_task_default
+  ]
 });
 
 // lovable-mcp-supabase-entry.ts
