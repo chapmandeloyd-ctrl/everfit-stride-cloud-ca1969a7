@@ -1,9 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Calendar } from "@/components/ui/calendar";
-import { CalendarDays, CircleDot, Flag, Check } from "lucide-react";
-import { useState } from "react";
+import { CalendarDays, CircleDot, Flag, Check, Settings2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,6 +19,17 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { EventDetailDrawer } from "./EventDetailDrawer";
+
+const TIMEZONES = [
+  "America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles",
+  "America/Phoenix", "America/Anchorage", "Pacific/Honolulu", "America/Toronto",
+  "America/Mexico_City", "America/Sao_Paulo", "Europe/London", "Europe/Berlin",
+  "Europe/Paris", "Europe/Madrid", "Europe/Rome", "Europe/Athens", "Africa/Cairo",
+  "Africa/Johannesburg", "Asia/Dubai", "Asia/Kolkata", "Asia/Bangkok",
+  "Asia/Singapore", "Asia/Hong_Kong", "Asia/Tokyo", "Asia/Seoul",
+  "Australia/Sydney", "Australia/Perth", "Pacific/Auckland",
+];
+const COUNT_OPTIONS = [3, 5, 7, 10, 15];
 
 type EventItem = {
   date: Date;
@@ -31,6 +45,61 @@ export function ProtocolMiniCalendar({ clientId }: { clientId: string }) {
   const [pending, setPending] = useState<EventItem | null>(null);
   const [detail, setDetail] = useState<EventItem | null>(null);
   const qc = useQueryClient();
+  const browserTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+  // Per-client "next events" count preference (trainer browser preference)
+  const countKey = `calendar-next-count-${clientId}`;
+  const [nextCount, setNextCount] = useState<number>(() => {
+    if (typeof window === "undefined") return 5;
+    const v = parseInt(localStorage.getItem(countKey) || "5", 10);
+    return COUNT_OPTIONS.includes(v) ? v : 5;
+  });
+  useEffect(() => {
+    try { localStorage.setItem(countKey, String(nextCount)); } catch {}
+  }, [countKey, nextCount]);
+
+  const { data: tzSetting } = useQuery({
+    queryKey: ["calendar-tz", clientId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("client_feature_settings")
+        .select("schedule_timezone")
+        .eq("client_id", clientId)
+        .maybeSingle();
+      return (data as any)?.schedule_timezone as string | null;
+    },
+  });
+  const effectiveTz = tzSetting || browserTz;
+
+  const tzMutation = useMutation({
+    mutationFn: async (tz: string) => {
+      const value = tz === "__system__" ? null : tz;
+      const { data: existing } = await supabase
+        .from("client_feature_settings")
+        .select("client_id")
+        .eq("client_id", clientId)
+        .maybeSingle();
+      if (existing) {
+        const { error } = await supabase
+          .from("client_feature_settings")
+          .update({ schedule_timezone: value } as any)
+          .eq("client_id", clientId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("client_feature_settings")
+          .insert([{ client_id: clientId, schedule_timezone: value } as any]);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      toast.success("Calendar timezone updated");
+      qc.invalidateQueries({ queryKey: ["calendar-tz", clientId] });
+      qc.invalidateQueries({ queryKey: ["schedule-alignment", clientId] });
+      qc.invalidateQueries({ queryKey: ["ccp-settings", clientId] });
+    },
+    onError: (e: any) => toast.error(e?.message || "Failed to save timezone"),
+  });
 
   const { data } = useQuery({
     queryKey: ["protocol-mini-calendar", clientId],
@@ -215,7 +284,7 @@ export function ProtocolMiniCalendar({ clientId }: { clientId: string }) {
 
   const upcoming = [...events]
     .sort((a, b) => a.date.getTime() - b.date.getTime())
-    .slice(0, 5);
+    .slice(0, nextCount);
 
   return (
     <div className="rounded-xl border border-border bg-card p-2 sm:p-4 min-w-0">
@@ -229,6 +298,52 @@ export function ProtocolMiniCalendar({ clientId }: { clientId: string }) {
           <span className="flex items-center gap-1">
             <Flag className="h-3 w-3 text-amber-500" /> Review
           </span>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-6 w-6" title="Calendar settings">
+                <Settings2 className="h-3.5 w-3.5" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-64 space-y-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs">Timezone</Label>
+                <Select
+                  value={tzSetting || "__system__"}
+                  onValueChange={(v) => tzMutation.mutate(v)}
+                  disabled={tzMutation.isPending}
+                >
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-64">
+                    <SelectItem value="__system__">System default ({browserTz})</SelectItem>
+                    {TIMEZONES.map((z) => (
+                      <SelectItem key={z} value={z}>{z}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-[10px] text-muted-foreground">
+                  Shared with Schedule Alignment.
+                </p>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Next events to show</Label>
+                <Select
+                  value={String(nextCount)}
+                  onValueChange={(v) => setNextCount(parseInt(v, 10))}
+                >
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {COUNT_OPTIONS.map((n) => (
+                      <SelectItem key={n} value={String(n)}>{n} events</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
 
@@ -268,7 +383,7 @@ export function ProtocolMiniCalendar({ clientId }: { clientId: string }) {
 
         <div className="min-w-0">
           <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">
-            Next 5 events
+            Next {nextCount} events
           </div>
           {upcoming.length === 0 ? (
             <div className="text-xs text-muted-foreground py-2">
@@ -298,6 +413,7 @@ export function ProtocolMiniCalendar({ clientId }: { clientId: string }) {
                       weekday: "short",
                       month: "short",
                       day: "numeric",
+                      timeZone: effectiveTz,
                     })}
                   </span>
                   <Button
