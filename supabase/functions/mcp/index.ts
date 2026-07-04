@@ -153,13 +153,334 @@ var create_client_task_default = defineTool5({
   }
 });
 
+// src/lib/mcp/tools/list-client-tasks.ts
+import { defineTool as defineTool6 } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { z as z4 } from "npm:zod@^3.25";
+var list_client_tasks_default = defineTool6({
+  name: "list_client_tasks",
+  title: "List client tasks",
+  description: "List tasks for one of the signed-in trainer's clients. Filter by completion status.",
+  inputSchema: {
+    client_id: z4.string().uuid(),
+    status: z4.enum(["open", "completed", "all"]).default("open"),
+    limit: z4.number().int().min(1).max(100).default(25)
+  },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ client_id, status, limit }, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthed();
+    let query = supabaseAsUser(ctx).from("client_tasks").select("id, name, description, task_type, due_date, completed_at, assigned_at").eq("client_id", client_id).order("assigned_at", { ascending: false }).limit(limit);
+    if (status === "open") query = query.is("completed_at", null);
+    if (status === "completed") query = query.not("completed_at", "is", null);
+    const { data, error } = await query;
+    if (error) return errorResult(error.message);
+    return jsonResult(data ?? [], "tasks");
+  }
+});
+
+// src/lib/mcp/tools/add-client-note.ts
+import { defineTool as defineTool7 } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { z as z5 } from "npm:zod@^3.25";
+var add_client_note_default = defineTool7({
+  name: "add_client_note",
+  title: "Add client note",
+  description: "Add a private trainer note about a client. Only visible to the trainer via RLS.",
+  inputSchema: {
+    client_id: z5.string().uuid(),
+    content: z5.string().min(1)
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+  handler: async ({ client_id, content }, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthed();
+    const { data, error } = await supabaseAsUser(ctx).from("client_notes").insert({ trainer_id: ctx.getUserId(), client_id, content }).select().single();
+    if (error) return errorResult(error.message);
+    return {
+      content: [{ type: "text", text: `Note saved: ${data.id}` }],
+      structuredContent: { note: data }
+    };
+  }
+});
+
+// src/lib/mcp/tools/get-client-recent-workouts.ts
+import { defineTool as defineTool8 } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { z as z6 } from "npm:zod@^3.25";
+var get_client_recent_workouts_default = defineTool8({
+  name: "get_client_recent_workouts",
+  title: "Get client's recent workouts",
+  description: "Return the client's most recent workout sessions (status, duration, completion %, difficulty rating, notes).",
+  inputSchema: {
+    client_id: z6.string().uuid(),
+    limit: z6.number().int().min(1).max(50).default(10)
+  },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ client_id, limit }, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthed();
+    const { data, error } = await supabaseAsUser(ctx).from("workout_sessions").select(
+      "id, started_at, completed_at, status, duration_seconds, completion_percentage, difficulty_rating, is_partial, notes"
+    ).eq("client_id", client_id).order("started_at", { ascending: false }).limit(limit);
+    if (error) return errorResult(error.message);
+    return jsonResult(data ?? [], "workouts");
+  }
+});
+
+// src/lib/mcp/tools/get-client-recent-fasts.ts
+import { defineTool as defineTool9 } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { z as z7 } from "npm:zod@^3.25";
+var get_client_recent_fasts_default = defineTool9({
+  name: "get_client_recent_fasts",
+  title: "Get client's recent fasts",
+  description: "Return the client's most recent fasting sessions (target vs. actual hours, completion %, status).",
+  inputSchema: {
+    client_id: z7.string().uuid(),
+    limit: z7.number().int().min(1).max(50).default(10)
+  },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ client_id, limit }, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthed();
+    const { data, error } = await supabaseAsUser(ctx).from("fasting_log").select("id, started_at, ended_at, target_hours, actual_hours, completion_pct, status, ended_early").eq("client_id", client_id).order("started_at", { ascending: false }).limit(limit);
+    if (error) return errorResult(error.message);
+    return jsonResult(data ?? [], "fasts");
+  }
+});
+
+// src/lib/mcp/tools/send-coaching-message.ts
+import { defineTool as defineTool10 } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { z as z8 } from "npm:zod@^3.25";
+var send_coaching_message_default = defineTool10({
+  name: "send_coaching_message",
+  title: "Send coaching message to a client",
+  description: "Post a coach message that appears in the client's dashboard coaching feed. Trainer-only.",
+  inputSchema: {
+    client_id: z8.string().uuid(),
+    message: z8.string().min(1),
+    action_text: z8.string().optional().describe("Optional CTA button label."),
+    priority: z8.number().int().min(1).max(5).default(3),
+    delivery_slot: z8.enum(["morning", "midday", "evening", "any"]).default("any")
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+  handler: async ({ client_id, message, action_text, priority, delivery_slot }, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthed();
+    const today = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
+    const { data, error } = await supabaseAsUser(ctx).from("coaching_messages").insert({
+      client_id,
+      coach_type: "trainer",
+      message,
+      action_text: action_text ?? null,
+      priority,
+      delivery_slot,
+      message_date: today
+    }).select().single();
+    if (error) return errorResult(error.message);
+    return {
+      content: [{ type: "text", text: `Message queued for ${client_id}` }],
+      structuredContent: { message: data }
+    };
+  }
+});
+
+// src/lib/mcp/tools/get-my-progress.ts
+import { defineTool as defineTool11 } from "npm:@lovable.dev/mcp-js@0.20.0";
+var get_my_progress_default = defineTool11({
+  name: "get_my_progress",
+  title: "Get my progress",
+  description: "Return the signed-in client's latest weekly summary (adherence score, 7-day averages, trend, deltas).",
+  inputSchema: {},
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async (_input, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthed();
+    const { data, error } = await supabaseAsUser(ctx).from("client_weekly_summaries").select("*").eq("client_id", ctx.getUserId()).order("updated_at", { ascending: false }).limit(1).maybeSingle();
+    if (error) return errorResult(error.message);
+    if (!data) return { content: [{ type: "text", text: "No weekly summary yet." }] };
+    return jsonResult(data, "summary");
+  }
+});
+
+// src/lib/mcp/tools/get-my-tasks.ts
+import { defineTool as defineTool12 } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { z as z9 } from "npm:zod@^3.25";
+var get_my_tasks_default = defineTool12({
+  name: "get_my_tasks",
+  title: "Get my tasks",
+  description: "List the signed-in client's tasks. Filter by open, completed, or all.",
+  inputSchema: {
+    status: z9.enum(["open", "completed", "all"]).default("open"),
+    limit: z9.number().int().min(1).max(100).default(25)
+  },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ status, limit }, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthed();
+    let query = supabaseAsUser(ctx).from("client_tasks").select("id, name, description, task_type, due_date, completed_at, assigned_at, notes").eq("client_id", ctx.getUserId()).order("due_date", { ascending: true, nullsFirst: false }).limit(limit);
+    if (status === "open") query = query.is("completed_at", null);
+    if (status === "completed") query = query.not("completed_at", "is", null);
+    const { data, error } = await query;
+    if (error) return errorResult(error.message);
+    return jsonResult(data ?? [], "tasks");
+  }
+});
+
+// src/lib/mcp/tools/complete-task.ts
+import { defineTool as defineTool13 } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { z as z10 } from "npm:zod@^3.25";
+var complete_task_default = defineTool13({
+  name: "complete_task",
+  title: "Complete a task",
+  description: "Mark a client_tasks row as completed (sets completed_at = now). RLS enforces the caller must own or coach the task.",
+  inputSchema: {
+    task_id: z10.string().uuid(),
+    notes: z10.string().optional()
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  handler: async ({ task_id, notes }, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthed();
+    const patch = { completed_at: (/* @__PURE__ */ new Date()).toISOString() };
+    if (notes) patch.notes = notes;
+    const { data, error } = await supabaseAsUser(ctx).from("client_tasks").update(patch).eq("id", task_id).select().maybeSingle();
+    if (error) return errorResult(error.message);
+    if (!data) return errorResult("Task not found or not accessible.");
+    return {
+      content: [{ type: "text", text: `Task ${task_id} marked complete.` }],
+      structuredContent: { task: data }
+    };
+  }
+});
+
+// src/lib/mcp/tools/log-my-water.ts
+import { defineTool as defineTool14 } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { z as z11 } from "npm:zod@^3.25";
+var log_my_water_default = defineTool14({
+  name: "log_my_water",
+  title: "Log water intake",
+  description: "Log a water intake entry (in ounces) for the signed-in client.",
+  inputSchema: {
+    amount_oz: z11.number().positive().max(500),
+    logged_at: z11.string().datetime().optional().describe("Optional ISO timestamp; defaults to now.")
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+  handler: async ({ amount_oz, logged_at }, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthed();
+    const { data, error } = await supabaseAsUser(ctx).from("water_log_entries").insert({
+      client_id: ctx.getUserId(),
+      amount_oz,
+      logged_at: logged_at ?? (/* @__PURE__ */ new Date()).toISOString()
+    }).select().single();
+    if (error) return errorResult(error.message);
+    return {
+      content: [{ type: "text", text: `Logged ${amount_oz} oz of water.` }],
+      structuredContent: { entry: data }
+    };
+  }
+});
+
+// src/lib/mcp/tools/get-my-habits.ts
+import { defineTool as defineTool15 } from "npm:@lovable.dev/mcp-js@0.20.0";
+var get_my_habits_default = defineTool15({
+  name: "get_my_habits",
+  title: "Get my habits",
+  description: "List the signed-in client's active habits with today's completion status.",
+  inputSchema: {},
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async (_input, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthed();
+    const supabase = supabaseAsUser(ctx);
+    const today = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
+    const [habitsRes, completionsRes] = await Promise.all([
+      supabase.from("client_habits").select("id, name, description, goal_value, goal_unit, frequency, is_active").eq("client_id", ctx.getUserId()).eq("is_active", true),
+      supabase.from("habit_completions").select("habit_id, value, completed_at").eq("client_id", ctx.getUserId()).eq("completion_date", today)
+    ]);
+    if (habitsRes.error) return errorResult(habitsRes.error.message);
+    if (completionsRes.error) return errorResult(completionsRes.error.message);
+    const completed = /* @__PURE__ */ new Map();
+    for (const c of completionsRes.data ?? []) {
+      completed.set(c.habit_id, { value: c.value, completed_at: c.completed_at });
+    }
+    const rows = (habitsRes.data ?? []).map((h) => ({
+      ...h,
+      completed_today: completed.has(h.id),
+      today_value: completed.get(h.id)?.value ?? null
+    }));
+    return jsonResult(rows, "habits");
+  }
+});
+
+// src/lib/mcp/tools/log-habit-completion.ts
+import { defineTool as defineTool16 } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { z as z12 } from "npm:zod@^3.25";
+var log_habit_completion_default = defineTool16({
+  name: "log_habit_completion",
+  title: "Log habit completion",
+  description: "Mark one of the signed-in client's habits as completed for today (or a chosen date).",
+  inputSchema: {
+    habit_id: z12.string().uuid(),
+    value: z12.number().optional().describe("Optional numeric amount (e.g. count/minutes)."),
+    notes: z12.string().optional(),
+    completion_date: z12.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().describe("YYYY-MM-DD, defaults to today.")
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  handler: async ({ habit_id, value, notes, completion_date }, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthed();
+    const date = completion_date ?? (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
+    const { data, error } = await supabaseAsUser(ctx).from("habit_completions").insert({
+      habit_id,
+      client_id: ctx.getUserId(),
+      completion_date: date,
+      completed_at: (/* @__PURE__ */ new Date()).toISOString(),
+      value: value ?? null,
+      notes: notes ?? null
+    }).select().single();
+    if (error) return errorResult(error.message);
+    return {
+      content: [{ type: "text", text: `Habit ${habit_id} logged for ${date}.` }],
+      structuredContent: { completion: data }
+    };
+  }
+});
+
+// src/lib/mcp/tools/get-my-active-fast.ts
+import { defineTool as defineTool17 } from "npm:@lovable.dev/mcp-js@0.20.0";
+var get_my_active_fast_default = defineTool17({
+  name: "get_my_active_fast",
+  title: "Get my active fast",
+  description: "Return the signed-in client's active fasting session (if any), including target and elapsed hours.",
+  inputSchema: {},
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async (_input, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthed();
+    const { data, error } = await supabaseAsUser(ctx).from("fasting_log").select("id, started_at, ended_at, target_hours, actual_hours, completion_pct, status, ended_early").eq("client_id", ctx.getUserId()).is("ended_at", null).order("started_at", { ascending: false }).limit(1).maybeSingle();
+    if (error) return errorResult(error.message);
+    if (!data) return { content: [{ type: "text", text: "No active fast." }] };
+    const startedAt = new Date(data.started_at).getTime();
+    const elapsed_hours = Math.max(0, (Date.now() - startedAt) / 36e5);
+    return jsonResult({ ...data, elapsed_hours: Number(elapsed_hours.toFixed(2)) }, "fast");
+  }
+});
+
+// src/lib/mcp/tools/get-my-recent-workouts.ts
+import { defineTool as defineTool18 } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { z as z13 } from "npm:zod@^3.25";
+var get_my_recent_workouts_default = defineTool18({
+  name: "get_my_recent_workouts",
+  title: "Get my recent workouts",
+  description: "Return the signed-in client's most recent workout sessions.",
+  inputSchema: {
+    limit: z13.number().int().min(1).max(50).default(10)
+  },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ limit }, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthed();
+    const { data, error } = await supabaseAsUser(ctx).from("workout_sessions").select(
+      "id, started_at, completed_at, status, duration_seconds, completion_percentage, difficulty_rating, is_partial, notes"
+    ).eq("client_id", ctx.getUserId()).order("started_at", { ascending: false }).limit(limit);
+    if (error) return errorResult(error.message);
+    return jsonResult(data ?? [], "workouts");
+  }
+});
+
 // src/lib/mcp/index.ts
 var projectRef = "eexxmfuknqttujecbcho";
 var mcp_default = defineMcp({
   name: "ksom-360-mcp",
   title: "KSOM-360 MCP",
   version: "0.1.0",
-  instructions: "Tools for KSOM-360. Use `echo`/`whoami` to verify connectivity. Trainers can `list_my_clients`, `get_client_progress` for one client, and `create_client_task` to assign a task. All calls run as the signed-in user with RLS enforced.",
+  instructions: "Tools for KSOM-360. All calls run as the signed-in user with RLS enforced.\n\nConnectivity: `echo`, `whoami`.\n\nTrainer tools (require a trainer account): `list_my_clients`, `get_client_progress`, `get_client_recent_workouts`, `get_client_recent_fasts`, `list_client_tasks`, `create_client_task`, `add_client_note`, `send_coaching_message`.\n\nClient tools (act as the signed-in client): `get_my_progress`, `get_my_recent_workouts`, `get_my_tasks`, `complete_task`, `get_my_habits`, `log_habit_completion`, `log_my_water`, `get_my_active_fast`.",
   auth: auth.oauth.issuer({
     issuer: `https://${projectRef}.supabase.co/auth/v1`,
     acceptedAudiences: "authenticated"
@@ -167,9 +488,24 @@ var mcp_default = defineMcp({
   tools: [
     echo_default,
     whoami_default,
+    // Trainer
     list_my_clients_default,
     get_client_progress_default,
-    create_client_task_default
+    get_client_recent_workouts_default,
+    get_client_recent_fasts_default,
+    list_client_tasks_default,
+    create_client_task_default,
+    add_client_note_default,
+    send_coaching_message_default,
+    // Client (acts as self)
+    get_my_progress_default,
+    get_my_recent_workouts_default,
+    get_my_tasks_default,
+    complete_task_default,
+    get_my_habits_default,
+    log_habit_completion_default,
+    log_my_water_default,
+    get_my_active_fast_default
   ]
 });
 
