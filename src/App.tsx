@@ -20,6 +20,7 @@ import Goals from "./pages/Goals";
 import TaskLibrary from "./pages/TaskLibrary";
 import AdminDataConsole from "./pages/AdminDataConsole";
 import Auth from "./pages/Auth";
+import OAuthConsent from "./pages/OAuthConsent";
 import Unsubscribe from "./pages/Unsubscribe";
 import PortalMockup from "./pages/PortalMockup";
 import ClientDashboard from "./pages/client/ClientDashboardMinimal";
