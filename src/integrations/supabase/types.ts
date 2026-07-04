@@ -1324,6 +1324,7 @@ export type Database = {
           eating_window_card_title: string | null
           eating_window_ends_at: string | null
           eating_window_hours: number
+          enforce_scheduled_start: boolean
           engine_mode: Database["public"]["Enums"]["engine_mode"]
           fast_lock_pin: string | null
           fasting_card_image_url: string | null
@@ -1434,6 +1435,7 @@ export type Database = {
           eating_window_card_title?: string | null
           eating_window_ends_at?: string | null
           eating_window_hours?: number
+          enforce_scheduled_start?: boolean
           engine_mode?: Database["public"]["Enums"]["engine_mode"]
           fast_lock_pin?: string | null
           fasting_card_image_url?: string | null
@@ -1544,6 +1546,7 @@ export type Database = {
           eating_window_card_title?: string | null
           eating_window_ends_at?: string | null
           eating_window_hours?: number
+          enforce_scheduled_start?: boolean
           engine_mode?: Database["public"]["Enums"]["engine_mode"]
           fast_lock_pin?: string | null
           fasting_card_image_url?: string | null

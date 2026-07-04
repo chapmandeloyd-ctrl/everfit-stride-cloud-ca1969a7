@@ -63,6 +63,7 @@ import { TodaysWindowCard } from "@/components/client/TodaysWindowCard";
 import { ClientWeekStrip } from "@/components/client/ClientWeekStrip";
 import { StartFastGate } from "@/components/client/StartFastGate";
 import { openLiveSchedule } from "@/lib/liveScheduleBus";
+import { LiveScheduleHost } from "@/components/client/LiveScheduleHost";
 import { BuildWorkoutSheet } from "@/components/workout/BuildWorkoutSheet";
 
 import { ProgramsSelector } from "@/components/ProgramsSelector";
@@ -2532,6 +2533,7 @@ export default function ClientDashboard() {
   return (
     <ClientLayout>
       <div className="px-3 pt-4 pb-8 space-y-5 w-full">
+        <LiveScheduleHost />
         {/* Header */}
         <div className="flex items-center justify-between pt-2">
           <div>

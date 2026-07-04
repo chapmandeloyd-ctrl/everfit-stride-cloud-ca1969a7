@@ -77,7 +77,7 @@ export default function TrainerDashboard() {
             .from("fasting_log")
             .select("client_id")
             .in("client_id", candidateIds)
-            .gte("start_time", earliest + "T00:00:00Z");
+            .gte("started_at", earliest + "T00:00:00Z");
           const startedSet = new Set((logs ?? []).map((l) => l.client_id));
           const missing = new Set<string>();
           const details: Record<string, { startDate: string; daysOverdue: number }> = {};
