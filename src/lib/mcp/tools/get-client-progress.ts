@@ -1,15 +1,6 @@
-import { createClient } from "@supabase/supabase-js";
-import { defineTool, type ToolContext } from "@lovable.dev/mcp-js";
+import { defineTool } from "@lovable.dev/mcp-js";
 import { z } from "zod";
-
-declare const process: { env: Record<string, string | undefined> };
-
-function sb(ctx: ToolContext) {
-  return createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, {
-    global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-}
+import { errorResult, jsonResult, notAuthed, supabaseAsUser } from "../_supabase";
 
 export default defineTool({
   name: "get_client_progress",
@@ -21,10 +12,8 @@ export default defineTool({
   },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: async ({ client_id }, ctx) => {
-    if (!ctx.isAuthenticated()) {
-      return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
-    }
-    const supabase = sb(ctx);
+    if (!ctx.isAuthenticated()) return notAuthed();
+    const supabase = supabaseAsUser(ctx);
     const { data, error } = await supabase
       .from("client_weekly_summaries")
       .select("*")
@@ -32,15 +21,10 @@ export default defineTool({
       .order("updated_at", { ascending: false })
       .limit(1)
       .maybeSingle();
-    if (error) {
-      return { content: [{ type: "text", text: error.message }], isError: true };
-    }
+    if (error) return errorResult(error.message);
     if (!data) {
       return { content: [{ type: "text", text: "No progress summary found for this client." }] };
     }
-    return {
-      content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
-      structuredContent: { summary: data },
-    };
+    return jsonResult(data, "summary");
   },
 });
