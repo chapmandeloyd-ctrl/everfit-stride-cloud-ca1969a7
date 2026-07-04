@@ -120,15 +120,8 @@ var get_client_progress_default = defineTool4({
 });
 
 // src/lib/mcp/tools/create-client-task.ts
-import { createClient as createClient2 } from "npm:@supabase/supabase-js@^2.98.0";
 import { defineTool as defineTool5 } from "npm:@lovable.dev/mcp-js@0.20.0";
 import { z as z3 } from "npm:zod@^3.25";
-function sb(ctx) {
-  return createClient2(process.env.SUPABASE_URL, process.env.SUPABASE_PUBLISHABLE_KEY, {
-    global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
-    auth: { persistSession: false, autoRefreshToken: false }
-  });
-}
 var create_client_task_default = defineTool5({
   name: "create_client_task",
   title: "Create client task",
@@ -142,10 +135,8 @@ var create_client_task_default = defineTool5({
   },
   annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
   handler: async ({ client_id, name, description, task_type, due_date }, ctx) => {
-    if (!ctx.isAuthenticated()) {
-      return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
-    }
-    const supabase = sb(ctx);
+    if (!ctx.isAuthenticated()) return notAuthed();
+    const supabase = supabaseAsUser(ctx);
     const { data, error } = await supabase.from("client_tasks").insert({
       trainer_id: ctx.getUserId(),
       client_id,
@@ -154,9 +145,7 @@ var create_client_task_default = defineTool5({
       task_type,
       due_date: due_date ?? null
     }).select().single();
-    if (error) {
-      return { content: [{ type: "text", text: error.message }], isError: true };
-    }
+    if (error) return errorResult(error.message);
     return {
       content: [{ type: "text", text: `Task created: ${data.id}` }],
       structuredContent: { task: data }
