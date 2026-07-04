@@ -362,6 +362,31 @@
         "outputSchema": null
       },
       {
+        "name": "get_client_adherence_breakdown",
+        "title": "Get client adherence breakdown",
+        "description": "Return the latest per-engine scores for a client (engine type, score, status, streak, weekly completion, and the engine's own recommendation). Requires the caller to be the client's trainer (RLS enforced).",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "client_id": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "required": [
+            "client_id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
         "name": "get_my_progress",
         "title": "Get my progress",
         "description": "Return the signed-in client's latest weekly summary (adherence score, 7-day averages, trend, deltas).",
@@ -634,6 +659,81 @@
           ],
           "additionalProperties": false,
           "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_my_macros_today",
+        "title": "Get my macros today",
+        "description": "Return the signed-in client's macro targets vs. today's consumed totals (calories, protein, carbs, fats) plus remaining amounts. Uses the client's active client_macro_targets row and sums today's nutrition_logs.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "search_recipes",
+        "title": "Search recipes",
+        "description": "Search recipes available to the signed-in user by name/description, with optional macro and prep-time filters. Returns id, name, calories, macros, prep time, servings, and image — perfect for chaining into log_meal_from_recipe.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "description": "Free text; matches recipe name or description."
+            },
+            "max_calories": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 5000
+            },
+            "min_protein": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 500
+            },
+            "max_prep_minutes": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 600
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 25,
+              "default": 10
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_my_smart_pace",
+        "title": "Get my Smart Pace",
+        "description": "Return the signed-in client's active Smart Pace goal and the most recent daily log entry (weight, delta vs. plan, debt/credit).",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
         },
         "outputSchema": null
       }

@@ -597,6 +597,164 @@ var reset_client_plan_default = defineTool21({
   }
 });
 
+// src/lib/mcp/tools/get-my-macros-today.ts
+import { defineTool as defineTool22 } from "npm:@lovable.dev/mcp-js@0.20.0";
+var get_my_macros_today_default = defineTool22({
+  name: "get_my_macros_today",
+  title: "Get my macros today",
+  description: "Return the signed-in client's macro targets vs. today's consumed totals (calories, protein, carbs, fats) plus remaining amounts. Uses the client's active client_macro_targets row and sums today's nutrition_logs.",
+  inputSchema: {},
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async (_input, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthed();
+    const supabase = supabaseAsUser(ctx);
+    const clientId = ctx.getUserId();
+    const today = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
+    const [{ data: target, error: tErr }, { data: logs, error: lErr }] = await Promise.all([
+      supabase.from("client_macro_targets").select("target_calories,target_protein,target_carbs,target_fats,tracking_option,diet_style").eq("client_id", clientId).eq("is_active", true).maybeSingle(),
+      supabase.from("nutrition_logs").select("calories,protein,carbs,fats").eq("client_id", clientId).eq("log_date", today)
+    ]);
+    if (tErr) return errorResult(tErr.message);
+    if (lErr) return errorResult(lErr.message);
+    const consumed = (logs ?? []).reduce(
+      (acc, r) => ({
+        calories: acc.calories + Number(r.calories ?? 0),
+        protein: acc.protein + Number(r.protein ?? 0),
+        carbs: acc.carbs + Number(r.carbs ?? 0),
+        fats: acc.fats + Number(r.fats ?? 0)
+      }),
+      { calories: 0, protein: 0, carbs: 0, fats: 0 }
+    );
+    const round = (n) => Math.round(n * 10) / 10;
+    const remaining = target ? {
+      calories: Math.max(0, (target.target_calories ?? 0) - consumed.calories),
+      protein: round(Math.max(0, Number(target.target_protein ?? 0) - consumed.protein)),
+      carbs: round(Math.max(0, Number(target.target_carbs ?? 0) - consumed.carbs)),
+      fats: round(Math.max(0, Number(target.target_fats ?? 0) - consumed.fats))
+    } : null;
+    return {
+      content: [
+        {
+          type: "text",
+          text: target ? `Today: ${Math.round(consumed.calories)}/${target.target_calories} kcal \xB7 P ${round(consumed.protein)}/${target.target_protein}g \xB7 C ${round(consumed.carbs)}/${target.target_carbs}g \xB7 F ${round(consumed.fats)}/${target.target_fats}g` : `No active macro target set. Today's consumed: ${Math.round(consumed.calories)} kcal.`
+        }
+      ],
+      structuredContent: {
+        date: today,
+        target,
+        consumed: {
+          calories: Math.round(consumed.calories),
+          protein: round(consumed.protein),
+          carbs: round(consumed.carbs),
+          fats: round(consumed.fats)
+        },
+        remaining,
+        meals_logged: logs?.length ?? 0
+      }
+    };
+  }
+});
+
+// src/lib/mcp/tools/search-recipes.ts
+import { defineTool as defineTool23 } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { z as z17 } from "npm:zod@^3.25";
+var search_recipes_default = defineTool23({
+  name: "search_recipes",
+  title: "Search recipes",
+  description: "Search recipes available to the signed-in user by name/description, with optional macro and prep-time filters. Returns id, name, calories, macros, prep time, servings, and image \u2014 perfect for chaining into log_meal_from_recipe.",
+  inputSchema: {
+    query: z17.string().trim().optional().describe("Free text; matches recipe name or description."),
+    max_calories: z17.number().int().positive().max(5e3).optional(),
+    min_protein: z17.number().nonnegative().max(500).optional(),
+    max_prep_minutes: z17.number().int().positive().max(600).optional(),
+    limit: z17.number().int().min(1).max(25).default(10)
+  },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ query, max_calories, min_protein, max_prep_minutes, limit }, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthed();
+    let q = supabaseAsUser(ctx).from("recipes").select("id,name,description,calories,protein,carbs,fats,servings,prep_time_minutes,image_url,is_valid").neq("is_valid", false).limit(limit);
+    if (query) q = q.or(`name.ilike.%${query}%,description.ilike.%${query}%`);
+    if (max_calories != null) q = q.lte("calories", max_calories);
+    if (min_protein != null) q = q.gte("protein", min_protein);
+    if (max_prep_minutes != null) q = q.lte("prep_time_minutes", max_prep_minutes);
+    const { data, error } = await q;
+    if (error) return errorResult(error.message);
+    return {
+      content: [
+        {
+          type: "text",
+          text: data?.length ? `Found ${data.length} recipe(s):
+${data.map((r) => `\u2022 ${r.name} \u2014 ${r.calories ?? "?"} kcal, ${r.protein ?? "?"}g P (${r.prep_time_minutes ?? "?"} min) \u2014 id: ${r.id}`).join("\n")}` : "No recipes matched those filters."
+        }
+      ],
+      structuredContent: { recipes: data ?? [] }
+    };
+  }
+});
+
+// src/lib/mcp/tools/get-my-smart-pace.ts
+import { defineTool as defineTool24 } from "npm:@lovable.dev/mcp-js@0.20.0";
+var get_my_smart_pace_default = defineTool24({
+  name: "get_my_smart_pace",
+  title: "Get my Smart Pace",
+  description: "Return the signed-in client's active Smart Pace goal and the most recent daily log entry (weight, delta vs. plan, debt/credit).",
+  inputSchema: {},
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async (_input, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthed();
+    const supabase = supabaseAsUser(ctx);
+    const clientId = ctx.getUserId();
+    const [{ data: goal, error: gErr }, { data: logs, error: lErr }] = await Promise.all([
+      supabase.from("smart_pace_goals").select("*").eq("client_id", clientId).eq("is_active", true).order("created_at", { ascending: false }).limit(1).maybeSingle(),
+      supabase.from("smart_pace_daily_log").select("*").eq("client_id", clientId).order("log_date", { ascending: false }).limit(7)
+    ]);
+    if (gErr) return errorResult(gErr.message);
+    if (lErr) return errorResult(lErr.message);
+    const latest = logs?.[0];
+    return {
+      content: [
+        {
+          type: "text",
+          text: goal ? `Smart Pace active. Latest log: ${latest ? `${latest.log_date} \u2014 weight ${latest.weight_lbs ?? "?"} lbs` : "no entries yet"}.` : "No active Smart Pace goal."
+        }
+      ],
+      structuredContent: { goal, latest, recent_logs: logs ?? [] }
+    };
+  }
+});
+
+// src/lib/mcp/tools/get-client-adherence-breakdown.ts
+import { defineTool as defineTool25 } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { z as z18 } from "npm:zod@^3.25";
+var get_client_adherence_breakdown_default = defineTool25({
+  name: "get_client_adherence_breakdown",
+  title: "Get client adherence breakdown",
+  description: "Return the latest per-engine scores for a client (engine type, score, status, streak, weekly completion, and the engine's own recommendation). Requires the caller to be the client's trainer (RLS enforced).",
+  inputSchema: {
+    client_id: z18.string().uuid()
+  },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async ({ client_id }, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthed();
+    const { data, error } = await supabaseAsUser(ctx).from("engine_scores").select("engine_type,score,status,streak_days,weekly_completion_pct,recommendation,computed_at").eq("client_id", client_id).order("computed_at", { ascending: false });
+    if (error) return errorResult(error.message);
+    if (!data?.length)
+      return { content: [{ type: "text", text: "No engine scores computed yet for this client." }] };
+    const byEngine = /* @__PURE__ */ new Map();
+    for (const row of data) if (!byEngine.has(row.engine_type)) byEngine.set(row.engine_type, row);
+    const latest = [...byEngine.values()];
+    return {
+      content: [
+        {
+          type: "text",
+          text: latest.map((r) => `\u2022 ${r.engine_type}: ${Number(r.score).toFixed(0)} (${r.status}) \u2014 streak ${r.streak_days}d, completion ${r.weekly_completion_pct ?? "?"}%`).join("\n")
+        }
+      ],
+      structuredContent: { engines: latest }
+    };
+  }
+});
+
 // src/lib/mcp/index.ts
 var projectRef = "eexxmfuknqttujecbcho";
 var mcp_default = defineMcp({
@@ -621,6 +779,7 @@ var mcp_default = defineMcp({
     add_client_note_default,
     send_coaching_message_default,
     reset_client_plan_default,
+    get_client_adherence_breakdown_default,
     // Client (acts as self)
     get_my_progress_default,
     get_my_recent_workouts_default,
@@ -631,7 +790,10 @@ var mcp_default = defineMcp({
     log_my_water_default,
     get_my_active_fast_default,
     log_body_weight_default,
-    log_meal_from_recipe_default
+    log_meal_from_recipe_default,
+    get_my_macros_today_default,
+    search_recipes_default,
+    get_my_smart_pace_default
   ]
 });
 
