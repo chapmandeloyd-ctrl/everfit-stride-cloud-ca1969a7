@@ -336,6 +336,32 @@
         "outputSchema": null
       },
       {
+        "name": "reset_client_plan",
+        "title": "Reset a client's plan (trainer)",
+        "description": "Clear the client's selected protocol, quick plan, and protocol start date in client_feature_settings. Destructive: their dashboard reverts to a clean slate and the realtime toast fires on their device. Requires the caller to be the client's trainer (enforced by RLS).",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "client_id": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "required": [
+            "client_id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
         "name": "get_my_progress",
         "title": "Get my progress",
         "description": "Return the signed-in client's latest weekly summary (adherence score, 7-day averages, trend, deltas).",
@@ -535,6 +561,79 @@
           "$schema": "http://json-schema.org/draft-07/schema#",
           "type": "object",
           "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "log_body_weight",
+        "title": "Log body weight",
+        "description": "Log a body weight measurement (lbs) for the signed-in client. Automatically resolves the 'Weight' metric definition and reuses (or creates) the client's Weight metric row. A DB trigger will backfill the start weight of any active fitness goal if it isn't set yet.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "value_lbs": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 1500
+            },
+            "recorded_at": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Optional ISO timestamp; defaults to now."
+            },
+            "notes": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "value_lbs"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "log_meal_from_recipe",
+        "title": "Log meal from recipe",
+        "description": "Log a meal for the signed-in client using an existing validated recipe. Macros are scaled by servings_eaten / recipe.servings. Writes to nutrition_logs, so it does not create free-text meals that would poison adaptive scoring.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "recipe_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "servings_eaten": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 20,
+              "default": 1
+            },
+            "log_date": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "description": "YYYY-MM-DD, defaults to today."
+            },
+            "notes": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "recipe_id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
         },
         "outputSchema": null
       }

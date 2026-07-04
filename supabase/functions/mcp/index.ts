@@ -474,6 +474,129 @@ var get_my_recent_workouts_default = defineTool18({
   }
 });
 
+// src/lib/mcp/tools/log-body-weight.ts
+import { defineTool as defineTool19 } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { z as z14 } from "npm:zod@^3.25";
+var log_body_weight_default = defineTool19({
+  name: "log_body_weight",
+  title: "Log body weight",
+  description: "Log a body weight measurement (lbs) for the signed-in client. Automatically resolves the 'Weight' metric definition and reuses (or creates) the client's Weight metric row. A DB trigger will backfill the start weight of any active fitness goal if it isn't set yet.",
+  inputSchema: {
+    value_lbs: z14.number().positive().max(1500),
+    recorded_at: z14.string().datetime().optional().describe("Optional ISO timestamp; defaults to now."),
+    notes: z14.string().optional()
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+  handler: async ({ value_lbs, recorded_at, notes }, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthed();
+    const supabase = supabaseAsUser(ctx);
+    const clientId = ctx.getUserId();
+    const { data: def, error: defErr } = await supabase.from("metric_definitions").select("id").eq("name", "Weight").eq("is_default", true).limit(1).maybeSingle();
+    if (defErr) return errorResult(defErr.message);
+    if (!def) return errorResult("Weight metric definition not found.");
+    let { data: metric, error: metricErr } = await supabase.from("client_metrics").select("id").eq("client_id", clientId).eq("metric_definition_id", def.id).limit(1).maybeSingle();
+    if (metricErr) return errorResult(metricErr.message);
+    if (!metric) {
+      const { data: created, error: createErr } = await supabase.from("client_metrics").insert({ client_id: clientId, metric_definition_id: def.id, is_pinned: true }).select("id").single();
+      if (createErr) return errorResult(createErr.message);
+      metric = created;
+    }
+    const { data: entry, error: entryErr } = await supabase.from("metric_entries").insert({
+      client_id: clientId,
+      client_metric_id: metric.id,
+      value: value_lbs,
+      recorded_at: recorded_at ?? (/* @__PURE__ */ new Date()).toISOString(),
+      notes: notes ?? null
+    }).select().single();
+    if (entryErr) return errorResult(entryErr.message);
+    return {
+      content: [{ type: "text", text: `Weight logged: ${value_lbs} lbs.` }],
+      structuredContent: { entry }
+    };
+  }
+});
+
+// src/lib/mcp/tools/log-meal-from-recipe.ts
+import { defineTool as defineTool20 } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { z as z15 } from "npm:zod@^3.25";
+var log_meal_from_recipe_default = defineTool20({
+  name: "log_meal_from_recipe",
+  title: "Log meal from recipe",
+  description: "Log a meal for the signed-in client using an existing validated recipe. Macros are scaled by servings_eaten / recipe.servings. Writes to nutrition_logs, so it does not create free-text meals that would poison adaptive scoring.",
+  inputSchema: {
+    recipe_id: z15.string().uuid(),
+    servings_eaten: z15.number().positive().max(20).default(1),
+    log_date: z15.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().describe("YYYY-MM-DD, defaults to today."),
+    notes: z15.string().optional()
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+  handler: async ({ recipe_id, servings_eaten, log_date, notes }, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthed();
+    const supabase = supabaseAsUser(ctx);
+    const { data: recipe, error: recipeErr } = await supabase.from("recipes").select("id, name, calories, protein, carbs, fats, servings, is_valid, image_url").eq("id", recipe_id).maybeSingle();
+    if (recipeErr) return errorResult(recipeErr.message);
+    if (!recipe) return errorResult("Recipe not found or not accessible.");
+    if (recipe.is_valid === false) return errorResult("Recipe is marked invalid; ask your coach to fix it before logging.");
+    const baseServings = recipe.servings && recipe.servings > 0 ? recipe.servings : 1;
+    const factor = servings_eaten / baseServings;
+    const scale = (n) => n == null ? null : Math.round(Number(n) * factor * 100) / 100;
+    const { data: entry, error: entryErr } = await supabase.from("nutrition_logs").insert({
+      client_id: ctx.getUserId(),
+      log_date: log_date ?? (/* @__PURE__ */ new Date()).toISOString().slice(0, 10),
+      meal_name: `${recipe.name}${servings_eaten !== 1 ? ` (${servings_eaten}x)` : ""}`,
+      calories: recipe.calories == null ? null : Math.round(Number(recipe.calories) * factor),
+      protein: scale(recipe.protein),
+      carbs: scale(recipe.carbs),
+      fats: scale(recipe.fats),
+      notes: notes ?? null,
+      image_url: recipe.image_url ?? null
+    }).select().single();
+    if (entryErr) return errorResult(entryErr.message);
+    return {
+      content: [
+        {
+          type: "text",
+          text: `Logged ${servings_eaten} serving(s) of "${recipe.name}" (~${entry.calories ?? "?"} kcal).`
+        }
+      ],
+      structuredContent: { entry }
+    };
+  }
+});
+
+// src/lib/mcp/tools/reset-client-plan.ts
+import { defineTool as defineTool21 } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { z as z16 } from "npm:zod@^3.25";
+var reset_client_plan_default = defineTool21({
+  name: "reset_client_plan",
+  title: "Reset a client's plan (trainer)",
+  description: "Clear the client's selected protocol, quick plan, and protocol start date in client_feature_settings. Destructive: their dashboard reverts to a clean slate and the realtime toast fires on their device. Requires the caller to be the client's trainer (enforced by RLS).",
+  inputSchema: {
+    client_id: z16.string().uuid()
+  },
+  annotations: {
+    readOnlyHint: false,
+    destructiveHint: true,
+    idempotentHint: true,
+    openWorldHint: false
+  },
+  handler: async ({ client_id }, ctx) => {
+    if (!ctx.isAuthenticated()) return notAuthed();
+    const { data, error } = await supabaseAsUser(ctx).from("client_feature_settings").update({
+      selected_protocol_id: null,
+      selected_quick_plan_id: null,
+      protocol_start_date: null,
+      protocol_completed: false
+    }).eq("client_id", client_id).select("client_id, selected_protocol_id, selected_quick_plan_id, protocol_start_date, protocol_completed").maybeSingle();
+    if (error) return errorResult(error.message);
+    if (!data) return errorResult("Client settings not found or not accessible.");
+    return {
+      content: [{ type: "text", text: `Plan reset for client ${client_id}.` }],
+      structuredContent: { settings: data }
+    };
+  }
+});
+
 // src/lib/mcp/index.ts
 var projectRef = "eexxmfuknqttujecbcho";
 var mcp_default = defineMcp({
@@ -497,6 +620,7 @@ var mcp_default = defineMcp({
     create_client_task_default,
     add_client_note_default,
     send_coaching_message_default,
+    reset_client_plan_default,
     // Client (acts as self)
     get_my_progress_default,
     get_my_recent_workouts_default,
@@ -505,7 +629,9 @@ var mcp_default = defineMcp({
     get_my_habits_default,
     log_habit_completion_default,
     log_my_water_default,
-    get_my_active_fast_default
+    get_my_active_fast_default,
+    log_body_weight_default,
+    log_meal_from_recipe_default
   ]
 });
 
