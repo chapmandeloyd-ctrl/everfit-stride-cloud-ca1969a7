@@ -506,6 +506,17 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
       // 6. Clear local cache
       localStorage.removeItem(storageKey);
 
+      // 6b. Reset calculator UI state (weight, activity, deficit, plan length, etc.)
+      setWeight("");
+      setGoal("maintain");
+      setActivity("moderate");
+      setStartDate("");
+      setCustomDeficit(20);
+      setPlanType("recurring");
+      setPlanLengthDays(7);
+      setExtendedPreset("48");
+      setCustomFastHours(48);
+
       // 7. Refresh all related queries
       queryClient.invalidateQueries({ queryKey: ["keto-assignment", clientId] });
       queryClient.invalidateQueries({ queryKey: ["kpc-feature-settings", clientId] });
