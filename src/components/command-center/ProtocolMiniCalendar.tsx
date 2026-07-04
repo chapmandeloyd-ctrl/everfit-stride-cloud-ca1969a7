@@ -232,7 +232,7 @@ export function ProtocolMiniCalendar({ clientId }: { clientId: string }) {
         </div>
       </div>
 
-      <div className="grid gap-3 sm:gap-4 md:grid-cols-[auto,1fr] min-w-0">
+      <div className="grid gap-3 sm:gap-4 md:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] min-w-0">
         <Calendar
           mode="single"
           month={month}
