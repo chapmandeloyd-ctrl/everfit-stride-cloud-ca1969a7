@@ -16,7 +16,6 @@ export default defineTool({
     idempotentHint: true,
     openWorldHint: false,
   },
-  needsApproval: true,
   handler: async ({ client_id }, ctx) => {
     if (!ctx.isAuthenticated()) return notAuthed();
     const { data, error } = await supabaseAsUser(ctx)
