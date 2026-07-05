@@ -313,15 +313,16 @@ export function LiveScheduleDialog({
             meta.history === "completed" ? "#22c55e" :
             meta.history === "partial" ? "#f59e0b" :
             meta.history === "missed" ? "#ef4444" : null;
-          const cellLabel = outOfWindow
-            ? (meta.beforeStart ? "Before start" : meta.offRecurring ? "Off" : "Done")
-            : STATE_LABEL[st];
+          const cellLabel = outOfWindow ? "Not scheduled" : STATE_LABEL[st];
           return (
             <button
               key={i}
               type="button"
-              onClick={() => setSelectedDate(d)}
-              className="relative aspect-square rounded-md border text-left p-1 transition-all min-w-0"
+              onClick={() => {
+                if (!outOfWindow) setSelectedDate(d);
+              }}
+              disabled={outOfWindow}
+              className="relative aspect-square rounded-md border text-left p-1 transition-all min-w-0 disabled:cursor-not-allowed"
               style={{
                 borderColor: isToday || isSel ? accent : "hsl(var(--border) / 0.5)",
                 background: meta.history === "missed"
@@ -360,7 +361,7 @@ export function LiveScheduleDialog({
                     : outOfWindow || isPast ? "hsl(var(--muted-foreground))" : undefined
                 }}>
                 {outOfWindow
-                  ? (meta.offRecurring ? "Off" : "—")
+                  ? "—"
                   : meta.history === "missed" ? "Missed"
                   : shortDayLabel(pd, st)}
               </p>
@@ -460,6 +461,49 @@ function DayDetail({
   const isFuture = !isToday && !isPast;
   const dateLabel = date.toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" });
   const outOfWindow = meta.beforeStart || meta.afterEnd;
+
+  if (outOfWindow) {
+    const statusLabel = meta.beforeStart ? "Before start" : meta.offRecurring ? "Not scheduled" : "After plan";
+    const message = meta.beforeStart
+      ? "Your assigned plan has not started yet."
+      : meta.offRecurring
+        ? "No fast or nutrition window is scheduled for this day."
+        : "Your assigned plan is complete. Check in with your coach for what's next.";
+
+    return (
+      <div
+        className="rounded-xl border p-4 space-y-3 animate-in fade-in slide-in-from-bottom-2"
+        style={{ borderColor: `${accent}55`, background: `${accent}0A` }}
+      >
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <p className="text-[10px] uppercase tracking-widest font-bold" style={{ color: accent }}>
+              {statusLabel}
+            </p>
+            <p className="text-base font-bold">{dateLabel}</p>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Badge variant="outline" className="text-[10px] px-2 py-0.5 border-muted-foreground/40 text-muted-foreground">
+              Locked
+            </Badge>
+            <button
+              type="button"
+              onClick={onClose}
+              className="h-6 w-6 rounded-full hover:bg-muted/40 flex items-center justify-center"
+              aria-label="Close day detail"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </div>
+
+        <div className="flex items-start gap-2 rounded-lg border border-border/60 bg-background/40 p-3">
+          <Lock className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+          <p className="text-[11px] text-muted-foreground leading-snug">{message}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
