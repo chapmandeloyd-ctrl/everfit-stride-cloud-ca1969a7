@@ -10,6 +10,7 @@ import { StartFastGate } from "@/components/client/StartFastGate";
 import { useStartFast } from "@/hooks/useStartFast";
 import confetti from "canvas-confetti";
 import { PlanCompletionSummary } from "@/components/client/PlanCompletionSummary";
+import { PreFastEmailToggle } from "@/components/client/PreFastEmailToggle";
 
 type DayState = "eat" | "fast" | "refeed" | "lowcal";
 const STATE_COLOR: Record<DayState, string> = {
@@ -404,6 +405,8 @@ export function LiveScheduleDialog({
           log={logsByDay.get(dateKey(selected.date))}
         />
       )}
+
+      <PreFastEmailToggle />
     </div>
   );
 
