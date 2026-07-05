@@ -438,7 +438,7 @@ function DayDetail({
 }: {
   date: Date; day: PlanDay; today: Date; accent: string;
   onClose: () => void; onStartFast?: () => void;
-  meta: { inWindow: boolean; beforeStart: boolean; afterEnd: boolean; history: HistoryStatus };
+  meta: { inWindow: boolean; beforeStart: boolean; afterEnd: boolean; offRecurring?: boolean; history: HistoryStatus };
   log?: { actual: number; target: number; pct: number; status: string };
 }) {
   const st = dayState(day);
