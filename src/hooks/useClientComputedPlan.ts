@@ -18,7 +18,7 @@ export function useClientComputedPlan() {
     queryFn: async () => {
       const { data } = await supabase
         .from("client_feature_settings")
-        .select("selected_protocol_id, selected_quick_plan_id, protocol_start_date, protocol_calc_inputs, schedule_timezone, day_start_hour, assigned_protocol_duration_days")
+        .select("selected_protocol_id, selected_quick_plan_id, protocol_start_date, protocol_calc_inputs, schedule_timezone, day_start_hour, assigned_protocol_duration_days, protocol_run_mode")
         .eq("client_id", clientId!)
         .maybeSingle();
       return data;
@@ -178,6 +178,7 @@ export function useClientComputedPlan() {
     stage: computeStage(settings?.protocol_start_date),
     protocolStartDate: (settings as any)?.protocol_start_date ?? null,
     assignedDurationDays: Number((settings as any)?.assigned_protocol_duration_days) || null,
+    runMode: ((settings as any)?.protocol_run_mode === "recurring" ? "recurring" : "one_time") as "one_time" | "recurring",
   };
 }
 
