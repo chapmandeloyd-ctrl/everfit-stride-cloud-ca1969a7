@@ -79,6 +79,7 @@ interface Props {
   onStartFast?: () => void;
   protocolStartDate?: string | null;
   assignedDurationDays?: number | null;
+  runMode?: "one_time" | "recurring";
   fastingLogs?: Array<{
     started_at: string;
     ended_at: string;
