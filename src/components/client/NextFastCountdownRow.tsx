@@ -69,17 +69,8 @@ export function NextFastCountdownRow({ accent = "hsl(var(--primary))" }: { accen
     if (scheduledMs == null) return;
     if (!clientId) return;
     if (msUntil <= -GRACE_MS && !startFast.isPending) {
-      // eslint-disable-next-line no-console
-      console.log("[NextFastCountdownRow] auto-firing startFast", { msUntil, scheduledMs, clientId });
-      startFast.mutate(undefined, {
-        onSuccess: (d) => {
-          firedRef.current = true;
-          console.log("[NextFastCountdownRow] startFast SUCCESS", d);
-        },
-        onError: (e: any) => {
-          console.log("[NextFastCountdownRow] startFast ERROR", e?.message, e);
-        },
-      });
+      firedRef.current = true;
+      startFast.mutate();
     }
   }, [msUntil, skipped, startFast, scheduledMs, clientId]);
 
