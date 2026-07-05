@@ -53,6 +53,15 @@ function weekIndexFromDateOnly(value: string): number {
   return (date.getUTCDay() + 6) % 7; // convert Sun=0 to Mon=0 labels
 }
 
+function formatPlanDayWithDate(startDateValue: string, offset: number, fallback: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(startDateValue);
+  if (!m) return fallback;
+  const date = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]) + offset));
+  const weekday = date.toLocaleDateString(undefined, { weekday: "short", timeZone: "UTC" });
+  const monthDay = date.toLocaleDateString(undefined, { month: "short", day: "numeric", timeZone: "UTC" });
+  return `${weekday} · ${monthDay}`;
+}
+
 export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
   const storageKey = `keto-protocol-${clientId}`;
   const queryClient = useQueryClient();
@@ -1005,10 +1014,10 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
                   </tr>
                 </thead>
                 <tbody>
-                  {plan.days.map((d) => (
+                  {plan.days.map((d, i) => (
                     <tr key={d.day} className={`border-t border-border ${d.isRefeed ? "bg-primary/5" : ""}`}>
                       <td className="p-3 font-medium">
-                        {d.day}
+                        {formatPlanDayWithDate(startDate, i, d.day)}
                         {d.isRefeed && <Badge className="ml-2" variant="outline">Refeed</Badge>}
                       </td>
                       <td className="p-3">
