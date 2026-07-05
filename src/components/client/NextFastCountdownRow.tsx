@@ -67,6 +67,7 @@ export function NextFastCountdownRow({ accent = "hsl(var(--primary))" }: { accen
     if (firedRef.current) return;
     if (skipped) return;
     if (scheduledMs == null) return;
+    if (!clientId) return;
     if (msUntil <= -GRACE_MS && !startFast.isPending) {
       firedRef.current = true;
       // eslint-disable-next-line no-console
@@ -76,7 +77,7 @@ export function NextFastCountdownRow({ accent = "hsl(var(--primary))" }: { accen
         onError: (e: any) => console.log("[NextFastCountdownRow] startFast ERROR", e?.message, e),
       });
     }
-  }, [msUntil, skipped, startFast, scheduledMs]);
+  }, [msUntil, skipped, startFast, scheduledMs, clientId]);
 
   // Don't render at all when we have no scheduled moment (fast day, refeed, no plan)
   if (!scheduledMs || gate.state === "n/a") return null;
