@@ -10,7 +10,7 @@ export function LiveScheduleHost() {
   const clientId = useEffectiveClientId();
   const {
     plan, dayIndex, ketoAccent, protocolName, ketoName,
-    protocolStartDate, assignedDurationDays,
+    protocolStartDate, assignedDurationDays, runMode,
   } = useClientComputedPlan();
   const [open, setOpen] = useState(false);
 
@@ -44,6 +44,7 @@ export function LiveScheduleHost() {
       ketoName={ketoName ?? undefined}
       protocolStartDate={protocolStartDate ?? undefined}
       assignedDurationDays={assignedDurationDays ?? undefined}
+      runMode={runMode}
       fastingLogs={fastingLogs ?? []}
     />
   );

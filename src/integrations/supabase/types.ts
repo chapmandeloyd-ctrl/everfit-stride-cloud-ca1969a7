@@ -1381,6 +1381,7 @@ export type Database = {
           protocol_assigned_by: string | null
           protocol_calc_inputs: Json | null
           protocol_completed: boolean
+          protocol_run_mode: string
           protocol_start_date: string | null
           quick_plan_duration_days: number | null
           quiet_hours_end: string | null
@@ -1492,6 +1493,7 @@ export type Database = {
           protocol_assigned_by?: string | null
           protocol_calc_inputs?: Json | null
           protocol_completed?: boolean
+          protocol_run_mode?: string
           protocol_start_date?: string | null
           quick_plan_duration_days?: number | null
           quiet_hours_end?: string | null
@@ -1603,6 +1605,7 @@ export type Database = {
           protocol_assigned_by?: string | null
           protocol_calc_inputs?: Json | null
           protocol_completed?: boolean
+          protocol_run_mode?: string
           protocol_start_date?: string | null
           quick_plan_duration_days?: number | null
           quiet_hours_end?: string | null

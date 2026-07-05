@@ -93,7 +93,7 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
     queryFn: async () => {
       const { data } = await supabase
         .from("client_feature_settings")
-        .select("selected_protocol_id, assigned_protocol_duration_days, day_start_hour")
+        .select("selected_protocol_id, assigned_protocol_duration_days, day_start_hour, protocol_run_mode")
         .eq("client_id", clientId)
         .maybeSingle();
       return data;
@@ -275,6 +275,7 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
   const [customDeficit, setCustomDeficit] = useState<number>(20); // percent, 10..80
   const [planType, setPlanType] = useState<PlanType>("recurring");
   const [planLengthDays, setPlanLengthDays] = useState<number>(7);
+  const [runMode, setRunMode] = useState<"one_time" | "recurring">("one_time");
   const [extendedPreset, setExtendedPreset] = useState<ExtendedPreset>("48");
   const [customFastHours, setCustomFastHours] = useState<number>(48);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -316,6 +317,22 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [featureSettings?.assigned_protocol_duration_days]);
+
+  // Seed run mode from DB
+  useEffect(() => {
+    const m = (featureSettings as any)?.protocol_run_mode;
+    if (m === "one_time" || m === "recurring") setRunMode(m);
+  }, [(featureSettings as any)?.protocol_run_mode]);
+
+  // Live-preview: reflect run-mode / plan-length changes in the client's Live
+  // Schedule and lion card immediately (before Save).
+  useEffect(() => {
+    queryClient.setQueryData(["ccp-settings", clientId], (prev: any) => ({
+      ...(prev ?? {}),
+      protocol_run_mode: runMode,
+      assigned_protocol_duration_days: planLengthDays,
+    }));
+  }, [runMode, planLengthDays, clientId, queryClient]);
 
   const kt = assignment?.keto_types as any;
 
@@ -440,6 +457,8 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
       const patch: any = {
         protocol_calc_inputs: payload,
         protocol_start_date: startDate || null,
+        protocol_run_mode: runMode,
+        assigned_protocol_duration_days: planLengthDays,
       };
       const { data: existing } = await supabase
         .from("client_feature_settings")
@@ -782,6 +801,7 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
               </Select>
             </div>
             {planType === "recurring" ? (
+              <>
               <div>
                 <Label>Assignment Duration</Label>
                 <Select
@@ -807,6 +827,25 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
                   This is the "Day X / N" the client sees on the lion card.
                 </p>
               </div>
+              <div>
+                <Label>Run Mode</Label>
+                <Select
+                  value={runMode}
+                  onValueChange={(v) => setRunMode(v as "one_time" | "recurring")}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="one_time">One-time run</SelectItem>
+                    <SelectItem value="recurring">Recurring weekly</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  {runMode === "one_time"
+                    ? "Plan runs for the assigned days, then ends. Days outside the window are greyed on the client's calendar."
+                    : `First ${planLengthDays} day${planLengthDays > 1 ? "s" : ""} of each week are active. The remaining days each week are greyed as off-days.`}
+                </p>
+              </div>
+              </>
             ) : (
               <>
                 <div>

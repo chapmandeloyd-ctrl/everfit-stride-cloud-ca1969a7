@@ -79,6 +79,7 @@ interface Props {
   onStartFast?: () => void;
   protocolStartDate?: string | null;
   assignedDurationDays?: number | null;
+  runMode?: "one_time" | "recurring";
   fastingLogs?: Array<{
     started_at: string;
     ended_at: string;
@@ -95,7 +96,7 @@ type HistoryStatus = "completed" | "partial" | "missed" | null;
 /** Phase 1: Live Schedule — Month view + tap-to-detail day sheet. */
 export function LiveScheduleDialog({
   open, onOpenChange, plan, todayIndex, accent, protocolName, ketoName, onStartFast,
-  protocolStartDate, assignedDurationDays, fastingLogs, clientName,
+  protocolStartDate, assignedDurationDays, runMode = "one_time", fastingLogs, clientName,
 }: Props) {
   const isMobile = useIsMobile();
   const startFast = useStartFast();
@@ -109,11 +110,12 @@ export function LiveScheduleDialog({
     [protocolStartDate]
   );
   const endDate = useMemo(() => {
-    if (!startDate || !assignedDurationDays) return null;
+    // Recurring plans never "end" — they cycle weekly forever.
+    if (!startDate || !assignedDurationDays || runMode === "recurring") return null;
     const e = new Date(startDate);
     e.setDate(e.getDate() + assignedDurationDays - 1);
     return e;
-  }, [startDate, assignedDurationDays]);
+  }, [startDate, assignedDurationDays, runMode]);
   const dayInProtocol = startDate ? Math.max(1, daysBetween(startDate, today) + 1) : null;
   const isComplete = endDate ? startOfDay(today) > endDate : false;
 
@@ -165,12 +167,18 @@ export function LiveScheduleDialog({
   }, [startDate, assignedDurationDays, todayIndex, len]);
 
   const categorize = (d: Date): {
-    inWindow: boolean; beforeStart: boolean; afterEnd: boolean; history: HistoryStatus;
+    inWindow: boolean; beforeStart: boolean; afterEnd: boolean; offRecurring: boolean; history: HistoryStatus;
   } => {
     const day = startOfDay(d);
     const beforeStart = startDate ? day < startDate : false;
     const afterEnd = endDate ? day > endDate : false;
-    const inWindow = !beforeStart && !afterEnd;
+    // Recurring mode: only the first `assignedDurationDays` weekdays of each
+    // week (counted from the start date) count as active. The rest are "off".
+    const offRecurringDay =
+      runMode === "recurring" && startDate && assignedDurationDays
+        ? (((daysBetween(startDate, day) % 7) + 7) % 7) >= assignedDurationDays
+        : false;
+    const inWindow = !beforeStart && !afterEnd && !offRecurringDay;
     const isPast = day < startOfDay(today);
     let history: HistoryStatus = null;
     if (inWindow && isPast) {
@@ -183,7 +191,14 @@ export function LiveScheduleDialog({
         else history = "partial";
       }
     }
-    return { inWindow, beforeStart, afterEnd, history };
+    return {
+      inWindow,
+      beforeStart,
+      // Treat weekly off-days as "afterEnd" for rendering purposes (greyed + lock/dash).
+      afterEnd: afterEnd || offRecurringDay,
+      offRecurring: offRecurringDay && !beforeStart && !afterEnd,
+      history,
+    };
   };
 
   const monthLabel = cursor.toLocaleDateString(undefined, { month: "long", year: "numeric" });
@@ -334,7 +349,7 @@ export function LiveScheduleDialog({
                     : outOfWindow || isPast ? "hsl(var(--muted-foreground))" : undefined
                 }}>
                 {outOfWindow
-                  ? (meta.beforeStart ? "—" : "Done")
+                  ? (meta.beforeStart ? "—" : meta.offRecurring ? "Off" : "Done")
                   : meta.history === "missed" ? "Missed"
                   : shortDayLabel(pd, st)}
               </p>
@@ -423,7 +438,7 @@ function DayDetail({
 }: {
   date: Date; day: PlanDay; today: Date; accent: string;
   onClose: () => void; onStartFast?: () => void;
-  meta: { inWindow: boolean; beforeStart: boolean; afterEnd: boolean; history: HistoryStatus };
+  meta: { inWindow: boolean; beforeStart: boolean; afterEnd: boolean; offRecurring?: boolean; history: HistoryStatus };
   log?: { actual: number; target: number; pct: number; status: string };
 }) {
   const st = dayState(day);
