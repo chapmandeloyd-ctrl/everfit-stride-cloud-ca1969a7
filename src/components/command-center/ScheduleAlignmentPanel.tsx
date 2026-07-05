@@ -60,6 +60,24 @@ export function ScheduleAlignmentPanel({ clientId }: Props) {
     }
   }, [data]);
 
+  // Live preview: as soon as the user changes tz / dayStart / enforce (before Save),
+  // optimistically patch the react-query caches other panels read from so the Plan
+  // table + lion card reflect the pending value immediately.
+  useEffect(() => {
+    const patch = (key: any[]) => {
+      qc.setQueryData(key, (prev: any) => ({
+        ...(prev ?? {}),
+        schedule_timezone: tz || null,
+        day_start_hour: dayStart,
+        enforce_scheduled_start: enforce,
+      }));
+    };
+    patch(["kpc-feature-settings", clientId]);
+    patch(["ccp-settings", clientId]);
+    patch(["ccp-enforce", clientId]);
+    patch(["complete-plan-settings", clientId]);
+  }, [tz, dayStart, enforce, clientId, qc]);
+
   const save = useMutation({
     mutationFn: async () => {
       const { data: existing } = await supabase
