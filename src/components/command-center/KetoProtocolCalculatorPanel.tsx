@@ -207,6 +207,21 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
   // was actually assigned (not the protocol's built-in default).
   const saveDurationMutation = useMutation({
     mutationFn: async (days: number) => {
+      const savedStart = (featureSettings as any)?.protocol_start_date;
+      const effectiveStartDate = startDate || (savedStart ? String(savedStart).slice(0, 10) : new Date().toISOString().slice(0, 10));
+      const protocolInputsPatch = {
+        startDate: effectiveStartDate,
+        planLengthDays: days,
+        savedAt: new Date().toISOString(),
+      };
+      const patch = {
+        assigned_protocol_duration_days: days,
+        protocol_start_date: effectiveStartDate,
+        protocol_calc_inputs: {
+          ...((featureSettings as any)?.protocol_calc_inputs || {}),
+          ...protocolInputsPatch,
+        },
+      } as any;
       const { data: existing } = await supabase
         .from("client_feature_settings")
         .select("client_id")
@@ -215,15 +230,16 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
       if (existing) {
         const { error } = await supabase
           .from("client_feature_settings")
-          .update({ assigned_protocol_duration_days: days })
+          .update(patch)
           .eq("client_id", clientId);
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from("client_feature_settings")
-          .insert([{ client_id: clientId, assigned_protocol_duration_days: days }] as any);
+          .insert([{ client_id: clientId, ...patch }] as any);
         if (error) throw error;
       }
+      setStartDate(effectiveStartDate);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["kpc-feature-settings", clientId] });

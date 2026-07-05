@@ -4,6 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { computePlan, type ComputedPlan } from "@/lib/protocolPlan";
 
+function parseDateOnlyUtcMs(value: string): number {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+  if (!m) return new Date(value).getTime();
+  return Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+}
+
 /**
  * Shared hook: resolves the currently-assigned protocol + keto type + saved
  * calculator inputs for the effective client, then runs computePlan() so any
@@ -166,7 +172,7 @@ export function useClientComputedPlan() {
       }
     };
     const startMs = effectiveProtocolStartDate
-      ? new Date(effectiveProtocolStartDate).getTime()
+      ? parseDateOnlyUtcMs(effectiveProtocolStartDate)
       : Date.now();
     const startKey = localDateKey(startMs);
     const todayKey = localDateKey(Date.now());
@@ -204,7 +210,7 @@ export type ProtocolStage = {
  *  Stage 3 — Metabolic Flex  (day 43+)     fully adapted, flexible fasting
  */
 export function computeStage(startDate: string | null | undefined): ProtocolStage {
-  const startMs = startDate ? new Date(startDate).getTime() : Date.now();
+  const startMs = startDate ? parseDateOnlyUtcMs(startDate) : Date.now();
   const dayInProtocol = Math.max(
     1,
     Math.floor((Date.now() - startMs) / 86_400_000) + 1
