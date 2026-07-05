@@ -816,6 +816,24 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
                   This is the "Day X / N" the client sees on the lion card.
                 </p>
               </div>
+              <div>
+                <Label>Run Mode</Label>
+                <Select
+                  value={runMode}
+                  onValueChange={(v) => setRunMode(v as "one_time" | "recurring")}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="one_time">One-time run</SelectItem>
+                    <SelectItem value="recurring">Recurring weekly</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  {runMode === "one_time"
+                    ? "Plan runs for the assigned days, then ends. Days outside the window are greyed on the client's calendar."
+                    : `First ${planLengthDays} day${planLengthDays > 1 ? "s" : ""} of each week are active. The remaining days each week are greyed as off-days.`}
+                </p>
+              </div>
             ) : (
               <>
                 <div>
