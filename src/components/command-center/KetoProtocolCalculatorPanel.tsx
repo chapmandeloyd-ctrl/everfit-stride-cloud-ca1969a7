@@ -275,6 +275,7 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
   const [customDeficit, setCustomDeficit] = useState<number>(20); // percent, 10..80
   const [planType, setPlanType] = useState<PlanType>("recurring");
   const [planLengthDays, setPlanLengthDays] = useState<number>(7);
+  const [runMode, setRunMode] = useState<"one_time" | "recurring">("one_time");
   const [extendedPreset, setExtendedPreset] = useState<ExtendedPreset>("48");
   const [customFastHours, setCustomFastHours] = useState<number>(48);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -316,6 +317,12 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [featureSettings?.assigned_protocol_duration_days]);
+
+  // Seed run mode from DB
+  useEffect(() => {
+    const m = (featureSettings as any)?.protocol_run_mode;
+    if (m === "one_time" || m === "recurring") setRunMode(m);
+  }, [(featureSettings as any)?.protocol_run_mode]);
 
   const kt = assignment?.keto_types as any;
 
