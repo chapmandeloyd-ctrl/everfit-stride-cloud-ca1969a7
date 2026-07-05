@@ -93,7 +93,7 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
     queryFn: async () => {
       const { data } = await supabase
         .from("client_feature_settings")
-        .select("selected_protocol_id, assigned_protocol_duration_days, day_start_hour, protocol_run_mode")
+        .select("selected_protocol_id, assigned_protocol_duration_days, protocol_start_date, day_start_hour, protocol_run_mode")
         .eq("client_id", clientId)
         .maybeSingle();
       return data;
@@ -324,6 +324,13 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
     if (m === "one_time" || m === "recurring") setRunMode(m);
   }, [(featureSettings as any)?.protocol_run_mode]);
 
+  useEffect(() => {
+    const savedStart = (featureSettings as any)?.protocol_start_date;
+    if (savedStart && !startDate) {
+      setStartDate(String(savedStart).slice(0, 10));
+    }
+  }, [(featureSettings as any)?.protocol_start_date, startDate]);
+
   // Live-preview: reflect run-mode / plan-length changes in the client's Live
   // Schedule and lion card immediately (before Save).
   useEffect(() => {
@@ -440,11 +447,18 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
   }, [weight, goal, activity, kt, customDeficit, allProtocols, featureSettings?.selected_protocol_id, (featureSettings as any)?.day_start_hour, planType, planLengthDays, extendedPreset, customFastHours]);
 
   const handleSave = async () => {
+    const savedStart = (featureSettings as any)?.protocol_start_date;
+    const effectiveStartDate = startDate || (savedStart ? String(savedStart).slice(0, 10) : new Date().toISOString().slice(0, 10));
+    const extendedHours = extendedPreset === "custom" ? customFastHours : parseInt(extendedPreset, 10);
+    const assignmentDurationDays = planType === "extended"
+      ? Math.max(1, Math.ceil(Math.max(12, Math.min(240, extendedHours)) / 24))
+      : planLengthDays;
+    const effectiveRunMode = planType === "extended" ? "one_time" : runMode;
     const payload = {
       weight: parseFloat(weight) || null,
       goal,
       activity,
-      startDate,
+      startDate: effectiveStartDate,
       customDeficit,
       planType,
       planLengthDays,
@@ -456,9 +470,9 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
     try {
       const patch: any = {
         protocol_calc_inputs: payload,
-        protocol_start_date: startDate || null,
-        protocol_run_mode: runMode,
-        assigned_protocol_duration_days: planLengthDays,
+        protocol_start_date: effectiveStartDate,
+        protocol_run_mode: effectiveRunMode,
+        assigned_protocol_duration_days: assignmentDurationDays,
       };
       const { data: existing } = await supabase
         .from("client_feature_settings")
@@ -475,6 +489,7 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
     } catch (e) {
       console.error("save protocol inputs failed", e);
     }
+    setStartDate(effectiveStartDate);
     toast.success("Protocol saved for this client");
   };
 

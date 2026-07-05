@@ -29,6 +29,13 @@ export function useClientComputedPlan() {
   const protocolId = settings?.selected_protocol_id ?? null;
   const quickId = settings?.selected_quick_plan_id ?? null;
   const activeId = protocolId || quickId;
+  const effectiveProtocolStartDate = useMemo(() => {
+    const savedStart = (settings as any)?.protocol_start_date ?? null;
+    if (savedStart) return savedStart;
+    return activeId && (settings as any)?.assigned_protocol_duration_days
+      ? new Date().toISOString().slice(0, 10)
+      : null;
+  }, [activeId, (settings as any)?.protocol_start_date, (settings as any)?.assigned_protocol_duration_days]);
 
   const { data: protocol } = useQuery({
     queryKey: ["ccp-protocol", activeId, !!protocolId],
@@ -158,8 +165,8 @@ export function useClientComputedPlan() {
         return shifted.toISOString().slice(0, 10);
       }
     };
-    const startMs = settings?.protocol_start_date
-      ? new Date(settings.protocol_start_date).getTime()
+    const startMs = effectiveProtocolStartDate
+      ? new Date(effectiveProtocolStartDate).getTime()
       : Date.now();
     const startKey = localDateKey(startMs);
     const todayKey = localDateKey(Date.now());
@@ -167,7 +174,7 @@ export function useClientComputedPlan() {
       (Date.parse(todayKey + "T00:00:00Z") - Date.parse(startKey + "T00:00:00Z")) / 86_400_000
     );
     return ((diffDays % plan.days.length) + plan.days.length) % plan.days.length;
-  }, [plan, settings?.protocol_start_date, (settings as any)?.schedule_timezone, (settings as any)?.day_start_hour]);
+  }, [plan, effectiveProtocolStartDate, (settings as any)?.schedule_timezone, (settings as any)?.day_start_hour]);
 
   return {
     plan,
@@ -175,8 +182,8 @@ export function useClientComputedPlan() {
     protocolName: protocol?.name ?? null,
     ketoName: (ketoType as any)?.name ?? null,
     ketoAccent: (ketoType as any)?.color ?? null,
-    stage: computeStage(settings?.protocol_start_date),
-    protocolStartDate: (settings as any)?.protocol_start_date ?? null,
+    stage: computeStage(effectiveProtocolStartDate),
+    protocolStartDate: effectiveProtocolStartDate,
     assignedDurationDays: Number((settings as any)?.assigned_protocol_duration_days) || null,
     runMode: ((settings as any)?.protocol_run_mode === "recurring" ? "recurring" : "one_time") as "one_time" | "recurring",
   };

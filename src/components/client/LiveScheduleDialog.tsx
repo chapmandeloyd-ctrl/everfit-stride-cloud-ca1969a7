@@ -105,10 +105,12 @@ export function LiveScheduleDialog({
   const [cursor, setCursor] = useState<Date>(() => new Date(today.getFullYear(), today.getMonth(), 1));
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
-  const startDate = useMemo(
-    () => protocolStartDate ? startOfDay(new Date(protocolStartDate)) : null,
-    [protocolStartDate]
-  );
+  const startDate = useMemo(() => {
+    if (protocolStartDate) return startOfDay(new Date(protocolStartDate));
+    // Safety fallback: if an assignment has a duration but the saved start date
+    // is missing, treat today as Day 1 instead of rendering the whole calendar active.
+    return assignedDurationDays ? startOfDay(today) : null;
+  }, [protocolStartDate, assignedDurationDays, today]);
   const endDate = useMemo(() => {
     // Recurring plans never "end" — they cycle weekly forever.
     if (!startDate || !assignedDurationDays || runMode === "recurring") return null;
@@ -305,6 +307,9 @@ export function LiveScheduleDialog({
             meta.history === "completed" ? "#22c55e" :
             meta.history === "partial" ? "#f59e0b" :
             meta.history === "missed" ? "#ef4444" : null;
+          const cellLabel = outOfWindow
+            ? (meta.beforeStart ? "Before start" : meta.offRecurring ? "Off" : "Done")
+            : STATE_LABEL[st];
           return (
             <button
               key={i}
@@ -321,7 +326,7 @@ export function LiveScheduleDialog({
                 opacity: !inMonth ? 0.3 : outOfWindow ? 0.55 : 1,
                 boxShadow: isToday ? `0 0 0 1px ${accent}66, 0 0 10px ${accent}33` : undefined,
               }}
-              aria-label={`${d.toDateString()} — ${STATE_LABEL[st]}`}
+              aria-label={`${d.toDateString()} — ${cellLabel}`}
             >
               {outOfWindow ? (
                 <Lock className="absolute top-1 right-1 h-2.5 w-2.5 text-muted-foreground" />
