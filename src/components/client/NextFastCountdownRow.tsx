@@ -58,22 +58,23 @@ export function NextFastCountdownRow({ accent = "hsl(var(--primary))" }: { accen
     setSkipped(window.localStorage.getItem(skipKey) === "1");
   }, [skipKey]);
 
-  // Don't render at all when we have no scheduled moment (fast day, refeed, no plan)
-  if (!scheduledMs || gate.state === "n/a") return null;
-
-  const msUntil = scheduledMs - now;
-  const inGrace = msUntil <= 0 && msUntil > -GRACE_MS;
+  const msUntil = scheduledMs != null ? scheduledMs - now : Number.POSITIVE_INFINITY;
+  const inGrace = scheduledMs != null && msUntil <= 0 && msUntil > -GRACE_MS;
   const graceRemaining = inGrace ? GRACE_MS + msUntil : 0;
 
   // Auto-fire the mutation once when grace ends and user hasn't cancelled
   useEffect(() => {
     if (firedRef.current) return;
     if (skipped) return;
+    if (scheduledMs == null) return;
     if (msUntil <= -GRACE_MS && !startFast.isPending) {
       firedRef.current = true;
       startFast.mutate();
     }
-  }, [msUntil, skipped, startFast]);
+  }, [msUntil, skipped, startFast, scheduledMs]);
+
+  // Don't render at all when we have no scheduled moment (fast day, refeed, no plan)
+  if (!scheduledMs || gate.state === "n/a") return null;
 
   // Hide once we're well past the grace window (fast should now be active
   // and ActiveFastingTimer takes over the card).
