@@ -349,7 +349,7 @@ export function LiveScheduleDialog({
                     : outOfWindow || isPast ? "hsl(var(--muted-foreground))" : undefined
                 }}>
                 {outOfWindow
-                  ? (meta.beforeStart ? "—" : "Done")
+                  ? (meta.beforeStart ? "—" : meta.offRecurring ? "Off" : "Done")
                   : meta.history === "missed" ? "Missed"
                   : shortDayLabel(pd, st)}
               </p>
