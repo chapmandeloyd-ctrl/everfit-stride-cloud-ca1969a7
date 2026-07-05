@@ -249,6 +249,9 @@ export function TodaysWindowCard({ onStartFast }: { onStartFast?: () => void } =
           protocolName={protocolName ?? undefined}
           ketoName={ketoName ?? undefined}
           onStartFast={onStartFast}
+          protocolStartDate={protocolStartDate ?? undefined}
+          assignedDurationDays={assignedDurationDays ?? undefined}
+          runMode={runMode}
         />
       </CardContent>
     </Card>
