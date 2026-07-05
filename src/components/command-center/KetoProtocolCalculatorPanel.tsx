@@ -324,6 +324,16 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
     if (m === "one_time" || m === "recurring") setRunMode(m);
   }, [(featureSettings as any)?.protocol_run_mode]);
 
+  // Live-preview: reflect run-mode / plan-length changes in the client's Live
+  // Schedule and lion card immediately (before Save).
+  useEffect(() => {
+    queryClient.setQueryData(["ccp-settings", clientId], (prev: any) => ({
+      ...(prev ?? {}),
+      protocol_run_mode: runMode,
+      assigned_protocol_duration_days: planLengthDays,
+    }));
+  }, [runMode, planLengthDays, clientId, queryClient]);
+
   const kt = assignment?.keto_types as any;
 
   const plan = useMemo(() => {
