@@ -1682,6 +1682,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
           {/* Navigation CTAs — visible for every assigned client so the Today
               screen is consistent across coach-locked and self-guided plans. */}
           <div className="pt-1">
+            <NextFastCountdownRow accent={ketoAccent} />
             <button
               type="button"
               onClick={() => openLiveSchedule()}
