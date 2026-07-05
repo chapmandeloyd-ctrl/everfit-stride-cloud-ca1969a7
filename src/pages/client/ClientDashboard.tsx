@@ -239,7 +239,10 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
   // to mock 16:8 protocol + TKD keto type so the full card renders even when
   // the client doesn't yet have real assignments. Remove once onboarding wires
   // real assignments through the trainer.
-  const PREVIEW_COACH_START_NOW = true;
+  // Preview fallback was used during onboarding design; it must stay OFF in
+  // production so that resetting a client's plan actually clears the lion
+  // card instead of falling back to a mock "16:8 Daily" / TKD protocol.
+  const PREVIEW_COACH_START_NOW = false;
   // If a quick plan is assigned (no program), synthesize a protocol-shaped
   // object from it so the dashboard reflects the actual assignment instead of
   // falling back to the mock "16:8 Daily" preview.
