@@ -61,6 +61,11 @@ function daysBetween(a: Date, b: Date) {
 function startOfDay(d: Date): Date {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
+function parseDateOnlyLocal(value: string): Date {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+  if (!m) return new Date(value);
+  return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+}
 function dateKey(d: Date): string {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -106,7 +111,7 @@ export function LiveScheduleDialog({
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   const startDate = useMemo(() => {
-    if (protocolStartDate) return startOfDay(new Date(protocolStartDate));
+    if (protocolStartDate) return startOfDay(parseDateOnlyLocal(protocolStartDate));
     // Safety fallback: if an assignment has a duration but the saved start date
     // is missing, treat today as Day 1 instead of rendering the whole calendar active.
     return assignedDurationDays ? startOfDay(today) : null;
