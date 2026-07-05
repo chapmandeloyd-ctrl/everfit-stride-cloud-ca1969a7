@@ -167,7 +167,7 @@ export function LiveScheduleDialog({
   }, [startDate, assignedDurationDays, todayIndex, len]);
 
   const categorize = (d: Date): {
-    inWindow: boolean; beforeStart: boolean; afterEnd: boolean; history: HistoryStatus;
+    inWindow: boolean; beforeStart: boolean; afterEnd: boolean; offRecurring: boolean; history: HistoryStatus;
   } => {
     const day = startOfDay(d);
     const beforeStart = startDate ? day < startDate : false;
@@ -196,6 +196,7 @@ export function LiveScheduleDialog({
       beforeStart,
       // Treat weekly off-days as "afterEnd" for rendering purposes (greyed + lock/dash).
       afterEnd: afterEnd || offRecurringDay,
+      offRecurring: offRecurringDay && !beforeStart && !afterEnd,
       history,
     };
   };
