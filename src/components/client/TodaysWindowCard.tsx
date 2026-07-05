@@ -222,12 +222,17 @@ export function TodaysWindowCard({ onStartFast }: { onStartFast?: () => void } =
         <button
           type="button"
           onClick={() => setScheduleOpen(true)}
-          className="w-full mt-1 flex items-center justify-center gap-2 rounded-lg border py-2.5 text-[11px] uppercase tracking-widest font-semibold transition-colors hover:bg-muted/40"
+          className="w-full mt-1 flex flex-col items-center justify-center gap-1 rounded-lg border py-2.5 text-[11px] uppercase tracking-widest font-semibold transition-colors hover:bg-muted/40"
           style={{ borderColor: accent, color: accent }}
         >
-          <Calendar className="h-3.5 w-3.5" />
-          Open Live Schedule
-          <ChevronRight className="h-3.5 w-3.5" />
+          <span className="flex items-center gap-2">
+            <Calendar className="h-3.5 w-3.5" />
+            See What's Coming Up
+            <ChevronRight className="h-3.5 w-3.5" />
+          </span>
+          <span className="text-[9px] font-medium tracking-normal normal-case opacity-70">
+            Fast starts automatically
+          </span>
         </button>
 
         <button
