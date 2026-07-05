@@ -93,7 +93,7 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
     queryFn: async () => {
       const { data } = await supabase
         .from("client_feature_settings")
-        .select("selected_protocol_id, assigned_protocol_duration_days")
+        .select("selected_protocol_id, assigned_protocol_duration_days, day_start_hour")
         .eq("client_id", clientId)
         .maybeSingle();
       return data;
@@ -335,9 +335,16 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
     const isAlternateDay = rawFastHours >= 24;
     const fastHours = isAlternateDay ? 24 : Math.min(23, rawFastHours);
     const eatHours = isAlternateDay ? 24 : Math.max(1, 24 - fastHours);
-    // Anchor eating window end at 8:00 PM (20:00) and work backward
-    const eatEndHour = 20;
-    const eatStartHour = ((eatEndHour - eatHours) % 24 + 24) % 24;
+    // Prefer client's configured Start-of-day anchor; otherwise fall back to
+    // the legacy behavior of ending the eating window at 8:00 PM.
+    const rawDayStart = Number((featureSettings as any)?.day_start_hour);
+    const hasDayStart = Number.isFinite(rawDayStart);
+    const eatStartHour = hasDayStart
+      ? ((Math.floor(rawDayStart) % 24) + 24) % 24
+      : ((20 - eatHours) % 24 + 24) % 24;
+    const eatEndHour = hasDayStart
+      ? (eatStartHour + eatHours) % 24
+      : 20;
     const fmt = (h: number) => {
       const period = h >= 12 ? "PM" : "AM";
       const hr = h % 12 === 0 ? 12 : h % 12;
@@ -413,7 +420,7 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
       return { day: length > 7 ? `${d} ${Math.floor(i / 7) + 1}` : d, isRefeed, cal: adFast ? 0 : cal, proteinG: adFast ? 0 : proteinG, carbG: adFast ? 0 : carbG, fatG: adFast ? 0 : fatG, fastWindow, eatStart, eatEnd, tight, omad, adFast };
     });
     return { tdee, target, proteinFloor, days, adjust, protocolName: selectedProtocol?.name, extended: false };
-  }, [weight, goal, activity, kt, customDeficit, allProtocols, featureSettings?.selected_protocol_id, planType, planLengthDays, extendedPreset, customFastHours]);
+  }, [weight, goal, activity, kt, customDeficit, allProtocols, featureSettings?.selected_protocol_id, (featureSettings as any)?.day_start_hour, planType, planLengthDays, extendedPreset, customFastHours]);
 
   const handleSave = async () => {
     const payload = {
@@ -563,8 +570,9 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
       planType,
       planLengthDays,
       extendedTotalHours: extendedPreset === "custom" ? customFastHours : parseInt(extendedPreset, 10),
+      eatStartHour: Number((featureSettings as any)?.day_start_hour ?? NaN),
     });
-  }, [weight, kt, allProtocols, featureSettings?.selected_protocol_id, goal, customDeficit, activity, planType, planLengthDays, extendedPreset, customFastHours]);
+  }, [weight, kt, allProtocols, featureSettings?.selected_protocol_id, (featureSettings as any)?.day_start_hour, goal, customDeficit, activity, planType, planLengthDays, extendedPreset, customFastHours]);
 
   if (!assignment) {
     return (

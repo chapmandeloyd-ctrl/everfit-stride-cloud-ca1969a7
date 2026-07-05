@@ -135,6 +135,7 @@ export function useClientComputedPlan() {
       planType,
       planLengthDays,
       extendedTotalHours,
+      eatStartHour: Number((settings as any)?.day_start_hour ?? NaN),
     });
   }, [ketoType, weightLbs, protocol, settings]);
 

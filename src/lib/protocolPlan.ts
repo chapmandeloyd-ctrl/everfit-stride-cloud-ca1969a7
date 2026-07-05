@@ -25,6 +25,12 @@ export interface ComputePlanInput {
   planType?: PlanType;
   planLengthDays?: number;   // recurring
   extendedTotalHours?: number; // extended
+  /**
+   * Anchor hour (0-23) for the START of the eating window. When provided,
+   * the eating window opens at this hour and closes at eatStart + eatHours.
+   * Defaults to a fixed 8 PM close (legacy behavior) when omitted.
+   */
+  eatStartHour?: number;
 }
 
 export interface PlanDay {
@@ -72,6 +78,7 @@ export function computePlan(input: ComputePlanInput): ComputedPlan | null {
     planType = "recurring",
     planLengthDays = 7,
     extendedTotalHours = 48,
+    eatStartHour,
   } = input;
 
   if (!w || !kt) return null;
@@ -106,8 +113,18 @@ export function computePlan(input: ComputePlanInput): ComputedPlan | null {
   const windowFor = (fastH: number) => {
     const fh = Math.min(23, Math.max(1, fastH));
     const eh = 24 - fh;
-    const endHour = 20;
-    const startHour = ((endHour - eh) % 24 + 24) % 24;
+    // If a day-start anchor is provided, open the window at that hour and
+    // slide the close forward by the eating length. Otherwise fall back to
+    // the legacy fixed 8 PM close.
+    let startHour: number;
+    let endHour: number;
+    if (typeof eatStartHour === "number" && !Number.isNaN(eatStartHour)) {
+      startHour = ((Math.floor(eatStartHour) % 24) + 24) % 24;
+      endHour = (startHour + eh) % 24;
+    } else {
+      endHour = 20;
+      startHour = ((endHour - eh) % 24 + 24) % 24;
+    }
     return {
       label: `${fh}:${eh}`,
       eatStart: fmt(startHour),
