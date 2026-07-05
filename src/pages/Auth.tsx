@@ -27,29 +27,34 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
-    // Always clear stale impersonation when landing on the auth page
-    localStorage.removeItem("impersonatedClientId");
-
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("role, onboarding_completed")
-          .eq("id", session.user.id)
-          .single();
+      if (!session?.user) {
+        localStorage.removeItem("impersonatedClientId");
+        return;
+      }
 
-        if (profile?.role === "client") {
-          goPostAuth(!profile.onboarding_completed ? "/client/onboarding" : "/client/dashboard");
-        } else {
-          goPostAuth("/");
-        }
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role, onboarding_completed")
+        .eq("id", session.user.id)
+        .single();
+
+      if (profile?.role === "client") {
+        goPostAuth(!profile.onboarding_completed ? "/client/onboarding" : "/client/dashboard");
+      } else {
+        goPostAuth("/");
       }
     };
     checkSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN" && session?.user) checkSession();
+      if (event === "SIGNED_OUT" || !session) {
+        localStorage.removeItem("impersonatedClientId");
+        return;
+      }
+
+      if (event === "SIGNED_IN" && session?.user) void checkSession();
     });
     return () => subscription.unsubscribe();
   }, [navigate]);
