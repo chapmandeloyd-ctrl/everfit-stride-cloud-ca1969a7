@@ -563,8 +563,9 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
       planType,
       planLengthDays,
       extendedTotalHours: extendedPreset === "custom" ? customFastHours : parseInt(extendedPreset, 10),
+      eatStartHour: Number((featureSettings as any)?.day_start_hour ?? NaN),
     });
-  }, [weight, kt, allProtocols, featureSettings?.selected_protocol_id, goal, customDeficit, activity, planType, planLengthDays, extendedPreset, customFastHours]);
+  }, [weight, kt, allProtocols, featureSettings?.selected_protocol_id, (featureSettings as any)?.day_start_hour, goal, customDeficit, activity, planType, planLengthDays, extendedPreset, customFastHours]);
 
   if (!assignment) {
     return (
