@@ -46,6 +46,13 @@ const ACTIVITY_LABEL: Record<Activity, string> = {
 };
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
+function weekIndexFromDateOnly(value: string): number {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+  if (!m) return 0;
+  const date = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])));
+  return (date.getUTCDay() + 6) % 7; // convert Sun=0 to Mon=0 labels
+}
+
 export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
   const storageKey = `keto-protocol-${clientId}`;
   const queryClient = useQueryClient();
@@ -423,10 +430,12 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
 
     // ---------- Recurring weekly branch ----------
     const length = Math.max(1, Math.min(30, planLengthDays));
+    const startWeekIdx = startDate ? weekIndexFromDateOnly(startDate) : 0;
     const days = Array.from({ length }).map((_, i) => {
-      const d = DAYS[i % 7];
-      const isRefeed = isCKD && (i === 5 || i === 6); // Sat/Sun
-      const isAdFastDay = isAlternateDay && i % 2 === 0; // Mon/Wed/Fri/Sun full fast
+      const weekIdx = (startWeekIdx + i) % 7;
+      const d = DAYS[weekIdx];
+      const isRefeed = isCKD && (weekIdx === 5 || weekIdx === 6); // Sat/Sun
+      const isAdFastDay = isAlternateDay && weekIdx % 2 === 0; // Mon/Wed/Fri/Sun full fast
       const cal = isRefeed ? Math.round(target * 1.15) : target;
       const proteinG = Math.max(proteinFloor, Math.round((cal * (kt.protein_pct / 100)) / 4));
       const carbG = isRefeed ? Math.round((cal * 0.45) / 4) : Math.round((cal * (kt.carbs_pct / 100)) / 4);
@@ -444,7 +453,7 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
       return { day: length > 7 ? `${d} ${Math.floor(i / 7) + 1}` : d, isRefeed, cal: adFast ? 0 : cal, proteinG: adFast ? 0 : proteinG, carbG: adFast ? 0 : carbG, fatG: adFast ? 0 : fatG, fastWindow, eatStart, eatEnd, tight, omad, adFast };
     });
     return { tdee, target, proteinFloor, days, adjust, protocolName: selectedProtocol?.name, extended: false };
-  }, [weight, goal, activity, kt, customDeficit, allProtocols, featureSettings?.selected_protocol_id, (featureSettings as any)?.day_start_hour, planType, planLengthDays, extendedPreset, customFastHours]);
+  }, [weight, goal, activity, kt, customDeficit, allProtocols, featureSettings?.selected_protocol_id, (featureSettings as any)?.day_start_hour, planType, planLengthDays, startDate, extendedPreset, customFastHours]);
 
   const handleSave = async () => {
     const savedStart = (featureSettings as any)?.protocol_start_date;
