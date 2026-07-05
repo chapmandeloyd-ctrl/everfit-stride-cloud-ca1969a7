@@ -447,6 +447,8 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
       const patch: any = {
         protocol_calc_inputs: payload,
         protocol_start_date: startDate || null,
+        protocol_run_mode: runMode,
+        assigned_protocol_duration_days: planLengthDays,
       };
       const { data: existing } = await supabase
         .from("client_feature_settings")
