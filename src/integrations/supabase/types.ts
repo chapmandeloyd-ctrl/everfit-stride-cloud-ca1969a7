@@ -1303,6 +1303,7 @@ export type Database = {
           auto_level_advance_enabled: boolean
           auto_nudge_optimization_enabled: boolean
           auto_plan_adjust_enabled: boolean
+          autostart_skipped_on: string | null
           back_on_pace_enabled: boolean
           body_metrics_enabled: boolean
           calendar_days_ahead: number
@@ -1375,6 +1376,7 @@ export type Database = {
           pinned_insight_until: string | null
           plan_reviewed_at: string | null
           plan_saved_for_later: boolean
+          pre_fast_email_pref: string
           preferred_eating_window_closes_at: string | null
           preferred_eating_window_opens_at: string | null
           progress_photos_enabled: boolean
@@ -1415,6 +1417,7 @@ export type Database = {
           auto_level_advance_enabled?: boolean
           auto_nudge_optimization_enabled?: boolean
           auto_plan_adjust_enabled?: boolean
+          autostart_skipped_on?: string | null
           back_on_pace_enabled?: boolean
           body_metrics_enabled?: boolean
           calendar_days_ahead?: number
@@ -1487,6 +1490,7 @@ export type Database = {
           pinned_insight_until?: string | null
           plan_reviewed_at?: string | null
           plan_saved_for_later?: boolean
+          pre_fast_email_pref?: string
           preferred_eating_window_closes_at?: string | null
           preferred_eating_window_opens_at?: string | null
           progress_photos_enabled?: boolean
@@ -1527,6 +1531,7 @@ export type Database = {
           auto_level_advance_enabled?: boolean
           auto_nudge_optimization_enabled?: boolean
           auto_plan_adjust_enabled?: boolean
+          autostart_skipped_on?: string | null
           back_on_pace_enabled?: boolean
           body_metrics_enabled?: boolean
           calendar_days_ahead?: number
@@ -1599,6 +1604,7 @@ export type Database = {
           pinned_insight_until?: string | null
           plan_reviewed_at?: string | null
           plan_saved_for_later?: boolean
+          pre_fast_email_pref?: string
           preferred_eating_window_closes_at?: string | null
           preferred_eating_window_opens_at?: string | null
           progress_photos_enabled?: boolean
