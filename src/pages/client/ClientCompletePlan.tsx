@@ -40,7 +40,7 @@ export default function ClientCompletePlan() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("client_feature_settings")
-        .select("selected_protocol_id, selected_quick_plan_id")
+        .select("selected_protocol_id, selected_quick_plan_id, day_start_hour")
         .eq("client_id", clientId!)
         .maybeSingle();
       if (error) throw error;
@@ -151,8 +151,9 @@ export default function ClientCompletePlan() {
       protocol: { name: protocol.name, fast_target_hours: protocol.fast_target_hours },
       planType: "recurring",
       planLengthDays: 7,
+      eatStartHour: Number((featureSettings as any)?.day_start_hour ?? NaN),
     });
-  }, [ketoType, weightLbs, protocol]);
+  }, [ketoType, weightLbs, protocol, (featureSettings as any)?.day_start_hour]);
 
   // Auto-open the 7-day preview when arriving via ?preview=1 from the lion dashboard.
   useEffect(() => {
