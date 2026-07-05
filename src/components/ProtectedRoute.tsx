@@ -1,7 +1,5 @@
-import { useEffect } from "react";
-import { useNavigate, Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
 import { useImpersonation } from "@/hooks/useImpersonation";
 
 interface ProtectedRouteProps {
@@ -9,39 +7,10 @@ interface ProtectedRouteProps {
   allowedRoles?: ("trainer" | "client")[];
 }
 
-/**
- * Check synchronously if there's a cached session in localStorage.
- * This lets us skip the loading spinner and redirect immediately
- * when we know there's no session at all (e.g. after preview reloads).
- */
-function hasCachedSession(): boolean | null {
-  try {
-    const storageKey = `sb-eexxmfuknqttujecbcho-auth-token`;
-    const raw = localStorage.getItem(storageKey);
-    if (!raw) return false;
-    const parsed = JSON.parse(raw);
-    return !!(parsed?.access_token || parsed?.user);
-  } catch {
-    return null; // can't determine, wait for auth
-  }
-}
-
 export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
   const { user, userRole, loading } = useAuth();
-  const navigate = useNavigate();
+  const location = useLocation();
   const { isImpersonating } = useImpersonation();
-
-  useEffect(() => {
-    if (!loading && !user) {
-      navigate("/auth", { replace: true });
-      return;
-    }
-  }, [user, loading, navigate]);
-
-  // Fast path: if no cached session at all, redirect immediately
-  if (loading && hasCachedSession() === false) {
-    return <Navigate to="/auth" replace />;
-  }
 
   if (loading) {
     return (
@@ -55,7 +24,8 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
   }
 
   if (!user) {
-    return null;
+    const next = `${location.pathname}${location.search}`;
+    return <Navigate to={`/auth?next=${encodeURIComponent(next)}`} replace />;
   }
 
   // Allow trainers to access client routes while impersonating a client
