@@ -35,6 +35,7 @@ import { useImpersonation } from "@/hooks/useImpersonation";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { getDietStylePreset } from "@/lib/dietStyles";
 import { SportEventCompletionDialog } from "@/components/SportEventCompletionDialog";
+import { NextFastCountdownRow } from "@/components/client/NextFastCountdownRow";
 
 // Mirror of getCutLevelMeta on ClientNutrition page so dashboard card stays in sync.
 function getCutLevelMeta(adjustment?: number | null) {
