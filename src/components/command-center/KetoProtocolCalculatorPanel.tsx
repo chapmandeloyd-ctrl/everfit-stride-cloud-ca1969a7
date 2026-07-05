@@ -93,7 +93,7 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
     queryFn: async () => {
       const { data } = await supabase
         .from("client_feature_settings")
-        .select("selected_protocol_id, assigned_protocol_duration_days")
+        .select("selected_protocol_id, assigned_protocol_duration_days, day_start_hour")
         .eq("client_id", clientId)
         .maybeSingle();
       return data;
