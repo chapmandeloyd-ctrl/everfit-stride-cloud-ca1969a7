@@ -420,7 +420,7 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
       return { day: length > 7 ? `${d} ${Math.floor(i / 7) + 1}` : d, isRefeed, cal: adFast ? 0 : cal, proteinG: adFast ? 0 : proteinG, carbG: adFast ? 0 : carbG, fatG: adFast ? 0 : fatG, fastWindow, eatStart, eatEnd, tight, omad, adFast };
     });
     return { tdee, target, proteinFloor, days, adjust, protocolName: selectedProtocol?.name, extended: false };
-  }, [weight, goal, activity, kt, customDeficit, allProtocols, featureSettings?.selected_protocol_id, planType, planLengthDays, extendedPreset, customFastHours]);
+  }, [weight, goal, activity, kt, customDeficit, allProtocols, featureSettings?.selected_protocol_id, (featureSettings as any)?.day_start_hour, planType, planLengthDays, extendedPreset, customFastHours]);
 
   const handleSave = async () => {
     const payload = {
