@@ -100,7 +100,7 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
     queryFn: async () => {
       const { data } = await supabase
         .from("client_feature_settings")
-        .select("selected_protocol_id, assigned_protocol_duration_days, protocol_start_date, day_start_hour, protocol_run_mode")
+        .select("selected_protocol_id, assigned_protocol_duration_days, protocol_start_date, protocol_calc_inputs, day_start_hour, protocol_run_mode")
         .eq("client_id", clientId)
         .maybeSingle();
       return data;
@@ -247,6 +247,46 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
       queryClient.invalidateQueries({ queryKey: ["active-protocol-summary", clientId] });
     },
     onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Failed to save duration"),
+  });
+
+  const saveStartDateMutation = useMutation({
+    mutationFn: async (date: string) => {
+      if (!date) return;
+      const existingInputs = ((featureSettings as any)?.protocol_calc_inputs || {}) as Record<string, unknown>;
+      const patch = {
+        protocol_start_date: date,
+        protocol_calc_inputs: {
+          ...existingInputs,
+          startDate: date,
+          planLengthDays,
+          savedAt: new Date().toISOString(),
+        },
+      } as any;
+      const { data: existing } = await supabase
+        .from("client_feature_settings")
+        .select("client_id")
+        .eq("client_id", clientId)
+        .maybeSingle();
+      if (existing) {
+        const { error } = await supabase
+          .from("client_feature_settings")
+          .update(patch)
+          .eq("client_id", clientId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("client_feature_settings")
+          .insert([{ client_id: clientId, ...patch }] as any);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["kpc-feature-settings", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting"] });
+      queryClient.invalidateQueries({ queryKey: ["ccp-settings", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["active-protocol-summary", clientId] });
+    },
+    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Failed to save start date"),
   });
 
   const { data: weightLbs } = useQuery({
@@ -767,7 +807,15 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
             </div>
             <div>
               <Label>Start Date</Label>
-              <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+              <Input
+                type="date"
+                value={startDate}
+                onChange={(e) => {
+                  const next = e.target.value;
+                  setStartDate(next);
+                  if (next) saveStartDateMutation.mutate(next);
+                }}
+              />
             </div>
           </div>
 
