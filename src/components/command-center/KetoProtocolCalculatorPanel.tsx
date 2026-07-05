@@ -791,6 +791,7 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
               </Select>
             </div>
             {planType === "recurring" ? (
+              <>
               <div>
                 <Label>Assignment Duration</Label>
                 <Select
@@ -834,6 +835,7 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
                     : `First ${planLengthDays} day${planLengthDays > 1 ? "s" : ""} of each week are active. The remaining days each week are greyed as off-days.`}
                 </p>
               </div>
+              </>
             ) : (
               <>
                 <div>
