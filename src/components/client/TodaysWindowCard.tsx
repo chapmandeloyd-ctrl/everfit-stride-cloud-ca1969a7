@@ -47,7 +47,7 @@ function shortDayLabel(d: any, state: DayState): string {
  * single dense card. Read-only, presentation-only. Never modifies the lion card.
  */
 export function TodaysWindowCard({ onStartFast }: { onStartFast?: () => void } = {}) {
-  const { plan, dayIndex, ketoAccent, protocolName, ketoName, stage } = useClientComputedPlan();
+  const { plan, dayIndex, ketoAccent, protocolName, ketoName, stage, protocolStartDate, assignedDurationDays, runMode } = useClientComputedPlan();
   const navigate = useNavigate();
   const [scheduleOpen, setScheduleOpen] = useState(false);
   useEffect(() => subscribeLiveScheduleOpen(() => setScheduleOpen(true)), []);
