@@ -70,7 +70,7 @@ export function NextFastCountdownRow({ accent = "hsl(var(--primary))" }: { accen
     if (!clientId) return;
     if (msUntil <= -GRACE_MS && !startFast.isPending) {
       // eslint-disable-next-line no-console
-      console.log("[NextFastCountdownRow] auto-firing startFast", { msUntil, scheduledMs });
+      console.log("[NextFastCountdownRow] auto-firing startFast", { msUntil, scheduledMs, clientId });
       startFast.mutate(undefined, {
         onSuccess: (d) => {
           firedRef.current = true;
