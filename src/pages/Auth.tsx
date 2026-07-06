@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,13 +28,15 @@ export default function Auth() {
   const [adminPin, setAdminPin] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  if (!loading && user && profile) {
+  useEffect(() => {
+    if (loading || !user || !profile) return;
+
     if (profile.role === "client") {
       goPostAuth(!profile.onboarding_completed ? "/client/onboarding" : "/client/dashboard");
     } else {
       goPostAuth("/");
     }
-  }
+  }, [loading, user, profile]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
