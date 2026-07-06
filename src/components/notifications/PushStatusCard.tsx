@@ -11,11 +11,15 @@ import { useAuth } from "@/hooks/useAuth";
 import {
   isPushSupported,
   getPushPermissionStatus,
+  getPushSetupMessage,
   getVapidPublicKey,
+  isIOSDevice,
+  isStandalonePWA,
   subscribeToPush,
   savePushSubscription,
   sendTestPush,
 } from "@/lib/pushNotifications";
+import { IOSInstallGuideDialog } from "@/components/client/IOSInstallGuideDialog";
 
 /**
  * PushStatusCard
@@ -42,6 +46,7 @@ export function PushStatusCard() {
   const [endpointReady, setEndpointReady] = useState(false);
   const [working, setWorking] = useState(false);
   const [testing, setTesting] = useState(false);
+  const [showInstallGuide, setShowInstallGuide] = useState(false);
 
   const supported = isPushSupported();
   const permission = getPushPermissionStatus();
@@ -100,14 +105,16 @@ export function PushStatusCard() {
     if (!user?.id) return;
     setWorking(true);
     try {
+      if (isIOSDevice() && !isStandalonePWA()) {
+        setShowInstallGuide(true);
+        return;
+      }
+
       const perm = await Notification.requestPermission();
       if (perm !== "granted") {
         toast({
           title: "Notifications blocked",
-          description:
-            perm === "denied"
-              ? "You'll need to allow notifications in your browser/system settings."
-              : "Permission was not granted.",
+          description: getPushSetupMessage(),
           variant: "destructive",
         });
         return;
@@ -125,7 +132,7 @@ export function PushStatusCard() {
       if (!sub) {
         toast({
           title: "Could not subscribe",
-          description: "Your browser refused the subscription. Try again or use a different browser.",
+          description: getPushSetupMessage(),
           variant: "destructive",
         });
         return;
@@ -149,7 +156,7 @@ export function PushStatusCard() {
       console.error("Push enable failed", err);
       toast({
         title: "Something went wrong",
-        description: (err as Error).message ?? "Please try again.",
+        description: (err as Error).message ?? getPushSetupMessage(err),
         variant: "destructive",
       });
     } finally {
@@ -220,6 +227,7 @@ export function PushStatusCard() {
   })();
 
   return (
+    <>
     <Card>
       <CardHeader>
         <div className="flex items-start justify-between gap-3">
@@ -346,5 +354,7 @@ export function PushStatusCard() {
         )}
       </CardContent>
     </Card>
+    <IOSInstallGuideDialog open={showInstallGuide} onOpenChange={setShowInstallGuide} />
+    </>
   );
 }
