@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,9 +6,11 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Eye, EyeOff, Shield } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Auth() {
   const navigate = useNavigate();
+  const { user, profile, loading } = useAuth();
   const [searchParams] = useSearchParams();
   // Preserve a same-origin relative `next` so OAuth-consent flows return home.
   const rawNext = searchParams.get("next") || "";
@@ -27,37 +29,14 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) {
-        localStorage.removeItem("impersonatedClientId");
-        return;
-      }
+    if (loading || !user || !profile) return;
 
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role, onboarding_completed")
-        .eq("id", session.user.id)
-        .single();
-
-      if (profile?.role === "client") {
-        goPostAuth(!profile.onboarding_completed ? "/client/onboarding" : "/client/dashboard");
-      } else {
-        goPostAuth("/");
-      }
-    };
-    checkSession();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_OUT" || !session) {
-        localStorage.removeItem("impersonatedClientId");
-        return;
-      }
-
-      if (event === "SIGNED_IN" && session?.user) void checkSession();
-    });
-    return () => subscription.unsubscribe();
-  }, [navigate]);
+    if (profile.role === "client") {
+      goPostAuth(!profile.onboarding_completed ? "/client/onboarding" : "/client/dashboard");
+    } else {
+      goPostAuth("/");
+    }
+  }, [loading, user, profile]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -113,7 +92,7 @@ export default function Auth() {
       if (verifyError) throw verifyError;
 
       toast.success("Welcome back!");
-      navigate("/");
+      goPostAuth("/");
     } catch (error: any) {
       toast.error(error.message || "Invalid PIN");
     } finally {
