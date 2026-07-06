@@ -10,6 +10,37 @@ const TOKEN_REFRESH_INTERVAL = 4 * 60 * 1000;
 
 type UserRole = "trainer" | "client" | null;
 
+// Diagnostic auth-event log. Keeps the last 100 events in localStorage under
+// `authDebugLog` and mirrors to console so we can see flash/kick-out loops
+// without needing the user to reproduce on demand. Read via
+// `JSON.parse(localStorage.getItem('authDebugLog'))` in the browser.
+const AUTH_LOG_KEY = "authDebugLog";
+const AUTH_LOG_MAX = 100;
+function logAuthEvent(kind: string, detail: Record<string, unknown> = {}) {
+  try {
+    const entry = {
+      t: new Date().toISOString(),
+      kind,
+      route: typeof window !== "undefined" ? window.location.pathname : null,
+      visible: typeof document !== "undefined" ? document.visibilityState : null,
+      impersonated:
+        typeof localStorage !== "undefined"
+          ? localStorage.getItem("impersonatedClientId")
+          : null,
+      ...detail,
+    };
+    const raw = localStorage.getItem(AUTH_LOG_KEY);
+    const arr = raw ? (JSON.parse(raw) as unknown[]) : [];
+    arr.push(entry);
+    if (arr.length > AUTH_LOG_MAX) arr.splice(0, arr.length - AUTH_LOG_MAX);
+    localStorage.setItem(AUTH_LOG_KEY, JSON.stringify(arr));
+    // eslint-disable-next-line no-console
+    console.info("[auth]", kind, entry);
+  } catch {
+    /* ignore quota / SSR */
+  }
+}
+
 interface AuthContextValue {
   session: Session | null;
   user: User | null;
@@ -40,9 +71,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const startTokenRefresh = useCallback(() => {
     stopTokenRefresh();
     refreshTimer.current = setInterval(() => {
-      supabase.auth.refreshSession().catch(() => {
-        // The auth listener handles real session loss; avoid noisy redirects here.
-      });
+      logAuthEvent("interval-refresh");
+      supabase.auth
+        .refreshSession()
+        .then(({ error }) => {
+          if (error) logAuthEvent("interval-refresh-error", { message: error.message });
+        })
+        .catch((err) => {
+          logAuthEvent("interval-refresh-throw", { message: String(err) });
+        });
     }, TOKEN_REFRESH_INTERVAL);
   }, [stopTokenRefresh]);
 
@@ -65,16 +102,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (cancelled) return;
 
+      logAuthEvent("state-change", {
+        event,
+        hasSession: !!session,
+        userId: session?.user?.id ?? null,
+        initialResolved: initialSessionResolved.current,
+      });
+
       setSession(session);
 
       if (!session) {
         // Ignore transient empty auth events during initial storage restore.
-        if (!initialSessionResolved.current && event !== "SIGNED_OUT") return;
+        if (!initialSessionResolved.current && event !== "SIGNED_OUT") {
+          logAuthEvent("state-change-ignored-transient", { event });
+          return;
+        }
 
         // Only an explicit sign-out should end trainer preview mode. During
         // token restore/refresh the auth SDK can briefly emit an empty session;
         // clearing impersonation there is what caused the flash/kick-out loop.
         if (event === "SIGNED_OUT") {
+          logAuthEvent("clear-impersonation", { reason: "SIGNED_OUT" });
           localStorage.removeItem("impersonatedClientId");
         }
         stopTokenRefresh();
@@ -94,6 +142,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (cancelled) return;
 
       initialSessionResolved.current = true;
+      logAuthEvent("get-session-resolved", {
+        hasSession: !!session,
+        userId: session?.user?.id ?? null,
+      });
       setSession(session);
 
       if (!session) {
@@ -110,6 +162,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const handleVisibility = () => {
       if (document.visibilityState === "visible") {
+        logAuthEvent("visibility-refresh");
         supabase.auth.refreshSession().catch(() => {});
       }
     };
@@ -124,6 +177,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [fetchProfile, startTokenRefresh, stopTokenRefresh]);
 
   const signOut = async () => {
+    logAuthEvent("sign-out-called");
     stopTokenRefresh();
     localStorage.removeItem("impersonatedClientId");
     profileRequestId.current += 1;
