@@ -2,140 +2,114 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import ScrollToTop from "./components/ScrollToTop";
 import AuthTransitionOverlay from "./components/AuthTransitionOverlay";
 
-import Dashboard from "./pages/Dashboard";
-import TrainerDashboard from "./pages/TrainerDashboard";
-import Workouts from "./pages/Workouts";
-import WorkoutDetail from "./pages/WorkoutDetail";
-import CreateWorkout from "./pages/CreateWorkout";
-import EditWorkout from "./pages/EditWorkout";
-import WorkoutTemplates from "./pages/WorkoutTemplates";
-import Exercises from "./pages/Exercises";
-import Clients from "./pages/Clients";
-import Messages from "./pages/Messages";
-import Analytics from "./pages/Analytics";
-import Goals from "./pages/Goals";
-import TaskLibrary from "./pages/TaskLibrary";
-import AdminDataConsole from "./pages/AdminDataConsole";
-import Auth from "./pages/Auth";
-import OAuthConsent from "./pages/OAuthConsent";
-import Unsubscribe from "./pages/Unsubscribe";
-import PortalMockup from "./pages/PortalMockup";
-import ClientDashboard from "./pages/client/ClientDashboardMinimal";
-import ClientRingsDemo from "./pages/client/ClientRingsDemo";
-import ClientSmartPace from "./pages/client/ClientSmartPace";
-import SmartPacePreview from "./pages/SmartPacePreview";
-import ClientDailyScore from "./pages/client/ClientDailyScore";
-import ClientOnboarding from "./pages/client/ClientOnboarding";
-import ClientWorkouts from "./pages/client/ClientWorkouts";
-import ClientProgress from "./pages/client/ClientProgress";
-import ClientNutrition from "./pages/client/ClientNutrition";
-import ClientNutritionDashboard from "./pages/client/ClientNutritionDashboard";
-import ClientCalendar from "./pages/client/ClientCalendar";
-import ClientSettings from "./pages/client/ClientSettings";
-import ClientTaskDetail from "./pages/client/ClientTaskDetail";
-import ClientGoals from "./pages/client/ClientGoals";
-import ClientTasks from "./pages/client/ClientTasks";
-import ClientResourceHub from "./pages/client/ClientResourceHub";
-import ClientWorkoutHub from "./pages/client/ClientWorkoutHub";
-import ClientOnDemand from "./pages/client/ClientOnDemand";
-import ClientResourceCollectionDetail from "./pages/client/ClientResourceCollectionDetail";
-import ResourceLibrary from "./pages/ResourceLibrary";
-import ResourceCollections from "./pages/ResourceCollections";
-import ResourceCollectionDetail from "./pages/ResourceCollectionDetail";
-import OndemandWorkouts from "./pages/OndemandWorkouts";
-import WorkoutCollections from "./pages/WorkoutCollections";
-import WorkoutCollectionDetail from "./pages/WorkoutCollectionDetail";
-import WorkoutLabels from "./pages/WorkoutLabels";
-import StudioPrograms from "./pages/StudioPrograms";
-import Programs from "./pages/Programs";
-import Recipes from "./pages/Recipes";
-import RecipeDetail from "./pages/RecipeDetail";
-import RecipeBooks from "./pages/RecipeBooks";
-import RecipeBookDetail from "./pages/RecipeBookDetail";
-import MealPlans from "./pages/MealPlans";
-import MealPlanDetail from "./pages/MealPlanDetail";
-import MacroCalculator from "./pages/MacroCalculator";
-import MacroTracking from "./pages/MacroTracking";
-import TrainerClientHealth from "./pages/TrainerClientHealth";
-import ClientsHealth from "./pages/ClientsHealth";
-import NotFound from "./pages/NotFound";
-import ClientHealth from "./pages/client/ClientHealth";
-import ClientHealthConnect from "./pages/client/ClientHealthConnect";
-import ClientBadges from "./pages/client/ClientBadges";
-import ClientTimeline from "./pages/client/ClientTimeline";
-import ClientPlanHistory from "./pages/client/ClientPlanHistory";
-import ClientMealPlan from "./pages/client/ClientMealPlan";
-import ClientMealSelect from "./pages/client/ClientMealSelect";
-import ClientHealthReminders from "./pages/client/ClientHealthReminders";
-import ClientMealResults from "./pages/client/ClientMealResults";
-import ClientHabits from "./pages/client/ClientHabits";
-import ClientHabitDetail from "./pages/client/ClientHabitDetail";
-import ClientMacroSetup from "./pages/client/ClientMacroSetup";
-import ClientLogMeal from "./pages/client/ClientLogMeal";
-import ClientCoaching from "./pages/client/ClientCoaching";
-import ClientProfile from "./pages/client/ClientProfile";
-import ClientStagesTimeline from "./pages/client/ClientStagesTimeline";
-import ClientExplore from "./pages/client/ClientExplore";
-import ClientExploreContent from "./pages/client/ClientExploreContent";
-import ClientExploreChallenge from "./pages/client/ClientExploreChallenge";
-import ExploreStylePreview from "./pages/client/ExploreStylePreview";
-import ClientSportsProfile from "./pages/client/ClientSportsProfile";
-import ClientBooking from "./pages/client/ClientBooking";
-import ClientCardioPlayer from "./pages/client/ClientCardioPlayer";
-import ClientWodBuilder from "./pages/client/ClientWodBuilder";
-import ClientAppointments from "./pages/client/ClientAppointments";
-import ClientRecipeDetail from "./pages/client/ClientRecipeDetail";
-import ClientPrograms from "./pages/client/ClientPrograms";
-import ClientChooseProtocol from "./pages/client/ClientChooseProtocol";
-import ClientCustomPlans from "./pages/client/ClientCustomPlans";
-import ClientBeginReset from "./pages/client/ClientBeginReset";
-import ClientQuickPlans from "./pages/client/ClientQuickPlans";
-import ClientQuickPlanDetail from "./pages/client/ClientQuickPlanDetail";
-import ClientProtocolDetail from "./pages/client/ClientProtocolDetail";
-import ClientProtocolCardDemo from "./pages/client/ClientProtocolCardDemo";
-import ClientKetoTypeCardDemo from "./pages/client/ClientKetoTypeCardDemo";
-import ClientFastingPlansPreview from "./pages/client/ClientFastingPlansPreview";
-import WindowsCardDemo from "./pages/client/WindowsCardDemo";
-import ClientFastingPlanDetailPreview from "./pages/client/ClientFastingPlanDetailPreview";
-import ClientProgram from "./pages/client/ClientProgram";
-import ProtocolStylesPreview from "./pages/preview/ProtocolStylesPreview";
-import ClientFastComplete from "./pages/client/ClientFastComplete";
-import ClientLabs from "./pages/client/ClientLabs";
-import ClientDiamondLab from "./pages/client/ClientDiamondLab";
-import ClientHoopsLab from "./pages/client/ClientHoopsLab";
-import ClientBattingSession from "./pages/client/ClientBattingSession";
-import ClientShootingSession from "./pages/client/ClientShootingSession";
-import ClientWorkoutHistory from "./pages/ClientWorkoutHistory";
-import ClientWorkoutSession from "./pages/client/ClientWorkoutSession";
-import ClientMyWorkouts from "./pages/client/ClientMyWorkouts";
-import AllClientWorkouts from "./pages/AllClientWorkouts";
-import ClientCommandCenter from "./pages/ClientCommandCenter";
-import Scheduling from "./pages/Scheduling";
-import TrainerSettings from "./pages/TrainerSettings";
-import TrainerExploreManager from "./pages/TrainerExploreManager";
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const TrainerDashboard = lazy(() => import("./pages/TrainerDashboard"));
+const Workouts = lazy(() => import("./pages/Workouts"));
+const WorkoutDetail = lazy(() => import("./pages/WorkoutDetail"));
+const CreateWorkout = lazy(() => import("./pages/CreateWorkout"));
+const EditWorkout = lazy(() => import("./pages/EditWorkout"));
+const WorkoutTemplates = lazy(() => import("./pages/WorkoutTemplates"));
+const Exercises = lazy(() => import("./pages/Exercises"));
+const Clients = lazy(() => import("./pages/Clients"));
+const Messages = lazy(() => import("./pages/Messages"));
+const Analytics = lazy(() => import("./pages/Analytics"));
+const Goals = lazy(() => import("./pages/Goals"));
+const TaskLibrary = lazy(() => import("./pages/TaskLibrary"));
+const AdminDataConsole = lazy(() => import("./pages/AdminDataConsole"));
+const Auth = lazy(() => import("./pages/Auth"));
+const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
+const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
+const PortalMockup = lazy(() => import("./pages/PortalMockup"));
+const ClientDashboard = lazy(() => import("./pages/client/ClientDashboardMinimal"));
+const ClientRingsDemo = lazy(() => import("./pages/client/ClientRingsDemo"));
+const ClientSmartPace = lazy(() => import("./pages/client/ClientSmartPace"));
+const SmartPacePreview = lazy(() => import("./pages/SmartPacePreview"));
+const ClientDailyScore = lazy(() => import("./pages/client/ClientDailyScore"));
+const ClientOnboarding = lazy(() => import("./pages/client/ClientOnboarding"));
+const ClientResourceCollectionDetail = lazy(() => import("./pages/client/ClientResourceCollectionDetail"));
+const ResourceLibrary = lazy(() => import("./pages/ResourceLibrary"));
+const ResourceCollections = lazy(() => import("./pages/ResourceCollections"));
+const ResourceCollectionDetail = lazy(() => import("./pages/ResourceCollectionDetail"));
+const OndemandWorkouts = lazy(() => import("./pages/OndemandWorkouts"));
+const WorkoutCollections = lazy(() => import("./pages/WorkoutCollections"));
+const WorkoutCollectionDetail = lazy(() => import("./pages/WorkoutCollectionDetail"));
+const WorkoutLabels = lazy(() => import("./pages/WorkoutLabels"));
+const StudioPrograms = lazy(() => import("./pages/StudioPrograms"));
+const Programs = lazy(() => import("./pages/Programs"));
+const Recipes = lazy(() => import("./pages/Recipes"));
+const RecipeDetail = lazy(() => import("./pages/RecipeDetail"));
+const RecipeBooks = lazy(() => import("./pages/RecipeBooks"));
+const RecipeBookDetail = lazy(() => import("./pages/RecipeBookDetail"));
+const MealPlans = lazy(() => import("./pages/MealPlans"));
+const MealPlanDetail = lazy(() => import("./pages/MealPlanDetail"));
+const MacroCalculator = lazy(() => import("./pages/MacroCalculator"));
+const MacroTracking = lazy(() => import("./pages/MacroTracking"));
+const TrainerClientHealth = lazy(() => import("./pages/TrainerClientHealth"));
+const ClientsHealth = lazy(() => import("./pages/ClientsHealth"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const ClientHealth = lazy(() => import("./pages/client/ClientHealth"));
+const ClientTimeline = lazy(() => import("./pages/client/ClientTimeline"));
+const ClientPlanHistory = lazy(() => import("./pages/client/ClientPlanHistory"));
+const ClientProfile = lazy(() => import("./pages/client/ClientProfile"));
+const ClientStagesTimeline = lazy(() => import("./pages/client/ClientStagesTimeline"));
+const ClientExplore = lazy(() => import("./pages/client/ClientExplore"));
+const ClientExploreContent = lazy(() => import("./pages/client/ClientExploreContent"));
+const ClientExploreChallenge = lazy(() => import("./pages/client/ClientExploreChallenge"));
+const ExploreStylePreview = lazy(() => import("./pages/client/ExploreStylePreview"));
+const ClientPrograms = lazy(() => import("./pages/client/ClientPrograms"));
+const ClientChooseProtocol = lazy(() => import("./pages/client/ClientChooseProtocol"));
+const ClientCustomPlans = lazy(() => import("./pages/client/ClientCustomPlans"));
+const ClientQuickPlans = lazy(() => import("./pages/client/ClientQuickPlans"));
+const ClientQuickPlanDetail = lazy(() => import("./pages/client/ClientQuickPlanDetail"));
+const ClientProtocolDetail = lazy(() => import("./pages/client/ClientProtocolDetail"));
+const ClientProtocolCardDemo = lazy(() => import("./pages/client/ClientProtocolCardDemo"));
+const ClientKetoTypeCardDemo = lazy(() => import("./pages/client/ClientKetoTypeCardDemo"));
+const ClientFastingPlansPreview = lazy(() => import("./pages/client/ClientFastingPlansPreview"));
+const WindowsCardDemo = lazy(() => import("./pages/client/WindowsCardDemo"));
+const ClientFastingPlanDetailPreview = lazy(() => import("./pages/client/ClientFastingPlanDetailPreview"));
+const ClientProgram = lazy(() => import("./pages/client/ClientProgram"));
+const ProtocolStylesPreview = lazy(() => import("./pages/preview/ProtocolStylesPreview"));
+const ClientFastComplete = lazy(() => import("./pages/client/ClientFastComplete"));
+const ClientWorkoutHistory = lazy(() => import("./pages/ClientWorkoutHistory"));
+const AllClientWorkouts = lazy(() => import("./pages/AllClientWorkouts"));
+const ClientCommandCenter = lazy(() => import("./pages/ClientCommandCenter"));
+const Scheduling = lazy(() => import("./pages/Scheduling"));
+const TrainerSettings = lazy(() => import("./pages/TrainerSettings"));
+const TrainerExploreManager = lazy(() => import("./pages/TrainerExploreManager"));
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { FastingRouteGuard } from "./components/FastingRouteGuard";
 import { ImpersonationProvider } from "./hooks/useImpersonation";
 import { AuthProvider } from "./hooks/useAuth";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import GuardianSummary from "./pages/GuardianSummary";
-import StudioProgramDetail from "./pages/StudioProgramDetail";
-import KetoTypesManager from "./pages/KetoTypesManager";
-import ClientKetoTypes from "./pages/client/ClientKetoTypes";
-import ClientKetoTypeDetail from "./pages/client/ClientKetoTypeDetail";
-import ClientGroceryList from "./pages/client/ClientGroceryList";
-import CardStylesPreview from "./pages/client/CardStylesPreview";
-import NotificationCenter from "./pages/NotificationCenter";
-import ResetPassword from "./pages/ResetPassword";
-import CheckoutTest from "./pages/CheckoutTest";
-import SynergyCardDemo from "./pages/SynergyCardDemo";
-import StepTrackerPreview from "./pages/StepTrackerPreview";
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const GuardianSummary = lazy(() => import("./pages/GuardianSummary"));
+const StudioProgramDetail = lazy(() => import("./pages/StudioProgramDetail"));
+const KetoTypesManager = lazy(() => import("./pages/KetoTypesManager"));
+const ClientKetoTypes = lazy(() => import("./pages/client/ClientKetoTypes"));
+const ClientKetoTypeDetail = lazy(() => import("./pages/client/ClientKetoTypeDetail"));
+const CardStylesPreview = lazy(() => import("./pages/client/CardStylesPreview"));
+const NotificationCenter = lazy(() => import("./pages/NotificationCenter"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const CheckoutTest = lazy(() => import("./pages/CheckoutTest"));
+const SynergyCardDemo = lazy(() => import("./pages/SynergyCardDemo"));
+const StepTrackerPreview = lazy(() => import("./pages/StepTrackerPreview"));
 
 const queryClient = new QueryClient();
+
+function RouteLoading() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background text-foreground">
+      <div className="text-center">
+        <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <p className="text-sm text-muted-foreground">Loading…</p>
+      </div>
+    </div>
+  );
+}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -148,6 +122,7 @@ const App = () => (
         <AuthProvider>
         <ImpersonationProvider>
         <AuthTransitionOverlay />
+        <Suspense fallback={<RouteLoading />}>
         <Routes>
           <Route path="/auth" element={<Auth />} />
           <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
@@ -294,6 +269,7 @@ const App = () => (
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        </Suspense>
         </ImpersonationProvider>
         </AuthProvider>
       </BrowserRouter>
