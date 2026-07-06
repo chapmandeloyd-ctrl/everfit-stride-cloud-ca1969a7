@@ -7,6 +7,7 @@ import { Loader2, Eye, EyeOff, Shield } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { startAuthTransition } from "@/components/AuthTransitionOverlay";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ export default function Auth() {
   const rawNext = searchParams.get("next") || "";
   const nextPath = rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : null;
   const goPostAuth = (fallback: string) => {
+    startAuthTransition();
     if (nextPath) {
       window.location.href = nextPath;
     } else {

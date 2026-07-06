@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import ScrollToTop from "./components/ScrollToTop";
+import AuthTransitionOverlay from "./components/AuthTransitionOverlay";
 
 import Dashboard from "./pages/Dashboard";
 import TrainerDashboard from "./pages/TrainerDashboard";
@@ -146,6 +147,7 @@ const App = () => (
         <ScrollToTop />
         <AuthProvider>
         <ImpersonationProvider>
+        <AuthTransitionOverlay />
         <Routes>
           <Route path="/auth" element={<Auth />} />
           <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
