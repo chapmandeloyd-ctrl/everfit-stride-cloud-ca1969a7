@@ -227,6 +227,7 @@ export function NotificationSettings() {
   }
 
   return (
+    <>
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
@@ -343,5 +344,7 @@ export function NotificationSettings() {
         </Button>
       </CardContent>
     </Card>
+    <IOSInstallGuideDialog open={showInstallGuide} onOpenChange={setShowInstallGuide} />
+    </>
   );
 }
