@@ -128,27 +128,21 @@ export function useScheduledFastGate(): ScheduledFastGate {
   const enforce = !!enforceRow?.enforce_scheduled_start;
   const tz = enforceRow?.schedule_timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-  if (!plan) {
-    return { state: enforce ? "n/a" : "off", scheduledAt: null, scheduledLabel: null, minutesUntil: 0, countdownLabel: "" };
-  }
-  const today = plan.days[dayIndex];
-  if (!today || today.adFast || today.isRefeed) {
-    return { state: "n/a", scheduledAt: null, scheduledLabel: null, minutesUntil: 0, countdownLabel: "" };
-  }
-
-  // Fast starts when eating window closes.
-  const scheduledAt = parseClockTo(new Date(), today.eatEnd, tz);
-  const minutesUntil = (scheduledAt.getTime() - Date.now()) / 60_000;
+  const today = plan?.days?.[dayIndex] ?? null;
+  const hasScheduledStart = !!plan && !!today && !today.adFast && !today.isRefeed && !!today.eatEnd;
+  const scheduledAt = hasScheduledStart ? parseClockTo(new Date(), today.eatEnd, tz) : null;
+  const scheduledAtMs = scheduledAt?.getTime() ?? null;
+  const minutesUntil = scheduledAtMs != null ? (scheduledAtMs - Date.now()) / 60_000 : 0;
 
   // Publish the next scheduled start to the server so the auto-start cron
-  // can fire even when the app is closed. We only publish future moments
-  // (positive minutesUntil, up to 24h out) to avoid re-triggering a past
-  // scheduled fast that already ran.
+  // can fire even when the app is closed. This effect must stay before any
+  // conditional returns so React sees the same hook order on every render.
   useEffect(() => {
     if (!clientId) return;
+    if (scheduledAtMs == null) return;
     if (!Number.isFinite(minutesUntil)) return;
     if (minutesUntil < -30 || minutesUntil > 60 * 24) return;
-    const iso = scheduledAt.toISOString();
+    const iso = new Date(scheduledAtMs).toISOString();
     const key = `nsfa_published_${clientId}`;
     if (typeof window !== "undefined" && window.sessionStorage.getItem(key) === iso) return;
     (async () => {
@@ -160,7 +154,14 @@ export function useScheduledFastGate(): ScheduledFastGate {
         window.sessionStorage.setItem(key, iso);
       }
     })();
-  }, [clientId, scheduledAt.getTime(), enforceRow?.schedule_timezone, tz, minutesUntil]);
+  }, [clientId, scheduledAtMs, enforceRow?.schedule_timezone, tz, minutesUntil]);
+
+  if (!plan) {
+    return { state: enforce ? "n/a" : "off", scheduledAt: null, scheduledLabel: null, minutesUntil: 0, countdownLabel: "" };
+  }
+  if (!today || today.adFast || today.isRefeed || !scheduledAt) {
+    return { state: "n/a", scheduledAt: null, scheduledLabel: null, minutesUntil: 0, countdownLabel: "" };
+  }
 
   if (!enforce) {
     return {
