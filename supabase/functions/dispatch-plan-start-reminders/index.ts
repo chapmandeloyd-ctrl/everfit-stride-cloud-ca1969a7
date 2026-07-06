@@ -102,14 +102,14 @@ serve(async (req) => {
 
       const copy = COPY[kind];
 
-      // In-app notification
+      // In-app notification (schema: type, action_url — no kind/url/metadata)
       await supabase.from("in_app_notifications").insert({
         user_id: s.client_id,
-        kind: "plan_start_reminder",
+        type: "plan_start_reminder",
         title: copy.title,
         body: copy.body,
-        url: "/client/dashboard",
-        metadata: { start_date: startDate, offset_days: offset },
+        action_url: "/client/dashboard",
+        reference_id: refId,
       });
 
       // Push
