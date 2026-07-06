@@ -45,7 +45,7 @@ export function getPushSetupMessage(error?: unknown): string {
     return "Install KSOM-360 from Safari to your Home Screen first, then open it from that icon and tap Enable again.";
   }
 
-  if (Notification.permission === "denied") {
+  if (typeof Notification !== "undefined" && Notification.permission === "denied") {
     return "Notifications are blocked. Open iPhone Settings → Notifications → KSOM-360 → Allow Notifications, then return and tap Enable.";
   }
 
