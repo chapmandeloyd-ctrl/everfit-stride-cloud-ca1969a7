@@ -171,8 +171,9 @@ export async function savePushSubscription(
       );
     if (subError) throw subError;
 
-    // Keep the legacy preference flag in sync so existing UI lights up.
-    await supabase
+    // Keep the legacy preference flag in sync so existing UI lights up. This
+    // is best-effort only; the real delivery record is push_subscriptions.
+    const { error: prefError } = await supabase
       .from("notification_preferences")
       .upsert(
         {
@@ -182,6 +183,9 @@ export async function savePushSubscription(
         },
         { onConflict: "user_id" }
       );
+    if (prefError) {
+      console.warn("Push subscription saved, but preference sync failed:", prefError);
+    }
 
     return true;
   } catch (err) {

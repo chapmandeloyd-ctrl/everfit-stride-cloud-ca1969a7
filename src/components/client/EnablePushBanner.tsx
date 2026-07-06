@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Bell, X } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import {
   getPushPermissionStatus,
@@ -23,6 +24,7 @@ import { IOSInstallGuideDialog } from "./IOSInstallGuideDialog";
  * "Fast started" confirmation can't reach the device.
  */
 export function EnablePushBanner() {
+  const { user } = useAuth();
   const clientId = useEffectiveClientId();
   const qc = useQueryClient();
   const [dismissed, setDismissed] = useState<boolean>(() => {
@@ -33,23 +35,24 @@ export function EnablePushBanner() {
   const [showInstallGuide, setShowInstallGuide] = useState(false);
 
   const { data: subCount } = useQuery({
-    queryKey: ["push-sub-count", clientId],
+    queryKey: ["push-sub-count", user?.id],
     queryFn: async () => {
-      if (!clientId) return 0;
+      if (!user?.id) return 0;
       const { count } = await supabase
         .from("push_subscriptions")
         .select("id", { count: "exact", head: true })
-        .eq("user_id", clientId);
+        .eq("user_id", user.id);
       return count ?? 0;
     },
-    enabled: !!clientId,
+    enabled: !!user?.id,
     staleTime: 60_000,
   });
 
   const supported = isPushSupported();
   const permission = supported ? getPushPermissionStatus() : "unsupported";
 
-  if (!clientId || dismissed) return null;
+  if (!clientId || !user?.id || dismissed) return null;
+  if (clientId !== user.id) return null;
   if (!supported) return null;
   if (permission === "denied") return null;
   if ((subCount ?? 0) > 0) return null;
@@ -82,10 +85,10 @@ export function EnablePushBanner() {
       if (!vapid) throw new Error("Push not configured");
       const sub = await subscribeToPush(vapid);
       if (!sub) throw new Error(getPushSetupMessage());
-      const ok = await savePushSubscription(clientId, sub);
+      const ok = await savePushSubscription(user.id, sub);
       if (!ok) throw new Error("Couldn't save subscription");
       toast.success("Push notifications on. You'll get a heads-up when your fast is about to start.");
-      qc.invalidateQueries({ queryKey: ["push-sub-count", clientId] });
+      qc.invalidateQueries({ queryKey: ["push-sub-count", user.id] });
     } catch (e: any) {
       toast.error(e?.message ?? getPushSetupMessage(e));
     } finally {
