@@ -36,6 +36,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { getDietStylePreset } from "@/lib/dietStyles";
 import { SportEventCompletionDialog } from "@/components/SportEventCompletionDialog";
 import { NextFastCountdownRow } from "@/components/client/NextFastCountdownRow";
+import { EnablePushBanner } from "@/components/client/EnablePushBanner";
 
 // Mirror of getCutLevelMeta on ClientNutrition page so dashboard card stays in sync.
 function getCutLevelMeta(adjustment?: number | null) {
@@ -1682,6 +1683,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
           {/* Navigation CTAs — visible for every assigned client so the Today
               screen is consistent across coach-locked and self-guided plans. */}
           <div className="pt-1">
+            <EnablePushBanner />
             <NextFastCountdownRow accent={ketoAccent} />
             <button
               type="button"
