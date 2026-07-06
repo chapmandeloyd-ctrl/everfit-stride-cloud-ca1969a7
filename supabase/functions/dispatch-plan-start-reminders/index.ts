@@ -88,7 +88,7 @@ serve(async (req) => {
           .from("fasting_log")
           .select("id")
           .eq("client_id", s.client_id)
-          .gte("start_time", startDate + "T00:00:00Z")
+          .gte("started_at", startDate + "T00:00:00Z")
           .limit(1);
         if (logs && logs.length > 0) { results.skipped++; continue; }
       }
