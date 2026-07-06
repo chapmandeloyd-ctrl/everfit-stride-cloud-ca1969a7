@@ -52,10 +52,35 @@ export function EnablePushBanner() {
   const handleEnable = async () => {
     setEnabling(true);
     try {
+      // iOS Safari only supports Web Push when the site is installed to the
+      // Home Screen (standalone display mode). Detect and explain.
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      const isStandalone =
+        window.matchMedia?.("(display-mode: standalone)").matches ||
+        (navigator as any).standalone === true;
+      if (isIOS && !isStandalone) {
+        toast.error(
+          "On iPhone, tap the Share icon in Safari → Add to Home Screen, then open the app from there to enable push."
+        );
+        return;
+      }
+
+      // Must request permission explicitly — pushManager.subscribe() will
+      // otherwise reject silently on Safari/iOS.
+      const perm = await Notification.requestPermission();
+      if (perm !== "granted") {
+        toast.error(
+          perm === "denied"
+            ? "Notifications are blocked. Enable them in your device Settings → Notifications → KSOM-360."
+            : "Notification permission was not granted."
+        );
+        return;
+      }
+
       const vapid = await getVapidPublicKey();
       if (!vapid) throw new Error("Push not configured");
       const sub = await subscribeToPush(vapid);
-      if (!sub) throw new Error("Permission denied or subscribe failed");
+      if (!sub) throw new Error("Your browser refused the subscription. Try again or reinstall the app.");
       const ok = await savePushSubscription(clientId, sub);
       if (!ok) throw new Error("Couldn't save subscription");
       toast.success("Push notifications on. You'll get a heads-up when your fast is about to start.");
