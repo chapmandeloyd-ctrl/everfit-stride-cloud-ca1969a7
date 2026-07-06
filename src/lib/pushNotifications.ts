@@ -12,6 +12,54 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
   return outputArray;
 }
 
+export class PushSubscriptionError extends Error {
+  constructor(
+    message: string,
+    public readonly code: "unsupported" | "service_worker" | "permission" | "subscribe_failed" | "unknown",
+    public readonly originalError?: unknown
+  ) {
+    super(message);
+    this.name = "PushSubscriptionError";
+  }
+}
+
+export function isIOSDevice(): boolean {
+  if (typeof navigator === "undefined") return false;
+  return /iPad|iPhone|iPod/.test(navigator.userAgent);
+}
+
+export function isStandalonePWA(): boolean {
+  if (typeof window === "undefined" || typeof navigator === "undefined") return false;
+  return (
+    window.matchMedia?.("(display-mode: standalone)").matches ||
+    (navigator as Navigator & { standalone?: boolean }).standalone === true
+  );
+}
+
+export function getPushSetupMessage(error?: unknown): string {
+  const isIOS = isIOSDevice();
+  const isStandalone = isStandalonePWA();
+  const name = error instanceof Error ? error.name : "";
+
+  if (isIOS && !isStandalone) {
+    return "Install KSOM-360 from Safari to your Home Screen first, then open it from that icon and tap Enable again.";
+  }
+
+  if (typeof Notification !== "undefined" && Notification.permission === "denied") {
+    return "Notifications are blocked. Open iPhone Settings → Notifications → KSOM-360 → Allow Notifications, then return and tap Enable.";
+  }
+
+  if (isIOS) {
+    return "iPhone rejected the saved alert token. Open iPhone Settings → Notifications → KSOM-360, make sure Allow Notifications is on, then restart the Home Screen app and tap Enable again.";
+  }
+
+  if (name === "NotAllowedError") {
+    return "Notifications are blocked by this browser. Allow notifications in site settings, then tap Enable again.";
+  }
+
+  return "Your browser could not create a notification subscription. Check notification permissions, then tap Enable again.";
+}
+
 function arrayBufferToBase64Url(buffer: ArrayBuffer | null): string {
   if (!buffer) return "";
   const bytes = new Uint8Array(buffer);
@@ -36,7 +84,7 @@ export async function getVapidPublicKey(): Promise<string | null> {
 export async function subscribeToPush(vapidPublicKey: string): Promise<PushSubscription | null> {
   if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
     console.warn("Push notifications not supported");
-    return null;
+    throw new PushSubscriptionError("Push notifications are not supported on this browser.", "unsupported");
   }
 
   try {
@@ -63,7 +111,7 @@ export async function subscribeToPush(vapidPublicKey: string): Promise<PushSubsc
     return subscription;
   } catch (err) {
     console.error("Failed to subscribe to push:", err);
-    return null;
+    throw new PushSubscriptionError(getPushSetupMessage(err), "subscribe_failed", err);
   }
 }
 

@@ -13,13 +13,17 @@ import { showBrowserNotification } from "@/lib/notifications";
 import {
   isPushSupported,
   getPushPermissionStatus,
+  getPushSetupMessage,
   getVapidPublicKey,
+  isIOSDevice,
+  isStandalonePWA,
   subscribeToPush,
   savePushSubscription,
   unsubscribeFromPush,
   removePushSubscription,
 } from "@/lib/pushNotifications";
 import { Badge } from "@/components/ui/badge";
+import { IOSInstallGuideDialog } from "@/components/client/IOSInstallGuideDialog";
 
 export function NotificationSettings() {
   const { user } = useAuth();
@@ -29,6 +33,7 @@ export function NotificationSettings() {
   const [pushEnabled, setPushEnabled] = useState(false);
   const [reminderHours, setReminderHours] = useState("24");
   const [subscribing, setSubscribing] = useState(false);
+  const [showInstallGuide, setShowInstallGuide] = useState(false);
   const pushSupported = isPushSupported();
   const permissionStatus = getPushPermissionStatus();
 
@@ -102,12 +107,17 @@ export function NotificationSettings() {
     setSubscribing(true);
 
     try {
+      if (isIOSDevice() && !isStandalonePWA()) {
+        setShowInstallGuide(true);
+        return;
+      }
+
       // Request notification permission
       const permission = await Notification.requestPermission();
       if (permission !== "granted") {
         toast({
           title: "Permission denied",
-          description: "Please allow notifications in your browser settings to receive push alerts",
+          description: getPushSetupMessage(),
           variant: "destructive",
         });
         setSubscribing(false);
@@ -131,7 +141,7 @@ export function NotificationSettings() {
       if (!subscription) {
         toast({
           title: "Subscription failed",
-          description: "Could not subscribe to push notifications. Please try again.",
+          description: getPushSetupMessage(),
           variant: "destructive",
         });
         setSubscribing(false);
@@ -150,7 +160,7 @@ export function NotificationSettings() {
       console.error("Error enabling push:", err);
       toast({
         title: "Error",
-        description: "Failed to enable push notifications",
+        description: err instanceof Error ? err.message : getPushSetupMessage(err),
         variant: "destructive",
       });
     } finally {
@@ -205,15 +215,19 @@ export function NotificationSettings() {
 
   if (isLoading) {
     return (
-      <Card>
+    <>
+    <Card>
         <CardContent className="py-12 text-center">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto"></div>
         </CardContent>
-      </Card>
+    </Card>
+    <IOSInstallGuideDialog open={showInstallGuide} onOpenChange={setShowInstallGuide} />
+    </>
     );
   }
 
   return (
+    <>
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
@@ -330,5 +344,7 @@ export function NotificationSettings() {
         </Button>
       </CardContent>
     </Card>
+    <IOSInstallGuideDialog open={showInstallGuide} onOpenChange={setShowInstallGuide} />
+    </>
   );
 }
