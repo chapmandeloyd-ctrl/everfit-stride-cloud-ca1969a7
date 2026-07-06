@@ -18,11 +18,7 @@ export default function Auth() {
   const nextPath = rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : null;
   const goPostAuth = (fallback: string) => {
     startAuthTransition();
-    if (nextPath) {
-      window.location.href = nextPath;
-    } else {
-      navigate(fallback);
-    }
+    navigate(nextPath || fallback, { replace: true });
   };
   const [isLoading, setIsLoading] = useState(false);
   const [tab, setTab] = useState<"signin" | "admin">("signin");
