@@ -3,6 +3,7 @@ import { Clock, X } from "lucide-react";
 import { useScheduledFastGate } from "@/hooks/useScheduledFastGate";
 import { useStartFast } from "@/hooks/useStartFast";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
+import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
 const GRACE_MS = 5 * 60 * 1000;
@@ -109,6 +110,17 @@ export function NextFastCountdownRow({ accent = "hsl(var(--primary))" }: { accen
             onClick={() => {
               if (typeof window !== "undefined") window.localStorage.setItem(skipKey, "1");
               setSkipped(true);
+              // Persist server-side so the auto-start cron skips today too.
+              if (clientId) {
+                const d = new Date();
+                const y = d.getFullYear();
+                const mo = String(d.getMonth() + 1).padStart(2, "0");
+                const da = String(d.getDate()).padStart(2, "0");
+                void supabase
+                  .from("client_feature_settings")
+                  .update({ auto_fast_skip_date: `${y}-${mo}-${da}` } as any)
+                  .eq("client_id", clientId);
+              }
             }}
             className="shrink-0 flex items-center gap-1.5 rounded-md border border-white/20 bg-black/40 px-3 py-2 text-[10px] uppercase tracking-widest font-bold text-white/90 hover:bg-black/60"
           >
