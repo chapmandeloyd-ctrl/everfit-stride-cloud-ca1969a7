@@ -11,6 +11,7 @@ import {
   subscribeToPush,
 } from "@/lib/pushNotifications";
 import { toast } from "sonner";
+import { IOSInstallGuideDialog } from "./IOSInstallGuideDialog";
 
 /**
  * Small banner that appears above the fasting card when the client has no
@@ -26,6 +27,7 @@ export function EnablePushBanner() {
     return window.localStorage.getItem("enable_push_banner_dismissed") === "1";
   });
   const [enabling, setEnabling] = useState(false);
+  const [showInstallGuide, setShowInstallGuide] = useState(false);
 
   const { data: subCount } = useQuery({
     queryKey: ["push-sub-count", clientId],
@@ -59,9 +61,7 @@ export function EnablePushBanner() {
         window.matchMedia?.("(display-mode: standalone)").matches ||
         (navigator as any).standalone === true;
       if (isIOS && !isStandalone) {
-        toast.error(
-          "On iPhone, tap the Share icon in Safari → Add to Home Screen, then open the app from there to enable push."
-        );
+        setShowInstallGuide(true);
         return;
       }
 
@@ -93,6 +93,7 @@ export function EnablePushBanner() {
   };
 
   return (
+    <>
     <div className="mb-3 flex items-center gap-3 rounded-lg border border-primary/40 bg-primary/10 p-3">
       <Bell className="h-5 w-5 shrink-0 text-primary" />
       <div className="min-w-0 flex-1">
@@ -121,5 +122,7 @@ export function EnablePushBanner() {
         <X className="h-3.5 w-3.5" />
       </button>
     </div>
+    <IOSInstallGuideDialog open={showInstallGuide} onOpenChange={setShowInstallGuide} />
+    </>
   );
 }
