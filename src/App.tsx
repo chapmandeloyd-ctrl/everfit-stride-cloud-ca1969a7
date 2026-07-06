@@ -119,6 +119,7 @@ import TrainerExploreManager from "./pages/TrainerExploreManager";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { FastingRouteGuard } from "./components/FastingRouteGuard";
 import { ImpersonationProvider } from "./hooks/useImpersonation";
+import { AuthProvider } from "./hooks/useAuth";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import GuardianSummary from "./pages/GuardianSummary";
 import StudioProgramDetail from "./pages/StudioProgramDetail";
@@ -143,6 +144,7 @@ const App = () => (
       
       <BrowserRouter>
         <ScrollToTop />
+        <AuthProvider>
         <ImpersonationProvider>
         <Routes>
           <Route path="/auth" element={<Auth />} />
@@ -291,6 +293,7 @@ const App = () => (
           <Route path="*" element={<NotFound />} />
         </Routes>
         </ImpersonationProvider>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
