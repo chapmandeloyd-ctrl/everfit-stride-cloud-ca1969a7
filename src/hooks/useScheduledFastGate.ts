@@ -140,6 +140,28 @@ export function useScheduledFastGate(): ScheduledFastGate {
   const scheduledAt = parseClockTo(new Date(), today.eatEnd, tz);
   const minutesUntil = (scheduledAt.getTime() - Date.now()) / 60_000;
 
+  // Publish the next scheduled start to the server so the auto-start cron
+  // can fire even when the app is closed. We only publish future moments
+  // (positive minutesUntil, up to 24h out) to avoid re-triggering a past
+  // scheduled fast that already ran.
+  useEffect(() => {
+    if (!clientId) return;
+    if (!Number.isFinite(minutesUntil)) return;
+    if (minutesUntil < -30 || minutesUntil > 60 * 24) return;
+    const iso = scheduledAt.toISOString();
+    const key = `nsfa_published_${clientId}`;
+    if (typeof window !== "undefined" && window.sessionStorage.getItem(key) === iso) return;
+    (async () => {
+      const { error } = await supabase
+        .from("client_feature_settings")
+        .update({ next_scheduled_fast_at: iso, schedule_timezone: enforceRow?.schedule_timezone ?? tz } as any)
+        .eq("client_id", clientId);
+      if (!error && typeof window !== "undefined") {
+        window.sessionStorage.setItem(key, iso);
+      }
+    })();
+  }, [clientId, scheduledAt.getTime(), enforceRow?.schedule_timezone, tz, minutesUntil]);
+
   if (!enforce) {
     return {
       state: "off",

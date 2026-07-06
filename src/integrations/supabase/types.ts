@@ -1300,6 +1300,7 @@ export type Database = {
           assigned_protocol_duration_days: number | null
           athletic_safety_lock: boolean
           auto_advance_levels: boolean
+          auto_fast_skip_date: string | null
           auto_level_advance_enabled: boolean
           auto_nudge_optimization_enabled: boolean
           auto_plan_adjust_enabled: boolean
@@ -1344,6 +1345,8 @@ export type Database = {
           insights_enabled: boolean
           is_minor: boolean
           is_premium: boolean
+          last_auto_fast_headsup_for: string | null
+          last_auto_fast_started_for: string | null
           last_engine_switch_at: string | null
           last_fast_completed_at: string | null
           last_fast_ended_at: string | null
@@ -1362,6 +1365,7 @@ export type Database = {
           meal_plan_header_label: string
           meal_plan_type: string
           messages_enabled: boolean
+          next_scheduled_fast_at: string | null
           nudge_checkin: boolean
           nudge_enabled: boolean
           nudge_fasting: boolean
@@ -1414,6 +1418,7 @@ export type Database = {
           assigned_protocol_duration_days?: number | null
           athletic_safety_lock?: boolean
           auto_advance_levels?: boolean
+          auto_fast_skip_date?: string | null
           auto_level_advance_enabled?: boolean
           auto_nudge_optimization_enabled?: boolean
           auto_plan_adjust_enabled?: boolean
@@ -1458,6 +1463,8 @@ export type Database = {
           insights_enabled?: boolean
           is_minor?: boolean
           is_premium?: boolean
+          last_auto_fast_headsup_for?: string | null
+          last_auto_fast_started_for?: string | null
           last_engine_switch_at?: string | null
           last_fast_completed_at?: string | null
           last_fast_ended_at?: string | null
@@ -1476,6 +1483,7 @@ export type Database = {
           meal_plan_header_label?: string
           meal_plan_type?: string
           messages_enabled?: boolean
+          next_scheduled_fast_at?: string | null
           nudge_checkin?: boolean
           nudge_enabled?: boolean
           nudge_fasting?: boolean
@@ -1528,6 +1536,7 @@ export type Database = {
           assigned_protocol_duration_days?: number | null
           athletic_safety_lock?: boolean
           auto_advance_levels?: boolean
+          auto_fast_skip_date?: string | null
           auto_level_advance_enabled?: boolean
           auto_nudge_optimization_enabled?: boolean
           auto_plan_adjust_enabled?: boolean
@@ -1572,6 +1581,8 @@ export type Database = {
           insights_enabled?: boolean
           is_minor?: boolean
           is_premium?: boolean
+          last_auto_fast_headsup_for?: string | null
+          last_auto_fast_started_for?: string | null
           last_engine_switch_at?: string | null
           last_fast_completed_at?: string | null
           last_fast_ended_at?: string | null
@@ -1590,6 +1601,7 @@ export type Database = {
           meal_plan_header_label?: string
           meal_plan_type?: string
           messages_enabled?: boolean
+          next_scheduled_fast_at?: string | null
           nudge_checkin?: boolean
           nudge_enabled?: boolean
           nudge_fasting?: boolean
