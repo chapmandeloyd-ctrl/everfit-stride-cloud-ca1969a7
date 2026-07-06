@@ -433,8 +433,11 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
     const eatHours = isAlternateDay ? 24 : Math.max(1, 24 - fastHours);
     // Prefer client's configured Start-of-day anchor; otherwise fall back to
     // the legacy behavior of ending the eating window at 8:00 PM.
+    // Only treat day_start_hour as an eating-window anchor when the trainer
+    // has explicitly set a non-zero value. The column defaults to 0 for every
+    // client, and 0 would otherwise shift a 16:8 window to midnight → 8 AM.
     const rawDayStart = Number((featureSettings as any)?.day_start_hour);
-    const hasDayStart = Number.isFinite(rawDayStart);
+    const hasDayStart = Number.isFinite(rawDayStart) && rawDayStart !== 0;
     const eatStartHour = hasDayStart
       ? ((Math.floor(rawDayStart) % 24) + 24) % 24
       : ((20 - eatHours) % 24 + 24) % 24;
@@ -600,12 +603,26 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
         .eq("client_id", clientId);
 
       // 3. Delete scheduled calendar items for this client
-      await (supabase.from("protocol_schedule_items" as any) as any)
-        .delete()
+      // protocol_schedule_items / _keto_overrides have no client_id column —
+      // they hang off protocol_daily_schedules. Resolve the schedule ids for
+      // this client first, then delete by schedule_id.
+      const { data: dailySchedules } = await supabase
+        .from("protocol_daily_schedules")
+        .select("id")
         .eq("client_id", clientId);
-      await (supabase.from("protocol_schedule_keto_overrides" as any) as any)
-        .delete()
-        .eq("client_id", clientId);
+      const scheduleIds = (dailySchedules ?? []).map((s: any) => s.id);
+      if (scheduleIds.length > 0) {
+        await (supabase.from("protocol_schedule_items" as any) as any)
+          .delete()
+          .in("schedule_id", scheduleIds);
+        await (supabase.from("protocol_schedule_keto_overrides" as any) as any)
+          .delete()
+          .in("schedule_id", scheduleIds);
+        await supabase
+          .from("protocol_daily_schedules")
+          .delete()
+          .in("id", scheduleIds);
+      }
 
       // 4. Delete saved completion snapshots
       await (supabase.from("plan_completions" as any) as any)
