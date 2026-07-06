@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 export type Profile = Tables<"profiles">;
 
 const TOKEN_REFRESH_INTERVAL = 4 * 60 * 1000;
+const SESSION_LOSS_GRACE_MS = 8 * 1000;
 
 type UserRole = "trainer" | "client" | null;
 
@@ -58,8 +59,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const refreshTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const sessionRecoveryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sessionRecoveryRequestId = useRef(0);
   const initialSessionResolved = useRef(false);
   const profileRequestId = useRef(0);
+
+  const clearSessionRecovery = useCallback(() => {
+    sessionRecoveryRequestId.current += 1;
+    if (sessionRecoveryTimer.current) {
+      clearTimeout(sessionRecoveryTimer.current);
+      sessionRecoveryTimer.current = null;
+    }
+  }, []);
 
   const stopTokenRefresh = useCallback(() => {
     if (refreshTimer.current) {
@@ -109,8 +120,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         initialResolved: initialSessionResolved.current,
       });
 
-      setSession(session);
-
       if (!session) {
         // Ignore transient empty auth events during initial storage restore.
         if (!initialSessionResolved.current && event !== "SIGNED_OUT") {
@@ -118,20 +127,64 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return;
         }
 
+        if (event !== "SIGNED_OUT") {
+          const requestId = ++sessionRecoveryRequestId.current;
+          setLoading(true);
+          logAuthEvent("state-change-session-loss-grace", { event, graceMs: SESSION_LOSS_GRACE_MS });
+
+          if (sessionRecoveryTimer.current) clearTimeout(sessionRecoveryTimer.current);
+          sessionRecoveryTimer.current = window.setTimeout(() => {
+            supabase.auth
+              .getSession()
+              .then(({ data: { session: recoveredSession } }) => {
+                if (cancelled || requestId !== sessionRecoveryRequestId.current) return;
+
+                if (recoveredSession) {
+                  logAuthEvent("session-loss-recovered", {
+                    userId: recoveredSession.user.id,
+                  });
+                  setSession(recoveredSession);
+                  startTokenRefresh();
+                  void fetchProfile(recoveredSession.user.id);
+                  return;
+                }
+
+                logAuthEvent("session-loss-confirmed", { event });
+                stopTokenRefresh();
+                profileRequestId.current += 1;
+                setSession(null);
+                setProfile(null);
+                setLoading(false);
+              })
+              .catch((err) => {
+                if (cancelled || requestId !== sessionRecoveryRequestId.current) return;
+                logAuthEvent("session-loss-check-error", { message: String(err) });
+                stopTokenRefresh();
+                profileRequestId.current += 1;
+                setSession(null);
+                setProfile(null);
+                setLoading(false);
+              });
+          }, SESSION_LOSS_GRACE_MS);
+          return;
+        }
+
         // Only an explicit sign-out should end trainer preview mode. During
         // token restore/refresh the auth SDK can briefly emit an empty session;
         // clearing impersonation there is what caused the flash/kick-out loop.
-        if (event === "SIGNED_OUT") {
-          logAuthEvent("clear-impersonation", { reason: "SIGNED_OUT" });
-          localStorage.removeItem("impersonatedClientId");
-        }
+        clearSessionRecovery();
+        logAuthEvent("clear-impersonation", { reason: "SIGNED_OUT" });
+        localStorage.removeItem("impersonatedClientId");
         stopTokenRefresh();
         profileRequestId.current += 1;
+        setSession(null);
         setProfile(null);
         setLoading(false);
         return;
       }
 
+      clearSessionRecovery();
+      setSession(session);
       startTokenRefresh();
       window.setTimeout(() => {
         if (!cancelled) void fetchProfile(session.user.id);
@@ -142,6 +195,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (cancelled) return;
 
       initialSessionResolved.current = true;
+      clearSessionRecovery();
       logAuthEvent("get-session-resolved", {
         hasSession: !!session,
         userId: session?.user?.id ?? null,
@@ -170,14 +224,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => {
       cancelled = true;
+      clearSessionRecovery();
       subscription.unsubscribe();
       document.removeEventListener("visibilitychange", handleVisibility);
       stopTokenRefresh();
     };
-  }, [fetchProfile, startTokenRefresh, stopTokenRefresh]);
+  }, [clearSessionRecovery, fetchProfile, startTokenRefresh, stopTokenRefresh]);
 
   const signOut = async () => {
     logAuthEvent("sign-out-called");
+    clearSessionRecovery();
     stopTokenRefresh();
     localStorage.removeItem("impersonatedClientId");
     profileRequestId.current += 1;
