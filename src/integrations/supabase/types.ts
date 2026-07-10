@@ -10886,6 +10886,19 @@ export type Database = {
         Args: { p_collection_id: string }
         Returns: boolean
       }
+      list_mcp_connections: {
+        Args: { _user_id: string }
+        Returns: {
+          client_id: string
+          client_name: string
+          client_uri: string
+          consent_id: string
+          granted_at: string
+          last_active_at: string
+          logo_uri: string
+          scopes: string
+        }[]
+      }
       move_to_dlq: {
         Args: {
           dlq_name: string
@@ -10906,6 +10919,10 @@ export type Database = {
           msg_id: number
           read_ct: number
         }[]
+      }
+      revoke_mcp_connection: {
+        Args: { _client_id: string; _user_id: string }
+        Returns: undefined
       }
     }
     Enums: {
