@@ -636,6 +636,13 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
       const endedEarly = actualHours < targetHours;
       const earnedCredit = actualHours >= 1; // 1h+ counts toward fasting time
 
+      // Prevent NextFastCountdownRow / auto-start cron from immediately
+      // re-starting a fast today after the user explicitly ended one.
+      const skipY = nowTs.getFullYear();
+      const skipMo = String(nowTs.getMonth() + 1).padStart(2, "0");
+      const skipDa = String(nowTs.getDate()).padStart(2, "0");
+      const autoFastSkipDate = `${skipY}-${skipMo}-${skipDa}`;
+
       // Clear active fast WITHOUT starting an eating window
       const { error } = await supabase
         .from("client_feature_settings")
@@ -648,6 +655,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
           active_fast_target_hours: null,
           eating_window_ends_at: null, // <- key difference: no Fuel Phase
           fast_lock_pin: null,
+          auto_fast_skip_date: autoFastSkipDate,
         })
         .eq("client_id", clientId);
       if (error) throw error;
