@@ -725,6 +725,19 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
     },
     onSuccess: ({ earnedCredit, actualHours }) => {
       liveActivity.stop();
+      // Also flip the local "auto-start skipped for today" flag so the
+      // NextFastCountdownRow doesn't auto-fire a fresh fast before the
+      // server-side auto_fast_skip_date value propagates.
+      try {
+        const d = new Date();
+        const y = d.getFullYear();
+        const mo = String(d.getMonth() + 1).padStart(2, "0");
+        const da = String(d.getDate()).padStart(2, "0");
+        window.localStorage.setItem(
+          `autostart_skipped_${clientId ?? "anon"}_${y}-${mo}-${da}`,
+          "1",
+        );
+      } catch {}
       queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting"] });
       queryClient.invalidateQueries({ queryKey: ["fasting-gate-state"] });
       queryClient.invalidateQueries({ queryKey: ["today-fasting-log"] });
