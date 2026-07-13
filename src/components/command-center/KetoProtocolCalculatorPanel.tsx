@@ -862,11 +862,38 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
               >
                 <SelectTrigger><SelectValue placeholder="Choose protocol…" /></SelectTrigger>
                 <SelectContent>
-                  {allProtocols?.map(p => (
-                    <SelectItem key={p.id} value={p.id}>{p.name} ({p.fast_target_hours}h)</SelectItem>
-                  ))}
+                  {allProtocols?.map(p => {
+                    const info = PROTOCOL_TAGLINES[p.name];
+                    return (
+                      <SelectItem key={p.id} value={p.id} className="py-2">
+                        <div className="flex flex-col gap-0.5 text-left">
+                          <span className="text-sm font-semibold">
+                            {p.name} <span className="text-muted-foreground font-normal">({p.fast_target_hours}h)</span>
+                          </span>
+                          {info && (
+                            <>
+                              <span className="text-[11px] text-muted-foreground leading-tight">{info.pattern}</span>
+                              <span className="text-[11px] text-primary/80 leading-tight">For: {info.who}</span>
+                            </>
+                          )}
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
+              {(() => {
+                const selected = allProtocols?.find(p => p.id === featureSettings?.selected_protocol_id);
+                if (!selected) return null;
+                const info = PROTOCOL_TAGLINES[selected.name];
+                if (!info) return null;
+                return (
+                  <p className="text-[11px] text-muted-foreground mt-1.5 leading-snug">
+                    <span className="font-semibold text-foreground/80">{info.pattern}.</span>{" "}
+                    <span className="text-primary/80">For: {info.who}</span>
+                  </p>
+                );
+              })()}
             </div>
           </div>
           <Separator />
