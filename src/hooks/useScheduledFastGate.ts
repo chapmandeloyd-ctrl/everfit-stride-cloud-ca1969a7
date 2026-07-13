@@ -99,6 +99,34 @@ function formatCountdown(minutes: number): string {
   return `${abs}m`;
 }
 
+function resolveScheduledStart(clock: string, tz: string): Date {
+  const now = new Date();
+  const dayMs = 86_400_000;
+  const candidates = [-1, 0, 1].map((offset) =>
+    parseClockTo(new Date(now.getTime() + offset * dayMs), clock, tz)
+  );
+  return candidates.reduce((best, candidate) => {
+    const bestDistance = Math.abs(best.getTime() - now.getTime());
+    const candidateDistance = Math.abs(candidate.getTime() - now.getTime());
+    return candidateDistance < bestDistance ? candidate : best;
+  }, candidates[0]);
+}
+
+export function isScheduledFastStartAllowed(gate: Pick<ScheduledFastGate, "enforce" | "state">): boolean {
+  if (!gate.enforce) return true;
+  return gate.state === "ready" || gate.state === "late" || gate.state === "off" || gate.state === "n/a";
+}
+
+export function getScheduledFastStartBlockMessage(gate: Pick<ScheduledFastGate, "state" | "scheduledLabel" | "countdownLabel">): string {
+  if (gate.state === "loading") return "Checking your coach's schedule. Try again in a moment.";
+  if (gate.state === "early") {
+    return gate.scheduledLabel
+      ? `Your fast is scheduled for ${gate.scheduledLabel}. It unlocks ${gate.countdownLabel} from now.`
+      : `Your fast unlocks ${gate.countdownLabel} from now.`;
+  }
+  return "Your coach has scheduled-start lock turned on.";
+}
+
 export function useScheduledFastGate(): ScheduledFastGate {
   const clientId = useEffectiveClientId();
   const { plan, dayIndex } = useClientComputedPlan();
@@ -131,7 +159,7 @@ export function useScheduledFastGate(): ScheduledFastGate {
 
   const today = plan?.days?.[dayIndex] ?? null;
   const hasScheduledStart = !!plan && !!today && !today.adFast && !today.isRefeed && !!today.eatEnd;
-  const scheduledAt = hasScheduledStart ? parseClockTo(new Date(), today.eatEnd, tz) : null;
+  const scheduledAt = hasScheduledStart ? resolveScheduledStart(today.eatEnd, tz) : null;
   const scheduledAtMs = scheduledAt?.getTime() ?? null;
   const minutesUntil = scheduledAtMs != null ? (scheduledAtMs - Date.now()) / 60_000 : 0;
 
