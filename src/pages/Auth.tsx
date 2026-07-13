@@ -125,11 +125,11 @@ export default function Auth() {
         <div className="text-center mb-8">
           <img
             src="/logo.png"
-            alt="KSOM-360"
+            alt="Apex360-IF"
             className="h-36 w-36 object-contain mx-auto mb-4 drop-shadow-lg"
           />
-          <h1 className="text-3xl font-bold text-foreground">KSOM-360</h1>
-          <p className="text-muted-foreground mt-1 text-sm">KSOM-360 Fitness Coaching Platform</p>
+          <h1 className="text-3xl font-bold text-foreground tracking-tight">APEX360-IF</h1>
+          <p className="text-primary font-semibold mt-1 text-sm uppercase tracking-wider">You are WHEN you eat</p>
         </div>
 
         {/* Auth Card */}
