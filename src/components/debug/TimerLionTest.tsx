@@ -1,6 +1,6 @@
 import { ActiveFastingTimer } from "@/components/client/ActiveFastingTimer";
 
-export function TimerLionTest() {
+export default function TimerLionTest() {
   return (
     <ActiveFastingTimer
       protocolName="16:8 Intermittent Fast"
