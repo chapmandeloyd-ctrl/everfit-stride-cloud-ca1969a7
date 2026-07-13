@@ -7,6 +7,30 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import ScrollToTop from "./components/ScrollToTop";
 import AuthTransitionOverlay from "./components/AuthTransitionOverlay";
 
+// Wrap React.lazy so a failed chunk import (stale hash after redeploy)
+// triggers a one-time hard reload instead of a permanent white screen.
+const lazyWithReload = <T extends { default: React.ComponentType<any> }>(
+  factory: () => Promise<T>
+) =>
+  lazy(() =>
+    factory().catch((err) => {
+      const msg = String(err?.message || err);
+      const isChunkError =
+        /Importing a module script failed|Failed to fetch dynamically imported module|ChunkLoadError|error loading dynamically imported module/i.test(
+          msg
+        );
+      if (isChunkError && typeof window !== "undefined") {
+        const key = "__lovable_chunk_reload__";
+        const last = Number(sessionStorage.getItem(key) || 0);
+        if (Date.now() - last > 10_000) {
+          sessionStorage.setItem(key, String(Date.now()));
+          window.location.reload();
+        }
+      }
+      throw err;
+    })
+  );
+
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const TrainerDashboard = lazy(() => import("./pages/TrainerDashboard"));
 const Workouts = lazy(() => import("./pages/Workouts"));
