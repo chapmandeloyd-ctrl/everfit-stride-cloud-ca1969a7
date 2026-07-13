@@ -27,6 +27,8 @@ export interface PlanGatingMetadata {
   intensity_tier: IntensityTier;
   is_extended_fast: boolean;
   is_youth_safe: boolean;
+  /** Fast length in hours — used to gate extended fasts against trainer toggles. */
+  fast_hours?: number;
 }
 
 export interface ClientGatingContext {
@@ -45,6 +47,16 @@ export interface ClientGatingContext {
    * Defaults to 0 if unknown.
    */
   currentStreak?: number;
+  /**
+   * Per-hour trainer unlocks for extended fasts (24h / 48h / 72h / 96h).
+   * Missing entries default to false (locked).
+   */
+  extendedFastAccess?: {
+    h24?: boolean;
+    h48?: boolean;
+    h72?: boolean;
+    h96?: boolean;
+  };
 }
 
 export type LockReason =
