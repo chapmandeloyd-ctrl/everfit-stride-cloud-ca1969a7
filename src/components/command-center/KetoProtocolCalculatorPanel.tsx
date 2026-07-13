@@ -82,7 +82,7 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
   });
 
   const { data: allKetoTypes } = useQuery({
-    queryKey: ["kpc-all-keto-types"],
+    queryKey: ["kpc-all-keto-types", "v2-macros"],
     queryFn: async () => {
       const { data } = await supabase
         .from("keto_types")
