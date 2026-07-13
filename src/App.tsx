@@ -51,7 +51,6 @@ const Unsubscribe = lazyWithReload(() => import("./pages/Unsubscribe"));
 const PortalMockup = lazyWithReload(() => import("./pages/PortalMockup"));
 const ClientDashboard = lazyWithReload(() => import("./pages/client/ClientDashboardMinimal"));
 const ClientRingsDemo = lazyWithReload(() => import("./pages/client/ClientRingsDemo"));
-const TimerLionTest = lazyWithReload(() => import("./components/debug/TimerLionTest"));
 const ClientSmartPace = lazyWithReload(() => import("./pages/client/ClientSmartPace"));
 const SmartPacePreview = lazyWithReload(() => import("./pages/SmartPacePreview"));
 const ClientDailyScore = lazyWithReload(() => import("./pages/client/ClientDailyScore"));
@@ -158,8 +157,7 @@ const App = () => (
           <Route path="/checkout-test" element={<CheckoutTest />} />
           <Route path="/portal-mockup" element={<PortalMockup />} />
           <Route path="/synergy-card-demo" element={<SynergyCardDemo />} />
-          <Route path="/client/rings-demo" element={<ClientRingsDemo />} />
-          <Route path="/timer-lion-test" element={<TimerLionTest />} />
+          <Route path="/client/rings-demo" element={<ClientRionsDemo />} />
           <Route path="/preview/step-tracker" element={<StepTrackerPreview />} />
           
           {/* Trainer Routes */}
