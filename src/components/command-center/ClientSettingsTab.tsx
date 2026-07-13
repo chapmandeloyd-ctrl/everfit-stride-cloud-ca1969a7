@@ -750,6 +750,7 @@ export function ClientSettingsTab({ clientId, trainerId }: ClientSettingsTabProp
 
       <MaintenanceScheduleAssignment clientId={clientId} trainerId={trainerId} settings={settings} />
       <FastingStrictModeSettings settings={settings} toggleMutation={toggleMutation} />
+      <ExtendedFastingAccessSettings settings={settings} toggleMutation={toggleMutation} />
 
       {/* Dashboard Card Layout Editor */}
       <DashboardLayoutSection clientId={clientId} trainerId={trainerId} settings={settings} />
