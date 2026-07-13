@@ -1328,6 +1328,10 @@ export type Database = {
           eating_window_hours: number
           enforce_scheduled_start: boolean
           engine_mode: Database["public"]["Enums"]["engine_mode"]
+          extended_fast_24h_enabled: boolean
+          extended_fast_48h_enabled: boolean
+          extended_fast_72h_enabled: boolean
+          extended_fast_96h_enabled: boolean
           fast_lock_pin: string | null
           fasting_card_image_url: string | null
           fasting_card_subtitle: string
@@ -1446,6 +1450,10 @@ export type Database = {
           eating_window_hours?: number
           enforce_scheduled_start?: boolean
           engine_mode?: Database["public"]["Enums"]["engine_mode"]
+          extended_fast_24h_enabled?: boolean
+          extended_fast_48h_enabled?: boolean
+          extended_fast_72h_enabled?: boolean
+          extended_fast_96h_enabled?: boolean
           fast_lock_pin?: string | null
           fasting_card_image_url?: string | null
           fasting_card_subtitle?: string
@@ -1564,6 +1572,10 @@ export type Database = {
           eating_window_hours?: number
           enforce_scheduled_start?: boolean
           engine_mode?: Database["public"]["Enums"]["engine_mode"]
+          extended_fast_24h_enabled?: boolean
+          extended_fast_48h_enabled?: boolean
+          extended_fast_72h_enabled?: boolean
+          extended_fast_96h_enabled?: boolean
           fast_lock_pin?: string | null
           fasting_card_image_url?: string | null
           fasting_card_subtitle?: string
@@ -10886,6 +10898,19 @@ export type Database = {
         Args: { p_collection_id: string }
         Returns: boolean
       }
+      list_mcp_connections: {
+        Args: { _user_id: string }
+        Returns: {
+          client_id: string
+          client_name: string
+          client_uri: string
+          consent_id: string
+          granted_at: string
+          last_active_at: string
+          logo_uri: string
+          scopes: string
+        }[]
+      }
       move_to_dlq: {
         Args: {
           dlq_name: string
@@ -10906,6 +10931,10 @@ export type Database = {
           msg_id: number
           read_ct: number
         }[]
+      }
+      revoke_mcp_connection: {
+        Args: { _client_id: string; _user_id: string }
+        Returns: undefined
       }
     }
     Enums: {
