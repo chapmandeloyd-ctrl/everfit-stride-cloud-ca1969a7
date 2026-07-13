@@ -1025,32 +1025,25 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
   // If protocol is completed (user chose "continue routine"), show maintenance card
   if (featureSettings?.protocol_completed && hasProtocol && !isFasting && !hasEatingWindow) {
     return (
-      <Card className="overflow-hidden border-primary/20 shadow-lg">
-        <CardContent className="px-5 pt-8 pb-6 space-y-4">
+      <Card className="overflow-hidden border-0 shadow-lg relative">
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(${fastingCardBgGoldImg})`, filter: "brightness(0.95)" }}
+        />
+        <div className="absolute inset-0 bg-black/70" />
+        <CardContent className="relative z-10 px-5 pt-8 pb-6 space-y-4 text-white">
           <div className="flex items-start justify-between">
             <div className="space-y-1">
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Fasting Program</p>
-              <h3 className="text-lg font-black mt-0.5">{planName}</h3>
-              {activeKetoType && (
-                <div className="flex items-center gap-2 mt-1">
-                  <div
-                    className="h-5 w-auto px-2 rounded-full flex items-center gap-1.5 text-[10px] font-bold"
-                    style={{ backgroundColor: `${activeKetoType.color || '#ef4444'}20`, color: activeKetoType.color || '#ef4444' }}
-                  >
-                    {activeKetoType.abbreviation}
-                    <span className="text-muted-foreground">·</span>
-                    <span className="text-muted-foreground font-medium">{activeKetoType.name}</span>
-                  </div>
-                </div>
-              )}
+              <p className="text-xs font-bold uppercase tracking-wider text-white/70">Apex Fasting Program</p>
+              <h3 className="text-lg font-black mt-0.5 text-white">{planName}</h3>
             </div>
-            <Badge variant="secondary" className="text-xs font-bold px-3 py-1 rounded-full">Complete ✓</Badge>
+            <Badge className="text-xs font-bold px-3 py-1 rounded-full bg-white/15 text-white border border-white/20 hover:bg-white/15">Complete ✓</Badge>
           </div>
           <div className="text-center py-4">
-            <p className="text-sm text-muted-foreground">Protocol complete — maintain your routine.</p>
+            <p className="text-sm text-white/70">Protocol complete — maintain your routine.</p>
           </div>
           <StartFastGate onStart={() => startFastMutation.mutate()} />
-          <Button variant="ghost" size="sm" className="w-full text-xs" onClick={() => navigate("/client/programs")}>
+          <Button variant="ghost" size="sm" className="w-full text-xs text-white/80 hover:text-white hover:bg-white/10" onClick={() => navigate("/client/programs")}>
             Start a new protocol
           </Button>
         </CardContent>
