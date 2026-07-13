@@ -46,39 +46,6 @@ const ACTIVITY_LABEL: Record<Activity, string> = {
 };
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-// Plain-English explanation shown inside the Fasting Protocol dropdown.
-// Keyed by protocol name so it's stable even if IDs change between envs.
-const PROTOCOL_TAGLINES: Record<string, { pattern: string; who: string }> = {
-  "Apex Kickstart 14": {
-    pattern: "14h fast / 10h eating window daily",
-    who: "Brand new to fasting — basically skip breakfast",
-  },
-  "Apex Daily 16": {
-    pattern: "16h fast / 8h eating window daily",
-    who: "The standard IF workhorse — steady daily fat loss",
-  },
-  "Apex Deep 18": {
-    pattern: "18h fast / 6h eating window daily",
-    who: "Already mastered 16:8 and ready for more",
-  },
-  "Apex Weekend Extend": {
-    pattern: "16h weekdays, 20h weekends",
-    who: "Busy work week, wants deeper fasts on days off",
-  },
-  "Apex 5:2 Weekday Strict": {
-    pattern: "Strict fasts Mon–Fri, weekends free",
-    who: "Disciplined weekdays, cheat/refeed on Sat–Sun",
-  },
-  "Apex 4:3": {
-    pattern: "24h fasts × 3 non-consecutive days/week",
-    who: "Aggressive fat loss without going every day",
-  },
-  "Apex Alternate Day": {
-    pattern: "24h fast every other day",
-    who: "All-in — the hardest Apex format",
-  },
-};
-
 function weekIndexFromDateOnly(value: string): number {
   const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
   if (!m) return 0;
@@ -115,11 +82,11 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
   });
 
   const { data: allKetoTypes } = useQuery({
-    queryKey: ["kpc-all-keto-types", "v2-macros"],
+    queryKey: ["kpc-all-keto-types"],
     queryFn: async () => {
       const { data } = await supabase
         .from("keto_types")
-        .select("id, abbreviation, name, color, protein_pct, carbs_pct, fat_pct, subtitle, description")
+        .select("id, abbreviation, name, color")
         .eq("is_active", true)
         .order("order_index");
       return data || [];
@@ -169,9 +136,9 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
       queryClient.invalidateQueries({ queryKey: ["keto-assignment", clientId] });
       queryClient.invalidateQueries({ queryKey: ["synergy-panel-keto", clientId] });
       queryClient.invalidateQueries({ queryKey: ["client-keto-assignment"] });
-      toast.success("Fuel Style updated");
+      toast.success("Keto type updated");
     },
-    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Failed to update Fuel Style"),
+    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Failed to update keto type"),
   });
 
   const assignProtocolMutation = useMutation({
@@ -464,16 +431,19 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
     const isAlternateDay = rawFastHours >= 24;
     const fastHours = isAlternateDay ? 24 : Math.min(23, rawFastHours);
     const eatHours = isAlternateDay ? 24 : Math.max(1, 24 - fastHours);
-    // Prefer client's scheduled fast-start anchor; otherwise fall back to the
-    // legacy behavior of starting the fast when the eating window closes at 8 PM.
-    // Only treat day_start_hour as a schedule anchor when the trainer has
-    // explicitly set a non-zero value. The column defaults to 0 for every client.
+    // Prefer client's configured Start-of-day anchor; otherwise fall back to
+    // the legacy behavior of ending the eating window at 8:00 PM.
+    // Only treat day_start_hour as an eating-window anchor when the trainer
+    // has explicitly set a non-zero value. The column defaults to 0 for every
+    // client, and 0 would otherwise shift a 16:8 window to midnight → 8 AM.
     const rawDayStart = Number((featureSettings as any)?.day_start_hour);
     const hasDayStart = Number.isFinite(rawDayStart) && rawDayStart !== 0;
-    const eatEndHour = hasDayStart
+    const eatStartHour = hasDayStart
       ? ((Math.floor(rawDayStart) % 24) + 24) % 24
+      : ((20 - eatHours) % 24 + 24) % 24;
+    const eatEndHour = hasDayStart
+      ? (eatStartHour + eatHours) % 24
       : 20;
-    const eatStartHour = ((eatEndHour - eatHours) % 24 + 24) % 24;
     const fmt = (h: number) => {
       const period = h >= 12 ? "PM" : "AM";
       const hr = h % 12 === 0 ? 12 : h % 12;
@@ -629,16 +599,6 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
           assigned_protocol_duration_days: null,
           selected_quick_plan_id: null,
           quick_plan_duration_days: null,
-          // Also stop any currently-running or auto-scheduled fast so the
-          // client's lion timer doesn't keep ticking after the reset.
-          active_fast_start_at: null,
-          active_fast_target_hours: null,
-          next_scheduled_fast_at: null,
-          last_auto_fast_started_for: null,
-          last_auto_fast_headsup_for: null,
-          auto_fast_skip_date: null,
-          eating_window_ends_at: null,
-          fast_lock_pin: null,
         } as any)
         .eq("client_id", clientId);
 
@@ -744,25 +704,15 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
       <Card>
         <CardContent className="p-6 space-y-4">
           <p className="text-center text-muted-foreground">
-            Assign an Apex Fuel Style to this client to generate a protocol.
+            Assign a keto type to this client to generate a protocol.
           </p>
           <div className="max-w-xs mx-auto">
-            <Label>Fuel Style</Label>
+            <Label>Keto Type</Label>
             <Select onValueChange={(v) => assignKetoMutation.mutate(v)}>
-              <SelectTrigger><SelectValue placeholder="Choose Fuel Style…" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder="Choose keto type…" /></SelectTrigger>
               <SelectContent>
                 {allKetoTypes?.map(k => (
-                  <SelectItem key={k.id} value={k.id}>
-                    <div className="flex flex-col py-1">
-                      <span className="font-semibold" style={{ color: (k as any).color }}>
-                        {k.abbreviation} · {k.name}
-                      </span>
-                      <span className="text-[11px] text-muted-foreground">
-                        P {(k as any).protein_pct}% · C {(k as any).carbs_pct}% · F {(k as any).fat_pct}%
-                        {(k as any).subtitle ? ` — ${(k as any).subtitle}` : ""}
-                      </span>
-                    </div>
-                  </SelectItem>
+                  <SelectItem key={k.id} value={k.id}>{k.abbreviation} · {k.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -804,7 +754,7 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
                   <AlertDialogHeader>
                     <AlertDialogTitle>Reset entire plan?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Clears the assigned protocol, Fuel Style, scheduled calendar,
+                      Clears the assigned protocol, keto type, scheduled calendar,
                       and saved completion for this client — leaving them as if no
                       plan was ever assigned. Weigh-ins, workouts, fasting history,
                       and badges are kept.
@@ -821,86 +771,35 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-6 pt-2">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
-            <div className="space-y-2">
-              <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Fuel Style
-              </Label>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <Label>Keto Type</Label>
               <Select
                 value={assignment.keto_type_id ?? undefined}
                 onValueChange={(v) => assignKetoMutation.mutate(v)}
               >
-                <SelectTrigger className="h-11"><SelectValue /></SelectTrigger>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {allKetoTypes?.map(k => (
-                    <SelectItem key={k.id} value={k.id}>
-                      <div className="flex flex-col py-1">
-                        <span className="font-semibold" style={{ color: (k as any).color }}>
-                          {k.abbreviation} · {k.name}
-                        </span>
-                        <span className="text-[11px] text-muted-foreground">
-                          P {(k as any).protein_pct}% · C {(k as any).carbs_pct}% · F {(k as any).fat_pct}%
-                          {(k as any).subtitle ? ` — ${(k as any).subtitle}` : ""}
-                        </span>
-                      </div>
-                    </SelectItem>
+                    <SelectItem key={k.id} value={k.id}>{k.abbreviation} · {k.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              {(() => {
-                const current: any = allKetoTypes?.find((k: any) => k.id === assignment.keto_type_id);
-                if (!current) return null;
-                return (
-                  <p className="text-[11px] text-muted-foreground mt-1.5">
-                    <span className="font-semibold" style={{ color: current.color }}>Macros:</span>{" "}
-                    Protein {current.protein_pct}% · Carbs {current.carbs_pct}% · Fat {current.fat_pct}%
-                  </p>
-                );
-              })()}
             </div>
-            <div className="space-y-2">
-              <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Fasting Protocol
-              </Label>
+            <div>
+              <Label>Fasting Protocol</Label>
               <Select
                 value={featureSettings?.selected_protocol_id ?? undefined}
                 onValueChange={(v) => assignProtocolMutation.mutate(v)}
               >
-                <SelectTrigger className="h-11"><SelectValue placeholder="Choose protocol…" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Choose protocol…" /></SelectTrigger>
                 <SelectContent>
-                  {allProtocols?.map(p => {
-                    const info = PROTOCOL_TAGLINES[p.name];
-                    return (
-                      <SelectItem key={p.id} value={p.id} className="py-2">
-                        <div className="flex flex-col gap-0.5 text-left">
-                          <span className="text-sm font-semibold">
-                            {p.name} <span className="text-muted-foreground font-normal">({p.fast_target_hours}h)</span>
-                          </span>
-                          {info && (
-                            <>
-                              <span className="text-[11px] text-muted-foreground leading-tight">{info.pattern}</span>
-                              <span className="text-[11px] text-primary/80 leading-tight">For: {info.who}</span>
-                            </>
-                          )}
-                        </div>
-                      </SelectItem>
-                    );
-                  })}
+                  {allProtocols?.map(p => (
+                    <SelectItem key={p.id} value={p.id}>{p.name} ({p.fast_target_hours}h)</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
-              {(() => {
-                const selected = allProtocols?.find(p => p.id === featureSettings?.selected_protocol_id);
-                if (!selected) return null;
-                const info = PROTOCOL_TAGLINES[selected.name];
-                if (!info) return null;
-                return (
-                  <p className="text-[11px] text-muted-foreground mt-1.5 leading-snug">
-                    <span className="font-semibold text-foreground/80">{info.pattern}.</span>{" "}
-                    <span className="text-primary/80">For: {info.who}</span>
-                  </p>
-                );
-              })()}
             </div>
           </div>
           <Separator />
@@ -1029,11 +928,13 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
                 >
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {Array.from({ length: 90 }, (_, i) => i + 1).map((n) => (
-                      <SelectItem key={n} value={String(n)}>
-                        {n === 1 ? "1 day" : `${n} days`}
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="1">1 day</SelectItem>
+                    <SelectItem value="3">3 days</SelectItem>
+                    <SelectItem value="7">7 days (week)</SelectItem>
+                    <SelectItem value="14">14 days</SelectItem>
+                    <SelectItem value="30">30 days</SelectItem>
+                    <SelectItem value="60">60 days</SelectItem>
+                    <SelectItem value="90">90 days</SelectItem>
                   </SelectContent>
                 </Select>
                 <p className="text-[10px] text-muted-foreground mt-1">

@@ -1,66 +1,106 @@
-# Apex360-IF Rebrand + Fasting Library Expansion
+# Fast Auto-Start + Countdown + Email Reminders
 
-Ship in one pass, no data loss, no disruption to existing fasting engine.
+Turn the lion card's static `1/3 DAY` chip into a live experience: show a countdown to the next scheduled fast, auto-start the fast at T-0 with a 5-minute grace window the user can cancel, and email the client 3 times before the start.
 
-## Phase 1 — Brand sweep (Apex360-IF)
+Zero changes to the legacy `FastingProtocolCard` timer logic (protected by memory). We build on `useClientComputedPlan`, `useScheduledFastGate`, and `useStartFast` — the plan already knows which upcoming days are fast days and their `fastWindow` / start hour.
 
-- Update app name to **Apex360-IF** everywhere user-facing:
-  - `index.html` `<title>`, meta description, og tags
-  - `public/manifest.webmanifest` (name + short_name)
-  - Auth screen wordmark ("KSOM" → "APEX360-IF")
-  - Sidebars, headers, footers, email templates
-- Tagline: **"You are WHEN you eat"** — added to login screen and dashboard hero
-- Keep `ksom-360.app` domain live; no DNS changes
-- Logo (silver lion) stays as-is
-- Internal code paths (`ksom360Levels.ts`, DB column names, storage buckets) stay untouched — invisible to users, avoids a risky refactor
+---
 
-## Phase 2 — Eating windows (final lineup)
+## 1. Compute the "next fast start" time (client-side)
 
-Rename/relabel existing quick plans:
+New hook `src/hooks/useNextScheduledFastStart.ts`:
+- Read `useClientComputedPlan()` → walk forward from `dayIndex` to find the next day with `adFast` or a fast window whose start-time hasn't passed yet today.
+- Combine with `protocolStartDate` + the day's parsed start hour to get a real `Date`.
+- Return `{ startsAt: Date, dayLabel, protocolLabel }`.
+- Skip entirely if a fast is already `active` (`active_fast_start_at` set) or protocol is complete.
 
-| Hours | Window | Badge |
-|---|---|---|
-| 16:8 | 8-hour eating | Beginner |
-| 18:6 | 6-hour eating | Intermediate |
-| 20:4 | 4-hour eating | Advanced |
-| OMAD | 1-hour eating | Advanced |
+## 2. Countdown row above the CTA button
 
-- Update `quick_fasting_plans` labels/badges via data migration
-- Update `QuickPlansSelector.tsx` to render new badge chips (green/yellow/red)
+Edit `src/pages/client/ClientDashboard.tsx` around line 1683 (the CTA block).
+- Above `Open Live Schedule to Start`, render a new row when `startsAt` exists:
+  ```
+  ┌────────────────────────────────────────────┐
+  │ ⏱  NEXT FAST STARTS IN  04:12:33           │
+  │    Sun · 8:00 PM · 16h target              │
+  └────────────────────────────────────────────┘
+  ```
+- Tick every second via `useEffect` + `setInterval` (only while row is mounted).
+- At T-0 the row swaps to a red pulsing "Starting in 4:59… tap to cancel" state during the 5-min grace.
+- After grace elapses, row hides (fast is now active — the existing `ActiveFastingTimer` takes over).
 
-## Phase 3 — Extended Fasts (new, locked by default)
+## 3. Auto-start with 5-min grace
 
-New protocols added to `fasting_protocols`:
+New hook `src/hooks/useAutoStartScheduledFast.ts`:
+- Watches `startsAt` from hook #1 and current time.
+- State machine: `idle → armed (at T-0) → grace (5 min countdown, user can Cancel) → started` OR `cancelled`.
+- On grace expiry: call the existing `useStartFast()` mutation (no new business-logic path — reuses same insert into `fasting_log` + `client_feature_settings.active_fast_start_at`).
+- Cancel button writes today's date into a new `client_feature_settings.autostart_skipped_on` column so we don't re-arm the same day.
+- Respects existing `useScheduledFastGate` early/late window logic.
 
-- **24 Hour Fast** (1 day) — Advanced
-- **48 Hour Fast** (2 day) — Advanced
-- **72 Hour Fast** (3 day) — Advanced
-- **96 Hour Fast** (4 day) — Advanced
+Small toast on auto-start: "Your 16:8 fast started."
 
-All flagged `is_extended_fast=true`, `is_youth_safe=false`.
+## 4. Emails: night-before + 1hr + 15min
 
-## Phase 4 — Access control
+**Database** — 1 new column, no new tables:
+```sql
+ALTER TABLE public.client_feature_settings
+  ADD COLUMN IF NOT EXISTS autostart_skipped_on date,
+  ADD COLUMN IF NOT EXISTS pre_fast_email_pref text
+    NOT NULL DEFAULT 'all' CHECK (pre_fast_email_pref IN ('all','final_only','off'));
+```
+Reuse existing `notification_log` (`kind = 'pre_fast_email'`, `reference_id = '<startIso>:<slot>'`) for dedup, same pattern as `dispatch-fasting-milestones`.
 
-**DB:** add 4 boolean columns to `client_feature_settings`:
-- `extended_fast_24h_enabled` (default false)
-- `extended_fast_48h_enabled` (default false)
-- `extended_fast_72h_enabled` (default false)
-- `extended_fast_96h_enabled` (default false)
+**New edge function** `supabase/functions/dispatch-pre-fast-emails/index.ts`:
+- Runs every 5 min via existing pg_cron pattern.
+- For each client with `fasting_enabled = true` and no active fast:
+  - Compute next scheduled fast `startsAt` server-side (mirror hook #1 logic using `computed_plan_days` if we have it, otherwise reuse `protocolPlan` server helper — extract shared calc into `_shared/computeNextFastStart.ts`).
+  - Fire slots when in these windows (5-min tolerance):
+    - `night_before` — 8pm client-local the day before
+    - `t_minus_60` — 60 min before start
+    - `t_minus_15` — 15 min before start
+  - Skip if `pre_fast_email_pref = 'off'`, or `= 'final_only'` and slot ≠ `t_minus_15`.
+  - Enqueue via existing app-email queue (`send-transactional-email`) so it flows through Lovable Emails infra.
 
-**Client side:** extend `usePlanGating` — if protocol is extended fast, check the matching toggle. If off → show lock icon + "Advanced — Ask your trainer to unlock" sheet.
+**New app-email template** `supabase/functions/_shared/transactional-email-templates/pre-fast-reminder.tsx`:
+- One template, three subject variants driven by `templateData.slot`:
+  - night_before → "Your fast starts tomorrow at 8:00 PM"
+  - t_minus_60 → "Your fast starts in 1 hour"
+  - t_minus_15 → "Your fast starts in 15 minutes"
+- Body: countdown, protocol name, target hours, "It'll auto-start — open the app to cancel."
+- Registered in `_shared/transactional-email-templates/registry.ts`.
 
-**Athletic engine clients:** hard-blocked regardless of toggle (safety rule already in place via `is_youth_safe`).
+**Cron** — pg_cron job every 5 min hitting `dispatch-pre-fast-emails` (added via `supabase--insert`, not migration, since it embeds URL + anon key).
 
-**Trainer side:** new "Extended Fasting Access" card in the client settings panel (`TrainerClientSettings` / feature-flag section) with 4 toggles.
+## 5. User control
 
-## Phase 5 — Verify
+Add a small "Email reminders" toggle in the Live Schedule dialog footer (writes `pre_fast_email_pref`). Values: All 3 / Final only / Off. Purely additive — no changes to existing dialog layout above the footer.
 
-- Playwright: load `/client/choose-protocol` as a test client, confirm new windows show correct badges and extended fasts show locked state
-- Load trainer settings for a client, confirm toggles render and persist
+---
 
-## Technical notes
+## Files touched
 
-- Two migrations: one for `client_feature_settings` columns (schema), one for seeding new `fasting_protocols` rows and updating `quick_fasting_plans` labels (data — via insert tool)
-- No breaking changes to existing fasting timer, macro engine, or protocol scheduling
-- Rebrand is pure copy/asset — zero risk to fasting/nutrition logic
-- Domain swap is a 5-minute change later; nothing in code hardcodes `ksom-360.app`
+**New**
+- `src/hooks/useNextScheduledFastStart.ts`
+- `src/hooks/useAutoStartScheduledFast.ts`
+- `src/components/client/NextFastCountdownRow.tsx`
+- `supabase/functions/dispatch-pre-fast-emails/index.ts`
+- `supabase/functions/_shared/computeNextFastStart.ts`
+- `supabase/functions/_shared/transactional-email-templates/pre-fast-reminder.tsx`
+- 1 schema migration (2 columns on `client_feature_settings`)
+- 1 `supabase--insert` for the pg_cron job
+
+**Edited**
+- `src/pages/client/ClientDashboard.tsx` — insert countdown row above line 1684, mount auto-start hook
+- `src/components/client/LiveScheduleDialog.tsx` — add email-preference toggle
+- `_shared/transactional-email-templates/registry.ts` — register new template
+
+**Untouched (per memory constraint)**
+- `FastingProtocolCard`, `ActiveFastingTimer`, `useStartFast` internals
+
+---
+
+## Verification (live browser)
+Per your rule I'll log in as Dee after building, watch the countdown row appear, fast-forward system state to confirm the 5-min grace/cancel flow, and check `notification_log` after triggering `dispatch-pre-fast-emails` manually to confirm the three slot rows insert with correct `reference_id`s.
+
+## Open credit note
+The email dispatcher + template + testing is the biggest chunk (~40% of the work). If you'd rather ship the **countdown + auto-start UI first** and add emails in a second pass, say the word and I'll do just steps 1-3 now.

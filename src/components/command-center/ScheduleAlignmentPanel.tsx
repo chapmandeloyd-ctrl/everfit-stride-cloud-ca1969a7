@@ -144,7 +144,7 @@ export function ScheduleAlignmentPanel({ clientId }: Props) {
         <div className="space-y-2">
           <Label className="text-xs flex items-center gap-1.5">
             <Clock className="h-3.5 w-3.5" />
-            Scheduled fast start
+            Start of day
           </Label>
           <Select value={String(dayStart)} onValueChange={(v) => setDayStart(Number(v))}>
             <SelectTrigger>
@@ -159,8 +159,9 @@ export function ScheduleAlignmentPanel({ clientId }: Props) {
           <div className="flex items-start gap-2 rounded-md border border-border/50 bg-muted/20 p-2">
             <Info className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-0.5" />
             <p className="text-[11px] text-muted-foreground leading-snug">
-              This is when the client's eating window closes and the fast should begin.
-              Example: 10:00 PM means the fast starts at 10:00 PM.
+              A meal or fast happening before this hour still counts as the previous day.
+              Example: night-shift clients often set this to 4:00 AM so a 2 AM meal logs to
+              yesterday's macros.
             </p>
           </div>
         </div>
@@ -182,7 +183,7 @@ export function ScheduleAlignmentPanel({ clientId }: Props) {
               </Label>
               <p className="text-[11px] text-muted-foreground leading-snug mt-1">
                 Locks the client's <strong>Start Fast</strong> button until 30 min
-                before this scheduled fast start.
+                before their scheduled fast start (when today's eating window closes).
                 Late starts &gt; 60 min are flagged.
               </p>
             </div>

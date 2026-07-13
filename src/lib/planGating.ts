@@ -27,8 +27,6 @@ export interface PlanGatingMetadata {
   intensity_tier: IntensityTier;
   is_extended_fast: boolean;
   is_youth_safe: boolean;
-  /** Fast length in hours — used to gate extended fasts against trainer toggles. */
-  fast_hours?: number;
 }
 
 export interface ClientGatingContext {
@@ -47,16 +45,6 @@ export interface ClientGatingContext {
    * Defaults to 0 if unknown.
    */
   currentStreak?: number;
-  /**
-   * Per-hour trainer unlocks for extended fasts (24h / 48h / 72h / 96h).
-   * Missing entries default to false (locked).
-   */
-  extendedFastAccess?: {
-    h24?: boolean;
-    h48?: boolean;
-    h72?: boolean;
-    h96?: boolean;
-  };
 }
 
 export type LockReason =
@@ -318,29 +306,6 @@ export function evaluatePlanGating(
       // Always score-stability here — the rule is literally about needs-support days.
       unlockProgress: scoreStabilityProgress(ctx.needsSupportDaysLast14),
     };
-  }
-
-  // ── Extended fast: trainer per-hour unlock toggle (24/48/72/96h)
-  if (plan.is_extended_fast && plan.fast_hours && ctx.extendedFastAccess) {
-    const map: Record<number, boolean | undefined> = {
-      24: ctx.extendedFastAccess.h24,
-      48: ctx.extendedFastAccess.h48,
-      72: ctx.extendedFastAccess.h72,
-      96: ctx.extendedFastAccess.h96,
-    };
-    const hour = plan.fast_hours;
-    if (hour in map && !map[hour]) {
-      return {
-        planId: plan.id,
-        isVisible: true,
-        isAccessible: false,
-        lockReason: "coach_approval",
-        lockMessage: `Locked — ask your trainer to unlock ${hour}-hour fasts`,
-        isCoachApproved: false,
-        isOptionalTool,
-        unlockProgress: null,
-      };
-    }
   }
 
   // ── Metabolic: extended fast gating

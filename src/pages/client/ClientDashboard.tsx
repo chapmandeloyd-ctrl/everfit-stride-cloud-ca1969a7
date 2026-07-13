@@ -987,11 +987,11 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
     const fastingCardBg = fastingCardBgGoldImg;
     const fastingCardMsg = fastingSubtitle || universalFastingCard?.message || "Your fasting journey begins soon.";
     return (
-      <Card className="overflow-hidden border-primary/20 shadow-lg relative bg-black">
+      <Card className="overflow-hidden border-primary/20 shadow-lg relative">
         {fastingCardBg ? (
           <>
             <div
-              className="absolute inset-0 bg-contain bg-no-repeat bg-center"
+              className="absolute inset-0 bg-cover bg-center"
               style={{ backgroundImage: `url(${fastingCardBg})` }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
@@ -1025,26 +1025,32 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
   // If protocol is completed (user chose "continue routine"), show maintenance card
   if (featureSettings?.protocol_completed && hasProtocol && !isFasting && !hasEatingWindow) {
     return (
-      <Card className="overflow-hidden border-0 shadow-lg relative">
-        <div className="absolute inset-0 bg-black" />
-        <div
-          className="absolute inset-0 bg-contain bg-no-repeat bg-center"
-          style={{ backgroundImage: `url(${fastingCardBgGoldImg})`, filter: "brightness(0.95)" }}
-        />
-        <div className="absolute inset-0 bg-black/60" />
-        <CardContent className="relative z-10 px-5 pt-8 pb-6 space-y-4 text-white">
+      <Card className="overflow-hidden border-primary/20 shadow-lg">
+        <CardContent className="px-5 pt-8 pb-6 space-y-4">
           <div className="flex items-start justify-between">
             <div className="space-y-1">
-              <p className="text-xs font-bold uppercase tracking-wider text-white/70">Apex Fasting Program</p>
-              <h3 className="text-lg font-black mt-0.5 text-white">{planName}</h3>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Fasting Program</p>
+              <h3 className="text-lg font-black mt-0.5">{planName}</h3>
+              {activeKetoType && (
+                <div className="flex items-center gap-2 mt-1">
+                  <div
+                    className="h-5 w-auto px-2 rounded-full flex items-center gap-1.5 text-[10px] font-bold"
+                    style={{ backgroundColor: `${activeKetoType.color || '#ef4444'}20`, color: activeKetoType.color || '#ef4444' }}
+                  >
+                    {activeKetoType.abbreviation}
+                    <span className="text-muted-foreground">·</span>
+                    <span className="text-muted-foreground font-medium">{activeKetoType.name}</span>
+                  </div>
+                </div>
+              )}
             </div>
-            <Badge className="text-xs font-bold px-3 py-1 rounded-full bg-white/15 text-white border border-white/20 hover:bg-white/15">Complete ✓</Badge>
+            <Badge variant="secondary" className="text-xs font-bold px-3 py-1 rounded-full">Complete ✓</Badge>
           </div>
           <div className="text-center py-4">
-            <p className="text-sm text-white/70">Protocol complete — maintain your routine.</p>
+            <p className="text-sm text-muted-foreground">Protocol complete — maintain your routine.</p>
           </div>
           <StartFastGate onStart={() => startFastMutation.mutate()} />
-          <Button variant="ghost" size="sm" className="w-full text-xs text-white/80 hover:text-white hover:bg-white/10" onClick={() => navigate("/client/programs")}>
+          <Button variant="ghost" size="sm" className="w-full text-xs" onClick={() => navigate("/client/programs")}>
             Start a new protocol
           </Button>
         </CardContent>
@@ -1066,16 +1072,15 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
         <h2 className="text-lg font-bold text-foreground px-1">KSOM-360 Fasting Timer</h2>
         <Card className="overflow-hidden border-0 shadow-lg relative">
         {/* Lion card background */}
-        <div className="absolute inset-0 bg-black" />
         <div
-          className="absolute inset-0 bg-contain bg-no-repeat bg-center"
+          className="absolute inset-0 bg-cover bg-center"
           style={{
             backgroundImage: `url(${fastingCardBgGoldImg})`,
             filter: "brightness(0.95)",
           }}
         />
         {/* Dark overlay for text readability */}
-        <div className="absolute inset-0 bg-black/55" />
+        <div className="absolute inset-0 bg-black/60" />
           <CardContent className="relative z-10 space-y-3 px-4 pt-4 pb-4 text-white sm:px-5">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 space-y-1">
@@ -1516,12 +1521,11 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
     <>
       <Card className="overflow-hidden border-0 shadow-lg relative">
         {/* Hybrid background: photo + animated keto color wash */}
-        <div className="absolute inset-0 bg-black" />
         <div
-          className="absolute inset-0 bg-contain bg-no-repeat bg-center"
+          className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: `url(${fastingCardBg})` }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/30" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/60 to-black/40" />
         <div
           className="absolute -inset-10 animate-[pulse_5s_ease-in-out_infinite] pointer-events-none"
           style={{

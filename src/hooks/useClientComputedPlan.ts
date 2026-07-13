@@ -148,8 +148,9 @@ export function useClientComputedPlan() {
       planType,
       planLengthDays,
       extendedTotalHours,
-      // Only pass day_start_hour as the scheduled fast-start anchor when
-      // explicitly set to a non-zero value. The column defaults to 0 for every client.
+      // Only pass day_start_hour as the eating-window anchor when explicitly
+      // set to a non-zero value; the column defaults to 0 for every client
+      // and would otherwise shift a 16:8 window to midnight.
       eatStartHour: (() => {
         const v = Number((settings as any)?.day_start_hour);
         return Number.isFinite(v) && v !== 0 ? v : NaN;

@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Clock, Lock, AlertTriangle } from "lucide-react";
-import { isScheduledFastStartAllowed, useScheduledFastGate } from "@/hooks/useScheduledFastGate";
+import { useScheduledFastGate } from "@/hooks/useScheduledFastGate";
 
 interface Props {
   onStart: () => void;
@@ -16,26 +16,6 @@ interface Props {
  */
 export function StartFastGate({ onStart, size = "default", className }: Props) {
   const gate = useScheduledFastGate();
-  const guardedStart = () => {
-    if (!isScheduledFastStartAllowed(gate)) return;
-    onStart();
-  };
-
-  if (gate.state === "loading") {
-    return (
-      <div className={className}>
-        <Button
-          className="w-full h-12 text-base"
-          size={size}
-          variant="secondary"
-          disabled
-        >
-          <Lock className="h-4 w-4 mr-2" />
-          Checking schedule…
-        </Button>
-      </div>
-    );
-  }
 
   if (gate.state === "early") {
     return (
@@ -64,7 +44,7 @@ export function StartFastGate({ onStart, size = "default", className }: Props) {
         <Button
           className="w-full h-12 text-base bg-amber-500 hover:bg-amber-600 text-white"
           size={size}
-          onClick={guardedStart}
+          onClick={onStart}
         >
           <AlertTriangle className="h-4 w-4 mr-2" />
           Start Fast — {gate.countdownLabel} late
@@ -83,7 +63,7 @@ export function StartFastGate({ onStart, size = "default", className }: Props) {
     <Button
       className={`w-full h-12 text-base ${className ?? ""}`}
       size={size}
-      onClick={guardedStart}
+      onClick={onStart}
     >
       <Clock className="h-4 w-4 mr-2" /> Start Fast
     </Button>
