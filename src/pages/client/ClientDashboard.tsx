@@ -1026,11 +1026,12 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
   if (featureSettings?.protocol_completed && hasProtocol && !isFasting && !hasEatingWindow) {
     return (
       <Card className="overflow-hidden border-0 shadow-lg relative">
+        <div className="absolute inset-0 bg-black" />
         <div
-          className="absolute inset-0 bg-cover bg-center"
+          className="absolute inset-0 bg-contain bg-no-repeat bg-center"
           style={{ backgroundImage: `url(${fastingCardBgGoldImg})`, filter: "brightness(0.95)" }}
         />
-        <div className="absolute inset-0 bg-black/70" />
+        <div className="absolute inset-0 bg-black/60" />
         <CardContent className="relative z-10 px-5 pt-8 pb-6 space-y-4 text-white">
           <div className="flex items-start justify-between">
             <div className="space-y-1">
@@ -1065,15 +1066,16 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
         <h2 className="text-lg font-bold text-foreground px-1">KSOM-360 Fasting Timer</h2>
         <Card className="overflow-hidden border-0 shadow-lg relative">
         {/* Lion card background */}
+        <div className="absolute inset-0 bg-black" />
         <div
-          className="absolute inset-0 bg-cover bg-center"
+          className="absolute inset-0 bg-contain bg-no-repeat bg-center"
           style={{
             backgroundImage: `url(${fastingCardBgGoldImg})`,
             filter: "brightness(0.95)",
           }}
         />
         {/* Dark overlay for text readability */}
-        <div className="absolute inset-0 bg-black/60" />
+        <div className="absolute inset-0 bg-black/55" />
           <CardContent className="relative z-10 space-y-3 px-4 pt-4 pb-4 text-white sm:px-5">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 space-y-1">
@@ -1514,11 +1516,12 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
     <>
       <Card className="overflow-hidden border-0 shadow-lg relative">
         {/* Hybrid background: photo + animated keto color wash */}
+        <div className="absolute inset-0 bg-black" />
         <div
-          className="absolute inset-0 bg-cover bg-center"
+          className="absolute inset-0 bg-contain bg-no-repeat bg-center"
           style={{ backgroundImage: `url(${fastingCardBg})` }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/60 to-black/40" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/30" />
         <div
           className="absolute -inset-10 animate-[pulse_5s_ease-in-out_infinite] pointer-events-none"
           style={{
