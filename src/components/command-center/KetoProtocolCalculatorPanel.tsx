@@ -632,6 +632,16 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
           assigned_protocol_duration_days: null,
           selected_quick_plan_id: null,
           quick_plan_duration_days: null,
+          // Also stop any currently-running or auto-scheduled fast so the
+          // client's lion timer doesn't keep ticking after the reset.
+          active_fast_start_at: null,
+          active_fast_target_hours: null,
+          next_scheduled_fast_at: null,
+          last_auto_fast_started_for: null,
+          last_auto_fast_headsup_for: null,
+          auto_fast_skip_date: null,
+          eating_window_ends_at: null,
+          fast_lock_pin: null,
         } as any)
         .eq("client_id", clientId);
 
