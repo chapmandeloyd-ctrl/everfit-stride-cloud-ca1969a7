@@ -464,19 +464,16 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
     const isAlternateDay = rawFastHours >= 24;
     const fastHours = isAlternateDay ? 24 : Math.min(23, rawFastHours);
     const eatHours = isAlternateDay ? 24 : Math.max(1, 24 - fastHours);
-    // Prefer client's configured Start-of-day anchor; otherwise fall back to
-    // the legacy behavior of ending the eating window at 8:00 PM.
-    // Only treat day_start_hour as an eating-window anchor when the trainer
-    // has explicitly set a non-zero value. The column defaults to 0 for every
-    // client, and 0 would otherwise shift a 16:8 window to midnight → 8 AM.
+    // Prefer client's scheduled fast-start anchor; otherwise fall back to the
+    // legacy behavior of starting the fast when the eating window closes at 8 PM.
+    // Only treat day_start_hour as a schedule anchor when the trainer has
+    // explicitly set a non-zero value. The column defaults to 0 for every client.
     const rawDayStart = Number((featureSettings as any)?.day_start_hour);
     const hasDayStart = Number.isFinite(rawDayStart) && rawDayStart !== 0;
-    const eatStartHour = hasDayStart
-      ? ((Math.floor(rawDayStart) % 24) + 24) % 24
-      : ((20 - eatHours) % 24 + 24) % 24;
     const eatEndHour = hasDayStart
-      ? (eatStartHour + eatHours) % 24
+      ? ((Math.floor(rawDayStart) % 24) + 24) % 24
       : 20;
+    const eatStartHour = ((eatEndHour - eatHours) % 24 + 24) % 24;
     const fmt = (h: number) => {
       const period = h >= 12 ? "PM" : "AM";
       const hr = h % 12 === 0 ? 12 : h % 12;
