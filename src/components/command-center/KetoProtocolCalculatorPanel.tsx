@@ -1023,7 +1023,11 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="1">1 day</SelectItem>
+                    <SelectItem value="2">2 days</SelectItem>
                     <SelectItem value="3">3 days</SelectItem>
+                    <SelectItem value="4">4 days</SelectItem>
+                    <SelectItem value="5">5 days</SelectItem>
+                    <SelectItem value="6">6 days</SelectItem>
                     <SelectItem value="7">7 days (week)</SelectItem>
                     <SelectItem value="14">14 days</SelectItem>
                     <SelectItem value="30">30 days</SelectItem>
