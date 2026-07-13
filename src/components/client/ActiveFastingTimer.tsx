@@ -162,7 +162,7 @@ export function ActiveFastingTimer({
         <img
           src={fastingTimerBg}
           alt=""
-          className="absolute inset-0 h-full w-full object-cover"
+          className="absolute inset-0 h-full w-full object-cover scale-[1.6] origin-center"
         />
       </div>
       <div className="absolute inset-0 bg-black/45" />
