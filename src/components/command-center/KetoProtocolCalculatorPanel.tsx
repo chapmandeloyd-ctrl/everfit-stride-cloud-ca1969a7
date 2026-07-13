@@ -136,9 +136,9 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
       queryClient.invalidateQueries({ queryKey: ["keto-assignment", clientId] });
       queryClient.invalidateQueries({ queryKey: ["synergy-panel-keto", clientId] });
       queryClient.invalidateQueries({ queryKey: ["client-keto-assignment"] });
-      toast.success("Keto type updated");
+      toast.success("Fuel Style updated");
     },
-    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Failed to update keto type"),
+    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Failed to update Fuel Style"),
   });
 
   const assignProtocolMutation = useMutation({
@@ -704,12 +704,12 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
       <Card>
         <CardContent className="p-6 space-y-4">
           <p className="text-center text-muted-foreground">
-            Assign a keto type to this client to generate a protocol.
+            Assign an Apex Fuel Style to this client to generate a protocol.
           </p>
           <div className="max-w-xs mx-auto">
-            <Label>Keto Type</Label>
+            <Label>Fuel Style</Label>
             <Select onValueChange={(v) => assignKetoMutation.mutate(v)}>
-              <SelectTrigger><SelectValue placeholder="Choose keto type…" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder="Choose Fuel Style…" /></SelectTrigger>
               <SelectContent>
                 {allKetoTypes?.map(k => (
                   <SelectItem key={k.id} value={k.id}>{k.abbreviation} · {k.name}</SelectItem>
@@ -754,7 +754,7 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
                   <AlertDialogHeader>
                     <AlertDialogTitle>Reset entire plan?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Clears the assigned protocol, keto type, scheduled calendar,
+                      Clears the assigned protocol, Fuel Style, scheduled calendar,
                       and saved completion for this client — leaving them as if no
                       plan was ever assigned. Weigh-ins, workouts, fasting history,
                       and badges are kept.
@@ -774,7 +774,7 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
-              <Label>Keto Type</Label>
+              <Label>Fuel Style</Label>
               <Select
                 value={assignment.keto_type_id ?? undefined}
                 onValueChange={(v) => assignKetoMutation.mutate(v)}
