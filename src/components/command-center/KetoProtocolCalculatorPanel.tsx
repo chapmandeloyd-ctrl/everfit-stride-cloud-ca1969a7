@@ -57,10 +57,6 @@ const PROTOCOL_TAGLINES: Record<string, { pattern: string; who: string }> = {
     pattern: "16h fast / 8h eating window daily",
     who: "The standard IF workhorse — steady daily fat loss",
   },
-  "Apex Progressive Ladder": {
-    pattern: "Builds 14h → 18h over 4 weeks",
-    who: "Wants to ease in gradually without shock",
-  },
   "Apex Deep 18": {
     pattern: "18h fast / 6h eating window daily",
     who: "Already mastered 16:8 and ready for more",
