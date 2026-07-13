@@ -57,7 +57,7 @@ export function usePlanGating() {
           .gte("scheduled_date", since),
         supabase
           .from("client_feature_settings")
-          .select("fasting_enabled")
+          .select("fasting_enabled, extended_fast_24h_enabled, extended_fast_48h_enabled, extended_fast_72h_enabled, extended_fast_96h_enabled")
           .eq("client_id", clientId)
           .maybeSingle(),
       ]);
@@ -65,6 +65,12 @@ export function usePlanGating() {
       const checkins = checkinsRes.data || [];
       const workouts = workoutsRes.data || [];
       const fastingEnabled = featureRes.data?.fasting_enabled ?? true;
+      const extendedFastAccess = {
+        h24: featureRes.data?.extended_fast_24h_enabled ?? false,
+        h48: featureRes.data?.extended_fast_48h_enabled ?? false,
+        h72: featureRes.data?.extended_fast_72h_enabled ?? false,
+        h96: featureRes.data?.extended_fast_96h_enabled ?? false,
+      };
       const workoutDates = new Set(
         workouts.filter((w: any) => w.completed_at).map((w: any) => w.scheduled_date).filter(Boolean)
       );
@@ -91,7 +97,7 @@ export function usePlanGating() {
       }
 
       const avg7 = scores7.length > 0 ? scores7.reduce((a, b) => a + b, 0) / scores7.length : 0;
-      return { needsSupportDays, avg7 };
+      return { needsSupportDays, avg7, extendedFastAccess };
     },
     enabled: !!clientId,
     staleTime: 5 * 60 * 1000,
@@ -111,6 +117,7 @@ export function usePlanGating() {
     upcomingGameOrPractice: false, // could be connected to sport schedule
     overriddenPlanIds,
     currentStreak: streak?.currentStreak ?? 0,
+    extendedFastAccess: stabilityData?.extendedFastAccess,
   };
 
   function evaluatePlan(plan: PlanGatingMetadata): PlanGatingResult {

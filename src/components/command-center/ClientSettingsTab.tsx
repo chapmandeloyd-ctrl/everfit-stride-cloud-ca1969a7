@@ -750,6 +750,7 @@ export function ClientSettingsTab({ clientId, trainerId }: ClientSettingsTabProp
 
       <MaintenanceScheduleAssignment clientId={clientId} trainerId={trainerId} settings={settings} />
       <FastingStrictModeSettings settings={settings} toggleMutation={toggleMutation} />
+      <ExtendedFastingAccessSettings settings={settings} toggleMutation={toggleMutation} />
 
       {/* Dashboard Card Layout Editor */}
       <DashboardLayoutSection clientId={clientId} trainerId={trainerId} settings={settings} />
@@ -1180,6 +1181,44 @@ function DashboardLayoutSection({ clientId, trainerId, settings }: { clientId: s
           disabledCards={disabledCards}
           onSaveAsDefault={(newCards) => save({ cards: newCards, forClient: null })}
         />
+      </CardContent>
+    </Card>
+  );
+}
+
+// Extended Fasting Access — per-hour unlocks (24/48/72/96h)
+function ExtendedFastingAccessSettings({ settings, toggleMutation }: { settings: any; toggleMutation: any }) {
+  if (!settings?.fasting_enabled) return null;
+  const tiers: { key: string; label: string; hint: string }[] = [
+    { key: "extended_fast_24h_enabled", label: "24 Hour Fast", hint: "One full day" },
+    { key: "extended_fast_48h_enabled", label: "48 Hour Fast", hint: "Two day extended" },
+    { key: "extended_fast_72h_enabled", label: "72 Hour Fast", hint: "Three day extended" },
+    { key: "extended_fast_96h_enabled", label: "96 Hour Fast", hint: "Four day advanced" },
+  ];
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Shield className="h-5 w-5" />
+          Extended Fasting Access
+        </CardTitle>
+        <CardDescription>
+          Extended fasts are locked by default. Toggle on to grant this client access to advanced multi-day fasting protocols.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {tiers.map((t) => (
+          <div key={t.key} className="flex items-center justify-between py-2">
+            <div>
+              <Label className="text-sm font-medium">{t.label}</Label>
+              <p className="text-xs text-muted-foreground">{t.hint}</p>
+            </div>
+            <Switch
+              checked={(settings as any)?.[t.key] ?? false}
+              onCheckedChange={(checked) => toggleMutation.mutate({ key: t.key as any, value: checked })}
+            />
+          </div>
+        ))}
       </CardContent>
     </Card>
   );

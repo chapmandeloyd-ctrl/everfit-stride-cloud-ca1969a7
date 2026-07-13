@@ -1328,6 +1328,10 @@ export type Database = {
           eating_window_hours: number
           enforce_scheduled_start: boolean
           engine_mode: Database["public"]["Enums"]["engine_mode"]
+          extended_fast_24h_enabled: boolean
+          extended_fast_48h_enabled: boolean
+          extended_fast_72h_enabled: boolean
+          extended_fast_96h_enabled: boolean
           fast_lock_pin: string | null
           fasting_card_image_url: string | null
           fasting_card_subtitle: string
@@ -1446,6 +1450,10 @@ export type Database = {
           eating_window_hours?: number
           enforce_scheduled_start?: boolean
           engine_mode?: Database["public"]["Enums"]["engine_mode"]
+          extended_fast_24h_enabled?: boolean
+          extended_fast_48h_enabled?: boolean
+          extended_fast_72h_enabled?: boolean
+          extended_fast_96h_enabled?: boolean
           fast_lock_pin?: string | null
           fasting_card_image_url?: string | null
           fasting_card_subtitle?: string
@@ -1564,6 +1572,10 @@ export type Database = {
           eating_window_hours?: number
           enforce_scheduled_start?: boolean
           engine_mode?: Database["public"]["Enums"]["engine_mode"]
+          extended_fast_24h_enabled?: boolean
+          extended_fast_48h_enabled?: boolean
+          extended_fast_72h_enabled?: boolean
+          extended_fast_96h_enabled?: boolean
           fast_lock_pin?: string | null
           fasting_card_image_url?: string | null
           fasting_card_subtitle?: string
