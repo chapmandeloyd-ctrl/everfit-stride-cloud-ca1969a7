@@ -86,7 +86,7 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
     queryFn: async () => {
       const { data } = await supabase
         .from("keto_types")
-        .select("id, abbreviation, name, color")
+        .select("id, abbreviation, name, color, protein_pct, carbs_pct, fat_pct, subtitle, description")
         .eq("is_active", true)
         .order("order_index");
       return data || [];
@@ -712,7 +712,17 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
               <SelectTrigger><SelectValue placeholder="Choose Fuel Style…" /></SelectTrigger>
               <SelectContent>
                 {allKetoTypes?.map(k => (
-                  <SelectItem key={k.id} value={k.id}>{k.abbreviation} · {k.name}</SelectItem>
+                  <SelectItem key={k.id} value={k.id}>
+                    <div className="flex flex-col py-1">
+                      <span className="font-semibold" style={{ color: (k as any).color }}>
+                        {k.abbreviation} · {k.name}
+                      </span>
+                      <span className="text-[11px] text-muted-foreground">
+                        P {(k as any).protein_pct}% · C {(k as any).carbs_pct}% · F {(k as any).fat_pct}%
+                        {(k as any).subtitle ? ` — ${(k as any).subtitle}` : ""}
+                      </span>
+                    </div>
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -782,10 +792,30 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {allKetoTypes?.map(k => (
-                    <SelectItem key={k.id} value={k.id}>{k.abbreviation} · {k.name}</SelectItem>
+                    <SelectItem key={k.id} value={k.id}>
+                      <div className="flex flex-col py-1">
+                        <span className="font-semibold" style={{ color: (k as any).color }}>
+                          {k.abbreviation} · {k.name}
+                        </span>
+                        <span className="text-[11px] text-muted-foreground">
+                          P {(k as any).protein_pct}% · C {(k as any).carbs_pct}% · F {(k as any).fat_pct}%
+                          {(k as any).subtitle ? ` — ${(k as any).subtitle}` : ""}
+                        </span>
+                      </div>
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              {(() => {
+                const current: any = allKetoTypes?.find((k: any) => k.id === assignment.keto_type_id);
+                if (!current) return null;
+                return (
+                  <p className="text-[11px] text-muted-foreground mt-1.5">
+                    <span className="font-semibold" style={{ color: current.color }}>Macros:</span>{" "}
+                    Protein {current.protein_pct}% · Carbs {current.carbs_pct}% · Fat {current.fat_pct}%
+                  </p>
+                );
+              })()}
             </div>
             <div>
               <Label>Fasting Protocol</Label>
