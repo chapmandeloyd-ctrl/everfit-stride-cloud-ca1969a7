@@ -90,6 +90,7 @@ export default function ClientQuickPlans() {
       intensity_tier: (plan.intensity_tier as any) || "low",
       is_extended_fast: plan.is_extended_fast || false,
       is_youth_safe: plan.is_youth_safe || false,
+      fast_hours: plan.fast_hours,
     };
 
     const result = evaluatePlan(gatingMeta);
@@ -114,6 +115,7 @@ export default function ClientQuickPlans() {
       intensity_tier: (plan.intensity_tier as any) || "low",
       is_extended_fast: plan.is_extended_fast || false,
       is_youth_safe: plan.is_youth_safe || false,
+      fast_hours: plan.fast_hours,
     };
     return evaluatePlan(meta);
   }
