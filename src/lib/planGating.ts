@@ -320,6 +320,29 @@ export function evaluatePlanGating(
     };
   }
 
+  // ── Extended fast: trainer per-hour unlock toggle (24/48/72/96h)
+  if (plan.is_extended_fast && plan.fast_hours && ctx.extendedFastAccess) {
+    const map: Record<number, boolean | undefined> = {
+      24: ctx.extendedFastAccess.h24,
+      48: ctx.extendedFastAccess.h48,
+      72: ctx.extendedFastAccess.h72,
+      96: ctx.extendedFastAccess.h96,
+    };
+    const hour = plan.fast_hours;
+    if (hour in map && !map[hour]) {
+      return {
+        planId: plan.id,
+        isVisible: true,
+        isAccessible: false,
+        lockReason: "coach_approval",
+        lockMessage: `Locked — ask your trainer to unlock ${hour}-hour fasts`,
+        isCoachApproved: false,
+        isOptionalTool,
+        unlockProgress: null,
+      };
+    }
+  }
+
   // ── Metabolic: extended fast gating
   if (
     ctx.engineMode === "metabolic" &&
