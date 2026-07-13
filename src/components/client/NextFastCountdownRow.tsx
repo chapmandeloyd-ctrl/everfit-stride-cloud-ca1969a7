@@ -3,6 +3,7 @@ import { Clock, X } from "lucide-react";
 import { useScheduledFastGate } from "@/hooks/useScheduledFastGate";
 import { useStartFast } from "@/hooks/useStartFast";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -39,6 +40,21 @@ export function NextFastCountdownRow({ accent = "hsl(var(--primary))" }: { accen
   const [now, setNow] = useState<number>(() => Date.now());
   const firedRef = useRef(false);
 
+  // Read the last fast end time so we don't auto-restart a fast the user
+  // just manually ended for this scheduled window.
+  const { data: lastEnded } = useQuery({
+    queryKey: ["ncr-last-ended", clientId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("client_feature_settings")
+        .select("last_fast_ended_at")
+        .eq("client_id", clientId!)
+        .maybeSingle();
+      return (data as any)?.last_fast_ended_at as string | null;
+    },
+    enabled: !!clientId,
+  });
+
   // Tick every second while mounted
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 1000);
@@ -63,17 +79,40 @@ export function NextFastCountdownRow({ accent = "hsl(var(--primary))" }: { accen
   const inGrace = scheduledMs != null && msUntil <= 0 && msUntil > -GRACE_MS;
   const graceRemaining = inGrace ? GRACE_MS + msUntil : 0;
 
+  // Per-scheduled-moment "already auto-started" key so the mutation cannot
+  // re-fire after this component unmounts (e.g. after the user ends the
+  // fast and the card remounts).
+  const firedKey = useMemo(
+    () => (scheduledMs != null && clientId ? `autostart_fired_${clientId}_${scheduledMs}` : null),
+    [scheduledMs, clientId],
+  );
+  const alreadyFired =
+    typeof window !== "undefined" && firedKey ? window.localStorage.getItem(firedKey) === "1" : false;
+
+  // If the user manually ended a fast at/after this scheduled moment, treat
+  // that scheduled window as already handled — do NOT auto-start again.
+  const endedThisWindow = !!(
+    scheduledMs != null &&
+    lastEnded &&
+    new Date(lastEnded).getTime() >= scheduledMs
+  );
+
   // Auto-fire the mutation once when grace ends and user hasn't cancelled
   useEffect(() => {
     if (firedRef.current) return;
     if (skipped) return;
+    if (alreadyFired) return;
+    if (endedThisWindow) return;
     if (scheduledMs == null) return;
     if (!clientId) return;
     if (msUntil <= -GRACE_MS && !startFast.isPending) {
       firedRef.current = true;
+      if (typeof window !== "undefined" && firedKey) {
+        window.localStorage.setItem(firedKey, "1");
+      }
       startFast.mutate();
     }
-  }, [msUntil, skipped, startFast, scheduledMs, clientId]);
+  }, [msUntil, skipped, startFast, scheduledMs, clientId, alreadyFired, endedThisWindow, firedKey]);
 
   // Don't render at all when we have no scheduled moment (fast day, refeed, no plan)
   if (!scheduledMs || gate.state === "n/a") return null;
@@ -81,6 +120,10 @@ export function NextFastCountdownRow({ accent = "hsl(var(--primary))" }: { accen
   // Hide once we're well past the grace window (fast should now be active
   // and ActiveFastingTimer takes over the card).
   if (msUntil <= -GRACE_MS) return null;
+
+  // If the user already ended a fast for this scheduled window, hide the
+  // countdown entirely — the "next" scheduled moment is tomorrow.
+  if (endedThisWindow) return null;
 
   // Skipped state: quiet chip so the user knows we won't auto-start today
   if (skipped && !inGrace) {
