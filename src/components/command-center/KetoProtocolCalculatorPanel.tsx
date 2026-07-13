@@ -46,6 +46,43 @@ const ACTIVITY_LABEL: Record<Activity, string> = {
 };
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
+// Plain-English explanation shown inside the Fasting Protocol dropdown.
+// Keyed by protocol name so it's stable even if IDs change between envs.
+const PROTOCOL_TAGLINES: Record<string, { pattern: string; who: string }> = {
+  "Apex Kickstart 14": {
+    pattern: "14h fast / 10h eating window daily",
+    who: "Brand new to fasting — basically skip breakfast",
+  },
+  "Apex Daily 16": {
+    pattern: "16h fast / 8h eating window daily",
+    who: "The standard IF workhorse — steady daily fat loss",
+  },
+  "Apex Progressive Ladder": {
+    pattern: "Builds 14h → 18h over 4 weeks",
+    who: "Wants to ease in gradually without shock",
+  },
+  "Apex Deep 18": {
+    pattern: "18h fast / 6h eating window daily",
+    who: "Already mastered 16:8 and ready for more",
+  },
+  "Apex Weekend Extend": {
+    pattern: "16h weekdays, 20h weekends",
+    who: "Busy work week, wants deeper fasts on days off",
+  },
+  "Apex 5:2 Weekday Strict": {
+    pattern: "Strict fasts Mon–Fri, weekends free",
+    who: "Disciplined weekdays, cheat/refeed on Sat–Sun",
+  },
+  "Apex 4:3": {
+    pattern: "24h fasts × 3 non-consecutive days/week",
+    who: "Aggressive fat loss without going every day",
+  },
+  "Apex Alternate Day": {
+    pattern: "24h fast every other day",
+    who: "All-in — the hardest Apex format",
+  },
+};
+
 function weekIndexFromDateOnly(value: string): number {
   const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
   if (!m) return 0;
@@ -825,11 +862,38 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
               >
                 <SelectTrigger><SelectValue placeholder="Choose protocol…" /></SelectTrigger>
                 <SelectContent>
-                  {allProtocols?.map(p => (
-                    <SelectItem key={p.id} value={p.id}>{p.name} ({p.fast_target_hours}h)</SelectItem>
-                  ))}
+                  {allProtocols?.map(p => {
+                    const info = PROTOCOL_TAGLINES[p.name];
+                    return (
+                      <SelectItem key={p.id} value={p.id} className="py-2">
+                        <div className="flex flex-col gap-0.5 text-left">
+                          <span className="text-sm font-semibold">
+                            {p.name} <span className="text-muted-foreground font-normal">({p.fast_target_hours}h)</span>
+                          </span>
+                          {info && (
+                            <>
+                              <span className="text-[11px] text-muted-foreground leading-tight">{info.pattern}</span>
+                              <span className="text-[11px] text-primary/80 leading-tight">For: {info.who}</span>
+                            </>
+                          )}
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
+              {(() => {
+                const selected = allProtocols?.find(p => p.id === featureSettings?.selected_protocol_id);
+                if (!selected) return null;
+                const info = PROTOCOL_TAGLINES[selected.name];
+                if (!info) return null;
+                return (
+                  <p className="text-[11px] text-muted-foreground mt-1.5 leading-snug">
+                    <span className="font-semibold text-foreground/80">{info.pattern}.</span>{" "}
+                    <span className="text-primary/80">For: {info.who}</span>
+                  </p>
+                );
+              })()}
             </div>
           </div>
           <Separator />
