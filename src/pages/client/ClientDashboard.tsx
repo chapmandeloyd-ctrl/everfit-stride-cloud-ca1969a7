@@ -987,11 +987,11 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
     const fastingCardBg = fastingCardBgGoldImg;
     const fastingCardMsg = fastingSubtitle || universalFastingCard?.message || "Your fasting journey begins soon.";
     return (
-      <Card className="overflow-hidden border-primary/20 shadow-lg relative">
+      <Card className="overflow-hidden border-primary/20 shadow-lg relative bg-black">
         {fastingCardBg ? (
           <>
             <div
-              className="absolute inset-0 bg-cover bg-center"
+              className="absolute inset-0 bg-contain bg-no-repeat bg-center"
               style={{ backgroundImage: `url(${fastingCardBg})` }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
