@@ -18,7 +18,7 @@ import { useClientComputedPlan } from "@/hooks/useClientComputedPlan";
  *  - "late"   : > 60m late, allowed but flagged
  *  - "n/a"    : fast day / refeed day / no plan — no eatEnd concept
  */
-export type GateState = "off" | "early" | "ready" | "late" | "n/a";
+export type GateState = "off" | "early" | "ready" | "late" | "n/a" | "loading";
 
 const READY_LEAD_MIN = 30;   // enabled starting 30 min before scheduled
 const LATE_AFTER_MIN = 60;   // > 60 min late → "late" warning
@@ -29,6 +29,7 @@ export interface ScheduledFastGate {
   scheduledLabel: string | null;
   minutesUntil: number;      // negative = past
   countdownLabel: string;    // "2h 14m" / "42m" / "3m"
+  enforce: boolean;
 }
 
 function parseClockTo(dateBase: Date, clock: string, tz: string): Date {
@@ -157,10 +158,20 @@ export function useScheduledFastGate(): ScheduledFastGate {
   }, [clientId, scheduledAtMs, enforceRow?.schedule_timezone, tz, minutesUntil]);
 
   if (!plan) {
-    return { state: enforce ? "n/a" : "off", scheduledAt: null, scheduledLabel: null, minutesUntil: 0, countdownLabel: "" };
+    // Enforcement is on but the plan hasn't resolved yet — block starts
+    // until we know the scheduled time. Otherwise (enforcement off) start
+    // is always allowed.
+    return {
+      state: enforce ? "loading" : "off",
+      scheduledAt: null,
+      scheduledLabel: null,
+      minutesUntil: 0,
+      countdownLabel: "",
+      enforce,
+    };
   }
   if (!today || today.adFast || today.isRefeed || !scheduledAt) {
-    return { state: "n/a", scheduledAt: null, scheduledLabel: null, minutesUntil: 0, countdownLabel: "" };
+    return { state: "n/a", scheduledAt: null, scheduledLabel: null, minutesUntil: 0, countdownLabel: "", enforce };
   }
 
   if (!enforce) {
@@ -170,6 +181,7 @@ export function useScheduledFastGate(): ScheduledFastGate {
       scheduledLabel: today.eatEnd,
       minutesUntil,
       countdownLabel: formatCountdown(minutesUntil),
+      enforce,
     };
   }
 
@@ -184,5 +196,6 @@ export function useScheduledFastGate(): ScheduledFastGate {
     scheduledLabel: today.eatEnd,
     minutesUntil,
     countdownLabel: formatCountdown(minutesUntil),
+    enforce,
   };
 }

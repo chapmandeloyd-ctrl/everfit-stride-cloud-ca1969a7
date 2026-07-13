@@ -17,6 +17,22 @@ interface Props {
 export function StartFastGate({ onStart, size = "default", className }: Props) {
   const gate = useScheduledFastGate();
 
+  if (gate.state === "loading") {
+    return (
+      <div className={className}>
+        <Button
+          className="w-full h-12 text-base"
+          size={size}
+          variant="secondary"
+          disabled
+        >
+          <Lock className="h-4 w-4 mr-2" />
+          Checking schedule…
+        </Button>
+      </div>
+    );
+  }
+
   if (gate.state === "early") {
     return (
       <div className={className}>
