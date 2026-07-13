@@ -814,15 +814,17 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div>
-              <Label>Fuel Style</Label>
+        <CardContent className="space-y-6 pt-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+            <div className="space-y-2">
+              <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Fuel Style
+              </Label>
               <Select
                 value={assignment.keto_type_id ?? undefined}
                 onValueChange={(v) => assignKetoMutation.mutate(v)}
               >
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger className="h-11"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {allKetoTypes?.map(k => (
                     <SelectItem key={k.id} value={k.id}>
@@ -850,13 +852,15 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
                 );
               })()}
             </div>
-            <div>
-              <Label>Fasting Protocol</Label>
+            <div className="space-y-2">
+              <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Fasting Protocol
+              </Label>
               <Select
                 value={featureSettings?.selected_protocol_id ?? undefined}
                 onValueChange={(v) => assignProtocolMutation.mutate(v)}
               >
-                <SelectTrigger><SelectValue placeholder="Choose protocol…" /></SelectTrigger>
+                <SelectTrigger className="h-11"><SelectValue placeholder="Choose protocol…" /></SelectTrigger>
                 <SelectContent>
                   {allProtocols?.map(p => {
                     const info = PROTOCOL_TAGLINES[p.name];
