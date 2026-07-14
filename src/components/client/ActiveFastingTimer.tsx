@@ -216,7 +216,7 @@ export function ActiveFastingTimer({
         </div>
 
         {/* Ring */}
-        <div className="flex-1 flex items-center justify-center">
+        <div className="flex-1 flex items-end justify-center pb-12">
           <div className="relative" style={{ width: SIZE, height: SIZE }}>
             <svg width={SIZE} height={SIZE} className="transform -rotate-90">
               {/* Background ring */}
