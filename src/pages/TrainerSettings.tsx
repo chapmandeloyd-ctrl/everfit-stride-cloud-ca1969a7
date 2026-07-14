@@ -14,6 +14,7 @@ import { PdfBrandingEditor } from "@/components/settings/PdfBrandingEditor";
 import { ZapierWebhookCard } from "@/components/settings/ZapierWebhookCard";
 import { ConnectedAssistants } from "@/components/settings/ConnectedAssistants";
 import { TrainerizeTestCard } from "@/components/settings/TrainerizeTestCard";
+import { TrainerizeSyncClientsCard } from "@/components/settings/TrainerizeSyncClientsCard";
 import { useState } from "react";
 
 export default function TrainerSettings() {
@@ -104,6 +105,7 @@ export default function TrainerSettings() {
         <ConnectedAssistants />
 
         <TrainerizeTestCard />
+        <TrainerizeSyncClientsCard />
       </div>
 
       <AddCardioActivityDialog
