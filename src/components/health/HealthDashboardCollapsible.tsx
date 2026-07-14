@@ -1,9 +1,9 @@
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Heart, ChevronDown, ChevronUp } from "lucide-react";
+import { Heart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { MyProgressSection } from "@/components/MyProgressSection";
+import { CollapsibleTile } from "@/components/client/CollapsibleTile";
 
 interface Props {
   clientId: string;
@@ -20,7 +20,6 @@ interface MetricSnapshot {
  * Tap to expand → full MyProgressSection (AI Snapshot, Manual Tracking, all tiles).
  */
 export function HealthDashboardCollapsible({ clientId }: Props) {
-  const [open, setOpen] = useState(false);
   const { user, loading } = useAuth();
 
   const { data: metrics } = useQuery({
@@ -59,46 +58,14 @@ export function HealthDashboardCollapsible({ clientId }: Props) {
       : "-- cal";
 
   return (
-    <div className="space-y-3">
-      {/* Section heading + description (matches Smart Weight Tracker treatment) */}
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight">Health Dashboard</h2>
-        <p className="text-muted-foreground">
-          Track your weight, steps, sleep, calories, and workouts in one place.
-        </p>
-      </div>
-
-      {open ? (
-        <div className="space-y-2">
-          <MyProgressSection clientId={clientId} />
-          <button
-            onClick={() => setOpen(false)}
-            className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-muted/40 hover:bg-muted/60 ring-1 ring-border py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground transition"
-          >
-            <ChevronUp className="h-3.5 w-3.5" />
-            Hide details
-          </button>
-        </div>
-      ) : (
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="w-full flex items-center gap-3 rounded-2xl border border-border bg-card p-3 text-left transition hover:bg-muted/40 active:scale-[0.995]"
-        >
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-500/10">
-            <Heart className="h-5 w-5 text-red-500" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <span className="text-xs font-bold uppercase tracking-wide text-foreground">
-              Health Dashboard
-            </span>
-            <p className="text-sm text-muted-foreground truncate">
-              {steps} steps · {sleep} sleep · {calories}
-            </p>
-          </div>
-          <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
-        </button>
-      )}
-    </div>
+    <CollapsibleTile
+      icon={Heart}
+      title="Health Dashboard"
+      summary={`${steps} steps · ${sleep} sleep · ${calories}`}
+      iconTone="danger"
+      storageKey="health-dashboard"
+    >
+      <MyProgressSection clientId={clientId} />
+    </CollapsibleTile>
   );
 }
