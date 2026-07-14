@@ -2,7 +2,39 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { lazy, Suspense } from "react";
+import { lazy as reactLazy, Suspense, type ComponentType } from "react";
+
+/**
+ * Wraps React.lazy so that a stale HTML bundle referencing old JS hashes
+ * (after a redeploy) triggers a one-time hard reload instead of rendering
+ * a permanently blank screen.
+ */
+const CHUNK_RELOAD_KEY = "chunk-reload-attempted";
+function lazy<T extends ComponentType<any>>(factory: () => Promise<{ default: T }>) {
+  return reactLazy(() =>
+    factory().catch((err: unknown) => {
+      const msg = err instanceof Error ? `${err.name} ${err.message}` : String(err);
+      const isChunkError =
+        /ChunkLoadError|Loading chunk|Failed to fetch dynamically imported module|Importing a module script failed|error loading dynamically imported module/i.test(
+          msg,
+        );
+      if (isChunkError && typeof window !== "undefined") {
+        try {
+          if (!sessionStorage.getItem(CHUNK_RELOAD_KEY)) {
+            sessionStorage.setItem(CHUNK_RELOAD_KEY, "1");
+            window.location.reload();
+            // Return a never-resolving promise so Suspense keeps its fallback
+            // until the reload actually happens.
+            return new Promise<{ default: T }>(() => {});
+          }
+        } catch {
+          // sessionStorage may throw in privacy modes — fall through and rethrow.
+        }
+      }
+      throw err;
+    }),
+  );
+}
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import ScrollToTop from "./components/ScrollToTop";
 import AuthTransitionOverlay from "./components/AuthTransitionOverlay";
