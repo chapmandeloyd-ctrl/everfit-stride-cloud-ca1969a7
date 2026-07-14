@@ -157,13 +157,13 @@ export function ActiveFastingTimer({
 
   return (
     <div className="relative w-full min-h-[85vh] flex flex-col overflow-hidden rounded-none">
-      {/* Background */}
+      {/* Background — lion anchored to top so the timer ring sits just below it */}
       <div className="absolute inset-0 bg-black">
-        <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
+        <div className="absolute inset-x-0 top-0 flex justify-center overflow-hidden" style={{ height: "70%" }}>
           <img
             src={fastingTimerBg}
             alt=""
-            className="h-full w-full object-cover scale-[1.75]"
+            className="h-full w-full object-cover object-top scale-[1.35]"
           />
         </div>
       </div>
