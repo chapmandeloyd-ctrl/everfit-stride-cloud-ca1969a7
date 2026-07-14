@@ -1057,8 +1057,8 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
             className="pointer-events-none absolute inset-0 bg-no-repeat opacity-60 select-none"
             style={{
               backgroundImage: `url(${fastingCardBgGoldImg})`,
-              backgroundPosition: "50% -58px",
-              backgroundSize: "118% auto",
+              backgroundPosition: "50% 78%",
+              backgroundSize: "70% auto",
             }}
           />
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-b from-transparent to-black" />
