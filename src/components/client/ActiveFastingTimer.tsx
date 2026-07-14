@@ -163,7 +163,7 @@ export function ActiveFastingTimer({
           <img
             src={fastingTimerBg}
             alt=""
-            className="h-full w-full object-cover scale-[1.45]"
+            className="h-full w-full object-cover scale-[1.75]"
           />
         </div>
       </div>
