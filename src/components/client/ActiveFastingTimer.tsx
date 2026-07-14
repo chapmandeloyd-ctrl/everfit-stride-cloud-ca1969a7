@@ -159,11 +159,13 @@ export function ActiveFastingTimer({
     <div className="relative w-full min-h-[85vh] flex flex-col overflow-hidden rounded-none">
       {/* Background */}
       <div className="absolute inset-0 bg-black">
-        <img
-          src={fastingTimerBg}
-          alt=""
-          className="absolute inset-0 h-full w-full object-cover"
-        />
+        <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
+          <img
+            src={fastingTimerBg}
+            alt=""
+            className="h-full w-full object-cover scale-[1.45]"
+          />
+        </div>
       </div>
       <div className="absolute inset-0 bg-black/45" />
 
