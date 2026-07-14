@@ -136,6 +136,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
   // outside of our mutations (e.g. via another tab).
   const [showAssignedProgramSheet, setShowAssignedProgramSheet] = useState(false);
   const [showWhatCanIDrink, setShowWhatCanIDrink] = useState(false);
+  const [programInfoOpen, setProgramInfoOpen] = useState(false);
   const [showCoachWaitLock, setShowCoachWaitLock] = useState(false);
   const [eatingWindowSheetIntent, setEatingWindowSheetIntent] = useState<"end_window" | "choose_next_fast">("end_window");
   const liveActivity = useLiveActivity();
