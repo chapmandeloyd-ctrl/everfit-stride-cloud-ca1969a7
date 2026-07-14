@@ -144,7 +144,7 @@ export function FastingTimer({ fastStartAt, targetHours, now, demoProgress, comp
             src={centerImageSrc}
             alt=""
             aria-hidden="true"
-            className="pointer-events-none absolute left-1/2 top-1/2 z-0 h-[68%] w-[68%] -translate-x-1/2 -translate-y-1/2 object-contain opacity-85 select-none"
+            className="pointer-events-none absolute left-1/2 top-1/2 z-0 h-[130%] w-[130%] -translate-x-1/2 -translate-y-1/2 object-contain opacity-90 select-none"
           />
         )}
         <svg width={size} height={size} className="relative z-10">
