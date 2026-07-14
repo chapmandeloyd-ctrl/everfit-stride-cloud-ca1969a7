@@ -24,6 +24,7 @@ interface FastingTimerProps {
   now: Date;
   demoProgress?: number; // 0-1 override for demo mode
   compact?: boolean;
+  centerImageSrc?: string;
 }
 
 // Helper: create an SVG arc path for a segment of a circle
@@ -39,7 +40,7 @@ function describeArc(cx: number, cy: number, r: number, startDeg: number, endDeg
   return `M ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2}`;
 }
 
-export function FastingTimer({ fastStartAt, targetHours, now, demoProgress, compact = false }: FastingTimerProps) {
+export function FastingTimer({ fastStartAt, targetHours, now, demoProgress, compact = false, centerImageSrc }: FastingTimerProps) {
   const fastStart = new Date(fastStartAt);
   const fastEnd = new Date(fastStart.getTime() + targetHours * 3600000);
   const elapsed = now.getTime() - fastStart.getTime();
@@ -138,7 +139,15 @@ export function FastingTimer({ fastStartAt, targetHours, now, demoProgress, comp
 
       {/* Timer Ring */}
       <div className="relative shrink-0" style={{ width: size, height: size }}>
-        <svg width={size} height={size}>
+        {centerImageSrc && (
+          <img
+            src={centerImageSrc}
+            alt=""
+            aria-hidden="true"
+            className="pointer-events-none absolute left-1/2 top-1/2 z-0 h-[68%] w-[68%] -translate-x-1/2 -translate-y-1/2 object-contain opacity-85 select-none"
+          />
+        )}
+        <svg width={size} height={size} className="relative z-10">
           {/* Background track */}
           <circle
             cx={cx} cy={cy} r={radius}
