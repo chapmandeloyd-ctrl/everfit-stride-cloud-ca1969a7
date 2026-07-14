@@ -16,7 +16,7 @@ import { emitActivityEvent } from "@/lib/activityEvents";
 import { useClientFeatureSettings } from "@/hooks/useClientFeatureSettings";
 import { useEngineMode } from "@/hooks/useEngineMode";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+
 import {
   AlertDialog,
   AlertDialogAction,
