@@ -1049,18 +1049,8 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
           </div>
         )}
         <h2 className="text-lg font-bold text-foreground px-1">KSOM-360 Fasting Timer</h2>
-        <Card className="overflow-hidden border-0 shadow-lg relative">
-        {/* Lion card background */}
-        <div
-          className="absolute inset-0 bg-center bg-no-repeat"
-          style={{
-            backgroundImage: `url(${fastingCardBgGoldImg})`,
-            backgroundSize: "160%",
-            filter: "brightness(0.95)",
-          }}
-        />
-        {/* Dark overlay for text readability */}
-        <div className="absolute inset-0 bg-black/60" />
+        <Card className="overflow-hidden border-0 shadow-lg relative bg-black">
+        <div className="absolute inset-0 bg-black" />
           <CardContent className="relative z-10 space-y-3 px-4 pt-4 pb-4 text-white sm:px-5">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 space-y-1">
@@ -1115,7 +1105,16 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
             {isMaintenanceMode && <Badge variant="secondary" className="text-xs">Maintenance</Badge>}
           </div>
 
-          <div className="flex justify-center overflow-hidden">
+          <div className="relative -mx-4 mt-2 h-[180px] overflow-hidden sm:-mx-5 sm:h-[220px]">
+            <img
+              src={fastingCardBgGoldImg}
+              alt=""
+              className="absolute inset-x-0 top-0 h-full w-full object-contain object-top scale-[1.3] opacity-90"
+            />
+            <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-b from-transparent to-black" />
+          </div>
+
+          <div className="-mt-2 flex justify-center overflow-hidden">
               <FastingTimer
                 fastStartAt={featureSettings.active_fast_start_at!}
                 targetHours={featureSettings.active_fast_target_hours!}
