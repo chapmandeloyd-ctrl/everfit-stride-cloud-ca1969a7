@@ -3,7 +3,7 @@ import fastingCardBgGoldImg from "@/assets/fasting-timer-bg.png";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Bell, Dumbbell, CheckCircle2, Circle, UtensilsCrossed, Footprints, ChevronRight, Smartphone, X, Plus, Pencil, Swords, Trophy, MapPin, Check, Activity, ScanBarcode, Camera, PenLine, MessageCircle, Clock, ArrowRight, CalendarDays, BarChart3, Shield, Droplet, Sparkles } from "lucide-react";
+import { Bell, Dumbbell, CheckCircle2, Circle, UtensilsCrossed, Footprints, ChevronRight, ChevronDown, Smartphone, X, Plus, Pencil, Swords, Trophy, MapPin, Check, Activity, ScanBarcode, Camera, PenLine, MessageCircle, Clock, ArrowRight, CalendarDays, BarChart3, Shield, Droplet, Sparkles } from "lucide-react";
 import { getDifficultyLabel, getDurationLabel } from "@/lib/fastingCategoryConfig";
 import { useAuth } from "@/hooks/useAuth";
 import { differenceInCalendarDays, isToday, isBefore, startOfDay, parseISO, format } from "date-fns";
@@ -16,6 +16,7 @@ import { emitActivityEvent } from "@/lib/activityEvents";
 import { useClientFeatureSettings } from "@/hooks/useClientFeatureSettings";
 import { useEngineMode } from "@/hooks/useEngineMode";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   AlertDialog,
   AlertDialogAction,
