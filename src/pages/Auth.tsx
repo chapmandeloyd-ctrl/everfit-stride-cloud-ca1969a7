@@ -131,9 +131,14 @@ export default function Auth() {
           <h1 className="text-3xl font-bold text-foreground tracking-tight">APEX360-IF</h1>
           <p className="text-muted-foreground mt-1 text-sm">APEX360-IF Fitness Coaching Platform</p>
           <p className="text-foreground text-xs font-semibold tracking-wider mt-2 uppercase">
-            YOU ARE <span className="line-through text-muted-foreground">WHAT</span>{" "}
+            YOU ARE{" "}
+            <span className="relative inline-block px-0.5">
+              WHAT
+              <span className="absolute left-[-2px] right-[-2px] top-1/2 -translate-y-1/2 h-[3px] bg-destructive rounded-full rotate-[-3deg]" />
+            </span>{" "}
             <span className="text-primary">WHEN</span> YOU EAT
           </p>
+
 
 
         </div>
