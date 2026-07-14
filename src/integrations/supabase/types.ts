@@ -7221,6 +7221,7 @@ export type Database = {
           subscription_renews_at: string | null
           subscription_status: string | null
           subscription_tier: Database["public"]["Enums"]["subscription_tier"]
+          trainerize_user_id: number | null
           updated_at: string
           zapier_webhook_url: string | null
         }
@@ -7241,6 +7242,7 @@ export type Database = {
           subscription_renews_at?: string | null
           subscription_status?: string | null
           subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
+          trainerize_user_id?: number | null
           updated_at?: string
           zapier_webhook_url?: string | null
         }
@@ -7261,6 +7263,7 @@ export type Database = {
           subscription_renews_at?: string | null
           subscription_status?: string | null
           subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
+          trainerize_user_id?: number | null
           updated_at?: string
           zapier_webhook_url?: string | null
         }
