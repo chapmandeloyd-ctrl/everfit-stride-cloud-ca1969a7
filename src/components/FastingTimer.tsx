@@ -122,6 +122,20 @@ export function FastingTimer({ fastStartAt, targetHours, now, demoProgress, comp
 
   return (
     <div className={cn("flex w-full flex-col items-center", compact ? "gap-2" : "") }>
+      {/* Elapsed time — ABOVE ring (lion fills the ring center) */}
+      <div className="flex flex-col items-center">
+        <span className={cn(
+          "font-bold tabular-nums tracking-tight text-white drop-shadow-lg",
+          compact ? "text-[2.25rem] leading-none" : "text-4xl leading-none"
+        )}>{timeStr}</span>
+        <span className={cn(
+          "mt-1 font-bold uppercase tracking-wider text-white/80",
+          compact ? "text-[9px]" : "text-[10px]"
+        )}>
+          Elapsed ({elapsedPct}%)
+        </span>
+      </div>
+
       {/* Timer Ring */}
       <div className="relative shrink-0" style={{ width: size, height: size }}>
         <svg width={size} height={size}>
@@ -211,30 +225,29 @@ export function FastingTimer({ fastStartAt, targetHours, now, demoProgress, comp
             </div>
           );
         })}
+      </div>
 
-        {/* Center content */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className={cn(compact ? "mb-0 text-lg" : "mb-0.5 text-xl")}>{currentStage.icon}</span>
-          <span
-            className={cn(
-              "font-medium uppercase tracking-wide",
-              compact ? "text-[8px]" : "text-[9px]"
-            )}
-            style={{ color: currentStage.color }}
-          >
-            {currentStage.label}
-          </span>
-          <span className={cn(
-            "font-bold tabular-nums tracking-tight text-white drop-shadow-lg",
-            compact ? "mt-0.5 text-[2rem] leading-none" : "mt-0.5 text-2xl"
-          )}>{timeStr}</span>
-          <span className={cn(
-            "font-bold uppercase tracking-wider text-white/80",
-            compact ? "mt-1 text-[9px]" : "mt-0.5 text-[10px]"
-          )}>
-            Elapsed ({elapsedPct}%)
-          </span>
-        </div>
+      {/* Stage pill — BELOW ring */}
+      <div
+        className={cn(
+          "mt-3 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5",
+          "bg-black/40 backdrop-blur-sm"
+        )}
+        style={{
+          borderColor: `${currentStage.color}66`,
+          boxShadow: `0 0 12px ${currentStage.color}40`,
+        }}
+      >
+        <span className={compact ? "text-sm" : "text-base"}>{currentStage.icon}</span>
+        <span
+          className={cn(
+            "font-bold uppercase tracking-wider",
+            compact ? "text-[10px]" : "text-[11px]"
+          )}
+          style={{ color: currentStage.color }}
+        >
+          {currentStage.label}
+        </span>
       </div>
 
       {/* Start / Goal timestamps */}
