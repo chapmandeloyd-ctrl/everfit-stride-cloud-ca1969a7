@@ -102,6 +102,8 @@ export default function TrainerSettings() {
         <OnboardingPreviewSection />
 
         <ConnectedAssistants />
+
+        <TrainerizeTestCard />
       </div>
 
       <AddCardioActivityDialog
