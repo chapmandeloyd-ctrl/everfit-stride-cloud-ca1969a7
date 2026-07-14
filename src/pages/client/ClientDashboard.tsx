@@ -1051,16 +1051,6 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
         <h2 className="text-lg font-bold text-foreground px-1">KSOM-360 Fasting Timer</h2>
         <Card className="overflow-hidden border-0 shadow-lg relative bg-black">
         <div className="absolute inset-0 bg-black" />
-          {/* Lion background wash — smaller, higher crop to match the dashboard card */}
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 bg-no-repeat opacity-60 select-none"
-            style={{
-              backgroundImage: `url(${fastingCardBgGoldImg})`,
-              backgroundPosition: "50% 78%",
-              backgroundSize: "70% auto",
-            }}
-          />
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-b from-transparent to-black" />
           <CardContent className="relative z-10 space-y-3 px-4 pt-4 pb-4 text-white sm:px-5">
           <div className="flex items-start justify-between gap-3">
@@ -1122,6 +1112,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                 targetHours={featureSettings.active_fast_target_hours!}
                 now={now}
                 compact
+                centerImageSrc={fastingCardBgGoldImg}
               />
           </div>
 
