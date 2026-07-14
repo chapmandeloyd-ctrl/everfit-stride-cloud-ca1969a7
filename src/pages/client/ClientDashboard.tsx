@@ -1056,7 +1056,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
             src={fastingCardBgGoldImg}
             alt=""
             aria-hidden="true"
-            className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center opacity-70 select-none"
+            className="pointer-events-none absolute inset-x-0 -top-[22%] h-[122%] w-full object-cover object-top opacity-70 select-none"
           />
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-b from-transparent to-black" />
           <CardContent className="relative z-10 space-y-3 px-4 pt-4 pb-4 text-white sm:px-5">
