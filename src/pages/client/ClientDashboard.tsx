@@ -1116,7 +1116,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
             {isMaintenanceMode && <Badge variant="secondary" className="text-xs">Maintenance</Badge>}
           </div>
 
-          <div className="!mt-36 flex justify-center overflow-hidden">
+          <div className="!mt-24 flex justify-center overflow-hidden">
               <FastingTimer
                 fastStartAt={featureSettings.active_fast_start_at!}
                 targetHours={featureSettings.active_fast_target_hours!}
