@@ -1,21 +1,23 @@
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { getMilestoneBanner, getNextMilestone } from "@/lib/fastingMilestones";
+import { useState } from "react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 
-// Fasting stages with hour thresholds, icons, and arc colors
+// Fasting stages with hour thresholds, icons, arc colors, and benefits
 const FASTING_STAGES = [
-  { hour: 0, label: "Anabolic", icon: "🔴", description: "Blood sugar rises", color: "#ef4444" },
-  { hour: 2, label: "Catabolic", icon: "🟠", description: "Insulin drops", color: "#f97316" },
-  { hour: 4, label: "Post-Absorptive", icon: "🟡", description: "Blood sugar falls", color: "#eab308" },
-  { hour: 8, label: "Gluconeogenesis", icon: "🟢", description: "Glucose from non-carbs", color: "#22c55e" },
-  { hour: 12, label: "Metabolic Shift", icon: "🔵", description: "Fat burning begins", color: "#3b82f6" },
-  { hour: 14, label: "Partial Ketosis", icon: "🟣", description: "Ketone production", color: "#8b5cf6" },
-  { hour: 16, label: "Fat Burning", icon: "🔥", description: "Autophagy starts", color: "#f43f5e" },
-  { hour: 18, label: "Growth Hormone", icon: "💪", description: "HGH increases", color: "#ec4899" },
-  { hour: 24, label: "Autophagy", icon: "♻️", description: "Cell renewal", color: "#06b6d4" },
-  { hour: 36, label: "Renewal", icon: "✨", description: "Deep autophagy", color: "#14b8a6" },
-  { hour: 48, label: "Immune Reset", icon: "🛡️", description: "Immune renewal", color: "#a855f7" },
-  { hour: 72, label: "Stem Cells", icon: "🧬", description: "Stem cell regeneration", color: "#6366f1" },
+  { hour: 0, label: "Anabolic", icon: "🔴", description: "Blood sugar rises", color: "#ef4444", benefits: ["Insulin is released to shuttle glucose into cells", "Body begins digesting and absorbing nutrients", "Energy from food is being stored as glycogen and fat"] },
+  { hour: 2, label: "Catabolic", icon: "🟠", description: "Insulin drops", color: "#f97316", benefits: ["Insulin levels start declining", "Body shifts from storing to maintaining energy", "Digestive system starts resting"] },
+  { hour: 4, label: "Post-Absorptive", icon: "🟡", description: "Blood sugar falls", color: "#eab308", benefits: ["Blood sugar returns to baseline levels", "Body begins tapping into glycogen reserves", "Growth hormone secretion begins to increase"] },
+  { hour: 8, label: "Gluconeogenesis", icon: "🟢", description: "Glucose from non-carbs", color: "#22c55e", benefits: ["Liver converts amino acids and glycerol into glucose", "Glycogen stores are being depleted", "Metabolic flexibility improves as body adapts"] },
+  { hour: 12, label: "Metabolic Shift", icon: "🔵", description: "Fat burning begins", color: "#3b82f6", benefits: ["Glycogen stores are significantly depleted", "Body switches primary fuel source to fat", "Ketone production begins at low levels", "Inflammation markers start to decrease"] },
+  { hour: 14, label: "Partial Ketosis", icon: "🟣", description: "Ketone production", color: "#8b5cf6", benefits: ["Brain begins using ketones for fuel", "Mental clarity and focus often improve", "Fat oxidation rate increases significantly"] },
+  { hour: 16, label: "Fat Burning", icon: "🔥", description: "Autophagy starts", color: "#f43f5e", benefits: ["Autophagy (cellular cleanup) is activated", "Damaged proteins and organelles are recycled", "Anti-aging pathways are stimulated", "Deep fat burning is in full effect"] },
+  { hour: 18, label: "Growth Hormone", icon: "💪", description: "HGH increases", color: "#ec4899", benefits: ["HGH levels can increase up to 5x baseline", "Muscle preservation is enhanced", "Fat metabolism is accelerated", "Tissue repair and recovery improve"] },
+  { hour: 24, label: "Autophagy", icon: "♻️", description: "Cell renewal", color: "#06b6d4", benefits: ["Autophagy reaches significant levels", "Intestinal stem cells begin regenerating", "Old immune cells are cleared out", "Inflammation is markedly reduced"] },
+  { hour: 36, label: "Renewal", icon: "✨", description: "Deep autophagy", color: "#14b8a6", benefits: ["Gut lining repair and regeneration accelerates", "BDNF (brain-derived neurotrophic factor) increases", "Neuroplasticity and cognitive function are enhanced", "Cellular waste removal reaches peak efficiency"] },
+  { hour: 48, label: "Immune Reset", icon: "🛡️", description: "Immune renewal", color: "#a855f7", benefits: ["Old white blood cells are recycled", "Immune system begins generating fresh cells", "Stem cell-based regeneration is activated", "Significant reduction in oxidative stress"] },
+  { hour: 72, label: "Stem Cells", icon: "🧬", description: "Stem cell regeneration", color: "#6366f1", benefits: ["Immune system is substantially renewed", "Stem cell production increases dramatically", "IGF-1 levels drop, promoting longevity pathways", "Complete metabolic reset is achieved"] },
 ];
 
 interface FastingTimerProps {
@@ -41,6 +43,7 @@ function describeArc(cx: number, cy: number, r: number, startDeg: number, endDeg
 }
 
 export function FastingTimer({ fastStartAt, targetHours, now, demoProgress, compact = false, centerImageSrc }: FastingTimerProps) {
+  const [stageSheetOpen, setStageSheetOpen] = useState(false);
   const fastStart = new Date(fastStartAt);
   const fastEnd = new Date(fastStart.getTime() + targetHours * 3600000);
   const elapsed = now.getTime() - fastStart.getTime();
@@ -236,11 +239,14 @@ export function FastingTimer({ fastStartAt, targetHours, now, demoProgress, comp
         })}
       </div>
 
-      {/* Stage pill — BELOW ring */}
-      <div
+      {/* Stage pill — BELOW ring (tap to view benefits) */}
+      <button
+        type="button"
+        onClick={() => setStageSheetOpen(true)}
+        aria-label={`View benefits of ${currentStage.label} stage`}
         className={cn(
           "mt-3 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5",
-          "bg-black/40 backdrop-blur-sm"
+          "bg-black/40 backdrop-blur-sm transition-transform active:scale-95 hover:brightness-110"
         )}
         style={{
           borderColor: `${currentStage.color}66`,
@@ -257,7 +263,59 @@ export function FastingTimer({ fastStartAt, targetHours, now, demoProgress, comp
         >
           {currentStage.label}
         </span>
-      </div>
+        <span className="text-[9px] font-semibold uppercase tracking-wider text-white/50">
+          Tap ⓘ
+        </span>
+      </button>
+
+      <Sheet open={stageSheetOpen} onOpenChange={setStageSheetOpen}>
+        <SheetContent
+          side="bottom"
+          className="max-h-[85vh] overflow-y-auto rounded-t-2xl border-t-0 bg-background"
+          style={{ boxShadow: `0 -8px 40px ${currentStage.color}55` }}
+        >
+          <SheetHeader className="text-left">
+            <div className="flex items-center gap-3">
+              <div
+                className="flex h-12 w-12 items-center justify-center rounded-full text-2xl"
+                style={{
+                  backgroundColor: `${currentStage.color}20`,
+                  boxShadow: `0 0 0 2px ${currentStage.color}55`,
+                }}
+              >
+                {currentStage.icon}
+              </div>
+              <div className="flex-1">
+                <SheetTitle style={{ color: currentStage.color }}>
+                  {currentStage.label}
+                </SheetTitle>
+                <SheetDescription>
+                  {currentStage.hour}h+ • {currentStage.description}
+                </SheetDescription>
+              </div>
+            </div>
+          </SheetHeader>
+          <div className="mt-5">
+            <h4 className="mb-3 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              What's happening in your body
+            </h4>
+            <ul className="space-y-2.5">
+              {currentStage.benefits.map((benefit, i) => (
+                <li key={i} className="flex items-start gap-2.5">
+                  <span
+                    className="mt-1.5 h-2 w-2 shrink-0 rounded-full"
+                    style={{ backgroundColor: currentStage.color }}
+                  />
+                  <p className="text-sm leading-relaxed text-foreground/90">{benefit}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <p className="mt-6 rounded-lg bg-muted/40 px-3 py-2 text-[11px] italic text-muted-foreground">
+            Your body moves through each stage automatically as your fast progresses.
+          </p>
+        </SheetContent>
+      </Sheet>
 
       {/* Start / Goal timestamps */}
       <div className={cn("grid w-full grid-cols-2", compact ? "mt-1 gap-2" : "mt-5 gap-3")}>
