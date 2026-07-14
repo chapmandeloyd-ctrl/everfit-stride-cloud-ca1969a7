@@ -1505,7 +1505,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
           className="absolute inset-0 bg-center bg-no-repeat"
           style={{
             backgroundImage: `url(${fastingCardBg})`,
-            backgroundSize: "150%",
+            backgroundSize: "180%",
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/60 to-black/40" />
