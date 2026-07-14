@@ -1502,8 +1502,11 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
       <Card className="overflow-hidden border-0 shadow-lg relative">
         {/* Hybrid background: photo + animated keto color wash */}
         <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${fastingCardBg})` }}
+          className="absolute inset-0 bg-center bg-no-repeat"
+          style={{
+            backgroundImage: `url(${fastingCardBg})`,
+            backgroundSize: "150%",
+          }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/60 to-black/40" />
         <div
