@@ -13,6 +13,7 @@ import { DefaultDashboardLayoutEditor } from "@/components/settings/DefaultDashb
 import { PdfBrandingEditor } from "@/components/settings/PdfBrandingEditor";
 import { ZapierWebhookCard } from "@/components/settings/ZapierWebhookCard";
 import { ConnectedAssistants } from "@/components/settings/ConnectedAssistants";
+import { TrainerizeTestCard } from "@/components/settings/TrainerizeTestCard";
 import { useState } from "react";
 
 export default function TrainerSettings() {
@@ -101,6 +102,8 @@ export default function TrainerSettings() {
         <OnboardingPreviewSection />
 
         <ConnectedAssistants />
+
+        <TrainerizeTestCard />
       </div>
 
       <AddCardioActivityDialog
