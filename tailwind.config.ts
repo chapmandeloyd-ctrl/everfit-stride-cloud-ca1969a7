@@ -161,6 +161,8 @@ export default {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "collapsible-down": "collapsible-down 0.2s ease-out",
+        "collapsible-up": "collapsible-up 0.2s ease-out",
         "vibes-sway": "vibes-sway 1.2s ease-in-out infinite",
         "fade-in": "fade-in 0.35s ease-out",
         "tap-hint-pulse": "tap-hint-pulse 2.4s ease-in-out infinite",
