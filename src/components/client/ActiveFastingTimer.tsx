@@ -156,18 +156,8 @@ export function ActiveFastingTimer({
   }, []);
 
   return (
-    <div className="relative w-full min-h-[85vh] flex flex-col overflow-hidden rounded-none">
-      {/* Background — lion anchored to top so the timer ring sits just below it */}
-      <div className="absolute inset-0 bg-black">
-        <div className="absolute inset-x-0 top-0 flex justify-center overflow-hidden" style={{ height: "42%" }}>
-          <img
-            src={fastingTimerBg}
-            alt=""
-            className="h-full w-full object-contain object-top scale-[1.15]"
-          />
-        </div>
-      </div>
-      <div className="absolute inset-0 bg-black/45" />
+    <div className="relative w-full min-h-[85vh] flex flex-col overflow-hidden rounded-none bg-black">
+      <div className="absolute inset-0 bg-black/25" />
 
       {/* Content */}
       <div className="relative z-10 flex flex-col flex-1 px-5 pt-5 pb-6">
@@ -215,8 +205,18 @@ export function ActiveFastingTimer({
           )}
         </div>
 
+        {/* Lion visual — separate from the timer so the ring sits below it */}
+        <div className="relative -mx-5 mt-2 h-[210px] overflow-hidden sm:h-[240px]">
+          <img
+            src={fastingTimerBg}
+            alt=""
+            className="absolute inset-x-0 top-0 h-full w-full object-contain object-top scale-[1.28] opacity-85"
+          />
+          <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-b from-transparent to-black" />
+        </div>
+
         {/* Ring */}
-        <div className="flex-1 flex items-end justify-center pb-0">
+        <div className="flex justify-center -mt-3 pb-0">
           <div className="relative" style={{ width: SIZE, height: SIZE }}>
             <svg width={SIZE} height={SIZE} className="transform -rotate-90">
               {/* Background ring */}
