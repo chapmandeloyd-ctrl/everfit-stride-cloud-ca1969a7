@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
 const GRACE_MS = 5 * 60 * 1000;
+const AUTO_START_CUTOFF_MS = 30 * 60 * 1000;
 
 function fmt(ms: number): string {
   const total = Math.max(0, Math.floor(ms / 1000));
@@ -78,6 +79,7 @@ export function NextFastCountdownRow({ accent = "hsl(var(--primary))" }: { accen
   const msUntil = scheduledMs != null ? scheduledMs - now : Number.POSITIVE_INFINITY;
   const inGrace = scheduledMs != null && msUntil <= 0 && msUntil > -GRACE_MS;
   const graceRemaining = inGrace ? GRACE_MS + msUntil : 0;
+  const withinAutoStartWindow = scheduledMs != null && msUntil <= -GRACE_MS && msUntil >= -AUTO_START_CUTOFF_MS;
 
   // Per-scheduled-moment "already auto-started" key so the mutation cannot
   // re-fire after this component unmounts (e.g. after the user ends the
@@ -105,21 +107,21 @@ export function NextFastCountdownRow({ accent = "hsl(var(--primary))" }: { accen
     if (endedThisWindow) return;
     if (scheduledMs == null) return;
     if (!clientId) return;
-    if (msUntil <= -GRACE_MS && !startFast.isPending) {
+    if (withinAutoStartWindow && !startFast.isPending) {
       firedRef.current = true;
       if (typeof window !== "undefined" && firedKey) {
         window.localStorage.setItem(firedKey, "1");
       }
       startFast.mutate();
     }
-  }, [msUntil, skipped, startFast, scheduledMs, clientId, alreadyFired, endedThisWindow, firedKey]);
+  }, [withinAutoStartWindow, skipped, startFast, scheduledMs, clientId, alreadyFired, endedThisWindow, firedKey]);
 
   // Don't render at all when we have no scheduled moment (fast day, refeed, no plan)
   if (!scheduledMs || gate.state === "n/a") return null;
 
   // Hide once we're well past the grace window (fast should now be active
   // and ActiveFastingTimer takes over the card).
-  if (msUntil <= -GRACE_MS) return null;
+  if (msUntil <= -AUTO_START_CUTOFF_MS) return null;
 
   // If the user already ended a fast for this scheduled window, hide the
   // countdown entirely — the "next" scheduled moment is tomorrow.
