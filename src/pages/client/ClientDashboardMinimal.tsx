@@ -78,7 +78,7 @@ export default function ClientDashboardMinimal() {
     queryFn: async () => {
       const { data } = await supabase
         .from("daily_journal_entries")
-        .select("mood_emoji, quick_note")
+        .select("mood, note")
         .eq("client_id", clientId!)
         .eq("entry_date", today)
         .maybeSingle();
@@ -137,8 +137,10 @@ export default function ClientDashboardMinimal() {
                 : { label: "Open", tone: "warning" }
             }
             summary={
-              journalSummary?.quick_note
-                ? `${journalSummary.mood_emoji ?? "🙂"} ${journalSummary.quick_note}`
+              journalSummary?.note
+                ? `${journalSummary.mood ?? "🙂"} ${journalSummary.note}`
+                : journalSummary?.mood
+                ? `${journalSummary.mood} · logged today`
                 : "How was your day?"
             }
           >
