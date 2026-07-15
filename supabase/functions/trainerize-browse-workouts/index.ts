@@ -179,6 +179,36 @@ Deno.serve(async (req) => {
       });
     }
 
+    // 5) Completed / recent workout sessions for a user
+    if (action === 'completed') {
+      if (!userId) return new Response(JSON.stringify({ error: 'userId required' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+      const attempts = [
+        { path: '/workout/getListCompleted', body: { userID: userId, start: 0, count: 50 } },
+        { path: '/workoutCompleted/getList', body: { userID: userId, start: 0, count: 50 } },
+        { path: '/user/getWorkoutStats', body: { userID: userId, start: 0, count: 50 } },
+        { path: '/activity/getList', body: { userID: userId, start: 0, count: 50 } },
+      ];
+      const debug: any[] = [];
+      for (const a of attempts) {
+        const r = await tzPost(a.path, basic, a.body);
+        debug.push({ path: a.path, status: r.status, keys: typeof r.body === 'object' ? Object.keys(r.body as any) : null });
+        const raw = (r.body as any)?.workouts
+          ?? (r.body as any)?.activities
+          ?? (r.body as any)?.completedWorkouts
+          ?? (Array.isArray(r.body) ? r.body : null);
+        if (r.ok && raw && raw.length > 0) {
+          return new Response(JSON.stringify({ ok: true, body: r.body, debug }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+      }
+      return new Response(JSON.stringify({ ok: true, body: { workouts: [] }, debug }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     return new Response(JSON.stringify({ error: 'Unknown action' }), {
       status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
