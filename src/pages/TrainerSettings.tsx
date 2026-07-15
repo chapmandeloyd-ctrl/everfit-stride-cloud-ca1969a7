@@ -16,6 +16,7 @@ import { ConnectedAssistants } from "@/components/settings/ConnectedAssistants";
 import { TrainerizeTestCard } from "@/components/settings/TrainerizeTestCard";
 import { TrainerizeSyncClientsCard } from "@/components/settings/TrainerizeSyncClientsCard";
 import { TrainerizeBrowseWorkoutsCard } from "@/components/settings/TrainerizeBrowseWorkoutsCard";
+import { TrainerizeImportActivitiesCard } from "@/components/settings/TrainerizeImportActivitiesCard";
 import { useState } from "react";
 
 export default function TrainerSettings() {
@@ -108,6 +109,7 @@ export default function TrainerSettings() {
         <TrainerizeTestCard />
         <TrainerizeSyncClientsCard />
         <TrainerizeBrowseWorkoutsCard />
+        <TrainerizeImportActivitiesCard />
       </div>
 
       <AddCardioActivityDialog
