@@ -243,7 +243,7 @@ export function TrainerizeBrowseWorkoutsCard() {
 
               {loadingPlans && <div className="flex items-center gap-2 text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Loading plans…</div>}
               {plans && (
-                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-2 -mr-2 touch-pan-y">
+                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-2 -mr-2 touch-pan-y" style={{ WebkitOverflowScrolling: "touch" }}>
                   <div className="space-y-4">
                     {plans.length > 0 && (
                       <div>
@@ -319,7 +319,7 @@ export function TrainerizeBrowseWorkoutsCard() {
           )}
 
           {selectedPlan && !selectedWorkout && (
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-2 -mr-2 touch-pan-y">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-2 -mr-2 touch-pan-y" style={{ WebkitOverflowScrolling: "touch" }}>
               {loadingWorkouts ? (
                 <div className="flex items-center gap-2 text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Loading workouts…</div>
               ) : (
@@ -341,7 +341,7 @@ export function TrainerizeBrowseWorkoutsCard() {
           )}
 
           {selectedWorkout && (
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-2 -mr-2 touch-pan-y">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-2 -mr-2 touch-pan-y" style={{ WebkitOverflowScrolling: "touch" }}>
               {loadingDetail ? (
                 <div className="flex items-center gap-2 text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Loading exercises…</div>
               ) : (
