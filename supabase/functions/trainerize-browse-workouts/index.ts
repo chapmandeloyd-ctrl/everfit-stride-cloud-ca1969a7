@@ -23,7 +23,7 @@ function normalizeCalendarWorkouts(body: any) {
   const calendar = body?.calendar ?? body?.calendars ?? body?.days ?? [];
   if (!Array.isArray(calendar)) return [];
 
-  const completedStatuses = new Set(['checkedin', 'checked_in', 'completed', 'complete', 'done']);
+  const completedStatuses = new Set(['checkedin', 'checked_in', 'completed', 'complete', 'done', 'tracked']);
   const workoutLikeTypes = new Set([
     'workoutinterval',
     'workoutregular',
@@ -254,6 +254,11 @@ Deno.serve(async (req) => {
         debug.push({ path: a.path, body: a.body, status: r.status, ...preview });
         console.log('[completed attempt]', a.path, r.status, JSON.stringify(preview).slice(0, 600));
         const calendarWorkouts = a.path === '/calendar/getList' ? normalizeCalendarWorkouts(r.body) : [];
+        if (r.ok && calendarWorkouts.length > 0) {
+          return new Response(JSON.stringify({ ok: true, body: { workouts: calendarWorkouts }, debug }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
         const raw = calendarWorkouts.length > 0 ? calendarWorkouts : (r.body as any)?.workouts
           ?? (r.body as any)?.activities
           ?? (r.body as any)?.completedWorkouts
