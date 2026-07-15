@@ -33,6 +33,27 @@ function toNum(v: any): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+async function upsertBySourceExternalId(admin: any, table: string, payload: Record<string, any>) {
+  const { data: existing, error: findErr } = await admin
+    .from(table)
+    .select('id')
+    .eq('source', payload.source)
+    .eq('external_id', payload.external_id)
+    .maybeSingle();
+  if (findErr) return { error: findErr };
+
+  if (existing?.id) {
+    const { error } = await admin
+      .from(table)
+      .update(payload)
+      .eq('id', existing.id);
+    return { error };
+  }
+
+  const { error } = await admin.from(table).insert(payload);
+  return { error };
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
@@ -179,7 +200,7 @@ Deno.serve(async (req) => {
             }];
 
             if (dayCalories != null && caloricIntakeMetricId) {
-              const { error: metricErr } = await admin.from('metric_entries').upsert({
+              const { error: metricErr } = await upsertBySourceExternalId(admin, 'metric_entries', {
                 client_id: clientId,
                 client_metric_id: caloricIntakeMetricId,
                 value: Math.round(dayCalories),
@@ -187,7 +208,7 @@ Deno.serve(async (req) => {
                 notes: 'Imported from Trainerize nutrition',
                 source: 'trainerize',
                 external_id: `tz_${tzId}_${date}_caloric_intake`,
-              }, { onConflict: 'source,external_id', ignoreDuplicates: false });
+              });
               if (metricErr) console.error('caloric intake metric upsert', metricErr);
             }
 
@@ -199,7 +220,7 @@ Deno.serve(async (req) => {
               const carbs = toNum(m?.carbs ?? m?.carbohydrates ?? m?.carbsGrams ?? m?.caloriesSummary?.carbsGrams) ?? 0;
               const fats = toNum(m?.fat ?? m?.fats ?? m?.fatGrams ?? m?.caloriesSummary?.fatGrams) ?? 0;
               const externalId = `tz_${tzId}_${date}_${mealName.toLowerCase().replace(/\s+/g, '_')}`;
-              const { error: upErr } = await admin.from('nutrition_logs').upsert({
+              const { error: upErr } = await upsertBySourceExternalId(admin, 'nutrition_logs', {
                 client_id: clientId,
                 log_date: date,
                 meal_name: mealName,
@@ -208,8 +229,9 @@ Deno.serve(async (req) => {
                 notes: 'Imported from Trainerize',
                 source: 'trainerize',
                 external_id: externalId,
-              }, { onConflict: 'source,external_id', ignoreDuplicates: false });
+              });
               if (!upErr) row.nutritionImported++;
+              else console.error('nutrition_logs upsert', upErr);
             }
           }
         }
@@ -259,7 +281,7 @@ Deno.serve(async (req) => {
             if (weight != null && weightMetricId) {
               {
                 const externalId = `tz_${tzId}_${date}_weight`;
-                const { error } = await admin.from('metric_entries').upsert({
+                const { error } = await upsertBySourceExternalId(admin, 'metric_entries', {
                   client_id: clientId,
                   client_metric_id: weightMetricId,
                   value: weight,
@@ -267,13 +289,13 @@ Deno.serve(async (req) => {
                   notes: 'Imported from Trainerize',
                   source: 'trainerize',
                   external_id: externalId,
-                }, { onConflict: 'source,external_id', ignoreDuplicates: false });
+                });
                 if (!error) row.weightImported++;
               }
             }
             if (bodyFat != null && bodyFatMetricId) {
               const externalId = `tz_${tzId}_${date}_bodyfat`;
-              const { error } = await admin.from('metric_entries').upsert({
+              const { error } = await upsertBySourceExternalId(admin, 'metric_entries', {
                 client_id: clientId,
                 client_metric_id: bodyFatMetricId,
                 value: bodyFat,
@@ -281,7 +303,7 @@ Deno.serve(async (req) => {
                 notes: 'Imported from Trainerize',
                 source: 'trainerize',
                 external_id: externalId,
-              }, { onConflict: 'source,external_id', ignoreDuplicates: false });
+              });
               if (!error) row.bodyFatImported++;
             }
           }
