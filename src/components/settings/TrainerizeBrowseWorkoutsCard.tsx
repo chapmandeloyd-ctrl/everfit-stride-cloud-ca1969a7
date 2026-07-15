@@ -3,7 +3,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, Dumbbell, ArrowLeft, ChevronRight, Clock, Flame, Footprints, MapPin, Repeat2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { FunctionsHttpError } from "@supabase/supabase-js";
@@ -206,8 +205,8 @@ export function TrainerizeBrowseWorkoutsCard() {
       </Card>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
-          <DialogHeader>
+        <DialogContent className="max-w-2xl w-[calc(100vw-2rem)] h-[85dvh] max-h-[85dvh] overflow-hidden flex flex-col">
+          <DialogHeader className="shrink-0">
             <DialogTitle className="flex items-center gap-2">
               {(selectedPlan || selectedWorkout) && (
                 <Button variant="ghost" size="icon" onClick={selectedWorkout ? backToWorkouts : backToPlans}>
@@ -221,11 +220,11 @@ export function TrainerizeBrowseWorkoutsCard() {
           </DialogHeader>
 
           {error && (
-            <div className="text-sm text-destructive bg-destructive/10 rounded p-2">{error}</div>
+            <div className="shrink-0 text-sm text-destructive bg-destructive/10 rounded p-2">{error}</div>
           )}
 
           {!selectedPlan && !selectedWorkout && (
-            <div className="space-y-3">
+            <div className="min-h-0 flex-1 flex flex-col space-y-3">
               <label className="text-sm text-muted-foreground">Select a Trainerize client</label>
               {loadingUsers ? (
                 <div className="flex items-center gap-2 text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Loading roster…</div>
@@ -244,8 +243,8 @@ export function TrainerizeBrowseWorkoutsCard() {
 
               {loadingPlans && <div className="flex items-center gap-2 text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Loading plans…</div>}
               {plans && (
-                <ScrollArea className="max-h-[55vh]">
-                  <div className="space-y-4 pr-2">
+                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-2 -mr-2 touch-pan-y" style={{ WebkitOverflowScrolling: "touch" }}>
+                  <div className="space-y-4">
                     {plans.length > 0 && (
                       <div>
                         <div className="text-xs uppercase tracking-wide text-muted-foreground mb-2">Training Plans</div>
@@ -314,13 +313,13 @@ export function TrainerizeBrowseWorkoutsCard() {
                       </div>
                     )}
                   </div>
-                </ScrollArea>
+                </div>
               )}
             </div>
           )}
 
           {selectedPlan && !selectedWorkout && (
-            <ScrollArea className="max-h-[65vh]">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-2 -mr-2 touch-pan-y" style={{ WebkitOverflowScrolling: "touch" }}>
               {loadingWorkouts ? (
                 <div className="flex items-center gap-2 text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Loading workouts…</div>
               ) : (
@@ -338,11 +337,11 @@ export function TrainerizeBrowseWorkoutsCard() {
                   ))}
                 </div>
               )}
-            </ScrollArea>
+            </div>
           )}
 
           {selectedWorkout && (
-            <ScrollArea className="max-h-[65vh]">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-2 -mr-2 touch-pan-y" style={{ WebkitOverflowScrolling: "touch" }}>
               {loadingDetail ? (
                 <div className="flex items-center gap-2 text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Loading exercises…</div>
               ) : (
@@ -362,7 +361,7 @@ export function TrainerizeBrowseWorkoutsCard() {
                   ))}
                 </div>
               )}
-            </ScrollArea>
+            </div>
           )}
         </DialogContent>
       </Dialog>
