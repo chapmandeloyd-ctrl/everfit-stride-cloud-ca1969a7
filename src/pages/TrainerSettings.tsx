@@ -17,6 +17,7 @@ import { TrainerizeTestCard } from "@/components/settings/TrainerizeTestCard";
 import { TrainerizeSyncClientsCard } from "@/components/settings/TrainerizeSyncClientsCard";
 import { TrainerizeBrowseWorkoutsCard } from "@/components/settings/TrainerizeBrowseWorkoutsCard";
 import { TrainerizeImportActivitiesCard } from "@/components/settings/TrainerizeImportActivitiesCard";
+import { TrainerizeImportHealthStatsCard } from "@/components/settings/TrainerizeImportHealthStatsCard";
 import { useState } from "react";
 
 export default function TrainerSettings() {
@@ -110,6 +111,7 @@ export default function TrainerSettings() {
         <TrainerizeSyncClientsCard />
         <TrainerizeBrowseWorkoutsCard />
         <TrainerizeImportActivitiesCard />
+        <TrainerizeImportHealthStatsCard />
       </div>
 
       <AddCardioActivityDialog

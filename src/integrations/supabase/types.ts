@@ -6450,27 +6450,33 @@ export type Database = {
           client_id: string
           client_metric_id: string
           created_at: string
+          external_id: string | null
           id: string
           notes: string | null
           recorded_at: string
+          source: string
           value: number
         }
         Insert: {
           client_id: string
           client_metric_id: string
           created_at?: string
+          external_id?: string | null
           id?: string
           notes?: string | null
           recorded_at?: string
+          source?: string
           value: number
         }
         Update: {
           client_id?: string
           client_metric_id?: string
           created_at?: string
+          external_id?: string | null
           id?: string
           notes?: string | null
           recorded_at?: string
+          source?: string
           value?: number
         }
         Relationships: [
@@ -6800,6 +6806,7 @@ export type Database = {
           carbs: number | null
           client_id: string
           created_at: string
+          external_id: string | null
           fats: number | null
           id: string
           image_url: string | null
@@ -6807,12 +6814,14 @@ export type Database = {
           meal_name: string
           notes: string | null
           protein: number | null
+          source: string
         }
         Insert: {
           calories?: number | null
           carbs?: number | null
           client_id: string
           created_at?: string
+          external_id?: string | null
           fats?: number | null
           id?: string
           image_url?: string | null
@@ -6820,12 +6829,14 @@ export type Database = {
           meal_name: string
           notes?: string | null
           protein?: number | null
+          source?: string
         }
         Update: {
           calories?: number | null
           carbs?: number | null
           client_id?: string
           created_at?: string
+          external_id?: string | null
           fats?: number | null
           id?: string
           image_url?: string | null
@@ -6833,6 +6844,7 @@ export type Database = {
           meal_name?: string
           notes?: string | null
           protein?: number | null
+          source?: string
         }
         Relationships: [
           {
