@@ -206,7 +206,7 @@ export function TrainerizeBrowseWorkoutsCard() {
       </Card>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
+        <DialogContent className="max-w-2xl w-[calc(100vw-2rem)] max-h-[85dvh] overflow-y-auto overscroll-contain flex flex-col">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {(selectedPlan || selectedWorkout) && (
@@ -244,8 +244,8 @@ export function TrainerizeBrowseWorkoutsCard() {
 
               {loadingPlans && <div className="flex items-center gap-2 text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Loading plans…</div>}
               {plans && (
-                <ScrollArea className="max-h-[55vh]">
-                  <div className="space-y-4 pr-2">
+                <div className="max-h-[calc(85dvh-12rem)] overflow-y-auto overscroll-contain pr-2 -mr-2">
+                  <div className="space-y-4">
                     {plans.length > 0 && (
                       <div>
                         <div className="text-xs uppercase tracking-wide text-muted-foreground mb-2">Training Plans</div>
@@ -314,13 +314,13 @@ export function TrainerizeBrowseWorkoutsCard() {
                       </div>
                     )}
                   </div>
-                </ScrollArea>
+                </div>
               )}
             </div>
           )}
 
           {selectedPlan && !selectedWorkout && (
-            <ScrollArea className="max-h-[65vh]">
+            <div className="max-h-[calc(85dvh-8rem)] overflow-y-auto overscroll-contain pr-2 -mr-2">
               {loadingWorkouts ? (
                 <div className="flex items-center gap-2 text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Loading workouts…</div>
               ) : (
@@ -338,11 +338,11 @@ export function TrainerizeBrowseWorkoutsCard() {
                   ))}
                 </div>
               )}
-            </ScrollArea>
+            </div>
           )}
 
           {selectedWorkout && (
-            <ScrollArea className="max-h-[65vh]">
+            <div className="max-h-[calc(85dvh-8rem)] overflow-y-auto overscroll-contain pr-2 -mr-2">
               {loadingDetail ? (
                 <div className="flex items-center gap-2 text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Loading exercises…</div>
               ) : (
@@ -362,7 +362,7 @@ export function TrainerizeBrowseWorkoutsCard() {
                   ))}
                 </div>
               )}
-            </ScrollArea>
+            </div>
           )}
         </DialogContent>
       </Dialog>
