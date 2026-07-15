@@ -184,19 +184,32 @@ Deno.serve(async (req) => {
       if (!userId) return new Response(JSON.stringify({ error: 'userId required' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
+      const today = new Date();
+      const past = new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000);
+      const toDate = today.toISOString().slice(0, 10);
+      const fromDate = past.toISOString().slice(0, 10);
       const attempts = [
-        { path: '/workout/getListCompleted', body: { userID: userId, start: 0, count: 50 } },
-        { path: '/workoutCompleted/getList', body: { userID: userId, start: 0, count: 50 } },
-        { path: '/user/getWorkoutStats', body: { userID: userId, start: 0, count: 50 } },
+        { path: '/workoutStats/getList', body: { userid: userId, start: 0, count: 50, dateBegin: fromDate, dateEnd: toDate } },
+        { path: '/workoutStats/getList', body: { userID: userId, start: 0, count: 50 } },
+        { path: '/workout/getListForUser', body: { userid: userId, start: 0, count: 50 } },
+        { path: '/user/getWorkoutHistory', body: { userid: userId, start: 0, count: 50 } },
+        { path: '/activity/getList', body: { userid: userId, start: 0, count: 50, dateBegin: fromDate, dateEnd: toDate } },
         { path: '/activity/getList', body: { userID: userId, start: 0, count: 50 } },
+        { path: '/bodyStats/getList', body: { userid: userId, start: 0, count: 50 } },
       ];
       const debug: any[] = [];
       for (const a of attempts) {
         const r = await tzPost(a.path, basic, a.body);
-        debug.push({ path: a.path, status: r.status, keys: typeof r.body === 'object' ? Object.keys(r.body as any) : null });
+        const preview = typeof r.body === 'object' && r.body !== null
+          ? { keys: Object.keys(r.body as any), sample: JSON.stringify(r.body).slice(0, 400) }
+          : { raw: String(r.body).slice(0, 400) };
+        debug.push({ path: a.path, body: a.body, status: r.status, ...preview });
+        console.log('[completed attempt]', a.path, r.status, JSON.stringify(preview).slice(0, 600));
         const raw = (r.body as any)?.workouts
           ?? (r.body as any)?.activities
           ?? (r.body as any)?.completedWorkouts
+          ?? (r.body as any)?.stats
+          ?? (r.body as any)?.history
           ?? (Array.isArray(r.body) ? r.body : null);
         if (r.ok && raw && raw.length > 0) {
           return new Response(JSON.stringify({ ok: true, body: r.body, debug }), {
