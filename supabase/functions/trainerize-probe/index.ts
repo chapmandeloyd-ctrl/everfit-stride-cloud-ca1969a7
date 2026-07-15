@@ -39,7 +39,34 @@ Deno.serve(async (req) => {
   const endDate = today.toISOString().slice(0, 10);
 
   const candidates: Array<[string, unknown]> = [
-    ['/progressStats/getList', { userid, startDate, endDate }],
+    ['/bodyStats/getList (all)', { userid, count: 100, unitWeight: 'lb' }],
+    ['/bodyStats/getList (yr)', { userid, startDate: '2025-01-01', endDate, unitWeight: 'lb' }],
+    ['/measurement/getList', { userid, startDate, endDate }],
+    ['/health/getList', { userid, startDate, endDate }],
+    ['/health/get', { userid, date: endDate }],
+    ['/tracker/getList', { userid, startDate, endDate }],
+    ['/trackerData/getList', { userid, startDate, endDate }],
+    ['/wearableData/getList', { userid, startDate, endDate }],
+    ['/sleep/get', { userid, date: endDate }],
+    ['/steps/get', { userid, date: endDate }],
+    ['/dailyActivity/getList', { userid, startDate, endDate }],
+    ['/dailyActivity/get', { userid, date: endDate }],
+    ['/activityStats/getList', { userid, startDate, endDate }],
+    ['/fitnessLog/getList', { userid, startDate, endDate }],
+    ['/log/getList', { userid, startDate, endDate }],
+    ['/goal/getList', { userid }],
+    ['/goal/getListStats', { userid, startDate, endDate }],
+    ['/checkin/getList', { userid, startDate, endDate }],
+    ['/summary/getList', { userid, startDate, endDate }],
+    ['/summary/get', { userid, date: endDate }],
+    ['/dailySummary/getList', { userid, startDate, endDate }],
+  ];
+  // Map probe labels back to real paths
+  const pathMap: Record<string, string> = {
+    '/bodyStats/getList (all)': '/bodyStats/getList',
+    '/bodyStats/getList (yr)': '/bodyStats/getList',
+  };
+  const _oldCandidates: Array<[string, unknown]> = [
     ['/progressStat/getList', { userid, startDate, endDate }],
     ['/stat/getList', { userid, startDate, endDate }],
     ['/stats/getList', { userid, startDate, endDate }],
@@ -60,8 +87,12 @@ Deno.serve(async (req) => {
     ['/user/getInfo', { userid }],
     ['/user/getProfile', { userid }],
   ];
+  void _oldCandidates;
 
-  const results = await Promise.all(candidates.map(([p, b]) => probe(p, basic, b)));
+  const results = await Promise.all(candidates.map(([label, b]) => {
+    const realPath = pathMap[label] ?? label;
+    return probe(realPath, basic, b).then(r => ({ ...r, label }));
+  }));
   return new Response(JSON.stringify({ userid, results }, null, 2), {
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });
