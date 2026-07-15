@@ -87,9 +87,10 @@ Deno.serve(async (req) => {
     const { data: mdefs } = await admin
       .from('metric_definitions')
       .select('id, name')
-      .in('name', ['Weight', 'Body Fat']);
+      .in('name', ['Weight', 'Body Fat', 'Caloric Intake']);
     const weightDefId = mdefs?.find((m: any) => m.name === 'Weight')?.id;
     const bodyFatDefId = mdefs?.find((m: any) => m.name === 'Body Fat')?.id;
+    const caloricIntakeDefId = mdefs?.find((m: any) => m.name === 'Caloric Intake')?.id;
 
     // Linked clients
     let clientQuery = admin
@@ -132,25 +133,71 @@ Deno.serve(async (req) => {
         nutritionImported: 0, weightImported: 0, weightSkippedApex: 0, bodyFatImported: 0,
       };
 
+      async function ensureClientMetric(defId: string): Promise<string | null> {
+        const { data: existing } = await admin
+          .from('client_metrics')
+          .select('id')
+          .eq('client_id', clientId)
+          .eq('metric_definition_id', defId)
+          .maybeSingle();
+        if (existing?.id) return existing.id;
+        const { data: created, error } = await admin
+          .from('client_metrics')
+          .insert({ client_id: clientId, trainer_id: trainerId, metric_definition_id: defId, order_index: 0 })
+          .select('id').maybeSingle();
+        if (error) { console.error('client_metrics insert', error); return null; }
+        return created?.id ?? null;
+      }
+
       // -------- Nutrition (per meal) --------
       try {
         const nr = await tzPost('/dailyNutrition/getList', basic, {
           userid: tzId, startDate, endDate,
         });
         if (nr.ok) {
-          const days: any[] = (nr.body as any)?.days ?? (nr.body as any)?.list ?? (nr.body as any)?.dailyNutrition ?? [];
+          const days: any[] = (nr.body as any)?.nutrition ?? (nr.body as any)?.days ?? (nr.body as any)?.list ?? (nr.body as any)?.dailyNutrition ?? [];
+          const caloricIntakeMetricId = caloricIntakeDefId ? await ensureClientMetric(caloricIntakeDefId) : null;
           for (const d of Array.isArray(days) ? days : []) {
             const date = toDate(d?.date ?? d?.day ?? d?.logDate);
             if (!date) continue;
+            const dayCalories = toNum(d?.calories ?? d?.kcal ?? d?.energy);
+            const dayProtein = toNum(d?.proteinGrams ?? d?.protein ?? d?.proteins) ?? 0;
+            const dayCarbs = toNum(d?.carbsGrams ?? d?.carbs ?? d?.carbohydrates) ?? 0;
+            const dayFats = toNum(d?.fatGrams ?? d?.fat ?? d?.fats) ?? 0;
             const meals: any[] = d?.meals ?? d?.mealList ?? d?.entries ?? [];
-            const list = Array.isArray(meals) && meals.length > 0 ? meals : [{ ...d, name: 'Daily total', isRollup: true }];
+            const hasMealCalories = Array.isArray(meals) && meals.some((m: any) =>
+              toNum(m?.calories ?? m?.kcal ?? m?.energy ?? m?.caloriesSummary?.calories) != null
+            );
+            const list = hasMealCalories ? meals : [{
+              ...d,
+              name: 'Daily total',
+              calories: dayCalories,
+              protein: dayProtein,
+              carbs: dayCarbs,
+              fat: dayFats,
+              isRollup: true,
+            }];
+
+            if (dayCalories != null && caloricIntakeMetricId) {
+              const { error: metricErr } = await admin.from('metric_entries').upsert({
+                client_id: clientId,
+                client_metric_id: caloricIntakeMetricId,
+                value: Math.round(dayCalories),
+                recorded_at: `${date}T12:00:00Z`,
+                notes: 'Imported from Trainerize nutrition',
+                source: 'trainerize',
+                external_id: `tz_${tzId}_${date}_caloric_intake`,
+              }, { onConflict: 'source,external_id', ignoreDuplicates: false });
+              if (metricErr) console.error('caloric intake metric upsert', metricErr);
+            }
+
             for (const m of list) {
               const mealName = String(m?.name ?? m?.mealName ?? m?.type ?? 'Meal');
-              const calories = toNum(m?.calories ?? m?.kcal ?? m?.energy);
+              const calories = toNum(m?.calories ?? m?.kcal ?? m?.energy ?? m?.caloriesSummary?.calories);
               if (calories == null && !m?.isRollup) continue;
-              const protein = toNum(m?.protein ?? m?.proteins) ?? 0;
-              const carbs = toNum(m?.carbs ?? m?.carbohydrates) ?? 0;
-              const fats = toNum(m?.fat ?? m?.fats) ?? 0;
+              const protein = toNum(m?.protein ?? m?.proteins ?? m?.proteinGrams ?? m?.caloriesSummary?.proteinGrams) ?? 0;
+              const carbs = toNum(m?.carbs ?? m?.carbohydrates ?? m?.carbsGrams ?? m?.caloriesSummary?.carbsGrams) ?? 0;
+              const fats = toNum(m?.fat ?? m?.fats ?? m?.fatGrams ?? m?.caloriesSummary?.fatGrams) ?? 0;
               const externalId = `tz_${tzId}_${date}_${mealName.toLowerCase().replace(/\s+/g, '_')}`;
               const { error: upErr } = await admin.from('nutrition_logs').upsert({
                 client_id: clientId,
@@ -197,22 +244,6 @@ Deno.serve(async (req) => {
                 }
               }
             }
-          }
-
-          async function ensureClientMetric(defId: string): Promise<string | null> {
-            const { data: existing } = await admin
-              .from('client_metrics')
-              .select('id')
-              .eq('client_id', clientId)
-              .eq('metric_definition_id', defId)
-              .maybeSingle();
-            if (existing?.id) return existing.id;
-            const { data: created, error } = await admin
-              .from('client_metrics')
-              .insert({ client_id: clientId, trainer_id: trainerId, metric_definition_id: defId })
-              .select('id').maybeSingle();
-            if (error) { console.error('client_metrics insert', error); return null; }
-            return created?.id ?? null;
           }
 
           const weightMetricId = weightDefId ? await ensureClientMetric(weightDefId) : null;
