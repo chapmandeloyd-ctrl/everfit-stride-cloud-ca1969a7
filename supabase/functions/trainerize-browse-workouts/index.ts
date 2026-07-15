@@ -49,7 +49,7 @@ function normalizeCalendarWorkouts(body: any) {
 
       rows.push({
         id: item?.id ?? item?.itemID ?? item?.dailyWorkoutID ?? item?.workoutID,
-        name: item?.name ?? item?.title ?? item?.workoutName ?? item?.activityName ?? item?.cardioName ?? item?.displayName ?? rawType || 'Completed activity',
+        name: (item?.name ?? item?.title ?? item?.workoutName ?? item?.activityName ?? item?.cardioName ?? item?.displayName ?? rawType) || 'Completed activity',
         date: item?.date ?? item?.completedDate ?? item?.completedAt ?? item?.startTime ?? date,
         duration: item?.duration ?? item?.durationSeconds ?? item?.time ?? item?.actualDuration,
         durationText: item?.durationText ?? item?.timeText,
