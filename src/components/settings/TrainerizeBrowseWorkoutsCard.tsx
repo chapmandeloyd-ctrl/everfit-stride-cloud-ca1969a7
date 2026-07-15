@@ -1,0 +1,239 @@
+import { useEffect, useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Loader2, Dumbbell, ArrowLeft, ChevronRight } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { FunctionsHttpError } from "@supabase/supabase-js";
+
+type TzUser = { id: number; name: string; email: string | null };
+type TzPlan = { id: number; name: string; startDate?: string; endDate?: string };
+type TzWorkout = { id: number; name: string; type?: string; instructions?: string };
+type TzExercise = { name: string; sets?: number | string; reps?: number | string; weight?: string; rest?: string; notes?: string };
+
+async function invoke<T>(action: string, body: Record<string, unknown> = {}): Promise<T> {
+  const { data, error } = await supabase.functions.invoke("trainerize-browse-workouts", {
+    body: { action, ...body },
+  });
+  if (error) {
+    const details = error instanceof FunctionsHttpError ? await error.context.text() : error.message;
+    throw new Error(details);
+  }
+  return data as T;
+}
+
+function extractExercises(detail: any): TzExercise[] {
+  const w = detail?.body?.workout ?? detail?.workout ?? detail?.body ?? detail;
+  const raw = w?.exercises ?? w?.exerciseList ?? [];
+  return (Array.isArray(raw) ? raw : []).map((e: any) => ({
+    name: e.name ?? e.exerciseName ?? e.def?.name ?? "Exercise",
+    sets: e.sets ?? e.setCount ?? e.target?.sets,
+    reps: e.reps ?? e.repCount ?? e.target?.reps,
+    weight: e.weight ?? e.target?.weight,
+    rest: e.rest ?? e.restTime,
+    notes: e.instructions ?? e.notes,
+  }));
+}
+
+export function TrainerizeBrowseWorkoutsCard() {
+  const [open, setOpen] = useState(false);
+  const [users, setUsers] = useState<TzUser[] | null>(null);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<string>("");
+  const [plans, setPlans] = useState<TzPlan[] | null>(null);
+  const [loadingPlans, setLoadingPlans] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<TzPlan | null>(null);
+  const [workouts, setWorkouts] = useState<TzWorkout[] | null>(null);
+  const [loadingWorkouts, setLoadingWorkouts] = useState(false);
+  const [selectedWorkout, setSelectedWorkout] = useState<TzWorkout | null>(null);
+  const [exercises, setExercises] = useState<TzExercise[] | null>(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadRoster = async () => {
+    setLoadingUsers(true); setError(null);
+    try {
+      const res = await invoke<{ users: TzUser[] }>("roster");
+      setUsers(res.users);
+    } catch (e) { setError(e instanceof Error ? e.message : String(e)); }
+    finally { setLoadingUsers(false); }
+  };
+
+  useEffect(() => { if (open && !users) loadRoster(); }, [open]);
+
+  const pickUser = async (idStr: string) => {
+    setSelectedUserId(idStr);
+    setPlans(null); setSelectedPlan(null); setWorkouts(null); setSelectedWorkout(null); setExercises(null);
+    setLoadingPlans(true); setError(null);
+    try {
+      const res = await invoke<any>("plans", { userId: Number(idStr) });
+      const raw = res?.body?.trainingPlans ?? res?.body?.plans ?? res?.body ?? [];
+      const list: TzPlan[] = (Array.isArray(raw) ? raw : []).map((p: any) => ({
+        id: Number(p.id ?? p.trainingPlanID),
+        name: p.name ?? p.title ?? `Plan #${p.id}`,
+        startDate: p.startDate, endDate: p.endDate,
+      }));
+      setPlans(list);
+    } catch (e) { setError(e instanceof Error ? e.message : String(e)); }
+    finally { setLoadingPlans(false); }
+  };
+
+  const pickPlan = async (p: TzPlan) => {
+    setSelectedPlan(p); setWorkouts(null); setSelectedWorkout(null); setExercises(null);
+    setLoadingWorkouts(true); setError(null);
+    try {
+      const res = await invoke<any>("workouts", { userId: Number(selectedUserId), planId: p.id });
+      const raw = res?.body?.workouts ?? res?.body ?? [];
+      const list: TzWorkout[] = (Array.isArray(raw) ? raw : []).map((w: any) => ({
+        id: Number(w.id ?? w.workoutID),
+        name: w.name ?? w.title ?? `Workout #${w.id}`,
+        type: w.type ?? w.workoutType,
+        instructions: w.instructions,
+      }));
+      setWorkouts(list);
+    } catch (e) { setError(e instanceof Error ? e.message : String(e)); }
+    finally { setLoadingWorkouts(false); }
+  };
+
+  const pickWorkout = async (w: TzWorkout) => {
+    setSelectedWorkout(w); setExercises(null);
+    setLoadingDetail(true); setError(null);
+    try {
+      const res = await invoke<any>("workoutDetail", { workoutId: w.id });
+      setExercises(extractExercises(res));
+    } catch (e) { setError(e instanceof Error ? e.message : String(e)); }
+    finally { setLoadingDetail(false); }
+  };
+
+  const backToPlans = () => { setSelectedPlan(null); setWorkouts(null); setSelectedWorkout(null); setExercises(null); };
+  const backToWorkouts = () => { setSelectedWorkout(null); setExercises(null); };
+
+  return (
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Dumbbell className="w-5 h-5" />
+            Browse Trainerize Workouts
+          </CardTitle>
+          <CardDescription>
+            Read-only view of any Trainerize client's assigned programs and workouts.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button onClick={() => setOpen(true)}>Open Browser</Button>
+        </CardContent>
+      </Card>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {(selectedPlan || selectedWorkout) && (
+                <Button variant="ghost" size="icon" onClick={selectedWorkout ? backToWorkouts : backToPlans}>
+                  <ArrowLeft className="w-4 h-4" />
+                </Button>
+              )}
+              {selectedWorkout ? selectedWorkout.name
+                : selectedPlan ? selectedPlan.name
+                : "Trainerize Workouts"}
+            </DialogTitle>
+          </DialogHeader>
+
+          {error && (
+            <div className="text-sm text-destructive bg-destructive/10 rounded p-2">{error}</div>
+          )}
+
+          {!selectedPlan && !selectedWorkout && (
+            <div className="space-y-3">
+              <label className="text-sm text-muted-foreground">Select a Trainerize client</label>
+              {loadingUsers ? (
+                <div className="flex items-center gap-2 text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Loading roster…</div>
+              ) : (
+                <Select value={selectedUserId} onValueChange={pickUser}>
+                  <SelectTrigger><SelectValue placeholder="Choose a client" /></SelectTrigger>
+                  <SelectContent>
+                    {(users ?? []).map(u => (
+                      <SelectItem key={u.id} value={String(u.id)}>
+                        {u.name}{u.email ? ` — ${u.email}` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+
+              {loadingPlans && <div className="flex items-center gap-2 text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Loading plans…</div>}
+              {plans && (
+                <ScrollArea className="max-h-[50vh]">
+                  <div className="space-y-2 pr-2">
+                    {plans.length === 0 && <div className="text-sm text-muted-foreground">No training plans found.</div>}
+                    {plans.map(p => (
+                      <button key={p.id} onClick={() => pickPlan(p)}
+                        className="w-full flex items-center justify-between rounded-lg border border-border bg-card p-3 hover:bg-accent text-left">
+                        <div>
+                          <div className="font-medium">{p.name}</div>
+                          {(p.startDate || p.endDate) && (
+                            <div className="text-xs text-muted-foreground">{p.startDate ?? "?"} → {p.endDate ?? "?"}</div>
+                          )}
+                        </div>
+                        <ChevronRight className="w-4 h-4 opacity-60" />
+                      </button>
+                    ))}
+                  </div>
+                </ScrollArea>
+              )}
+            </div>
+          )}
+
+          {selectedPlan && !selectedWorkout && (
+            <ScrollArea className="max-h-[65vh]">
+              {loadingWorkouts ? (
+                <div className="flex items-center gap-2 text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Loading workouts…</div>
+              ) : (
+                <div className="space-y-2 pr-2">
+                  {(workouts ?? []).length === 0 && <div className="text-sm text-muted-foreground">No workouts in this plan.</div>}
+                  {(workouts ?? []).map(w => (
+                    <button key={w.id} onClick={() => pickWorkout(w)}
+                      className="w-full flex items-center justify-between rounded-lg border border-border bg-card p-3 hover:bg-accent text-left">
+                      <div>
+                        <div className="font-medium">{w.name}</div>
+                        {w.type && <div className="text-xs text-muted-foreground">{w.type}</div>}
+                      </div>
+                      <ChevronRight className="w-4 h-4 opacity-60" />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </ScrollArea>
+          )}
+
+          {selectedWorkout && (
+            <ScrollArea className="max-h-[65vh]">
+              {loadingDetail ? (
+                <div className="flex items-center gap-2 text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Loading exercises…</div>
+              ) : (
+                <div className="space-y-2 pr-2">
+                  {(exercises ?? []).length === 0 && <div className="text-sm text-muted-foreground">No exercises returned.</div>}
+                  {(exercises ?? []).map((ex, i) => (
+                    <div key={i} className="rounded-lg border border-border bg-card p-3">
+                      <div className="font-medium">{ex.name}</div>
+                      <div className="text-xs text-muted-foreground mt-1 flex flex-wrap gap-x-3">
+                        {ex.sets !== undefined && <span>Sets: {String(ex.sets)}</span>}
+                        {ex.reps !== undefined && <span>Reps: {String(ex.reps)}</span>}
+                        {ex.weight && <span>Weight: {ex.weight}</span>}
+                        {ex.rest && <span>Rest: {ex.rest}</span>}
+                      </div>
+                      {ex.notes && <div className="text-xs mt-1">{ex.notes}</div>}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </ScrollArea>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
