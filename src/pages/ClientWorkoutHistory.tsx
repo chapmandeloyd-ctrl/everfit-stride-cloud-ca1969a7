@@ -173,9 +173,16 @@ export default function ClientWorkoutHistory() {
                       <p className="text-xs text-muted-foreground uppercase">
                         {session.completed_at ? format(new Date(session.completed_at), "EEEE, MMM d") : "In Progress"}
                       </p>
-                      <CardTitle className="text-lg">{session.workout_plan?.name}</CardTitle>
-                      <div className="flex gap-2 mt-1">
-                        <Badge variant="outline" className="capitalize text-xs">{session.workout_plan?.difficulty}</Badge>
+                      <CardTitle className="text-lg">
+                        {session.workout_plan?.name || session.external_name || "Activity"}
+                      </CardTitle>
+                      <div className="flex gap-2 mt-1 flex-wrap">
+                        {session.workout_plan?.difficulty && (
+                          <Badge variant="outline" className="capitalize text-xs">{session.workout_plan.difficulty}</Badge>
+                        )}
+                        {session.source === "trainerize" && (
+                          <Badge className="text-xs bg-blue-600 hover:bg-blue-600 text-white">Trainerize</Badge>
+                        )}
                         {session.is_partial && <Badge variant="secondary" className="text-xs">Partial</Badge>}
                       </div>
                     </div>
