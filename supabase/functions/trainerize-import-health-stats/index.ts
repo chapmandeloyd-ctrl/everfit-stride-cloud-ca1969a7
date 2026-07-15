@@ -209,7 +209,7 @@ Deno.serve(async (req) => {
             if (existing?.id) return existing.id;
             const { data: created, error } = await admin
               .from('client_metrics')
-              .insert({ client_id: clientId, metric_definition_id: defId })
+              .insert({ client_id: clientId, trainer_id: trainerId, metric_definition_id: defId })
               .select('id').maybeSingle();
             if (error) { console.error('client_metrics insert', error); return null; }
             return created?.id ?? null;
@@ -226,9 +226,7 @@ Deno.serve(async (req) => {
             const bodyFat = toNum(s?.bodyFat ?? s?.bodyFatPercent ?? s?.fatPercent);
 
             if (weight != null && weightMetricId) {
-              if (apexWeightDates.has(date)) {
-                row.weightSkippedApex++;
-              } else {
+              {
                 const externalId = `tz_${tzId}_${date}_weight`;
                 const { error } = await admin.from('metric_entries').upsert({
                   client_id: clientId,
