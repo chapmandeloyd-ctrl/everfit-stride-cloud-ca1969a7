@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader2, Dumbbell, ArrowLeft, ChevronRight } from "lucide-react";
+import { Loader2, Dumbbell, ArrowLeft, ChevronRight, Clock, Flame, Footprints, MapPin, Repeat2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { FunctionsHttpError } from "@supabase/supabase-js";
 
@@ -12,7 +12,21 @@ type TzUser = { id: number; name: string; email: string | null };
 type TzPlan = { id: number; name: string; startDate?: string; endDate?: string };
 type TzWorkout = { id: number; name: string; type?: string; instructions?: string };
 type TzExercise = { name: string; sets?: number | string; reps?: number | string; weight?: string; rest?: string; notes?: string };
-type TzCompleted = { id?: number; name: string; date?: string; duration?: string; distance?: string; type?: string };
+type TzCompleted = {
+  id?: number;
+  name: string;
+  subtitle?: string | null;
+  date?: string;
+  duration?: string;
+  distance?: string;
+  calories?: string;
+  steps?: string;
+  sets?: string;
+  reps?: string;
+  type?: string;
+  status?: string;
+  detailRows?: Array<{ label: string; value: string }>;
+};
 
 async function invoke<T>(action: string, body: Record<string, unknown> = {}): Promise<T> {
   const { data, error } = await supabase.functions.invoke("trainerize-browse-workouts", {
@@ -36,6 +50,36 @@ function extractExercises(detail: any): TzExercise[] {
     rest: e.rest ?? e.restTime,
     notes: e.instructions ?? e.notes,
   }));
+}
+
+function formatDuration(value: unknown, text?: unknown) {
+  if (typeof text === "string" && text.trim()) return text;
+  if (typeof value === "number" && Number.isFinite(value)) {
+    const seconds = value > 1000 ? value : value * 60;
+    const mins = Math.floor(seconds / 60);
+    const hrs = Math.floor(mins / 60);
+    const rem = mins % 60;
+    return hrs > 0 ? `${hrs}h ${rem}m` : `${mins}m`;
+  }
+  if (typeof value === "string" && value.trim()) return value;
+  return undefined;
+}
+
+function formatMetric(value: unknown, unit = "") {
+  if (value === null || value === undefined || value === "") return undefined;
+  return `${value}${unit ? ` ${unit}` : ""}`;
+}
+
+function buildDetailRows(detail: unknown): Array<{ label: string; value: string }> {
+  if (!detail || typeof detail !== "object") return [];
+  const hidden = new Set(["duration", "durationSeconds", "time", "timeSeconds", "durationText", "timeText", "distance", "actualDistance", "distanceUnit", "unitDistance", "calories", "caloriesBurned", "steps", "sets", "totalSets", "reps", "totalReps"]);
+  return Object.entries(detail as Record<string, unknown>)
+    .filter(([key, value]) => !hidden.has(key) && value !== null && value !== undefined && value !== "" && typeof value !== "object")
+    .slice(0, 6)
+    .map(([key, value]) => ({
+      label: key.replace(/([A-Z])/g, " $1").replace(/^./, c => c.toUpperCase()),
+      value: String(value),
+    }));
 }
 
 export function TrainerizeBrowseWorkoutsCard() {
@@ -89,17 +133,22 @@ export function TrainerizeBrowseWorkoutsCard() {
       const res = await invoke<any>("completed", { userId: Number(idStr) });
       const raw = res?.body?.workouts ?? res?.body?.activities ?? res?.body?.completedWorkouts ?? [];
       const list: TzCompleted[] = (Array.isArray(raw) ? raw : []).map((w: any) => {
-        const durSec = w.duration ?? w.durationSeconds ?? w.time;
-        const dur = typeof durSec === 'number'
-          ? `${Math.floor(durSec / 60)}m ${durSec % 60}s`
-          : (w.durationText ?? undefined);
+        const dur = formatDuration(w.duration ?? w.durationSeconds ?? w.time, w.durationText);
+        const distance = formatMetric(w.distance ?? w.actualDistance, w.distanceUnit ?? w.unitDistance);
         return {
           id: w.id ?? w.workoutID,
           name: w.name ?? w.workoutName ?? w.activityName ?? w.type ?? 'Workout',
+          subtitle: w.subtitle,
           date: w.date ?? w.completedDate ?? w.startTime,
           duration: dur,
-          distance: w.distance ? `${w.distance} ${w.distanceUnit ?? ''}`.trim() : undefined,
+          distance,
+          calories: formatMetric(w.calories ?? w.caloriesBurned, "cal"),
+          steps: formatMetric(w.steps),
+          sets: formatMetric(w.sets),
+          reps: formatMetric(w.reps),
           type: w.type ?? w.activityType,
+          status: w.status,
+          detailRows: buildDetailRows(w.detail),
         };
       });
       setCompleted(list);
@@ -226,12 +275,31 @@ export function TrainerizeBrowseWorkoutsCard() {
                       <div className="space-y-2">
                         {(completed ?? []).map((w, i) => (
                           <div key={i} className="rounded-lg border border-border bg-card p-3">
-                            <div className="font-medium">{w.name}</div>
-                            <div className="text-xs text-muted-foreground mt-1 flex flex-wrap gap-x-3">
-                              {w.date && <span>{new Date(w.date).toLocaleDateString()}</span>}
-                              {w.duration && <span>⏱ {w.duration}</span>}
-                              {w.distance && <span>📍 {w.distance}</span>}
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <div className="font-medium">{w.name}</div>
+                                {w.subtitle && <div className="text-xs text-muted-foreground mt-0.5">{w.subtitle}</div>}
+                              </div>
+                              {w.status && <span className="text-[10px] uppercase tracking-wide text-primary bg-primary/10 rounded-full px-2 py-1">{w.status}</span>}
                             </div>
+                            <div className="text-xs text-muted-foreground mt-2 flex flex-wrap gap-x-3 gap-y-1">
+                              {w.date && <span>{new Date(w.date).toLocaleDateString()}</span>}
+                              {w.duration && <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" />{w.duration}</span>}
+                              {w.distance && <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{w.distance}</span>}
+                              {w.calories && <span className="inline-flex items-center gap-1"><Flame className="h-3 w-3" />{w.calories}</span>}
+                              {w.steps && <span className="inline-flex items-center gap-1"><Footprints className="h-3 w-3" />{w.steps}</span>}
+                              {(w.sets || w.reps) && <span className="inline-flex items-center gap-1"><Repeat2 className="h-3 w-3" />{[w.sets && `${w.sets} sets`, w.reps && `${w.reps} reps`].filter(Boolean).join(" · ")}</span>}
+                            </div>
+                            {(w.detailRows ?? []).length > 0 && (
+                              <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                                {w.detailRows!.map((row) => (
+                                  <div key={row.label} className="rounded-md bg-muted/40 px-2 py-1.5">
+                                    <div className="text-muted-foreground">{row.label}</div>
+                                    <div className="font-medium">{row.value}</div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
