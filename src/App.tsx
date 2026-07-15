@@ -12,7 +12,10 @@ import { lazy as reactLazy, Suspense, type ComponentType } from "react";
 const CHUNK_RELOAD_KEY = "chunk-reload-attempted";
 function lazy<T extends ComponentType<any>>(factory: () => Promise<{ default: T }>) {
   return reactLazy(() =>
-    factory().catch((err: unknown) => {
+    factory().then((mod) => {
+      try { sessionStorage.removeItem(CHUNK_RELOAD_KEY); } catch {}
+      return mod;
+    }).catch((err: unknown) => {
       const msg = err instanceof Error ? `${err.name} ${err.message}` : String(err);
       const isChunkError =
         /ChunkLoadError|Loading chunk|Failed to fetch dynamically imported module|Importing a module script failed|error loading dynamically imported module/i.test(
@@ -22,7 +25,22 @@ function lazy<T extends ComponentType<any>>(factory: () => Promise<{ default: T 
         try {
           if (!sessionStorage.getItem(CHUNK_RELOAD_KEY)) {
             sessionStorage.setItem(CHUNK_RELOAD_KEY, "1");
-            window.location.reload();
+            // Bust any cached HTML/SW response referencing the stale chunk hash.
+            (async () => {
+              try {
+                if ("caches" in window) {
+                  const keys = await caches.keys();
+                  await Promise.all(keys.map((k) => caches.delete(k)));
+                }
+                if ("serviceWorker" in navigator) {
+                  const regs = await navigator.serviceWorker.getRegistrations();
+                  await Promise.all(regs.map((r) => r.unregister()));
+                }
+              } catch {}
+              const url = new URL(window.location.href);
+              url.searchParams.set("_r", Date.now().toString());
+              window.location.replace(url.toString());
+            })();
             // Return a never-resolving promise so Suspense keeps its fallback
             // until the reload actually happens.
             return new Promise<{ default: T }>(() => {});
