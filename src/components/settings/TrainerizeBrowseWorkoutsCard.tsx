@@ -23,6 +23,7 @@ type TzCompleted = {
   steps?: string;
   sets?: string;
   reps?: string;
+  targetText?: string;
   type?: string;
   status?: string;
   detailRows?: Array<{ label: string; value: string }>;
@@ -55,7 +56,7 @@ function extractExercises(detail: any): TzExercise[] {
 function formatDuration(value: unknown, text?: unknown) {
   if (typeof text === "string" && text.trim()) return text;
   if (typeof value === "number" && Number.isFinite(value)) {
-    const seconds = value > 1000 ? value : value * 60;
+    const seconds = value;
     const mins = Math.floor(seconds / 60);
     const hrs = Math.floor(mins / 60);
     const rem = mins % 60;
@@ -146,6 +147,7 @@ export function TrainerizeBrowseWorkoutsCard() {
           steps: formatMetric(w.steps),
           sets: formatMetric(w.sets),
           reps: formatMetric(w.reps),
+          targetText: w.targetText,
           type: w.type ?? w.activityType,
           status: w.status,
           detailRows: buildDetailRows(w.detail),
@@ -279,6 +281,7 @@ export function TrainerizeBrowseWorkoutsCard() {
                               <div>
                                 <div className="font-medium">{w.name}</div>
                                 {w.subtitle && <div className="text-xs text-muted-foreground mt-0.5">{w.subtitle}</div>}
+                                {w.targetText && <div className="text-xs text-primary mt-1">{w.targetText}</div>}
                               </div>
                               {w.status && <span className="text-[10px] uppercase tracking-wide text-primary bg-primary/10 rounded-full px-2 py-1">{w.status}</span>}
                             </div>
