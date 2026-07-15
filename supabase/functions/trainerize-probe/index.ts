@@ -108,12 +108,9 @@ Deno.serve(async (req) => {
     ['/dailySummary/getList', { userid, startDate, endDate }],
   ];
   // Map probe labels back to real paths
-  const pathMap: Record<string, string> = {
-    '/bodyStats/getList (all)': '/bodyStats/getList',
-    '/bodyStats/getList (yr)': '/bodyStats/getList',
-  };
   const results = await Promise.all(candidates.map(([label, b]) => {
-    const realPath = pathMap[label] ?? label;
+    // Strip any " (...)" suffix from labels to get the real path
+    const realPath = label.replace(/\s*\(.*\)$/, '');
     return probe(realPath, basic, b).then(r => ({ ...r, label }));
   }));
   return new Response(JSON.stringify({ userid, results }, null, 2), {
