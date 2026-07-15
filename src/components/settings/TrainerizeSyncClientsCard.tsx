@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Loader2, Users, CheckCircle2, AlertCircle, UserPlus, Link2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { FunctionsHttpError } from "@supabase/supabase-js";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
 
 interface NewClient {
   trainerize_user_id: number;
@@ -25,6 +27,32 @@ export function TrainerizeSyncClientsCard() {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [result, setResult] = useState<SyncResult | null>(null);
+  const [apexClients, setApexClients] = useState<Array<{ id: string; full_name: string | null; email: string | null; trainerize_user_id: number | null }>>([]);
+  const [linking, setLinking] = useState<number | null>(null);
+
+  const loadClients = async () => {
+    const { data } = await supabase
+      .from("profiles")
+      .select("id, full_name, email, trainerize_user_id")
+      .eq("role", "client")
+      .order("full_name");
+    setApexClients((data as any) ?? []);
+  };
+
+  useEffect(() => { if (open) loadClients(); }, [open]);
+
+  const linkClient = async (tzId: number, apexId: string) => {
+    setLinking(tzId);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ trainerize_user_id: tzId })
+      .eq("id", apexId);
+    setLinking(null);
+    if (error) { toast.error("Link failed", { description: error.message }); return; }
+    toast.success("Linked to Trainerize");
+    await loadClients();
+    setResult((r) => r ? { ...r, newClients: r.newClients?.filter((c) => c.trainerize_user_id !== tzId) } : r);
+  };
 
   const runSync = async () => {
     setLoading(true);
@@ -107,20 +135,37 @@ export function TrainerizeSyncClientsCard() {
 
               {result.newClients && result.newClients.length > 0 && (
                 <div>
-                  <h4 className="text-sm font-semibold mb-2">Trainerize clients not in APEX360-IF</h4>
+                  <h4 className="text-sm font-semibold mb-2">Link Trainerize clients to APEX360-IF</h4>
                   <div className="border rounded-md divide-y max-h-80 overflow-auto">
                     {result.newClients.map((c) => (
-                      <div key={c.trainerize_user_id} className="p-3 flex items-center justify-between text-sm">
-                        <div>
+                      <div key={c.trainerize_user_id} className="p-3 flex items-center justify-between gap-3 text-sm">
+                        <div className="min-w-0 flex-1">
                           <div className="font-medium">{c.name}</div>
                           <div className="text-xs text-muted-foreground">{c.email ?? "No email on file"}</div>
                         </div>
-                        <div className="text-xs text-muted-foreground">TZ #{c.trainerize_user_id}</div>
+                        <Select
+                          disabled={linking === c.trainerize_user_id}
+                          onValueChange={(val) => val && linkClient(c.trainerize_user_id, val)}
+                        >
+                          <SelectTrigger className="w-[180px] h-9">
+                            <SelectValue placeholder="Link to APEX…" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {apexClients.filter((a) => !a.trainerize_user_id).map((a) => (
+                              <SelectItem key={a.id} value={a.id}>
+                                {a.full_name || a.email || a.id.slice(0, 8)}
+                              </SelectItem>
+                            ))}
+                            {apexClients.filter((a) => !a.trainerize_user_id).length === 0 && (
+                              <div className="px-2 py-2 text-xs text-muted-foreground">All APEX clients already linked</div>
+                            )}
+                          </SelectContent>
+                        </Select>
                       </div>
                     ))}
                   </div>
                   <p className="text-xs text-muted-foreground mt-2">
-                    Invite these clients via your normal client invite flow. Once they sign up with the same email, run Sync Now again to link them automatically.
+                    Pick the matching APEX client from the dropdown. Once linked, "Import Trainerize Activities" will pull their workouts.
                   </p>
                 </div>
               )}
