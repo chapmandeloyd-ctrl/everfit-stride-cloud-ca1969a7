@@ -41,7 +41,21 @@ Deno.serve(async (req) => {
   const candidates: Array<[string, unknown]> = [
     ['/bodyStats/getList (all)', { userid, count: 100, unitWeight: 'lb' }],
     ['/bodyStats/getList (yr)', { userid, startDate: '2025-01-01', endDate, unitWeight: 'lb' }],
+    ['/bodyStat/getList', { userid, startDate: '2025-01-01', endDate, unitWeight: 'lb' }],
+    ['/bodyStats/get', { userid, date: endDate, unitWeight: 'lb' }],
+    ['/progress/getList', { userid, startDate: '2025-01-01', endDate, unitWeight: 'lb' }],
+    ['/progressStats/getList', { userid, startDate: '2025-01-01', endDate, unitWeight: 'lb' }],
+    ['/progressStat/getList', { userid, startDate: '2025-01-01', endDate, unitWeight: 'lb' }],
+    ['/stat/getList', { userid, startDate: '2025-01-01', endDate, unitWeight: 'lb' }],
+    ['/stats/getList', { userid, startDate: '2025-01-01', endDate, unitWeight: 'lb' }],
     ['/measurement/getList', { userid, startDate, endDate }],
+    ['/measurement/getList (yr)', { userid, startDate: '2025-01-01', endDate }],
+    ['/dailyNutrition/getList', { userid, startDate: '2025-01-01', endDate }],
+    ['/dailyNutrition/get', { userid, date: endDate }],
+    ['/nutritionEntry/getList', { userid, startDate: '2025-01-01', endDate }],
+    ['/mealLog/getList', { userid, startDate: '2025-01-01', endDate }],
+    ['/mealLog/get', { userid, date: endDate }],
+    ['/food/getList', { userid, startDate: '2025-01-01', endDate }],
     ['/health/getList', { userid, startDate, endDate }],
     ['/health/get', { userid, date: endDate }],
     ['/tracker/getList', { userid, startDate, endDate }],
@@ -66,29 +80,6 @@ Deno.serve(async (req) => {
     '/bodyStats/getList (all)': '/bodyStats/getList',
     '/bodyStats/getList (yr)': '/bodyStats/getList',
   };
-  const _oldCandidates: Array<[string, unknown]> = [
-    ['/progressStat/getList', { userid, startDate, endDate }],
-    ['/stat/getList', { userid, startDate, endDate }],
-    ['/stats/getList', { userid, startDate, endDate }],
-    ['/dailyStat/getList', { userid, startDate, endDate }],
-    ['/dailyStats/getList', { userid, startDate, endDate }],
-    ['/bodyStat/getList', { userid, startDate, endDate }],
-    ['/nutritionEntry/getList', { userid, startDate, endDate }],
-    ['/mealPlan/getList', { userid, startDate, endDate }],
-    ['/food/getList', { userid, startDate, endDate }],
-    ['/mealLog/get', { userid, date: endDate }],
-    ['/dailyNutrition/getList', { userid, startDate, endDate }],
-    ['/wearable/getList', { userid, startDate, endDate }],
-    ['/activity/getList', { userid, startDate, endDate }],
-    ['/step/getList', { userid, startDate, endDate }],
-    ['/hr/getList', { userid, startDate, endDate }],
-    ['/heartrate/getList', { userid, startDate, endDate }],
-    ['/statistics/getList', { userid, startDate, endDate }],
-    ['/user/getInfo', { userid }],
-    ['/user/getProfile', { userid }],
-  ];
-  void _oldCandidates;
-
   const results = await Promise.all(candidates.map(([label, b]) => {
     const realPath = pathMap[label] ?? label;
     return probe(realPath, basic, b).then(r => ({ ...r, label }));
