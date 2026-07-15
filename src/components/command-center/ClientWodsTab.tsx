@@ -25,7 +25,7 @@ export function ClientWodsTab({ clientId, trainerId }: ClientWodsTabProps) {
         .select(`
           id, name, category, difficulty, duration_minutes, created_at,
           workout_sections(
-            id, name, block_type,
+            id, name, section_type,
             workout_plan_exercises(
               id, exercise_id, sets, reps, rest_seconds, order_index, notes,
               weight_lbs, tempo, rpe, distance, detail_fields,
@@ -64,7 +64,7 @@ export function ClientWodsTab({ clientId, trainerId }: ClientWodsTabProps) {
           .insert({
             workout_plan_id: newPlan.id,
             name: section.name,
-            block_type: section.block_type,
+            section_type: section.section_type,
             order_index: 0,
           })
           .select()
