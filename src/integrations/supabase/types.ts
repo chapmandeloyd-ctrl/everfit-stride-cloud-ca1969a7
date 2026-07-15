@@ -10490,6 +10490,10 @@ export type Database = {
           created_at: string | null
           difficulty_rating: number | null
           duration_seconds: number | null
+          external_id: string | null
+          external_metadata: Json | null
+          external_name: string | null
+          external_type: string | null
           id: string
           is_partial: boolean | null
           notes: string | null
@@ -10498,6 +10502,7 @@ export type Database = {
           resume_section_index: number | null
           resume_set: number | null
           resume_set_logs: Json | null
+          source: string
           started_at: string
           status: string
           workout_plan_id: string | null
@@ -10510,6 +10515,10 @@ export type Database = {
           created_at?: string | null
           difficulty_rating?: number | null
           duration_seconds?: number | null
+          external_id?: string | null
+          external_metadata?: Json | null
+          external_name?: string | null
+          external_type?: string | null
           id?: string
           is_partial?: boolean | null
           notes?: string | null
@@ -10518,6 +10527,7 @@ export type Database = {
           resume_section_index?: number | null
           resume_set?: number | null
           resume_set_logs?: Json | null
+          source?: string
           started_at: string
           status?: string
           workout_plan_id?: string | null
@@ -10530,6 +10540,10 @@ export type Database = {
           created_at?: string | null
           difficulty_rating?: number | null
           duration_seconds?: number | null
+          external_id?: string | null
+          external_metadata?: Json | null
+          external_name?: string | null
+          external_type?: string | null
           id?: string
           is_partial?: boolean | null
           notes?: string | null
@@ -10538,6 +10552,7 @@ export type Database = {
           resume_section_index?: number | null
           resume_set?: number | null
           resume_set_logs?: Json | null
+          source?: string
           started_at?: string
           status?: string
           workout_plan_id?: string | null
