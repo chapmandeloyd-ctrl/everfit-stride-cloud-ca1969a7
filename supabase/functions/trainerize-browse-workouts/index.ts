@@ -19,6 +19,51 @@ async function tzPost(path: string, basic: string, body: unknown) {
   return { ok: res.ok, status: res.status, body: parsed };
 }
 
+function normalizeCalendarWorkouts(body: any) {
+  const calendar = body?.calendar ?? body?.calendars ?? body?.days ?? [];
+  if (!Array.isArray(calendar)) return [];
+
+  const completedStatuses = new Set(['checkedin', 'checked_in', 'completed', 'complete', 'done', 'tracked']);
+  const workoutLikeTypes = new Set([
+    'workoutinterval',
+    'workoutregular',
+    'workout',
+    'cardio',
+    'cardioactivity',
+    'activity',
+  ]);
+
+  const rows: any[] = [];
+  for (const day of calendar) {
+    const date = day?.date ?? day?.startDate ?? day?.calendarDate ?? day?.day;
+    const items = day?.items ?? day?.activities ?? day?.events ?? [];
+    if (!Array.isArray(items)) continue;
+
+    for (const item of items) {
+      const rawType = String(item?.type ?? item?.activityType ?? item?.itemType ?? '').toLowerCase();
+      const rawStatus = String(item?.status ?? item?.state ?? item?.completionStatus ?? '').toLowerCase();
+      const completed = completedStatuses.has(rawStatus) || item?.checkedIn === true || item?.isCompleted === true || item?.completed === true;
+      const workoutLike = workoutLikeTypes.has(rawType) || rawType.includes('workout') || rawType.includes('cardio');
+
+      if (!completed || !workoutLike) continue;
+
+      rows.push({
+        id: item?.id ?? item?.itemID ?? item?.dailyWorkoutID ?? item?.workoutID,
+        name: (item?.name ?? item?.title ?? item?.workoutName ?? item?.activityName ?? item?.cardioName ?? item?.displayName ?? rawType) || 'Completed activity',
+        date: item?.date ?? item?.completedDate ?? item?.completedAt ?? item?.startTime ?? date,
+        duration: item?.duration ?? item?.durationSeconds ?? item?.time ?? item?.actualDuration,
+        durationText: item?.durationText ?? item?.timeText,
+        distance: item?.distance ?? item?.actualDistance,
+        distanceUnit: item?.distanceUnit ?? item?.unitDistance,
+        type: item?.type ?? item?.activityType,
+        status: item?.status,
+      });
+    }
+  }
+
+  return rows;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
@@ -189,6 +234,9 @@ Deno.serve(async (req) => {
       const toDate = today.toISOString().slice(0, 10);
       const fromDate = past.toISOString().slice(0, 10);
       const attempts = [
+        { path: '/calendar/getList', body: { userid: userId, startDate: fromDate, endDate: toDate, unitDistance: 'mi', unitWeight: 'lb' } },
+        { path: '/calendar/getList', body: { userID: userId, startDate: fromDate, endDate: toDate, unitDistance: 'mi', unitWeight: 'lb' } },
+        { path: '/calendar/getList', body: { userid: userId, dateBegin: fromDate, dateEnd: toDate, unitDistance: 'mi', unitWeight: 'lb' } },
         { path: '/workoutStats/getList', body: { userid: userId, start: 0, count: 50, dateBegin: fromDate, dateEnd: toDate } },
         { path: '/workoutStats/getList', body: { userID: userId, start: 0, count: 50 } },
         { path: '/workout/getListForUser', body: { userid: userId, start: 0, count: 50 } },
@@ -205,7 +253,13 @@ Deno.serve(async (req) => {
           : { raw: String(r.body).slice(0, 400) };
         debug.push({ path: a.path, body: a.body, status: r.status, ...preview });
         console.log('[completed attempt]', a.path, r.status, JSON.stringify(preview).slice(0, 600));
-        const raw = (r.body as any)?.workouts
+        const calendarWorkouts = a.path === '/calendar/getList' ? normalizeCalendarWorkouts(r.body) : [];
+        if (r.ok && calendarWorkouts.length > 0) {
+          return new Response(JSON.stringify({ ok: true, body: { workouts: calendarWorkouts }, debug }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        const raw = calendarWorkouts.length > 0 ? calendarWorkouts : (r.body as any)?.workouts
           ?? (r.body as any)?.activities
           ?? (r.body as any)?.completedWorkouts
           ?? (r.body as any)?.stats
