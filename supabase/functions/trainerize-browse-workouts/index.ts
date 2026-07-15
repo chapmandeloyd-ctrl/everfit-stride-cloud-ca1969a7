@@ -47,16 +47,25 @@ function normalizeCalendarWorkouts(body: any) {
 
       if (!completed || !workoutLike) continue;
 
+      const detail = item?.detail && typeof item.detail === 'object' ? item.detail : {};
+
       rows.push({
         id: item?.id ?? item?.itemID ?? item?.dailyWorkoutID ?? item?.workoutID,
         name: (item?.name ?? item?.title ?? item?.workoutName ?? item?.activityName ?? item?.cardioName ?? item?.displayName ?? rawType) || 'Completed activity',
+        subtitle: item?.subtitle ?? item?.description ?? item?.notes ?? null,
         date: item?.date ?? item?.completedDate ?? item?.completedAt ?? item?.startTime ?? date,
-        duration: item?.duration ?? item?.durationSeconds ?? item?.time ?? item?.actualDuration,
-        durationText: item?.durationText ?? item?.timeText,
-        distance: item?.distance ?? item?.actualDistance,
-        distanceUnit: item?.distanceUnit ?? item?.unitDistance,
+        duration: item?.duration ?? item?.durationSeconds ?? item?.time ?? item?.actualDuration ?? detail.duration ?? detail.durationSeconds ?? detail.time ?? detail.timeSeconds,
+        durationText: item?.durationText ?? item?.timeText ?? detail.durationText ?? detail.timeText,
+        distance: item?.distance ?? item?.actualDistance ?? detail.distance ?? detail.actualDistance,
+        distanceUnit: item?.distanceUnit ?? item?.unitDistance ?? detail.distanceUnit ?? detail.unitDistance ?? ((item?.distance ?? item?.actualDistance ?? detail.distance ?? detail.actualDistance) ? 'mi' : undefined),
+        calories: item?.calories ?? item?.caloriesBurned ?? detail.calories ?? detail.caloriesBurned,
+        steps: item?.steps ?? detail.steps,
+        sets: item?.sets ?? detail.sets ?? detail.totalSets,
+        reps: item?.reps ?? detail.reps ?? detail.totalReps,
+        targetText: detail?.targetDetail?.text ?? item?.targetText,
         type: item?.type ?? item?.activityType,
         status: item?.status,
+        detail,
       });
     }
   }
