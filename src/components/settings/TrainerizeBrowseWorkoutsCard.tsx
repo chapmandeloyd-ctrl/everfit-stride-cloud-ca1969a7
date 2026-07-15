@@ -205,8 +205,8 @@ export function TrainerizeBrowseWorkoutsCard() {
       </Card>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-2xl w-[calc(100vw-2rem)] max-h-[85dvh] overflow-y-auto overscroll-contain flex flex-col">
-          <DialogHeader>
+        <DialogContent className="max-w-2xl w-[calc(100vw-2rem)] h-[85dvh] max-h-[85dvh] overflow-hidden flex flex-col">
+          <DialogHeader className="shrink-0">
             <DialogTitle className="flex items-center gap-2">
               {(selectedPlan || selectedWorkout) && (
                 <Button variant="ghost" size="icon" onClick={selectedWorkout ? backToWorkouts : backToPlans}>
@@ -220,11 +220,11 @@ export function TrainerizeBrowseWorkoutsCard() {
           </DialogHeader>
 
           {error && (
-            <div className="text-sm text-destructive bg-destructive/10 rounded p-2">{error}</div>
+            <div className="shrink-0 text-sm text-destructive bg-destructive/10 rounded p-2">{error}</div>
           )}
 
           {!selectedPlan && !selectedWorkout && (
-            <div className="space-y-3">
+            <div className="min-h-0 flex-1 flex flex-col space-y-3">
               <label className="text-sm text-muted-foreground">Select a Trainerize client</label>
               {loadingUsers ? (
                 <div className="flex items-center gap-2 text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Loading roster…</div>
@@ -243,7 +243,7 @@ export function TrainerizeBrowseWorkoutsCard() {
 
               {loadingPlans && <div className="flex items-center gap-2 text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Loading plans…</div>}
               {plans && (
-                <div className="max-h-[calc(85dvh-12rem)] overflow-y-auto overscroll-contain pr-2 -mr-2">
+                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-2 -mr-2 touch-pan-y">
                   <div className="space-y-4">
                     {plans.length > 0 && (
                       <div>
@@ -319,7 +319,7 @@ export function TrainerizeBrowseWorkoutsCard() {
           )}
 
           {selectedPlan && !selectedWorkout && (
-            <div className="max-h-[calc(85dvh-8rem)] overflow-y-auto overscroll-contain pr-2 -mr-2">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-2 -mr-2 touch-pan-y">
               {loadingWorkouts ? (
                 <div className="flex items-center gap-2 text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Loading workouts…</div>
               ) : (
@@ -341,7 +341,7 @@ export function TrainerizeBrowseWorkoutsCard() {
           )}
 
           {selectedWorkout && (
-            <div className="max-h-[calc(85dvh-8rem)] overflow-y-auto overscroll-contain pr-2 -mr-2">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-2 -mr-2 touch-pan-y">
               {loadingDetail ? (
                 <div className="flex items-center gap-2 text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Loading exercises…</div>
               ) : (
