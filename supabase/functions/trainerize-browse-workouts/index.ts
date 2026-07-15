@@ -108,9 +108,25 @@ Deno.serve(async (req) => {
       if (!userId) return new Response(JSON.stringify({ error: 'userId required' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
-      const r = await tzPost('/trainingPlan/getList', basic, { userid: userId });
-      return new Response(JSON.stringify({ ok: r.ok, status: r.status, body: r.body }), {
-        status: r.ok ? 200 : r.status,
+      // Try multiple param/endpoint variants — Trainerize v03 shape varies by account
+      const attempts = [
+        { path: '/trainingPlan/getList', body: { userID: userId, start: 0, count: 100 } },
+        { path: '/trainingPlan/getList', body: { userid: userId, start: 0, count: 100 } },
+        { path: '/user/getTrainingPlans', body: { userID: userId } },
+        { path: '/user/getTrainingPlans', body: { userid: userId } },
+      ];
+      const debug: any[] = [];
+      for (const a of attempts) {
+        const r = await tzPost(a.path, basic, a.body);
+        debug.push({ path: a.path, body: a.body, status: r.status, sample: typeof r.body === 'object' ? Object.keys(r.body as any) : String(r.body).slice(0, 200) });
+        const raw = (r.body as any)?.trainingPlans ?? (r.body as any)?.plans ?? (Array.isArray(r.body) ? r.body : null);
+        if (r.ok && raw && raw.length > 0) {
+          return new Response(JSON.stringify({ ok: true, body: r.body, debug }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+      }
+      return new Response(JSON.stringify({ ok: true, body: { trainingPlans: [] }, debug }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -120,9 +136,23 @@ Deno.serve(async (req) => {
       if (!userId || !planId) return new Response(JSON.stringify({ error: 'userId + planId required' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
-      const r = await tzPost('/workout/getList', basic, { userid: userId, trainingPlanID: planId });
-      return new Response(JSON.stringify({ ok: r.ok, status: r.status, body: r.body }), {
-        status: r.ok ? 200 : r.status,
+      const attempts = [
+        { path: '/workout/getList', body: { userID: userId, trainingPlanID: planId, start: 0, count: 200 } },
+        { path: '/workout/getList', body: { userid: userId, trainingPlanID: planId, start: 0, count: 200 } },
+        { path: '/trainingPlan/getWorkouts', body: { trainingPlanID: planId } },
+      ];
+      const debug: any[] = [];
+      for (const a of attempts) {
+        const r = await tzPost(a.path, basic, a.body);
+        debug.push({ path: a.path, status: r.status });
+        const raw = (r.body as any)?.workouts ?? (Array.isArray(r.body) ? r.body : null);
+        if (r.ok && raw && raw.length > 0) {
+          return new Response(JSON.stringify({ ok: true, body: r.body, debug }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+      }
+      return new Response(JSON.stringify({ ok: true, body: { workouts: [] }, debug }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -132,9 +162,19 @@ Deno.serve(async (req) => {
       if (!workoutId) return new Response(JSON.stringify({ error: 'workoutId required' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
-      const r = await tzPost('/workout/get', basic, { id: workoutId });
-      return new Response(JSON.stringify({ ok: r.ok, status: r.status, body: r.body }), {
-        status: r.ok ? 200 : r.status,
+      const attempts = [
+        { path: '/workout/get', body: { id: workoutId } },
+        { path: '/workout/get', body: { workoutID: workoutId } },
+      ];
+      for (const a of attempts) {
+        const r = await tzPost(a.path, basic, a.body);
+        if (r.ok) {
+          return new Response(JSON.stringify({ ok: true, body: r.body }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+      }
+      return new Response(JSON.stringify({ ok: false, body: { exercises: [] } }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
