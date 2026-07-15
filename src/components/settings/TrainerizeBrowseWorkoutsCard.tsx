@@ -12,6 +12,7 @@ type TzUser = { id: number; name: string; email: string | null };
 type TzPlan = { id: number; name: string; startDate?: string; endDate?: string };
 type TzWorkout = { id: number; name: string; type?: string; instructions?: string };
 type TzExercise = { name: string; sets?: number | string; reps?: number | string; weight?: string; rest?: string; notes?: string };
+type TzCompleted = { id?: number; name: string; date?: string; duration?: string; distance?: string; type?: string };
 
 async function invoke<T>(action: string, body: Record<string, unknown> = {}): Promise<T> {
   const { data, error } = await supabase.functions.invoke("trainerize-browse-workouts", {
@@ -51,6 +52,8 @@ export function TrainerizeBrowseWorkoutsCard() {
   const [exercises, setExercises] = useState<TzExercise[] | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [completed, setCompleted] = useState<TzCompleted[] | null>(null);
+  const [loadingCompleted, setLoadingCompleted] = useState(false);
 
   const loadRoster = async () => {
     setLoadingUsers(true); setError(null);
@@ -66,6 +69,7 @@ export function TrainerizeBrowseWorkoutsCard() {
   const pickUser = async (idStr: string) => {
     setSelectedUserId(idStr);
     setPlans(null); setSelectedPlan(null); setWorkouts(null); setSelectedWorkout(null); setExercises(null);
+    setCompleted(null);
     setLoadingPlans(true); setError(null);
     try {
       const res = await invoke<any>("plans", { userId: Number(idStr) });
@@ -78,6 +82,29 @@ export function TrainerizeBrowseWorkoutsCard() {
       setPlans(list);
     } catch (e) { setError(e instanceof Error ? e.message : String(e)); }
     finally { setLoadingPlans(false); }
+
+    // Also fetch recent completed workouts in parallel
+    setLoadingCompleted(true);
+    try {
+      const res = await invoke<any>("completed", { userId: Number(idStr) });
+      const raw = res?.body?.workouts ?? res?.body?.activities ?? res?.body?.completedWorkouts ?? [];
+      const list: TzCompleted[] = (Array.isArray(raw) ? raw : []).map((w: any) => {
+        const durSec = w.duration ?? w.durationSeconds ?? w.time;
+        const dur = typeof durSec === 'number'
+          ? `${Math.floor(durSec / 60)}m ${durSec % 60}s`
+          : (w.durationText ?? undefined);
+        return {
+          id: w.id ?? w.workoutID,
+          name: w.name ?? w.workoutName ?? w.activityName ?? w.type ?? 'Workout',
+          date: w.date ?? w.completedDate ?? w.startTime,
+          duration: dur,
+          distance: w.distance ? `${w.distance} ${w.distanceUnit ?? ''}`.trim() : undefined,
+          type: w.type ?? w.activityType,
+        };
+      });
+      setCompleted(list);
+    } catch (e) { /* non-fatal */ }
+    finally { setLoadingCompleted(false); }
   };
 
   const pickPlan = async (p: TzPlan) => {
@@ -166,10 +193,13 @@ export function TrainerizeBrowseWorkoutsCard() {
 
               {loadingPlans && <div className="flex items-center gap-2 text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Loading plans…</div>}
               {plans && (
-                <ScrollArea className="max-h-[50vh]">
-                  <div className="space-y-2 pr-2">
-                    {plans.length === 0 && <div className="text-sm text-muted-foreground">No training plans found.</div>}
-                    {plans.map(p => (
+                <ScrollArea className="max-h-[55vh]">
+                  <div className="space-y-4 pr-2">
+                    {plans.length > 0 && (
+                      <div>
+                        <div className="text-xs uppercase tracking-wide text-muted-foreground mb-2">Training Plans</div>
+                        <div className="space-y-2">
+                          {plans.map(p => (
                       <button key={p.id} onClick={() => pickPlan(p)}
                         className="w-full flex items-center justify-between rounded-lg border border-border bg-card p-3 hover:bg-accent text-left">
                         <div>
@@ -180,7 +210,38 @@ export function TrainerizeBrowseWorkoutsCard() {
                         </div>
                         <ChevronRight className="w-4 h-4 opacity-60" />
                       </button>
-                    ))}
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div>
+                      <div className="text-xs uppercase tracking-wide text-muted-foreground mb-2">Recent Completed Workouts</div>
+                      {loadingCompleted && (
+                        <div className="flex items-center gap-2 text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Loading…</div>
+                      )}
+                      {!loadingCompleted && (completed ?? []).length === 0 && (
+                        <div className="text-sm text-muted-foreground">No recent workouts found.</div>
+                      )}
+                      <div className="space-y-2">
+                        {(completed ?? []).map((w, i) => (
+                          <div key={i} className="rounded-lg border border-border bg-card p-3">
+                            <div className="font-medium">{w.name}</div>
+                            <div className="text-xs text-muted-foreground mt-1 flex flex-wrap gap-x-3">
+                              {w.date && <span>{new Date(w.date).toLocaleDateString()}</span>}
+                              {w.duration && <span>⏱ {w.duration}</span>}
+                              {w.distance && <span>📍 {w.distance}</span>}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {plans.length === 0 && (completed ?? []).length === 0 && !loadingCompleted && (
+                      <div className="text-sm text-muted-foreground">
+                        This client has no assigned plans or recent workouts in Trainerize.
+                      </div>
+                    )}
                   </div>
                 </ScrollArea>
               )}
