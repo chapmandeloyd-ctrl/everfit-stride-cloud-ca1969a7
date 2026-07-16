@@ -141,6 +141,7 @@ Deno.serve(async (req) => {
       weightImported: number;
       weightSkippedApex: number;
       bodyFatImported: number;
+      goalsImported: number;
       error?: string;
     };
     const results: PerClient[] = [];
@@ -152,6 +153,7 @@ Deno.serve(async (req) => {
       const row: PerClient = {
         clientId, name,
         nutritionImported: 0, weightImported: 0, weightSkippedApex: 0, bodyFatImported: 0,
+        goalsImported: 0,
       };
 
       async function ensureClientMetric(defId: string): Promise<string | null> {
@@ -310,6 +312,103 @@ Deno.serve(async (req) => {
         }
       } catch (e) { console.error('bodystats err', e); }
 
+      // -------- Goals (Weight target, Nutrition target, Water target) --------
+      try {
+        const gr = await tzPost('/goal/getList', basic, { userid: tzId });
+        if (gr.ok) {
+          const goals: any[] = (gr.body as any)?.goals ?? (gr.body as any)?.list ?? [];
+          for (const g of Array.isArray(goals) ? goals : []) {
+            const type = String(g?.type ?? g?.goalType ?? '').toLowerCase();
+            const target = toNum(g?.target ?? g?.targetValue ?? g?.value);
+            if (target == null) continue;
+
+            // Weight goal → fitness_goals (only if no active weight goal exists)
+            if (type.includes('weight') && !type.includes('water')) {
+              const { data: existing } = await admin
+                .from('fitness_goals')
+                .select('id')
+                .eq('client_id', clientId)
+                .eq('goal_type', 'weight')
+                .eq('status', 'active')
+                .maybeSingle();
+              const targetDate = toDate(g?.targetDate ?? g?.dueDate) ??
+                new Date(Date.now() + 90 * 86400000).toISOString().slice(0, 10);
+              if (existing?.id) {
+                const { error } = await admin
+                  .from('fitness_goals')
+                  .update({ target_value: target, target_date: targetDate })
+                  .eq('id', existing.id);
+                if (!error) row.goalsImported++;
+              } else {
+                const { error } = await admin.from('fitness_goals').insert({
+                  client_id: clientId,
+                  trainer_id: trainerId,
+                  goal_type: 'weight',
+                  title: 'Weight goal (Trainerize)',
+                  target_value: target,
+                  unit: 'lbs',
+                  target_date: targetDate,
+                  status: 'active',
+                });
+                if (!error) row.goalsImported++;
+              }
+            }
+
+            // Nutrition / calorie goal → client_macro_targets.target_calories
+            if (type.includes('nutrition') || type.includes('calorie')) {
+              const { data: existing } = await admin
+                .from('client_macro_targets')
+                .select('id')
+                .eq('client_id', clientId)
+                .eq('trainer_id', trainerId)
+                .maybeSingle();
+              if (existing?.id) {
+                const { error } = await admin
+                  .from('client_macro_targets')
+                  .update({ target_calories: Math.round(target), is_active: true })
+                  .eq('id', existing.id);
+                if (!error) row.goalsImported++;
+              } else {
+                const { error } = await admin.from('client_macro_targets').insert({
+                  client_id: clientId,
+                  trainer_id: trainerId,
+                  tracking_option: 'calories_only',
+                  target_calories: Math.round(target),
+                  is_active: true,
+                });
+                if (!error) row.goalsImported++;
+              }
+            }
+
+            // Water goal → water_goal_settings (Trainerize is in ml; APEX default fl_oz)
+            if (type.includes('water') || type.includes('hydration')) {
+              const ml = target;
+              const oz = Math.round((ml / 29.5735) * 10) / 10;
+              const { data: existing } = await admin
+                .from('water_goal_settings')
+                .select('id')
+                .eq('client_id', clientId)
+                .maybeSingle();
+              if (existing?.id) {
+                const { error } = await admin
+                  .from('water_goal_settings')
+                  .update({ daily_goal_oz: oz, unit: 'fl_oz' })
+                  .eq('id', existing.id);
+                if (!error) row.goalsImported++;
+              } else {
+                const { error } = await admin.from('water_goal_settings').insert({
+                  client_id: clientId,
+                  daily_goal_oz: oz,
+                  serving_size_oz: 8,
+                  unit: 'fl_oz',
+                });
+                if (!error) row.goalsImported++;
+              }
+            }
+          }
+        }
+      } catch (e) { console.error('goals err', e); }
+
       results.push(row);
     }
 
@@ -318,7 +417,8 @@ Deno.serve(async (req) => {
       weight: acc.weight + r.weightImported,
       weightSkippedApex: acc.weightSkippedApex + r.weightSkippedApex,
       bodyFat: acc.bodyFat + r.bodyFatImported,
-    }), { nutrition: 0, weight: 0, weightSkippedApex: 0, bodyFat: 0 });
+      goals: acc.goals + r.goalsImported,
+    }), { nutrition: 0, weight: 0, weightSkippedApex: 0, bodyFat: 0, goals: 0 });
 
     return new Response(JSON.stringify({ ok: true, days, from: startDate, to: endDate, totals, results }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
