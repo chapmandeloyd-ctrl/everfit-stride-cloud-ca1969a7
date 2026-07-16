@@ -2,7 +2,7 @@ import { ClientLayout } from "@/components/ClientLayout";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { BookOpen, Droplet, Footprints } from "lucide-react";
+import { BookOpen, Droplet, Flame, Footprints } from "lucide-react";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { FastingProtocolCard } from "./ClientDashboard";
 import { SmartPaceCollapsible } from "@/components/smart-pace/SmartPaceCollapsible";
@@ -70,6 +70,31 @@ export default function ClientDashboardMinimal() {
     },
   });
 
+  // Daily calories — today's caloric intake vs target
+  const { data: caloriesSummary } = useQuery({
+    queryKey: ["tile-calories-summary", clientId, today],
+    enabled: !!clientId,
+    staleTime: 30_000,
+    queryFn: async () => {
+      const [{ data: target }, { data: logs }] = await Promise.all([
+        supabase
+          .from("client_macro_targets")
+          .select("target_calories")
+          .eq("client_id", clientId!)
+          .eq("is_active", true)
+          .maybeSingle(),
+        supabase
+          .from("nutrition_logs")
+          .select("calories")
+          .eq("client_id", clientId!)
+          .eq("log_date", today),
+      ]);
+      const consumed = (logs ?? []).reduce((s, r: any) => s + Number(r.calories ?? 0), 0);
+      const goal = Number(target?.target_calories ?? 0);
+      return { consumed, goal };
+    },
+  });
+
   // Journal summary — did they log today?
   const { data: journalSummary } = useQuery({
     queryKey: ["tile-journal-summary", clientId, today],
@@ -96,6 +121,9 @@ export default function ClientDashboardMinimal() {
     : 0;
   const stepsPct = stepsSummary?.goal
     ? Math.round((stepsSummary.steps / stepsSummary.goal) * 100)
+    : 0;
+  const caloriesPct = caloriesSummary?.goal
+    ? Math.round((caloriesSummary.consumed / caloriesSummary.goal) * 100)
     : 0;
 
   return (
@@ -193,6 +221,28 @@ export default function ClientDashboardMinimal() {
             }
           >
             <StepTrackerCard />
+          </CollapsibleTile>
+        )}
+
+        {/* Daily Calories (from Trainerize nutrition + logged meals) */}
+        {clientId && caloriesSummary && caloriesSummary.goal > 0 && (
+          <CollapsibleTile
+            icon={Flame}
+            title="Daily Calories"
+            iconTone="warning"
+            storageKey="daily-calories"
+            statusPill={
+              caloriesPct >= 100
+                ? { label: "Hit", tone: "success" }
+                : caloriesPct > 0
+                ? { label: `${caloriesPct}%`, tone: "warning" }
+                : undefined
+            }
+            summary={`${Math.round(caloriesSummary.consumed).toLocaleString()} / ${caloriesSummary.goal.toLocaleString()} cal · ${caloriesPct}%`}
+          >
+            <div className="p-4 text-sm text-muted-foreground">
+              Synced from Trainerize nutrition. Log meals in Trainerize and they'll appear here.
+            </div>
           </CollapsibleTile>
         )}
 
