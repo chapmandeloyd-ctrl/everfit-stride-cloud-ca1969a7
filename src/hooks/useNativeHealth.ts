@@ -1,6 +1,7 @@
 import { useEffect, useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Capacitor } from "@capacitor/core";
+import { App as CapacitorApp } from "@capacitor/app";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -153,10 +154,29 @@ export function useNativeHealth() {
       syncHealthDataToBackend(clientId, supabase).then((synced) => {
         if (synced) {
           queryClient.invalidateQueries({ queryKey: ["health-stats"] });
+          queryClient.invalidateQueries({ queryKey: ["metric-entries"] });
+          queryClient.invalidateQueries({ queryKey: ["daily-rings"] });
         }
       });
     }
   }, [healthData, clientId, queryClient]);
+
+  // Auto-refresh HealthKit data whenever the app returns to the foreground.
+  // On iOS Capacitor, "appStateChange" fires with isActive=true on resume.
+  useEffect(() => {
+    if (!isNative || !permissionGranted) return;
+    let removed = false;
+    const sub = CapacitorApp.addListener("appStateChange", ({ isActive }) => {
+      if (isActive && !removed) {
+        void refetch();
+      }
+    });
+    return () => {
+      removed = true;
+      // addListener returns a Promise<PluginListenerHandle>
+      Promise.resolve(sub).then((h) => h.remove()).catch(() => {});
+    };
+  }, [isNative, permissionGranted, refetch]);
 
   return {
     isNative,
