@@ -352,6 +352,94 @@ Deno.serve(async (req) => {
                 });
                 if (!error) row.goalsImported++;
               }
+
+              // Also mirror into smart_pace_goals so the Smart Weight Tracker tile lights up.
+              try {
+                // Find latest weigh-in to seed start_weight (optional).
+                let startWeight: number | null = null;
+                if (weightDefId) {
+                  const { data: cm } = await admin
+                    .from('client_metrics')
+                    .select('id')
+                    .eq('client_id', clientId)
+                    .eq('metric_definition_id', weightDefId)
+                    .maybeSingle();
+                  if (cm?.id) {
+                    const { data: latest } = await admin
+                      .from('metric_entries')
+                      .select('value')
+                      .eq('client_metric_id', cm.id)
+                      .order('recorded_at', { ascending: false })
+                      .limit(1)
+                      .maybeSingle();
+                    startWeight = latest?.value != null ? Number(latest.value) : null;
+                  }
+                }
+
+                const goalWeight = Number(target);
+                const startDate = new Date().toISOString().slice(0, 10);
+                const msPerDay = 86_400_000;
+                const daysUntil = Math.max(
+                  7,
+                  Math.round((new Date(targetDate).getTime() - Date.now()) / msPerDay),
+                );
+                const direction = startWeight != null && goalWeight > startWeight ? 'gain'
+                  : startWeight != null && Math.abs(goalWeight - startWeight) < 0.5 ? 'maintain'
+                  : 'lose';
+                const totalDelta = startWeight != null ? Math.abs(goalWeight - startWeight) : 0;
+                // Default 0.3 lbs/day if we can't compute (~2 lbs/week).
+                const paceRaw = totalDelta > 0 ? totalDelta / daysUntil : 0.3;
+                const dailyPace = Math.max(0.05, Math.min(1.0, Math.round(paceRaw * 100) / 100));
+
+                const { data: existingPace } = await admin
+                  .from('smart_pace_goals')
+                  .select('id')
+                  .eq('client_id', clientId)
+                  .eq('status', 'active')
+                  .maybeSingle();
+
+                const payload: Record<string, any> = {
+                  goal_weight: goalWeight,
+                  target_date: targetDate,
+                  daily_pace_lbs: dailyPace,
+                  goal_direction: direction,
+                };
+                if (existingPace?.id) {
+                  await admin.from('smart_pace_goals').update(payload).eq('id', existingPace.id);
+                } else {
+                  await admin.from('smart_pace_goals').insert({
+                    ...payload,
+                    client_id: clientId,
+                    trainer_id: trainerId,
+                    start_date: startDate,
+                    start_weight: startWeight,
+                    status: 'active',
+                  });
+                }
+
+                // Enable the Smart Pace feature flag for this client.
+                const { data: cfs } = await admin
+                  .from('client_feature_settings')
+                  .select('client_id, smart_pace_enabled')
+                  .eq('client_id', clientId)
+                  .maybeSingle();
+                if (cfs?.client_id) {
+                  if (!cfs.smart_pace_enabled) {
+                    await admin
+                      .from('client_feature_settings')
+                      .update({ smart_pace_enabled: true })
+                      .eq('client_id', clientId);
+                  }
+                } else {
+                  await admin.from('client_feature_settings').insert({
+                    client_id: clientId,
+                    trainer_id: trainerId,
+                    smart_pace_enabled: true,
+                  });
+                }
+              } catch (e) {
+                console.error('smart_pace_goals upsert', e);
+              }
             }
 
             // Nutrition / calorie goal → client_macro_targets.target_calories
