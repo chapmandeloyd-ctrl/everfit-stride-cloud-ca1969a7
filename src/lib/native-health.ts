@@ -429,6 +429,73 @@ export async function syncHealthDataToBackend(
     }
     console.log(`[HealthKit] Synced ${entries.length} metrics to backend`);
 
+    // Mirror HealthKit weight into client_metric_entries so the standard
+    // Weight Tracker tile updates even when Smart Pace is disabled.
+    if (data.weight != null) {
+      try {
+        const lbs = Math.round(data.weight * 2.20462 * 10) / 10;
+        const today = new Date().toISOString().slice(0, 10);
+
+        const { data: def } = await supabase
+          .from("metric_definitions")
+          .select("id")
+          .eq("name", "Weight")
+          .eq("is_default", true)
+          .limit(1)
+          .maybeSingle();
+
+        if (def?.id) {
+          let { data: metric } = await supabase
+            .from("client_metrics")
+            .select("id")
+            .eq("client_id", clientId)
+            .eq("metric_definition_id", def.id)
+            .limit(1)
+            .maybeSingle();
+
+          if (!metric) {
+            const { data: created } = await supabase
+              .from("client_metrics")
+              .insert({ client_id: clientId, metric_definition_id: def.id, is_pinned: true })
+              .select("id")
+              .single();
+            metric = created;
+          }
+
+          if (metric?.id) {
+            // Skip if we already have an apple_health entry today (idempotent daily sync).
+            const { data: existing } = await supabase
+              .from("metric_entries")
+              .select("id")
+              .eq("client_metric_id", metric.id)
+              .gte("recorded_at", `${today}T00:00:00Z`)
+              .lte("recorded_at", `${today}T23:59:59Z`)
+              .eq("notes", "apple_health")
+              .maybeSingle();
+
+            if (!existing) {
+              const { error: entryErr } = await supabase
+                .from("metric_entries")
+                .insert({
+                  client_id: clientId,
+                  client_metric_id: metric.id,
+                  value: lbs,
+                  recorded_at: now,
+                  notes: "apple_health",
+                });
+              if (entryErr) {
+                console.warn("[HealthKit] metric_entries weight insert failed:", entryErr);
+              } else {
+                console.log(`[HealthKit] Weight ${lbs} lbs written to Weight Tracker`);
+              }
+            }
+          }
+        }
+      } catch (e) {
+        console.warn("[HealthKit] Weight Tracker mirror failed:", e);
+      }
+    }
+
     // Persist sleep intervals (bedtime → wake) for the depth-view chart.
     if (data.sleepSessions && data.sleepSessions.length > 0) {
       const sessionRows = data.sleepSessions.map((s) => ({
