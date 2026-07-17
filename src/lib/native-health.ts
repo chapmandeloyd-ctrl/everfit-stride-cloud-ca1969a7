@@ -454,12 +454,33 @@ export async function syncHealthDataToBackend(
             .maybeSingle();
 
           if (!metric) {
-            const { data: created } = await supabase
-              .from("client_metrics")
-              .insert({ client_id: clientId, metric_definition_id: def.id, is_pinned: true })
-              .select("id")
-              .single();
-            metric = created;
+            // client_metrics.trainer_id is NOT NULL — look it up from the client's feature settings.
+            const { data: cfs } = await supabase
+              .from("client_feature_settings")
+              .select("trainer_id")
+              .eq("client_id", clientId)
+              .limit(1)
+              .maybeSingle();
+            const trainerId = cfs?.trainer_id;
+            if (!trainerId) {
+              console.warn("[HealthKit] Cannot create Weight client_metrics row — no trainer_id for client", clientId);
+            } else {
+              const { data: created, error: createErr } = await supabase
+                .from("client_metrics")
+                .insert({
+                  client_id: clientId,
+                  metric_definition_id: def.id,
+                  trainer_id: trainerId,
+                  is_pinned: true,
+                })
+                .select("id")
+                .single();
+              if (createErr) {
+                console.warn("[HealthKit] client_metrics insert failed:", createErr);
+              } else {
+                metric = created;
+              }
+            }
           }
 
           if (metric?.id) {

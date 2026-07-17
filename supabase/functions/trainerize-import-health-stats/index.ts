@@ -405,8 +405,10 @@ Deno.serve(async (req) => {
                   goal_direction: direction,
                 };
                 if (existingPace?.id) {
-                  await admin.from('smart_pace_goals').update(payload).eq('id', existingPace.id);
-                } else {
+                  // Do NOT overwrite an existing Smart Pace goal — the trainer/client
+                  // may have tuned pace, direction, or target date manually.
+                } else if (startWeight != null) {
+                  // Only create when we can compute a real direction/pace from a weigh-in.
                   await admin.from('smart_pace_goals').insert({
                     ...payload,
                     client_id: clientId,
@@ -417,26 +419,7 @@ Deno.serve(async (req) => {
                   });
                 }
 
-                // Enable the Smart Pace feature flag for this client.
-                const { data: cfs } = await admin
-                  .from('client_feature_settings')
-                  .select('client_id, smart_pace_enabled')
-                  .eq('client_id', clientId)
-                  .maybeSingle();
-                if (cfs?.client_id) {
-                  if (!cfs.smart_pace_enabled) {
-                    await admin
-                      .from('client_feature_settings')
-                      .update({ smart_pace_enabled: true })
-                      .eq('client_id', clientId);
-                  }
-                } else {
-                  await admin.from('client_feature_settings').insert({
-                    client_id: clientId,
-                    trainer_id: trainerId,
-                    smart_pace_enabled: true,
-                  });
-                }
+                // Do NOT auto-enable Smart Pace — respect the client/trainer's toggle.
               } catch (e) {
                 console.error('smart_pace_goals upsert', e);
               }
@@ -451,11 +434,7 @@ Deno.serve(async (req) => {
                 .eq('trainer_id', trainerId)
                 .maybeSingle();
               if (existing?.id) {
-                const { error } = await admin
-                  .from('client_macro_targets')
-                  .update({ target_calories: Math.round(target), is_active: true })
-                  .eq('id', existing.id);
-                if (!error) row.goalsImported++;
+                // Do NOT overwrite an existing macro target — the trainer/client set it manually.
               } else {
                 const { error } = await admin.from('client_macro_targets').insert({
                   client_id: clientId,
@@ -478,11 +457,7 @@ Deno.serve(async (req) => {
                 .eq('client_id', clientId)
                 .maybeSingle();
               if (existing?.id) {
-                const { error } = await admin
-                  .from('water_goal_settings')
-                  .update({ daily_goal_oz: oz, unit: 'fl_oz' })
-                  .eq('id', existing.id);
-                if (!error) row.goalsImported++;
+                // Do NOT overwrite an existing water goal — preserve the client's unit and target.
               } else {
                 const { error } = await admin.from('water_goal_settings').insert({
                   client_id: clientId,
