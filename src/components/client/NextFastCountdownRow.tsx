@@ -65,6 +65,22 @@ export function NextFastCountdownRow({ accent = "hsl(var(--primary))" }: { accen
   const scheduledAt = gate.scheduledAt;
   const scheduledMs = scheduledAt?.getTime() ?? null;
 
+  // Render scheduled time in the client's configured timezone so it stays
+  // consistent (e.g. "Sat 2:31 PM" for an EST client) regardless of the
+  // device timezone.
+  const { data: tzRow } = useQuery({
+    queryKey: ["ncr-tz", clientId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("client_feature_settings")
+        .select("schedule_timezone")
+        .eq("client_id", clientId!)
+        .maybeSingle();
+      return (data as any)?.schedule_timezone as string | null;
+    },
+    enabled: !!clientId,
+  });
+
   // Persisted "skipped today" flag — localStorage keyed by client + local date
   const skipKey = useMemo(() => todayKey(clientId), [clientId, scheduledMs]);
   const [skipped, setSkipped] = useState<boolean>(() => {
@@ -179,7 +195,12 @@ export function NextFastCountdownRow({ accent = "hsl(var(--primary))" }: { accen
 
   // Normal countdown state (future scheduled start)
   const scheduledLabel = scheduledAt
-    ? scheduledAt.toLocaleString(undefined, { weekday: "short", hour: "numeric", minute: "2-digit" })
+    ? scheduledAt.toLocaleString(undefined, {
+        weekday: "short",
+        hour: "numeric",
+        minute: "2-digit",
+        timeZone: tzRow || undefined,
+      })
     : gate.scheduledLabel ?? "";
   return (
     <div
