@@ -1,9 +1,9 @@
 // Runs every minute. For each client whose app has published a
 // `next_scheduled_fast_at` (tonight's scheduled fast start), fires:
 //
-//   1. Heads-up push at t-0..t+5 min:
+//   1. Heads-up push at t-5..t:
 //        "Your fast starts in 5 min — tap CANCEL if you're still eating"
-//   2. Auto-start at t+5..t+30 min:
+//   2. Auto-start at t..t+30 min:
 //        Sets active_fast_start_at = scheduled moment (started_at reflects
 //        the schedule, not the moment the cron fires). Sends a
 //        confirmation push. Unless the client already tapped Cancel

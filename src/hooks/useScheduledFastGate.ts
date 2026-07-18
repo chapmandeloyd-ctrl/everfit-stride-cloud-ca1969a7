@@ -8,6 +8,7 @@ import { useClientComputedPlan } from "@/hooks/useClientComputedPlan";
  * Scheduled fast start gate.
  *
  * Uses today's computed `eatEnd` as the scheduled fast start moment.
+ * In the computed plan, `eatEnd` means "last meal by / fast starts".
  * When `enforce_scheduled_start` is ON, the Start Fast button is locked
  * outside the ready window (-30m → +60m of scheduled start).
  *
@@ -16,7 +17,7 @@ import { useClientComputedPlan } from "@/hooks/useClientComputedPlan";
  *  - "early"  : too early, blocked, shows countdown
  *  - "ready"  : within grace window, primary CTA
  *  - "late"   : > 60m late, allowed but flagged
- *  - "n/a"    : fast day / refeed day / no plan — no eatEnd concept
+ *  - "n/a"    : fast day / refeed day / no plan — no fast-start time
  */
 export type GateState = "off" | "early" | "ready" | "late" | "n/a";
 

@@ -1,4 +1,4 @@
-// Resolves a client's effective eating window for a given date by combining
+// Resolves a client's effective fasting schedule for a given date by combining
 // their base weekly schedule with any active date-range override (vacation).
 
 export type FastRatio = "16:8" | "18:6" | "20:4" | "eat_all_day";
@@ -6,8 +6,8 @@ export type FastRatio = "16:8" | "18:6" | "20:4" | "eat_all_day";
 export interface WeeklyScheduleDay {
   day_of_week: number; // 0 = Sunday .. 6 = Saturday
   ratio: FastRatio;
-  window_start_time: string; // "HH:MM" or "HH:MM:SS"
-  window_end_time: string;
+  window_start_time: string; // Fast start time, "HH:MM" or "HH:MM:SS"
+  window_end_time: string; // Break-fast time, derived from ratio
   enabled: boolean;
 }
 
@@ -55,6 +55,10 @@ export function timeToHour(t: string): number {
 
 export function endHourFor(ratio: FastRatio, startHour: number): number {
   return (startHour + RATIO_EAT_HOURS[ratio]) % 24;
+}
+
+export function breakFastHourFor(ratio: FastRatio, fastStartHour: number): number {
+  return (fastStartHour + RATIO_FAST_HOURS[ratio]) % 24;
 }
 
 export function findActiveOverride(

@@ -23,14 +23,14 @@ export function useClientWeeklySchedule(clientId: string | null | undefined) {
       if (error) throw error;
       const rows = (data ?? []) as unknown as WeeklyScheduleDay[];
       if (rows.length === 7) return rows;
-      // Fill missing days with default 16:8 12PM-8PM
+      // Fill missing days with default 16:8: fast starts 8PM, breaks 12PM.
       const map = new Map(rows.map((r) => [r.day_of_week, r]));
       return Array.from({ length: 7 }, (_, dow) =>
         map.get(dow) ?? {
           day_of_week: dow,
           ratio: "16:8" as FastRatio,
-          window_start_time: "12:00:00",
-          window_end_time: "20:00:00",
+          window_start_time: "20:00:00",
+          window_end_time: "12:00:00",
           enabled: true,
         }
       );

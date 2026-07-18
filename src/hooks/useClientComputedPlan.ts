@@ -7,8 +7,9 @@ import {
   resolveDayForDate,
   formatHour,
   timeToHour,
-  endHourFor,
+  breakFastHourFor,
   RATIO_EAT_HOURS,
+  RATIO_FAST_HOURS,
   type WeeklyScheduleDay,
   type ScheduleOverride,
 } from "@/lib/resolveFastingWindow";
@@ -256,15 +257,15 @@ export function useClientComputedPlan() {
       }
       // Skip override for full-fast / low-cal / refeed days — those are structural
       if (d.adFast || d.isRefeed) return d;
-      const startHour = timeToHour(schedDay.window_start_time);
+      const fastStartHour = timeToHour(schedDay.window_start_time);
       const eatH = RATIO_EAT_HOURS[schedDay.ratio];
-      const endHour = endHourFor(schedDay.ratio, startHour);
-      const fastH = 24 - eatH;
+      const fastH = RATIO_FAST_HOURS[schedDay.ratio];
+      const breakFastHour = breakFastHourFor(schedDay.ratio, fastStartHour);
       return {
         ...d,
         fastWindow: `${fastH}:${eatH}`,
-        eatStart: formatHour(startHour),
-        eatEnd: formatHour(endHour),
+        eatStart: formatHour(breakFastHour),
+        eatEnd: formatHour(fastStartHour),
         tight: eatH <= 4,
         omad: fastH >= 20,
       };

@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
-const GRACE_MS = 5 * 60 * 1000;
+const PRESTART_CANCEL_MS = 5 * 60 * 1000;
 const AUTO_START_CUTOFF_MS = 30 * 60 * 1000;
 
 function fmt(ms: number): string {
@@ -30,9 +30,8 @@ function todayKey(clientId: string | null | undefined): string {
 /**
  * Live countdown to the next scheduled fast start, rendered above the
  * "Open Live Schedule to Start" CTA. When the countdown hits zero we
- * enter a 5-minute grace window during which the user can cancel. If
- * the grace elapses, the fast auto-starts via the existing useStartFast()
- * mutation (no changes to the legacy timer logic).
+ * shows a short cancel window before the scheduled time, then auto-starts via
+ * the existing useStartFast() mutation when the scheduled moment arrives.
  */
 export function NextFastCountdownRow({ accent = "hsl(var(--primary))" }: { accent?: string }) {
   const gate = useScheduledFastGate();
@@ -93,9 +92,9 @@ export function NextFastCountdownRow({ accent = "hsl(var(--primary))" }: { accen
   }, [skipKey]);
 
   const msUntil = scheduledMs != null ? scheduledMs - now : Number.POSITIVE_INFINITY;
-  const inGrace = scheduledMs != null && msUntil <= 0 && msUntil > -GRACE_MS;
-  const graceRemaining = inGrace ? GRACE_MS + msUntil : 0;
-  const withinAutoStartWindow = scheduledMs != null && msUntil <= -GRACE_MS && msUntil >= -AUTO_START_CUTOFF_MS;
+  const inGrace = scheduledMs != null && msUntil > 0 && msUntil <= PRESTART_CANCEL_MS;
+  const graceRemaining = inGrace ? msUntil : 0;
+  const withinAutoStartWindow = scheduledMs != null && msUntil <= 0 && msUntil >= -AUTO_START_CUTOFF_MS;
 
   // Per-scheduled-moment "already auto-started" key so the mutation cannot
   // re-fire after this component unmounts (e.g. after the user ends the
@@ -115,7 +114,7 @@ export function NextFastCountdownRow({ accent = "hsl(var(--primary))" }: { accen
     new Date(lastEnded).getTime() >= scheduledMs
   );
 
-  // Auto-fire the mutation once when grace ends and user hasn't cancelled
+  // Auto-fire the mutation once when the scheduled moment arrives and user hasn't cancelled
   useEffect(() => {
     if (firedRef.current) return;
     if (skipped) return;

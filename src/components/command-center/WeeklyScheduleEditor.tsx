@@ -11,13 +11,12 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   RATIO_LABEL,
-  RATIO_EAT_HOURS,
   type FastRatio,
   type ScheduleOverride,
   type WeeklyScheduleDay,
   timeToHour,
   formatHour,
-  endHourFor,
+  breakFastHourFor,
 } from "@/lib/resolveFastingWindow";
 import { toast } from "@/hooks/use-toast";
 
@@ -29,8 +28,8 @@ function defaultWeek(): WeeklyScheduleDay[] {
   return Array.from({ length: 7 }, (_, dow) => ({
     day_of_week: dow,
     ratio: "16:8" as FastRatio,
-    window_start_time: "12:00:00",
-    window_end_time: "20:00:00",
+    window_start_time: "20:00:00",
+    window_end_time: "12:00:00",
     enabled: true,
   }));
 }
@@ -47,7 +46,7 @@ function timeInputValue(v: string): string {
 
 function computeEnd(ratio: FastRatio, startTime: string): string {
   const startHour = timeToHour(startTime);
-  const endHour = endHourFor(ratio, startHour);
+  const endHour = breakFastHourFor(ratio, startHour);
   const hr = Math.floor(endHour);
   const min = Math.round((endHour - hr) * 60);
   return `${String(hr).padStart(2, "0")}:${String(min).padStart(2, "0")}:00`;
@@ -63,8 +62,8 @@ function DayRow({
   offDay?: boolean;
 }) {
   const isEatAll = day.ratio === "eat_all_day";
-  const startHour = timeToHour(day.window_start_time);
-  const endHour = endHourFor(day.ratio, startHour);
+  const fastStartHour = timeToHour(day.window_start_time);
+  const breakFastHour = breakFastHourFor(day.ratio, fastStartHour);
   return (
     <div
       className={`flex flex-wrap items-center gap-2 py-2 border-b border-border/40 last:border-b-0 ${
@@ -105,7 +104,7 @@ function DayRow({
       {!isEatAll ? (
         <>
           <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-            Starts
+            Fast starts
           </span>
           <Input
             type="time"
@@ -123,7 +122,7 @@ function DayRow({
             className="h-8 w-[110px] text-xs"
           />
           <span className="text-xs text-muted-foreground tabular-nums">
-            → {formatHour(endHour)}
+            → Breaks {formatHour(breakFastHour)}
           </span>
         </>
       ) : (
@@ -150,8 +149,8 @@ function WeekGrid({
         const d = byDow.get(dow) ?? {
           day_of_week: dow,
           ratio: "16:8" as FastRatio,
-          window_start_time: "12:00:00",
-          window_end_time: "20:00:00",
+          window_start_time: "20:00:00",
+          window_end_time: "12:00:00",
           enabled: true,
         };
         return (
@@ -356,8 +355,8 @@ export function WeeklyScheduleEditor({ clientId }: { clientId: string }) {
             Weekly Fasting Schedule
           </CardTitle>
           <p className="text-xs text-muted-foreground">
-            Set the fasting ratio and eating window start time for each day.
-            The end time auto-calculates from the ratio.
+            Set the fasting ratio and exact fast start time for each day.
+            The break-fast time auto-calculates from the ratio.
           </p>
           {visibleDows && (
             <p className="text-[11px] text-primary/80 mt-1">
