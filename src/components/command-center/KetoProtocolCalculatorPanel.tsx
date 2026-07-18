@@ -645,6 +645,24 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
         .delete()
         .eq("client_id", clientId);
 
+      // 5b. Clear custom weekly fasting schedule + date-range overrides so the
+      // next assigned plan starts from a clean slate (prevents stale times
+      // from carrying over into a new protocol).
+      await (supabase.from("client_weekly_schedule" as any) as any)
+        .delete()
+        .eq("client_id", clientId);
+      await (supabase.from("client_schedule_overrides" as any) as any)
+        .delete()
+        .eq("client_id", clientId);
+
+      // 5c. End any active fasting log so the dashboard doesn't show a stale
+      // timer after the plan is wiped.
+      await supabase
+        .from("fasting_log")
+        .update({ status: "cancelled", end_time: new Date().toISOString() })
+        .eq("client_id", clientId)
+        .eq("status", "active");
+
       // 6. Clear local cache
       localStorage.removeItem(storageKey);
 
