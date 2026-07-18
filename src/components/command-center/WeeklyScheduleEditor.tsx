@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CalendarDays, Plus, Trash2 } from "lucide-react";
 import { useClientWeeklySchedule, WEEKDAY_LABELS } from "@/hooks/useClientWeeklySchedule";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   RATIO_LABEL,
   RATIO_EAT_HOURS,
@@ -54,20 +56,32 @@ function computeEnd(ratio: FastRatio, startTime: string): string {
 function DayRow({
   day,
   onChange,
+  offDay,
 }: {
   day: WeeklyScheduleDay;
   onChange: (d: WeeklyScheduleDay) => void;
+  offDay?: boolean;
 }) {
   const isEatAll = day.ratio === "eat_all_day";
   const startHour = timeToHour(day.window_start_time);
   const endHour = endHourFor(day.ratio, startHour);
   return (
-    <div className="flex flex-wrap items-center gap-2 py-2 border-b border-border/40 last:border-b-0">
+    <div
+      className={`flex flex-wrap items-center gap-2 py-2 border-b border-border/40 last:border-b-0 ${
+        offDay ? "opacity-40" : ""
+      }`}
+    >
       <div className="w-10 text-xs font-bold uppercase tracking-wider text-muted-foreground">
         {WEEKDAY_LABELS[day.day_of_week]}
       </div>
+      {offDay && (
+        <Badge variant="outline" className="text-[9px] uppercase tracking-wider">
+          Off-day
+        </Badge>
+      )}
       <Select
         value={day.ratio}
+        disabled={offDay}
         onValueChange={(v) => {
           const ratio = v as FastRatio;
           onChange({
@@ -97,6 +111,7 @@ function DayRow({
             type="time"
             value={timeInputValue(day.window_start_time)}
             step={60}
+            disabled={offDay}
             onChange={(e) => {
               const t = normalizeTime(e.target.value);
               onChange({
@@ -121,9 +136,11 @@ function DayRow({
 function WeekGrid({
   value,
   onChange,
+  activeDows,
 }: {
   value: WeeklyScheduleDay[];
   onChange: (v: WeeklyScheduleDay[]) => void;
+  activeDows?: Set<number> | null;
 }) {
   const byDow = new Map(value.map((d) => [d.day_of_week, d]));
   return (
@@ -136,10 +153,12 @@ function WeekGrid({
           window_end_time: "20:00:00",
           enabled: true,
         };
+        const offDay = activeDows ? !activeDows.has(dow) : false;
         return (
           <DayRow
             key={dow}
             day={d}
+            offDay={offDay}
             onChange={(nd) => {
               const next = value.filter((x) => x.day_of_week !== dow).concat(nd);
               next.sort((a, b) => a.day_of_week - b.day_of_week);
@@ -243,6 +262,46 @@ export function WeeklyScheduleEditor({ clientId }: { clientId: string }) {
     if (weekly && !draft) setDraft(weekly);
   }, [weekly, draft]);
 
+  // Fetch assignment info so we can grey out days that are not part of the
+  // active window (assignment duration + run mode + start date).
+  const { data: settings } = useQuery({
+    queryKey: ["wse-settings", clientId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("client_feature_settings")
+        .select("assigned_protocol_duration_days, protocol_run_mode, protocol_start_date")
+        .eq("client_id", clientId)
+        .maybeSingle();
+      return data as any;
+    },
+    enabled: !!clientId,
+  });
+
+  const durationDays = Math.max(
+    1,
+    Math.min(7, (settings?.assigned_protocol_duration_days as number) || 7),
+  );
+  const runMode = (settings?.protocol_run_mode as string) || "one_time";
+  const startDate = settings?.protocol_start_date as string | null;
+
+  const activeDows: Set<number> | null = (() => {
+    if (durationDays >= 7) return null; // all days active
+    const set = new Set<number>();
+    if (runMode === "recurring") {
+      // First N weekdays of each week — Mon(1)..Mon+N-1
+      for (let i = 0; i < durationDays; i++) set.add(((1 + i) % 7 + 7) % 7);
+    } else {
+      // one_time: from start_date, N sequential calendar days
+      const base = startDate ? new Date(startDate + "T00:00:00") : new Date();
+      for (let i = 0; i < durationDays; i++) {
+        const d = new Date(base);
+        d.setDate(base.getDate() + i);
+        set.add(d.getDay());
+      }
+    }
+    return set;
+  })();
+
   const handleSaveWeekly = async () => {
     if (!draft) return;
     try {
@@ -300,9 +359,18 @@ export function WeeklyScheduleEditor({ clientId }: { clientId: string }) {
             Set the fasting ratio and eating window start time for each day.
             The end time auto-calculates from the ratio.
           </p>
+          {activeDows && (
+            <p className="text-[11px] text-primary/80 mt-1">
+              This client's plan runs {durationDays} day{durationDays > 1 ? "s" : ""}
+              {runMode === "recurring"
+                ? " per week (recurring)"
+                : ` starting ${startDate ?? "today"}`}
+              . Off-days are greyed and won't fast.
+            </p>
+          )}
         </CardHeader>
         <CardContent className="space-y-3">
-          <WeekGrid value={draft ?? defaultWeek()} onChange={setDraft} />
+          <WeekGrid value={draft ?? defaultWeek()} onChange={setDraft} activeDows={activeDows} />
           <Button
             onClick={handleSaveWeekly}
             disabled={saveWeekly.isPending}
