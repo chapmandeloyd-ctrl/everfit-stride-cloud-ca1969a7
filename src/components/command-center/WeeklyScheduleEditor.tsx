@@ -360,11 +360,11 @@ export function WeeklyScheduleEditor({ clientId }: { clientId: string }) {
           </p>
           {activeDows && (
             <p className="text-[11px] text-primary/80 mt-1">
-              This client's plan runs {durationDays} day{durationDays > 1 ? "s" : ""}
+              Showing only the {durationDays} day{durationDays > 1 ? "s" : ""} this plan runs
               {runMode === "recurring"
                 ? " per week (recurring)"
                 : ` starting ${startDate ?? "today"}`}
-              . Off-days are greyed and won't fast.
+              .
             </p>
           )}
         </CardHeader>
