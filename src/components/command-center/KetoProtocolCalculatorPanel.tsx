@@ -252,6 +252,8 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["kpc-feature-settings", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["wse-settings", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["ccp-settings", clientId] });
       queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting"] });
       queryClient.invalidateQueries({ queryKey: ["active-protocol-summary", clientId] });
     },
@@ -411,7 +413,13 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
       protocol_run_mode: runMode,
       assigned_protocol_duration_days: planLengthDays,
     }));
-  }, [runMode, planLengthDays, clientId, queryClient]);
+    queryClient.setQueryData(["wse-settings", clientId], (prev: any) => ({
+      ...(prev ?? {}),
+      protocol_run_mode: runMode,
+      assigned_protocol_duration_days: planLengthDays,
+      protocol_start_date: prev?.protocol_start_date ?? (startDate || (featureSettings as any)?.protocol_start_date ?? null),
+    }));
+  }, [runMode, planLengthDays, startDate, clientId, queryClient, featureSettings]);
 
   const kt = assignment?.keto_types as any;
 
@@ -563,6 +571,8 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
       }
       queryClient.invalidateQueries({ queryKey: ["tw-settings"] });
       queryClient.invalidateQueries({ queryKey: ["kpc-feature-settings", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["wse-settings", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["ccp-settings", clientId] });
     } catch (e) {
       console.error("save protocol inputs failed", e);
     }
