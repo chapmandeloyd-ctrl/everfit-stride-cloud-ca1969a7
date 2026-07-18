@@ -3,6 +3,15 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { computePlan, type ComputedPlan } from "@/lib/protocolPlan";
+import {
+  resolveDayForDate,
+  formatHour,
+  timeToHour,
+  endHourFor,
+  RATIO_EAT_HOURS,
+  type WeeklyScheduleDay,
+  type ScheduleOverride,
+} from "@/lib/resolveFastingWindow";
 
 function parseDateOnlyUtcMs(value: string): number {
   const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
@@ -122,6 +131,34 @@ export function useClientComputedPlan() {
     enabled: !!clientId,
   });
 
+  const { data: weeklySchedule } = useQuery({
+    queryKey: ["client-weekly-schedule", clientId],
+    queryFn: async (): Promise<WeeklyScheduleDay[]> => {
+      if (!clientId) return [];
+      const { data } = await supabase
+        .from("client_weekly_schedule" as any)
+        .select("day_of_week, ratio, window_start_time, window_end_time, enabled")
+        .eq("client_id", clientId)
+        .order("day_of_week");
+      return ((data ?? []) as unknown) as WeeklyScheduleDay[];
+    },
+    enabled: !!clientId,
+  });
+
+  const { data: scheduleOverrides } = useQuery({
+    queryKey: ["client-schedule-overrides", clientId],
+    queryFn: async (): Promise<ScheduleOverride[]> => {
+      if (!clientId) return [];
+      const { data } = await supabase
+        .from("client_schedule_overrides" as any)
+        .select("id, label, start_date, end_date, schedule, active")
+        .eq("client_id", clientId)
+        .order("start_date", { ascending: false });
+      return ((data ?? []) as unknown) as ScheduleOverride[];
+    },
+    enabled: !!clientId,
+  });
+
   const plan: ComputedPlan | null = useMemo(() => {
     if (!ketoType || !protocol) return null;
     const inputs: any = (settings as any)?.protocol_calc_inputs || {};
@@ -188,8 +225,57 @@ export function useClientComputedPlan() {
     return ((diffDays % plan.days.length) + plan.days.length) % plan.days.length;
   }, [plan, effectiveProtocolStartDate, (settings as any)?.schedule_timezone, (settings as any)?.day_start_hour]);
 
+  // Apply per-weekday schedule + active overrides on top of the computed plan.
+  // Only applies to 7-day weekly cycles (skipped for extended fasts / multi-week plans).
+  const finalPlan: ComputedPlan | null = useMemo(() => {
+    if (!plan) return null;
+    if (plan.days.length !== 7) return plan;
+    if (!weeklySchedule?.length && !scheduleOverrides?.length) return plan;
+    // plan.days indexed Mon(0)..Sun(6). JS Date.getDay uses Sun(0)..Sat(6).
+    // Map plan index i -> dow: Mon(0)->1, Tue->2, ..., Sat(5)->6, Sun(6)->0
+    const indexToDow = (i: number) => (i + 1) % 7;
+    const today = new Date();
+    const todayDow = today.getDay();
+    const days = plan.days.map((d, i) => {
+      const dow = indexToDow(i);
+      // Only apply overrides for days from today forward within their range.
+      // For simplicity: compute the actual date for this weekly index relative to today.
+      const dayOffset = (dow - todayDow + 7) % 7;
+      const dayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + dayOffset);
+      const schedDay = resolveDayForDate(weeklySchedule, scheduleOverrides, dayDate);
+      if (!schedDay) return d;
+      if (schedDay.ratio === "eat_all_day") {
+        return {
+          ...d,
+          adFast: false,
+          isRefeed: false,
+          fastWindow: "Eat all day",
+          eatStart: "All day",
+          eatEnd: "All day",
+          tight: false,
+          omad: false,
+        };
+      }
+      // Skip override for full-fast / low-cal / refeed days — those are structural
+      if (d.adFast || d.isRefeed) return d;
+      const startHour = timeToHour(schedDay.window_start_time);
+      const eatH = RATIO_EAT_HOURS[schedDay.ratio];
+      const endHour = endHourFor(schedDay.ratio, startHour);
+      const fastH = 24 - eatH;
+      return {
+        ...d,
+        fastWindow: `${fastH}:${eatH}`,
+        eatStart: formatHour(startHour),
+        eatEnd: formatHour(endHour),
+        tight: eatH <= 4,
+        omad: fastH >= 20,
+      };
+    });
+    return { ...plan, days };
+  }, [plan, weeklySchedule, scheduleOverrides]);
+
   return {
-    plan,
+    plan: finalPlan,
     dayIndex,
     protocolName: protocol?.name ?? null,
     ketoName: (ketoType as any)?.name ?? null,

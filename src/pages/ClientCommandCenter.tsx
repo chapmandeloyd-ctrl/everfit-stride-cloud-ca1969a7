@@ -26,6 +26,7 @@ import { ClientTasksTab } from "@/components/command-center/ClientTasksTab";
 import { ClientCalendarTab } from "@/components/command-center/ClientCalendarTab";
 import { KetoProtocolCalculatorPanel } from "@/components/command-center/KetoProtocolCalculatorPanel";
 import { ActiveProtocolSummary } from "@/components/command-center/ActiveProtocolSummary";
+import { WeeklyScheduleEditor } from "@/components/command-center/WeeklyScheduleEditor";
 import { StageTimelinePanel } from "@/components/command-center/StageTimelinePanel";
 import { ProtocolHistorySection } from "@/components/command-center/ProtocolHistorySection";
 import { ProtocolMiniCalendar } from "@/components/command-center/ProtocolMiniCalendar";
@@ -280,6 +281,7 @@ export default function ClientCommandCenter() {
           <TabsContent value="protocol">
             <div className="space-y-4 sm:space-y-6">
               <KetoProtocolCalculatorPanel clientId={clientId!} trainerId={user?.id!} />
+              <WeeklyScheduleEditor clientId={clientId!} />
               <ScheduleAlignmentPanel clientId={clientId!} />
               <StageTimelinePanel clientId={clientId!} />
               <ProtocolMiniCalendar clientId={clientId!} />
