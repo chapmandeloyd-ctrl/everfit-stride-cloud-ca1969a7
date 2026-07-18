@@ -2569,6 +2569,45 @@ export type Database = {
           },
         ]
       }
+      client_schedule_overrides: {
+        Row: {
+          active: boolean
+          client_id: string
+          created_at: string
+          created_by: string | null
+          end_date: string
+          id: string
+          label: string
+          schedule: Json
+          start_date: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          end_date: string
+          id?: string
+          label?: string
+          schedule: Json
+          start_date: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          end_date?: string
+          id?: string
+          label?: string
+          schedule?: Json
+          start_date?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       client_sport_day_cards: {
         Row: {
           card_type: string
@@ -2771,6 +2810,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      client_weekly_schedule: {
+        Row: {
+          client_id: string
+          created_at: string
+          day_of_week: number
+          enabled: boolean
+          id: string
+          ratio: string
+          updated_at: string
+          window_end_time: string
+          window_start_time: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          day_of_week: number
+          enabled?: boolean
+          id?: string
+          ratio?: string
+          updated_at?: string
+          window_end_time?: string
+          window_start_time?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          day_of_week?: number
+          enabled?: boolean
+          id?: string
+          ratio?: string
+          updated_at?: string
+          window_end_time?: string
+          window_start_time?: string
+        }
+        Relationships: []
       }
       client_weekly_summaries: {
         Row: {
