@@ -145,7 +145,7 @@ function WeekGrid({
   const byDow = new Map(value.map((d) => [d.day_of_week, d]));
   return (
     <div className="space-y-0.5">
-      {RENDER_ORDER.map((dow) => {
+      {RENDER_ORDER.filter((dow) => !activeDows || activeDows.has(dow)).map((dow) => {
         const d = byDow.get(dow) ?? {
           day_of_week: dow,
           ratio: "16:8" as FastRatio,
@@ -153,12 +153,11 @@ function WeekGrid({
           window_end_time: "20:00:00",
           enabled: true,
         };
-        const offDay = activeDows ? !activeDows.has(dow) : false;
         return (
           <DayRow
             key={dow}
             day={d}
-            offDay={offDay}
+            offDay={false}
             onChange={(nd) => {
               const next = value.filter((x) => x.day_of_week !== dow).concat(nd);
               next.sort((a, b) => a.day_of_week - b.day_of_week);
@@ -361,11 +360,11 @@ export function WeeklyScheduleEditor({ clientId }: { clientId: string }) {
           </p>
           {activeDows && (
             <p className="text-[11px] text-primary/80 mt-1">
-              This client's plan runs {durationDays} day{durationDays > 1 ? "s" : ""}
+              Showing only the {durationDays} day{durationDays > 1 ? "s" : ""} this plan runs
               {runMode === "recurring"
                 ? " per week (recurring)"
                 : ` starting ${startDate ?? "today"}`}
-              . Off-days are greyed and won't fast.
+              .
             </p>
           )}
         </CardHeader>
