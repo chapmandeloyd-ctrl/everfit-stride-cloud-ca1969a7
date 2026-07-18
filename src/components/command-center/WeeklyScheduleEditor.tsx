@@ -145,7 +145,7 @@ function WeekGrid({
   const byDow = new Map(value.map((d) => [d.day_of_week, d]));
   return (
     <div className="space-y-0.5">
-      {RENDER_ORDER.map((dow) => {
+      {RENDER_ORDER.filter((dow) => !activeDows || activeDows.has(dow)).map((dow) => {
         const d = byDow.get(dow) ?? {
           day_of_week: dow,
           ratio: "16:8" as FastRatio,
@@ -153,12 +153,11 @@ function WeekGrid({
           window_end_time: "20:00:00",
           enabled: true,
         };
-        const offDay = activeDows ? !activeDows.has(dow) : false;
         return (
           <DayRow
             key={dow}
             day={d}
-            offDay={offDay}
+            offDay={false}
             onChange={(nd) => {
               const next = value.filter((x) => x.day_of_week !== dow).concat(nd);
               next.sort((a, b) => a.day_of_week - b.day_of_week);
