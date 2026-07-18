@@ -28,8 +28,8 @@ function defaultWeek(): WeeklyScheduleDay[] {
   return Array.from({ length: 7 }, (_, dow) => ({
     day_of_week: dow,
     ratio: "16:8" as FastRatio,
-    window_start_time: "12:00:00",
-    window_end_time: "20:00:00",
+    window_start_time: "20:00:00",
+    window_end_time: "12:00:00",
     enabled: true,
   }));
 }
@@ -149,8 +149,8 @@ function WeekGrid({
         const d = byDow.get(dow) ?? {
           day_of_week: dow,
           ratio: "16:8" as FastRatio,
-          window_start_time: "12:00:00",
-          window_end_time: "20:00:00",
+          window_start_time: "20:00:00",
+          window_end_time: "12:00:00",
           enabled: true,
         };
         return (
