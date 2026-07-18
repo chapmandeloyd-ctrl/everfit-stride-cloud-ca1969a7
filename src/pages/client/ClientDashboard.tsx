@@ -967,6 +967,13 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
     // Use per-client image first, then universal trainer fasting card
     const fastingCardBg = fastingCardBgGoldImg;
     const fastingCardMsg = fastingSubtitle || universalFastingCard?.message || "Your fasting journey begins soon.";
+    const canChoose = !featureSettings?.lock_client_plan_choice;
+    const emptyStateHeadline = canChoose
+      ? "No active protocol"
+      : "Waiting for your trainer";
+    const emptyStateBody = canChoose
+      ? "Choose a fasting plan to get started."
+      : "Your trainer will assign your fasting plan soon.";
     return (
       <Card className="overflow-hidden border-primary/20 shadow-lg relative">
         {fastingCardBg ? (
@@ -977,26 +984,46 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
             <CardContent className="relative z-10 min-h-[240px] flex flex-col justify-end p-5 space-y-3">
-              <div className="text-left">
-                <p className="text-xs font-semibold text-white/70 uppercase tracking-wider mb-1 drop-shadow-lg">
-                  {fastingTitle}
-                </p>
-                <p className="text-base font-bold text-white drop-shadow-lg">
-                  {fastingCardMsg}
-                </p>
+              <div className="text-left space-y-3">
+                <div>
+                  <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-1 drop-shadow-lg">
+                    {emptyStateHeadline}
+                  </p>
+                  <p className="text-base font-bold text-white drop-shadow-lg">
+                    {emptyStateBody}
+                  </p>
+                </div>
+                {canChoose && (
+                  <Button
+                    onClick={() => navigate("/client/choose-protocol")}
+                    className="w-full"
+                    size="lg"
+                  >
+                    Choose Your Protocol
+                  </Button>
+                )}
               </div>
             </CardContent>
           </>
         ) : (
           <CardContent className="px-6 py-8 text-center space-y-4">
             <div>
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
-                {fastingTitle}
+              <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-1">
+                {emptyStateHeadline}
               </p>
               <p className="text-base font-bold">
-                {fastingCardMsg}
+                {emptyStateBody}
               </p>
             </div>
+            {canChoose && (
+              <Button
+                onClick={() => navigate("/client/choose-protocol")}
+                className="w-full"
+                size="lg"
+              >
+                Choose Your Protocol
+              </Button>
+            )}
           </CardContent>
         )}
       </Card>
