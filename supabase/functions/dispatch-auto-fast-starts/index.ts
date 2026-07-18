@@ -60,7 +60,7 @@ serve(async (req) => {
     const { data: rows, error } = await supabase
       .from("client_feature_settings")
       .select(
-        "client_id, next_scheduled_fast_at, auto_fast_skip_date, last_auto_fast_headsup_for, last_auto_fast_started_for, active_fast_start_at, active_fast_target_hours, schedule_timezone, fasting_enabled, selected_protocol_id"
+        "client_id, next_scheduled_fast_at, auto_fast_skip_date, last_auto_fast_headsup_for, last_auto_fast_started_for, active_fast_start_at, active_fast_target_hours, schedule_timezone, fasting_enabled, selected_protocol_id, enforce_scheduled_start"
       )
       .not("next_scheduled_fast_at", "is", null)
       .is("active_fast_start_at", null)
@@ -71,6 +71,7 @@ serve(async (req) => {
     for (const r of rows ?? []) {
       results.checked++;
       if (r.fasting_enabled === false) { results.skipped++; continue; }
+      if (r.enforce_scheduled_start !== true) { results.skipped++; continue; }
       const scheduledIso = r.next_scheduled_fast_at as string;
       const scheduledMs = new Date(scheduledIso).getTime();
       const deltaMin = (now - scheduledMs) / 60_000;
