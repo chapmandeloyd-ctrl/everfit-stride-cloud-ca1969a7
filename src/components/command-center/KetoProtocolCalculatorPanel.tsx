@@ -756,28 +756,28 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between flex-wrap gap-3">
-            <div className="flex items-center gap-2">
-              <Calculator className="h-5 w-5" style={{ color: kt?.color }} />
-              <CardTitle>Protocol Calculator</CardTitle>
-              <Badge variant="outline" style={{ borderColor: kt?.color, color: kt?.color }}>
+        <CardHeader className="px-4 sm:px-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2 flex-wrap min-w-0">
+              <Calculator className="h-5 w-5 shrink-0" style={{ color: kt?.color }} />
+              <CardTitle className="text-base sm:text-lg">Protocol Calculator</CardTitle>
+              <Badge variant="outline" className="text-[10px] sm:text-xs whitespace-normal text-left leading-tight" style={{ borderColor: kt?.color, color: kt?.color }}>
                 {kt?.abbreviation} · {kt?.name}
               </Badge>
             </div>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={handleReset}>
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-2">
+              <Button variant="outline" size="sm" onClick={handleReset} className="w-full sm:w-auto">
                 <RefreshCw className="h-4 w-4 mr-1" /> Reset
               </Button>
-              <Button variant="outline" size="sm" onClick={() => setPreviewOpen(true)} disabled={!previewPlan}>
-                <Eye className="h-4 w-4 mr-1" /> Preview Full Schedule
+              <Button variant="outline" size="sm" onClick={() => setPreviewOpen(true)} disabled={!previewPlan} className="w-full sm:w-auto">
+                <Eye className="h-4 w-4 mr-1" /> <span className="truncate">Preview</span>
               </Button>
-              <Button size="sm" onClick={handleSave} disabled={!plan}>
+              <Button size="sm" onClick={handleSave} disabled={!plan} className="w-full sm:w-auto">
                 <Save className="h-4 w-4 mr-1" /> Save
               </Button>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="destructive" size="sm" disabled={resetting}>
+                  <Button variant="destructive" size="sm" disabled={resetting} className="w-full sm:w-auto">
                     <RotateCcw className="h-4 w-4 mr-1" /> Reset Plan
                   </Button>
                 </AlertDialogTrigger>
