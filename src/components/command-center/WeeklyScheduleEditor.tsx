@@ -136,16 +136,17 @@ function DayRow({
 function WeekGrid({
   value,
   onChange,
-  activeDows,
+  visibleDows,
 }: {
   value: WeeklyScheduleDay[];
   onChange: (v: WeeklyScheduleDay[]) => void;
-  activeDows?: Set<number> | null;
+  visibleDows?: number[] | null;
 }) {
   const byDow = new Map(value.map((d) => [d.day_of_week, d]));
+  const dowsToRender = visibleDows ?? RENDER_ORDER;
   return (
     <div className="space-y-0.5">
-      {RENDER_ORDER.filter((dow) => !activeDows || activeDows.has(dow)).map((dow) => {
+      {dowsToRender.map((dow) => {
         const d = byDow.get(dow) ?? {
           day_of_week: dow,
           ratio: "16:8" as FastRatio,
@@ -283,22 +284,22 @@ export function WeeklyScheduleEditor({ clientId }: { clientId: string }) {
   const runMode = (settings?.protocol_run_mode as string) || "one_time";
   const startDate = settings?.protocol_start_date as string | null;
 
-  const activeDows: Set<number> | null = (() => {
+  const visibleDows: number[] | null = (() => {
     if (durationDays >= 7) return null; // all days active
-    const set = new Set<number>();
     if (runMode === "recurring") {
       // First N weekdays of each week — Mon(1)..Mon+N-1
-      for (let i = 0; i < durationDays; i++) set.add(((1 + i) % 7 + 7) % 7);
+      return Array.from({ length: durationDays }, (_, i) => ((1 + i) % 7 + 7) % 7);
     } else {
       // one_time: from start_date, N sequential calendar days
       const base = startDate ? new Date(startDate + "T00:00:00") : new Date();
+      const days: number[] = [];
       for (let i = 0; i < durationDays; i++) {
         const d = new Date(base);
         d.setDate(base.getDate() + i);
-        set.add(d.getDay());
+        days.push(d.getDay());
       }
+      return days;
     }
-    return set;
   })();
 
   const handleSaveWeekly = async () => {
@@ -358,7 +359,7 @@ export function WeeklyScheduleEditor({ clientId }: { clientId: string }) {
             Set the fasting ratio and eating window start time for each day.
             The end time auto-calculates from the ratio.
           </p>
-          {activeDows && (
+          {visibleDows && (
             <p className="text-[11px] text-primary/80 mt-1">
               Showing only the {durationDays} day{durationDays > 1 ? "s" : ""} this plan runs
               {runMode === "recurring"
@@ -369,7 +370,7 @@ export function WeeklyScheduleEditor({ clientId }: { clientId: string }) {
           )}
         </CardHeader>
         <CardContent className="space-y-3">
-          <WeekGrid value={draft ?? defaultWeek()} onChange={setDraft} activeDows={activeDows} />
+          <WeekGrid value={draft ?? defaultWeek()} onChange={setDraft} visibleDows={visibleDows} />
           <Button
             onClick={handleSaveWeekly}
             disabled={saveWeekly.isPending}
