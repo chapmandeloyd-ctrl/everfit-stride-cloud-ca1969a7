@@ -417,7 +417,7 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
       ...(prev ?? {}),
       protocol_run_mode: runMode,
       assigned_protocol_duration_days: planLengthDays,
-      protocol_start_date: prev?.protocol_start_date ?? (startDate || (featureSettings as any)?.protocol_start_date ?? null),
+      protocol_start_date: prev?.protocol_start_date ?? (startDate || ((featureSettings as any)?.protocol_start_date ?? null)),
     }));
   }, [runMode, planLengthDays, startDate, clientId, queryClient, featureSettings]);
 
