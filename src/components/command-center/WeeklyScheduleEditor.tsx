@@ -46,7 +46,9 @@ function timeInputValue(v: string): string {
 function computeEnd(ratio: FastRatio, startTime: string): string {
   const startHour = timeToHour(startTime);
   const endHour = endHourFor(ratio, startHour);
-  return `${String(endHour).padStart(2, "0")}:00:00`;
+  const hr = Math.floor(endHour);
+  const min = Math.round((endHour - hr) * 60);
+  return `${String(hr).padStart(2, "0")}:${String(min).padStart(2, "0")}:00`;
 }
 
 function DayRow({
@@ -94,7 +96,7 @@ function DayRow({
           <Input
             type="time"
             value={timeInputValue(day.window_start_time)}
-            step={3600}
+            step={60}
             onChange={(e) => {
               const t = normalizeTime(e.target.value);
               onChange({

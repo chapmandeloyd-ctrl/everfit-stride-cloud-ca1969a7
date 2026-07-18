@@ -229,19 +229,17 @@ export function useClientComputedPlan() {
   // Only applies to 7-day weekly cycles (skipped for extended fasts / multi-week plans).
   const finalPlan: ComputedPlan | null = useMemo(() => {
     if (!plan) return null;
-    if (plan.days.length !== 7) return plan;
+    // Allow any recurring plan length (3-day, 7-day, etc.). We overlay by
+    // real calendar weekday, so length doesn't need to be 7.
     if (!weeklySchedule?.length && !scheduleOverrides?.length) return plan;
-    // plan.days indexed Mon(0)..Sun(6). JS Date.getDay uses Sun(0)..Sat(6).
-    // Map plan index i -> dow: Mon(0)->1, Tue->2, ..., Sat(5)->6, Sun(6)->0
-    const indexToDow = (i: number) => (i + 1) % 7;
+    // plan.days[dayIndex] represents TODAY. Compute the actual calendar date
+    // for every other index relative to today so overrides + weekday
+    // schedules apply correctly regardless of what weekday the protocol
+    // started on.
     const today = new Date();
-    const todayDow = today.getDay();
     const days = plan.days.map((d, i) => {
-      const dow = indexToDow(i);
-      // Only apply overrides for days from today forward within their range.
-      // For simplicity: compute the actual date for this weekly index relative to today.
-      const dayOffset = (dow - todayDow + 7) % 7;
-      const dayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + dayOffset);
+      const offset = i - dayIndex;
+      const dayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + offset);
       const schedDay = resolveDayForDate(weeklySchedule, scheduleOverrides, dayDate);
       if (!schedDay) return d;
       if (schedDay.ratio === "eat_all_day") {
@@ -272,7 +270,7 @@ export function useClientComputedPlan() {
       };
     });
     return { ...plan, days };
-  }, [plan, weeklySchedule, scheduleOverrides]);
+  }, [plan, weeklySchedule, scheduleOverrides, dayIndex]);
 
   return {
     plan: finalPlan,

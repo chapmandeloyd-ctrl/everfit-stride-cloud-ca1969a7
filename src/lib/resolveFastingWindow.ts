@@ -35,15 +35,22 @@ export const RATIO_EAT_HOURS: Record<FastRatio, number> = {
 };
 
 export function formatHour(h: number): string {
-  const hr = ((h % 24) + 24) % 24;
+  // Accepts fractional hours (e.g. 6.5 = 6:30).
+  const total = ((h % 24) + 24) % 24;
+  const hr = Math.floor(total);
+  const min = Math.round((total - hr) * 60);
   const period = hr >= 12 ? "PM" : "AM";
   const display = hr % 12 === 0 ? 12 : hr % 12;
-  return `${display}:00 ${period}`;
+  const mm = String(min).padStart(2, "0");
+  return `${display}:${mm} ${period}`;
 }
 
 export function timeToHour(t: string): number {
-  const [h] = t.split(":");
-  return parseInt(h, 10) || 0;
+  // Returns fractional hours ("06:31:00" -> 6.5166...).
+  const [h, m] = t.split(":");
+  const hr = parseInt(h, 10) || 0;
+  const mn = parseInt(m, 10) || 0;
+  return hr + mn / 60;
 }
 
 export function endHourFor(ratio: FastRatio, startHour: number): number {
