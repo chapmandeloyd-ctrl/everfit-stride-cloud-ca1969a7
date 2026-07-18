@@ -697,6 +697,9 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
       queryClient.invalidateQueries({ queryKey: ["synergy-panel-settings", clientId] });
       queryClient.invalidateQueries({ queryKey: ["client-keto-assignment"] });
       queryClient.invalidateQueries({ queryKey: ["my-feature-settings"] });
+      queryClient.invalidateQueries({ queryKey: ["client-weekly-schedule", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["client-schedule-overrides", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["active-fasting-log", clientId] });
 
       toast.success("Plan cleared. Client is ready for a fresh assignment.");
     } catch (e: any) {
