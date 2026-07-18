@@ -136,10 +136,22 @@ export function useScheduledFastGate(): ScheduledFastGate {
   const minutesUntil = scheduledAtMs != null ? (scheduledAtMs - Date.now()) / 60_000 : 0;
 
   // Publish the next scheduled start to the server so the auto-start cron
-  // can fire even when the app is closed. This effect must stay before any
-  // conditional returns so React sees the same hook order on every render.
+  // can fire even when the app is closed. Only publish when scheduled-start
+  // enforcement is ON; otherwise the backend must never auto-start a fast.
+  // This effect must stay before any conditional returns so React sees the
+  // same hook order on every render.
   useEffect(() => {
     if (!clientId) return;
+    if (!enforce) {
+      (async () => {
+        await supabase
+          .from("client_feature_settings")
+          .update({ next_scheduled_fast_at: null } as any)
+          .eq("client_id", clientId)
+          .eq("enforce_scheduled_start", false as any);
+      })();
+      return;
+    }
     if (scheduledAtMs == null) return;
     if (!Number.isFinite(minutesUntil)) return;
     if (minutesUntil < -30 || minutesUntil > 60 * 24) return;
@@ -155,7 +167,7 @@ export function useScheduledFastGate(): ScheduledFastGate {
         window.sessionStorage.setItem(key, iso);
       }
     })();
-  }, [clientId, scheduledAtMs, enforceRow?.schedule_timezone, tz, minutesUntil]);
+  }, [clientId, enforce, scheduledAtMs, enforceRow?.schedule_timezone, tz, minutesUntil]);
 
   if (!plan) {
     return { state: enforce ? "n/a" : "off", scheduledAt: null, scheduledLabel: null, minutesUntil: 0, countdownLabel: "" };
