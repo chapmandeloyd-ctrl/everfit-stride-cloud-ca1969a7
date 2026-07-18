@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
-const GRACE_MS = 5 * 60 * 1000;
+const GRACE_MS = 0;
 const AUTO_START_CUTOFF_MS = 30 * 60 * 1000;
 
 function fmt(ms: number): string {
@@ -30,9 +30,8 @@ function todayKey(clientId: string | null | undefined): string {
 /**
  * Live countdown to the next scheduled fast start, rendered above the
  * "Open Live Schedule to Start" CTA. When the countdown hits zero we
- * enter a 5-minute grace window during which the user can cancel. If
- * the grace elapses, the fast auto-starts via the existing useStartFast()
- * mutation (no changes to the legacy timer logic).
+ * auto-start via the existing useStartFast() mutation when the scheduled
+ * moment arrives (no changes to the legacy timer logic).
  */
 export function NextFastCountdownRow({ accent = "hsl(var(--primary))" }: { accent?: string }) {
   const gate = useScheduledFastGate();
