@@ -11,7 +11,6 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   RATIO_LABEL,
-  RATIO_FAST_HOURS,
   type FastRatio,
   type ScheduleOverride,
   type WeeklyScheduleDay,
