@@ -96,7 +96,7 @@ function DayRow({
           <Input
             type="time"
             value={timeInputValue(day.window_start_time)}
-            step={3600}
+            step={60}
             onChange={(e) => {
               const t = normalizeTime(e.target.value);
               onChange({
