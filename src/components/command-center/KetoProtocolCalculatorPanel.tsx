@@ -735,12 +735,12 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
       <Card>
         <CardContent className="p-6 space-y-4">
           <p className="text-center text-muted-foreground">
-            Assign a keto type to this client to generate a protocol.
+            Assign a Fuel Style to this client to generate a protocol.
           </p>
           <div className="max-w-xs mx-auto">
-            <Label>Keto Type</Label>
+            <Label>Fuel Style</Label>
             <Select onValueChange={(v) => assignKetoMutation.mutate(v)}>
-              <SelectTrigger><SelectValue placeholder="Choose keto type…" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder="Choose Fuel Style…" /></SelectTrigger>
               <SelectContent>
                 {allKetoTypes?.map(k => (
                   <SelectItem key={k.id} value={k.id}>{k.abbreviation} · {k.name}</SelectItem>
