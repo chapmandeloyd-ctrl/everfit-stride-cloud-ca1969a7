@@ -86,7 +86,7 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
     queryFn: async () => {
       const { data } = await supabase
         .from("keto_types")
-        .select("id, abbreviation, name, color")
+        .select("id, abbreviation, name, subtitle, protein_pct, carbs_pct, fat_pct, color")
         .eq("is_active", true)
         .order("order_index");
       return data || [];
