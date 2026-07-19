@@ -11,7 +11,7 @@ import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { emitActivityEvent } from "@/lib/activityEvents";
 import { useClientFeatureSettings } from "@/hooks/useClientFeatureSettings";
 import { useEngineMode } from "@/hooks/useEngineMode";
@@ -67,6 +67,7 @@ import { ClientWeekStrip } from "@/components/client/ClientWeekStrip";
 import { StartFastGate } from "@/components/client/StartFastGate";
 import { LiveSchedulePanel } from "@/components/client/LiveScheduleDialog";
 import { useClientComputedPlan } from "@/hooks/useClientComputedPlan";
+import { computePlan, type ComputedPlan } from "@/lib/protocolPlan";
 import { BuildWorkoutSheet } from "@/components/workout/BuildWorkoutSheet";
 
 import { ProgramsSelector } from "@/components/ProgramsSelector";
@@ -314,6 +315,43 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
     protein_pct: 25,
     carbs_pct: 10,
   } : null);
+
+  const liveScheduleFallbackPlan = useMemo<ComputedPlan | null>(() => {
+    if (!showLiveScheduleCard) return null;
+
+    return computePlan({
+      weightLbs: 180,
+      ketoType: activeKetoType
+        ? {
+            abbreviation: activeKetoType.abbreviation || "APEX-B",
+            name: activeKetoType.name || "Apex Balance",
+            protein_pct: Number(activeKetoType.protein_pct) || 30,
+            carbs_pct: Number(activeKetoType.carbs_pct) || 20,
+            fat_pct: Number(activeKetoType.fat_pct) || 50,
+          }
+        : {
+            abbreviation: "APEX-B",
+            name: "Apex Balance",
+            protein_pct: 30,
+            carbs_pct: 20,
+            fat_pct: 50,
+          },
+      protocol: {
+        name: activeProtocol?.name || "16:8 Daily",
+        fast_target_hours: activeProtocol?.fast_target_hours || 16,
+      },
+      planType: "recurring",
+      planLengthDays: activeProtocol?.duration_days || featureSettings?.assigned_protocol_duration_days || 7,
+    });
+  }, [
+    showLiveScheduleCard,
+    activeKetoType,
+    activeProtocol?.name,
+    activeProtocol?.fast_target_hours,
+    activeProtocol?.duration_days,
+    featureSettings?.assigned_protocol_duration_days,
+  ]);
+  const liveScheduleDisplayPlan = liveSchedulePlan ?? liveScheduleFallbackPlan;
 
   // Meal slideshow photos for the eating window card
   const { data: mealPhotos = [] } = useQuery({
@@ -987,15 +1025,15 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
               Live
             </Badge>
           </div>
-          {liveSchedulePlan ? (
+          {liveScheduleDisplayPlan ? (
             <LiveSchedulePanel
-              plan={liveSchedulePlan}
+              plan={liveScheduleDisplayPlan}
               todayIndex={liveScheduleDayIndex}
               accent={liveScheduleAccent || activeKetoType?.color || "hsl(var(--primary))"}
-              protocolName={liveScheduleProtocolName ?? undefined}
-              ketoName={liveScheduleKetoName ?? undefined}
-              protocolStartDate={liveScheduleStartDate ?? undefined}
-              assignedDurationDays={liveScheduleDurationDays ?? undefined}
+              protocolName={liveScheduleProtocolName ?? activeProtocol?.name ?? "16:8 Daily"}
+              ketoName={liveScheduleKetoName ?? activeKetoType?.name ?? "Apex Balance"}
+              protocolStartDate={liveScheduleStartDate ?? new Date().toISOString().slice(0, 10)}
+              assignedDurationDays={liveScheduleDurationDays ?? activeProtocol?.duration_days ?? featureSettings?.assigned_protocol_duration_days ?? 7}
               runMode={liveScheduleRunMode}
               fastingLogs={liveScheduleLogs ?? []}
             />
