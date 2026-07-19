@@ -49,6 +49,7 @@ export default function ClientCommandCenter() {
   const [passwordChooserOpen, setPasswordChooserOpen] = useState(false);
   const [customPassword, setCustomPassword] = useState("");
   const [customPasswordError, setCustomPasswordError] = useState<string | null>(null);
+  const [protocolDraftActive, setProtocolDraftActive] = useState(false);
 
   const { data: clientData, isLoading } = useQuery({
     queryKey: ["client-detail", clientId],
@@ -236,7 +237,7 @@ export default function ClientCommandCenter() {
           </div>
         </div>
 
-        {clientId && <ActiveProtocolSummary clientId={clientId} />}
+        {clientId && <ActiveProtocolSummary clientId={clientId} hidden={protocolDraftActive} />}
 
         {/* Tabbed Command Center */}
         <Tabs defaultValue="overview" className="space-y-4 sm:space-y-6">
@@ -280,7 +281,11 @@ export default function ClientCommandCenter() {
           </TabsContent>
           <TabsContent value="protocol">
             <div className="space-y-4 sm:space-y-6">
-              <KetoProtocolCalculatorPanel clientId={clientId!} trainerId={user?.id!} />
+              <KetoProtocolCalculatorPanel
+                clientId={clientId!}
+                trainerId={user?.id!}
+                onDraftStateChange={setProtocolDraftActive}
+              />
               <WeeklyScheduleEditor clientId={clientId!} />
               <ScheduleAlignmentPanel clientId={clientId!} />
               <StageTimelinePanel clientId={clientId!} />
