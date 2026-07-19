@@ -148,7 +148,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
     queryFn: async () => {
       const { data, error } = await supabase
         .from("client_feature_settings")
-        .select("selected_protocol_id, selected_quick_plan_id, quick_plan_duration_days, assigned_protocol_duration_days, protocol_start_date, active_fast_start_at, active_fast_target_hours, last_fast_ended_at, last_fast_completed_at, eating_window_ends_at, eating_window_hours, fasting_strict_mode, protocol_assigned_by, fasting_card_subtitle, fasting_card_image_url, eating_window_card_image_url, fast_lock_pin, protocol_completed, maintenance_mode, maintenance_schedule_type, trainer_id, lock_client_plan_choice")
+        .select("selected_protocol_id, selected_quick_plan_id, quick_plan_duration_days, assigned_protocol_duration_days, protocol_start_date, active_fast_start_at, active_fast_target_hours, last_fast_ended_at, last_fast_completed_at, eating_window_ends_at, eating_window_hours, fasting_strict_mode, protocol_assigned_by, fasting_card_subtitle, fasting_card_image_url, eating_window_card_image_url, fast_lock_pin, protocol_completed, maintenance_mode, maintenance_schedule_type, trainer_id, lock_client_plan_choice, admin_show_live_schedule")
         .eq("client_id", clientId)
         .maybeSingle();
       if (error) throw error;
