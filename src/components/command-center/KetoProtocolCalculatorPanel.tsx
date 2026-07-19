@@ -580,12 +580,19 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
     toast.success("Protocol saved for this client");
   };
 
-  const handleReset = () => {
+  const handleResetInputs = () => {
     localStorage.removeItem(storageKey);
     setWeight(weightLbs ? String(weightLbs) : "");
     setGoal("maintain");
     setActivity("moderate");
-    toast.info("Reset to defaults");
+    setStartDate((featureSettings as any)?.protocol_start_date ? String((featureSettings as any).protocol_start_date).slice(0, 10) : "");
+    setCustomDeficit(20);
+    setPlanType("recurring");
+    setPlanLengthDays(Number((featureSettings as any)?.assigned_protocol_duration_days) || 7);
+    setRunMode(((featureSettings as any)?.protocol_run_mode === "recurring" ? "recurring" : "one_time") as "one_time" | "recurring");
+    setExtendedPreset("48");
+    setCustomFastHours(48);
+    toast.info("Calculator inputs reset. Assigned plan unchanged.");
   };
 
   const [resetting, setResetting] = useState(false);
@@ -599,17 +606,29 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
         .eq("client_id", clientId);
 
       // 2. Clear plan fields on client_feature_settings
+      const clearedPlanPatch = {
+        selected_protocol_id: null,
+        protocol_start_date: null,
+        protocol_calc_inputs: null,
+        protocol_completed: false,
+        assigned_protocol_duration_days: null,
+        selected_quick_plan_id: null,
+        quick_plan_duration_days: null,
+        protocol_assigned_by: null,
+        active_fast_start_at: null,
+        active_fast_target_hours: null,
+        eating_window_ends_at: null,
+        fast_lock_pin: null,
+        next_scheduled_fast_at: null,
+        enforce_scheduled_start: false,
+        maintenance_mode: false,
+        maintenance_schedule_type: null,
+        protocol_run_mode: "one_time",
+      } as any;
+
       await supabase
         .from("client_feature_settings")
-        .update({
-          selected_protocol_id: null,
-          protocol_start_date: null,
-          protocol_calc_inputs: null,
-          protocol_completed: false,
-          assigned_protocol_duration_days: null,
-          selected_quick_plan_id: null,
-          quick_plan_duration_days: null,
-        } as any)
+        .update(clearedPlanPatch)
         .eq("client_id", clientId);
 
       // 3. Delete scheduled calendar items for this client
@@ -674,8 +693,18 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
       setCustomDeficit(20);
       setPlanType("recurring");
       setPlanLengthDays(7);
+      setRunMode("one_time");
       setExtendedPreset("48");
       setCustomFastHours(48);
+
+      const applyClearedPlan = (prev: any) => (prev ? { ...prev, ...clearedPlanPatch } : prev);
+      queryClient.setQueryData(["kpc-feature-settings", clientId], applyClearedPlan);
+      queryClient.setQueryData(["ccp-settings", clientId], applyClearedPlan);
+      queryClient.setQueriesData({ queryKey: ["my-feature-settings-fasting"] }, applyClearedPlan);
+      queryClient.setQueriesData({ queryKey: ["my-feature-settings"] }, applyClearedPlan);
+      queryClient.setQueryData(["keto-assignment", clientId], null);
+      queryClient.setQueryData(["ccp-keto", clientId], null);
+      queryClient.setQueryData(["fasting-card-keto-type", clientId], null);
 
       // 7. Refresh all related queries
       queryClient.invalidateQueries({ queryKey: ["keto-assignment", clientId] });
@@ -689,6 +718,7 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
       queryClient.invalidateQueries({ queryKey: ["ccp-protocol"] });
       queryClient.invalidateQueries({ queryKey: ["ccp-keto", clientId] });
       queryClient.invalidateQueries({ queryKey: ["ccp-keto-type"] });
+      queryClient.invalidateQueries({ queryKey: ["fasting-card-keto-type", clientId] });
       queryClient.invalidateQueries({ queryKey: ["active-protocol-summary", clientId] });
       queryClient.invalidateQueries({ queryKey: ["stage-timeline-settings", clientId] });
       queryClient.invalidateQueries({ queryKey: ["ccp-enforce"] });
@@ -766,8 +796,8 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
               </Badge>
             </div>
             <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-2">
-              <Button variant="outline" size="sm" onClick={handleReset} className="w-full sm:w-auto">
-                <RefreshCw className="h-4 w-4 mr-1" /> Reset
+              <Button variant="outline" size="sm" onClick={handleResetInputs} className="w-full sm:w-auto">
+                <RefreshCw className="h-4 w-4 mr-1" /> Reset Inputs
               </Button>
               <Button variant="outline" size="sm" onClick={() => setPreviewOpen(true)} disabled={!previewPlan} className="w-full sm:w-auto">
                 <Eye className="h-4 w-4 mr-1" /> <span className="truncate">Preview</span>
@@ -778,14 +808,14 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="destructive" size="sm" disabled={resetting} className="w-full sm:w-auto">
-                    <RotateCcw className="h-4 w-4 mr-1" /> Reset Plan
+                    <RotateCcw className="h-4 w-4 mr-1" /> Clear Program
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
                     <AlertDialogTitle>Reset entire plan?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Clears the assigned protocol, keto type, scheduled calendar,
+                      Clears the assigned protocol, fuel style, scheduled calendar,
                       and saved completion for this client — leaving them as if no
                       plan was ever assigned. Weigh-ins, workouts, fasting history,
                       and badges are kept.
@@ -794,7 +824,7 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction onClick={handleFullPlanReset}>
-                      Yes, reset plan
+                      Yes, clear program
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
