@@ -50,6 +50,11 @@ export default function ClientCommandCenter() {
   const [customPassword, setCustomPassword] = useState("");
   const [customPasswordError, setCustomPasswordError] = useState<string | null>(null);
   const [protocolDraftActive, setProtocolDraftActive] = useState(false);
+  const [protocolScheduleDraft, setProtocolScheduleDraft] = useState<{
+    durationDays: number;
+    startDate: string | null;
+    runMode: "one_time" | "recurring";
+  } | null>(null);
 
   const { data: clientData, isLoading } = useQuery({
     queryKey: ["client-detail", clientId],
@@ -285,8 +290,9 @@ export default function ClientCommandCenter() {
                 clientId={clientId!}
                 trainerId={user?.id!}
                 onDraftStateChange={setProtocolDraftActive}
+                onScheduleDraftChange={setProtocolScheduleDraft}
               />
-              <WeeklyScheduleEditor clientId={clientId!} />
+              <WeeklyScheduleEditor clientId={clientId!} draftAssignment={protocolScheduleDraft} />
               <ScheduleAlignmentPanel clientId={clientId!} />
               <StageTimelinePanel clientId={clientId!} />
               <ProtocolMiniCalendar clientId={clientId!} />

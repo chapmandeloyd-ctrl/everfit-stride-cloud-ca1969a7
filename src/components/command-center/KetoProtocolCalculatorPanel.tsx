@@ -35,6 +35,11 @@ interface Props {
   clientId: string;
   trainerId: string;
   onDraftStateChange?: (hasDraft: boolean) => void;
+  onScheduleDraftChange?: (draft: {
+    durationDays: number;
+    startDate: string | null;
+    runMode: "one_time" | "recurring";
+  }) => void;
 }
 
 const ACTIVITY_MULT: Record<Activity, number> = {
@@ -66,7 +71,7 @@ function formatPlanDayWithDate(startDateValue: string, offset: number, fallback:
   return `${weekday} · ${monthDay}`;
 }
 
-export function KetoProtocolCalculatorPanel({ clientId, trainerId, onDraftStateChange }: Props) {
+export function KetoProtocolCalculatorPanel({ clientId, trainerId, onDraftStateChange, onScheduleDraftChange }: Props) {
   const storageKey = `keto-protocol-${clientId}`;
   const queryClient = useQueryClient();
 
@@ -890,6 +895,16 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId, onDraftStateC
   useEffect(() => {
     onDraftStateChange?.(hasUnsavedChanges);
   }, [hasUnsavedChanges, onDraftStateChange]);
+
+  useEffect(() => {
+    onScheduleDraftChange?.({
+      durationDays: planType === "extended"
+        ? Math.max(1, Math.ceil(Math.max(12, Math.min(240, extendedPreset === "custom" ? customFastHours : parseInt(extendedPreset, 10))) / 24))
+        : planLengthDays,
+      startDate: startDate || null,
+      runMode: planType === "extended" ? "one_time" : runMode,
+    });
+  }, [planType, planLengthDays, startDate, runMode, extendedPreset, customFastHours, onScheduleDraftChange]);
 
   return (
     <div className="space-y-6">
