@@ -1293,6 +1293,7 @@ export type Database = {
           active_fast_start_at: string | null
           active_fast_target_hours: number | null
           activity_logging_enabled: boolean
+          admin_show_live_schedule: boolean
           ai_suggestions_enabled: boolean
           allow_custom_goal_text: boolean
           allow_level_auto_advance: boolean
@@ -1415,6 +1416,7 @@ export type Database = {
           active_fast_start_at?: string | null
           active_fast_target_hours?: number | null
           activity_logging_enabled?: boolean
+          admin_show_live_schedule?: boolean
           ai_suggestions_enabled?: boolean
           allow_custom_goal_text?: boolean
           allow_level_auto_advance?: boolean
@@ -1537,6 +1539,7 @@ export type Database = {
           active_fast_start_at?: string | null
           active_fast_target_hours?: number | null
           activity_logging_enabled?: boolean
+          admin_show_live_schedule?: boolean
           ai_suggestions_enabled?: boolean
           allow_custom_goal_text?: boolean
           allow_level_auto_advance?: boolean

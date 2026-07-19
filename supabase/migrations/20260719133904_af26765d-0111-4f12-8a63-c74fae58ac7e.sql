@@ -1,0 +1,1 @@
+ALTER TABLE public.client_feature_settings ADD COLUMN IF NOT EXISTS admin_show_live_schedule boolean NOT NULL DEFAULT true;
