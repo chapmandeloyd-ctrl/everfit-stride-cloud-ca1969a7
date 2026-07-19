@@ -252,7 +252,16 @@ function OverrideCard({
   );
 }
 
-export function WeeklyScheduleEditor({ clientId }: { clientId: string }) {
+interface WeeklyScheduleEditorProps {
+  clientId: string;
+  draftAssignment?: {
+    durationDays?: number | null;
+    startDate?: string | null;
+    runMode?: string | null;
+  };
+}
+
+export function WeeklyScheduleEditor({ clientId, draftAssignment }: WeeklyScheduleEditorProps) {
   const { weekly, overrides, saveWeekly, saveOverride, deleteOverride } =
     useClientWeeklySchedule(clientId);
   const [draft, setDraft] = useState<WeeklyScheduleDay[] | null>(null);
@@ -276,12 +285,14 @@ export function WeeklyScheduleEditor({ clientId }: { clientId: string }) {
     enabled: !!clientId,
   });
 
+  const savedDurationDays = (settings?.assigned_protocol_duration_days as number) || 7;
+  const rawDurationDays = draftAssignment?.durationDays ?? savedDurationDays;
   const durationDays = Math.max(
     1,
-    Math.min(7, (settings?.assigned_protocol_duration_days as number) || 7),
+    Math.min(7, rawDurationDays || 7),
   );
-  const runMode = (settings?.protocol_run_mode as string) || "one_time";
-  const startDate = settings?.protocol_start_date as string | null;
+  const runMode = draftAssignment?.runMode || (settings?.protocol_run_mode as string) || "one_time";
+  const startDate = draftAssignment?.startDate || (settings?.protocol_start_date as string | null);
 
   const visibleDows: number[] | null = (() => {
     if (durationDays >= 7) return null; // all days active
