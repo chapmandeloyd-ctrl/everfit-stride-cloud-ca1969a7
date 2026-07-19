@@ -869,15 +869,15 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId, onDraftStateC
       customFastHours === 48;
     if (!hasSavedPlan && isBlankDraft) return false;
     const savedCompact = savedInputs ? {
-      weight: savedInputs.weight ?? null,
-      goal: savedInputs.goal,
-      activity: savedInputs.activity,
-      startDate: savedInputs.startDate,
-      customDeficit: savedInputs.customDeficit,
-      planType: savedInputs.planType,
-      planLengthDays: savedInputs.planLengthDays,
-      extendedPreset: savedInputs.extendedPreset,
-      customFastHours: savedInputs.customFastHours,
+      weight: savedInputs.weight ?? (weightLbs ? Number(weightLbs) : null),
+      goal: savedInputs.goal ?? "maintain",
+      activity: savedInputs.activity ?? "moderate",
+      startDate: savedInputs.startDate ?? (((featureSettings as any)?.protocol_start_date || "") ? String((featureSettings as any)?.protocol_start_date).slice(0, 10) : ""),
+      customDeficit: savedInputs.customDeficit ?? 20,
+      planType: savedInputs.planType ?? "recurring",
+      planLengthDays: savedInputs.planLengthDays ?? Number((featureSettings as any)?.assigned_protocol_duration_days) || 7,
+      extendedPreset: savedInputs.extendedPreset ?? "48",
+      customFastHours: savedInputs.customFastHours ?? 48,
     } : null;
     if (JSON.stringify(currentInputs) !== JSON.stringify(savedCompact)) return true;
     const savedDuration = Number((featureSettings as any)?.assigned_protocol_duration_days) || null;
@@ -885,7 +885,7 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId, onDraftStateC
     const savedRunMode = (featureSettings as any)?.protocol_run_mode ?? "one_time";
     if (savedRunMode !== runMode) return true;
     return false;
-  }, [stagedKetoId, stagedProtocolId, assignment, featureSettings, weight, goal, activity, startDate, customDeficit, planType, planLengthDays, extendedPreset, customFastHours, runMode]);
+  }, [stagedKetoId, stagedProtocolId, assignment, featureSettings, weight, weightLbs, goal, activity, startDate, customDeficit, planType, planLengthDays, extendedPreset, customFastHours, runMode]);
 
   useEffect(() => {
     onDraftStateChange?.(hasUnsavedChanges);
