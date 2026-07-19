@@ -965,6 +965,43 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
   const hasKetoType = !!activeKetoType;
   const programFullyAssigned = hasAnyProtocol && hasKetoType;
 
+  // Admin testing toggle: replace the fasting card with the Live Schedule card.
+  // This is intentionally a full-card replacement, not a popup or a small CTA.
+  if (showLiveScheduleCard && liveSchedulePlan) {
+    return (
+      <Card className="overflow-hidden border-primary/25 bg-black shadow-lg">
+        <CardContent className="p-4 text-foreground">
+          <div className="mb-4 flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary">
+                <CalendarDays className="h-3.5 w-3.5" />
+                View Live Schedule
+              </p>
+              <h3 className="mt-1 text-xl font-black text-white">Live Schedule</h3>
+              <p className="mt-1 truncate text-xs font-medium text-white/60">
+                {[liveScheduleProtocolName, liveScheduleKetoName].filter(Boolean).join(" · ") || "Fast starts automatically"}
+              </p>
+            </div>
+            <Badge variant="outline" className="shrink-0 border-primary/40 bg-primary/10 text-[9px] uppercase tracking-wider text-primary">
+              Live
+            </Badge>
+          </div>
+          <LiveSchedulePanel
+            plan={liveSchedulePlan}
+            todayIndex={liveScheduleDayIndex}
+            accent={liveScheduleAccent || activeKetoType?.color || "hsl(var(--primary))"}
+            protocolName={liveScheduleProtocolName ?? undefined}
+            ketoName={liveScheduleKetoName ?? undefined}
+            protocolStartDate={liveScheduleStartDate ?? undefined}
+            assignedDurationDays={liveScheduleDurationDays ?? undefined}
+            runMode={liveScheduleRunMode}
+            fastingLogs={liveScheduleLogs ?? []}
+          />
+        </CardContent>
+      </Card>
+    );
+  }
+
   // Maintenance mode idle state
   if (isMaintenanceMode && !isFasting && !hasEatingWindow) {
     return (
@@ -1820,35 +1857,6 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
           <div className="pt-1">
             <EnablePushBanner />
             <NextFastCountdownRow accent={ketoAccent} />
-            {showLiveScheduleCard && liveSchedulePlan && (
-              <div className="mt-3 rounded-xl border border-white/15 bg-black/45 p-3 text-left text-foreground shadow-2xl backdrop-blur-md">
-                <div className="mb-3 flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary">
-                      <CalendarDays className="h-3.5 w-3.5" />
-                      View Live Schedule
-                    </p>
-                    <p className="mt-1 truncate text-[11px] font-medium text-muted-foreground">
-                      {[liveScheduleProtocolName, liveScheduleKetoName].filter(Boolean).join(" · ") || "Fast starts automatically"}
-                    </p>
-                  </div>
-                  <Badge variant="outline" className="shrink-0 border-primary/40 bg-primary/10 text-[9px] uppercase tracking-wider text-primary">
-                    Live
-                  </Badge>
-                </div>
-                <LiveSchedulePanel
-                  plan={liveSchedulePlan}
-                  todayIndex={liveScheduleDayIndex}
-                  accent={liveScheduleAccent || ketoAccent || "hsl(var(--primary))"}
-                  protocolName={liveScheduleProtocolName ?? undefined}
-                  ketoName={liveScheduleKetoName ?? undefined}
-                  protocolStartDate={liveScheduleStartDate ?? undefined}
-                  assignedDurationDays={liveScheduleDurationDays ?? undefined}
-                  runMode={liveScheduleRunMode}
-                  fastingLogs={liveScheduleLogs ?? []}
-                />
-              </div>
-            )}
             <button
               type="button"
               onClick={() => navigate("/client/program")}
