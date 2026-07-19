@@ -190,7 +190,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
     assignedDurationDays: liveScheduleDurationDays,
     runMode: liveScheduleRunMode,
   } = useClientComputedPlan();
-  const showLiveScheduleCard = (featureSettings as any)?.admin_show_live_schedule === true && !!liveSchedulePlan;
+  const showLiveScheduleCard = (featureSettings as any)?.admin_show_live_schedule === true;
 
   const { data: liveScheduleLogs } = useQuery({
     queryKey: ["live-sched-logs", clientId, liveScheduleStartDate],
@@ -204,7 +204,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
         .order("ended_at", { ascending: false });
       return data || [];
     },
-    enabled: showLiveScheduleCard && !!clientId && !!liveScheduleStartDate,
+    enabled: showLiveScheduleCard && !!liveSchedulePlan && !!clientId && !!liveScheduleStartDate,
   });
 
   // Fetch universal fasting card from trainer
@@ -967,7 +967,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
 
   // Admin testing toggle: replace the fasting card with the Live Schedule card.
   // This is intentionally a full-card replacement, not a popup or a small CTA.
-  if (showLiveScheduleCard && liveSchedulePlan) {
+  if (showLiveScheduleCard) {
     return (
       <Card className="overflow-hidden border-primary/25 bg-black shadow-lg">
         <CardContent className="p-4 text-foreground">
@@ -986,17 +986,27 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
               Live
             </Badge>
           </div>
-          <LiveSchedulePanel
-            plan={liveSchedulePlan}
-            todayIndex={liveScheduleDayIndex}
-            accent={liveScheduleAccent || activeKetoType?.color || "hsl(var(--primary))"}
-            protocolName={liveScheduleProtocolName ?? undefined}
-            ketoName={liveScheduleKetoName ?? undefined}
-            protocolStartDate={liveScheduleStartDate ?? undefined}
-            assignedDurationDays={liveScheduleDurationDays ?? undefined}
-            runMode={liveScheduleRunMode}
-            fastingLogs={liveScheduleLogs ?? []}
-          />
+          {liveSchedulePlan ? (
+            <LiveSchedulePanel
+              plan={liveSchedulePlan}
+              todayIndex={liveScheduleDayIndex}
+              accent={liveScheduleAccent || activeKetoType?.color || "hsl(var(--primary))"}
+              protocolName={liveScheduleProtocolName ?? undefined}
+              ketoName={liveScheduleKetoName ?? undefined}
+              protocolStartDate={liveScheduleStartDate ?? undefined}
+              assignedDurationDays={liveScheduleDurationDays ?? undefined}
+              runMode={liveScheduleRunMode}
+              fastingLogs={liveScheduleLogs ?? []}
+            />
+          ) : (
+            <div className="rounded-xl border border-white/10 bg-white/[0.04] p-5 text-center">
+              <CalendarDays className="mx-auto h-8 w-8 text-primary" />
+              <p className="mt-3 text-sm font-black uppercase tracking-widest text-white">No live schedule yet</p>
+              <p className="mt-2 text-xs leading-relaxed text-white/60">
+                Save a fasting protocol for this client, then this card will show the live calendar view.
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
     );
