@@ -285,20 +285,21 @@ export function WeeklyScheduleEditor({ clientId }: { clientId: string }) {
 
   const visibleDows: number[] | null = (() => {
     if (durationDays >= 7) return null; // all days active
-    if (runMode === "recurring") {
-      // First N weekdays of each week — Mon(1)..Mon+N-1
-      return Array.from({ length: durationDays }, (_, i) => ((1 + i) % 7 + 7) % 7);
-    } else {
-      // one_time: from start_date, N sequential calendar days
-      const base = startDate ? new Date(startDate + "T00:00:00") : new Date();
-      const days: number[] = [];
-      for (let i = 0; i < durationDays; i++) {
-        const d = new Date(base);
-        d.setDate(base.getDate() + i);
-        days.push(d.getDay());
-      }
-      return days;
+    // Start from the plan start date (defaults to today) and show N sequential days.
+    // Applies to both one_time and recurring modes so the coach sees the exact
+    // upcoming days that will run.
+    const today = new Date();
+    const base =
+      startDate && new Date(startDate + "T00:00:00") >= new Date(today.toDateString())
+        ? new Date(startDate + "T00:00:00")
+        : today;
+    const days: number[] = [];
+    for (let i = 0; i < durationDays; i++) {
+      const d = new Date(base);
+      d.setDate(base.getDate() + i);
+      days.push(d.getDay());
     }
+    return days;
   })();
 
   const handleSaveWeekly = async () => {
@@ -361,10 +362,8 @@ export function WeeklyScheduleEditor({ clientId }: { clientId: string }) {
           {visibleDows && (
             <p className="text-[11px] text-primary/80 mt-1">
               Showing only the {durationDays} day{durationDays > 1 ? "s" : ""} this plan runs
-              {runMode === "recurring"
-                ? " per week (recurring)"
-                : ` starting ${startDate ?? "today"}`}
-              .
+              {` starting ${startDate ?? "today"}`}
+              {runMode === "recurring" ? " (repeats weekly)" : ""}.
             </p>
           )}
         </CardHeader>
