@@ -11,7 +11,6 @@ import { DailyRingsPinnedHeader } from "@/components/rings/DailyRingsCard";
 import { WaterTrackerCard } from "@/components/client/WaterTrackerCard";
 import { StepTrackerCard } from "@/components/client/StepTrackerCard";
 import { DailyJournalCard } from "@/components/daily-journal/DailyJournalCard";
-import { LiveScheduleHost } from "@/components/client/LiveScheduleHost";
 import { CollapsibleTile } from "@/components/client/CollapsibleTile";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -150,7 +149,6 @@ export default function ClientDashboardMinimal() {
 
         {/* Fasting timer / protocol */}
         <FastingProtocolCard clientId={clientId} navigate={navigate} />
-        <LiveScheduleHost />
 
         {/* Daily Journal — mood, body, meals */}
         {clientId && (

@@ -65,8 +65,8 @@ import { FastingStatusCard } from "@/components/client/FastingStatusCard";
 import { TodaysWindowCard } from "@/components/client/TodaysWindowCard";
 import { ClientWeekStrip } from "@/components/client/ClientWeekStrip";
 import { StartFastGate } from "@/components/client/StartFastGate";
-import { openLiveSchedule } from "@/lib/liveScheduleBus";
-import { LiveScheduleHost } from "@/components/client/LiveScheduleHost";
+import { LiveSchedulePanel } from "@/components/client/LiveScheduleDialog";
+import { useClientComputedPlan } from "@/hooks/useClientComputedPlan";
 import { BuildWorkoutSheet } from "@/components/workout/BuildWorkoutSheet";
 
 import { ProgramsSelector } from "@/components/ProgramsSelector";
@@ -175,9 +175,36 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
         maintenance_schedule_type: string | null;
         trainer_id: string;
         lock_client_plan_choice: boolean;
+        admin_show_live_schedule: boolean;
       } | null;
     },
     enabled: !!clientId,
+  });
+  const {
+    plan: liveSchedulePlan,
+    dayIndex: liveScheduleDayIndex,
+    ketoAccent: liveScheduleAccent,
+    protocolName: liveScheduleProtocolName,
+    ketoName: liveScheduleKetoName,
+    protocolStartDate: liveScheduleStartDate,
+    assignedDurationDays: liveScheduleDurationDays,
+    runMode: liveScheduleRunMode,
+  } = useClientComputedPlan();
+  const showLiveScheduleCard = (featureSettings as any)?.admin_show_live_schedule === true;
+
+  const { data: liveScheduleLogs } = useQuery({
+    queryKey: ["live-sched-logs", clientId, liveScheduleStartDate],
+    queryFn: async () => {
+      if (!clientId || !liveScheduleStartDate) return [];
+      const { data } = await supabase
+        .from("fasting_log")
+        .select("started_at, ended_at, target_hours, actual_hours, completion_pct, status")
+        .eq("client_id", clientId)
+        .gte("ended_at", new Date(liveScheduleStartDate).toISOString())
+        .order("ended_at", { ascending: false });
+      return data || [];
+    },
+    enabled: showLiveScheduleCard && !!liveSchedulePlan && !!clientId && !!liveScheduleStartDate,
   });
 
   // Fetch universal fasting card from trainer
@@ -937,6 +964,53 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
   const hasAnyProtocol = !!featureSettings?.selected_protocol_id || !!featureSettings?.selected_quick_plan_id || (PREVIEW_COACH_START_NOW && !!activeProtocol);
   const hasKetoType = !!activeKetoType;
   const programFullyAssigned = hasAnyProtocol && hasKetoType;
+
+  // Admin testing toggle: replace the fasting card with the Live Schedule card.
+  // This is intentionally a full-card replacement, not a popup or a small CTA.
+  if (showLiveScheduleCard) {
+    return (
+      <Card className="overflow-hidden border-primary/25 bg-black shadow-lg">
+        <CardContent className="p-4 text-foreground">
+          <div className="mb-4 flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary">
+                <CalendarDays className="h-3.5 w-3.5" />
+                View Live Schedule
+              </p>
+              <h3 className="mt-1 text-xl font-black text-white">Live Schedule</h3>
+              <p className="mt-1 truncate text-xs font-medium text-white/60">
+                {[liveScheduleProtocolName, liveScheduleKetoName].filter(Boolean).join(" · ") || "Fast starts automatically"}
+              </p>
+            </div>
+            <Badge variant="outline" className="shrink-0 border-primary/40 bg-primary/10 text-[9px] uppercase tracking-wider text-primary">
+              Live
+            </Badge>
+          </div>
+          {liveSchedulePlan ? (
+            <LiveSchedulePanel
+              plan={liveSchedulePlan}
+              todayIndex={liveScheduleDayIndex}
+              accent={liveScheduleAccent || activeKetoType?.color || "hsl(var(--primary))"}
+              protocolName={liveScheduleProtocolName ?? undefined}
+              ketoName={liveScheduleKetoName ?? undefined}
+              protocolStartDate={liveScheduleStartDate ?? undefined}
+              assignedDurationDays={liveScheduleDurationDays ?? undefined}
+              runMode={liveScheduleRunMode}
+              fastingLogs={liveScheduleLogs ?? []}
+            />
+          ) : (
+            <div className="rounded-xl border border-white/10 bg-white/[0.04] p-5 text-center">
+              <CalendarDays className="mx-auto h-8 w-8 text-primary" />
+              <p className="mt-3 text-sm font-black uppercase tracking-widest text-white">No live schedule yet</p>
+              <p className="mt-2 text-xs leading-relaxed text-white/60">
+                Save a fasting protocol for this client, then this card will show the live calendar view.
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
 
   // Maintenance mode idle state
   if (isMaintenanceMode && !isFasting && !hasEatingWindow) {
@@ -1793,22 +1867,6 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
           <div className="pt-1">
             <EnablePushBanner />
             <NextFastCountdownRow accent={ketoAccent} />
-            {(featureSettings as any)?.admin_show_live_schedule !== false && (
-              <button
-                type="button"
-                onClick={() => openLiveSchedule()}
-                className="w-full flex flex-col items-center justify-center gap-1 rounded-lg border border-primary/40 bg-primary/5 py-3 text-xs uppercase tracking-widest font-bold text-primary hover:bg-primary/10 transition-colors"
-              >
-                <span className="flex items-center gap-2">
-                  <CalendarDays className="h-3.5 w-3.5" />
-                  See What's Coming Up
-                  <ChevronRight className="h-3.5 w-3.5" />
-                </span>
-                <span className="text-[9px] font-medium tracking-normal normal-case text-primary/70">
-                  Fast starts automatically
-                </span>
-              </button>
-            )}
             <button
               type="button"
               onClick={() => navigate("/client/program")}
@@ -2655,7 +2713,6 @@ export default function ClientDashboard() {
   return (
     <ClientLayout>
       <div className="px-3 pt-4 pb-8 space-y-5 w-full">
-        {(settings as any)?.admin_show_live_schedule !== false && <LiveScheduleHost />}
         {/* Header */}
         <div className="flex items-center justify-between pt-2">
           <div>

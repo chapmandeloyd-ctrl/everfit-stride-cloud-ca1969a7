@@ -74,9 +74,7 @@ function dateKey(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
-interface Props {
-  open: boolean;
-  onOpenChange: (o: boolean) => void;
+export interface LiveSchedulePanelProps {
   plan: ComputedPlan;
   todayIndex: number;
   accent: string;
@@ -95,16 +93,22 @@ interface Props {
     status: string;
   }>;
   clientName?: string;
+  className?: string;
+  completionVisible?: boolean;
+}
+
+interface Props extends LiveSchedulePanelProps {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
 }
 
 type HistoryStatus = "completed" | "partial" | "missed" | null;
 
-/** Phase 1: Live Schedule — Month view + tap-to-detail day sheet. */
-export function LiveScheduleDialog({
-  open, onOpenChange, plan, todayIndex, accent, protocolName, ketoName, onStartFast,
+export function LiveSchedulePanel({
+  plan, todayIndex, accent, protocolName, ketoName, onStartFast,
   protocolStartDate, assignedDurationDays, runMode = "one_time", fastingLogs, clientName,
-}: Props) {
-  const isMobile = useIsMobile();
+  className, completionVisible = false,
+}: LiveSchedulePanelProps) {
   const startFast = useStartFast();
   const handleStart = onStartFast ?? (() => startFast.mutate());
   const today = useMemo(() => new Date(), []);
@@ -222,7 +226,7 @@ export function LiveScheduleDialog({
 
   const firedRef = useRef(false);
   useEffect(() => {
-    if (!open || !isComplete || firedRef.current) return;
+    if (!completionVisible || !isComplete || firedRef.current) return;
     firedRef.current = true;
     const end = Date.now() + 1200;
     const frame = () => {
@@ -231,10 +235,10 @@ export function LiveScheduleDialog({
       if (Date.now() < end) requestAnimationFrame(frame);
     };
     frame();
-  }, [open, isComplete, accent]);
+  }, [completionVisible, isComplete, accent]);
 
   const body = (
-    <div className="space-y-4">
+    <div className={["space-y-4", className].filter(Boolean).join(" ")}>
       {startDate && assignedDurationDays && (
         isComplete ? (
           <PlanCompletionSummary
@@ -411,8 +415,19 @@ export function LiveScheduleDialog({
     </div>
   );
 
+  return body;
+}
+
+/** Phase 1: Live Schedule — Month view + tap-to-detail day sheet. */
+export function LiveScheduleDialog({
+  open, onOpenChange, completionVisible: _completionVisible, ...panelProps
+}: Props) {
+  const isMobile = useIsMobile();
+  const { accent, protocolName, ketoName } = panelProps;
+
   const title = "Live Schedule";
   const subtitle = [protocolName, ketoName].filter(Boolean).join(" · ");
+  const body = <LiveSchedulePanel {...panelProps} completionVisible={open} />;
 
   if (isMobile) {
     return (
