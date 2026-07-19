@@ -148,7 +148,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
     queryFn: async () => {
       const { data, error } = await supabase
         .from("client_feature_settings")
-        .select("selected_protocol_id, selected_quick_plan_id, quick_plan_duration_days, assigned_protocol_duration_days, protocol_start_date, active_fast_start_at, active_fast_target_hours, last_fast_ended_at, last_fast_completed_at, eating_window_ends_at, eating_window_hours, fasting_strict_mode, protocol_assigned_by, fasting_card_subtitle, fasting_card_image_url, eating_window_card_image_url, fast_lock_pin, protocol_completed, maintenance_mode, maintenance_schedule_type, trainer_id, lock_client_plan_choice")
+        .select("selected_protocol_id, selected_quick_plan_id, quick_plan_duration_days, assigned_protocol_duration_days, protocol_start_date, active_fast_start_at, active_fast_target_hours, last_fast_ended_at, last_fast_completed_at, eating_window_ends_at, eating_window_hours, fasting_strict_mode, protocol_assigned_by, fasting_card_subtitle, fasting_card_image_url, eating_window_card_image_url, fast_lock_pin, protocol_completed, maintenance_mode, maintenance_schedule_type, trainer_id, lock_client_plan_choice, admin_show_live_schedule")
         .eq("client_id", clientId)
         .maybeSingle();
       if (error) throw error;
@@ -1793,20 +1793,22 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
           <div className="pt-1">
             <EnablePushBanner />
             <NextFastCountdownRow accent={ketoAccent} />
-            <button
-              type="button"
-              onClick={() => openLiveSchedule()}
-              className="w-full flex flex-col items-center justify-center gap-1 rounded-lg border border-primary/40 bg-primary/5 py-3 text-xs uppercase tracking-widest font-bold text-primary hover:bg-primary/10 transition-colors"
-            >
-              <span className="flex items-center gap-2">
-                <CalendarDays className="h-3.5 w-3.5" />
-                See What's Coming Up
-                <ChevronRight className="h-3.5 w-3.5" />
-              </span>
-              <span className="text-[9px] font-medium tracking-normal normal-case text-primary/70">
-                Fast starts automatically
-              </span>
-            </button>
+            {(featureSettings as any)?.admin_show_live_schedule !== false && (
+              <button
+                type="button"
+                onClick={() => openLiveSchedule()}
+                className="w-full flex flex-col items-center justify-center gap-1 rounded-lg border border-primary/40 bg-primary/5 py-3 text-xs uppercase tracking-widest font-bold text-primary hover:bg-primary/10 transition-colors"
+              >
+                <span className="flex items-center gap-2">
+                  <CalendarDays className="h-3.5 w-3.5" />
+                  See What's Coming Up
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </span>
+                <span className="text-[9px] font-medium tracking-normal normal-case text-primary/70">
+                  Fast starts automatically
+                </span>
+              </button>
+            )}
             <button
               type="button"
               onClick={() => navigate("/client/program")}
@@ -2653,7 +2655,7 @@ export default function ClientDashboard() {
   return (
     <ClientLayout>
       <div className="px-3 pt-4 pb-8 space-y-5 w-full">
-        <LiveScheduleHost />
+        {(settings as any)?.admin_show_live_schedule !== false && <LiveScheduleHost />}
         {/* Header */}
         <div className="flex items-center justify-between pt-2">
           <div>
