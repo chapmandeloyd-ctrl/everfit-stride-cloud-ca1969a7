@@ -875,7 +875,7 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId, onDraftStateC
       startDate: savedInputs.startDate ?? (((featureSettings as any)?.protocol_start_date || "") ? String((featureSettings as any)?.protocol_start_date).slice(0, 10) : ""),
       customDeficit: savedInputs.customDeficit ?? 20,
       planType: savedInputs.planType ?? "recurring",
-      planLengthDays: savedInputs.planLengthDays ?? Number((featureSettings as any)?.assigned_protocol_duration_days) || 7,
+      planLengthDays: savedInputs.planLengthDays ?? (Number((featureSettings as any)?.assigned_protocol_duration_days) || 7),
       extendedPreset: savedInputs.extendedPreset ?? "48",
       customFastHours: savedInputs.customFastHours ?? 48,
     } : null;
