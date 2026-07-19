@@ -71,7 +71,7 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
     queryFn: async () => {
       const { data } = await supabase
         .from("client_keto_assignments")
-        .select("id, keto_type_id, assigned_at, keto_types(abbreviation, name, protein_pct, carbs_pct, fat_pct, carb_limit_grams, color)")
+        .select("id, keto_type_id, assigned_at, keto_types(abbreviation, name, subtitle, protein_pct, carbs_pct, fat_pct, carb_limit_grams, color)")
         .eq("client_id", clientId)
         .eq("is_active", true)
         .order("assigned_at", { ascending: false })
@@ -86,7 +86,7 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
     queryFn: async () => {
       const { data } = await supabase
         .from("keto_types")
-        .select("id, abbreviation, name, color")
+        .select("id, abbreviation, name, subtitle, protein_pct, carbs_pct, fat_pct, color")
         .eq("is_active", true)
         .order("order_index");
       return data || [];
@@ -805,7 +805,7 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
-              <Label>Keto Type</Label>
+              <Label>Fuel Style</Label>
               <Select
                 value={assignment.keto_type_id ?? undefined}
                 onValueChange={(v) => assignKetoMutation.mutate(v)}
@@ -813,7 +813,15 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {allKetoTypes?.map(k => (
-                    <SelectItem key={k.id} value={k.id}>{k.abbreviation} · {k.name}</SelectItem>
+                    <SelectItem key={k.id} value={k.id}>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{k.abbreviation} · {k.name}</span>
+                        <span className="text-xs text-muted-foreground">
+                          P {k.protein_pct}% · C {k.carbs_pct}% · F {k.fat_pct}%
+                          {k.subtitle ? ` — ${k.subtitle}` : ""}
+                        </span>
+                      </div>
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
