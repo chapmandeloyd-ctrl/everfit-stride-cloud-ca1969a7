@@ -86,7 +86,7 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
     queryFn: async () => {
       const { data } = await supabase
         .from("keto_types")
-        .select("id, abbreviation, name, subtitle, protein_pct, carbs_pct, fat_pct, color")
+        .select("id, abbreviation, name, subtitle, protein_pct, carbs_pct, fat_pct, color, carb_limit_grams")
         .eq("is_active", true)
         .order("order_index");
       return data || [];
@@ -353,6 +353,19 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
   const [extendedPreset, setExtendedPreset] = useState<ExtendedPreset>("48");
   const [customFastHours, setCustomFastHours] = useState<number>(48);
   const [previewOpen, setPreviewOpen] = useState(false);
+  // Staged (unsaved) selections. Nothing is written to the DB until Save
+  // is clicked, so the client-facing dashboard stays unchanged while the
+  // coach is still editing the plan.
+  const [stagedKetoId, setStagedKetoId] = useState<string | null>(null);
+  const [stagedProtocolId, setStagedProtocolId] = useState<string | null>(null);
+
+  // Seed staged Fuel Style + Protocol from the server on load / client switch.
+  useEffect(() => {
+    setStagedKetoId(assignment?.keto_type_id ?? null);
+  }, [assignment?.keto_type_id, clientId]);
+  useEffect(() => {
+    setStagedProtocolId((featureSettings?.selected_protocol_id as any) ?? null);
+  }, [featureSettings?.selected_protocol_id, clientId]);
 
   useEffect(() => {
     const saved = localStorage.getItem(storageKey);
@@ -405,23 +418,20 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
     }
   }, [(featureSettings as any)?.protocol_start_date, startDate]);
 
-  // Live-preview: reflect run-mode / plan-length changes in the client's Live
-  // Schedule and lion card immediately (before Save).
-  useEffect(() => {
-    queryClient.setQueryData(["ccp-settings", clientId], (prev: any) => ({
-      ...(prev ?? {}),
-      protocol_run_mode: runMode,
-      assigned_protocol_duration_days: planLengthDays,
-    }));
-    queryClient.setQueryData(["wse-settings", clientId], (prev: any) => ({
-      ...(prev ?? {}),
-      protocol_run_mode: runMode,
-      assigned_protocol_duration_days: planLengthDays,
-      protocol_start_date: prev?.protocol_start_date ?? (startDate || ((featureSettings as any)?.protocol_start_date ?? null)),
-    }));
-  }, [runMode, planLengthDays, startDate, clientId, queryClient, featureSettings]);
+  // NOTE: we intentionally do NOT mirror unsaved run-mode / duration into
+  // the client-facing query caches. Nothing should appear on the client's
+  // dashboard until the coach clicks Save.
 
-  const kt = assignment?.keto_types as any;
+  // Resolve the currently-staged Fuel Style (falls back to the saved
+  // assignment's embedded record so metadata like carb_limit_grams is
+  // preserved when the coach hasn't changed the selection yet).
+  const kt = useMemo(() => {
+    if (stagedKetoId && stagedKetoId !== assignment?.keto_type_id) {
+      const found = allKetoTypes?.find((k: any) => k.id === stagedKetoId);
+      return (found as any) ?? null;
+    }
+    return (assignment?.keto_types as any) ?? allKetoTypes?.find((k: any) => k.id === stagedKetoId) ?? null;
+  }, [stagedKetoId, allKetoTypes, assignment]);
 
   const plan = useMemo(() => {
     const w = parseFloat(weight);
@@ -433,7 +443,7 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
 
     // Derive fast/eat window from the assigned fasting protocol
     const selectedProtocol = allProtocols?.find(
-      (p) => p.id === featureSettings?.selected_protocol_id
+      (p) => p.id === stagedProtocolId
     );
     const rawFastHours = Math.max(0, selectedProtocol?.fast_target_hours ?? 16);
     const isAlternateDay = rawFastHours >= 24;
@@ -529,9 +539,13 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
       return { day: length > 7 ? `${d} ${Math.floor(i / 7) + 1}` : d, isRefeed, cal: adFast ? 0 : cal, proteinG: adFast ? 0 : proteinG, carbG: adFast ? 0 : carbG, fatG: adFast ? 0 : fatG, fastWindow, eatStart, eatEnd, tight, omad, adFast };
     });
     return { tdee, target, proteinFloor, days, adjust, protocolName: selectedProtocol?.name, extended: false };
-  }, [weight, goal, activity, kt, customDeficit, allProtocols, featureSettings?.selected_protocol_id, (featureSettings as any)?.day_start_hour, planType, planLengthDays, startDate, extendedPreset, customFastHours]);
+  }, [weight, goal, activity, kt, customDeficit, allProtocols, stagedProtocolId, (featureSettings as any)?.day_start_hour, planType, planLengthDays, startDate, extendedPreset, customFastHours]);
 
   const handleSave = async () => {
+    if (!stagedKetoId) {
+      toast.error("Choose a Fuel Style before saving.");
+      return;
+    }
     const savedStart = (featureSettings as any)?.protocol_start_date;
     const effectiveStartDate = startDate || (savedStart ? String(savedStart).slice(0, 10) : new Date().toISOString().slice(0, 10));
     const extendedHours = extendedPreset === "custom" ? customFastHours : parseInt(extendedPreset, 10);
@@ -553,11 +567,33 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
     };
     localStorage.setItem(storageKey, JSON.stringify(payload));
     try {
+      // 1. Persist Fuel Style assignment (only if changed).
+      if (stagedKetoId !== (assignment?.keto_type_id ?? null)) {
+        if (assignment?.id) {
+          await supabase
+            .from("client_keto_assignments")
+            .update({ is_active: false })
+            .eq("id", assignment.id);
+        }
+        const { error: ketoErr } = await supabase.from("client_keto_assignments").insert({
+          client_id: clientId,
+          keto_type_id: stagedKetoId,
+          assigned_by: trainerId,
+          is_active: true,
+        });
+        if (ketoErr) throw ketoErr;
+      }
+      // 2. Persist selected Fasting Protocol + calc inputs + duration in one write.
       const patch: any = {
         protocol_calc_inputs: payload,
         protocol_start_date: effectiveStartDate,
         protocol_run_mode: effectiveRunMode,
         assigned_protocol_duration_days: assignmentDurationDays,
+        selected_protocol_id: stagedProtocolId,
+        selected_quick_plan_id: null,
+        quick_plan_duration_days: null,
+        protocol_assigned_by: trainerId,
+        active_fast_target_hours: null,
       };
       const { data: existing } = await supabase
         .from("client_feature_settings")
@@ -569,12 +605,25 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
       } else {
         await supabase.from("client_feature_settings").insert([{ client_id: clientId, ...patch }] as any);
       }
+      queryClient.invalidateQueries({ queryKey: ["keto-assignment", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["client-keto-assignment"] });
+      queryClient.invalidateQueries({ queryKey: ["ccp-keto", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["ccp-keto-type"] });
+      queryClient.invalidateQueries({ queryKey: ["ccp-protocol"] });
+      queryClient.invalidateQueries({ queryKey: ["synergy-panel-keto", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["synergy-panel-settings", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["my-feature-settings"] });
+      queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting"] });
+      queryClient.invalidateQueries({ queryKey: ["active-protocol-summary", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["protocol-history", clientId] });
       queryClient.invalidateQueries({ queryKey: ["tw-settings"] });
       queryClient.invalidateQueries({ queryKey: ["kpc-feature-settings", clientId] });
       queryClient.invalidateQueries({ queryKey: ["wse-settings", clientId] });
       queryClient.invalidateQueries({ queryKey: ["ccp-settings", clientId] });
     } catch (e) {
       console.error("save protocol inputs failed", e);
+      toast.error(e instanceof Error ? e.message : "Failed to save protocol");
+      return;
     }
     setStartDate(effectiveStartDate);
     toast.success("Protocol saved for this client");
@@ -744,7 +793,7 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
     const w = parseFloat(weight);
     if (!w || !kt) return null;
     const selectedProtocol = allProtocols?.find(
-      (p) => p.id === featureSettings?.selected_protocol_id
+      (p) => p.id === stagedProtocolId
     );
     const adjust = goal === "custom" ? -(customDeficit / 100) : GOAL_ADJUST[goal];
     return computePlan({
@@ -758,30 +807,43 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
       extendedTotalHours: extendedPreset === "custom" ? customFastHours : parseInt(extendedPreset, 10),
       eatStartHour: Number((featureSettings as any)?.day_start_hour ?? NaN),
     });
-  }, [weight, kt, allProtocols, featureSettings?.selected_protocol_id, (featureSettings as any)?.day_start_hour, goal, customDeficit, activity, planType, planLengthDays, extendedPreset, customFastHours]);
+  }, [weight, kt, allProtocols, stagedProtocolId, (featureSettings as any)?.day_start_hour, goal, customDeficit, activity, planType, planLengthDays, extendedPreset, customFastHours]);
 
-  if (!assignment) {
-    return (
-      <Card>
-        <CardContent className="p-6 space-y-4">
-          <p className="text-center text-muted-foreground">
-            Assign a Fuel Style to this client to generate a protocol.
-          </p>
-          <div className="max-w-xs mx-auto">
-            <Label>Fuel Style</Label>
-            <Select onValueChange={(v) => assignKetoMutation.mutate(v)}>
-              <SelectTrigger><SelectValue placeholder="Choose Fuel Style…" /></SelectTrigger>
-              <SelectContent>
-                {allKetoTypes?.map(k => (
-                  <SelectItem key={k.id} value={k.id}>{k.abbreviation} · {k.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+  // Detect unsaved changes so the coach knows the client dashboard hasn't
+  // been updated yet.
+  const hasUnsavedChanges = useMemo(() => {
+    if (stagedKetoId !== (assignment?.keto_type_id ?? null)) return true;
+    if (stagedProtocolId !== ((featureSettings?.selected_protocol_id as any) ?? null)) return true;
+    const savedInputs = (featureSettings as any)?.protocol_calc_inputs || null;
+    const currentInputs = {
+      weight: parseFloat(weight) || null,
+      goal,
+      activity,
+      startDate,
+      customDeficit,
+      planType,
+      planLengthDays,
+      extendedPreset,
+      customFastHours,
+    };
+    const savedCompact = savedInputs ? {
+      weight: savedInputs.weight ?? null,
+      goal: savedInputs.goal,
+      activity: savedInputs.activity,
+      startDate: savedInputs.startDate,
+      customDeficit: savedInputs.customDeficit,
+      planType: savedInputs.planType,
+      planLengthDays: savedInputs.planLengthDays,
+      extendedPreset: savedInputs.extendedPreset,
+      customFastHours: savedInputs.customFastHours,
+    } : null;
+    if (JSON.stringify(currentInputs) !== JSON.stringify(savedCompact)) return true;
+    const savedDuration = Number((featureSettings as any)?.assigned_protocol_duration_days) || null;
+    if (savedDuration !== null && savedDuration !== planLengthDays) return true;
+    const savedRunMode = (featureSettings as any)?.protocol_run_mode ?? "one_time";
+    if (savedRunMode !== runMode) return true;
+    return false;
+  }, [stagedKetoId, stagedProtocolId, assignment, featureSettings, weight, goal, activity, startDate, customDeficit, planType, planLengthDays, extendedPreset, customFastHours, runMode]);
 
   return (
     <div className="space-y-6">
