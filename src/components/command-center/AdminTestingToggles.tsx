@@ -36,7 +36,7 @@ export function AdminTestingToggles({ clientId }: Props) {
   });
 
   const isFasting = !!settings?.active_fast_start_at;
-  const showLiveSchedule = settings?.admin_show_live_schedule !== false;
+  const showLiveSchedule = settings?.admin_show_live_schedule === true;
 
   const toggleFast = useMutation({
     mutationFn: async (start: boolean) => {
@@ -96,6 +96,7 @@ export function AdminTestingToggles({ clientId }: Props) {
       toast({ title: show ? "Live Schedule card shown" : "Live Schedule card hidden" });
       qc.invalidateQueries({ queryKey: ["admin-testing-toggles", clientId] });
       qc.invalidateQueries({ queryKey: ["my-feature-settings"] });
+      qc.invalidateQueries({ queryKey: ["my-feature-settings-fasting"] });
     },
     onError: (err: any) => {
       toast({ title: "Failed", description: err?.message, variant: "destructive" });
@@ -128,7 +129,7 @@ export function AdminTestingToggles({ clientId }: Props) {
           <div className="min-w-0">
             <Label className="text-sm font-semibold">Show Live Schedule Card</Label>
             <p className="text-xs text-muted-foreground">
-              ON flips the client's fasting card into the calendar view. OFF returns it to the normal fasting card.
+              OFF by default. Turn ON to flip the client's fasting card into the calendar view.
             </p>
           </div>
           <Switch

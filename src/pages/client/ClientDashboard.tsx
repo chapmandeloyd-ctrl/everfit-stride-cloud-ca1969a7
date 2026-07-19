@@ -190,8 +190,8 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
     assignedDurationDays: liveScheduleDurationDays,
     runMode: liveScheduleRunMode,
   } = useClientComputedPlan();
-  // Default ON — admin toggle in Command Center flips it OFF explicitly.
-  const showLiveScheduleCard = (featureSettings as any)?.admin_show_live_schedule !== false;
+  // Admin testing toggle: OFF by default. Only flips the card when explicitly enabled.
+  const showLiveScheduleCard = (featureSettings as any)?.admin_show_live_schedule === true;
 
   const { data: liveScheduleLogs } = useQuery({
     queryKey: ["live-sched-logs", clientId, liveScheduleStartDate],
