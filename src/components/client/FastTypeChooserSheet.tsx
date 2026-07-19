@@ -35,25 +35,25 @@ export function FastTypeChooserSheet({ open, onOpenChange }: Props) {
           <button
             type="button"
             onClick={() => go("/client/long-fast")}
-            className="w-full flex items-center justify-between rounded-2xl bg-emerald-700/90 hover:bg-emerald-700 active:bg-emerald-800 transition-colors px-5 py-4 text-left shadow-md"
+            className="w-full flex items-center justify-between rounded-2xl bg-primary hover:bg-primary/90 active:bg-primary/80 text-primary-foreground transition-colors px-5 py-4 text-left shadow-lg shadow-primary/20 border border-primary/40"
           >
             <div>
-              <div className="text-lg font-bold text-white leading-tight">Long Fast</div>
-              <div className="text-xs text-white/80 mt-0.5">For extended fasting (e.g. 1–5 days)</div>
+              <div className="text-lg font-bold leading-tight">Long Fast</div>
+              <div className="text-xs opacity-80 mt-0.5">For extended fasting (e.g. 1–5 days)</div>
             </div>
-            <ChevronRight className="h-5 w-5 text-white/90 shrink-0" />
+            <ChevronRight className="h-5 w-5 opacity-90 shrink-0" />
           </button>
 
           <button
             type="button"
             onClick={() => go("/client/choose-protocol")}
-            className="w-full flex items-center justify-between rounded-2xl bg-emerald-700/90 hover:bg-emerald-700 active:bg-emerald-800 transition-colors px-5 py-4 text-left shadow-md"
+            className="w-full flex items-center justify-between rounded-2xl bg-card hover:bg-card/80 active:bg-card/70 text-foreground transition-colors px-5 py-4 text-left shadow-lg border border-primary/40"
           >
             <div>
-              <div className="text-lg font-bold text-white leading-tight">Intermittent Fast</div>
-              <div className="text-xs text-white/80 mt-0.5">For daily patterns like 16:8 or OMAD</div>
+              <div className="text-lg font-bold leading-tight">Intermittent Fast</div>
+              <div className="text-xs text-muted-foreground mt-0.5">For daily patterns like 16:8 or OMAD</div>
             </div>
-            <ChevronRight className="h-5 w-5 text-white/90 shrink-0" />
+            <ChevronRight className="h-5 w-5 text-primary shrink-0" />
           </button>
         </div>
       </SheetContent>
