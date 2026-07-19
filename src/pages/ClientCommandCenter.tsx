@@ -31,6 +31,7 @@ import { StageTimelinePanel } from "@/components/command-center/StageTimelinePan
 import { ProtocolHistorySection } from "@/components/command-center/ProtocolHistorySection";
 import { ProtocolMiniCalendar } from "@/components/command-center/ProtocolMiniCalendar";
 import { ScheduleAlignmentPanel } from "@/components/command-center/ScheduleAlignmentPanel";
+import { AdminTestingToggles } from "@/components/command-center/AdminTestingToggles";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AUTH_URL } from "@/lib/appUrl";
 import { useImpersonation } from "@/hooks/useImpersonation";
