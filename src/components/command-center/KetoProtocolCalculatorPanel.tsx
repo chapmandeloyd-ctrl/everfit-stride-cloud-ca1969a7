@@ -31,7 +31,11 @@ type Activity = "sedentary" | "light" | "moderate" | "active" | "very_active";
 type PlanType = "recurring" | "extended";
 type ExtendedPreset = "24" | "36" | "48" | "72" | "120" | "custom";
 
-interface Props { clientId: string; trainerId: string }
+interface Props {
+  clientId: string;
+  trainerId: string;
+  onDraftStateChange?: (hasDraft: boolean) => void;
+}
 
 const ACTIVITY_MULT: Record<Activity, number> = {
   sedentary: 13, light: 14.5, moderate: 16, active: 17.5, very_active: 19,
@@ -62,7 +66,7 @@ function formatPlanDayWithDate(startDateValue: string, offset: number, fallback:
   return `${weekday} · ${monthDay}`;
 }
 
-export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
+export function KetoProtocolCalculatorPanel({ clientId, trainerId, onDraftStateChange }: Props) {
   const storageKey = `keto-protocol-${clientId}`;
   const queryClient = useQueryClient();
 
@@ -601,9 +605,16 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
         .eq("client_id", clientId)
         .maybeSingle();
       if (existing) {
-        await supabase.from("client_feature_settings").update(patch).eq("client_id", clientId);
+        const { error: settingsErr } = await supabase
+          .from("client_feature_settings")
+          .update(patch)
+          .eq("client_id", clientId);
+        if (settingsErr) throw settingsErr;
       } else {
-        await supabase.from("client_feature_settings").insert([{ client_id: clientId, ...patch }] as any);
+        const { error: settingsErr } = await supabase
+          .from("client_feature_settings")
+          .insert([{ client_id: clientId, ...patch }] as any);
+        if (settingsErr) throw settingsErr;
       }
       queryClient.invalidateQueries({ queryKey: ["keto-assignment", clientId] });
       queryClient.invalidateQueries({ queryKey: ["client-keto-assignment"] });
@@ -630,18 +641,29 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
   };
 
   const handleResetInputs = () => {
+    const savedInputs = ((featureSettings as any)?.protocol_calc_inputs || {}) as Record<string, any>;
+    const savedStartDate = (featureSettings as any)?.protocol_start_date
+      ? String((featureSettings as any).protocol_start_date).slice(0, 10)
+      : "";
+
     localStorage.removeItem(storageKey);
-    setWeight(weightLbs ? String(weightLbs) : "");
-    setGoal("maintain");
-    setActivity("moderate");
-    setStartDate((featureSettings as any)?.protocol_start_date ? String((featureSettings as any).protocol_start_date).slice(0, 10) : "");
-    setCustomDeficit(20);
-    setPlanType("recurring");
-    setPlanLengthDays(Number((featureSettings as any)?.assigned_protocol_duration_days) || 7);
+    setStagedKetoId(assignment?.keto_type_id ?? null);
+    setStagedProtocolId((featureSettings?.selected_protocol_id as any) ?? null);
+    setWeight(savedInputs.weight != null ? String(savedInputs.weight) : weightLbs ? String(weightLbs) : "");
+    setGoal((savedInputs.goal as Goal) || "maintain");
+    setActivity((savedInputs.activity as Activity) || "moderate");
+    setStartDate(savedInputs.startDate || savedStartDate);
+    setCustomDeficit(typeof savedInputs.customDeficit === "number" ? savedInputs.customDeficit : 20);
+    setPlanType((savedInputs.planType as PlanType) || "recurring");
+    setPlanLengthDays(
+      typeof savedInputs.planLengthDays === "number"
+        ? savedInputs.planLengthDays
+        : Number((featureSettings as any)?.assigned_protocol_duration_days) || 7
+    );
     setRunMode(((featureSettings as any)?.protocol_run_mode === "recurring" ? "recurring" : "one_time") as "one_time" | "recurring");
-    setExtendedPreset("48");
-    setCustomFastHours(48);
-    toast.info("Calculator inputs reset. Assigned plan unchanged.");
+    setExtendedPreset((savedInputs.extendedPreset as ExtendedPreset) || "48");
+    setCustomFastHours(typeof savedInputs.customFastHours === "number" ? savedInputs.customFastHours : 48);
+    toast.success((assignment?.keto_type_id || featureSettings?.selected_protocol_id) ? "Draft discarded. Saved plan restored." : "Draft cleared. No plan is assigned yet.");
   };
 
   const [resetting, setResetting] = useState(false);
@@ -745,6 +767,8 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
       setRunMode("one_time");
       setExtendedPreset("48");
       setCustomFastHours(48);
+      setStagedKetoId(null);
+      setStagedProtocolId(null);
 
       const applyClearedPlan = (prev: any) => (prev ? { ...prev, ...clearedPlanPatch } : prev);
       queryClient.setQueryData(["kpc-feature-settings", clientId], applyClearedPlan);
@@ -754,6 +778,7 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
       queryClient.setQueryData(["keto-assignment", clientId], null);
       queryClient.setQueryData(["ccp-keto", clientId], null);
       queryClient.setQueryData(["fasting-card-keto-type", clientId], null);
+      queryClient.setQueryData(["active-protocol-summary", clientId], null);
 
       // 7. Refresh all related queries
       queryClient.invalidateQueries({ queryKey: ["keto-assignment", clientId] });
@@ -845,6 +870,10 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
     return false;
   }, [stagedKetoId, stagedProtocolId, assignment, featureSettings, weight, goal, activity, startDate, customDeficit, planType, planLengthDays, extendedPreset, customFastHours, runMode]);
 
+  useEffect(() => {
+    onDraftStateChange?.(hasUnsavedChanges);
+  }, [hasUnsavedChanges, onDraftStateChange]);
+
   return (
     <div className="space-y-6">
       <Card>
@@ -866,7 +895,7 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
             </div>
             <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-2">
               <Button variant="outline" size="sm" onClick={handleResetInputs} className="w-full sm:w-auto">
-                <RefreshCw className="h-4 w-4 mr-1" /> Reset Inputs
+                <RefreshCw className="h-4 w-4 mr-1" /> Discard Draft
               </Button>
               <Button variant="outline" size="sm" onClick={() => setPreviewOpen(true)} disabled={!previewPlan} className="w-full sm:w-auto">
                 <Eye className="h-4 w-4 mr-1" /> <span className="truncate">Preview</span>
