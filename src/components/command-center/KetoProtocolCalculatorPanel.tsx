@@ -825,7 +825,7 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
               </SelectTrigger>
                 <SelectContent>
                   {allKetoTypes?.map(k => (
-                    <SelectItem key={k.id} value={k.id}>
+                  <SelectItem key={k.id} value={k.id} className="focus:bg-muted focus:text-foreground data-[highlighted]:bg-muted data-[highlighted]:text-foreground">
                     <div className="flex items-start gap-2">
                       <span
                         className="h-2.5 w-2.5 rounded-full shrink-0 mt-1.5"
