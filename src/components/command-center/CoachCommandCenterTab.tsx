@@ -18,6 +18,7 @@ import { RecurringCheckinScheduler } from "./RecurringCheckinScheduler";
 import { SynergyPreviewPanel } from "./SynergyPreviewPanel";
 import { CoachMotivationPanel } from "./CoachMotivationPanel";
 import { PushNotificationStatusPanel } from "./PushNotificationStatusPanel";
+import { AdminTestingToggles } from "./AdminTestingToggles";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -73,6 +74,9 @@ export function CoachCommandCenterTab({ clientId, trainerId }: CoachCommandCente
 
   return (
     <div className="space-y-6">
+      {/* Admin-only per-client testing toggles */}
+      <AdminTestingToggles clientId={clientId} />
+
       {/* Motivation & Journal (client's "Why" + shared entries) */}
       <CoachMotivationPanel clientId={clientId} trainerId={trainerId} />
 
