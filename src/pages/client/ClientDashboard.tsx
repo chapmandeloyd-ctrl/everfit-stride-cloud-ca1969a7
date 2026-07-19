@@ -16,6 +16,7 @@ import { emitActivityEvent } from "@/lib/activityEvents";
 import { useClientFeatureSettings } from "@/hooks/useClientFeatureSettings";
 import { useEngineMode } from "@/hooks/useEngineMode";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { FastTypeChooserSheet } from "@/components/client/FastTypeChooserSheet";
 
 import {
   AlertDialog,
@@ -139,6 +140,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
   const [programSheetOpen, setProgramSheetOpen] = useState(false);
   const [showCoachWaitLock, setShowCoachWaitLock] = useState(false);
   const [eatingWindowSheetIntent, setEatingWindowSheetIntent] = useState<"end_window" | "choose_next_fast">("end_window");
+  const [fastTypeOpen, setFastTypeOpen] = useState(false);
   const liveActivity = useLiveActivity();
   const { toast } = useToast();
   const { data: pace } = useSmartPace();
@@ -976,6 +978,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
       : "Your trainer will assign your fasting plan soon.";
     return (
       <Card className="overflow-hidden border-primary/20 shadow-lg relative">
+        <FastTypeChooserSheet open={fastTypeOpen} onOpenChange={setFastTypeOpen} />
         {fastingCardBg ? (
           <>
             <div
@@ -995,7 +998,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                 </div>
                 {canChoose && (
                   <Button
-                    onClick={() => navigate("/client/choose-protocol")}
+                    onClick={() => setFastTypeOpen(true)}
                     className="w-full"
                     size="lg"
                   >
@@ -1017,7 +1020,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
             </div>
             {canChoose && (
               <Button
-                onClick={() => navigate("/client/choose-protocol")}
+                onClick={() => setFastTypeOpen(true)}
                 className="w-full"
                 size="lg"
               >
