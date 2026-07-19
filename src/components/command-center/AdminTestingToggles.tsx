@@ -13,7 +13,7 @@ interface Props {
 /**
  * Admin-only per-client testing toggles.
  *  1. Force-start / stop the client's active fast (writes active_fast_start_at).
- *  2. Show / hide the Live Schedule card on the client's dashboard.
+  *  2. Flip the client's fasting card into the Live Schedule calendar view.
  */
 export function AdminTestingToggles({ clientId }: Props) {
   const { toast } = useToast();
@@ -93,7 +93,7 @@ export function AdminTestingToggles({ clientId }: Props) {
       if (error) throw error;
     },
     onSuccess: (_d, show) => {
-      toast({ title: show ? "Live Schedule shown" : "Live Schedule hidden" });
+      toast({ title: show ? "Live Schedule card shown" : "Live Schedule card hidden" });
       qc.invalidateQueries({ queryKey: ["admin-testing-toggles", clientId] });
       qc.invalidateQueries({ queryKey: ["my-feature-settings"] });
     },
@@ -126,9 +126,9 @@ export function AdminTestingToggles({ clientId }: Props) {
         </div>
         <div className="flex items-center justify-between gap-4 rounded-lg border border-white/10 bg-black/30 p-3">
           <div className="min-w-0">
-            <Label className="text-sm font-semibold">Show Live Schedule</Label>
+            <Label className="text-sm font-semibold">Show Live Schedule Card</Label>
             <p className="text-xs text-muted-foreground">
-              Controls the "See What's Coming Up" card + Live Schedule dialog on the client's dashboard.
+              ON flips the client's fasting card into the calendar view. OFF returns it to the normal fasting card.
             </p>
           </div>
           <Switch
