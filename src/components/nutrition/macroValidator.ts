@@ -1,5 +1,5 @@
 /**
- * KSOM360 Macro Validation Engine
+ * APEX360-IF360 Macro Validation Engine
  * 
  * Validates macro accuracy, keto compliance, profile matching,
  * and flags meals that fail integrity checks.

@@ -6,7 +6,7 @@
 
 export interface EnrichedStage {
   id: string;
-  /** Scientific name (kept from KSOM canon) */
+  /** Scientific name (kept from APEX360-IF canon) */
   label: string;
   /** Friendly plain-language headline */
   friendlyTitle: string;

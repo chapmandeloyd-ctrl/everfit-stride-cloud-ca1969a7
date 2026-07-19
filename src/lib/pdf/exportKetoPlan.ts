@@ -130,7 +130,7 @@ export async function exportKetoPlanPdf(options: ExportKetoPlanOptions): Promise
   });
 
   const datePart = new Date().toISOString().slice(0, 10);
-  const filename = `KSOM360-Keto-${safeFilenamePart(kt.abbreviation)}-${datePart}`;
+  const filename = `APEX360-IF360-Keto-${safeFilenamePart(kt.abbreviation)}-${datePart}`;
 
   await exportBrandedPdf({
     filename,

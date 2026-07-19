@@ -25,7 +25,7 @@ const MILESTONES = [
   { days: 3, key: "milestone_3" as const, label: "Unlock more meals" },
   { days: 7, key: "milestone_7" as const, label: "Full meal library" },
   { days: 14, key: "milestone_14" as const, label: "Advanced protocols" },
-  { days: 30, key: "milestone_30" as const, label: "KSOM Elite status" },
+  { days: 30, key: "milestone_30" as const, label: "APEX360-IF Elite status" },
 ];
 
 export function useConsistencyStreak() {

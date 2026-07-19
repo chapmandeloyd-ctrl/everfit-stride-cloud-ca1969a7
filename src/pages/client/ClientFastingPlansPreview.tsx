@@ -9,7 +9,7 @@ import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 /**
- * Editorial Black & Gold preview of the entire KSOM fasting library.
+ * Editorial Black & Gold preview of the entire APEX360-IF fasting library.
  * Pulls real quick plans + programs from the database, grouped by intensity tier.
  * Locked to the "Lion" card variant per user direction.
  */

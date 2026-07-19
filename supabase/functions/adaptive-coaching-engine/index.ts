@@ -136,7 +136,7 @@ async function generateAIMessage(
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
   if (!LOVABLE_API_KEY) return null;
 
-  const systemPrompt = `You are the voice of KSOM360 — a direct, confident coaching system. You speak TO the client.
+  const systemPrompt = `You are the voice of APEX360-IF360 — a direct, confident coaching system. You speak TO the client.
 
 RULES:
 - Write exactly 2-3 sentences. No more.

@@ -1654,7 +1654,7 @@ export default function ClientFastingPlanDetailPreview() {
         eatHours: eat,
         description:
           pickDescription(quickPlan.description) ||
-          "A curated KSOM fasting window.",
+          "A curated APEX360-IF fasting window.",
         opensAt,
         closesAt,
       };
@@ -1673,7 +1673,7 @@ export default function ClientFastingPlanDetailPreview() {
         eatHours: eat,
         description:
           pickDescription(program.description) ||
-          "A structured KSOM fasting program.",
+          "A structured APEX360-IF fasting program.",
         opensAt: "10:00 AM",
         closesAt: "8:00 PM",
       };

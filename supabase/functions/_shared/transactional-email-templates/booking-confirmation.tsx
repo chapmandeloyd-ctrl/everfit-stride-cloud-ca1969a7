@@ -76,7 +76,7 @@ export const template = {
     appointmentType: '1-on-1 Training',
     date: 'Tuesday, Jan 21',
     time: '10:00 AM',
-    location: 'KSOM Performance Center',
+    location: 'APEX360-IF Performance Center',
   },
 } satisfies TemplateEntry
 
