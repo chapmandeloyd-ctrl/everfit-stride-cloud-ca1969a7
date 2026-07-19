@@ -105,7 +105,7 @@ export function parseStructuredRecipeText(text: string): ExtractedRecipe | null 
   const avoidIf = extractBulletList(text, "AVOID_IF");
   const mealTiming = extractSection(text, "MEAL_TIMING") || "";
 
-  // KSOM360 strict fields
+  // APEX360-IF360 strict fields
   const mealIntensity = extractSection(text, "MEAL_INTENSITY") || "";
   const satietyScore = parseNumber(extractSection(text, "SATIETY_SCORE"));
   const digestionLoad = extractSection(text, "DIGESTION_LOAD") || "";

@@ -80,9 +80,9 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Sending welcome email to:", clientProfile.email);
 
     const emailResponse = await resend.emails.send({
-      from: "KSOM-360 <onboarding@resend.dev>",
+      from: "APEX360-IF <onboarding@resend.dev>",
       to: [clientProfile.email],
-      subject: "Welcome to KSOM-360 - Access Your Account",
+      subject: "Welcome to APEX360-IF - Access Your Account",
       html: `
         <!DOCTYPE html>
         <html>
@@ -143,12 +143,12 @@ const handler = async (req: Request): Promise<Response> => {
           </head>
           <body>
             <div class="header">
-              <h1>Welcome to KSOM-360!</h1>
+              <h1>Welcome to APEX360-IF!</h1>
             </div>
             <div class="content">
               <p>Hi ${clientProfile.full_name},</p>
               
-              <p>Your trainer has set up an account for you on KSOM-360. You can now access your personalized fitness dashboard, track your progress, and view your workout plans.</p>
+              <p>Your trainer has set up an account for you on APEX360-IF. You can now access your personalized fitness dashboard, track your progress, and view your workout plans.</p>
               
               <div class="credentials">
                 <h3>Your Login Email:</h3>
@@ -162,7 +162,7 @@ const handler = async (req: Request): Promise<Response> => {
               
               <div class="footer">
                 <p>If you have any questions or need assistance, please contact your trainer.</p>
-                <p style="margin-top: 10px;">Best regards,<br>The KSOM-360 Team</p>
+                <p style="margin-top: 10px;">Best regards,<br>The APEX360-IF Team</p>
               </div>
             </div>
           </body>

@@ -34,7 +34,7 @@ export function SportCommandCenter() {
       <Card className="border-border/60 bg-card/80">
         <CardContent className="p-4 text-center">
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
-            KSOM Sport Performance System™
+            APEX360-IF Sport Performance System™
           </p>
           <p className="text-xs text-muted-foreground mt-1 italic">
             Built for growth. Tuned for competition.
@@ -52,7 +52,7 @@ export function SportCommandCenter() {
       {/* Lab Cards */}
       {hasSoftball && (
         <SportLabCard
-          title="KSOM Diamond Lab™"
+          title="APEX360-IF Diamond Lab™"
           subtitle="Batting • Throwing • Field Work"
           accentColor="hsl(45, 90%, 50%)"
           labRoute="/client/labs/diamond"
@@ -61,7 +61,7 @@ export function SportCommandCenter() {
 
       {hasBasketball && (
         <SportLabCard
-          title="KSOM Hoops Lab™"
+          title="APEX360-IF Hoops Lab™"
           subtitle="Shooting • Ball Handling • Court IQ"
           accentColor="hsl(25, 90%, 55%)"
           labRoute="/client/labs/hoops"
@@ -72,13 +72,13 @@ export function SportCommandCenter() {
       {!hasSoftball && !hasBasketball && (
         <>
           <SportLabCard
-            title="KSOM Diamond Lab™"
+            title="APEX360-IF Diamond Lab™"
             subtitle="Batting • Throwing • Field Work"
             accentColor="hsl(45, 90%, 50%)"
             labRoute="/client/labs/diamond"
           />
           <SportLabCard
-            title="KSOM Hoops Lab™"
+            title="APEX360-IF Hoops Lab™"
             subtitle="Shooting • Ball Handling • Court IQ"
             accentColor="hsl(25, 90%, 55%)"
             labRoute="/client/labs/hoops"

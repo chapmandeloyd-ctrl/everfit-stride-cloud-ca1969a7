@@ -36,7 +36,7 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 }
 
 // Configuration
-const SITE_NAME = "KSOM-360"
+const SITE_NAME = "APEX360-IF"
 const SENDER_DOMAIN = "notify.ksom-360.app"
 const ROOT_DOMAIN = "ksom-360.app"
 const FROM_DOMAIN = "ksom-360.app" // Domain shown in From address (may be root or sender subdomain)

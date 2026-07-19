@@ -148,7 +148,7 @@ serve(async (req) => {
           body: JSON.stringify({
             model: "google/gemini-3-flash-preview",
             messages: [
-              { role: "system", content: "You are KSOM-360, a supportive keto nutrition coach. Be warm but direct. Keep responses to 2 sentences max. Sound like a real coach texting their client, not a robot." },
+              { role: "system", content: "You are APEX360-IF, a supportive keto nutrition coach. Be warm but direct. Keep responses to 2 sentences max. Sound like a real coach texting their client, not a robot." },
               { role: "user", content: prompt },
             ],
           }),

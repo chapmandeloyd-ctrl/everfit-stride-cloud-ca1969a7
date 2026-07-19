@@ -54,7 +54,7 @@ export interface ExtractedRecipe {
   best_for?: string[];
   avoid_if?: string[];
   meal_timing?: string;
-  // KSOM360 strict fields
+  // APEX360-IF360 strict fields
   meal_intensity?: string;
   satiety_score?: number;
   digestion_load?: string;
@@ -243,7 +243,7 @@ export function AIRecipeBuilderDialog({ open, onOpenChange }: AIRecipeBuilderDia
         avoid_if: extractedRecipe.avoid_if?.length ? extractedRecipe.avoid_if : [],
         meal_timing: extractedRecipe.meal_timing || null,
         ingredients_list: extractedRecipe.ingredients || null,
-        // KSOM360 strict fields
+        // APEX360-IF360 strict fields
         meal_intensity: extractedRecipe.meal_intensity || null,
         satiety_score: extractedRecipe.satiety_score || null,
         digestion_load: extractedRecipe.digestion_load || null,

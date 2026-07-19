@@ -51,7 +51,7 @@ serve(async (req) => {
     }
 
     // Step 2: Call AI for intelligent correction
-    const systemPrompt = `You are a keto nutrition expert for the KSOM360 system. Your job is to correct meal macro data.
+    const systemPrompt = `You are a keto nutrition expert for the APEX360-IF360 system. Your job is to correct meal macro data.
 
 Rules:
 - Calories MUST equal (protein × 4) + (fat × 9) + (carbs × 4) within 5%

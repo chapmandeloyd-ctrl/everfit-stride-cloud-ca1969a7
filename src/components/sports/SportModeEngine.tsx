@@ -73,7 +73,7 @@ export function SportModeEngine({ sport, seasonStatus }: SportModeEngineProps) {
     <div className="flex flex-col items-center py-6">
       {/* Engine Title */}
       <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-1">
-        KSOM Sport Mode Engine™
+        APEX360-IF Sport Mode Engine™
       </p>
       <p className="text-xs font-semibold text-muted-foreground mb-4">{engineName}</p>
 

@@ -1,12 +1,12 @@
 /**
- * KSOM360 Streak Tier System
+ * APEX360-IF360 Streak Tier System
  *
  * Tiers based on current streak length:
  *   1–3  → Starter
  *   4–7  → Building
  *   8–14 → Locked In
  *   15–30 → Metabolic Flow
- *   30+  → KSOM Elite
+ *   30+  → APEX360-IF Elite
  */
 
 export interface StreakTierInfo {
@@ -20,7 +20,7 @@ export interface StreakTierInfo {
 
 export function getStreakTier(streak: number): StreakTierInfo {
   if (streak >= 30) return {
-    tier: "KSOM Elite",
+    tier: "APEX360-IF Elite",
     color: "text-amber-400",
     bgColor: "bg-amber-500/15",
     pillColor: "#fbbf24",

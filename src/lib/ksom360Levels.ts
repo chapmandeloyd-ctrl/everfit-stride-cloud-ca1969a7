@@ -1,5 +1,5 @@
 /**
- * KSOM360 Level Progression System
+ * APEX360-IF360 Level Progression System
  *
  * 10+ levels with auto-progression based on:
  * - Streak length

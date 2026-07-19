@@ -26,7 +26,7 @@ export function IOSInstallGuideDialog({ open, onOpenChange }: Props) {
     {
       icon: Home,
       title: 'Tap "Add"',
-      body: "The KSOM-360 icon appears on your Home Screen.",
+      body: "The APEX360-IF icon appears on your Home Screen.",
     },
     {
       icon: Bell,
@@ -39,7 +39,7 @@ export function IOSInstallGuideDialog({ open, onOpenChange }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-xl">Install KSOM-360 to enable alerts</DialogTitle>
+          <DialogTitle className="text-xl">Install APEX360-IF to enable alerts</DialogTitle>
           <DialogDescription>
             iPhone only allows push notifications when the app is on your Home Screen.
             It takes about 15 seconds.

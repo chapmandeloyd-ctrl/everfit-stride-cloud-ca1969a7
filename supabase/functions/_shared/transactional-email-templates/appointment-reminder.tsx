@@ -38,7 +38,7 @@ const AppointmentReminderEmail = ({
     <Preview>Reminder: {appointmentType || 'appointment'} tomorrow</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Img src={LOGO_URL} alt="KSOM-360" width="80" height="80" style={logo} />
+        <Img src={LOGO_URL} alt="APEX360-IF" width="80" height="80" style={logo} />
         <Heading style={h1}>Heads up! ⏰</Heading>
         <Text style={text}>
           {name ? `Hey ${name}, just` : 'Just'} a reminder — you have an
@@ -61,7 +61,7 @@ const AppointmentReminderEmail = ({
         <Text style={text}>
           See you there! 💪
         </Text>
-        <Text style={footer}>— KSOM-360</Text>
+        <Text style={footer}>— APEX360-IF</Text>
       </Container>
     </Body>
   </Html>
@@ -77,7 +77,7 @@ export const template = {
     appointmentType: '1-on-1 Training',
     date: 'Wednesday, Jan 22',
     time: '10:00 AM',
-    location: 'KSOM Performance Center',
+    location: 'APEX360-IF Performance Center',
   },
 } satisfies TemplateEntry
 

@@ -55,11 +55,11 @@ export default function SynergyEducationStep({
     );
   }
 
-  // Slide 1: The KSOM360 Principle
+  // Slide 1: The APEX360-IF360 Principle
   if (slide === 1) {
     return (
       <Slide
-        eyebrow="The KSOM360 Principle"
+        eyebrow="The APEX360-IF360 Principle"
         title="360° Metabolic Control."
         body="The right Fasting Protocol × the right Keto Type × your biology. When all three lock in, your metabolism works for you instead of against you."
         visual={<InterlockingRings mode="locked" />}

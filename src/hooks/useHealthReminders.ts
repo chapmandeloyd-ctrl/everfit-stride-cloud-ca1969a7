@@ -104,7 +104,7 @@ export function useHealthReminders() {
           const notif = new Notification(`Health check-in — ${timeLabel}`, {
             body: `${message} Tap to ${actionLabel}.`,
             tag: `health-reminder-${time}`,
-            icon: '/KSOM-360_LOGO-2.png',
+            icon: '/APEX360-IF_LOGO-2.png',
           });
           notif.onclick = () => {
             window.focus();

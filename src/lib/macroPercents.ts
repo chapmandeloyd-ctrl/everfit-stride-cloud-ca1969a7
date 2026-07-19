@@ -1,5 +1,5 @@
 /**
- * KSOM360 Macro Percentage Utility
+ * APEX360-IF360 Macro Percentage Utility
  *
  * Computes the % of total calories coming from protein, fat, and carbs,
  * and checks whether that breakdown matches the meal's keto profile.

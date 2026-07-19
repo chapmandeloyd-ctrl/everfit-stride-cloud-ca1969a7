@@ -1,5 +1,5 @@
 /**
- * KSOM360 Macro Normalization Utility
+ * APEX360-IF360 Macro Normalization Utility
  * 
  * Ensures all meals have valid, non-zero fat and consistent calories
  * before being saved to the database. Applied on ALL save paths.

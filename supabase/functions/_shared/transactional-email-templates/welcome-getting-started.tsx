@@ -27,13 +27,13 @@ interface WelcomeGettingStartedProps {
 const WelcomeGettingStartedEmail = ({ name, loginUrl }: WelcomeGettingStartedProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Here's how to get started with KSOM-360</Preview>
+    <Preview>Here's how to get started with APEX360-IF</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Img src={LOGO_URL} alt="KSOM-360" width="80" height="80" style={logo} />
+        <Img src={LOGO_URL} alt="APEX360-IF" width="80" height="80" style={logo} />
         <Heading style={h1}>Let's Get Started! 🚀</Heading>
         <Text style={text}>
-          {name ? `Hey ${name}, welcome` : 'Welcome'} to KSOM-360! Here's a quick guide to help you hit the ground running:
+          {name ? `Hey ${name}, welcome` : 'Welcome'} to APEX360-IF! Here's a quick guide to help you hit the ground running:
         </Text>
         <Section style={stepsBox}>
           <Text style={stepItem}>
@@ -54,7 +54,7 @@ const WelcomeGettingStartedEmail = ({ name, loginUrl }: WelcomeGettingStartedPro
             Open Your Dashboard
           </Button>
         )}
-        <Text style={footer}>— The KSOM-360 Team</Text>
+        <Text style={footer}>— The APEX360-IF Team</Text>
       </Container>
     </Body>
   </Html>
@@ -62,7 +62,7 @@ const WelcomeGettingStartedEmail = ({ name, loginUrl }: WelcomeGettingStartedPro
 
 export const template = {
   component: WelcomeGettingStartedEmail,
-  subject: 'Here\'s How to Get Started with KSOM-360 🚀',
+  subject: 'Here\'s How to Get Started with APEX360-IF 🚀',
   displayName: 'Welcome - Getting started',
   previewData: {
     name: 'Jordan',

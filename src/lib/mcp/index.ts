@@ -33,10 +33,10 @@ const projectRef = import.meta.env.VITE_SUPABASE_PROJECT_ID ?? "project-ref-unse
 
 export default defineMcp({
   name: "ksom-360-mcp",
-  title: "KSOM-360 MCP",
+  title: "APEX360-IF MCP",
   version: "0.1.0",
   instructions:
-    "Tools for KSOM-360. All calls run as the signed-in user with RLS enforced.\n\nConnectivity: `echo`, `whoami`.\n\nTrainer tools (require a trainer account): `list_my_clients`, `get_client_progress`, `get_client_recent_workouts`, `get_client_recent_fasts`, `list_client_tasks`, `create_client_task`, `add_client_note`, `send_coaching_message`.\n\nClient tools (act as the signed-in client): `get_my_progress`, `get_my_recent_workouts`, `get_my_tasks`, `complete_task`, `get_my_habits`, `log_habit_completion`, `log_my_water`, `get_my_active_fast`.",
+    "Tools for APEX360-IF. All calls run as the signed-in user with RLS enforced.\n\nConnectivity: `echo`, `whoami`.\n\nTrainer tools (require a trainer account): `list_my_clients`, `get_client_progress`, `get_client_recent_workouts`, `get_client_recent_fasts`, `list_client_tasks`, `create_client_task`, `add_client_note`, `send_coaching_message`.\n\nClient tools (act as the signed-in client): `get_my_progress`, `get_my_recent_workouts`, `get_my_tasks`, `complete_task`, `get_my_habits`, `log_habit_completion`, `log_my_water`, `get_my_active_fast`.",
   auth: auth.oauth.issuer({
     issuer: `https://${projectRef}.supabase.co/auth/v1`,
     acceptedAudiences: "authenticated",

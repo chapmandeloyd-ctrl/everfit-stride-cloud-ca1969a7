@@ -17,7 +17,7 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const systemPrompt = `You are an AI coaching assistant for the KSOM-360 professional fitness platform.
+    const systemPrompt = `You are an AI coaching assistant for the APEX360-IF professional fitness platform.
 
 Generate a concise coaching brief for a trainer about their new client. This is an internal document — NOT client-facing.
 

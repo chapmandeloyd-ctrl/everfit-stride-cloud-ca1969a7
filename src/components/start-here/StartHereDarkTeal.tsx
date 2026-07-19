@@ -3,7 +3,7 @@ import lionLogo from "@/assets/logo.png";
 /**
  * Variant 1 — Premium Dark + Teal Glow
  * Dark navy background, teal CTA with subtle glow, faint lion watermark.
- * Matches the existing premium feel of the KSOM dashboard.
+ * Matches the existing premium feel of the APEX360-IF dashboard.
  */
 export function StartHereDarkTeal() {
   return (
@@ -28,7 +28,7 @@ export function StartHereDarkTeal() {
       <div className="relative space-y-6">
         <div className="space-y-2">
           <p className="text-[10px] uppercase tracking-[0.3em]" style={{ color: "hsl(180 70% 60%)" }}>
-            KSOM-360
+            APEX360-IF
           </p>
           <h3 className="text-3xl font-bold" style={{ color: "hsl(0 0% 98%)" }}>
             Start Here

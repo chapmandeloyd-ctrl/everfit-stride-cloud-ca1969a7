@@ -105,7 +105,7 @@ export const LEVEL_TIERS: LevelTierConfig[] = [
   },
   {
     label: "Elite",
-    subtitle: "KSOM mastery",
+    subtitle: "APEX360-IF mastery",
     levels: [14, 15],
     icon: Crown,
     cardGradient: "from-yellow-400/20 via-amber-300/10 to-orange-400/20",

@@ -210,7 +210,7 @@ export default function ClientQuickPlanDetail() {
         </div>
 
         {/* ═══════════════════════════════════════════ */}
-        {/* PART 1 — YOUR KSOM PLAN (Protocol Hero)    */}
+        {/* PART 1 — YOUR APEX360-IF PLAN (Protocol Hero)    */}
         {/* ═══════════════════════════════════════════ */}
         <div className="px-5 mt-4">
           <div className="flex items-center gap-3 mb-4">
@@ -229,7 +229,7 @@ export default function ClientQuickPlanDetail() {
                 <div className="h-11 w-11 rounded-xl flex items-center justify-center" style={{ backgroundColor: "hsl(var(--primary) / 0.10)" }}>
                   <Zap className="h-5 w-5 text-primary" />
                 </div>
-                <span className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-primary">Your KSOM Plan</span>
+                <span className="text-[11px] font-extrabold uppercase tracking-[0.15em] text-primary">Your APEX360-IF Plan</span>
               </div>
               <h2 className="text-[28px] font-black leading-tight tracking-tight">{plan.name}</h2>
               {desc?.subtitle && (
@@ -389,7 +389,7 @@ export default function ClientQuickPlanDetail() {
               <div className="grid grid-cols-3 gap-2">
                 {[
                   { label: "Level", value: ketoType.difficulty === "beginner" ? "Beginner" : ketoType.difficulty === "intermediate" ? "Intermediate" : "Advanced" },
-                  { label: "System", value: "KSOM-360" },
+                  { label: "System", value: "APEX360-IF" },
                   { label: "Protein", value: `${ketoType.protein_pct}%` },
                 ].map((stat) => (
                   <Card key={stat.label}>

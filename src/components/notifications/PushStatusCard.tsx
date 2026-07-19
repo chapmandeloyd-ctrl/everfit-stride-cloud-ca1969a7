@@ -311,7 +311,7 @@ export function PushStatusCard() {
               <ul className="list-disc pl-5 space-y-1 text-sm">
                 <li>
                   <strong>iPhone (installed app):</strong> open iOS Settings → Notifications →
-                  KSOM-360 → Allow Notifications.
+                  APEX360-IF → Allow Notifications.
                 </li>
                 <li>
                   <strong>iPhone Safari:</strong> install the app to your Home Screen first

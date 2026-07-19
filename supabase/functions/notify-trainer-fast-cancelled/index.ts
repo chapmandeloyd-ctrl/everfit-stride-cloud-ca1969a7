@@ -92,7 +92,7 @@ serve(async (req) => {
             template_name: "admin-notification",
             template_data: {
               subject: headline,
-              bodyHtml: `<p>${bodyLine}</p>${note ? `<p><em>Client note:</em> ${escapeHtml(note)}</p>` : ""}<p>Open KSOM-360 to schedule a new fast for them.</p>`,
+              bodyHtml: `<p>${bodyLine}</p>${note ? `<p><em>Client note:</em> ${escapeHtml(note)}</p>` : ""}<p>Open APEX360-IF to schedule a new fast for them.</p>`,
             },
             purpose: "transactional",
             idempotency_key: `fast-cancel:${client_id}:${Date.now()}`,

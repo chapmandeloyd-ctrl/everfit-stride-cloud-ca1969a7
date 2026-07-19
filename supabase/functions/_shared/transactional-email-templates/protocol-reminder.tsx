@@ -43,7 +43,7 @@ const ProtocolReminderEmail = ({
       <Preview>{eventLabel || 'Protocol check-in'} — {dueLabel}</Preview>
       <Body style={main}>
         <Container style={container}>
-          <Img src={LOGO_URL} alt="KSOM-360" width="80" height="80" style={logo} />
+          <Img src={LOGO_URL} alt="APEX360-IF" width="80" height="80" style={logo} />
           <Heading style={h1}>{headline}</Heading>
           <Text style={text}>
             {isTrainer
@@ -59,7 +59,7 @@ const ProtocolReminderEmail = ({
               ? 'Give them a nudge or review their plan ahead of the deadline.'
               : 'Get ready — log your check-in on time to keep your streak going. 💪'}
           </Text>
-          <Text style={footer}>— KSOM-360</Text>
+          <Text style={footer}>— APEX360-IF</Text>
         </Container>
       </Body>
     </Html>

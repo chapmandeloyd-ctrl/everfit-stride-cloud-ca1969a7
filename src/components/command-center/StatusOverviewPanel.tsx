@@ -14,7 +14,7 @@ const ENGINE_CARD_BG: Record<string, string> = {
 };
 
 const ENGINE_LABELS: Record<string, string> = {
-  metabolic: "KSOM-360",
+  metabolic: "APEX360-IF",
   athletic: "Athletic",
 };
 
