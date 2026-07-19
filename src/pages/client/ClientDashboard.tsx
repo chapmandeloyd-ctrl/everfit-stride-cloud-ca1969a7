@@ -2653,7 +2653,7 @@ export default function ClientDashboard() {
   return (
     <ClientLayout>
       <div className="px-3 pt-4 pb-8 space-y-5 w-full">
-        <LiveScheduleHost />
+        {(settings as any)?.admin_show_live_schedule !== false && <LiveScheduleHost />}
         {/* Header */}
         <div className="flex items-center justify-between pt-2">
           <div>
