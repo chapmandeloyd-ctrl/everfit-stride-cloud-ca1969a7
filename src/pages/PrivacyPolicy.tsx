@@ -167,7 +167,7 @@ export default function PrivacyPolicy() {
           </p>
           <div className="bg-muted rounded-lg p-4 text-sm text-muted-foreground space-y-1">
             <p className="font-medium text-foreground">APEX360-IF</p>
-            <p>Email: <a href="mailto:privacy@ksom360.com" className="text-primary underline">privacy@ksom360.com</a></p>
+            <p>Email: <a href="mailto:privacy@apex360if.com" className="text-primary underline">privacy@apex360if.com</a></p>
             <p>Website: <a href="https://ksom-360.app" className="text-primary underline">ksom-360.app</a></p>
           </div>
         </section>
