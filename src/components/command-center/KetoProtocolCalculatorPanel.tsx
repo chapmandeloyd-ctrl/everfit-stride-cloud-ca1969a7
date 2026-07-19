@@ -853,9 +853,16 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
             <div className="flex items-center gap-2 flex-wrap min-w-0">
               <Calculator className="h-5 w-5 shrink-0" style={{ color: kt?.color }} />
               <CardTitle className="text-base sm:text-lg">Protocol Calculator</CardTitle>
-              <Badge variant="outline" className="text-[10px] sm:text-xs whitespace-normal text-left leading-tight" style={{ borderColor: kt?.color, color: kt?.color }}>
-                {kt?.abbreviation} · {kt?.name}
-              </Badge>
+              {kt && (
+                <Badge variant="outline" className="text-[10px] sm:text-xs whitespace-normal text-left leading-tight" style={{ borderColor: kt.color, color: kt.color }}>
+                  {kt.abbreviation} · {kt.name}
+                </Badge>
+              )}
+              {hasUnsavedChanges && (
+                <Badge variant="outline" className="text-[10px] sm:text-xs border-amber-500 text-amber-500">
+                  Unsaved changes
+                </Badge>
+              )}
             </div>
             <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-2">
               <Button variant="outline" size="sm" onClick={handleResetInputs} className="w-full sm:w-auto">
@@ -899,11 +906,11 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
             <div>
               <Label>Fuel Style</Label>
               <Select
-                value={assignment.keto_type_id ?? undefined}
-                onValueChange={(v) => assignKetoMutation.mutate(v)}
+                value={stagedKetoId ?? undefined}
+                onValueChange={(v) => setStagedKetoId(v)}
               >
               <SelectTrigger>
-                <SelectValue>
+                <SelectValue placeholder="Choose Fuel Style…">
                   {kt ? (
                     <span className="flex items-center gap-2">
                       <span
@@ -941,8 +948,8 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
             <div>
               <Label>Fasting Protocol</Label>
               <Select
-                value={featureSettings?.selected_protocol_id ?? undefined}
-                onValueChange={(v) => assignProtocolMutation.mutate(v)}
+                value={stagedProtocolId ?? undefined}
+                onValueChange={(v) => setStagedProtocolId(v)}
               >
                 <SelectTrigger><SelectValue placeholder="Choose protocol…" /></SelectTrigger>
                 <SelectContent>
@@ -990,7 +997,6 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
                 onChange={(e) => {
                   const next = e.target.value;
                   setStartDate(next);
-                  if (next) saveStartDateMutation.mutate(next);
                 }}
               />
             </div>
@@ -1074,7 +1080,6 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
                   onValueChange={(v) => {
                     const n = parseInt(v, 10);
                     setPlanLengthDays(n);
-                    saveDurationMutation.mutate(n);
                   }}
                 >
                   <SelectTrigger><SelectValue /></SelectTrigger>
