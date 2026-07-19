@@ -389,7 +389,7 @@ export default function ClientQuickPlanDetail() {
               <div className="grid grid-cols-3 gap-2">
                 {[
                   { label: "Level", value: ketoType.difficulty === "beginner" ? "Beginner" : ketoType.difficulty === "intermediate" ? "Intermediate" : "Advanced" },
-                  { label: "System", value: "KSOM-360" },
+                  { label: "System", value: "APEX360-IF" },
                   { label: "Protein", value: `${ketoType.protein_pct}%` },
                 ].map((stat) => (
                   <Card key={stat.label}>

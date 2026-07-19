@@ -110,7 +110,7 @@ export function KetoTypeDetailView({ ketoType: kt, allTypes, isActive = false }:
       <div className="grid grid-cols-3 gap-2">
         {[
           { label: "Level", value: getDifficultyLabel(kt.difficulty) },
-          { label: "System", value: "KSOM-360" },
+          { label: "System", value: "APEX360-IF" },
           { label: "Protein", value: kt.macro_mode === "gram_based" && kt.protein_grams ? `${kt.protein_grams}g` : `${kt.protein_pct}%` },
         ].map((stat) => (
           <Card key={stat.label}>

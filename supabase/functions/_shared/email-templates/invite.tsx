@@ -25,12 +25,12 @@ interface InviteEmailProps {
 export const InviteEmail = ({ siteName, siteUrl, confirmationUrl }: InviteEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>You've been invited to join KSOM-360</Preview>
+    <Preview>You've been invited to join APEX360-IF</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Img src={LOGO_URL} alt="KSOM-360" width="80" height="80" style={logo} />
+        <Img src={LOGO_URL} alt="APEX360-IF" width="80" height="80" style={logo} />
         <Heading style={h1}>You've been invited!</Heading>
-        <Text style={text}>You've been invited to join <strong>KSOM-360</strong>. Tap the button below to accept the invitation and get started.</Text>
+        <Text style={text}>You've been invited to join <strong>APEX360-IF</strong>. Tap the button below to accept the invitation and get started.</Text>
         <Button style={button} href={confirmationUrl}>Accept Invitation</Button>
         <Text style={footer}>If you weren't expecting this invitation, you can safely ignore this email.</Text>
       </Container>

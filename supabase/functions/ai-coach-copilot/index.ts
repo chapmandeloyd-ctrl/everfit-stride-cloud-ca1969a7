@@ -37,7 +37,7 @@ function buildSystemPrompt(useCase: string, context: Record<string, unknown>, st
     else if (emojiLevel === "lots") toneInstruction += " Use emojis liberally throughout the response for energy and personality.";
   }
 
-  const base = `You are an AI Coach Copilot for the KSOM-360 platform.
+  const base = `You are an AI Coach Copilot for the APEX360-IF platform.
 ${toneInstruction}
 ${SAFETY_RULES}
 

@@ -2,7 +2,7 @@
 // This file handles push events when the app is in the background or closed
 
 self.addEventListener("push", (event) => {
-  let data = { title: "KSOM-360", body: "You have a new notification", icon: "/pwa-192x192.png" };
+  let data = { title: "APEX360-IF", body: "You have a new notification", icon: "/pwa-192x192.png" };
 
   try {
     if (event.data) {

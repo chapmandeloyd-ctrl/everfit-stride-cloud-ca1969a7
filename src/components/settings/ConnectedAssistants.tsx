@@ -72,7 +72,7 @@ export function ConnectedAssistants() {
           <Badge variant="outline" className="text-[10px]">MCP</Badge>
         </CardTitle>
         <CardDescription>
-          AI clients (ChatGPT, Claude, Cursor, etc.) that you've connected to your KSOM-360 account.
+          AI clients (ChatGPT, Claude, Cursor, etc.) that you've connected to your APEX360-IF account.
           Revoking a client immediately blocks new tokens; any active token expires within ~1 hour.
         </CardDescription>
       </CardHeader>

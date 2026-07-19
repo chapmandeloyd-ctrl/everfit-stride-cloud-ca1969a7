@@ -88,7 +88,7 @@ export function CopilotAssistPanel({ clientId, trainerId }: CopilotAssistPanelPr
         <CardTitle className="text-base flex items-center gap-2">
           <Bot className="h-4 w-4 text-primary" />
           Copilot Assist
-          <Badge variant="outline" className="text-[10px]">KSOM-360</Badge>
+          <Badge variant="outline" className="text-[10px]">APEX360-IF</Badge>
         </CardTitle>
         <CardDescription className="flex items-center gap-1.5">
           <AlertTriangle className="h-3 w-3" />

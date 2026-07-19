@@ -93,7 +93,7 @@ serve(async (req) => {
     }
     for (const sub of subs) {
       const r = await sendWebPush(sub, {
-        title: "KSOM-360 test push ✅",
+        title: "APEX360-IF test push ✅",
         body: "If you see this, server-driven notifications are working.",
         tag: "test-push",
         url: "/client/dashboard",

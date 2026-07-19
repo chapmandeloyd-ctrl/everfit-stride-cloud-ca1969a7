@@ -77,7 +77,7 @@ serve(async (req) => {
     const ketoAbbrev = ketoType.abbreviation as string;
     const durationDays = pType === "program" ? protocolData.duration_days : null;
 
-    const prompt = `You are a metabolic performance coach for KSOM-360. Output ONLY valid JSON. No markdown, no code fences.
+    const prompt = `You are a metabolic performance coach for APEX360-IF. Output ONLY valid JSON. No markdown, no code fences.
 
 CLIENT PROTOCOL:
 - Protocol: ${protocolName}

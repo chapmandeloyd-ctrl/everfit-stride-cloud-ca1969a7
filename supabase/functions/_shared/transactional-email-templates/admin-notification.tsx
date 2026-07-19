@@ -26,17 +26,17 @@ interface AdminNotificationProps {
 const AdminNotificationEmail = ({ subject, bodyHtml }: AdminNotificationProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>{subject || 'You have a new notification from KSOM-360'}</Preview>
+    <Preview>{subject || 'You have a new notification from APEX360-IF'}</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Img src={LOGO_URL} alt="KSOM-360" width="80" height="80" style={logo} />
+        <Img src={LOGO_URL} alt="APEX360-IF" width="80" height="80" style={logo} />
         <Heading style={h1}>{subject || 'Notification'}</Heading>
         {bodyHtml ? (
           <div dangerouslySetInnerHTML={{ __html: bodyHtml }} />
         ) : (
           <Text style={text}>You have a new notification from your coach.</Text>
         )}
-        <Text style={footer}>© {new Date().getFullYear()} KSOM-360. All rights reserved.</Text>
+        <Text style={footer}>© {new Date().getFullYear()} APEX360-IF. All rights reserved.</Text>
       </Container>
     </Body>
   </Html>
@@ -44,7 +44,7 @@ const AdminNotificationEmail = ({ subject, bodyHtml }: AdminNotificationProps) =
 
 export const template = {
   component: AdminNotificationEmail,
-  subject: (data: Record<string, any>) => data.subject || 'Notification from KSOM-360',
+  subject: (data: Record<string, any>) => data.subject || 'Notification from APEX360-IF',
   displayName: 'Admin notification',
   previewData: { subject: 'Important Update', bodyHtml: '<p>This is a notification from your coach.</p>' },
 } satisfies TemplateEntry

@@ -349,7 +349,7 @@ const handler = async (req: Request): Promise<Response> => {
           ? (workoutRows ?? []).length
           : (workoutCountFallback ?? 0);
 
-      // ── Caloric Intake from KSOM-360 nutrition_logs (today, in client TZ) ──
+      // ── Caloric Intake from APEX360-IF nutrition_logs (today, in client TZ) ──
       // Apple Health rarely has Dietary Energy populated, so the source of
       // truth for "calories consumed" is the in-app meal log.
       try {

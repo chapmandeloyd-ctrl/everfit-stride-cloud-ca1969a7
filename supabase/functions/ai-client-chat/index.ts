@@ -53,7 +53,7 @@ serve(async (req) => {
     else if (engine === "performance") toneInstruction = "Be direct, confident, and results-driven. Focus on performance optimization.";
     else if (engine === "athletic") toneInstruction = "Be energetic, competitive, and growth-focused. Focus on athletic development.";
 
-    const systemPrompt = `You are KSOM-360 AI — a personal coaching assistant embedded inside a professional fitness & metabolic coaching platform.
+    const systemPrompt = `You are APEX360-IF AI — a personal coaching assistant embedded inside a professional fitness & metabolic coaching platform.
 You are speaking DIRECTLY to the client (athlete/member), not to their coach.
 
 YOUR PERSONALITY:

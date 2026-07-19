@@ -23,7 +23,7 @@ serve(async (req) => {
       });
     }
 
-    const systemPrompt = `You are an AI body composition analysis assistant for the KSOM-360 professional fitness coaching platform.
+    const systemPrompt = `You are an AI body composition analysis assistant for the APEX360-IF professional fitness coaching platform.
 You are providing observations to the COACH (not the client). This is an internal analysis tool.
 
 CLIENT CONTEXT:

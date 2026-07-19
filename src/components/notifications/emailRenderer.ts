@@ -31,11 +31,11 @@ export function blocksToHtml(blocks: EmailBlock[]): string {
 <body style="margin:0;padding:0;background-color:#ffffff;font-family:'Space Grotesk',Arial,sans-serif">
 <div style="max-width:600px;margin:0 auto;padding:30px 25px">
 <div style="text-align:center;margin-bottom:24px">
-<img src="${LOGO_URL}" alt="KSOM-360" width="80" height="80" style="display:block;margin:0 auto" />
+<img src="${LOGO_URL}" alt="APEX360-IF" width="80" height="80" style="display:block;margin:0 auto" />
 </div>
 ${blockHtml}
 <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e5e5e5;text-align:center">
-<p style="font-size:12px;color:#999999;margin:0;font-family:'Space Grotesk',Arial,sans-serif">© ${new Date().getFullYear()} KSOM-360. All rights reserved.</p>
+<p style="font-size:12px;color:#999999;margin:0;font-family:'Space Grotesk',Arial,sans-serif">© ${new Date().getFullYear()} APEX360-IF. All rights reserved.</p>
 </div>
 </div>
 </body>

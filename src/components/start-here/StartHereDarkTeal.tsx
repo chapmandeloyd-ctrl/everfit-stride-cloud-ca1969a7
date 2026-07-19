@@ -28,7 +28,7 @@ export function StartHereDarkTeal() {
       <div className="relative space-y-6">
         <div className="space-y-2">
           <p className="text-[10px] uppercase tracking-[0.3em]" style={{ color: "hsl(180 70% 60%)" }}>
-            KSOM-360
+            APEX360-IF
           </p>
           <h3 className="text-3xl font-bold" style={{ color: "hsl(0 0% 98%)" }}>
             Start Here

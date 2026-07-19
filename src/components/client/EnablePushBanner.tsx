@@ -75,7 +75,7 @@ export function EnablePushBanner() {
       if (perm !== "granted") {
         toast.error(
           perm === "denied"
-            ? "Notifications are blocked. Enable them in your device Settings → Notifications → KSOM-360."
+            ? "Notifications are blocked. Enable them in your device Settings → Notifications → APEX360-IF."
             : "Notification permission was not granted."
         );
         return;

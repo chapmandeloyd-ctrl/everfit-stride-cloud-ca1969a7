@@ -1,5 +1,5 @@
 /**
- * Enriched fasting stages — KSOM-360's 12 scientific stages with friendlier,
+ * Enriched fasting stages — APEX360-IF's 12 scientific stages with friendlier,
  * Simple-app-style copy, hour ranges, gradient palettes, and emoji icons.
  * Used by /client/stages experience.
  */

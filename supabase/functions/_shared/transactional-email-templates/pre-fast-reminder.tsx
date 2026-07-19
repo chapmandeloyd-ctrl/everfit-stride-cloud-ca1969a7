@@ -48,7 +48,7 @@ const PreFastReminderEmail = ({
       <Preview>{headline}{startLabel ? ` — ${startLabel}` : ''}</Preview>
       <Body style={main}>
         <Container style={container}>
-          <Img src={LOGO_URL} alt="KSOM-360" width="80" height="80" style={logo} />
+          <Img src={LOGO_URL} alt="APEX360-IF" width="80" height="80" style={logo} />
           <Heading style={h1}>{headline}</Heading>
           <Text style={text}>
             {name ? `Hey ${name},` : 'Hey,'} heads up — your next scheduled fast is coming up.
@@ -61,7 +61,7 @@ const PreFastReminderEmail = ({
           <Text style={text}>
             Your fast will <strong>auto-start</strong> at the scheduled time. You'll get a 5-minute grace window in the app to cancel if plans change.
           </Text>
-          <Text style={footer}>— KSOM-360</Text>
+          <Text style={footer}>— APEX360-IF</Text>
         </Container>
       </Body>
     </Html>

@@ -66,7 +66,7 @@ const ResetPassword = () => {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">KSOM-360</CardTitle>
+          <CardTitle className="text-2xl font-bold">APEX360-IF</CardTitle>
           <p className="text-sm text-muted-foreground mt-1">
             {isRecovery ? "Set your new password" : "Open your email reset link to continue"}
           </p>

@@ -147,7 +147,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
               onClick={() => navigate("/client/messages")}
               aria-label="Messages"
             >
-              <img src={logoSrc} alt="KSOM-360" className="h-8 w-8 object-contain" />
+              <img src={logoSrc} alt="APEX360-IF" className="h-8 w-8 object-contain" />
               {unreadCount > 0 && !isOnMessages && (
                 <span className="absolute -top-1 -right-1 min-w-[16px] h-4 rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground flex items-center justify-center px-1 border border-card">
                   {unreadCount > 99 ? "99+" : unreadCount}

@@ -1050,7 +1050,7 @@ function SynergyContent({
               </div>
               <div>
                 <div className="text-sm font-serif" style={{ color: IVORY }}>
-                  KSOM-360 Nutrition Team
+                  APEX360-IF Nutrition Team
                 </div>
                 <div className="text-[10px] uppercase tracking-[0.2em]" style={{ color: MUTED }}>
                   Editorial Standard
@@ -2116,14 +2116,14 @@ export default function ClientFastingPlanDetailPreview() {
               className="text-[10px] uppercase tracking-[0.35em] mb-2"
               style={{ color: GOLD }}
             >
-              KSOM-360 Synergy
+              APEX360-IF Synergy
             </div>
             <div className="text-xl font-semibold mb-2" style={{ color: IVORY }}>
               Build your complete program
             </div>
             <p className="text-sm mb-5" style={{ color: MUTED }}>
               {plan.name} works best when paired with a keto type. Pick how you'd
-              like to complete your KSOM-360 Synergy program.
+              like to complete your APEX360-IF Synergy program.
             </p>
 
             <div className="space-y-2">
@@ -2205,8 +2205,8 @@ export default function ClientFastingPlanDetailPreview() {
             </div>
             <p className="text-sm mb-4" style={{ color: MUTED }}>
               {pendingKeto
-                ? "You're building your KSOM-360 Synergy program with a new fasting protocol AND a new keto type:"
-                : "By keeping your current keto type, you're updating your fasting protocol only. Your new KSOM-360 Synergy program will be:"}
+                ? "You're building your APEX360-IF Synergy program with a new fasting protocol AND a new keto type:"
+                : "By keeping your current keto type, you're updating your fasting protocol only. Your new APEX360-IF Synergy program will be:"}
             </p>
 
             <div className="space-y-2 mb-5">

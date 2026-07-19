@@ -42,7 +42,7 @@ export default function ClientChooseProtocol() {
           <h1 className="text-2xl font-bold">Fasting Plans</h1>
         </div>
 
-        {/* Fasting section — KSOM-360 only */}
+        {/* Fasting section — APEX360-IF only */}
         {showFasting && (
           <>
 

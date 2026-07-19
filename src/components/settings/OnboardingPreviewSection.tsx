@@ -15,8 +15,8 @@ import { useCreateDemoClient } from "@/hooks/useCreateDemoClient";
 import { useImpersonation } from "@/hooks/useImpersonation";
 
 const ENGINE_LABELS: Record<EngineMode, { label: string; color: string }> = {
-  metabolic: { label: "KSOM-360", color: "text-blue-400" },
-  performance: { label: "KSOM-360", color: "text-blue-400" },
+  metabolic: { label: "APEX360-IF", color: "text-blue-400" },
+  performance: { label: "APEX360-IF", color: "text-blue-400" },
   athletic: { label: "Athletic", color: "text-green-400" },
 };
 

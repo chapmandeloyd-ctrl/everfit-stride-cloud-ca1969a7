@@ -83,10 +83,10 @@ export default function OAuthConsent() {
         ) : (
           <>
             <h1 className="text-xl font-semibold">
-              Connect {details.client?.name ?? "an app"} to KSOM-360
+              Connect {details.client?.name ?? "an app"} to APEX360-IF
             </h1>
             <p className="text-sm text-muted-foreground">
-              This lets {details.client?.name ?? "the client"} act as you inside KSOM-360
+              This lets {details.client?.name ?? "the client"} act as you inside APEX360-IF
               through the MCP server. You can revoke access anytime.
             </p>
             <div className="flex gap-2 pt-2">

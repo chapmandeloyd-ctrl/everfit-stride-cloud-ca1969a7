@@ -405,7 +405,7 @@ export default function ClientFastingPlansPreview() {
   const [tab, setTab] = useState<"windows" | "programs">("windows");
 
   // Pending pairing handoff from the keto detail page. When set, the user is
-  // mid-flight building their KSOM-360 Synergy program and is here to pick a
+  // mid-flight building their APEX360-IF Synergy program and is here to pick a
   // fasting protocol to pair with the chosen keto type.
   const pendingKeto = (location.state as {
     pendingKeto?: { id: string; label: string };
@@ -527,7 +527,7 @@ export default function ClientFastingPlansPreview() {
             <Sparkles className="h-4 w-4 shrink-0 mt-0.5" style={{ color: GOLD }} />
             <div className="flex-1 min-w-0">
               <p className="text-[10px] uppercase tracking-[0.3em]" style={{ color: GOLD }}>
-                Building your KSOM-360 Synergy program
+                Building your APEX360-IF Synergy program
               </p>
               <p className="text-sm font-light" style={{ color: IVORY, fontFamily: "Georgia, serif" }}>
                 Pick a fasting protocol to pair with{" "}
