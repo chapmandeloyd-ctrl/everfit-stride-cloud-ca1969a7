@@ -140,6 +140,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
   const [programSheetOpen, setProgramSheetOpen] = useState(false);
   const [showCoachWaitLock, setShowCoachWaitLock] = useState(false);
   const [eatingWindowSheetIntent, setEatingWindowSheetIntent] = useState<"end_window" | "choose_next_fast">("end_window");
+  const [fastTypeOpen, setFastTypeOpen] = useState(false);
   const liveActivity = useLiveActivity();
   const { toast } = useToast();
   const { data: pace } = useSmartPace();
