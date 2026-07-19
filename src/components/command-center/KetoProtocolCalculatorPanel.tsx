@@ -810,17 +810,37 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId }: Props) {
                 value={assignment.keto_type_id ?? undefined}
                 onValueChange={(v) => assignKetoMutation.mutate(v)}
               >
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue>
+                  {kt ? (
+                    <span className="flex items-center gap-2">
+                      <span
+                        className="h-2.5 w-2.5 rounded-full shrink-0"
+                        style={{ backgroundColor: kt.color }}
+                      />
+                      <span>{kt.abbreviation} · {kt.name}</span>
+                    </span>
+                  ) : null}
+                </SelectValue>
+              </SelectTrigger>
                 <SelectContent>
                   {allKetoTypes?.map(k => (
                     <SelectItem key={k.id} value={k.id}>
+                    <div className="flex items-start gap-2">
+                      <span
+                        className="h-2.5 w-2.5 rounded-full shrink-0 mt-1.5"
+                        style={{ backgroundColor: k.color }}
+                      />
                       <div className="flex flex-col">
-                        <span className="font-medium">{k.abbreviation} · {k.name}</span>
+                        <span className="font-medium" style={{ color: k.color }}>
+                          {k.abbreviation} · {k.name}
+                        </span>
                         <span className="text-xs text-muted-foreground">
                           P {k.protein_pct}% · C {k.carbs_pct}% · F {k.fat_pct}%
                           {k.subtitle ? ` — ${k.subtitle}` : ""}
                         </span>
                       </div>
+                    </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
