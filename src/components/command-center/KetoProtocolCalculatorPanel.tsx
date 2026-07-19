@@ -840,6 +840,11 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId, onDraftStateC
     if (stagedKetoId !== (assignment?.keto_type_id ?? null)) return true;
     if (stagedProtocolId !== ((featureSettings?.selected_protocol_id as any) ?? null)) return true;
     const savedInputs = (featureSettings as any)?.protocol_calc_inputs || null;
+    const hasSavedPlan = !!(
+      assignment?.keto_type_id ||
+      featureSettings?.selected_protocol_id ||
+      savedInputs
+    );
     const currentInputs = {
       weight: parseFloat(weight) || null,
       goal,
@@ -851,6 +856,18 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId, onDraftStateC
       extendedPreset,
       customFastHours,
     };
+    const isBlankDraft =
+      !stagedKetoId &&
+      !stagedProtocolId &&
+      !startDate &&
+      goal === "maintain" &&
+      activity === "moderate" &&
+      customDeficit === 20 &&
+      planType === "recurring" &&
+      planLengthDays === 7 &&
+      extendedPreset === "48" &&
+      customFastHours === 48;
+    if (!hasSavedPlan && isBlankDraft) return false;
     const savedCompact = savedInputs ? {
       weight: savedInputs.weight ?? null,
       goal: savedInputs.goal,
