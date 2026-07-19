@@ -977,6 +977,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
       : "Your trainer will assign your fasting plan soon.";
     return (
       <Card className="overflow-hidden border-primary/20 shadow-lg relative">
+        <FastTypeChooserSheet open={fastTypeOpen} onOpenChange={setFastTypeOpen} />
         {fastingCardBg ? (
           <>
             <div
@@ -996,7 +997,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                 </div>
                 {canChoose && (
                   <Button
-                    onClick={() => navigate("/client/choose-protocol")}
+                    onClick={() => setFastTypeOpen(true)}
                     className="w-full"
                     size="lg"
                   >
@@ -1018,7 +1019,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
             </div>
             {canChoose && (
               <Button
-                onClick={() => navigate("/client/choose-protocol")}
+                onClick={() => setFastTypeOpen(true)}
                 className="w-full"
                 size="lg"
               >
