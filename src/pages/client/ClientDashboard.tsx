@@ -1793,7 +1793,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
           <div className="pt-1">
             <EnablePushBanner />
             <NextFastCountdownRow accent={ketoAccent} />
-            {(settings as any)?.admin_show_live_schedule !== false && (
+            {(featureSettings as any)?.admin_show_live_schedule !== false && (
               <button
                 type="button"
                 onClick={() => openLiveSchedule()}
