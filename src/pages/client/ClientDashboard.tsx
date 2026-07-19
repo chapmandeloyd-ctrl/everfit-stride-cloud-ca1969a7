@@ -1793,20 +1793,22 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
           <div className="pt-1">
             <EnablePushBanner />
             <NextFastCountdownRow accent={ketoAccent} />
-            <button
-              type="button"
-              onClick={() => openLiveSchedule()}
-              className="w-full flex flex-col items-center justify-center gap-1 rounded-lg border border-primary/40 bg-primary/5 py-3 text-xs uppercase tracking-widest font-bold text-primary hover:bg-primary/10 transition-colors"
-            >
-              <span className="flex items-center gap-2">
-                <CalendarDays className="h-3.5 w-3.5" />
-                See What's Coming Up
-                <ChevronRight className="h-3.5 w-3.5" />
-              </span>
-              <span className="text-[9px] font-medium tracking-normal normal-case text-primary/70">
-                Fast starts automatically
-              </span>
-            </button>
+            {(settings as any)?.admin_show_live_schedule !== false && (
+              <button
+                type="button"
+                onClick={() => openLiveSchedule()}
+                className="w-full flex flex-col items-center justify-center gap-1 rounded-lg border border-primary/40 bg-primary/5 py-3 text-xs uppercase tracking-widest font-bold text-primary hover:bg-primary/10 transition-colors"
+              >
+                <span className="flex items-center gap-2">
+                  <CalendarDays className="h-3.5 w-3.5" />
+                  See What's Coming Up
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </span>
+                <span className="text-[9px] font-medium tracking-normal normal-case text-primary/70">
+                  Fast starts automatically
+                </span>
+              </button>
+            )}
             <button
               type="button"
               onClick={() => navigate("/client/program")}
