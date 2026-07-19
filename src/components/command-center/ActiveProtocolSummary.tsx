@@ -3,7 +3,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Flame, Utensils, CalendarClock } from "lucide-react";
 
-export function ActiveProtocolSummary({ clientId }: { clientId: string }) {
+export function ActiveProtocolSummary({
+  clientId,
+  hidden = false,
+}: {
+  clientId: string;
+  hidden?: boolean;
+}) {
   const { data } = useQuery({
     queryKey: ["active-protocol-summary", clientId],
     queryFn: async () => {
@@ -55,7 +61,7 @@ export function ActiveProtocolSummary({ clientId }: { clientId: string }) {
     },
   });
 
-  if (!data?.ketoName && !data?.protocol) return null;
+  if (hidden || !data?.ketoName || !data?.protocol) return null;
 
   const p = data.protocol;
   const fastLabel = p
