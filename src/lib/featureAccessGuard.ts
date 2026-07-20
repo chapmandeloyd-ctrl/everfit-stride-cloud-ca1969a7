@@ -183,12 +183,12 @@ export function getUpgradeCopy(engine: EngineMode): { headline: string; subtext:
   switch (engine) {
     case "metabolic":
       return {
-        headline: "Unlock your full APEX360-IF potential.",
+        headline: "Unlock your full Apex360-IF potential.",
         subtext: "Upgrade to access advanced fasting structures, deeper scoring, and coach-level analytics.",
       };
     case "performance":
       return {
-        headline: "Unlock your full APEX360-IF potential.",
+        headline: "Unlock your full Apex360-IF potential.",
         subtext: "Upgrade to access advanced fasting structures, deeper scoring, and coach-level analytics.",
       };
     case "athletic":
@@ -215,7 +215,7 @@ export interface TierComparisonRow {
 }
 
 export const TIER_COMPARISON: TierComparisonRow[] = [
-  { feature: "APEX360-IF Engine", starter: true, pro: true, elite: true, enterprise: true },
+  { feature: "Apex360-IF Engine", starter: true, pro: true, elite: true, enterprise: true },
   { feature: "Athletic Engine", starter: false, pro: false, elite: true, enterprise: true },
   { feature: "Level Progression", starter: "1–4", pro: "1–6", elite: "1–7", enterprise: "1–7" },
   { feature: "Engine Scoring", starter: "Basic", pro: "Advanced", elite: "Advanced", enterprise: "Advanced" },

@@ -125,11 +125,11 @@ export default function Auth() {
         <div className="text-center mb-8">
           <img
             src="/apex360-logo.png"
-            alt="APEX360-IF"
+            alt="Apex360-IF"
             className="h-24 w-24 object-contain mx-auto mb-4"
           />
-          <h1 className="text-3xl font-bold text-foreground tracking-tight">APEX360-IF</h1>
-          <p className="text-muted-foreground mt-1 text-sm">APEX360-IF Fitness Coaching Platform</p>
+          <h1 className="text-3xl font-bold text-foreground tracking-tight">Apex360-IF</h1>
+          <p className="text-muted-foreground mt-1 text-sm">Apex360-IF Fitness Coaching Platform</p>
           <p className="text-foreground text-xs font-semibold tracking-wider mt-2 uppercase">
             YOU ARE{" "}
             <span className="relative inline-block px-0.5">

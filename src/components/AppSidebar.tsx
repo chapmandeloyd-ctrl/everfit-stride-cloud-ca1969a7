@@ -59,7 +59,7 @@ export function AppSidebar({ profile, onSignOut }: AppSidebarProps) {
           <Dumbbell className="h-5 w-5 text-sidebar-primary-foreground" />
         </div>
         <span className="text-lg font-bold tracking-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-          APEX360-IF
+          Apex360-IF
         </span>
       </div>
 

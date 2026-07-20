@@ -49,7 +49,7 @@ interface ExtractedRecipe {
   best_for?: string[];
   avoid_if?: string[];
   meal_timing?: string;
-  // APEX360-IF360 strict fields
+  // Apex360-IF strict fields
   meal_intensity?: string;
   satiety_score?: number;
   digestion_load?: string;
@@ -209,7 +209,7 @@ export function BulkRecipeImportDialog({ open, onOpenChange }: BulkRecipeImportD
         avoid_if: r.avoid_if?.length ? r.avoid_if : [],
         meal_timing: r.meal_timing || null,
         ingredients_list: r.ingredients || null,
-        // APEX360-IF360 strict fields
+        // Apex360-IF strict fields
         meal_intensity: r.meal_intensity || null,
         satiety_score: r.satiety_score || null,
         digestion_load: r.digestion_load || null,

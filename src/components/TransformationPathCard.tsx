@@ -61,9 +61,9 @@ export function TransformationPathCard() {
 
         <Separator className="opacity-40" />
 
-        {/* APEX360-IF Difference */}
+        {/* Apex360-IF Difference */}
         <div className="space-y-2">
-          <p className="text-xs font-bold text-foreground/80">The APEX360-IF Difference</p>
+          <p className="text-xs font-bold text-foreground/80">The Apex360-IF Difference</p>
           <p className="text-xs text-muted-foreground">We do not chase extremes.</p>
           <div className="flex flex-wrap gap-2 pt-0.5">
             {PILLARS.map((p) => (

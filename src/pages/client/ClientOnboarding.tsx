@@ -188,7 +188,7 @@ export default function ClientOnboarding() {
         notes: state.heightCm ? `Height: ${state.heightCm} cm` : null,
       });
 
-      toast.success("Welcome to APEX360-IF360");
+      toast.success("Welcome to Apex360-IF");
       navigate(target === "dashboard" ? "/client/dashboard" : "/client/dashboard");
     } catch (e: any) {
       toast.error(e?.message ?? "Could not activate plan");

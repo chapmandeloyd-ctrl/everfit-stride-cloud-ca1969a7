@@ -25,7 +25,7 @@ function durationLabel(protocol: any) {
 
 /* ─────────────────────────────────────────────
    VARIANT A — Glass Orb Badge
-   3D crystal hexagon with APEX360-IF red→deep-blue gradient + soft glow
+   3D crystal hexagon with Apex360-IF red→deep-blue gradient + soft glow
    ───────────────────────────────────────────── */
 export function HeroGlassOrb({ protocol, isQuickPlan }: HeroProps) {
   const dl = dayLabel(protocol, isQuickPlan);
@@ -61,7 +61,7 @@ export function HeroGlassOrb({ protocol, isQuickPlan }: HeroProps) {
             <div className="absolute inset-0 rounded-full blur-2xl bg-primary/40 -z-10" />
           </div>
           <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-primary drop-shadow">
-            Your APEX360-IF Plan
+            Your Apex360-IF Plan
           </span>
         </div>
 
@@ -88,7 +88,7 @@ export function HeroGlassOrb({ protocol, isQuickPlan }: HeroProps) {
 
 /* ─────────────────────────────────────────────
    VARIANT B — Liquid Gradient + 3D Numerals
-   Massive extruded hours with chrome fill + APEX360-IF glow ring
+   Massive extruded hours with chrome fill + Apex360-IF glow ring
    ───────────────────────────────────────────── */
 export function HeroLiquid3D({ protocol, isQuickPlan }: HeroProps) {
   const dl = dayLabel(protocol, isQuickPlan);
@@ -115,7 +115,7 @@ export function HeroLiquid3D({ protocol, isQuickPlan }: HeroProps) {
         <div className="flex items-center gap-2 mb-2">
           <div className="h-2 w-2 rounded-full bg-primary animate-pulse shadow-[0_0_12px_hsl(var(--primary))]" />
           <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-primary">
-            Your APEX360-IF Plan
+            Your Apex360-IF Plan
           </span>
         </div>
 
@@ -256,7 +256,7 @@ export function HeroPremiumStack({ protocol, isQuickPlan }: HeroProps) {
             </div>
             <div>
               <span className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-primary block drop-shadow">
-                Your APEX360-IF Plan
+                Your Apex360-IF Plan
               </span>
               <span className="text-[10px] font-medium text-muted-foreground">Adaptive Protocol</span>
             </div>

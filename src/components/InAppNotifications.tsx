@@ -116,7 +116,7 @@ export function InAppNotifications() {
       <div className="flex items-center gap-3">
         <img
           src={logoSrc}
-          alt="APEX360-IF"
+          alt="Apex360-IF"
           className="h-8 w-8 rounded-lg object-contain"
         />
         <h2 className="text-lg font-heading font-bold text-foreground tracking-tight">

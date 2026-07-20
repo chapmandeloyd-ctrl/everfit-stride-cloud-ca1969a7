@@ -23,7 +23,7 @@ export interface PremiumPlanCardProps {
    * Format: "from-emerald-500/15 via-transparent to-cyan-500/10"
    */
   surfaceTintGradient: string;
-  /** Eyebrow label (e.g. "Your APEX360-IF Plan", "LOSE WEIGHT", "Level 5") */
+  /** Eyebrow label (e.g. "Your Apex360-IF Plan", "LOSE WEIGHT", "Level 5") */
   eyebrow: string;
   /** Subtitle under the eyebrow (e.g. "Adaptive Protocol") */
   subEyebrow?: string;

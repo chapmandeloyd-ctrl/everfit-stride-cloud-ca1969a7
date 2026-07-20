@@ -891,7 +891,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
     }
   };
   const fastingSubtitle = featureSettings?.fasting_card_subtitle || "Fasting is the foundation of your plan.";
-  const fastingTitle = (featureSettings as any)?.fasting_card_title || "APEX360-IF";
+  const fastingTitle = (featureSettings as any)?.fasting_card_title || "Apex360-IF";
 
   // No protocol selected — empty state
   const hasQuickPlan = !!featureSettings?.selected_quick_plan_id && !!activeQuickPlan;
@@ -1186,11 +1186,11 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
       <div id="fasting-protocol-card" className="space-y-3">
         {SHOW_WEIGHT_TRACKER && pace?.enabled && pace?.goal && (
           <div className="space-y-2">
-            <h2 className="text-lg font-bold text-foreground px-1">APEX360-IF Smart Weight Tracker</h2>
+            <h2 className="text-lg font-bold text-foreground px-1">Apex360-IF Smart Weight Tracker</h2>
             <SmartPaceBanner allowRender />
           </div>
         )}
-        <h2 className="text-lg font-bold text-foreground px-1">APEX360-IF Fasting Timer</h2>
+        <h2 className="text-lg font-bold text-foreground px-1">Apex360-IF Fasting Timer</h2>
         <Card className="overflow-hidden border-0 shadow-lg relative bg-black">
         <div className="absolute inset-0 bg-black" />
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-b from-transparent to-black" />
@@ -2943,7 +2943,7 @@ export default function ClientDashboard() {
                       <WelcomeCard
                         imageUrl={welcomeCard?.image_url}
                         message={welcomeCard?.message || "Welcome to your fitness journey!"}
-                        title={(welcomeCard as any)?.title || "APEX360-IF"}
+                        title={(welcomeCard as any)?.title || "Apex360-IF"}
                       />
                     ) : (
                     <Card className="overflow-hidden">
@@ -3615,7 +3615,7 @@ export default function ClientDashboard() {
         ]}
       />
 
-      {/* Ask APEX360-IF AI */}
+      {/* Ask Apex360-IF AI */}
       {clientId && <AskKsomAI clientId={clientId} />}
 
       {/* Floating Message Button */}

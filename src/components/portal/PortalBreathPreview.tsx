@@ -250,7 +250,7 @@ export function PortalBreathPreview({
             <ArrowLeft className="h-5 w-5" />
             Back
           </button>
-          <div className="text-white/50 text-xs uppercase tracking-widest">APEX360-IF Calm</div>
+          <div className="text-white/50 text-xs uppercase tracking-widest">Apex360-IF Calm</div>
           <div className="flex items-center gap-2 text-white/70 text-sm font-medium">
             <Clock className="h-4 w-4" />
             {formatTime(elapsed)}

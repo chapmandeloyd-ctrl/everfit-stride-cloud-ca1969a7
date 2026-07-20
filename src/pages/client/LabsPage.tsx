@@ -125,7 +125,7 @@ function SportLabCard({ title, subtitle, onClick }: {
       <div className="flex flex-col h-full justify-between">
         <div>
           <div className="flex items-center gap-3 mb-3">
-            <img src="/logo.png" alt="APEX360-IF" className="h-10 w-10 rounded-lg object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+            <img src="/logo.png" alt="Apex360-IF" className="h-10 w-10 rounded-lg object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
             <div>
               <h3 className="font-heading font-bold text-foreground">{title}</h3>
               <p className="text-xs text-muted-foreground">{subtitle}</p>
@@ -180,7 +180,7 @@ export default function LabsPage() {
       {/* Header */}
       <div className="px-4 pt-6 pb-4">
         <p className="text-xs text-muted-foreground font-medium tracking-wide uppercase mb-1">
-          APEX360-IF Sport Performance System™
+          Apex360-IF Sport Performance System™
         </p>
         <h1 className="text-2xl font-heading font-bold text-foreground">Labs</h1>
         <p className="text-sm text-muted-foreground mt-1">
@@ -222,12 +222,12 @@ export default function LabsPage() {
         <h2 className="text-sm font-heading font-semibold text-foreground mb-4">Performance Labs</h2>
         <div className="grid gap-4">
           <SportLabCard
-            title="APEX360-IF Diamond Lab™"
+            title="Apex360-IF Diamond Lab™"
             subtitle="Batting & Swing Tracker"
             onClick={() => navigate("/labs/diamond")}
           />
           <SportLabCard
-            title="APEX360-IF Hoops Lab™"
+            title="Apex360-IF Hoops Lab™"
             subtitle="Shooting & Pressure Mode"
             onClick={() => navigate("/labs/hoops")}
           />

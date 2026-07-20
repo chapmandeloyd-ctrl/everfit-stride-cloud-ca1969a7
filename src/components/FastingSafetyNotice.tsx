@@ -55,7 +55,7 @@ export function FastingSafetyNotice() {
         </p>
 
         <p className="text-xs font-semibold text-muted-foreground italic">
-          APEX360-IF promotes structured, intentional fasting — not extreme restriction.
+          Apex360-IF promotes structured, intentional fasting — not extreme restriction.
         </p>
       </CollapsibleContent>
     </Collapsible>

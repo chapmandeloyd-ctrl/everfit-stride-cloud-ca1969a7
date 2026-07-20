@@ -108,7 +108,7 @@ export function PlanCompletionSummary({
       protocolName ? `Protocol: ${protocolName}${ketoName ? ` · ${ketoName}` : ""}` : "",
       `✅ ${stats.completed} completed · ⚠️ ${stats.partial} partial · ❌ ${stats.missed} missed`,
       `Success rate: ${stats.successRate}% · ${Math.round(stats.totalHours)}h fasted`,
-      `via APEX360-IF`,
+      `via Apex360-IF`,
     ].filter(Boolean);
     return lines.join("\n");
   }, [durationDays, protocolName, ketoName, stats]);
@@ -269,7 +269,7 @@ export function PlanCompletionSummary({
         </div>
 
         <p className="text-[10px] text-muted-foreground text-center mt-4 tracking-wider uppercase">
-          APEX360-IF · Fasting Program
+          Apex360-IF · Fasting Program
         </p>
       </div>
 

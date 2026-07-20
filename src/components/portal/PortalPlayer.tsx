@@ -364,7 +364,7 @@ export function PortalPlayer({ scene, onBack, onOpenLibrary, onSelectCategory, a
                 <ArrowLeft className="h-5 w-5" />
                 Back
               </button>
-              <div className="text-white/50 text-xs uppercase tracking-widest">APEX360-IF Calm</div>
+              <div className="text-white/50 text-xs uppercase tracking-widest">Apex360-IF Calm</div>
               <div className="w-10" />
             </div>
 

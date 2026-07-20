@@ -71,7 +71,7 @@ export default function ClientKetoTypeDetail() {
   const queryClient = useQueryClient();
 
   // Pending protocol handoff — when set, the user is mid-flight building
-  // their APEX360-IF Synergy program: a new fasting protocol was just chosen
+  // their Apex360-IF Synergy program: a new fasting protocol was just chosen
   // and they're here to pick the keto half of the pair.
   const pendingProtocol = (location.state as {
     pendingProtocol?: { type: "quick" | "program"; id: string; name: string };
@@ -507,7 +507,7 @@ export default function ClientKetoTypeDetail() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Synergy popup — choose how to complete the APEX360-IF Synergy program */}
+      {/* Synergy popup — choose how to complete the Apex360-IF Synergy program */}
       {synergyConfirmOpen && (
         <div
           className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
@@ -520,7 +520,7 @@ export default function ClientKetoTypeDetail() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="text-[10px] uppercase tracking-[0.35em] mb-2" style={{ color: accent }}>
-              APEX360-IF Synergy
+              Apex360-IF Synergy
             </div>
             <div className="text-xl font-semibold mb-2" style={{ color: IVORY }}>
               Build your complete program
@@ -528,7 +528,7 @@ export default function ClientKetoTypeDetail() {
             <p className="text-sm mb-5" style={{ color: MUTED }}>
               {ketoType.abbreviation} — {ketoType.name} works best when paired
               with a fasting protocol. Pick how you'd like to complete your
-              APEX360-IF Synergy program.
+              Apex360-IF Synergy program.
             </p>
 
             <div className="space-y-2">
@@ -609,8 +609,8 @@ export default function ClientKetoTypeDetail() {
             </div>
             <p className="text-sm mb-4" style={{ color: MUTED }}>
               {pendingProtocol
-                ? "You're building your APEX360-IF Synergy program with a new fasting protocol AND a new keto type:"
-                : "By keeping your current fasting protocol, you're updating your keto type only. Your new APEX360-IF Synergy program will be:"}
+                ? "You're building your Apex360-IF Synergy program with a new fasting protocol AND a new keto type:"
+                : "By keeping your current fasting protocol, you're updating your keto type only. Your new Apex360-IF Synergy program will be:"}
             </p>
 
             <div className="space-y-2 mb-5">

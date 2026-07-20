@@ -62,7 +62,7 @@ export function EmailPreview({ subject, blocks, previewMode }: EmailPreviewProps
     )}>
       {/* Email header */}
       <div className="bg-muted/50 px-4 py-3 border-b border-border">
-        <p className="text-xs text-muted-foreground">From: APEX360-IF &lt;noreply@ksom-360.app&gt;</p>
+        <p className="text-xs text-muted-foreground">From: Apex360-IF &lt;noreply@ksom-360.app&gt;</p>
         <p className="text-sm font-medium text-foreground mt-0.5">{subject || "(No subject)"}</p>
       </div>
 
@@ -70,7 +70,7 @@ export function EmailPreview({ subject, blocks, previewMode }: EmailPreviewProps
       <div className="p-6 space-y-4 bg-white">
         {/* Logo */}
         <div className="text-center pb-2">
-          <img src="https://eexxmfuknqttujecbcho.supabase.co/storage/v1/object/public/email-assets/logo.png" alt="APEX360-IF" className="h-16 w-16 mx-auto" />
+          <img src="https://eexxmfuknqttujecbcho.supabase.co/storage/v1/object/public/email-assets/logo.png" alt="Apex360-IF" className="h-16 w-16 mx-auto" />
         </div>
 
         {blocks.length === 0 ? (
@@ -84,7 +84,7 @@ export function EmailPreview({ subject, blocks, previewMode }: EmailPreviewProps
         {/* Footer */}
         <div className="pt-4 border-t border-border mt-6">
           <p className="text-xs text-muted-foreground text-center">
-            © {new Date().getFullYear()} APEX360-IF. All rights reserved.
+            © {new Date().getFullYear()} Apex360-IF. All rights reserved.
           </p>
         </div>
       </div>

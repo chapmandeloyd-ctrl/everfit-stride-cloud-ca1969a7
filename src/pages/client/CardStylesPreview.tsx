@@ -83,7 +83,7 @@ function GlassStyle() {
             <Badge className="text-[10px] bg-purple-500/15 text-purple-400 border-purple-400/30 backdrop-blur">LV. {mockMaxLevel}</Badge>
           </div>
           <h2 className="text-5xl font-black tracking-tight text-purple-400 leading-none drop-shadow-[0_0_20px_rgba(168,85,247,0.4)]">120h</h2>
-          <p className="text-sm font-bold uppercase tracking-wide text-foreground/90">APEX360-IF Elite</p>
+          <p className="text-sm font-bold uppercase tracking-wide text-foreground/90">Apex360-IF Elite</p>
           <div className="flex items-center gap-2">
             <Lock className="h-3.5 w-3.5 text-purple-400/60" />
             <span className="text-[10px] text-purple-400/60 font-semibold uppercase tracking-wide">Locked</span>
@@ -150,7 +150,7 @@ function ElevatedStyle() {
           <Badge className="text-[10px] bg-white/20 text-white border-white/30">LV. {mockMaxLevel}</Badge>
         </div>
         <h2 className="text-5xl font-black tracking-tight text-white leading-none">120h</h2>
-        <p className="text-sm font-bold uppercase tracking-wide text-white/90">APEX360-IF Elite</p>
+        <p className="text-sm font-bold uppercase tracking-wide text-white/90">Apex360-IF Elite</p>
         <div className="flex items-center gap-2">
           <Lock className="h-3.5 w-3.5 text-white/50" />
           <span className="text-[10px] text-white/50 font-semibold uppercase tracking-wide">Locked</span>
@@ -218,7 +218,7 @@ function MetallicStyle() {
           <Badge className="text-[10px] bg-purple-500/10 text-purple-400 border-purple-500/30">LV. {mockMaxLevel}</Badge>
         </div>
         <h2 className="text-5xl font-black tracking-tight leading-none bg-gradient-to-b from-purple-200 via-violet-400 to-purple-600 bg-clip-text text-transparent">120h</h2>
-        <p className="text-sm font-bold uppercase tracking-wide text-zinc-300">APEX360-IF Elite</p>
+        <p className="text-sm font-bold uppercase tracking-wide text-zinc-300">Apex360-IF Elite</p>
         <div className="flex items-center gap-2">
           <Lock className="h-3.5 w-3.5 text-purple-400/40" />
           <span className="text-[10px] text-purple-400/40 font-semibold uppercase tracking-wide">Locked</span>
@@ -284,7 +284,7 @@ function BoldFlatStyle() {
           <Badge className="text-[10px] bg-black/20 text-white border-black/20">LV. {mockMaxLevel}</Badge>
         </div>
         <h2 className="text-6xl font-black tracking-tighter text-white leading-none">120h</h2>
-        <p className="text-sm font-bold uppercase tracking-wide text-white/90">APEX360-IF Elite</p>
+        <p className="text-sm font-bold uppercase tracking-wide text-white/90">Apex360-IF Elite</p>
         <div className="flex items-center gap-2">
           <Lock className="h-3.5 w-3.5 text-white/40" />
           <span className="text-[10px] text-white/40 font-semibold uppercase tracking-wide">Locked</span>

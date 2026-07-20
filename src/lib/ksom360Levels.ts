@@ -1,5 +1,5 @@
 /**
- * APEX360-IF360 Level Progression System
+ * Apex360-IF Level Progression System
  *
  * 10+ levels with auto-progression based on:
  * - Streak length

@@ -42,15 +42,15 @@ export function getPushSetupMessage(error?: unknown): string {
   const name = error instanceof Error ? error.name : "";
 
   if (isIOS && !isStandalone) {
-    return "Install APEX360-IF from Safari to your Home Screen first, then open it from that icon and tap Enable again.";
+    return "Install Apex360-IF from Safari to your Home Screen first, then open it from that icon and tap Enable again.";
   }
 
   if (typeof Notification !== "undefined" && Notification.permission === "denied") {
-    return "Notifications are blocked. Open iPhone Settings → Notifications → APEX360-IF → Allow Notifications, then return and tap Enable.";
+    return "Notifications are blocked. Open iPhone Settings → Notifications → Apex360-IF → Allow Notifications, then return and tap Enable.";
   }
 
   if (isIOS) {
-    return "iPhone rejected the saved alert token. Open iPhone Settings → Notifications → APEX360-IF, make sure Allow Notifications is on, then restart the Home Screen app and tap Enable again.";
+    return "iPhone rejected the saved alert token. Open iPhone Settings → Notifications → Apex360-IF, make sure Allow Notifications is on, then restart the Home Screen app and tap Enable again.";
   }
 
   if (name === "NotAllowedError") {

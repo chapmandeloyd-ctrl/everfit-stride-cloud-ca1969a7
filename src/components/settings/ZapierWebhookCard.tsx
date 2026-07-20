@@ -85,7 +85,7 @@ export function ZapierWebhookCard() {
           body: JSON.stringify({
             event: "test",
             fired_at: new Date().toISOString(),
-            client: { name: "APEX360-IF Test" },
+            client: { name: "Apex360-IF Test" },
             suggested_message: "Test event — your Zapier webhook is wired up correctly.",
           }),
         });

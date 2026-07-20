@@ -30,23 +30,23 @@ function getEmailPreviews(name: string, coachName: string): EmailPreview[] {
     {
       id: "invitation",
       label: "1. Invitation",
-      subject: `${coachName} invited you to APEX360-IF`,
+      subject: `${coachName} invited you to Apex360-IF`,
       description: "Login credentials and welcome",
       content: [
         "You're in! 🎉",
-        `Hey ${name}, ${coachName} has set up your APEX360-IF account. Log in to access your personalized training, nutrition, and progress tracking.`,
+        `Hey ${name}, ${coachName} has set up your Apex360-IF account. Log in to access your personalized training, nutrition, and progress tracking.`,
         "Your temporary password: ••••••••",
-        "[Log In to APEX360-IF] button",
+        "[Log In to Apex360-IF] button",
       ],
     },
     {
       id: "getting-started",
       label: "2. Getting Started",
-      subject: "Here's How to Get Started with APEX360-IF 🚀",
+      subject: "Here's How to Get Started with Apex360-IF 🚀",
       description: "Step-by-step onboarding guide",
       content: [
         "Let's Get Started! 🚀",
-        `Hey ${name}, welcome to APEX360-IF! Here's a quick guide:`,
+        `Hey ${name}, welcome to Apex360-IF! Here's a quick guide:`,
         "Step 1: Log in and explore your dashboard",
         "Step 2: Check out your assigned workouts and meal plans",
         "Step 3: Log your first check-in",
@@ -57,11 +57,11 @@ function getEmailPreviews(name: string, coachName: string): EmailPreview[] {
     {
       id: "meet-coach",
       label: "3. Meet Your Coach",
-      subject: `${coachName} welcomes you to APEX360-IF!`,
+      subject: `${coachName} welcomes you to Apex360-IF!`,
       description: "Personal introduction from you",
       content: [
         "Meet Your Coach 🤝",
-        `Hey ${name}! I'm ${coachName}, your coach on APEX360-IF.`,
+        `Hey ${name}! I'm ${coachName}, your coach on Apex360-IF.`,
         `"I'm excited to work with you! Together we'll build a plan that fits your life, push through plateaus, and celebrate every win along the way. Let's do this!"`,
         `Have a question? You can message ${coachName} anytime through the app.`,
         "[Say Hello 👋] button",
@@ -70,7 +70,7 @@ function getEmailPreviews(name: string, coachName: string): EmailPreview[] {
     {
       id: "what-to-expect",
       label: "4. What to Expect",
-      subject: "Here's What to Expect with APEX360-IF 🎯",
+      subject: "Here's What to Expect with Apex360-IF 🎯",
       description: "Platform features overview",
       content: [
         "What to Expect 🎯",
@@ -81,7 +81,7 @@ function getEmailPreviews(name: string, coachName: string): EmailPreview[] {
         "💬 Coach Messaging — Direct access to your coach",
         "📸 Progress Photos — Visual timeline of your transformation",
         "🏆 Goals & Badges — Set targets and earn achievements",
-        "[Explore APEX360-IF] button",
+        "[Explore Apex360-IF] button",
       ],
     },
   ];
@@ -256,7 +256,7 @@ export function AddClientDialog({ open, onOpenChange }: AddClientDialogProps) {
 
   const getShareText = () => {
     if (!createdCredentials) return "";
-    return `Hey ${createdCredentials.name}! Your APEX360-IF account is ready 💪\n\nLogin here: ${productionUrl}/auth\nEmail: ${createdCredentials.email}\nPassword: ${createdCredentials.password}`;
+    return `Hey ${createdCredentials.name}! Your Apex360-IF account is ready 💪\n\nLogin here: ${productionUrl}/auth\nEmail: ${createdCredentials.email}\nPassword: ${createdCredentials.password}`;
   };
 
   const handleCopy = async () => {

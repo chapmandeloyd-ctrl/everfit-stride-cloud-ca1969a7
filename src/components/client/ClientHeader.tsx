@@ -15,7 +15,7 @@ interface ClientHeaderProps {
 
 export function ClientHeader({
   profile,
-  engineMode = "APEX360-IF",
+  engineMode = "Apex360-IF",
   level = 1,
   greeting,
   subtitle = "Let's do this",

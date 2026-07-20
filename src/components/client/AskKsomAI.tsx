@@ -244,7 +244,7 @@ export function AskKsomAI({ clientId }: AskKsomAIProps) {
         <button
           onClick={() => setOpen(true)}
           className="group relative w-12 h-12 rounded-full shadow-lg flex items-center justify-center bg-black text-white transition-all hover:scale-110 hover:shadow-xl"
-          aria-label="Ask APEX360-IF AI"
+          aria-label="Ask Apex360-IF AI"
         >
           <Sparkles className="h-5 w-5" />
           {/* Pulse ring */}
@@ -265,7 +265,7 @@ export function AskKsomAI({ clientId }: AskKsomAIProps) {
                 <Sparkles className="h-4 w-4 text-white" />
               </div>
               <div>
-                <h3 className="text-sm font-bold font-heading">Ask APEX360-IF AI</h3>
+                <h3 className="text-sm font-bold font-heading">Ask Apex360-IF AI</h3>
                 <p className="text-[10px] text-muted-foreground">
                   Your personal coaching assistant
                 </p>

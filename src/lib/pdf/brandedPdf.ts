@@ -1,5 +1,5 @@
 /**
- * APEX360-IF branded PDF exporter.
+ * Apex360-IF branded PDF exporter.
  *
  * Section-based, composable PDF generator built on pdf-lib. Used by every
  * "Export as PDF" feature in the app (keto plan, protocols, workouts...) so
@@ -55,7 +55,7 @@ export interface BrandedPdfOptions {
   subject?: string;
   /**
    * Trainer-controlled branding. When omitted, defaults are used (logo on,
-   * brand red, APEX360-IF wordmark, default footer right text). Pulled from
+   * brand red, Apex360-IF wordmark, default footer right text). Pulled from
    * the trainer_pdf_branding table at the call site.
    */
   branding?: {
@@ -205,7 +205,7 @@ function drawHeader(ctx: Ctx) {
     });
     wordmarkX = MARGIN + targetW + 10;
   }
-  page.drawText("APEX360-IF", {
+  page.drawText("Apex360-IF", {
     x: wordmarkX,
     y: top - (showLogo && logo ? 19 : 18),
     size: 13,
@@ -263,7 +263,7 @@ function drawFooter(ctx: Ctx) {
     ? footerText
     : clientName
       ? `Prepared for ${clientName}`
-      : "Prepared by APEX360-IF";
+      : "Prepared by Apex360-IF";
   const left = safeText(leftRaw);
   page.drawText(left, {
     x: MARGIN,
@@ -578,10 +578,10 @@ export async function exportBrandedPdf(options: BrandedPdfOptions): Promise<Uint
 
   const doc = await PDFDocument.create();
   doc.registerFontkit(fontkit);
-  doc.setTitle(`${options.documentLabel} — APEX360-IF`);
-  doc.setAuthor("APEX360-IF");
-  doc.setProducer("APEX360-IF");
-  doc.setCreator("APEX360-IF");
+  doc.setTitle(`${options.documentLabel} — Apex360-IF`);
+  doc.setAuthor("Apex360-IF");
+  doc.setProducer("Apex360-IF");
+  doc.setCreator("Apex360-IF");
   if (options.subject) doc.setSubject(options.subject);
 
   let fontRegular: PDFFont;

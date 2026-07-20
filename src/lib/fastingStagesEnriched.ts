@@ -1,12 +1,12 @@
 /**
- * Enriched fasting stages — APEX360-IF's 12 scientific stages with friendlier,
+ * Enriched fasting stages — Apex360-IF's 12 scientific stages with friendlier,
  * Simple-app-style copy, hour ranges, gradient palettes, and emoji icons.
  * Used by /client/stages experience.
  */
 
 export interface EnrichedStage {
   id: string;
-  /** Scientific name (kept from APEX360-IF canon) */
+  /** Scientific name (kept from Apex360-IF canon) */
   label: string;
   /** Friendly plain-language headline */
   friendlyTitle: string;

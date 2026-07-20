@@ -66,7 +66,7 @@ export default function ClientKetoTypes() {
   const queryClient = useQueryClient();
 
   // Pending pairing handoff from the protocol detail page. When set, the user
-  // is mid-flight building their APEX360-IF Synergy program and is here to pick
+  // is mid-flight building their Apex360-IF Synergy program and is here to pick
   // a keto type to pair with the chosen protocol.
   const pendingProtocol = (location.state as {
     pendingProtocol?: { type: "quick" | "program"; id: string; name: string };
@@ -191,7 +191,7 @@ export default function ClientKetoTypes() {
             <Sparkles className="h-4 w-4 shrink-0 mt-0.5 text-primary" />
             <div className="flex-1 min-w-0">
               <p className="text-[10px] uppercase tracking-[0.3em] text-primary font-bold">
-                Building your APEX360-IF Synergy program
+                Building your Apex360-IF Synergy program
               </p>
               <p className="text-sm">
                 Pick a keto type to pair with{" "}

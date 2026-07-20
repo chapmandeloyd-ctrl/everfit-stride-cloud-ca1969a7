@@ -51,7 +51,7 @@ export function TrainerizeImportActivitiesCard() {
           Import Trainerize Activities
         </CardTitle>
         <CardDescription>
-          Pull completed workouts and cardio from Trainerize into APEX360-IF. Imported activities show in each client's history alongside APEX sessions, tagged as "Trainerize". Re-runs are safe — duplicates are skipped.
+          Pull completed workouts and cardio from Trainerize into Apex360-IF. Imported activities show in each client's history alongside APEX sessions, tagged as "Trainerize". Re-runs are safe — duplicates are skipped.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

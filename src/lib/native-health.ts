@@ -1,5 +1,5 @@
 /**
- * APEX360-IF360 Native HealthKit Bridge
+ * Apex360-IF Native HealthKit Bridge
  * 
  * Uses @capgo/capacitor-health to read real device health data
  * (steps, calories, heart rate, weight, sleep) from Apple HealthKit.
