@@ -23,6 +23,9 @@ import WhyPairingStep from "@/components/onboarding/premium/steps/WhyPairingStep
 import FastingProtocolsStep from "@/components/onboarding/premium/steps/FastingProtocolsStep";
 import FuelStylesStep from "@/components/onboarding/premium/steps/FuelStylesStep";
 import QuickCheckStep from "@/components/onboarding/premium/steps/QuickCheckStep";
+import FastTypeSelectionStep, {
+  type FastType,
+} from "@/components/onboarding/premium/steps/FastTypeSelectionStep";
 import DailyRhythmStep, { type DailyRhythmData } from "@/components/onboarding/premium/steps/DailyRhythmStep";
 import FuelPreferenceStep, { type FuelPreferenceData } from "@/components/onboarding/premium/steps/FuelPreferenceStep";
 import MotivationStep from "@/components/onboarding/premium/steps/MotivationStep";
@@ -36,7 +39,7 @@ import {
 import { recommendSynergy } from "@/lib/onboarding/synergyRecommender";
 import type { SynergyKey } from "@/lib/onboarding/synergies";
 
-const TOTAL = 18;
+const TOTAL = 19;
 
 interface OnboardingState {
   age: number;
@@ -48,6 +51,7 @@ interface OnboardingState {
   goals: string[];
   fastingExperience: FastingExperienceData | null;
   synergy: SynergyKey | null;
+  fastType: FastType | null;
   dailyRhythm: DailyRhythmData | null;
   fuelPreference: FuelPreferenceData | null;
   motivation: string;
@@ -63,6 +67,7 @@ const INITIAL: OnboardingState = {
   goals: [],
   fastingExperience: null,
   synergy: null,
+  fastType: null,
   dailyRhythm: null,
   fuelPreference: null,
   motivation: "",
@@ -244,6 +249,7 @@ export default function ClientOnboarding() {
       bmi: snap?.bmi ?? null,
       metabolicScore: snap?.metabolicScore ?? null,
       fastingExperience: state.fastingExperience,
+      fastType: state.fastType,
       dailyRhythm: state.dailyRhythm,
       fuelPreference: state.fuelPreference,
       motivation: state.motivation,
@@ -266,9 +272,18 @@ export default function ClientOnboarding() {
       {step === 5 && <WhyPairingStep onNext={next} />}
       {step === 6 && <QuickCheckStep onNext={next} />}
       {step === 7 && <AICoachIntroStep onNext={next} />}
-      {step === 8 && <FastingProtocolsStep onNext={next} />}
-      {step === 9 && <FuelStylesStep onNext={next} />}
-      {step === 10 && (
+      {step === 8 && (
+        <FastTypeSelectionStep
+          initial={state.fastType}
+          onNext={(fastType) => {
+            persistDraft({ fastType });
+            next();
+          }}
+        />
+      )}
+      {step === 9 && <FastingProtocolsStep onNext={next} />}
+      {step === 10 && <FuelStylesStep onNext={next} />}
+      {step === 11 && (
         <BodyMetricsStep
           initial={{
             age: state.age,
@@ -283,7 +298,7 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 11 && (
+      {step === 12 && (
         <ActivityLevelStep
           initial={state.activity}
           onNext={(a) => {
@@ -292,7 +307,7 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 12 && (
+      {step === 13 && (
         <GoalsStep
           initial={state.goals}
           onNext={(g) => {
@@ -301,7 +316,7 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 13 && (
+      {step === 14 && (
         <FastingExperienceStep
           initial={state.fastingExperience}
           onNext={(d) => {
@@ -310,7 +325,7 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 14 && (
+      {step === 15 && (
         <DailyRhythmStep
           initial={state.dailyRhythm}
           onNext={(d) => {
@@ -319,7 +334,7 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 15 && (
+      {step === 16 && (
         <FuelPreferenceStep
           initial={state.fuelPreference}
           onNext={(d) => {
@@ -328,7 +343,7 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 16 && (
+      {step === 17 && (
         <MotivationStep
           initial={state.motivation}
           onNext={(m) => {
@@ -337,7 +352,7 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 17 && snap && (
+      {step === 18 && snap && (
         <MetabolicSnapshotStep
           snap={snap}
           bmi={snap.bmi}
@@ -346,7 +361,7 @@ export default function ClientOnboarding() {
           onNext={next}
         />
       )}
-      {step === 18 && (
+      {step === 19 && (
         <AIPlanProposalStep
           clientId={clientId ?? null}
           onboardingPayload={onboardingPayload}
