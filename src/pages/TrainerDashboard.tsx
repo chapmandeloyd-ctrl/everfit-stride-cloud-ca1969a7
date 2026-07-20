@@ -248,7 +248,7 @@ export default function TrainerDashboard() {
             <h1 className="text-3xl font-bold text-foreground">Trainer Dashboard</h1>
             <p className="text-muted-foreground mt-1">Monitor your clients' progress and activity</p>
           </div>
-          <Button variant="outline" size="sm" onClick={() => navigate("/client/onboarding")}>
+          <Button variant="outline" size="sm" onClick={() => navigate("/client/onboarding?preview=1")}>
             Preview Client Onboarding
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
