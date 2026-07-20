@@ -100,8 +100,8 @@ export default function SynergyEducationStep({
     );
   }
 
-  // Slide 4: Knowledge Check
-  if (slide === 4) {
+  // Slide 2: Knowledge Check
+  if (slide === 2) {
     const isCorrect = pickedAnswer && Q_OPTIONS.find((o) => o.id === pickedAnswer)?.correct;
     return (
       <SlideShell
