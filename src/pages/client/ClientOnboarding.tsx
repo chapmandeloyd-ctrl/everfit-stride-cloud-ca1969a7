@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { supabase } from "@/integrations/supabase/client";
 import OnboardingShell from "@/components/onboarding/premium/OnboardingShell";
+import IntroStep from "@/components/onboarding/premium/steps/IntroStep";
 import WelcomeStep from "@/components/onboarding/premium/steps/WelcomeStep";
 import BodyMetricsStep from "@/components/onboarding/premium/steps/BodyMetricsStep";
 import ActivityLevelStep from "@/components/onboarding/premium/steps/ActivityLevelStep";
@@ -27,7 +28,7 @@ import { recommendSynergy } from "@/lib/onboarding/synergyRecommender";
 import type { SynergyKey } from "@/lib/onboarding/synergies";
 import { computeReadinessScore } from "@/lib/onboarding/readinessScore";
 
-const TOTAL = 12;
+const TOTAL = 13;
 
 interface OnboardingState {
   age: number;
@@ -206,8 +207,9 @@ export default function ClientOnboarding() {
       onBack={back}
       showParticles={step <= 2 || step === TOTAL}
     >
-      {step === 1 && <WelcomeStep onNext={next} />}
-      {step === 2 && (
+      {step === 1 && <IntroStep onNext={next} />}
+      {step === 2 && <WelcomeStep onNext={next} />}
+      {step === 3 && (
         <BodyMetricsStep
           initial={{
             age: state.age,
@@ -222,7 +224,7 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 3 && (
+      {step === 4 && (
         <ActivityLevelStep
           initial={state.activity}
           onNext={(a) => {
@@ -231,7 +233,7 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 4 && (
+      {step === 5 && (
         <GoalsStep
           initial={state.goals}
           onNext={(g) => {
@@ -240,7 +242,7 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 5 && (
+      {step === 6 && (
         <FastingExperienceStep
           initial={state.fastingExperience}
           onNext={(d) => {
@@ -249,7 +251,7 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 6 && snap && (
+      {step === 7 && snap && (
         <MetabolicSnapshotStep
           snap={snap}
           bmi={snap.bmi}
@@ -258,8 +260,8 @@ export default function ClientOnboarding() {
           onNext={next}
         />
       )}
-      {step === 7 && <SystemIntroStep onNext={next} />}
-      {step === 8 && (
+      {step === 8 && <SystemIntroStep onNext={next} />}
+      {step === 9 && (
         <CoachingStyleStep
           initial={state.coachingStyle}
           onNext={(s) => {
@@ -268,13 +270,13 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 9 && state.coachingStyle && (
+      {step === 10 && state.coachingStyle && (
         <SynergyEducationStep
           coachingStyle={state.coachingStyle}
           onNext={next}
         />
       )}
-      {step === 10 && recommended && (
+      {step === 11 && recommended && (
         <FastingSynergyStep
           recommended={recommended}
           initial={state.synergy}
@@ -284,10 +286,10 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 11 && state.synergy && (
+      {step === 12 && state.synergy && (
         <FirstWeekStep synergyKey={state.synergy} onNext={next} />
       )}
-      {step === 12 && (
+      {step === 13 && (
         <ActivateStep
           loading={loading}
           score={readinessScore}
