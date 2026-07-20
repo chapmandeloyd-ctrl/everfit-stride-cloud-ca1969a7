@@ -256,9 +256,9 @@ export default function ClientOnboarding() {
     >
       {step === 1 && <IntroStep onNext={next} />}
       {step === 2 && <SystemIntroStep onNext={next} />}
-      {step === 3 && <AICoachIntroStep onNext={next} />}
-      {step === 4 && <WelcomeStep onNext={next} />}
-      {step === 5 && <SynergyEducationStep onNext={next} />}
+      {step === 3 && <SynergyEducationStep onNext={next} />}
+      {step === 4 && <AICoachIntroStep onNext={next} />}
+      {step === 5 && <WelcomeStep onNext={next} />}
       {step === 6 && (
         <BodyMetricsStep
           initial={{
