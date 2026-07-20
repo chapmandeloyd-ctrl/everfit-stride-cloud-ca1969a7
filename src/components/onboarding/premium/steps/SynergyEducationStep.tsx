@@ -4,8 +4,6 @@ import { Check, Clock, Flame, Leaf, Zap, Activity, Sparkles, ChevronRight, Repea
 import InterlockingRings from "../education/InterlockingRings";
 import PlateauVsCompound from "../education/PlateauVsCompound";
 
-type Style = "guided" | "self";
-
 const PROTOCOLS = [
   { name: "16:8", icon: Clock, effect: "Daily fat adaptation & insulin reset" },
   { name: "18:6", icon: Clock, effect: "Deeper ketosis, sharper focus" },
@@ -30,10 +28,8 @@ const Q_OPTIONS = [
 ];
 
 export default function SynergyEducationStep({
-  coachingStyle,
   onNext,
 }: {
-  coachingStyle: Style;
   onNext: () => void;
 }) {
   const [slide, setSlide] = useState(0);

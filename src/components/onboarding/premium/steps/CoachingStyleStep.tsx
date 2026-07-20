@@ -1,90 +1,59 @@
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import { Check, Sparkles } from "lucide-react";
+import { Sparkles, Bot, Calendar, MessageSquare, TrendingUp, ChevronRight } from "lucide-react";
 
-type Style = "guided" | "self";
+const FEATURES = [
+  { icon: Bot, title: "Personalized plan", desc: "Built from your body metrics, goals, and fasting experience." },
+  { icon: Calendar, title: "Smart scheduling", desc: "Fasting windows adapt to your week, training, and lifestyle." },
+  { icon: MessageSquare, title: "Daily accountability", desc: "Check-ins, reminders, and adjustments that keep you on track." },
+  { icon: TrendingUp, title: "Real-time optimization", desc: "Your plan evolves as your body and habits change." },
+];
 
-const FEATURES: Record<Style, string[]> = {
-  guided: [
-    "Your coach assigns your synergy program",
-    "Personalized fasting adjustments",
-    "Progress reviews & accountability",
-    "Direct coach support",
-    "Structured guidance",
-  ],
-  self: [
-    "Choose your own synergy program",
-    "Full fasting protocol library",
-    "Tracking tools & meal guidance",
-    "Progress scoring",
-  ],
-};
-
-export default function CoachingStyleStep({
-  initial,
-  onNext,
-}: {
-  initial: Style | null;
-  onNext: (s: Style) => void;
-}) {
-  const [sel, setSel] = useState<Style | null>(initial);
+export default function CoachingStyleStep({ onNext }: { onNext: () => void }) {
   return (
     <div className="flex h-full flex-col gap-5">
-      <div>
-        <h2 className="text-2xl font-semibold tracking-tight">Choose your coaching style</h2>
-        <p className="mt-1 text-sm text-white/60">Both unlock the full system — pick how you want your synergy program assigned.</p>
+      <div className="text-center">
+        <div className="inline-flex items-center gap-1.5 rounded-full border border-[hsl(var(--primary))]/30 bg-[hsl(var(--primary))]/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-[hsl(var(--primary))]">
+          <Sparkles className="h-3 w-3" /> AI Powered
+        </div>
+        <h2 className="mt-3 text-2xl font-semibold tracking-tight">Meet your AI Coach</h2>
+        <p className="mt-1 text-sm text-white/60">
+          APEX360 AI designs your entire fasting plan, adapts it as you progress, and keeps you accountable.
+        </p>
       </div>
 
-      <button
-        onClick={() => setSel("guided")}
-        className={`relative overflow-hidden rounded-2xl border p-5 text-left transition ${
-          sel === "guided"
-            ? "border-[hsl(var(--primary))] bg-[hsl(var(--primary)/0.08)]"
-            : "border-white/10 bg-white/[0.03] hover:border-white/20"
-        }`}
-      >
-        <div className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-full bg-[hsl(var(--primary))] px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
-          <Sparkles className="h-3 w-3" /> Most Effective
-        </div>
-        <div className="text-lg font-semibold">Guided Coaching</div>
-        <ul className="mt-3 space-y-1.5 text-sm text-white/75">
-          {FEATURES.guided.map((f) => (
-            <li key={f} className="flex items-center gap-2">
-              <Check className="h-3.5 w-3.5 text-[hsl(var(--primary))]" /> {f}
-            </li>
-          ))}
-        </ul>
-      </button>
+      <div className="grid grid-cols-1 gap-3">
+        {FEATURES.map((f) => {
+          const Icon = f.icon;
+          return (
+            <div
+              key={f.title}
+              className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4"
+            >
+              <div className="rounded-xl bg-[hsl(var(--primary))/0.15] p-2.5">
+                <Icon className="h-5 w-5 text-[hsl(var(--primary))]" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-sm font-semibold">{f.title}</div>
+                <div className="text-xs text-white/60">{f.desc}</div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
 
-      <button
-        onClick={() => setSel("self")}
-        className={`relative overflow-hidden rounded-2xl border p-5 text-left transition ${
-          sel === "self"
-            ? "border-[hsl(174_72%_50%)] bg-[hsl(174_72%_50%/0.06)]"
-            : "border-white/10 bg-white/[0.03] hover:border-white/20"
-        }`}
-      >
-        <div className="absolute right-4 top-4 rounded-full bg-white/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white/80">
-          Flexible
-        </div>
-        <div className="text-lg font-semibold">Self-Guided</div>
-        <ul className="mt-3 space-y-1.5 text-sm text-white/75">
-          {FEATURES.self.map((f) => (
-            <li key={f} className="flex items-center gap-2">
-              <Check className="h-3.5 w-3.5 text-[hsl(174_72%_50%)]" /> {f}
-            </li>
-          ))}
-        </ul>
-      </button>
+      <div className="mt-auto rounded-2xl border border-[hsl(var(--primary))]/20 bg-[hsl(var(--primary))]/5 p-4 text-center">
+        <p className="text-sm text-white/80">
+          You’re not choosing a coaching style — you’re activating a system that learns your body and guides you every day.
+        </p>
+      </div>
 
-      <div className="mt-auto pb-2">
+      <div className="pb-2">
         <Button
-          disabled={!sel}
-          onClick={() => sel && onNext(sel)}
+          onClick={onNext}
           size="lg"
           className="h-14 w-full rounded-2xl text-base font-medium"
         >
-          {sel === "guided" ? "Continue With Guided Coaching" : sel === "self" ? "Continue Self-Guided" : "Continue"}
+          Continue With AI Coach <ChevronRight className="ml-1 h-4 w-4" />
         </Button>
       </div>
     </div>
