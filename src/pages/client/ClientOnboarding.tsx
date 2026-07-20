@@ -16,7 +16,7 @@ import FastingExperienceStep, {
 } from "@/components/onboarding/premium/steps/FastingExperienceStep";
 import MetabolicSnapshotStep from "@/components/onboarding/premium/steps/MetabolicSnapshotStep";
 import SystemIntroStep from "@/components/onboarding/premium/steps/SystemIntroStep";
-import CoachingStyleStep from "@/components/onboarding/premium/steps/CoachingStyleStep";
+import AICoachIntroStep from "@/components/onboarding/premium/steps/AICoachIntroStep";
 import SynergyEducationStep from "@/components/onboarding/premium/steps/SynergyEducationStep";
 import DailyRhythmStep, { type DailyRhythmData } from "@/components/onboarding/premium/steps/DailyRhythmStep";
 import FuelPreferenceStep, { type FuelPreferenceData } from "@/components/onboarding/premium/steps/FuelPreferenceStep";
@@ -255,10 +255,10 @@ export default function ClientOnboarding() {
       showParticles={step <= 2 || step === TOTAL}
     >
       {step === 1 && <IntroStep onNext={next} />}
-      {step === 2 && <WelcomeStep onNext={next} />}
-      {step === 3 && <SystemIntroStep onNext={next} />}
-      {step === 4 && <SynergyEducationStep onNext={next} />}
-      {step === 5 && <CoachingStyleStep onNext={next} />}
+      {step === 2 && <AICoachIntroStep onNext={next} />}
+      {step === 3 && <WelcomeStep onNext={next} />}
+      {step === 4 && <SystemIntroStep onNext={next} />}
+      {step === 5 && <SynergyEducationStep onNext={next} />}
       {step === 6 && (
         <BodyMetricsStep
           initial={{
