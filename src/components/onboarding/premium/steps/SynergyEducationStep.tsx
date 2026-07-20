@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Check, Clock, Zap, Activity, Sparkles, ChevronRight, Repeat, Flame, Scale, Dumbbell, X } from "lucide-react";
-import InterlockingRings from "../education/InterlockingRings";
-import PlateauVsCompound from "../education/PlateauVsCompound";
 
 const PROTOCOLS = [
   { name: "16:8", icon: Clock, effect: "Daily fat adaptation & insulin reset" },
@@ -36,36 +34,8 @@ export default function SynergyEducationStep({
 
   const advance = () => setSlide((s) => s + 1);
 
-  // Slide 0: The Problem
+  // Slide 0: Fasting Protocols
   if (slide === 0) {
-    return (
-      <Slide
-        eyebrow="The Problem"
-        title="Most plans plateau."
-        body="Fasting alone works. Fueling right alone works. But most people stall because they're running them out of sync — timing and nutrition fighting each other instead of compounding."
-        visual={<InterlockingRings mode="separated" />}
-        cta="Continue"
-        onCta={advance}
-      />
-    );
-  }
-
-  // Slide 1: The Apex360-IF Principle
-  if (slide === 1) {
-    return (
-      <Slide
-        eyebrow="The APEX360 Principle"
-        title="FAST + FUEL. One system."
-        body="The right Fasting Protocol × the right Fuel Style × your biology. When all three lock in, your metabolism works for you instead of against you."
-        visual={<InterlockingRings mode="locked" />}
-        cta="Continue"
-        onCta={advance}
-      />
-    );
-  }
-
-  // Slide 2: Fasting Protocols
-  if (slide === 2) {
     return (
       <SlideShell
         eyebrow="Fasting Protocols"
@@ -96,8 +66,8 @@ export default function SynergyEducationStep({
     );
   }
 
-  // Slide 3: Fuel Styles
-  if (slide === 3) {
+  // Slide 1: Fuel Styles
+  if (slide === 1) {
     return (
       <SlideShell
         eyebrow="Fuel Styles"
@@ -128,8 +98,8 @@ export default function SynergyEducationStep({
     );
   }
 
-  // Slide 4: Knowledge Check
-  if (slide === 4) {
+  // Slide 2: Knowledge Check
+  if (slide === 2) {
     const isCorrect = pickedAnswer && Q_OPTIONS.find((o) => o.id === pickedAnswer)?.correct;
     return (
       <SlideShell
