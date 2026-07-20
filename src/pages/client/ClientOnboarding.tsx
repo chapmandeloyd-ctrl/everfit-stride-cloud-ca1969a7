@@ -18,9 +18,11 @@ import MetabolicSnapshotStep from "@/components/onboarding/premium/steps/Metabol
 import SystemIntroStep from "@/components/onboarding/premium/steps/SystemIntroStep";
 import CoachingStyleStep from "@/components/onboarding/premium/steps/CoachingStyleStep";
 import SynergyEducationStep from "@/components/onboarding/premium/steps/SynergyEducationStep";
-import FastingSynergyStep from "@/components/onboarding/premium/steps/FastingSynergyStep";
-import FirstWeekStep from "@/components/onboarding/premium/steps/FirstWeekStep";
-import ActivateStep from "@/components/onboarding/premium/steps/ActivateStep";
+import DailyRhythmStep, { type DailyRhythmData } from "@/components/onboarding/premium/steps/DailyRhythmStep";
+import FuelPreferenceStep, { type FuelPreferenceData } from "@/components/onboarding/premium/steps/FuelPreferenceStep";
+import MotivationStep from "@/components/onboarding/premium/steps/MotivationStep";
+import AIPlanProposalStep from "@/components/onboarding/premium/steps/AIPlanProposalStep";
+import type { AIProposal } from "@/components/client/AIPlanProposalCard";
 import {
   computeSnapshot,
   type ActivityLevel,
@@ -28,9 +30,8 @@ import {
 } from "@/lib/onboarding/metabolicCalc";
 import { recommendSynergy } from "@/lib/onboarding/synergyRecommender";
 import type { SynergyKey } from "@/lib/onboarding/synergies";
-import { computeReadinessScore } from "@/lib/onboarding/readinessScore";
 
-const TOTAL = 13;
+const TOTAL = 14;
 
 interface OnboardingState {
   age: number;
@@ -42,6 +43,9 @@ interface OnboardingState {
   goals: string[];
   fastingExperience: FastingExperienceData | null;
   synergy: SynergyKey | null;
+  dailyRhythm: DailyRhythmData | null;
+  fuelPreference: FuelPreferenceData | null;
+  motivation: string;
 }
 
 const INITIAL: OnboardingState = {
@@ -54,6 +58,9 @@ const INITIAL: OnboardingState = {
   goals: [],
   fastingExperience: null,
   synergy: null,
+  dailyRhythm: null,
+  fuelPreference: null,
+  motivation: "",
 };
 
 export default function ClientOnboarding() {
@@ -99,17 +106,6 @@ export default function ClientOnboarding() {
     );
   }, [snap, state]);
 
-  const readinessScore = useMemo(
-    () =>
-      computeReadinessScore({
-        activity: state.activity,
-        goals: state.goals,
-        fastingExperience: state.fastingExperience,
-        hasBodyMetrics: !!(state.heightCm && state.weightKg),
-      }),
-    [state],
-  );
-
   const next = () => setStep((s) => Math.min(TOTAL, s + 1));
   const back = step > 1 ? () => setStep((s) => Math.max(1, s - 1)) : undefined;
 
@@ -132,8 +128,8 @@ export default function ClientOnboarding() {
     }
   };
 
-  const finalize = async (target: "dashboard") => {
-    if (!snap || !state.activity || !state.synergy) {
+  const acceptProposal = async (proposal: AIProposal) => {
+    if (!snap || !state.activity) {
       toast.error("Missing onboarding data");
       return;
     }
@@ -171,17 +167,33 @@ export default function ClientOnboarding() {
         { onConflict: "client_id" },
       );
 
-      // Synergy
-      await (supabase as any).from("fasting_synergy_selection").upsert(
+      // Apply the AI-proposed plan to client_feature_settings so it drives
+      // the fasting timer, Live Schedule, and dashboard immediately.
+      await (supabase as any).from("client_feature_settings").upsert(
         {
           client_id: clientId,
-          synergy_key: state.synergy,
-          coaching_style: "ai",
-          recommended_synergy: recommended,
-          selected_at: new Date().toISOString(),
+          selected_protocol_id: proposal.protocol_id,
+          selected_quick_plan_id: null,
+          protocol_start_date: new Date().toISOString().slice(0, 10),
+          assigned_protocol_duration_days: proposal.duration_days,
+          protocol_run_mode: "recurring",
+          fuel_style: proposal.fuel_style,
         },
         { onConflict: "client_id" },
       );
+
+      // Seed the weekly schedule with the AI-picked window.
+      const weeklyRows = Array.from({ length: 7 }, (_, dow) => ({
+        client_id: clientId,
+        day_of_week: dow,
+        ratio: `${proposal.fast_hours}:${proposal.eat_hours}`,
+        window_start_time: `${proposal.window_end_time}:00`, // fast starts at last-meal time
+        window_end_time: `${proposal.window_start_time}:00`, // fast breaks at break-fast time
+        enabled: proposal.weekly_pattern === "weekdays_only" ? dow >= 1 && dow <= 5 : true,
+      }));
+      await (supabase as any)
+        .from("client_weekly_schedule")
+        .upsert(weeklyRows, { onConflict: "client_id,day_of_week" });
 
       // Onboarding progress complete
       await (supabase as any).from("onboarding_progress").upsert(
@@ -190,7 +202,7 @@ export default function ClientOnboarding() {
           current_step: TOTAL,
           completed: true,
           completed_at: new Date().toISOString(),
-          data: state as any,
+          data: { ...state, accepted_plan: proposal } as any,
         },
         { onConflict: "client_id" },
       );
@@ -207,14 +219,34 @@ export default function ClientOnboarding() {
         notes: state.heightCm ? `Height: ${state.heightCm} cm` : null,
       });
 
-      toast.success("Welcome to Apex360-IF");
-      navigate(target === "dashboard" ? "/client/dashboard" : "/client/dashboard");
+      toast.success("Your Apex360 AI plan is live");
+      navigate("/client/dashboard");
     } catch (e: any) {
       toast.error(e?.message ?? "Could not activate plan");
     } finally {
       setLoading(false);
     }
   };
+
+  const onboardingPayload = useMemo(
+    () => ({
+      age: state.age,
+      sex: state.sex,
+      heightCm: state.heightCm,
+      weightKg: state.weightKg,
+      goalWeightKg: state.goalWeightKg,
+      activity: state.activity,
+      goals: state.goals,
+      bmi: snap?.bmi ?? null,
+      metabolicScore: snap?.metabolicScore ?? null,
+      fastingExperience: state.fastingExperience,
+      dailyRhythm: state.dailyRhythm,
+      fuelPreference: state.fuelPreference,
+      motivation: state.motivation,
+      recommendedSynergyHint: recommended,
+    }),
+    [state, snap, recommended],
+  );
 
   return (
     <OnboardingShell
@@ -267,7 +299,34 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 7 && snap && (
+      {step === 7 && (
+        <DailyRhythmStep
+          initial={state.dailyRhythm}
+          onNext={(d) => {
+            persistDraft({ dailyRhythm: d });
+            next();
+          }}
+        />
+      )}
+      {step === 8 && (
+        <FuelPreferenceStep
+          initial={state.fuelPreference}
+          onNext={(d) => {
+            persistDraft({ fuelPreference: d });
+            next();
+          }}
+        />
+      )}
+      {step === 9 && (
+        <MotivationStep
+          initial={state.motivation}
+          onNext={(m) => {
+            persistDraft({ motivation: m });
+            next();
+          }}
+        />
+      )}
+      {step === 10 && snap && (
         <MetabolicSnapshotStep
           snap={snap}
           bmi={snap.bmi}
@@ -276,38 +335,26 @@ export default function ClientOnboarding() {
           onNext={next}
         />
       )}
-      {step === 8 && <SystemIntroStep onNext={next} />}
-      {step === 9 && (
+      {step === 11 && <SystemIntroStep onNext={next} />}
+      {step === 12 && (
         <CoachingStyleStep
           onNext={() => {
             next();
           }}
         />
       )}
-      {step === 10 && (
+      {step === 13 && (
         <SynergyEducationStep
           onNext={next}
         />
       )}
-      {step === 11 && recommended && (
-        <FastingSynergyStep
-          recommended={recommended}
-          initial={state.synergy}
-          onNext={(k) => {
-            persistDraft({ synergy: k });
-            next();
-          }}
-        />
-      )}
-      {step === 12 && state.synergy && (
-        <FirstWeekStep synergyKey={state.synergy} onNext={next} />
-      )}
-      {step === 13 && (
-        <ActivateStep
-          loading={loading}
-          score={readinessScore}
-          onActivate={() => finalize("dashboard")}
-          onExplore={() => finalize("dashboard")}
+      {step === 14 && (
+        <AIPlanProposalStep
+          clientId={clientId ?? null}
+          onboardingPayload={onboardingPayload}
+          isPreview={isPreview}
+          onAccept={(p) => acceptProposal(p)}
+          onAdjust={(p) => acceptProposal(p)}
         />
       )}
     </OnboardingShell>
