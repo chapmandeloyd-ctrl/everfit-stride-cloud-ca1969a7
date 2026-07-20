@@ -24,7 +24,7 @@ function getExtendedLevelName(level: number): string {
     12: "Specialist",
     13: "Grand Master",
     14: "Legend",
-    15: "APEX360-IF Elite",
+    15: "Apex360-IF Elite",
   };
   return extended[level] || "Elite";
 }
@@ -294,7 +294,7 @@ export function LevelProgressionCard() {
             </div>
 
             <p className="text-sm text-muted-foreground">
-              The pinnacle of the APEX360-IF system. Stay consistent.
+              The pinnacle of the Apex360-IF system. Stay consistent.
             </p>
 
             {/* Lock indicator for non-max users */}

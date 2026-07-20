@@ -79,11 +79,11 @@ export interface EngineConfig {
 export const ENGINE_CONFIGS: Record<EngineMode, EngineConfig> = {
   metabolic: {
     id: "metabolic",
-    label: "APEX360-IF Engine",
-    shortLabel: "APEX360-IF",
+    label: "Apex360-IF Engine",
+    shortLabel: "Apex360-IF",
     tagline: "Build consistent metabolic rhythm",
     ageRange: "18+",
-    scoreLabel: "APEX360-IF Readiness Index",
+    scoreLabel: "Apex360-IF Readiness Index",
     emphasis: "fasting",
 
     dashboardOrder: [
@@ -134,14 +134,14 @@ export const ENGINE_CONFIGS: Record<EngineMode, EngineConfig> = {
     plansEmphasis: "Fasting protocols shown first. Training supplements metabolic stability.",
   },
 
-  // Performance is deprecated — maps to APEX360-IF for backward compat
+  // Performance is deprecated — maps to Apex360-IF for backward compat
   performance: {
     id: "performance",
-    label: "APEX360-IF Engine",
-    shortLabel: "APEX360-IF",
+    label: "Apex360-IF Engine",
+    shortLabel: "Apex360-IF",
     tagline: "Build consistent metabolic rhythm",
     ageRange: "18+",
-    scoreLabel: "APEX360-IF Readiness Index",
+    scoreLabel: "Apex360-IF Readiness Index",
     emphasis: "fasting",
 
     dashboardOrder: [
@@ -256,7 +256,7 @@ export function getEngineConfig(mode: EngineMode): EngineConfig {
 export const ENGINE_MODE_OPTIONS: { value: EngineMode; label: string; description: string; ageRange: string }[] = [
   {
     value: "metabolic",
-    label: "APEX360-IF",
+    label: "Apex360-IF",
     description: "Fasting-first. Build consistent metabolic rhythm.",
     ageRange: "18+",
   },

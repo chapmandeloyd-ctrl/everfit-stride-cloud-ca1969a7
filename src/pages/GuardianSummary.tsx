@@ -150,7 +150,7 @@ export default function GuardianSummary() {
         {/* Header */}
         <div className="space-y-1">
           <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            APEX360-IF Athletic
+            Apex360-IF Athletic
           </p>
           <h1 className="text-2xl font-bold text-foreground">Weekly Recovery Summary</h1>
           <p className="text-sm text-muted-foreground">
@@ -291,7 +291,7 @@ export default function GuardianSummary() {
         )}
 
         <div className="text-center text-xs text-muted-foreground pt-4 pb-8">
-          APEX360-IF Athletic — Aggregated wellness data only. No detailed logs or private information included.
+          Apex360-IF Athletic — Aggregated wellness data only. No detailed logs or private information included.
         </div>
       </div>
     </div>

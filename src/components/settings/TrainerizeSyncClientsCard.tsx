@@ -84,7 +84,7 @@ export function TrainerizeSyncClientsCard() {
             Sync Clients from Trainerize
           </CardTitle>
           <CardDescription>
-            Matches your Trainerize roster to APEX360-IF clients by email and links them.
+            Matches your Trainerize roster to Apex360-IF clients by email and links them.
             New Trainerize clients are listed so you can invite them manually.
           </CardDescription>
         </CardHeader>
@@ -135,7 +135,7 @@ export function TrainerizeSyncClientsCard() {
 
               {result.newClients && result.newClients.length > 0 && (
                 <div>
-                  <h4 className="text-sm font-semibold mb-2">Link Trainerize clients to APEX360-IF</h4>
+                  <h4 className="text-sm font-semibold mb-2">Link Trainerize clients to Apex360-IF</h4>
                   <div className="border rounded-md divide-y max-h-80 overflow-auto">
                     {result.newClients.map((c) => (
                       <div key={c.trainerize_user_id} className="p-3 flex items-center justify-between gap-3 text-sm">

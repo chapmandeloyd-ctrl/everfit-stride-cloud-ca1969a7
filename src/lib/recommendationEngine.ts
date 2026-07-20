@@ -295,8 +295,8 @@ export function computeEngineScore(
 }
 
 export const ENGINE_SCORE_LABELS: Record<EngineMode, string> = {
-  metabolic: "APEX360-IF Readiness Index",
-  performance: "APEX360-IF Readiness Index",
+  metabolic: "Apex360-IF Readiness Index",
+  performance: "Apex360-IF Readiness Index",
   athletic: "Recovery & Game Readiness Score",
 };
 

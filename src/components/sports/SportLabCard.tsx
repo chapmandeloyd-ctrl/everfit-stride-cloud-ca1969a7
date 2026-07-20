@@ -30,7 +30,7 @@ export function SportLabCard({ title, subtitle, accentColor, labRoute }: SportLa
           {/* Logo + Title */}
           <div className="flex items-center gap-3 mb-3">
             <div className="h-12 w-12 rounded-full bg-muted/50 flex items-center justify-center overflow-hidden shrink-0">
-              <img src={logoSrc} alt="APEX360-IF" className="h-9 w-9 object-contain" />
+              <img src={logoSrc} alt="Apex360-IF" className="h-9 w-9 object-contain" />
             </div>
             <div>
               <h3 className="text-base font-bold leading-tight">{title}</h3>

@@ -14,7 +14,7 @@ import {
 import { exportKetoPlanPdf } from "@/lib/pdf/exportKetoPlan";
 
 const ACCENT_PRESETS: { label: string; value: string }[] = [
-  { label: "APEX360-IF Red", value: "#CC181E" },
+  { label: "Apex360-IF Red", value: "#CC181E" },
   { label: "HPKD Red", value: "#E4572E" },
   { label: "SKD Orange", value: "#F59E0B" },
   { label: "CKD Teal", value: "#0EA5A4" },
@@ -23,7 +23,7 @@ const ACCENT_PRESETS: { label: string; value: string }[] = [
 ];
 
 const PREVIEW_KETO = {
-  abbreviation: "APEX360-IF",
+  abbreviation: "Apex360-IF",
   name: "Standard Keto",
   subtitle: "Sample preview",
   description: "This is what your clients' exported PDFs will look like.",

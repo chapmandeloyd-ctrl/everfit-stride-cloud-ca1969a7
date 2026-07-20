@@ -79,7 +79,7 @@ export function ClientSidebar() {
             </div>
             {open && (
               <div>
-                <h2 className="font-bold text-sidebar-foreground">APEX360-IF</h2>
+                <h2 className="font-bold text-sidebar-foreground">Apex360-IF</h2>
                 <p className="text-xs text-sidebar-foreground/60">Client Portal</p>
               </div>
             )}

@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 /**
- * APEX360-IF360 Strict Meal Data Structure
+ * Apex360-IF Strict Meal Data Structure
  * 
  * ALL fields are required for a meal to be saved.
  * Any missing field will flag the meal as incomplete.
@@ -40,7 +40,7 @@ export const strictMealSchema = z.object({
   cook_time_minutes: z.number().min(0, "Cook time required"),
   servings: z.number().min(1, "Servings required"),
   
-  // New APEX360-IF360 fields
+  // New Apex360-IF fields
   meal_intensity: z.string().min(1, "Meal intensity is required"),
   satiety_score: z.number().min(1).max(10, "Satiety score must be 1-10"),
   digestion_load: z.string().min(1, "Digestion load is required"),

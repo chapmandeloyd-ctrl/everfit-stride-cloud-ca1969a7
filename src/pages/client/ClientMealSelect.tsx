@@ -155,7 +155,7 @@ function StepOne({ mood }: { mood: { selected: Set<MoodOption>; toggle: (item: M
           <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
             <UtensilsCrossed className="h-5 w-5 text-primary" />
           </div>
-          <h1 className="text-xl font-extrabold tracking-tight">Welcome to APEX360-IF360 Meals</h1>
+          <h1 className="text-xl font-extrabold tracking-tight">Welcome to Apex360-IF Meals</h1>
         </div>
         <p className="text-sm text-muted-foreground leading-relaxed">
           Check what you're in the mood for

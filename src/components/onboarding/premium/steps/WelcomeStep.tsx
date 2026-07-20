@@ -13,7 +13,7 @@ export default function WelcomeStep({ onNext }: { onNext: () => void }) {
           <MetabolicRing size={240} progress={progress} />
           <img
             src={lionLogo}
-            alt="APEX360-IF360"
+            alt="Apex360-IF"
             className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-36 object-contain"
             style={{ filter: "grayscale(1) brightness(1.4) opacity(0.95)" }}
           />

@@ -50,7 +50,7 @@ export default function SynergyEducationStep({
     );
   }
 
-  // Slide 1: The APEX360-IF360 Principle
+  // Slide 1: The Apex360-IF Principle
   if (slide === 1) {
     return (
       <Slide

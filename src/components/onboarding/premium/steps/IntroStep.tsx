@@ -9,7 +9,7 @@ export default function IntroStep({ onNext }: { onNext: () => void }) {
           <div className="relative flex h-40 w-40 items-center justify-center rounded-full border border-white/10 bg-white/5 shadow-[0_0_80px_hsl(var(--primary)/0.25)]">
             <img
               src={lionLogo}
-              alt="APEX360-IF"
+              alt="Apex360-IF"
               className="h-28 w-28 object-contain"
               style={{ filter: "grayscale(1) brightness(1.4) opacity(0.95)" }}
             />

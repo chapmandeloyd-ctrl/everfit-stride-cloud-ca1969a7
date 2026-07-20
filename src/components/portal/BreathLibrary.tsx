@@ -77,7 +77,7 @@ export function BreathLibrary({
           className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex flex-col items-center px-6 text-center"
         >
           <h1 className="text-white text-2xl font-light tracking-[0.3em] uppercase">
-            APEX360-IF Calm Breathing
+            Apex360-IF Calm Breathing
           </h1>
           <p className="text-white/70 text-sm font-light mt-3 tracking-wide">
             Find Your Rhythm

@@ -42,9 +42,9 @@ export default function ClientHoopsLab() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="flex items-center gap-2">
-            <img src={logoSrc} alt="APEX360-IF" className="h-8 w-8 object-contain" />
+            <img src={logoSrc} alt="Apex360-IF" className="h-8 w-8 object-contain" />
             <div>
-              <h1 className="text-lg font-bold">APEX360-IF Hoops Lab™</h1>
+              <h1 className="text-lg font-bold">Apex360-IF Hoops Lab™</h1>
               <p className="text-xs text-muted-foreground">Shooting • Ball Handling • Court IQ</p>
             </div>
           </div>
