@@ -23,6 +23,9 @@ import WhyPairingStep from "@/components/onboarding/premium/steps/WhyPairingStep
 import FastingProtocolsStep from "@/components/onboarding/premium/steps/FastingProtocolsStep";
 import FuelStylesStep from "@/components/onboarding/premium/steps/FuelStylesStep";
 import QuickCheckStep from "@/components/onboarding/premium/steps/QuickCheckStep";
+import FastTypeSelectionStep, {
+  type FastType,
+} from "@/components/onboarding/premium/steps/FastTypeSelectionStep";
 import DailyRhythmStep, { type DailyRhythmData } from "@/components/onboarding/premium/steps/DailyRhythmStep";
 import FuelPreferenceStep, { type FuelPreferenceData } from "@/components/onboarding/premium/steps/FuelPreferenceStep";
 import MotivationStep from "@/components/onboarding/premium/steps/MotivationStep";
@@ -36,7 +39,7 @@ import {
 import { recommendSynergy } from "@/lib/onboarding/synergyRecommender";
 import type { SynergyKey } from "@/lib/onboarding/synergies";
 
-const TOTAL = 18;
+const TOTAL = 19;
 
 interface OnboardingState {
   age: number;
