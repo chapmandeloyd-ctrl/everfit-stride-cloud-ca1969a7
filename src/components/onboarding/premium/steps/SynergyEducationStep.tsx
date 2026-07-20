@@ -197,22 +197,10 @@ export default function SynergyEducationStep({
               : "Close — but pairing is everything. Fasting alone hits a ceiling. The right Fuel Style breaks through it."}
           </div>
         )}
-        <FooterCta label="Continue" onClick={advance} disabled={!pickedAnswer} />
+        <FooterCta label="Continue" onClick={onNext} disabled={!pickedAnswer} />
       </SlideShell>
     );
   }
-
-  // Slide 6: Your Path
-  return (
-    <Slide
-      eyebrow="Your Path"
-      title="Your AI Coach takes it from here."
-      body="APEX360 AI is reviewing your metabolic profile. Your FAST + FUEL program will be assigned and adjusted as you progress."
-      visual={<InterlockingRings mode="locked" size={200} />}
-      cta="Confirm & Continue"
-      onCta={onNext}
-    />
-  );
 }
 
 /* ---------- shared layout pieces ---------- */
