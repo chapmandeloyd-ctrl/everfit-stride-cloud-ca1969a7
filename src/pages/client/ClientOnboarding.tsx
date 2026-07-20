@@ -19,8 +19,10 @@ import SystemIntroStep from "@/components/onboarding/premium/steps/SystemIntroSt
 import AICoachIntroStep from "@/components/onboarding/premium/steps/AICoachIntroStep";
 import ProblemStep from "@/components/onboarding/premium/steps/ProblemStep";
 import ApexPrincipleStep from "@/components/onboarding/premium/steps/ApexPrincipleStep";
-import SynergyEducationStep from "@/components/onboarding/premium/steps/SynergyEducationStep";
 import WhyPairingStep from "@/components/onboarding/premium/steps/WhyPairingStep";
+import FastingProtocolsStep from "@/components/onboarding/premium/steps/FastingProtocolsStep";
+import FuelStylesStep from "@/components/onboarding/premium/steps/FuelStylesStep";
+import QuickCheckStep from "@/components/onboarding/premium/steps/QuickCheckStep";
 import DailyRhythmStep, { type DailyRhythmData } from "@/components/onboarding/premium/steps/DailyRhythmStep";
 import FuelPreferenceStep, { type FuelPreferenceData } from "@/components/onboarding/premium/steps/FuelPreferenceStep";
 import MotivationStep from "@/components/onboarding/premium/steps/MotivationStep";
@@ -34,7 +36,7 @@ import {
 import { recommendSynergy } from "@/lib/onboarding/synergyRecommender";
 import type { SynergyKey } from "@/lib/onboarding/synergies";
 
-const TOTAL = 17;
+const TOTAL = 19;
 
 interface OnboardingState {
   age: number;
@@ -262,10 +264,12 @@ export default function ClientOnboarding() {
       {step === 3 && <ProblemStep onNext={next} />}
       {step === 4 && <ApexPrincipleStep onNext={next} />}
       {step === 5 && <WhyPairingStep onNext={next} />}
-      {step === 6 && <SynergyEducationStep onNext={next} />}
-      {step === 7 && <AICoachIntroStep onNext={next} />}
-      {step === 8 && <WelcomeStep onNext={next} />}
-      {step === 9 && (
+      {step === 6 && <FastingProtocolsStep onNext={next} />}
+      {step === 7 && <FuelStylesStep onNext={next} />}
+      {step === 8 && <QuickCheckStep onNext={next} />}
+      {step === 9 && <AICoachIntroStep onNext={next} />}
+      {step === 10 && <WelcomeStep onNext={next} />}
+      {step === 11 && (
         <BodyMetricsStep
           initial={{
             age: state.age,
@@ -280,7 +284,7 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 10 && (
+      {step === 12 && (
         <ActivityLevelStep
           initial={state.activity}
           onNext={(a) => {
@@ -289,7 +293,7 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 11 && (
+      {step === 13 && (
         <GoalsStep
           initial={state.goals}
           onNext={(g) => {
@@ -298,7 +302,7 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 12 && (
+      {step === 14 && (
         <FastingExperienceStep
           initial={state.fastingExperience}
           onNext={(d) => {
@@ -307,7 +311,7 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 13 && (
+      {step === 15 && (
         <DailyRhythmStep
           initial={state.dailyRhythm}
           onNext={(d) => {
@@ -316,7 +320,7 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 14 && (
+      {step === 16 && (
         <FuelPreferenceStep
           initial={state.fuelPreference}
           onNext={(d) => {
@@ -325,7 +329,7 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 15 && (
+      {step === 17 && (
         <MotivationStep
           initial={state.motivation}
           onNext={(m) => {
@@ -334,7 +338,7 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 16 && snap && (
+      {step === 18 && snap && (
         <MetabolicSnapshotStep
           snap={snap}
           bmi={snap.bmi}
@@ -343,7 +347,7 @@ export default function ClientOnboarding() {
           onNext={next}
         />
       )}
-      {step === 17 && (
+      {step === 19 && (
         <AIPlanProposalStep
           clientId={clientId ?? null}
           onboardingPayload={onboardingPayload}
