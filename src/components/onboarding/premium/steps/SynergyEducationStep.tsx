@@ -128,21 +128,7 @@ export default function SynergyEducationStep({
     );
   }
 
-  // Slide 4: Why Pairing Matters
-  if (slide === 4) {
-    return (
-      <Slide
-        eyebrow="Why Pairing Matters"
-        title="FAST + FUEL compounds results."
-        body="Wrong pairing = stalled progress. Right pairing = fat adaptation accelerates, cravings vanish, energy stabilizes. This is what your APEX360 program solves."
-        visual={<PlateauVsCompound />}
-        cta="Continue"
-        onCta={advance}
-      />
-    );
-  }
-
-  // Slide 5: Knowledge Check
+  // Slide 4: Knowledge Check
   if (slide === 5) {
     const isCorrect = pickedAnswer && Q_OPTIONS.find((o) => o.id === pickedAnswer)?.correct;
     return (
