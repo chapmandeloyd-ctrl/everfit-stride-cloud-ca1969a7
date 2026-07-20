@@ -243,9 +243,15 @@ export default function TrainerDashboard() {
     <DashboardLayout>
       <div className="p-6 space-y-6">
         {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Trainer Dashboard</h1>
-          <p className="text-muted-foreground mt-1">Monitor your clients' progress and activity</p>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Trainer Dashboard</h1>
+            <p className="text-muted-foreground mt-1">Monitor your clients' progress and activity</p>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => navigate("/client/onboarding")}>
+            Preview Client Onboarding
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
         </div>
 
         {/* Stats Grid */}
