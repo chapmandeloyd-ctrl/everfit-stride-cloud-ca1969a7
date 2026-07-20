@@ -19,8 +19,10 @@ import SystemIntroStep from "@/components/onboarding/premium/steps/SystemIntroSt
 import AICoachIntroStep from "@/components/onboarding/premium/steps/AICoachIntroStep";
 import ProblemStep from "@/components/onboarding/premium/steps/ProblemStep";
 import ApexPrincipleStep from "@/components/onboarding/premium/steps/ApexPrincipleStep";
-import SynergyEducationStep from "@/components/onboarding/premium/steps/SynergyEducationStep";
 import WhyPairingStep from "@/components/onboarding/premium/steps/WhyPairingStep";
+import FastingProtocolsStep from "@/components/onboarding/premium/steps/FastingProtocolsStep";
+import FuelStylesStep from "@/components/onboarding/premium/steps/FuelStylesStep";
+import QuickCheckStep from "@/components/onboarding/premium/steps/QuickCheckStep";
 import DailyRhythmStep, { type DailyRhythmData } from "@/components/onboarding/premium/steps/DailyRhythmStep";
 import FuelPreferenceStep, { type FuelPreferenceData } from "@/components/onboarding/premium/steps/FuelPreferenceStep";
 import MotivationStep from "@/components/onboarding/premium/steps/MotivationStep";
