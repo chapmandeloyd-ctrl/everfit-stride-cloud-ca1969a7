@@ -32,7 +32,7 @@ import {
 import { recommendSynergy } from "@/lib/onboarding/synergyRecommender";
 import type { SynergyKey } from "@/lib/onboarding/synergies";
 
-const TOTAL = 14;
+const TOTAL = 15;
 
 interface OnboardingState {
   age: number;
