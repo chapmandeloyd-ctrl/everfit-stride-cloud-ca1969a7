@@ -244,7 +244,7 @@ const App = () => (
           <Route path="/client/explore/content/:id" element={<ProtectedRoute allowedRoles={["client"]}><ClientExploreContent /></ProtectedRoute>} />
           <Route path="/client/explore/challenge/:id" element={<ProtectedRoute allowedRoles={["client"]}><ClientExploreChallenge /></ProtectedRoute>} />
           <Route path="/client/explore/style-preview" element={<ProtectedRoute allowedRoles={["client"]}><ExploreStylePreview /></ProtectedRoute>} />
-          <Route path="/client/onboarding" element={<ProtectedRoute allowedRoles={["client"]}><ClientOnboarding /></ProtectedRoute>} />
+          <Route path="/client/onboarding" element={<ProtectedRoute allowedRoles={["client", "trainer"]}><ClientOnboarding /></ProtectedRoute>} />
           <Route path="/client/workouts" element={<Navigate to="/client/dashboard" replace />} />
           <Route path="/client/progress" element={<Navigate to="/client/dashboard" replace />} />
           <Route path="/client/meal-plan" element={<Navigate to="/client/dashboard" replace />} />
