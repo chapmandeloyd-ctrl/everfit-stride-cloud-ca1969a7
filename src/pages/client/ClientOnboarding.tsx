@@ -95,7 +95,6 @@ export default function ClientOnboarding() {
         activity: state.activity,
         goals: state.goals,
         fastingExperience: state.fastingExperience,
-        coachingStyle: state.coachingStyle,
         hasBodyMetrics: !!(state.heightCm && state.weightKg),
       }),
     [state],
@@ -124,7 +123,7 @@ export default function ClientOnboarding() {
   };
 
   const finalize = async (target: "dashboard") => {
-    if (!clientId || !snap || !state.activity || !state.synergy || !state.coachingStyle) {
+    if (!clientId || !snap || !state.activity || !state.synergy) {
       toast.error("Missing onboarding data");
       return;
     }
@@ -158,7 +157,7 @@ export default function ClientOnboarding() {
         {
           client_id: clientId,
           synergy_key: state.synergy,
-          coaching_style: state.coachingStyle,
+          coaching_style: "ai",
           recommended_synergy: recommended,
           selected_at: new Date().toISOString(),
         },
@@ -261,16 +260,13 @@ export default function ClientOnboarding() {
       {step === 8 && <SystemIntroStep onNext={next} />}
       {step === 9 && (
         <CoachingStyleStep
-          initial={state.coachingStyle}
-          onNext={(s) => {
-            persistDraft({ coachingStyle: s });
+          onNext={() => {
             next();
           }}
         />
       )}
-      {step === 10 && state.coachingStyle && (
+      {step === 10 && (
         <SynergyEducationStep
-          coachingStyle={state.coachingStyle}
           onNext={next}
         />
       )}
