@@ -249,6 +249,7 @@ export default function ClientOnboarding() {
       bmi: snap?.bmi ?? null,
       metabolicScore: snap?.metabolicScore ?? null,
       fastingExperience: state.fastingExperience,
+      fastType: state.fastType,
       dailyRhythm: state.dailyRhythm,
       fuelPreference: state.fuelPreference,
       motivation: state.motivation,
