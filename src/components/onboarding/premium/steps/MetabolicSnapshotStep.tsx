@@ -21,7 +21,7 @@ export default function MetabolicSnapshotStep({
   snap: MetabolicSnapshot;
   bmiClass: string;
   bmi: number;
-  sex: "male" | "female" | "other";
+  sex: "male" | "female";
   onNext: () => void;
 }) {
   return (
