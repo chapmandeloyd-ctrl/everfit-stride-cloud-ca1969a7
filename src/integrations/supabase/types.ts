@@ -148,6 +148,51 @@ export type Database = {
           },
         ]
       }
+      ai_plan_proposals: {
+        Row: {
+          client_id: string
+          created_at: string
+          expectations: Json
+          id: string
+          model: string | null
+          onboarding_snapshot: Json
+          plan: Json
+          reasoning: Json
+          regenerate_reason: string | null
+          schedule_breakdown: Json
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          expectations?: Json
+          id?: string
+          model?: string | null
+          onboarding_snapshot?: Json
+          plan?: Json
+          reasoning?: Json
+          regenerate_reason?: string | null
+          schedule_breakdown?: Json
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          expectations?: Json
+          id?: string
+          model?: string | null
+          onboarding_snapshot?: Json
+          plan?: Json
+          reasoning?: Json
+          regenerate_reason?: string | null
+          schedule_breakdown?: Json
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       appointment_types: {
         Row: {
           color: string | null
