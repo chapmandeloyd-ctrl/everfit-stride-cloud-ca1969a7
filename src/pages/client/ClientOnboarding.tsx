@@ -67,6 +67,7 @@ const INITIAL: OnboardingState = {
   goals: [],
   fastingExperience: null,
   synergy: null,
+  fastType: null,
   dailyRhythm: null,
   fuelPreference: null,
   motivation: "",
