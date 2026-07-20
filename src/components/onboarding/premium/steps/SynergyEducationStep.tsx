@@ -129,7 +129,7 @@ export default function SynergyEducationStep({
   }
 
   // Slide 4: Knowledge Check
-  if (slide === 5) {
+  if (slide === 4) {
     const isCorrect = pickedAnswer && Q_OPTIONS.find((o) => o.id === pickedAnswer)?.correct;
     return (
       <SlideShell
