@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Check, Clock, Zap, Activity, Sparkles, ChevronRight, Repeat, Flame, Scale, Dumbbell, X } from "lucide-react";
-import PlateauVsCompound from "../education/PlateauVsCompound";
 
 const PROTOCOLS = [
   { name: "16:8", icon: Clock, effect: "Daily fat adaptation & insulin reset" },
