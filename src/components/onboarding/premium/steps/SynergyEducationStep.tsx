@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Check, Clock, Flame, Leaf, Zap, Activity, Sparkles, ChevronRight, Repeat, Beef, X } from "lucide-react";
+import { Check, Clock, Zap, Activity, Sparkles, ChevronRight, Repeat, Flame, Scale, Dumbbell, X } from "lucide-react";
 import InterlockingRings from "../education/InterlockingRings";
 import PlateauVsCompound from "../education/PlateauVsCompound";
 
@@ -13,17 +13,16 @@ const PROTOCOLS = [
   { name: "Extended", icon: Sparkles, effect: "Deep healing & immune renewal" },
 ];
 
-const KETO_TYPES = [
-  { name: "Standard", icon: Leaf, who: "Steady fat loss, simple to follow" },
-  { name: "Targeted", icon: Activity, who: "Active people timing carbs to training" },
-  { name: "Cyclical", icon: Repeat, who: "Athletes needing carb refeed days" },
-  { name: "High-Protein", icon: Beef, who: "Muscle preservation while cutting" },
-  { name: "Lazy", icon: Leaf, who: "Carb-aware without strict tracking" },
-  { name: "Clean", icon: Sparkles, who: "Whole-food, anti-inflammatory focus" },
+const FUEL_STYLES = [
+  { name: "Balance", icon: Scale, who: "Sustainable everyday eating — steady energy, no extremes" },
+  { name: "Performance", icon: Activity, who: "Carbs timed around training for output and recovery" },
+  { name: "Lean", icon: Flame, who: "Aggressive fat loss with a tighter calorie & carb ceiling" },
+  { name: "Recomp", icon: Dumbbell, who: "Protein-led fueling to build muscle while losing fat" },
+  { name: "Extreme", icon: Zap, who: "Deep metabolic reset — lowest carbs, highest discipline" },
 ];
 
 const Q_OPTIONS = [
-  { id: "wrong", label: "The wrong pairing stalls progress — the right pairing compounds results.", correct: true },
+  { id: "wrong", label: "When you eat and how you fuel have to work together — out of sync, you stall.", correct: true },
   { id: "either", label: "It doesn't really matter — fasting alone is enough.", correct: false },
 ];
 
@@ -43,7 +42,7 @@ export default function SynergyEducationStep({
       <Slide
         eyebrow="The Problem"
         title="Most plans plateau."
-        body="Fasting alone works. Keto alone works. But most people stall because they're running them out of sync — fighting their own biology instead of compounding it."
+        body="Fasting alone works. Fueling right alone works. But most people stall because they're running them out of sync — timing and nutrition fighting each other instead of compounding."
         visual={<InterlockingRings mode="separated" />}
         cta="Continue"
         onCta={advance}
@@ -55,9 +54,9 @@ export default function SynergyEducationStep({
   if (slide === 1) {
     return (
       <Slide
-        eyebrow="The APEX360-IF360 Principle"
-        title="360° Metabolic Control."
-        body="The right Fasting Protocol × the right Keto Type × your biology. When all three lock in, your metabolism works for you instead of against you."
+        eyebrow="The APEX360 Principle"
+        title="FAST + FUEL. One system."
+        body="The right Fasting Protocol × the right Fuel Style × your biology. When all three lock in, your metabolism works for you instead of against you."
         visual={<InterlockingRings mode="locked" />}
         cta="Continue"
         onCta={advance}
@@ -97,16 +96,16 @@ export default function SynergyEducationStep({
     );
   }
 
-  // Slide 3: Keto Types
+  // Slide 3: Fuel Styles
   if (slide === 3) {
     return (
       <SlideShell
-        eyebrow="Keto Types"
-        title="Six ways to fuel."
-        subtitle="Not all keto is the same. The right type depends on activity, goals, and how your body responds."
+        eyebrow="Fuel Styles"
+        title="Five ways to fuel."
+        subtitle="Not all eating is the same. The right style depends on activity, goals, and how your body responds."
       >
         <div className="grid grid-cols-1 gap-2">
-          {KETO_TYPES.map((k) => {
+          {FUEL_STYLES.map((k) => {
             const Icon = k.icon;
             return (
               <div
@@ -134,8 +133,8 @@ export default function SynergyEducationStep({
     return (
       <Slide
         eyebrow="Why Pairing Matters"
-        title="Pairing compounds results."
-        body="Wrong pairing = stalled progress. Right pairing = fat adaptation accelerates, cravings vanish, energy stabilizes. This is what your synergy program solves."
+        title="FAST + FUEL compounds results."
+        body="Wrong pairing = stalled progress. Right pairing = fat adaptation accelerates, cravings vanish, energy stabilizes. This is what your APEX360 program solves."
         visual={<PlateauVsCompound />}
         cta="Continue"
         onCta={advance}
@@ -194,8 +193,8 @@ export default function SynergyEducationStep({
             }`}
           >
             {isCorrect
-              ? "Exactly. Synergy is what turns two good tools into one compounding system."
-              : "Close — but pairing is everything. Fasting alone hits a ceiling. The right keto pairing breaks through it."}
+              ? "Exactly. FAST + FUEL is what turns two good tools into one compounding system."
+              : "Close — but pairing is everything. Fasting alone hits a ceiling. The right Fuel Style breaks through it."}
           </div>
         )}
         <FooterCta label="Continue" onClick={advance} disabled={!pickedAnswer} />
@@ -208,7 +207,7 @@ export default function SynergyEducationStep({
     <Slide
       eyebrow="Your Path"
       title="Your AI Coach takes it from here."
-      body="APEX360 AI is reviewing your metabolic profile. Your synergy program will be assigned and adjusted as you progress."
+      body="APEX360 AI is reviewing your metabolic profile. Your FAST + FUEL program will be assigned and adjusted as you progress."
       visual={<InterlockingRings mode="locked" size={200} />}
       cta="Confirm & Continue"
       onCta={onNext}
