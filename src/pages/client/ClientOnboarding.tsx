@@ -17,6 +17,8 @@ import FastingExperienceStep, {
 import MetabolicSnapshotStep from "@/components/onboarding/premium/steps/MetabolicSnapshotStep";
 import SystemIntroStep from "@/components/onboarding/premium/steps/SystemIntroStep";
 import AICoachIntroStep from "@/components/onboarding/premium/steps/AICoachIntroStep";
+import ProblemStep from "@/components/onboarding/premium/steps/ProblemStep";
+import ApexPrincipleStep from "@/components/onboarding/premium/steps/ApexPrincipleStep";
 import SynergyEducationStep from "@/components/onboarding/premium/steps/SynergyEducationStep";
 import WhyPairingStep from "@/components/onboarding/premium/steps/WhyPairingStep";
 import DailyRhythmStep, { type DailyRhythmData } from "@/components/onboarding/premium/steps/DailyRhythmStep";
