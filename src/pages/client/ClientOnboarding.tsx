@@ -51,6 +51,7 @@ interface OnboardingState {
   goals: string[];
   fastingExperience: FastingExperienceData | null;
   synergy: SynergyKey | null;
+  fastType: FastType | null;
   dailyRhythm: DailyRhythmData | null;
   fuelPreference: FuelPreferenceData | null;
   motivation: string;
