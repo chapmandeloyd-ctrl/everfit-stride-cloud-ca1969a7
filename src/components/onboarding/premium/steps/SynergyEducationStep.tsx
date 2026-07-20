@@ -68,8 +68,8 @@ export default function SynergyEducationStep({
     );
   }
 
-  // Slide 3: Fuel Styles
-  if (slide === 3) {
+  // Slide 1: Fuel Styles
+  if (slide === 1) {
     return (
       <SlideShell
         eyebrow="Fuel Styles"
