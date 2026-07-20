@@ -177,7 +177,6 @@ export default function ClientOnboarding() {
           protocol_start_date: new Date().toISOString().slice(0, 10),
           assigned_protocol_duration_days: proposal.duration_days,
           protocol_run_mode: "recurring",
-          fuel_style: proposal.fuel_style,
         },
         { onConflict: "client_id" },
       );
