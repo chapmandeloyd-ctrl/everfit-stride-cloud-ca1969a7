@@ -158,7 +158,6 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId, onDraftStateC
         selected_quick_plan_id: null,
         quick_plan_duration_days: null,
         protocol_assigned_by: trainerId,
-        active_fast_target_hours: null,
       };
       const { data: existing } = await supabase
         .from("client_feature_settings")
