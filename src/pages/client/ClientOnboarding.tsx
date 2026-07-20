@@ -256,7 +256,10 @@ export default function ClientOnboarding() {
     >
       {step === 1 && <IntroStep onNext={next} />}
       {step === 2 && <WelcomeStep onNext={next} />}
-      {step === 3 && (
+      {step === 3 && <SystemIntroStep onNext={next} />}
+      {step === 4 && <SynergyEducationStep onNext={next} />}
+      {step === 5 && <CoachingStyleStep onNext={next} />}
+      {step === 6 && (
         <BodyMetricsStep
           initial={{
             age: state.age,
@@ -271,7 +274,7 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 4 && (
+      {step === 7 && (
         <ActivityLevelStep
           initial={state.activity}
           onNext={(a) => {
@@ -280,7 +283,7 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 5 && (
+      {step === 8 && (
         <GoalsStep
           initial={state.goals}
           onNext={(g) => {
@@ -289,7 +292,7 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 6 && (
+      {step === 9 && (
         <FastingExperienceStep
           initial={state.fastingExperience}
           onNext={(d) => {
@@ -298,7 +301,7 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 7 && (
+      {step === 10 && (
         <DailyRhythmStep
           initial={state.dailyRhythm}
           onNext={(d) => {
@@ -307,7 +310,7 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 8 && (
+      {step === 11 && (
         <FuelPreferenceStep
           initial={state.fuelPreference}
           onNext={(d) => {
@@ -316,7 +319,7 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 9 && (
+      {step === 12 && (
         <MotivationStep
           initial={state.motivation}
           onNext={(m) => {
@@ -325,25 +328,12 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 10 && snap && (
+      {step === 13 && snap && (
         <MetabolicSnapshotStep
           snap={snap}
           bmi={snap.bmi}
           bmiClass={snap.bmiClass}
           sex={state.sex}
-          onNext={next}
-        />
-      )}
-      {step === 11 && <SystemIntroStep onNext={next} />}
-      {step === 12 && (
-        <CoachingStyleStep
-          onNext={() => {
-            next();
-          }}
-        />
-      )}
-      {step === 13 && (
-        <SynergyEducationStep
           onNext={next}
         />
       )}
