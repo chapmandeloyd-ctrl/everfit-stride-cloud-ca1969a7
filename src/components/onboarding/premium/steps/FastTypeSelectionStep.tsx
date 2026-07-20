@@ -14,18 +14,18 @@ interface FastTypeSelectionStepProps {
 
 const OPTIONS = [
   {
-    id: "long" as FastType,
-    title: "Long Fast",
-    description: "For extended fasting (e.g. 1–5 days)",
-    icon: Calendar,
-    highlight: "Deep metabolic reset",
+    id: "intermittent" as FastType,
+    title: "Daily Window Fast",
+    description: "Eat every day inside a timed window — 14:10, 16:8, 18:6, 20:4, OMAD",
+    icon: Clock,
+    highlight: "Beginner → advanced daily rhythm",
   },
   {
-    id: "intermittent" as FastType,
-    title: "Intermittent Fast",
-    description: "For daily patterns like 16:8 or OMAD",
-    icon: Clock,
-    highlight: "Daily rhythm & consistency",
+    id: "long" as FastType,
+    title: "Extended Fast",
+    description: "No food for a continuous stretch — 24h, 36h, 48h, 72h, 5-day",
+    icon: Calendar,
+    highlight: "Advanced metabolic reset",
   },
 ];
 
@@ -53,10 +53,10 @@ export default function FastTypeSelectionStep({
             Choose Your Path
           </div>
           <h2 className="text-3xl font-semibold leading-tight tracking-tight">
-            Long or Intermittent?
+            Daily Window or Extended?
           </h2>
           <p className="mx-auto max-w-sm text-base leading-relaxed text-white/70">
-            What type of fast do you want to start?
+            Choose the fasting structure that fits your experience and lifestyle.
           </p>
         </div>
       </div>

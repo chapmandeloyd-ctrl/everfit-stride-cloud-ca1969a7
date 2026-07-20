@@ -281,7 +281,9 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 9 && <FastingProtocolsStep onNext={next} />}
+      {step === 9 && state.fastType && (
+        <FastingProtocolsStep fastType={state.fastType} onNext={next} />
+      )}
       {step === 10 && <FuelStylesStep onNext={next} />}
       {step === 11 && (
         <BodyMetricsStep
