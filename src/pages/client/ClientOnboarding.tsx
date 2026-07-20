@@ -18,6 +18,7 @@ import MetabolicSnapshotStep from "@/components/onboarding/premium/steps/Metabol
 import SystemIntroStep from "@/components/onboarding/premium/steps/SystemIntroStep";
 import AICoachIntroStep from "@/components/onboarding/premium/steps/AICoachIntroStep";
 import SynergyEducationStep from "@/components/onboarding/premium/steps/SynergyEducationStep";
+import WhyPairingStep from "@/components/onboarding/premium/steps/WhyPairingStep";
 import DailyRhythmStep, { type DailyRhythmData } from "@/components/onboarding/premium/steps/DailyRhythmStep";
 import FuelPreferenceStep, { type FuelPreferenceData } from "@/components/onboarding/premium/steps/FuelPreferenceStep";
 import MotivationStep from "@/components/onboarding/premium/steps/MotivationStep";
