@@ -1,32 +1,62 @@
 import { Button } from "@/components/ui/button";
-import { ChevronRight, Clock, Zap, Activity, Sparkles, Repeat } from "lucide-react";
+import { ChevronRight, Clock, Zap, Sparkles, Sunrise, Sunset } from "lucide-react";
+import type { FastType } from "./FastTypeSelectionStep";
 
-const PROTOCOLS = [
+const INTERMITTENT_PROTOCOLS = [
+  { name: "14:10", icon: Sunrise, effect: "Gentle introduction — steady energy and appetite control" },
   { name: "16:8", icon: Clock, effect: "Daily fat adaptation & insulin reset" },
   { name: "18:6", icon: Clock, effect: "Deeper ketosis, sharper focus" },
+  { name: "20:4", icon: Sunset, effect: "Warrior window — aggressive fat burning" },
   { name: "OMAD", icon: Zap, effect: "Maximum autophagy & cellular repair" },
-  { name: "ADF", icon: Repeat, effect: "Aggressive fat loss, full reset days" },
-  { name: "5:2", icon: Activity, effect: "Sustainable long-term metabolic flex" },
-  { name: "Extended", icon: Sparkles, effect: "Deep healing & immune renewal" },
 ];
 
-export default function FastingProtocolsStep({ onNext }: { onNext: () => void }) {
+const EXTENDED_PROTOCOLS = [
+  { name: "24h", icon: Clock, effect: "Full digestive reset and glycogen depletion" },
+  { name: "36h", icon: Clock, effect: "Deep ketosis and mental clarity" },
+  { name: "48h", icon: Sparkles, effect: "Autophagy activation and immune refresh" },
+  { name: "72h", icon: Sparkles, effect: "3-day deep metabolic and cellular renewal" },
+  { name: "5-Day Extended", icon: Sparkles, effect: "Maximum healing, immune reset, and metabolic rebuild" },
+];
+
+const HEADERS: Record<FastType, { eyebrow: string; title: string; subtitle: string }> = {
+  intermittent: {
+    eyebrow: "Daily Window Fasting",
+    title: "Five daily windows to build around.",
+    subtitle: "From beginner-friendly 14:10 all the way to OMAD. Your Apex360 AI will pick the window that fits your biology.",
+  },
+  long: {
+    eyebrow: "Extended Fasting",
+    title: "Five advanced fast lengths.",
+    subtitle: "Continuous fasts from 24 hours up to 5 days. Your Apex360 AI will recommend the safest duration for your experience level.",
+  },
+};
+
+export default function FastingProtocolsStep({
+  fastType,
+  onNext,
+}: {
+  fastType: FastType;
+  onNext: () => void;
+}) {
+  const protocols = fastType === "intermittent" ? INTERMITTENT_PROTOCOLS : EXTENDED_PROTOCOLS;
+  const header = HEADERS[fastType];
+
   return (
     <div className="flex h-full flex-col gap-5 animate-fade-in">
       <div>
         <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[hsl(var(--primary))]">
-          Fasting Protocols
+          {header.eyebrow}
         </div>
         <h2 className="mt-2 text-3xl font-semibold leading-tight tracking-tight">
-          Six ways to time your fast.
+          {header.title}
         </h2>
         <p className="mt-3 text-base leading-relaxed text-white/70">
-          Each protocol triggers a different metabolic effect. Your synergy uses the one matched to your biology.
+          {header.subtitle}
         </p>
       </div>
 
       <div className="grid grid-cols-1 gap-2">
-        {PROTOCOLS.map((p) => {
+        {protocols.map((p) => {
           const Icon = p.icon;
           return (
             <div
