@@ -37,7 +37,7 @@ export default function SynergyEducationStep({
   const advance = () => setSlide((s) => s + 1);
 
   // Slide 0: Fasting Protocols
-  if (slide === 2) {
+  if (slide === 0) {
     return (
       <SlideShell
         eyebrow="Fasting Protocols"
