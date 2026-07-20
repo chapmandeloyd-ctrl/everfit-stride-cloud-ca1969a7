@@ -39,7 +39,6 @@ interface OnboardingState {
   activity: ActivityLevel | null;
   goals: string[];
   fastingExperience: FastingExperienceData | null;
-  coachingStyle: "guided" | "self" | null;
   synergy: SynergyKey | null;
 }
 
@@ -52,7 +51,6 @@ const INITIAL: OnboardingState = {
   activity: null,
   goals: [],
   fastingExperience: null,
-  coachingStyle: null,
   synergy: null,
 };
 
