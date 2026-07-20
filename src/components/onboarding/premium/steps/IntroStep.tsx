@@ -44,9 +44,6 @@ export default function IntroStep({ onNext }: { onNext: () => void }) {
           <p className="mb-4">
             My APEX360 AI will teach you which carbs to consume, and most importantly <strong className="text-white">when</strong> to consume them. My APEX360 AI will design your entire plan and keep you accountable.
           </p>
-          <p className="text-center font-semibold text-white/90">
-            LET'S GET STARTED!!
-          </p>
         </div>
       </div>
 
