@@ -21,7 +21,6 @@ interface Props {
 const SEX_OPTIONS: { key: Sex; label: string }[] = [
   { key: "male", label: "Male" },
   { key: "female", label: "Female" },
-  { key: "other", label: "Other" },
 ];
 
 export default function BodyMetricsStep({ initial, onNext }: Props) {
