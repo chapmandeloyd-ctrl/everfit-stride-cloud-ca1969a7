@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
+import { useAuth } from "@/hooks/useAuth";
+import { useImpersonation } from "@/hooks/useImpersonation";
 import { supabase } from "@/integrations/supabase/client";
 import OnboardingShell from "@/components/onboarding/premium/OnboardingShell";
 import IntroStep from "@/components/onboarding/premium/steps/IntroStep";
@@ -57,6 +59,14 @@ const INITIAL: OnboardingState = {
 export default function ClientOnboarding() {
   const navigate = useNavigate();
   const clientId = useEffectiveClientId();
+  const { userRole } = useAuth();
+  const { impersonatedClientId } = useImpersonation();
+  const [searchParams] = useSearchParams();
+  // Preview mode: trainer viewing the flow without impersonating a client, or explicit ?preview=1.
+  // In preview mode we skip all database writes so the trainer's own account is never mutated.
+  const isPreview =
+    searchParams.get("preview") === "1" ||
+    (userRole === "trainer" && !impersonatedClientId);
   const [step, setStep] = useState(1);
   const [state, setState] = useState<OnboardingState>(INITIAL);
   const [loading, setLoading] = useState(false);
@@ -104,9 +114,9 @@ export default function ClientOnboarding() {
   const back = step > 1 ? () => setStep((s) => Math.max(1, s - 1)) : undefined;
 
   const persistDraft = async (partial: Partial<OnboardingState>) => {
-    if (!clientId) return;
     const merged = { ...state, ...partial };
     setState(merged);
+    if (!clientId || isPreview) return;
     try {
       await (supabase as any).from("onboarding_progress").upsert(
         {
@@ -123,7 +133,16 @@ export default function ClientOnboarding() {
   };
 
   const finalize = async (target: "dashboard") => {
-    if (!clientId || !snap || !state.activity || !state.synergy) {
+    if (!snap || !state.activity || !state.synergy) {
+      toast.error("Missing onboarding data");
+      return;
+    }
+    if (isPreview) {
+      toast.success("Preview complete — no data was saved");
+      navigate("/trainer");
+      return;
+    }
+    if (!clientId) {
       toast.error("Missing onboarding data");
       return;
     }
