@@ -21,6 +21,9 @@ import { PushNotificationStatusPanel } from "./PushNotificationStatusPanel";
 import { AdminTestingToggles } from "./AdminTestingToggles";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+
+const ADMIN_EMAILS = ["apex360if@gmail.com"];
 
 interface CoachCommandCenterTabProps {
   clientId: string;
@@ -29,6 +32,8 @@ interface CoachCommandCenterTabProps {
 
 export function CoachCommandCenterTab({ clientId, trainerId }: CoachCommandCenterTabProps) {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const isAdmin = !!user?.email && ADMIN_EMAILS.includes(user.email.toLowerCase());
 
   // Fetch settings for InsightCoachControls + parent link visibility
   const { data: settings } = useQuery({
@@ -75,7 +80,7 @@ export function CoachCommandCenterTab({ clientId, trainerId }: CoachCommandCente
   return (
     <div className="space-y-6">
       {/* Admin-only per-client testing toggles */}
-      <AdminTestingToggles clientId={clientId} />
+      {isAdmin && <AdminTestingToggles clientId={clientId} />}
 
       {/* Motivation & Journal (client's "Why" + shared entries) */}
       <CoachMotivationPanel clientId={clientId} trainerId={trainerId} />
