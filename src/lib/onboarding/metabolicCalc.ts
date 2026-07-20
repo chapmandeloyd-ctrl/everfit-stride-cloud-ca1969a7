@@ -1,4 +1,4 @@
-export type Sex = "male" | "female" | "other";
+export type Sex = "male" | "female";
 export type ActivityLevel = "sedentary" | "lightly" | "moderately" | "highly" | "athlete";
 export type BmiClass =
   | "Underweight"
