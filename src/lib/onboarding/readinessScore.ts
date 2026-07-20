@@ -5,7 +5,6 @@ interface ReadinessInput {
   activity: ActivityLevel | null;
   goals: string[];
   fastingExperience: FastingExperienceData | null;
-  coachingStyle: "guided" | "self" | null;
   hasBodyMetrics: boolean;
 }
 
@@ -58,6 +57,9 @@ export function computeReadinessScore(input: ReadinessInput): number {
 
   // Body metrics floor
   if (input.hasBodyMetrics) score += 0;
+
+  // AI coaching is now the default path
+  score += 2;
 
   return Math.max(0, Math.min(100, Math.round(score)));
 }

@@ -4,8 +4,6 @@ import { Check, Clock, Flame, Leaf, Zap, Activity, Sparkles, ChevronRight, Repea
 import InterlockingRings from "../education/InterlockingRings";
 import PlateauVsCompound from "../education/PlateauVsCompound";
 
-type Style = "guided" | "self";
-
 const PROTOCOLS = [
   { name: "16:8", icon: Clock, effect: "Daily fat adaptation & insulin reset" },
   { name: "18:6", icon: Clock, effect: "Deeper ketosis, sharper focus" },
@@ -30,10 +28,8 @@ const Q_OPTIONS = [
 ];
 
 export default function SynergyEducationStep({
-  coachingStyle,
   onNext,
 }: {
-  coachingStyle: Style;
   onNext: () => void;
 }) {
   const [slide, setSlide] = useState(0);
@@ -211,14 +207,10 @@ export default function SynergyEducationStep({
   return (
     <Slide
       eyebrow="Your Path"
-      title={coachingStyle === "guided" ? "Your coach takes it from here." : "Now choose your synergy."}
-      body={
-        coachingStyle === "guided"
-          ? "Your coach is reviewing your metabolic profile. Your synergy program will be assigned and adjusted as you progress."
-          : "We'll recommend the synergy that matches your goal. You can switch protocols anytime as your body adapts."
-      }
+      title="Your AI Coach takes it from here."
+      body="APEX360 AI is reviewing your metabolic profile. Your synergy program will be assigned and adjusted as you progress."
       visual={<InterlockingRings mode="locked" size={200} />}
-      cta={coachingStyle === "guided" ? "Confirm & Continue" : "Choose My Synergy"}
+      cta="Confirm & Continue"
       onCta={onNext}
     />
   );
