@@ -264,9 +264,9 @@ export default function ClientOnboarding() {
       {step === 3 && <ProblemStep onNext={next} />}
       {step === 4 && <ApexPrincipleStep onNext={next} />}
       {step === 5 && <WhyPairingStep onNext={next} />}
-      {step === 6 && <FastingProtocolsStep onNext={next} />}
-      {step === 7 && <FuelStylesStep onNext={next} />}
-      {step === 8 && <QuickCheckStep onNext={next} />}
+      {step === 6 && <QuickCheckStep onNext={next} />}
+      {step === 7 && <FastingProtocolsStep onNext={next} />}
+      {step === 8 && <FuelStylesStep onNext={next} />}
       {step === 9 && <AICoachIntroStep onNext={next} />}
       {step === 10 && <WelcomeStep onNext={next} />}
       {step === 11 && (
