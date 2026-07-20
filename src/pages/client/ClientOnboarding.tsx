@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { supabase } from "@/integrations/supabase/client";
 import OnboardingShell from "@/components/onboarding/premium/OnboardingShell";
+import IntroStep from "@/components/onboarding/premium/steps/IntroStep";
 import WelcomeStep from "@/components/onboarding/premium/steps/WelcomeStep";
 import BodyMetricsStep from "@/components/onboarding/premium/steps/BodyMetricsStep";
 import ActivityLevelStep from "@/components/onboarding/premium/steps/ActivityLevelStep";
