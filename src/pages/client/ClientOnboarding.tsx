@@ -265,9 +265,9 @@ export default function ClientOnboarding() {
       {step === 4 && <ApexPrincipleStep onNext={next} />}
       {step === 5 && <WhyPairingStep onNext={next} />}
       {step === 6 && <QuickCheckStep onNext={next} />}
-      {step === 7 && <FastingProtocolsStep onNext={next} />}
-      {step === 8 && <FuelStylesStep onNext={next} />}
-      {step === 9 && <AICoachIntroStep onNext={next} />}
+      {step === 7 && <AICoachIntroStep onNext={next} />}
+      {step === 8 && <FastingProtocolsStep onNext={next} />}
+      {step === 9 && <FuelStylesStep onNext={next} />}
       {step === 10 && (
         <BodyMetricsStep
           initial={{
