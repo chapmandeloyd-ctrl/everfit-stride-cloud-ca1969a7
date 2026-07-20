@@ -107,7 +107,7 @@ export default function InterlockingRings({
         letterSpacing="1"
         opacity="0.85"
       >
-        KETO
+        FUEL
       </text>
     </svg>
   );
