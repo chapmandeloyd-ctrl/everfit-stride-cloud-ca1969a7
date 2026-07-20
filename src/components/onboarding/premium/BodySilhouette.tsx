@@ -19,20 +19,23 @@ export default function BodySilhouette({ bmi, sex }: Props) {
           strokeLinejoin="round"
           style={{ transition: "transform 0.6s ease" }}
         >
+          {/* Head */}
           <circle cx="50" cy="22" r="12" />
+          {/* Shoulders / bust tapering to waist, then flared hips */}
           <path
-            d={`M ${50 - 10 * t} 42
-                L ${50 - 14 * t} 70
-                Q ${50 - 20 * t} 95 ${50 - 14 * t} 120
-                L ${50 - 10} 180
-                L ${50 - 2} 180
-                L ${50 - 4} 125
-                L ${50 + 4} 125
-                L ${50 + 2} 180
-                L ${50 + 10} 180
-                L ${50 + 14 * t} 120
-                Q ${50 + 20 * t} 95 ${50 + 14 * t} 70
-                L ${50 + 10 * t} 42 Z`}
+            d={`M ${50 - 12 * t} 42
+                L ${50 - 16 * t} 68
+                Q ${50 - 9 * t} 82 ${50 - 12 * t} 98
+                L ${50 - 18 * t} 120
+                L ${50 - 11} 180
+                L ${50 - 3} 180
+                L ${50 - 5} 125
+                L ${50 + 5} 125
+                L ${50 + 3} 180
+                L ${50 + 11} 180
+                L ${50 + 18 * t} 120
+                Q ${50 + 9 * t} 82 ${50 + 16 * t} 68
+                L ${50 + 12 * t} 42 Z`}
           />
         </g>
       </svg>
@@ -48,18 +51,22 @@ export default function BodySilhouette({ bmi, sex }: Props) {
         strokeLinejoin="round"
         style={{ transition: "transform 0.6s ease" }}
       >
+        {/* Head */}
         <circle cx="50" cy="22" r="12" />
+        {/* Broad shoulders, tapered torso, straight legs */}
         <path
-          d={`M ${50 - 18 * t} 42
-              Q ${50 - 22 * t} 70 ${50 - 16 * t} 110
+          d={`M ${50 - 20 * t} 42
+              L ${50 - 16 * t} 70
+              L ${50 - 12 * t} 105
               L ${50 - 10} 180
               L ${50 - 2} 180
               L ${50 - 4} 115
               L ${50 + 4} 115
               L ${50 + 2} 180
               L ${50 + 10} 180
-              L ${50 + 16 * t} 110
-              Q ${50 + 22 * t} 70 ${50 + 18 * t} 42 Z`}
+              L ${50 + 12 * t} 105
+              L ${50 + 16 * t} 70
+              L ${50 + 20 * t} 42 Z`}
         />
       </g>
     </svg>
