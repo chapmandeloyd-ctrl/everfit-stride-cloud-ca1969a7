@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Check, Clock, Zap, Activity, Sparkles, ChevronRight, Repeat, Flame, Scale, Dumbbell, X } from "lucide-react";
-import InterlockingRings from "../education/InterlockingRings";
 import PlateauVsCompound from "../education/PlateauVsCompound";
 
 const PROTOCOLS = [
