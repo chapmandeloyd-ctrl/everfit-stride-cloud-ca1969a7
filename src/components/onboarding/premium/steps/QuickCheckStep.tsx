@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ChevronRight, Clock, Flame, Scale, CheckCircle2 } from "lucide-react";
+import { ChevronRight, Clock, Flame, Scale, Moon, CheckCircle2 } from "lucide-react";
 
 const PILLARS = [
   {
@@ -30,6 +30,15 @@ const PILLARS = [
     color: "hsl(var(--primary))",
     borderColor: "hsl(var(--primary)_/_0.25)",
   },
+  {
+    id: "restore",
+    icon: Moon,
+    title: "RESTORE",
+    tagline: "Recover so the system compounds.",
+    benefit: "Sleep, stress, and nervous-system recovery — the multiplier most plans ignore.",
+    color: "hsl(250_65%_68%)",
+    borderColor: "hsl(250_65%_68%_/_0.3)",
+  },
 ];
 
 export default function QuickCheckStep({ onNext }: { onNext: () => void }) {
@@ -42,7 +51,7 @@ export default function QuickCheckStep({ onNext }: { onNext: () => void }) {
           The Complete System
         </div>
         <h2 className="mt-2 text-[26px] font-semibold leading-tight tracking-tight">
-          Three levers. One result.
+          Four levers. One result.
         </h2>
         <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-white/70">
           APEX360-IF is not a diet. It is a system that works because each part reinforces the other.
@@ -95,7 +104,7 @@ export default function QuickCheckStep({ onNext }: { onNext: () => void }) {
         <div className="space-y-1">
           <div className="text-sm font-semibold text-white/90">I understand the system.</div>
           <div className="text-xs leading-relaxed text-white/60">
-            Fasting + Fuel + Smart Tracking is the APEX360 edge. No other app connects all three.
+            Fasting + Fuel + Smart Tracking + Restore is the APEX360 edge. No other app connects all four.
           </div>
         </div>
         <div

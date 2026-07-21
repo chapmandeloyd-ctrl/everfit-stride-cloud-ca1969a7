@@ -18,8 +18,10 @@ export default function InterlockingRings({
     return () => clearInterval(id);
   }, [mode]);
 
-  const offset = mode === "locked" ? 38 : 70;
-  const r = 52;
+  const offset = mode === "locked" ? 32 : 70;
+  const r = 46;
+  const trackColor = "hsl(0 0% 92%)";
+  const restoreColor = "hsl(250 65% 68%)";
 
   return (
     <svg
@@ -50,16 +52,17 @@ export default function InterlockingRings({
         />
       )}
 
+      {/* FAST — top left */}
       <circle
         cx={120 - offset}
-        cy="84"
+        cy={84 - offset * 0.55}
         r={r}
         fill="url(#redGrad)"
         style={{ transition: "cx 0.8s ease-in-out" }}
       />
       <circle
         cx={120 - offset}
-        cy="84"
+        cy={84 - offset * 0.55}
         r={r}
         fill="none"
         stroke="hsl(var(--primary))"
@@ -69,7 +72,7 @@ export default function InterlockingRings({
       />
       <text
         x={120 - offset}
-        y="88"
+        y={88 - offset * 0.55}
         textAnchor="middle"
         fill="white"
         fontSize="11"
@@ -80,16 +83,17 @@ export default function InterlockingRings({
         FAST
       </text>
 
+      {/* FUEL — top right */}
       <circle
         cx={120 + offset}
-        cy="84"
+        cy={84 - offset * 0.55}
         r={r}
         fill="url(#tealGrad)"
         style={{ transition: "cx 0.8s ease-in-out" }}
       />
       <circle
         cx={120 + offset}
-        cy="84"
+        cy={84 - offset * 0.55}
         r={r}
         fill="none"
         stroke="hsl(174 72% 50%)"
@@ -99,7 +103,7 @@ export default function InterlockingRings({
       />
       <text
         x={120 + offset}
-        y="88"
+        y={88 - offset * 0.55}
         textAnchor="middle"
         fill="white"
         fontSize="11"
@@ -108,6 +112,52 @@ export default function InterlockingRings({
         opacity="0.85"
       >
         FUEL
+      </text>
+
+      {/* TRACK — bottom left */}
+      <circle
+        cx={120 - offset}
+        cy={84 + offset * 0.55}
+        r={r}
+        fill="none"
+        stroke={trackColor}
+        strokeWidth="2.5"
+        opacity="0.85"
+      />
+      <text
+        x={120 - offset}
+        y={88 + offset * 0.55}
+        textAnchor="middle"
+        fill="white"
+        fontSize="11"
+        fontWeight="600"
+        letterSpacing="1"
+        opacity="0.85"
+      >
+        TRACK
+      </text>
+
+      {/* RESTORE — bottom right */}
+      <circle
+        cx={120 + offset}
+        cy={84 + offset * 0.55}
+        r={r}
+        fill="none"
+        stroke={restoreColor}
+        strokeWidth="2.5"
+        opacity="0.85"
+      />
+      <text
+        x={120 + offset}
+        y={88 + offset * 0.55}
+        textAnchor="middle"
+        fill="white"
+        fontSize="11"
+        fontWeight="600"
+        letterSpacing="1"
+        opacity="0.85"
+      >
+        RESTORE
       </text>
     </svg>
   );
