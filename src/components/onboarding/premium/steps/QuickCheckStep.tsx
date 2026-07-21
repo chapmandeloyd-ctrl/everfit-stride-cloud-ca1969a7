@@ -115,10 +115,15 @@ export default function QuickCheckStep({ onNext }: { onNext: () => void }) {
               />
               <div className="relative flex items-start gap-4">
                 <div
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border"
-                  style={{ borderColor: p.borderColor, color: p.color }}
+                  className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border"
+                  style={{
+                    borderColor: p.borderColor,
+                    background: `radial-gradient(circle at 50% 50%, ${p.color.replace(")", " / 0.28)")} 0%, ${p.color.replace(")", " / 0.06)")} 70%, transparent 100%)`,
+                    boxShadow: `0 0 24px -6px ${p.color.replace(")", " / 0.55)")}, inset 0 0 12px ${p.color.replace(")", " / 0.15)")}`,
+                    color: p.color,
+                  }}
                 >
-                  <Icon className="h-5 w-5" />
+                  <Icon className="h-6 w-6 drop-shadow-[0_0_8px_currentColor]" strokeWidth={2.25} />
                 </div>
                 <div className="flex-1 space-y-1">
                   <div className="flex items-center gap-2">
