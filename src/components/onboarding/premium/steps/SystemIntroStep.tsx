@@ -1,21 +1,30 @@
 import { Button } from "@/components/ui/button";
-import { Flame, Dumbbell, Moon } from "lucide-react";
+import { Clock, Flame, Scale, Moon } from "lucide-react";
 
 const CARDS = [
   {
-    Icon: Flame,
-    title: "FUEL",
-    desc: "Fasting structure, protein-first nutrition, meal timing, metabolic rhythm.",
+    Icon: Clock,
+    title: "FAST",
+    desc: "A structured eating window that trains your metabolism to burn fat first.",
+    accent: "hsl(0 0% 100%)",
   },
   {
-    Icon: Dumbbell,
-    title: "TRAIN",
-    desc: "Movement guidance, progressive training, recovery-aware workouts.",
+    Icon: Flame,
+    title: "FUEL",
+    desc: "Protein-first nutrition and a fuel style matched to your goal.",
+    accent: "hsl(174 72% 50%)",
+  },
+  {
+    Icon: Scale,
+    title: "TRACK",
+    desc: "The Smart Weight Tracker adjusts your daily target after every weigh-in.",
+    accent: "hsl(var(--primary))",
   },
   {
     Icon: Moon,
     title: "RESTORE",
-    desc: "Stress reduction, sleep support, nervous system recovery, appetite regulation.",
+    desc: "Sleep, stress and nervous-system recovery — the multiplier most plans ignore.",
+    accent: "hsl(250 65% 68%)",
   },
 ];
 
@@ -30,29 +39,23 @@ export default function SystemIntroStep({ onNext }: { onNext: () => void }) {
       </div>
 
       <div className="space-y-3">
-        {CARDS.map(({ Icon, title, desc }, i) => (
+        {CARDS.map(({ Icon, title, desc, accent }, i) => (
           <div
             key={title}
-            className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-xl animate-fade-in"
-            style={{ animationDelay: `${i * 100}ms` }}
+            className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-4 backdrop-blur-xl animate-fade-in"
+            style={{ animationDelay: `${i * 80}ms` }}
           >
-            <div
-              className="absolute -right-8 -top-8 h-32 w-32 rounded-full opacity-30 blur-3xl"
-              style={{
-                background:
-                  i === 0
-                    ? "hsl(var(--primary))"
-                    : i === 1
-                      ? "hsl(28 92% 58%)"
-                      : "hsl(174 72% 50%)",
-              }}
-            />
             <div className="relative flex items-start gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/5">
-                <Icon className="h-6 w-6" />
+              <div
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border"
+                style={{ borderColor: `${accent.replace(")", " / 0.3)")}`, color: accent }}
+              >
+                <Icon className="h-5 w-5" />
               </div>
               <div className="min-w-0">
-                <div className="text-xs uppercase tracking-[0.25em] text-white/50">{title}</div>
+                <div className="text-xs font-bold uppercase tracking-[0.25em]" style={{ color: accent }}>
+                  {title}
+                </div>
                 <div className="mt-1 text-sm leading-relaxed text-white/80">{desc}</div>
               </div>
             </div>
