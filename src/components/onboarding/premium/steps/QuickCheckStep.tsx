@@ -65,12 +65,7 @@ export default function QuickCheckStep({ onNext }: { onNext: () => void }) {
             <div
               key={p.id}
               className="relative overflow-hidden rounded-xl border border-white/10 bg-white/[0.03] p-4 backdrop-blur-sm"
-              style={{ borderColor: p.borderColor }}
             >
-              <div
-                className="absolute right-0 top-0 h-24 w-24 -translate-y-1/2 translate-x-1/2 rounded-full opacity-10 blur-2xl"
-                style={{ background: p.color }}
-              />
               <div className="relative flex items-start gap-4">
                 <div
                   className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border"
