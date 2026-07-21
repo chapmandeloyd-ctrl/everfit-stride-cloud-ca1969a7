@@ -1,94 +1,122 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ChevronRight, Check, X } from "lucide-react";
+import { ChevronRight, Clock, Flame, Scale, CheckCircle2 } from "lucide-react";
 
-const Q_OPTIONS = [
+const PILLARS = [
   {
-    id: "pairing",
-    label: "When you eat and how you fuel have to work together — out of sync, you stall.",
-    correct: true,
+    id: "fast",
+    icon: Clock,
+    title: "FAST",
+    tagline: "Train your metabolism to burn fat first.",
+    benefit: "A structured eating window that gives your body time to tap into stored energy.",
+    color: "hsl(0_0%_100%)",
+    borderColor: "hsl(0_0%_100%_/_0.12)",
   },
   {
-    id: "alone",
-    label: "It doesn't really matter — fasting alone is enough.",
-    correct: false,
+    id: "fuel",
+    icon: Flame,
+    title: "FUEL",
+    tagline: "Eat with purpose, not just restriction.",
+    benefit: "A fuel style that matches your goals — performance, lean, recomp, or extreme.",
+    color: "hsl(174_72%_50%)",
+    borderColor: "hsl(174_72%_50%_/_0.25)",
+  },
+  {
+    id: "track",
+    icon: Scale,
+    title: "TRACK",
+    tagline: "Real accountability, every morning.",
+    benefit: "Your Smart Weight Tracker adjusts your daily target after every weigh-in.",
+    color: "hsl(var(--primary))",
+    borderColor: "hsl(var(--primary)_/_0.25)",
   },
 ];
 
 export default function QuickCheckStep({ onNext }: { onNext: () => void }) {
-  const [picked, setPicked] = useState<string | null>(null);
-  const showResult = picked !== null;
-  const isCorrect = picked && Q_OPTIONS.find((o) => o.id === picked)?.correct;
+  const [acknowledged, setAcknowledged] = useState(false);
 
   return (
     <div className="flex h-full flex-col gap-5 animate-fade-in">
-      <div>
-        <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[hsl(var(--primary))]">
-          Quick Check
+      <div className="text-center">
+        <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[hsl(var(--primary))]">
+          The Complete System
         </div>
-        <h2 className="mt-2 text-3xl font-semibold leading-tight tracking-tight">
-          Why does pairing matter?
+        <h2 className="mt-2 text-[26px] font-semibold leading-tight tracking-tight">
+          Three levers. One result.
         </h2>
-        <p className="mt-3 text-base leading-relaxed text-white/70">
-          One tap. Locks in the principle.
+        <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-white/70">
+          APEX360-IF is not a diet. It is a system that works because each part reinforces the other.
         </p>
       </div>
 
-      <div className="space-y-2">
-        {Q_OPTIONS.map((o) => {
-          const isPicked = picked === o.id;
+      <div className="space-y-3">
+        {PILLARS.map((p) => {
+          const Icon = p.icon;
           return (
-            <button
-              key={o.id}
-              onClick={() => !showResult && setPicked(o.id)}
-              disabled={showResult}
-              className={`flex w-full items-start gap-3 rounded-xl border p-4 text-left transition ${
-                isPicked && o.correct
-                  ? "border-[hsl(174_72%_50%)] bg-[hsl(174_72%_50%/0.08)]"
-                  : isPicked && !o.correct
-                    ? "border-[hsl(var(--primary))] bg-[hsl(var(--primary)/0.08)]"
-                    : showResult && o.correct
-                      ? "border-[hsl(174_72%_50%/0.5)] bg-[hsl(174_72%_50%/0.04)]"
-                      : "border-white/10 bg-white/[0.03] hover:border-white/20"
-              }`}
+            <div
+              key={p.id}
+              className="relative overflow-hidden rounded-xl border border-white/10 bg-white/[0.03] p-4 backdrop-blur-sm"
+              style={{ borderColor: p.borderColor }}
             >
               <div
-                className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
-                  isPicked && o.correct
-                    ? "border-[hsl(174_72%_50%)] bg-[hsl(174_72%_50%)] text-black"
-                    : isPicked && !o.correct
-                      ? "border-[hsl(var(--primary))] bg-[hsl(var(--primary))] text-white"
-                      : showResult && o.correct
-                        ? "border-[hsl(174_72%_50%)] bg-[hsl(174_72%_50%)] text-black"
-                        : "border-white/30"
-                }`}
-              >
-                {isPicked || (showResult && o.correct) ? (
-                  o.correct ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />
-                ) : null}
+                className="absolute right-0 top-0 h-24 w-24 -translate-y-1/2 translate-x-1/2 rounded-full opacity-10 blur-2xl"
+                style={{ background: p.color }}
+              />
+              <div className="relative flex items-start gap-4">
+                <div
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border"
+                  style={{ borderColor: p.borderColor, color: p.color }}
+                >
+                  <Icon className="h-5 w-5" />
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold tracking-wide" style={{ color: p.color }}>
+                      {p.title}
+                    </span>
+                  </div>
+                  <div className="text-sm font-semibold text-white/95">{p.tagline}</div>
+                  <div className="text-xs leading-relaxed text-white/60">{p.benefit}</div>
+                </div>
               </div>
-              <span className="text-sm leading-relaxed">{o.label}</span>
-            </button>
+            </div>
           );
         })}
       </div>
 
-      {showResult && (
-        <p className="text-sm text-white/80">
-          {isCorrect
-            ? "Correct. Fasting and fueling are two sides of the same system."
-            : "Not quite. Timing without fuel alignment, or fuel without timing, leaves results on the table."}
-        </p>
-      )}
+      <button
+        onClick={() => setAcknowledged((a) => !a)}
+        className={`flex items-center justify-between rounded-xl border p-4 text-left transition ${
+          acknowledged
+            ? "border-[hsl(174_72%_50%)] bg-[hsl(174_72%_50%_/0.08)]"
+            : "border-white/10 bg-white/[0.03] hover:border-white/20"
+        }`}
+      >
+        <div className="space-y-1">
+          <div className="text-sm font-semibold text-white/90">I understand the system.</div>
+          <div className="text-xs leading-relaxed text-white/60">
+            Fasting + Fuel + Smart Tracking is the APEX360 edge. No other app connects all three.
+          </div>
+        </div>
+        <div
+          className={`ml-3 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border transition ${
+            acknowledged
+              ? "border-[hsl(174_72%_50%)] bg-[hsl(174_72%_50%)] text-black"
+              : "border-white/30"
+          }`}
+        >
+          {acknowledged && <CheckCircle2 className="h-4 w-4" />}
+        </div>
+      </button>
 
       <div className="mt-auto pb-2 pt-4">
         <Button
           onClick={onNext}
-          disabled={!showResult}
+          disabled={!acknowledged}
           size="lg"
           className="h-14 w-full rounded-2xl text-base font-medium"
         >
-          Continue <ChevronRight className="ml-1 h-4 w-4" />
+          Build my plan <ChevronRight className="ml-1 h-4 w-4" />
         </Button>
       </div>
     </div>
