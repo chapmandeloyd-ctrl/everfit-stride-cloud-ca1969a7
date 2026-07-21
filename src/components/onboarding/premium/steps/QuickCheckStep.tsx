@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ChevronRight, Clock, Flame, Scale, Moon, CheckCircle2 } from "lucide-react";
+import { ChevronRight, Clock, Flame, Scale, Moon, CheckCircle2, Sparkles, ChevronUp } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 
 const PILLARS = [
   {
@@ -11,6 +12,15 @@ const PILLARS = [
     benefit: "A structured eating window that gives your body time to tap into stored energy.",
     color: "hsl(0_0%_100%)",
     borderColor: "hsl(0_0%_100%_/_0.12)",
+    headline: "Fasting flips the metabolic switch.",
+    body:
+      "A structured eating window lowers insulin, empties liver glycogen, and forces your body to tap into stored fat for fuel. This is where fat loss actually happens — not from eating less, but from letting the body reach for what it already has.",
+    bullets: [
+      "Lower insulin → unlock stored fat",
+      "Deeper fat oxidation between meals",
+      "Cellular clean-up (autophagy) after 14–16h",
+      "Sharper focus and stable energy",
+    ],
   },
   {
     id: "fuel",
@@ -20,6 +30,15 @@ const PILLARS = [
     benefit: "A fuel style that matches your goals — performance, lean, recomp, or extreme.",
     color: "hsl(174_72%_50%)",
     borderColor: "hsl(174_72%_50%_/_0.25)",
+    headline: "The food inside your window decides the result.",
+    body:
+      "Fasting alone is not enough. Your Fuel Style — Balance, Performance, Lean, Recomp, or Extreme — is matched to your body, activity, and goal so every meal moves you forward instead of pulling you back.",
+    bullets: [
+      "Protein-first to protect lean muscle",
+      "Carbs timed around activity",
+      "Fats calibrated to your fuel style",
+      "Real food, real portions, no gimmicks",
+    ],
   },
   {
     id: "track",
@@ -29,6 +48,15 @@ const PILLARS = [
     benefit: "Your Smart Weight Tracker adjusts your daily target after every weigh-in.",
     color: "hsl(var(--primary))",
     borderColor: "hsl(var(--primary)_/_0.25)",
+    headline: "The Smart Weight Tracker keeps you honest.",
+    body:
+      "Every morning weigh-in recalculates your exact daily target. Fall behind and you'll see the precise catch-up. Ahead of pace and you bank credit for tougher days. No hiding, no guessing — just a real-pace coach in your pocket.",
+    bullets: [
+      "Daily target that adapts to reality",
+      "Debt & credit system, not weekly guesses",
+      "AI catch-up plans when you drift",
+      "The one feature no other app offers",
+    ],
   },
   {
     id: "restore",
@@ -38,11 +66,23 @@ const PILLARS = [
     benefit: "Sleep, stress, and nervous-system recovery — the multiplier most plans ignore.",
     color: "hsl(250_65%_68%)",
     borderColor: "hsl(250_65%_68%_/_0.3)",
+    headline: "Recovery is the multiplier most plans ignore.",
+    body:
+      "Poor sleep spikes hunger hormones and stalls fat loss no matter how clean you eat. RESTORE brings sleep, stress, and nervous-system recovery into the plan so the other three pillars actually compound instead of leak.",
+    bullets: [
+      "Better sleep = lower cortisol & cravings",
+      "Nervous-system down-regulation tools",
+      "Guided breathwork and wind-downs",
+      "Protects the results FAST + FUEL create",
+    ],
   },
 ];
 
 export default function QuickCheckStep({ onNext }: { onNext: () => void }) {
   const [acknowledged, setAcknowledged] = useState(false);
+  const [openId, setOpenId] = useState<string | null>(null);
+  const active = PILLARS.find((p) => p.id === openId) ?? null;
+  const ActiveIcon = active?.icon;
 
   return (
     <div className="flex h-full flex-col gap-5 animate-fade-in">
@@ -62,9 +102,11 @@ export default function QuickCheckStep({ onNext }: { onNext: () => void }) {
         {PILLARS.map((p) => {
           const Icon = p.icon;
           return (
-            <div
+            <button
               key={p.id}
-              className="relative overflow-hidden rounded-xl border border-white/10 bg-white/[0.03] p-4 backdrop-blur-sm"
+              type="button"
+              onClick={() => setOpenId(p.id)}
+              className="group relative w-full overflow-hidden rounded-xl border border-white/10 bg-white/[0.03] p-4 text-left backdrop-blur-sm transition hover:bg-white/[0.05] active:scale-[0.99]"
               style={{ borderColor: p.borderColor }}
             >
               <div
@@ -78,7 +120,7 @@ export default function QuickCheckStep({ onNext }: { onNext: () => void }) {
                 >
                   <Icon className="h-5 w-5" />
                 </div>
-                <div className="space-y-1">
+                <div className="flex-1 space-y-1">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-bold tracking-wide" style={{ color: p.color }}>
                       {p.title}
@@ -86,9 +128,12 @@ export default function QuickCheckStep({ onNext }: { onNext: () => void }) {
                   </div>
                   <div className="text-sm font-semibold text-white/95">{p.tagline}</div>
                   <div className="text-xs leading-relaxed text-white/60">{p.benefit}</div>
+                  <div className="flex items-center gap-1 pt-1 text-[10px] font-medium uppercase tracking-wider text-white/40 group-hover:text-white/70">
+                    Tap to learn more <ChevronUp className="h-3 w-3" />
+                  </div>
                 </div>
               </div>
-            </div>
+            </button>
           );
         })}
       </div>
@@ -128,6 +173,65 @@ export default function QuickCheckStep({ onNext }: { onNext: () => void }) {
           Build my plan <ChevronRight className="ml-1 h-4 w-4" />
         </Button>
       </div>
+
+      <Sheet open={!!openId} onOpenChange={(o) => !o && setOpenId(null)}>
+        <SheetContent
+          side="bottom"
+          className="rounded-t-3xl border-white/10 bg-[hsl(0_0%_4%)] px-5 pb-8 pt-6 max-h-[85vh] overflow-y-auto"
+        >
+          {active && ActiveIcon && (
+            <>
+              <SheetHeader className="text-left">
+                <div className="flex items-center gap-3">
+                  <div
+                    className="flex h-11 w-11 items-center justify-center rounded-xl border"
+                    style={{ borderColor: active.borderColor, color: active.color }}
+                  >
+                    <ActiveIcon className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <div
+                      className="text-[10px] font-semibold uppercase tracking-[0.2em]"
+                      style={{ color: active.color }}
+                    >
+                      {active.title}
+                    </div>
+                    <SheetTitle className="text-lg font-semibold leading-tight text-white">
+                      {active.headline}
+                    </SheetTitle>
+                  </div>
+                </div>
+                <SheetDescription className="pt-3 text-sm leading-relaxed text-white/70">
+                  {active.body}
+                </SheetDescription>
+              </SheetHeader>
+
+              <div className="mt-5 space-y-2">
+                {active.bullets.map((b) => (
+                  <div
+                    key={b}
+                    className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-3"
+                  >
+                    <Sparkles
+                      className="mt-0.5 h-4 w-4 shrink-0"
+                      style={{ color: active.color }}
+                    />
+                    <div className="text-sm leading-snug text-white/85">{b}</div>
+                  </div>
+                ))}
+              </div>
+
+              <Button
+                onClick={() => setOpenId(null)}
+                className="mt-6 h-12 w-full rounded-2xl text-sm font-medium"
+                variant="secondary"
+              >
+                Got it
+              </Button>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
