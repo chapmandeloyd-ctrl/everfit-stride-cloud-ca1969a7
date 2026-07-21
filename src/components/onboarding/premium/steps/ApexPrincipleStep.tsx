@@ -10,15 +10,16 @@ export default function ApexPrincipleStep({ onNext }: { onNext: () => void }) {
           The APEX360 Principle
         </div>
         <h2 className="mt-2 text-3xl font-semibold leading-tight tracking-tight">
-          FAST + FUEL. One system.
+          FAST + FUEL + TRACK + RESTORE. One system.
         </h2>
       </div>
       <div className="flex justify-center py-2">
         <InterlockingRings mode="locked" />
       </div>
       <p className="text-base leading-relaxed text-white/75">
-        The right Fasting Protocol × the right Fuel Style × your biology. When
-        all three lock in, your metabolism works for you instead of against you.
+        The right Fasting Protocol × the right Fuel Style × Smart Weight
+        Tracking × Recovery. When all four lock in, your metabolism works
+        for you instead of against you.
       </p>
       <div className="mt-auto pb-2 pt-4">
         <Button

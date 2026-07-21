@@ -4,7 +4,7 @@
  */
 export default function PlateauVsCompound() {
   return (
-    <svg viewBox="0 0 320 160" className="w-full max-w-[320px]">
+    <svg viewBox="0 0 320 180" className="w-full max-w-[340px]">
       <defs>
         <linearGradient id="curveGrad" x1="0" x2="1" y1="0" y2="0">
           <stop offset="0%" stopColor="hsl(174 72% 50%)" />
@@ -29,17 +29,43 @@ export default function PlateauVsCompound() {
         Unpaired — plateau
       </text>
 
-      {/* compounding curve */}
+      {/* FAST + FUEL curve */}
       <path
-        d="M 20 130 Q 90 125, 150 95 T 300 30"
+        d="M 20 130 Q 90 122, 150 100 T 300 60"
         fill="none"
-        stroke="url(#curveGrad)"
-        strokeWidth="3.5"
+        stroke="hsl(174 72% 50%)"
+        strokeOpacity="0.75"
+        strokeWidth="2.5"
         strokeLinecap="round"
       />
-      <circle cx="300" cy="30" r="5" fill="hsl(var(--primary))" />
-      <text x="180" y="55" fill="white" fillOpacity="0.95" fontSize="11" fontWeight="600">
-        Synergy — compounds
+      <text x="215" y="78" fill="hsl(174 72% 50%)" fillOpacity="0.9" fontSize="9">
+        FAST + FUEL
+      </text>
+
+      {/* + TRACK curve */}
+      <path
+        d="M 20 132 Q 100 120, 160 88 T 300 40"
+        fill="none"
+        stroke="hsl(0 0% 92%)"
+        strokeOpacity="0.85"
+        strokeWidth="2.75"
+        strokeLinecap="round"
+      />
+      <text x="205" y="55" fill="white" fillOpacity="0.85" fontSize="9">
+        + TRACK
+      </text>
+
+      {/* + RESTORE — full compound curve */}
+      <path
+        d="M 20 134 Q 100 118, 165 78 T 300 18"
+        fill="none"
+        stroke="url(#curveGrad)"
+        strokeWidth="3.75"
+        strokeLinecap="round"
+      />
+      <circle cx="300" cy="18" r="5" fill="hsl(var(--primary))" />
+      <text x="150" y="35" fill="white" fillOpacity="0.98" fontSize="11" fontWeight="700">
+        + RESTORE — full compound
       </text>
     </svg>
   );

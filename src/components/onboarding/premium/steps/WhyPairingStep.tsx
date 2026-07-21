@@ -10,16 +10,16 @@ export default function WhyPairingStep({ onNext }: { onNext: () => void }) {
           Why Pairing Matters
         </div>
         <h2 className="mt-2 text-3xl font-semibold leading-tight tracking-tight">
-          FAST + FUEL compounds results.
+          Four levers compound results.
         </h2>
       </div>
       <div className="flex justify-center py-2">
         <PlateauVsCompound />
       </div>
       <p className="text-base leading-relaxed text-white/75">
-        Wrong pairing = stalled progress. Right pairing = fat adaptation
-        accelerates, cravings vanish, energy stabilizes. This is what your
-        APEX360 program solves.
+        One pillar alone = plateau. Stack FAST + FUEL + TRACK + RESTORE and
+        fat adaptation accelerates, cravings vanish, energy stabilizes,
+        recovery compounds. This is the APEX360 edge.
       </p>
       <div className="mt-auto pb-2 pt-4">
         <Button
