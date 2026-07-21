@@ -17,6 +17,7 @@ import FastingExperienceStep, {
 import MetabolicSnapshotStep from "@/components/onboarding/premium/steps/MetabolicSnapshotStep";
 import SystemIntroStep from "@/components/onboarding/premium/steps/SystemIntroStep";
 import AICoachIntroStep from "@/components/onboarding/premium/steps/AICoachIntroStep";
+import AssessmentInfoStep from "@/components/onboarding/premium/steps/AssessmentInfoStep";
 import ProblemStep from "@/components/onboarding/premium/steps/ProblemStep";
 import ApexPrincipleStep from "@/components/onboarding/premium/steps/ApexPrincipleStep";
 import WhyPairingStep from "@/components/onboarding/premium/steps/WhyPairingStep";
@@ -39,7 +40,7 @@ import {
 import { recommendSynergy } from "@/lib/onboarding/synergyRecommender";
 import type { SynergyKey } from "@/lib/onboarding/synergies";
 
-const TOTAL = 19;
+const TOTAL = 20;
 
 interface OnboardingState {
   age: number;
@@ -272,20 +273,8 @@ export default function ClientOnboarding() {
       {step === 5 && <WhyPairingStep onNext={next} />}
       {step === 6 && <QuickCheckStep onNext={next} />}
       {step === 7 && <AICoachIntroStep onNext={next} />}
-      {step === 8 && (
-        <FastTypeSelectionStep
-          initial={state.fastType}
-          onNext={(fastType) => {
-            persistDraft({ fastType });
-            next();
-          }}
-        />
-      )}
-      {step === 9 && state.fastType && (
-        <FastingProtocolsStep fastType={state.fastType} onNext={next} />
-      )}
-      {step === 10 && <FuelStylesStep onNext={next} />}
-      {step === 11 && (
+      {step === 8 && <AssessmentInfoStep onNext={next} />}
+      {step === 9 && (
         <BodyMetricsStep
           initial={{
             age: state.age,
@@ -300,7 +289,7 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 12 && (
+      {step === 10 && (
         <ActivityLevelStep
           initial={state.activity}
           onNext={(a) => {
@@ -309,7 +298,7 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 13 && (
+      {step === 11 && (
         <GoalsStep
           initial={state.goals}
           onNext={(g) => {
@@ -318,7 +307,7 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 14 && (
+      {step === 12 && (
         <FastingExperienceStep
           initial={state.fastingExperience}
           onNext={(d) => {
@@ -327,7 +316,7 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 15 && (
+      {step === 13 && (
         <DailyRhythmStep
           initial={state.dailyRhythm}
           onNext={(d) => {
@@ -336,7 +325,7 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 16 && (
+      {step === 14 && (
         <FuelPreferenceStep
           initial={state.fuelPreference}
           onNext={(d) => {
@@ -345,7 +334,7 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 17 && (
+      {step === 15 && (
         <MotivationStep
           initial={state.motivation}
           onNext={(m) => {
@@ -354,7 +343,7 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 18 && snap && (
+      {step === 16 && snap && (
         <MetabolicSnapshotStep
           snap={snap}
           bmi={snap.bmi}
@@ -363,7 +352,20 @@ export default function ClientOnboarding() {
           onNext={next}
         />
       )}
-      {step === 19 && (
+      {step === 17 && (
+        <FastTypeSelectionStep
+          initial={state.fastType}
+          onNext={(fastType) => {
+            persistDraft({ fastType });
+            next();
+          }}
+        />
+      )}
+      {step === 18 && state.fastType && (
+        <FastingProtocolsStep fastType={state.fastType} onNext={next} />
+      )}
+      {step === 19 && <FuelStylesStep onNext={next} />}
+      {step === 20 && (
         <AIPlanProposalStep
           clientId={clientId ?? null}
           onboardingPayload={onboardingPayload}
