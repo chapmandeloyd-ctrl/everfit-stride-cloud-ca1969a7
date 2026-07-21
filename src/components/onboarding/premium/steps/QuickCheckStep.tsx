@@ -80,6 +80,8 @@ export default function QuickCheckStep({ onNext }: { onNext: () => void }) {
   const active = PILLARS.find((p) => p.id === openId) ?? null;
   const ActiveIcon = active?.icon;
 
+  const c = (hsl: string, a = 1) => `hsl(${hsl} / ${a})`;
+
   return (
     <div className="flex h-full flex-col gap-5 animate-fade-in">
       <div className="text-center">
@@ -97,33 +99,35 @@ export default function QuickCheckStep({ onNext }: { onNext: () => void }) {
       <div className="space-y-3">
         {PILLARS.map((p) => {
           const Icon = p.icon;
+          const color = c(p.hsl);
+          const border = c(p.hsl, 0.28);
           return (
             <button
               key={p.id}
               type="button"
               onClick={() => setOpenId(p.id)}
               className="group relative w-full overflow-hidden rounded-xl border border-white/10 bg-white/[0.03] p-4 text-left backdrop-blur-sm transition hover:bg-white/[0.05] active:scale-[0.99]"
-              style={{ borderColor: p.borderColor }}
+              style={{ borderColor: border }}
             >
               <div
                 className="absolute right-0 top-0 h-24 w-24 -translate-y-1/2 translate-x-1/2 rounded-full opacity-10 blur-2xl"
-                style={{ background: p.color }}
+                style={{ background: color }}
               />
               <div className="relative flex items-start gap-4">
                 <div
                   className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border"
                   style={{
-                    borderColor: p.borderColor,
-                    background: `radial-gradient(circle at 50% 50%, ${p.color.replace(")", " / 0.28)")} 0%, ${p.color.replace(")", " / 0.06)")} 70%, transparent 100%)`,
-                    boxShadow: `0 0 24px -6px ${p.color.replace(")", " / 0.55)")}, inset 0 0 12px ${p.color.replace(")", " / 0.15)")}`,
-                    color: p.color,
+                    borderColor: border,
+                    background: `radial-gradient(circle at 50% 50%, ${c(p.hsl, 0.32)} 0%, ${c(p.hsl, 0.08)} 70%, transparent 100%)`,
+                    boxShadow: `0 0 26px -6px ${c(p.hsl, 0.6)}, inset 0 0 14px ${c(p.hsl, 0.18)}`,
+                    color,
                   }}
                 >
                   <Icon className="h-6 w-6 drop-shadow-[0_0_8px_currentColor]" strokeWidth={2.25} />
                 </div>
                 <div className="flex-1 space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold tracking-wide" style={{ color: p.color }}>
+                    <span className="text-sm font-bold tracking-wide" style={{ color }}>
                       {p.title}
                     </span>
                   </div>
@@ -185,15 +189,20 @@ export default function QuickCheckStep({ onNext }: { onNext: () => void }) {
               <SheetHeader className="text-left">
                 <div className="flex items-center gap-3">
                   <div
-                    className="flex h-11 w-11 items-center justify-center rounded-xl border"
-                    style={{ borderColor: active.borderColor, color: active.color }}
+                    className="flex h-12 w-12 items-center justify-center rounded-xl border"
+                    style={{
+                      borderColor: c(active.hsl, 0.28),
+                      background: `radial-gradient(circle at 50% 50%, ${c(active.hsl, 0.32)} 0%, ${c(active.hsl, 0.08)} 70%, transparent 100%)`,
+                      boxShadow: `0 0 26px -6px ${c(active.hsl, 0.6)}, inset 0 0 14px ${c(active.hsl, 0.18)}`,
+                      color: c(active.hsl),
+                    }}
                   >
-                    <ActiveIcon className="h-5 w-5" />
+                    <ActiveIcon className="h-6 w-6 drop-shadow-[0_0_8px_currentColor]" strokeWidth={2.25} />
                   </div>
                   <div>
                     <div
                       className="text-[10px] font-semibold uppercase tracking-[0.2em]"
-                      style={{ color: active.color }}
+                      style={{ color: c(active.hsl) }}
                     >
                       {active.title}
                     </div>
@@ -215,7 +224,7 @@ export default function QuickCheckStep({ onNext }: { onNext: () => void }) {
                   >
                     <Sparkles
                       className="mt-0.5 h-4 w-4 shrink-0"
-                      style={{ color: active.color }}
+                      style={{ color: c(active.hsl) }}
                     />
                     <div className="text-sm leading-snug text-white/85">{b}</div>
                   </div>
