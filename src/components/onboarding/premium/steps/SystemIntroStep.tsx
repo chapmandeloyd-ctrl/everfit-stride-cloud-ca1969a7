@@ -1,21 +1,30 @@
 import { Button } from "@/components/ui/button";
-import { Flame, Dumbbell, Moon } from "lucide-react";
+import { Clock, Flame, Scale, Moon } from "lucide-react";
 
 const CARDS = [
   {
-    Icon: Flame,
-    title: "FUEL",
-    desc: "Fasting structure, protein-first nutrition, meal timing, metabolic rhythm.",
+    Icon: Clock,
+    title: "FAST",
+    desc: "Structured eating windows that train your metabolism to burn fat first.",
+    color: "hsl(0 0% 100%)",
   },
   {
-    Icon: Dumbbell,
-    title: "TRAIN",
-    desc: "Movement guidance, progressive training, recovery-aware workouts.",
+    Icon: Flame,
+    title: "FUEL",
+    desc: "Goal-matched fuel style — protein-first nutrition, meal timing, metabolic rhythm.",
+    color: "hsl(174 72% 50%)",
+  },
+  {
+    Icon: Scale,
+    title: "TRACK",
+    desc: "Smart Weight Tracker — real accountability that adapts your daily target every morning.",
+    color: "hsl(var(--primary))",
   },
   {
     Icon: Moon,
     title: "RESTORE",
     desc: "Stress reduction, sleep support, nervous system recovery, appetite regulation.",
+    color: "hsl(250 65% 68%)",
   },
 ];
 
@@ -30,7 +39,7 @@ export default function SystemIntroStep({ onNext }: { onNext: () => void }) {
       </div>
 
       <div className="space-y-3">
-        {CARDS.map(({ Icon, title, desc }, i) => (
+        {CARDS.map(({ Icon, title, desc, color }, i) => (
           <div
             key={title}
             className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-xl animate-fade-in"
@@ -38,21 +47,14 @@ export default function SystemIntroStep({ onNext }: { onNext: () => void }) {
           >
             <div
               className="absolute -right-8 -top-8 h-32 w-32 rounded-full opacity-30 blur-3xl"
-              style={{
-                background:
-                  i === 0
-                    ? "hsl(var(--primary))"
-                    : i === 1
-                      ? "hsl(28 92% 58%)"
-                      : "hsl(174 72% 50%)",
-              }}
+              style={{ background: color }}
             />
             <div className="relative flex items-start gap-4">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/5">
-                <Icon className="h-6 w-6" />
+                <Icon className="h-6 w-6" style={{ color }} />
               </div>
               <div className="min-w-0">
-                <div className="text-xs uppercase tracking-[0.25em] text-white/50">{title}</div>
+                <div className="text-xs uppercase tracking-[0.25em]" style={{ color }}>{title}</div>
                 <div className="mt-1 text-sm leading-relaxed text-white/80">{desc}</div>
               </div>
             </div>
