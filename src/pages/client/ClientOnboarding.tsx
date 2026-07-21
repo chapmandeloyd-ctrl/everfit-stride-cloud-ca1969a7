@@ -17,7 +17,6 @@ import FastingExperienceStep, {
 import MetabolicSnapshotStep from "@/components/onboarding/premium/steps/MetabolicSnapshotStep";
 import SystemIntroStep from "@/components/onboarding/premium/steps/SystemIntroStep";
 import AICoachIntroStep from "@/components/onboarding/premium/steps/AICoachIntroStep";
-import AssessmentInfoStep from "@/components/onboarding/premium/steps/AssessmentInfoStep";
 import ProblemStep from "@/components/onboarding/premium/steps/ProblemStep";
 import ApexPrincipleStep from "@/components/onboarding/premium/steps/ApexPrincipleStep";
 import WhyPairingStep from "@/components/onboarding/premium/steps/WhyPairingStep";
