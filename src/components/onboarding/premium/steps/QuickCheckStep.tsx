@@ -10,8 +10,7 @@ const PILLARS = [
     title: "FAST",
     tagline: "Train your metabolism to burn fat first.",
     benefit: "A structured eating window that gives your body time to tap into stored energy.",
-    color: "hsl(0_0%_100%)",
-    borderColor: "hsl(0_0%_100%_/_0.12)",
+    hsl: "0 0% 100%",
     headline: "Fasting flips the metabolic switch.",
     body:
       "A structured eating window lowers insulin, empties liver glycogen, and forces your body to tap into stored fat for fuel. This is where fat loss actually happens — not from eating less, but from letting the body reach for what it already has.",
@@ -28,8 +27,7 @@ const PILLARS = [
     title: "FUEL",
     tagline: "Eat with purpose, not just restriction.",
     benefit: "A fuel style that matches your goals — performance, lean, recomp, or extreme.",
-    color: "hsl(174_72%_50%)",
-    borderColor: "hsl(174_72%_50%_/_0.25)",
+    hsl: "174 72% 50%",
     headline: "The food inside your window decides the result.",
     body:
       "Fasting alone is not enough. Your Fuel Style — Balance, Performance, Lean, Recomp, or Extreme — is matched to your body, activity, and goal so every meal moves you forward instead of pulling you back.",
@@ -46,8 +44,7 @@ const PILLARS = [
     title: "TRACK",
     tagline: "Real accountability, every morning.",
     benefit: "Your Smart Weight Tracker adjusts your daily target after every weigh-in.",
-    color: "hsl(var(--primary))",
-    borderColor: "hsl(var(--primary)_/_0.25)",
+    hsl: "0 78% 45%",
     headline: "The Smart Weight Tracker keeps you honest.",
     body:
       "Every morning weigh-in recalculates your exact daily target. Fall behind and you'll see the precise catch-up. Ahead of pace and you bank credit for tougher days. No hiding, no guessing — just a real-pace coach in your pocket.",
@@ -64,8 +61,7 @@ const PILLARS = [
     title: "RESTORE",
     tagline: "Recover so the system compounds.",
     benefit: "Sleep, stress, and nervous-system recovery — the multiplier most plans ignore.",
-    color: "hsl(250_65%_68%)",
-    borderColor: "hsl(250_65%_68%_/_0.3)",
+    hsl: "250 65% 68%",
     headline: "Recovery is the multiplier most plans ignore.",
     body:
       "Poor sleep spikes hunger hormones and stalls fat loss no matter how clean you eat. RESTORE brings sleep, stress, and nervous-system recovery into the plan so the other three pillars actually compound instead of leak.",
