@@ -21,6 +21,7 @@ import AssessmentInfoStep from "@/components/onboarding/premium/steps/Assessment
 import ProblemStep from "@/components/onboarding/premium/steps/ProblemStep";
 import ApexPrincipleStep from "@/components/onboarding/premium/steps/ApexPrincipleStep";
 import WhyPairingStep from "@/components/onboarding/premium/steps/WhyPairingStep";
+import SmartPacePitchStep from "@/components/onboarding/premium/steps/SmartPacePitchStep";
 import FastingProtocolsStep from "@/components/onboarding/premium/steps/FastingProtocolsStep";
 import FuelStylesStep from "@/components/onboarding/premium/steps/FuelStylesStep";
 import QuickCheckStep from "@/components/onboarding/premium/steps/QuickCheckStep";
@@ -40,7 +41,7 @@ import {
 import { recommendSynergy } from "@/lib/onboarding/synergyRecommender";
 import type { SynergyKey } from "@/lib/onboarding/synergies";
 
-const TOTAL = 20;
+const TOTAL = 21;
 
 interface OnboardingState {
   age: number;
@@ -271,10 +272,11 @@ export default function ClientOnboarding() {
       {step === 3 && <ProblemStep onNext={next} />}
       {step === 4 && <ApexPrincipleStep onNext={next} />}
       {step === 5 && <WhyPairingStep onNext={next} />}
-      {step === 6 && <QuickCheckStep onNext={next} />}
-      {step === 7 && <AICoachIntroStep onNext={next} />}
-      {step === 8 && <AssessmentInfoStep onNext={next} />}
-      {step === 9 && (
+      {step === 6 && <SmartPacePitchStep onNext={next} />}
+      {step === 7 && <QuickCheckStep onNext={next} />}
+      {step === 8 && <AICoachIntroStep onNext={next} />}
+      {step === 9 && <AssessmentInfoStep onNext={next} />}
+      {step === 10 && (
         <BodyMetricsStep
           initial={{
             age: state.age,
@@ -289,7 +291,7 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 10 && (
+      {step === 11 && (
         <ActivityLevelStep
           initial={state.activity}
           onNext={(a) => {
@@ -298,7 +300,7 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 11 && (
+      {step === 12 && (
         <GoalsStep
           initial={state.goals}
           onNext={(g) => {
@@ -307,7 +309,7 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 12 && (
+      {step === 13 && (
         <FastingExperienceStep
           initial={state.fastingExperience}
           onNext={(d) => {
@@ -316,7 +318,7 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 13 && (
+      {step === 14 && (
         <DailyRhythmStep
           initial={state.dailyRhythm}
           onNext={(d) => {
@@ -325,7 +327,7 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 14 && (
+      {step === 15 && (
         <FuelPreferenceStep
           initial={state.fuelPreference}
           onNext={(d) => {
@@ -334,7 +336,7 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 15 && (
+      {step === 16 && (
         <MotivationStep
           initial={state.motivation}
           onNext={(m) => {
@@ -343,7 +345,7 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 16 && snap && (
+      {step === 17 && snap && (
         <MetabolicSnapshotStep
           snap={snap}
           bmi={snap.bmi}
@@ -352,7 +354,7 @@ export default function ClientOnboarding() {
           onNext={next}
         />
       )}
-      {step === 17 && (
+      {step === 18 && (
         <FastTypeSelectionStep
           initial={state.fastType}
           onNext={(fastType) => {
@@ -361,11 +363,11 @@ export default function ClientOnboarding() {
           }}
         />
       )}
-      {step === 18 && state.fastType && (
+      {step === 19 && state.fastType && (
         <FastingProtocolsStep fastType={state.fastType} onNext={next} />
       )}
-      {step === 19 && <FuelStylesStep onNext={next} />}
-      {step === 20 && (
+      {step === 20 && <FuelStylesStep onNext={next} />}
+      {step === 21 && (
         <AIPlanProposalStep
           clientId={clientId ?? null}
           onboardingPayload={onboardingPayload}
