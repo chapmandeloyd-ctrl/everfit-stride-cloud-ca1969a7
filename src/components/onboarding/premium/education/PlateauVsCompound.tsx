@@ -1,69 +1,72 @@
 /**
- * Clean 4-line chart: plateau vs FAST+FUEL vs +TRACK vs +RESTORE (full compound).
- * Labels live in an external legend below the plot — no overlapping text.
+ * Animated SVG: flat plateau line vs compounding curve.
+ * Used on the "Why Pairing Matters" slide.
  */
 export default function PlateauVsCompound() {
-  const lines = [
-    { label: "Unpaired", color: "hsl(0 0% 55%)", dash: "4 4", d: "M 40 150 Q 120 145, 200 148 T 360 150" },
-    { label: "FAST + FUEL", color: "hsl(174 72% 55%)", d: "M 40 152 Q 140 138, 220 116 T 360 82" },
-    { label: "+ TRACK", color: "hsl(0 0% 95%)", d: "M 40 154 Q 150 132, 230 96 T 360 52" },
-    { label: "+ RESTORE", color: "hsl(var(--primary))", d: "M 40 156 Q 160 128, 240 78 T 360 24", width: 3.5 },
-  ];
-
   return (
-    <div className="w-full max-w-[380px]">
-      <svg viewBox="0 0 380 190" className="w-full">
-        {/* frame */}
-        <line x1="40" y1="170" x2="365" y2="170" stroke="white" strokeOpacity="0.15" />
-        <line x1="40" y1="20" x2="40" y2="170" stroke="white" strokeOpacity="0.15" />
+    <svg viewBox="0 0 320 180" className="w-full max-w-[340px]">
+      <defs>
+        <linearGradient id="curveGrad" x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0%" stopColor="hsl(174 72% 50%)" />
+          <stop offset="100%" stopColor="hsl(var(--primary))" />
+        </linearGradient>
+      </defs>
 
-        {/* axis labels */}
-        <text x="40" y="185" fill="white" fillOpacity="0.4" fontSize="9">
-          Week 1
-        </text>
-        <text x="335" y="185" fill="white" fillOpacity="0.4" fontSize="9">
-          Week 12
-        </text>
-        <text
-          x="15"
-          y="95"
-          fill="white"
-          fillOpacity="0.4"
-          fontSize="9"
-          transform="rotate(-90 15 95)"
-          textAnchor="middle"
-        >
-          Results
-        </text>
+      {/* axes */}
+      <line x1="20" y1="140" x2="310" y2="140" stroke="white" strokeOpacity="0.15" />
+      <line x1="20" y1="20" x2="20" y2="140" stroke="white" strokeOpacity="0.15" />
 
-        {lines.map((l) => (
-          <path
-            key={l.label}
-            d={l.d}
-            fill="none"
-            stroke={l.color}
-            strokeWidth={l.width ?? 2.5}
-            strokeLinecap="round"
-            strokeDasharray={l.dash}
-          />
-        ))}
+      {/* flat plateau */}
+      <path
+        d="M 20 110 Q 80 95, 140 100 T 300 105"
+        fill="none"
+        stroke="white"
+        strokeOpacity="0.35"
+        strokeWidth="2.5"
+        strokeDasharray="4 4"
+      />
+      <text x="200" y="95" fill="white" fillOpacity="0.5" fontSize="10">
+        Unpaired — plateau
+      </text>
 
-        {/* endpoint dot on full compound */}
-        <circle cx="360" cy="24" r="4" fill="hsl(var(--primary))" />
-      </svg>
+      {/* FAST + FUEL curve */}
+      <path
+        d="M 20 130 Q 90 122, 150 100 T 300 60"
+        fill="none"
+        stroke="hsl(174 72% 50%)"
+        strokeOpacity="0.75"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+      />
+      <text x="215" y="78" fill="hsl(174 72% 50%)" fillOpacity="0.9" fontSize="9">
+        FAST + FUEL
+      </text>
 
-      {/* legend */}
-      <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 px-2">
-        {lines.map((l) => (
-          <div key={l.label} className="flex items-center gap-2">
-            <span
-              className="inline-block h-[3px] w-5 rounded-full"
-              style={{ background: l.color, opacity: l.dash ? 0.6 : 1 }}
-            />
-            <span className="text-[11px] text-white/80">{l.label}</span>
-          </div>
-        ))}
-      </div>
-    </div>
+      {/* + TRACK curve */}
+      <path
+        d="M 20 132 Q 100 120, 160 88 T 300 40"
+        fill="none"
+        stroke="hsl(0 0% 92%)"
+        strokeOpacity="0.85"
+        strokeWidth="2.75"
+        strokeLinecap="round"
+      />
+      <text x="205" y="55" fill="white" fillOpacity="0.85" fontSize="9">
+        + TRACK
+      </text>
+
+      {/* + RESTORE — full compound curve */}
+      <path
+        d="M 20 134 Q 100 118, 165 78 T 300 18"
+        fill="none"
+        stroke="url(#curveGrad)"
+        strokeWidth="3.75"
+        strokeLinecap="round"
+      />
+      <circle cx="300" cy="18" r="5" fill="hsl(var(--primary))" />
+      <text x="150" y="35" fill="white" fillOpacity="0.98" fontSize="11" fontWeight="700">
+        + RESTORE — full compound
+      </text>
+    </svg>
   );
 }
