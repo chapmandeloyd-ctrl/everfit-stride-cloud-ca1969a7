@@ -59,7 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const refreshTimer = useRef<ReturnType<typeof setInterval> | null>(null);
-  const sessionRecoveryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sessionRecoveryTimer = useRef<number | null>(null);
   const sessionRecoveryRequestId = useRef(0);
   const initialSessionResolved = useRef(false);
   const profileRequestId = useRef(0);
