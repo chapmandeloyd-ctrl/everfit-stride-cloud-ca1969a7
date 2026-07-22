@@ -22,7 +22,6 @@ import ProblemStep from "@/components/onboarding/premium/steps/ProblemStep";
 import ApexPrincipleStep from "@/components/onboarding/premium/steps/ApexPrincipleStep";
 import WhyPairingStep from "@/components/onboarding/premium/steps/WhyPairingStep";
 import SmartPacePitchStep from "@/components/onboarding/premium/steps/SmartPacePitchStep";
-import FastingProtocolsStep from "@/components/onboarding/premium/steps/FastingProtocolsStep";
 import FuelStylesStep from "@/components/onboarding/premium/steps/FuelStylesStep";
 import QuickCheckStep from "@/components/onboarding/premium/steps/QuickCheckStep";
 import FastTypeSelectionStep, {
@@ -41,7 +40,7 @@ import {
 import { recommendSynergy } from "@/lib/onboarding/synergyRecommender";
 import type { SynergyKey } from "@/lib/onboarding/synergies";
 
-const TOTAL = 21;
+const TOTAL = 20;
 
 interface OnboardingState {
   age: number;
@@ -89,6 +88,18 @@ export default function ClientOnboarding() {
   const [step, setStep] = useState(1);
   const [state, setState] = useState<OnboardingState>(INITIAL);
   const [loading, setLoading] = useState(false);
+
+  const recommenderContext = useMemo(
+    () => ({
+      weightKg: state.weightKg,
+      goalWeightKg: state.goalWeightKg,
+      activity: state.activity,
+      goals: state.goals,
+      fastingExperience: state.fastingExperience,
+      dailyRhythm: state.dailyRhythm,
+    }),
+    [state],
+  );
 
   const snap = useMemo(() => {
     if (!state.heightCm || !state.weightKg || !state.activity) return null;
@@ -348,6 +359,7 @@ export default function ClientOnboarding() {
       {step === 15 && (
         <FuelPreferenceStep
           initial={state.fuelPreference}
+          context={recommenderContext}
           onNext={(d) => {
             persistDraft({ fuelPreference: d });
             next();
@@ -375,17 +387,15 @@ export default function ClientOnboarding() {
       {step === 18 && (
         <FastTypeSelectionStep
           initial={state.fastType}
+          context={recommenderContext}
           onNext={(fastType) => {
             persistDraft({ fastType });
             next();
           }}
         />
       )}
-      {step === 19 && state.fastType && (
-        <FastingProtocolsStep fastType={state.fastType} onNext={next} />
-      )}
-      {step === 20 && <FuelStylesStep onNext={next} />}
-      {step === 21 && (
+      {step === 19 && <FuelStylesStep onNext={next} />}
+      {step === 20 && (
         <AIPlanProposalStep
           clientId={clientId ?? null}
           onboardingPayload={onboardingPayload}
