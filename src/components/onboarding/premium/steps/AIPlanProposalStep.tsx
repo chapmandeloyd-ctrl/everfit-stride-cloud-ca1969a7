@@ -27,7 +27,8 @@ export default function AIPlanProposalStep({
     try {
       const { data, error } = await supabase.functions.invoke("generate-ai-fasting-plan", {
         body: {
-          client_id: clientId ?? "preview",
+          client_id: clientId ?? null,
+          preview: !clientId || isPreview,
           onboarding: onboardingPayload,
           regenerate_reason: reason ?? null,
         },
