@@ -558,3 +558,64 @@ function Rule({ icon, title, body }: { icon: React.ReactNode; title: string; bod
     </div>
   );
 }
+
+type PaceOption = { pctPerWeek: number; weekly: number; daily: number; days: number; date: Date };
+
+function PaceOptionCard({
+  label,
+  subtitle,
+  option,
+  selected,
+  tone,
+  badge,
+  onSelect,
+}: {
+  label: string;
+  subtitle: string;
+  option: PaceOption;
+  selected: boolean;
+  tone: "emerald" | "primary" | "amber";
+  badge?: string;
+  onSelect: () => void;
+}) {
+  const toneRing = {
+    emerald: "ring-emerald-500/60 bg-emerald-500/10",
+    primary: "ring-primary/70 bg-primary/10",
+    amber: "ring-amber-500/60 bg-amber-500/10",
+  }[tone];
+  const toneText = {
+    emerald: "text-emerald-300",
+    primary: "text-primary",
+    amber: "text-amber-300",
+  }[tone];
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      className={cn(
+        "flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/[0.02] px-3 py-2.5 text-left transition",
+        selected && `ring-2 ${toneRing} border-transparent`
+      )}
+    >
+      <div className="min-w-0">
+        <div className="flex items-center gap-2">
+          <span className={cn("text-[13px] font-semibold text-white")}>{label}</span>
+          {badge && (
+            <span className="rounded-full bg-primary/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-primary">
+              {badge}
+            </span>
+          )}
+        </div>
+        <div className="text-[11px] text-white/55">{subtitle}</div>
+      </div>
+      <div className="text-right">
+        <div className={cn("text-[13px] font-semibold", toneText)}>
+          {option.weekly.toFixed(1)} lb/wk
+        </div>
+        <div className="text-[10px] text-white/50">
+          by {format(option.date, "MMM d, yyyy")}
+        </div>
+      </div>
+    </button>
+  );
+}
