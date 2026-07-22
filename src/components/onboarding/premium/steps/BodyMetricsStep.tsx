@@ -35,13 +35,10 @@ export default function BodyMetricsStep({ initial, onNext }: Props) {
   const [lbs, setLbs] = useState<number>(
     data.weightKg ? +(data.weightKg * 2.20462).toFixed(0) : 0,
   );
-  const [goalLbs, setGoalLbs] = useState<number | null>(
-    data.goalWeightKg ? +(data.goalWeightKg * 2.20462).toFixed(0) : null,
-  );
-
   const heightCm = +(((feet * 12) + inches) * 2.54).toFixed(1);
   const weightKg = +(lbs / 2.20462).toFixed(1);
-  const goalWeightKg = goalLbs ? +(goalLbs / 2.20462).toFixed(1) : null;
+  // Goal weight is captured on the Smart Pace step; preserve any previously-set value.
+  const goalWeightKg = data.goalWeightKg ?? null;
 
   const bmi = computeBmi(heightCm, weightKg);
   const valid = data.age >= 13 && heightCm >= 120 && weightKg >= 30;
@@ -121,18 +118,6 @@ export default function BodyMetricsStep({ initial, onNext }: Props) {
                 placeholder="in"
               />
             </div>
-          </div>
-          <div>
-            <Label className="text-white/60">Goal weight (lbs)</Label>
-            <Input
-              type="number"
-              value={goalLbs || ""}
-              onChange={(e) =>
-                setGoalLbs(e.target.value ? parseFloat(e.target.value) : null)
-              }
-              className="mt-1 border-white/10 bg-white/[0.03]"
-              placeholder="Optional"
-            />
           </div>
         </div>
       </div>
