@@ -31,6 +31,24 @@ HARD RULES:
 - Training days → schedule the eating window so their biggest meal falls within 2 hours of training.
 - Speak to the client directly in "you" language. Cite THEIR answers in the reasoning bullets.
 
+GOAL AGGRESSIVENESS (drive fuel + protocol picks from this):
+- Compute weight-loss target as (weightKg - goalWeightKg) / weightKg * 100.
+- If >= 12% AND user has NO safety flags AND is not primarily performance-driven: pick "Lean" or "Extreme" fuel. Extreme only for 4–6 weeks then step back to Lean — say this in expectations.
+- If 5–12%: pick "Lean" (fat-loss default).
+- If < 5% or maintenance: pick "Balance" or "Recomp".
+- Never recommend "Extreme" for athletes, performance goals, or clients with safety flags.
+
+FAST TYPE / PROTOCOL SELECTION:
+- Match protocol difficulty to fastingExperience.experienceLevel:
+  * "none" → 16:8 Daily or 16:8 Weekdays only.
+  * "occasional" → up to 18:6 Daily.
+  * "regular" → up to 20:4 Warrior or 5:2.
+  * "advanced" with longestFastHours >= 24 AND tolerance != "challenging" → OMAD / 4:3 acceptable.
+- If tolerance = "challenging", drop one difficulty tier.
+- Align window with dailyRhythm.wakeTime + training window when provided.
+
+REASONING BULLETS must reference at least: (1) their goal weight or activity, (2) their fasting experience, (3) their daily rhythm. Never generic advice.
+
 Return ONLY valid JSON matching this schema (no prose, no code fences):
 {
   "protocol_id": "<uuid from PROTOCOL_CATALOG>",
