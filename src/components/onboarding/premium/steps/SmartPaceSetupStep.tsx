@@ -53,7 +53,8 @@ export default function SmartPaceSetupStep({
     return d;
   });
   const [saving, setSaving] = useState(false);
-  const [howOpen, setHowOpen] = useState(false);
+  // Open by default so users see the explanation before filling in their goal.
+  const [howOpen, setHowOpen] = useState(true);
 
   // Auto-correct direction as weights change
   useEffect(() => {
@@ -142,6 +143,14 @@ export default function SmartPaceSetupStep({
         </p>
       </div>
 
+      <HowItWorks
+        open={howOpen}
+        onToggle={() => setHowOpen((v) => !v)}
+        base={derived?.pace ?? 0}
+        startWeight={startWeight}
+        goalWeight={goalWeight}
+      />
+
       <div className="grid grid-cols-2 gap-3">
         <div>
           <Label className="text-white/60">Start weight (lb)</Label>
@@ -218,14 +227,6 @@ export default function SmartPaceSetupStep({
           calculator your coach sees. You can update it anytime on your dashboard.
         </p>
       </div>
-
-      <HowItWorks
-        open={howOpen}
-        onToggle={() => setHowOpen((v) => !v)}
-        base={derived?.pace ?? 0}
-        startWeight={startWeight}
-        goalWeight={goalWeight}
-      />
 
       <div className="mt-auto pb-2">
         <Button
