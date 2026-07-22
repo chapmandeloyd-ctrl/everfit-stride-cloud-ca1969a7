@@ -364,18 +364,103 @@ export default function SmartPaceSetupStep({
               tone="amber"
               onSelect={() => applyPreset("ambitious")}
             />
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className={cn(
+                    "flex w-full items-center justify-between rounded-xl border p-3 text-left transition",
+                    chosenPreset === "custom"
+                      ? "border-primary/50 bg-primary/10"
+                      : "border-white/10 bg-white/[0.02] hover:border-white/20"
+                  )}
+                >
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold text-white">Choose your own date</span>
+                      {chosenPreset === "custom" && (
+                        <span className="rounded-full bg-primary/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
+                          Selected
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-[11px] text-white/60">
+                      {chosenPreset === "custom" && targetDate
+                        ? `Target: ${format(targetDate, "MMM d, yyyy")}`
+                        : "Pick any target date — we'll coach the rest"}
+                    </div>
+                  </div>
+                  <CalendarIcon className="h-4 w-4 text-white/60" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={targetDate}
+                  onSelect={(d) => {
+                    setTargetDate(d);
+                    setDateTouched(true);
+                  }}
+                  disabled={(d) => d <= startDate}
+                  initialFocus
+                  className="p-3 pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
           </div>
 
-          {chosenPreset === "custom" && assessment?.zone === "extreme" && (
-            <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 text-[12px] text-white/80">
-              <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-amber-300">
-                <AlertTriangle className="h-3.5 w-3.5" /> Heads up — that's a fast pace
+          {chosenPreset === "custom" && assessment && (
+            <div
+              className={cn(
+                "rounded-xl border p-3 text-[12px] text-white/85 space-y-2",
+                assessment.zone === "extreme"
+                  ? "border-destructive/40 bg-destructive/10"
+                  : assessment.zone === "aggressive"
+                    ? "border-amber-500/30 bg-amber-500/5"
+                    : "border-emerald-500/30 bg-emerald-500/5"
+              )}
+            >
+              <div
+                className={cn(
+                  "flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide",
+                  assessment.zone === "extreme"
+                    ? "text-destructive"
+                    : assessment.zone === "aggressive"
+                      ? "text-amber-300"
+                      : "text-emerald-300"
+                )}
+              >
+                <AlertTriangle className="h-3.5 w-3.5" />
+                {assessment.zone === "extreme"
+                  ? `Very aggressive · ${assessment.weeklyPct.toFixed(1)}% body weight / week`
+                  : assessment.zone === "aggressive"
+                    ? `Aggressive · ${assessment.weeklyPct.toFixed(1)}% body weight / week`
+                    : `You're in the safe zone · ${assessment.weeklyPct.toFixed(1)}% body weight / week`}
               </div>
-              <p className="mt-1">
-                Your date works out to about {assessment.weeklyPct.toFixed(1)}% of your body weight per week.
-                We can still coach you through it — you just have a bit less margin for off days.
-                If you'd like an easier ride, tap <span className="font-semibold text-white">Balanced</span> above.
-              </p>
+              {assessment.zone === "extreme" ? (
+                <>
+                  <p>
+                    Heads up — this pace is above the 1.5% / week safety ceiling. That can bring on fatigue,
+                    muscle loss, and a rebound if we push too long.
+                  </p>
+                  <p className="text-white/75">
+                    <span className="font-semibold text-white">We've still got you.</span> If you want to
+                    stick with this date, APEX360 AI will coach you day-by-day, protect your protein, and
+                    tap the brakes the moment your body signals it's time. You can switch to
+                    <span className="font-semibold text-white"> Balanced</span> anytime.
+                  </p>
+                </>
+              ) : assessment.zone === "aggressive" ? (
+                <p>
+                  A bit faster than the sweet spot, but still doable. We'll keep a close eye on your energy
+                  and adjust the plan if you need a break — <span className="font-semibold text-white">you got this.</span>
+                </p>
+              ) : (
+                <p>
+                  Nice — this pace lines up with what your body can handle sustainably. Stay consistent and
+                  we'll do the heavy lifting on the math.
+                </p>
+              )}
             </div>
           )}
 
