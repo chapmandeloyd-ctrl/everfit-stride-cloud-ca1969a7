@@ -9,6 +9,7 @@ import { format, differenceInCalendarDays } from "date-fns";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { ChevronDown, AlertTriangle, TrendingUp, Bell } from "lucide-react";
 
 interface Props {
   clientId: string | null;
@@ -52,6 +53,7 @@ export default function SmartPaceSetupStep({
     return d;
   });
   const [saving, setSaving] = useState(false);
+  const [howOpen, setHowOpen] = useState(false);
 
   // Auto-correct direction as weights change
   useEffect(() => {
@@ -217,6 +219,14 @@ export default function SmartPaceSetupStep({
         </p>
       </div>
 
+      <HowItWorks
+        open={howOpen}
+        onToggle={() => setHowOpen((v) => !v)}
+        base={derived?.pace ?? 0}
+        startWeight={startWeight}
+        goalWeight={goalWeight}
+      />
+
       <div className="mt-auto pb-2">
         <Button
           disabled={!valid || saving}
@@ -227,6 +237,160 @@ export default function SmartPaceSetupStep({
           {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Continue
         </Button>
+      </div>
+    </div>
+  );
+}
+
+function HowItWorks({
+  open,
+  onToggle,
+  base,
+  startWeight,
+  goalWeight,
+}: {
+  open: boolean;
+  onToggle: () => void;
+  base: number;
+  startWeight: number;
+  goalWeight: number;
+}) {
+  const b = base > 0 ? base : 0.6;
+  const fmt = (n: number) => n.toFixed(1);
+
+  const days = [
+    { day: "Mon", actual: b, target: b, debt: 0, credit: 0, note: "Start — on pace" },
+    { day: "Tue", actual: b * 0.5, target: b, debt: b * 0.5, credit: 0, note: `Small miss → +${fmt(b * 0.5)} lb Debt` },
+    { day: "Wed", actual: 0, target: b * 1.5, debt: b * 2.5, credit: 0, note: "Missed weigh-in → full pace charged" },
+    { day: "Thu", actual: b * 3, target: b * 3, debt: 0, credit: 0, note: "Big weigh-in wipes Debt" },
+    { day: "Fri", actual: b * 1.7, target: b, debt: 0, credit: b * 0.7, note: `Over-performed → +${fmt(b * 0.7)} lb Credit` },
+    { day: "Sat", actual: b * 0.3, target: b * 0.3, debt: 0, credit: b * 0.7, note: "Easy day (Credit lowered target)" },
+  ];
+
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/[0.02]">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="flex w-full items-center justify-between px-4 py-3 text-left"
+      >
+        <div>
+          <div className="text-[10px] uppercase tracking-[0.15em] text-primary/80">How Smart Pace works</div>
+          <div className="text-xs text-white/60">Tap for the debt/credit example</div>
+        </div>
+        <ChevronDown className={cn("h-4 w-4 text-white/60 transition-transform", open && "rotate-180")} />
+      </button>
+
+      {open && (
+        <div className="space-y-4 border-t border-white/10 px-4 py-4 text-sm">
+          {/* Math */}
+          <div>
+            <div className="text-[10px] font-bold uppercase tracking-wide text-white/50">The core math</div>
+            <div className="mt-2 rounded-lg bg-white/[0.04] px-3 py-2 font-mono text-[11px] text-white/90">
+              Daily Pace = (Start − Goal) ÷ Days
+            </div>
+            {startWeight && goalWeight && base > 0 ? (
+              <p className="mt-2 text-[11px] text-white/60">
+                Yours: <span className="font-semibold text-white">{fmt(startWeight)} → {fmt(goalWeight)} lb</span> at{" "}
+                <span className="font-semibold text-primary">{fmt(b)} lb/day</span>.
+              </p>
+            ) : (
+              <p className="mt-2 text-[11px] text-white/60">Fill in the fields above to see your pace.</p>
+            )}
+          </div>
+
+          {/* Rules */}
+          <div className="space-y-2">
+            <div className="text-[10px] font-bold uppercase tracking-wide text-white/50">Debt vs. Credit</div>
+            <Rule
+              icon={<AlertTriangle className="h-3.5 w-3.5 text-destructive" />}
+              title="Under target → Debt"
+              body="Shortfall adds to Debt. Tomorrow's target goes up."
+            />
+            <Rule
+              icon={<TrendingUp className="h-3.5 w-3.5 text-sky-400" />}
+              title="Over target → Credit"
+              body="Surplus banks as Credit. Pays down Debt first, then lowers tomorrow's target."
+            />
+            <Rule
+              icon={<Target className="h-3.5 w-3.5 text-emerald-400" />}
+              title="No weigh-in"
+              body={`We charge the full ${fmt(b)} lb to Debt overnight.`}
+            />
+            <div className="rounded-lg bg-white/[0.04] px-3 py-2 font-mono text-[11px] text-white/90">
+              Tomorrow = {fmt(b)} + Debt − Credit
+            </div>
+            <p className="text-[10px] text-white/50">
+              Capped at 3× base ({fmt(b * 3)} lb/day) — never unsafe.
+            </p>
+          </div>
+
+          {/* Worked example */}
+          <div>
+            <div className="text-[10px] font-bold uppercase tracking-wide text-white/50">
+              6-day example at your pace
+            </div>
+            <div className="mt-2 overflow-hidden rounded-lg border border-white/10">
+              <table className="w-full text-[11px]">
+                <thead className="bg-white/[0.04] text-white/50">
+                  <tr>
+                    <th className="px-2 py-1.5 text-left font-semibold">Day</th>
+                    <th className="px-2 py-1.5 text-right font-semibold">Lost</th>
+                    <th className="px-2 py-1.5 text-right font-semibold">Target</th>
+                    <th className="px-2 py-1.5 text-right font-semibold">Debt</th>
+                    <th className="px-2 py-1.5 text-right font-semibold">Credit</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {days.map((d) => (
+                    <tr key={d.day}>
+                      <td className="px-2 py-1.5 font-semibold text-white">{d.day}</td>
+                      <td className="px-2 py-1.5 text-right text-white/80">{fmt(d.actual)}</td>
+                      <td className="px-2 py-1.5 text-right text-white/80">{fmt(d.target)}</td>
+                      <td className={cn("px-2 py-1.5 text-right", d.debt > 0 ? "font-semibold text-destructive" : "text-white/40")}>
+                        {fmt(d.debt)}
+                      </td>
+                      <td className={cn("px-2 py-1.5 text-right", d.credit > 0 ? "font-semibold text-sky-400" : "text-white/40")}>
+                        {fmt(d.credit)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <ul className="mt-2 space-y-1 text-[11px] text-white/60">
+              {days.map((d) => (
+                <li key={d.day}>
+                  <span className="text-white/80">{d.day}:</span> {d.note}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Alerts */}
+          <div>
+            <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-white/50">
+              <Bell className="h-3 w-3" /> When we alert you
+            </div>
+            <ul className="mt-2 space-y-1 text-[11px] text-white/70">
+              <li>• <span className="text-white">2 behind days in a row</span> → catch-up plan + push.</li>
+              <li>• <span className="text-white">Debt ≥ {fmt(b * 2)} lb</span> → your coach is notified.</li>
+              <li>• <span className="text-white">Debt ≥ {fmt(b * 3)} lb</span> → red flag on coach's dashboard.</li>
+            </ul>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Rule({ icon, title, body }: { icon: React.ReactNode; title: string; body: string }) {
+  return (
+    <div className="flex items-start gap-2 rounded-lg bg-white/[0.03] px-3 py-2">
+      <div className="mt-0.5">{icon}</div>
+      <div className="min-w-0">
+        <p className="text-[11px] font-semibold text-white">{title}</p>
+        <p className="text-[11px] text-white/60">{body}</p>
       </div>
     </div>
   );
