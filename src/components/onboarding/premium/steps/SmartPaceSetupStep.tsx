@@ -54,7 +54,7 @@ export default function SmartPaceSetupStep({
   });
   const [saving, setSaving] = useState(false);
   // Open by default so users see the explanation before filling in their goal.
-  const [howOpen, setHowOpen] = useState(true);
+  const [howOpen, setHowOpen] = useState(false);
 
   // Auto-correct direction as weights change
   useEffect(() => {
