@@ -105,6 +105,43 @@ export default function SmartPaceSetupStep({
     return { weeklyPct, safeDaily, safeWeekly, maxDaily, maxWeekly, zone };
   }, [derived, startWeight]);
 
+  // Three pace presets so users can pick their comfort level instead of
+  // feeling judged for choosing an ambitious date. Values are anchored to
+  // clinical BW-% guidance and translated back into a target date.
+  const paceOptions = useMemo(() => {
+    if (!startWeight || !goalWeight) return null;
+    const delta = Math.abs(startWeight - goalWeight);
+    if (delta <= 0) return null;
+    const build = (pctPerWeek: number) => {
+      const weekly = startWeight * (pctPerWeek / 100);
+      const daily = weekly / 7;
+      const days = Math.max(7, Math.ceil(delta / daily));
+      const date = new Date();
+      date.setDate(date.getDate() + days);
+      return { pctPerWeek, weekly, daily, days, date };
+    };
+    return {
+      gentle: build(0.5),   // easiest — long game
+      balanced: build(0.75),// sweet spot (recommended)
+      ambitious: build(1),  // upper safe ceiling
+    };
+  }, [startWeight, goalWeight]);
+
+  const chosenPreset: "gentle" | "balanced" | "ambitious" | "custom" = useMemo(() => {
+    if (!derived || !paceOptions) return "custom";
+    const near = (a: number, b: number) => Math.abs(a - b) / Math.max(a, b) < 0.05;
+    if (near(derived.pace, paceOptions.gentle.daily)) return "gentle";
+    if (near(derived.pace, paceOptions.balanced.daily)) return "balanced";
+    if (near(derived.pace, paceOptions.ambitious.daily)) return "ambitious";
+    return "custom";
+  }, [derived, paceOptions]);
+
+  const applyPreset = (key: "gentle" | "balanced" | "ambitious") => {
+    if (!paceOptions) return;
+    setTargetDate(paceOptions[key].date);
+    setDateTouched(true);
+  };
+
   const zoneStyles = {
     safe: {
       chip: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
@@ -289,75 +326,66 @@ export default function SmartPaceSetupStep({
         </p>
       </div>
 
-      {/* Realistic-pace disclaimer + warning */}
-      {assessment && (
-        <div
-          className={cn(
-            "rounded-2xl border p-4 space-y-3",
-            assessment.zone === "safe" && "border-emerald-500/25 bg-emerald-500/5",
-            assessment.zone === "aggressive" && "border-amber-500/25 bg-amber-500/5",
-            assessment.zone === "extreme" && "border-destructive/30 bg-destructive/5"
-          )}
-        >
+      {/* Pick-your-pace: 3 supportive options */}
+      {paceOptions && (
+        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 space-y-3">
           <div className="flex items-center gap-2">
-            {assessment.zone === "safe" ? (
-              <ShieldCheck className="h-4 w-4 text-emerald-300" />
-            ) : (
-              <AlertTriangle
-                className={cn(
-                  "h-4 w-4",
-                  assessment.zone === "aggressive" ? "text-amber-300" : "text-destructive"
-                )}
-              />
-            )}
-            <span
-              className={cn(
-                "text-[11px] font-semibold uppercase tracking-wide",
-                zoneStyles[assessment.zone].text
-              )}
-            >
-              {zoneStyles[assessment.zone].label} · {assessment.weeklyPct.toFixed(2)}% body weight / week
+            <Sparkles className="h-4 w-4 text-primary" />
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-white/80">
+              Pick a pace that fits your life
             </span>
           </div>
+          <p className="text-[12px] text-white/60">
+            All three are healthy — pick what feels right. You can always adjust it later.
+          </p>
+          <div className="grid gap-2">
+            <PaceOptionCard
+              label="Gentle"
+              subtitle="Easiest to sustain"
+              option={paceOptions.gentle}
+              selected={chosenPreset === "gentle"}
+              tone="emerald"
+              onSelect={() => applyPreset("gentle")}
+            />
+            <PaceOptionCard
+              label="Balanced"
+              subtitle="Recommended sweet spot"
+              option={paceOptions.balanced}
+              selected={chosenPreset === "balanced"}
+              tone="primary"
+              badge="Recommended"
+              onSelect={() => applyPreset("balanced")}
+            />
+            <PaceOptionCard
+              label="Ambitious"
+              subtitle="Faster — still inside the safe ceiling"
+              option={paceOptions.ambitious}
+              selected={chosenPreset === "ambitious"}
+              tone="amber"
+              onSelect={() => applyPreset("ambitious")}
+            />
+          </div>
 
-          {assessment.zone === "safe" && (
-            <p className="text-[12px] text-white/70">
-              You're inside the sustainable zone (≤ 1% body weight / week). This is the pace
-              associated with fat loss without muscle loss, rebound, or metabolic slowdown.
-            </p>
-          )}
-
-          {assessment.zone === "aggressive" && (
-            <p className="text-[12px] text-white/70">
-              You're above the 1% / week guideline. Doable short-term, but higher risk of muscle
-              loss, hunger crashes, and rebound. Consider pushing your target date out a few weeks.
-            </p>
-          )}
-
-          {assessment.zone === "extreme" && (
-            <p className="text-[12px] text-white/80">
-              <span className="font-semibold text-destructive">AI warning:</span> this target date
-              requires losing more than 1.5% of your body weight every week. That's classified as
-              extreme and can cause muscle loss, gallstones, fatigue, and near-guaranteed rebound.
-              Please extend your target date.
-            </p>
-          )}
-
-          <div className="rounded-lg bg-white/[0.04] px-3 py-2 text-[11px] text-white/70">
-            <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-emerald-300">
-              <Sparkles className="h-3 w-3" /> Realistic target for you
+          {chosenPreset === "custom" && assessment?.zone === "extreme" && (
+            <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 text-[12px] text-white/80">
+              <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-amber-300">
+                <AlertTriangle className="h-3.5 w-3.5" /> Heads up — that's a fast pace
+              </div>
+              <p className="mt-1">
+                Your date works out to about {assessment.weeklyPct.toFixed(1)}% of your body weight per week.
+                We can still coach you through it — you just have a bit less margin for off days.
+                If you'd like an easier ride, tap <span className="font-semibold text-white">Balanced</span> above.
+              </p>
             </div>
-            <p className="mt-1">
-              Based on {startWeight.toFixed(0)} lb start weight, a healthy pace is about{" "}
-              <span className="font-semibold text-emerald-300">
-                {assessment.safeDaily.toFixed(2)} lb/day
-              </span>{" "}
-              (~
-              <span className="font-semibold text-emerald-300">
-                {assessment.safeWeekly.toFixed(1)} lb/week
-              </span>
-              ), with an upper ceiling of {assessment.maxWeekly.toFixed(1)} lb/week.
-            </p>
+          )}
+
+          <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3 space-y-1.5 text-[12px] text-white/75">
+            <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-primary">
+              <ShieldCheck className="h-3.5 w-3.5" /> How we've got your back
+            </div>
+            <p>• <span className="text-white">Every day</span> we'll show exactly what it takes to stay on pace.</p>
+            <p>• <span className="text-white">If you slip</span>, we'll show a small daily catch-up — never a crash.</p>
+            <p>• <span className="text-white">2 days off track?</span> We'll offer to adjust your target date so it stays realistic.</p>
           </div>
         </div>
       )}
