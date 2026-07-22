@@ -22,7 +22,6 @@ import ProblemStep from "@/components/onboarding/premium/steps/ProblemStep";
 import ApexPrincipleStep from "@/components/onboarding/premium/steps/ApexPrincipleStep";
 import WhyPairingStep from "@/components/onboarding/premium/steps/WhyPairingStep";
 import SmartPacePitchStep from "@/components/onboarding/premium/steps/SmartPacePitchStep";
-import FastingProtocolsStep from "@/components/onboarding/premium/steps/FastingProtocolsStep";
 import FuelStylesStep from "@/components/onboarding/premium/steps/FuelStylesStep";
 import QuickCheckStep from "@/components/onboarding/premium/steps/QuickCheckStep";
 import FastTypeSelectionStep, {
