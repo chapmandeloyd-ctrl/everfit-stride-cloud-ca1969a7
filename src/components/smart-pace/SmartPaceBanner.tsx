@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, AlertTriangle, Target, BookHeart, Heart } from "lucide-react";
+import { TrendingUp, AlertTriangle, Target, BookHeart, Heart, Info } from "lucide-react";
 import { useSmartPace } from "@/hooks/useSmartPace";
 import { cn } from "@/lib/utils";
 import { SmartPaceJournalView } from "./SmartPaceJournalView";
 import { SmartPaceWhyView } from "./SmartPaceWhyView";
+import { SmartPaceHowItWorksSheet } from "./SmartPaceHowItWorksSheet";
 
 const COLOR_HINT_STORAGE_KEY = "smartPaceColorHintViews";
 const MAX_HINT_VIEWS = 3;
@@ -18,6 +19,7 @@ export function SmartPaceBanner({ allowRender = false }: { allowRender?: boolean
   const { data } = useSmartPace();
   const [flipView, setFlipView] = useState<"none" | "journal" | "why">("none");
   const [showColorHint, setShowColorHint] = useState(false);
+  const [howOpen, setHowOpen] = useState(false);
 
   useEffect(() => {
     if (!data?.enabled || !data.goal) return;
@@ -134,6 +136,14 @@ export function SmartPaceBanner({ allowRender = false }: { allowRender?: boolean
           className="absolute top-3 right-3 flex items-center gap-1.5 z-10"
           aria-label={`Status indicator: ${status}`}
         >
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); setHowOpen(true); }}
+            className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/15 backdrop-blur-sm text-white/80 hover:bg-white/20 transition"
+            aria-label="How Smart Pace works"
+          >
+            <Info className="h-3.5 w-3.5" />
+          </button>
           <span className="relative flex h-2.5 w-2.5">
             <span className={cn("absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping", tone.dot)} />
             <span className={cn("relative inline-flex h-2.5 w-2.5 rounded-full", tone.dot)} />
@@ -255,6 +265,13 @@ export function SmartPaceBanner({ allowRender = false }: { allowRender?: boolean
           </div>
         </>
       )}
+      <SmartPaceHowItWorksSheet
+        open={howOpen}
+        onOpenChange={setHowOpen}
+        basePaceLbs={Number(goal.daily_pace_lbs) || 0}
+        startWeight={goal.start_weight ?? undefined}
+        goalWeight={goal.goal_weight}
+      />
     </Card>
   );
 }
