@@ -258,38 +258,29 @@ export default function SmartPaceSetupStep({
       </div>
 
       <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 backdrop-blur-xl">
-        <div className="grid grid-cols-4 gap-2 text-center">
-          <div>
-            <div className="text-[10px] uppercase tracking-[0.15em] text-white/50">Total days</div>
-            <div className="mt-1 text-lg font-semibold">{derived?.days ?? "—"}</div>
+        <div className="grid grid-cols-4 grid-rows-2 gap-x-2 gap-y-1 text-center">
+          <div className="self-end text-[10px] uppercase tracking-[0.15em] text-white/50">Total days</div>
+          <div className="self-end text-[10px] uppercase tracking-[0.15em] text-white/50">Total</div>
+          <div className="self-end text-[10px] uppercase tracking-[0.15em] text-white/50">Avg / day</div>
+          <div className="self-end text-[10px] uppercase tracking-[0.15em] text-white/50">Avg / week</div>
+
+          <div className="text-lg font-semibold">{derived?.days ?? "—"}</div>
+          <div className="text-lg font-semibold">{derived ? `${derived.delta.toFixed(1)} lb` : "—"}</div>
+          <div
+            className={cn(
+              "text-lg font-semibold",
+              assessment ? zoneStyles[assessment.zone].text : "text-primary"
+            )}
+          >
+            {derived ? `${derived.pace.toFixed(2)} lb` : "—"}
           </div>
-          <div>
-            <div className="text-[10px] uppercase tracking-[0.15em] text-white/50">Total</div>
-            <div className="mt-1 text-lg font-semibold">
-              {derived ? `${derived.delta.toFixed(1)} lb` : "—"}
-            </div>
-          </div>
-          <div>
-            <div className="text-[10px] uppercase tracking-[0.15em] text-white/50">Avg / day</div>
-            <div
-              className={cn(
-                "mt-1 text-lg font-semibold",
-                assessment ? zoneStyles[assessment.zone].text : "text-primary"
-              )}
-            >
-              {derived ? `${derived.pace.toFixed(2)} lb` : "—"}
-            </div>
-          </div>
-          <div>
-            <div className="text-[10px] uppercase tracking-[0.15em] text-white/50">Avg / week</div>
-            <div
-              className={cn(
-                "mt-1 text-lg font-semibold",
-                assessment ? zoneStyles[assessment.zone].text : "text-primary"
-              )}
-            >
-              {derived ? `${derived.weekly.toFixed(1)} lb` : "—"}
-            </div>
+          <div
+            className={cn(
+              "text-lg font-semibold",
+              assessment ? zoneStyles[assessment.zone].text : "text-primary"
+            )}
+          >
+            {derived ? `${derived.weekly.toFixed(1)} lb` : "—"}
           </div>
         </div>
         <p className="mt-3 text-[11px] text-white/50">
