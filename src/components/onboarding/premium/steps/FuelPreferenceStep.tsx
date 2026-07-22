@@ -9,11 +9,11 @@ export interface FuelPreferenceData {
 }
 
 const FUEL = [
-  { key: "Balance",     desc: "Sustainable, everyday nutrition" },
-  { key: "Performance", desc: "Training-day fuel priority" },
-  { key: "Lean",        desc: "Fat loss with muscle retention" },
-  { key: "Recomp",      desc: "Rebuild composition" },
-  { key: "Extreme",     desc: "Aggressive cut (short-term)" },
+  { key: "Balance",     desc: "Sustainable, everyday nutrition", macros: { p: 30, c: 40, f: 30 } },
+  { key: "Performance", desc: "Training-day fuel priority",      macros: { p: 30, c: 45, f: 25 } },
+  { key: "Lean",        desc: "Fat loss with muscle retention",  macros: { p: 40, c: 30, f: 30 } },
+  { key: "Recomp",      desc: "Rebuild composition",             macros: { p: 35, c: 35, f: 30 } },
+  { key: "Extreme",     desc: "Aggressive cut (short-term)",     macros: { p: 45, c: 20, f: 35 } },
 ] as const;
 
 const DIET = ["Vegetarian", "Vegan", "Dairy-free", "Gluten-free", "Nut allergy", "No pork", "No shellfish"];
@@ -56,6 +56,18 @@ export default function FuelPreferenceStep({
           >
             <div className="text-base font-semibold text-white">{f.key}</div>
             <div className="text-xs text-white/60">{f.desc}</div>
+            <div className="mt-3 space-y-1.5">
+              <div className="flex h-1.5 w-full overflow-hidden rounded-full bg-white/5">
+                <div className="h-full bg-sky-400" style={{ width: `${f.macros.p}%` }} />
+                <div className="h-full bg-emerald-400" style={{ width: `${f.macros.c}%` }} />
+                <div className="h-full bg-amber-400" style={{ width: `${f.macros.f}%` }} />
+              </div>
+              <div className="flex justify-between text-[10px] font-medium tabular-nums text-white/70">
+                <span><span className="text-sky-400">■</span> P {f.macros.p}%</span>
+                <span><span className="text-emerald-400">■</span> C {f.macros.c}%</span>
+                <span><span className="text-amber-400">■</span> F {f.macros.f}%</span>
+              </div>
+            </div>
           </button>
         ))}
       </div>
