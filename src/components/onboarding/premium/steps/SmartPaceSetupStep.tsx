@@ -9,6 +9,7 @@ import { format, differenceInCalendarDays } from "date-fns";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { ChevronDown, AlertTriangle, TrendingUp, Bell } from "lucide-react";
 
 interface Props {
   clientId: string | null;
@@ -52,6 +53,7 @@ export default function SmartPaceSetupStep({
     return d;
   });
   const [saving, setSaving] = useState(false);
+  const [howOpen, setHowOpen] = useState(false);
 
   // Auto-correct direction as weights change
   useEffect(() => {
@@ -216,6 +218,14 @@ export default function SmartPaceSetupStep({
           calculator your coach sees. You can update it anytime on your dashboard.
         </p>
       </div>
+
+      <HowItWorks
+        open={howOpen}
+        onToggle={() => setHowOpen((v) => !v)}
+        base={derived?.pace ?? 0}
+        startWeight={startWeight}
+        goalWeight={goalWeight}
+      />
 
       <div className="mt-auto pb-2">
         <Button
