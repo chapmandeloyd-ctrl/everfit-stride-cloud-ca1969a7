@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,6 +33,7 @@ export default function SmartPaceSetupStep({
   goalWeightKg,
   onNext,
 }: Props) {
+  const queryClient = useQueryClient();
   const defaultStart = currentWeightKg ? kgToLbs(currentWeightKg) : 0;
   const defaultGoal = goalWeightKg ? kgToLbs(goalWeightKg) : 0;
 
@@ -211,6 +213,16 @@ export default function SmartPaceSetupStep({
         .update({ smart_pace_enabled: true })
         .eq("client_id", clientId);
 
+      // Invalidate any cached queries so the dashboard renders the new goal
+      // the instant the user lands there.
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["smart-pace"] }),
+        queryClient.invalidateQueries({ queryKey: ["smart-pace-log"] }),
+        queryClient.invalidateQueries({ queryKey: ["client-feature-settings"] }),
+        queryClient.invalidateQueries({ queryKey: ["dashboard-cards"] }),
+      ]);
+
+      toast.success("Smart Pace activated — live on your dashboard");
       onNext();
     } catch (e: any) {
       toast.error(e?.message ?? "Could not save your pace goal");
