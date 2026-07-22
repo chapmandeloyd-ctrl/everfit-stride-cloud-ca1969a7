@@ -9,7 +9,7 @@ import { format, differenceInCalendarDays } from "date-fns";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { ChevronDown, AlertTriangle, TrendingUp, Bell } from "lucide-react";
+import { ChevronDown, AlertTriangle, TrendingUp, Bell, ShieldCheck, Sparkles } from "lucide-react";
 
 interface Props {
   clientId: string | null;
@@ -69,8 +69,42 @@ export default function SmartPaceSetupStep({
     const days = differenceInCalendarDays(targetDate, startDate);
     if (days <= 0) return null;
     const delta = Math.abs(startWeight - goalWeight);
-    return { days, delta, pace: delta / days };
+    const pace = delta / days;
+    return { days, delta, pace, weekly: pace * 7 };
   }, [startWeight, goalWeight, targetDate, startDate]);
+
+  // Realistic-pace assessment based on % body weight / week.
+  // Standard clinical guidance: 0.5–1% BW/week is safe & sustainable.
+  const assessment = useMemo(() => {
+    if (!derived || !startWeight) return null;
+    const weeklyPct = (derived.weekly / startWeight) * 100;
+    const safeDaily = (startWeight * 0.0075) / 7; // 0.75% BW/week midpoint
+    const safeWeekly = startWeight * 0.0075;
+    const maxDaily = (startWeight * 0.01) / 7;    // 1% BW/week ceiling
+    const maxWeekly = startWeight * 0.01;
+    let zone: "safe" | "aggressive" | "extreme" = "safe";
+    if (weeklyPct > 1.5) zone = "extreme";
+    else if (weeklyPct > 1) zone = "aggressive";
+    return { weeklyPct, safeDaily, safeWeekly, maxDaily, maxWeekly, zone };
+  }, [derived, startWeight]);
+
+  const zoneStyles = {
+    safe: {
+      chip: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
+      text: "text-emerald-300",
+      label: "Safe pace",
+    },
+    aggressive: {
+      chip: "bg-amber-500/15 text-amber-300 border-amber-500/30",
+      text: "text-amber-300",
+      label: "Aggressive",
+    },
+    extreme: {
+      chip: "bg-destructive/15 text-destructive border-destructive/30",
+      text: "text-destructive",
+      label: "Too aggressive",
+    },
+  } as const;
 
   const valid = !!(startWeight && goalWeight && targetDate && derived && derived.pace > 0);
 
@@ -204,21 +238,37 @@ export default function SmartPaceSetupStep({
       </div>
 
       <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 backdrop-blur-xl">
-        <div className="grid grid-cols-3 gap-2 text-center">
+        <div className="grid grid-cols-4 gap-2 text-center">
           <div>
             <div className="text-[10px] uppercase tracking-[0.15em] text-white/50">Total days</div>
             <div className="mt-1 text-lg font-semibold">{derived?.days ?? "—"}</div>
           </div>
           <div>
-            <div className="text-[10px] uppercase tracking-[0.15em] text-white/50">Total change</div>
+            <div className="text-[10px] uppercase tracking-[0.15em] text-white/50">Total</div>
             <div className="mt-1 text-lg font-semibold">
               {derived ? `${derived.delta.toFixed(1)} lb` : "—"}
             </div>
           </div>
           <div>
             <div className="text-[10px] uppercase tracking-[0.15em] text-white/50">Avg / day</div>
-            <div className="mt-1 text-lg font-semibold text-primary">
+            <div
+              className={cn(
+                "mt-1 text-lg font-semibold",
+                assessment ? zoneStyles[assessment.zone].text : "text-primary"
+              )}
+            >
               {derived ? `${derived.pace.toFixed(2)} lb` : "—"}
+            </div>
+          </div>
+          <div>
+            <div className="text-[10px] uppercase tracking-[0.15em] text-white/50">Avg / week</div>
+            <div
+              className={cn(
+                "mt-1 text-lg font-semibold",
+                assessment ? zoneStyles[assessment.zone].text : "text-primary"
+              )}
+            >
+              {derived ? `${derived.weekly.toFixed(1)} lb` : "—"}
             </div>
           </div>
         </div>
@@ -227,6 +277,79 @@ export default function SmartPaceSetupStep({
           calculator your coach sees. You can update it anytime on your dashboard.
         </p>
       </div>
+
+      {/* Realistic-pace disclaimer + warning */}
+      {assessment && (
+        <div
+          className={cn(
+            "rounded-2xl border p-4 space-y-3",
+            assessment.zone === "safe" && "border-emerald-500/25 bg-emerald-500/5",
+            assessment.zone === "aggressive" && "border-amber-500/25 bg-amber-500/5",
+            assessment.zone === "extreme" && "border-destructive/30 bg-destructive/5"
+          )}
+        >
+          <div className="flex items-center gap-2">
+            {assessment.zone === "safe" ? (
+              <ShieldCheck className="h-4 w-4 text-emerald-300" />
+            ) : (
+              <AlertTriangle
+                className={cn(
+                  "h-4 w-4",
+                  assessment.zone === "aggressive" ? "text-amber-300" : "text-destructive"
+                )}
+              />
+            )}
+            <span
+              className={cn(
+                "text-[11px] font-semibold uppercase tracking-wide",
+                zoneStyles[assessment.zone].text
+              )}
+            >
+              {zoneStyles[assessment.zone].label} · {assessment.weeklyPct.toFixed(2)}% body weight / week
+            </span>
+          </div>
+
+          {assessment.zone === "safe" && (
+            <p className="text-[12px] text-white/70">
+              You're inside the sustainable zone (≤ 1% body weight / week). This is the pace
+              associated with fat loss without muscle loss, rebound, or metabolic slowdown.
+            </p>
+          )}
+
+          {assessment.zone === "aggressive" && (
+            <p className="text-[12px] text-white/70">
+              You're above the 1% / week guideline. Doable short-term, but higher risk of muscle
+              loss, hunger crashes, and rebound. Consider pushing your target date out a few weeks.
+            </p>
+          )}
+
+          {assessment.zone === "extreme" && (
+            <p className="text-[12px] text-white/80">
+              <span className="font-semibold text-destructive">AI warning:</span> this target date
+              requires losing more than 1.5% of your body weight every week. That's classified as
+              extreme and can cause muscle loss, gallstones, fatigue, and near-guaranteed rebound.
+              Please extend your target date.
+            </p>
+          )}
+
+          <div className="rounded-lg bg-white/[0.04] px-3 py-2 text-[11px] text-white/70">
+            <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-emerald-300">
+              <Sparkles className="h-3 w-3" /> Realistic target for you
+            </div>
+            <p className="mt-1">
+              Based on {startWeight.toFixed(0)} lb start weight, a healthy pace is about{" "}
+              <span className="font-semibold text-emerald-300">
+                {assessment.safeDaily.toFixed(2)} lb/day
+              </span>{" "}
+              (~
+              <span className="font-semibold text-emerald-300">
+                {assessment.safeWeekly.toFixed(1)} lb/week
+              </span>
+              ), with an upper ceiling of {assessment.maxWeekly.toFixed(1)} lb/week.
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className="mt-auto pb-2">
         <Button
