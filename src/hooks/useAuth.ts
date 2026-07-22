@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Session, User } from "@supabase/supabase-js";
 import type { Tables } from "@/integrations/supabase/types";
 import type { ReactNode } from "react";
+import { toast } from "sonner";
 
 export type Profile = Tables<"profiles">;
 
@@ -155,6 +156,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 setSession(null);
                 setProfile(null);
                 setLoading(false);
+                try {
+                  toast.error("Your session expired — please sign in again.", { id: "session-expired" });
+                } catch {}
               })
               .catch((err) => {
                 if (cancelled || requestId !== sessionRecoveryRequestId.current) return;
