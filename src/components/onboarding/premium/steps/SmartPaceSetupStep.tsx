@@ -52,6 +52,8 @@ export default function SmartPaceSetupStep({
     d.setDate(d.getDate() + 84); // sensible 12-week default
     return d;
   });
+  // Once the user picks their own date we stop auto-adjusting it.
+  const [dateTouched, setDateTouched] = useState(false);
   const [saving, setSaving] = useState(false);
   // Open by default so users see the explanation before filling in their goal.
   const [howOpen, setHowOpen] = useState(false);
@@ -63,6 +65,21 @@ export default function SmartPaceSetupStep({
       goalWeight < startWeight ? "lose" : goalWeight > startWeight ? "gain" : "maintain"
     );
   }, [startWeight, goalWeight]);
+
+  // Auto-set target date to the safe/green pace (0.75% BW/week) whenever the
+  // user changes weights — until they manually pick their own date.
+  useEffect(() => {
+    if (dateTouched) return;
+    if (!startWeight || !goalWeight) return;
+    const delta = Math.abs(startWeight - goalWeight);
+    if (delta <= 0) return;
+    const safeDaily = (startWeight * 0.0075) / 7; // 0.75% BW/week
+    if (safeDaily <= 0) return;
+    const days = Math.max(7, Math.ceil(delta / safeDaily));
+    const d = new Date();
+    d.setDate(d.getDate() + days);
+    setTargetDate(d);
+  }, [startWeight, goalWeight, dateTouched]);
 
   const derived = useMemo(() => {
     if (!startWeight || !goalWeight || !targetDate) return null;
@@ -227,7 +244,10 @@ export default function SmartPaceSetupStep({
               <Calendar
                 mode="single"
                 selected={targetDate}
-                onSelect={setTargetDate}
+                onSelect={(d) => {
+                  setTargetDate(d);
+                  setDateTouched(true);
+                }}
                 disabled={(d) => d <= startDate}
                 initialFocus
                 className="p-3 pointer-events-auto"
