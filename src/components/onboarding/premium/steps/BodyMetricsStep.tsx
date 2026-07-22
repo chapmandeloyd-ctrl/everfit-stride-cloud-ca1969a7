@@ -101,22 +101,28 @@ export default function BodyMetricsStep({ initial, onNext }: Props) {
             />
           </div>
           <div>
-            <Label className="text-white/60">Height</Label>
+            <Label className="text-white/60">Height (ft / in)</Label>
             <div className="mt-1 grid grid-cols-2 gap-2">
+              <div className="relative">
               <Input
                 type="number"
                 value={feet || ""}
                 onChange={(e) => setFeet(parseInt(e.target.value) || 0)}
-                className="border-white/10 bg-white/[0.03]"
+                className="border-white/10 bg-white/[0.03] pr-10"
                 placeholder="ft"
               />
+                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-white/50">ft</span>
+              </div>
+              <div className="relative">
               <Input
                 type="number"
                 value={inches || ""}
                 onChange={(e) => setInches(parseInt(e.target.value) || 0)}
-                className="border-white/10 bg-white/[0.03]"
+                className="border-white/10 bg-white/[0.03] pr-10"
                 placeholder="in"
               />
+                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-white/50">in</span>
+              </div>
             </div>
           </div>
         </div>
