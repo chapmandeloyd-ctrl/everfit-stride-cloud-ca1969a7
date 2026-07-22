@@ -259,17 +259,17 @@ export default function SmartPaceSetupStep({
 
       <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 backdrop-blur-xl">
         <div className="grid grid-cols-4 gap-2 text-center">
-          <div>
+          <div className="flex flex-col items-center justify-between">
             <div className="text-[10px] uppercase tracking-[0.15em] text-white/50">Total days</div>
             <div className="mt-1 text-lg font-semibold">{derived?.days ?? "—"}</div>
           </div>
-          <div>
+          <div className="flex flex-col items-center justify-between">
             <div className="text-[10px] uppercase tracking-[0.15em] text-white/50">Total</div>
             <div className="mt-1 text-lg font-semibold">
               {derived ? `${derived.delta.toFixed(1)} lb` : "—"}
             </div>
           </div>
-          <div>
+          <div className="flex flex-col items-center justify-between">
             <div className="text-[10px] uppercase tracking-[0.15em] text-white/50">Avg / day</div>
             <div
               className={cn(
@@ -280,7 +280,7 @@ export default function SmartPaceSetupStep({
               {derived ? `${derived.pace.toFixed(2)} lb` : "—"}
             </div>
           </div>
-          <div>
+          <div className="flex flex-col items-center justify-between">
             <div className="text-[10px] uppercase tracking-[0.15em] text-white/50">Avg / week</div>
             <div
               className={cn(
