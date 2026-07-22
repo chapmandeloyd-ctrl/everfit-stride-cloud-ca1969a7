@@ -64,9 +64,10 @@ serve(async (req) => {
     if (!apiKey) throw new Error("Missing LOVABLE_API_KEY");
 
     const body = await req.json();
-    const { client_id, onboarding, regenerate_reason } = body ?? {};
-    if (!client_id || !onboarding) {
-      return new Response(JSON.stringify({ error: "client_id and onboarding required" }), {
+    const { client_id, onboarding, regenerate_reason, preview } = body ?? {};
+    const isPreview = preview === true || !client_id;
+    if (!onboarding) {
+      return new Response(JSON.stringify({ error: "onboarding required" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -121,25 +122,28 @@ Design their plan now. Return ONLY the JSON object.`;
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const { data: inserted, error: insertErr } = await supabase
-      .from("ai_plan_proposals")
-      .insert({
-        client_id,
-        status: "proposed",
-        onboarding_snapshot: onboarding,
-        plan,
-        reasoning: plan.reasoning ?? [],
-        expectations: plan.expectations ?? [],
-        schedule_breakdown: plan.schedule_breakdown ?? [],
-        model: "google/gemini-3-flash-preview",
-        regenerate_reason: regenerate_reason ?? null,
-      })
-      .select("id")
-      .single();
+    let proposalId: string | null = null;
+    if (!isPreview) {
+      const { data: inserted, error: insertErr } = await supabase
+        .from("ai_plan_proposals")
+        .insert({
+          client_id,
+          status: "proposed",
+          onboarding_snapshot: onboarding,
+          plan,
+          reasoning: plan.reasoning ?? [],
+          expectations: plan.expectations ?? [],
+          schedule_breakdown: plan.schedule_breakdown ?? [],
+          model: "google/gemini-3-flash-preview",
+          regenerate_reason: regenerate_reason ?? null,
+        })
+        .select("id")
+        .single();
+      if (insertErr) console.error("Proposal insert error", insertErr);
+      proposalId = inserted?.id ?? null;
+    }
 
-    if (insertErr) console.error("Proposal insert error", insertErr);
-
-    return new Response(JSON.stringify({ proposal_id: inserted?.id ?? null, plan }), {
+    return new Response(JSON.stringify({ proposal_id: proposalId, plan }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
