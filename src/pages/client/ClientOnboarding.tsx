@@ -194,10 +194,20 @@ export default function ClientOnboarding() {
       );
 
       // Seed the weekly schedule with the AI-picked window.
+      // client_weekly_schedule.ratio is constrained to 16:8, 18:6, 20:4, eat_all_day —
+      // map advanced protocols (OMAD, 5:2, 4:3) to the closest allowed value.
+      const mapRatio = (fh: number): string => {
+        if (fh >= 22) return "20:4"; // OMAD / near-OMAD
+        if (fh >= 19) return "20:4";
+        if (fh >= 17) return "18:6";
+        if (fh >= 14) return "16:8";
+        return "eat_all_day";
+      };
+      const allowedRatio = mapRatio(proposal.fast_hours);
       const weeklyRows = Array.from({ length: 7 }, (_, dow) => ({
         client_id: clientId,
         day_of_week: dow,
-        ratio: `${proposal.fast_hours}:${proposal.eat_hours}`,
+        ratio: allowedRatio,
         window_start_time: `${proposal.window_end_time}:00`, // fast starts at last-meal time
         window_end_time: `${proposal.window_start_time}:00`, // fast breaks at break-fast time
         enabled: proposal.weekly_pattern === "weekdays_only" ? dow >= 1 && dow <= 5 : true,
