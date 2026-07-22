@@ -189,7 +189,7 @@ export default function SmartPaceSetupStep({
       // Deactivate any existing active goal so we don't collide.
       await supabase
         .from("smart_pace_goals")
-        .update({ status: "archived", ended_at: new Date().toISOString(), ended_reason: "onboarding_reset" })
+        .update({ status: "abandoned", ended_at: new Date().toISOString(), ended_reason: "onboarding_reset" })
         .eq("client_id", clientId)
         .eq("status", "active");
 
