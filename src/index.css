@@ -171,4 +171,17 @@ Light Theme 1: Clean & Athletic — warm white base, bold red accents, crisp con
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+
+  .onboarding-scroll-scope,
+  .onboarding-scroll-scope * {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .onboarding-scroll-scope::-webkit-scrollbar,
+  .onboarding-scroll-scope *::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+  }
 }

@@ -19,7 +19,7 @@ export default function OnboardingShell({
 }: Props) {
   const pct = (step / totalSteps) * 100;
   return (
-    <div className="dark relative min-h-[100dvh] bg-[hsl(0_0%_4%)] text-[hsl(0_0%_96%)]">
+    <div className="dark onboarding-scroll-scope relative min-h-[100dvh] overflow-hidden bg-[hsl(0_0%_4%)] text-[hsl(0_0%_96%)]">
       {/* Premium gradient backdrop */}
       <div
         className="pointer-events-none absolute inset-0"
@@ -61,7 +61,7 @@ export default function OnboardingShell({
         className="relative z-10 mx-auto flex w-full max-w-md flex-col px-4 pb-[max(env(safe-area-inset-bottom),1rem)] pt-3"
         style={{ height: "calc(100dvh - 3rem)" }}
       >
-        <div key={step} className="scrollbar-hide flex-1 min-h-0 overflow-y-auto animate-fade-in">
+        <div key={step} className="scrollbar-hide flex-1 min-h-0 overflow-y-auto animate-fade-in overscroll-contain">
           {children}
         </div>
       </div>
