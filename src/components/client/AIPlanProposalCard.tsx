@@ -115,7 +115,8 @@ export default function AIPlanProposalCard({
             onClick={onAdjust}
             disabled={loading}
             variant="outline"
-            className="h-12 rounded-2xl border-white/15 bg-white/[0.02] text-white"
+            size="lg"
+            className="h-14 rounded-2xl border-white/15 bg-white/[0.02] text-base font-medium text-white"
           >
             <Settings2 className="mr-2 h-4 w-4" /> Adjust
           </Button>
@@ -123,7 +124,8 @@ export default function AIPlanProposalCard({
             onClick={onRegenerate}
             disabled={loading}
             variant="outline"
-            className="h-12 rounded-2xl border-white/15 bg-white/[0.02] text-white"
+            size="lg"
+            className="h-14 rounded-2xl border-white/15 bg-white/[0.02] text-base font-medium text-white"
           >
             <RefreshCw className="mr-2 h-4 w-4" /> Regenerate
           </Button>
