@@ -61,7 +61,7 @@ export default function OnboardingShell({
         className="relative z-10 mx-auto flex w-full max-w-md flex-col px-4 pb-[max(env(safe-area-inset-bottom),1rem)] pt-3"
         style={{ height: "calc(100dvh - 3rem)" }}
       >
-        <div key={step} className="flex-1 min-h-0 overflow-y-auto animate-fade-in [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div key={step} className="onboarding-scroll flex-1 min-h-0 overflow-y-auto animate-fade-in">
           {children}
         </div>
       </div>
