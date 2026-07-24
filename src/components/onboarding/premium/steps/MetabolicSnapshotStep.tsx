@@ -75,7 +75,7 @@ export default function MetabolicSnapshotStep({
         ))}
       </div>
 
-      <Button onClick={onNext} size="lg" className="h-14 w-full rounded-2xl text-base font-medium">
+      <Button onClick={onNext} size="lg" className="h-14 w-full rounded-2xl text-base font-semibold">
         See how Apex360-IF helps
       </Button>
     </div>
