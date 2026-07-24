@@ -31,17 +31,17 @@ export default function OnboardingShell({
       {showParticles && <ParticleField />}
 
       {/* Top bar */}
-      <div className="relative z-10 flex items-center gap-3 px-5 pt-[max(env(safe-area-inset-top),1rem)]">
+      <div className="relative z-10 flex items-center gap-3 px-4 pt-[max(env(safe-area-inset-top),0.75rem)] pb-2">
         {onBack ? (
           <button
             onClick={onBack}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 backdrop-blur transition hover:bg-white/10"
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 backdrop-blur transition hover:bg-white/10"
             aria-label="Back"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
         ) : (
-          <div className="h-9 w-9" />
+          <div className="h-8 w-8" />
         )}
         <div className="flex-1">
           <div className="h-1 w-full overflow-hidden rounded-full bg-white/5">
@@ -56,9 +56,14 @@ export default function OnboardingShell({
         </div>
       </div>
 
-      {/* Content */}
-      <div className="relative z-10 mx-auto flex min-h-[calc(100dvh-3rem)] w-full max-w-md flex-col px-5 pb-[max(env(safe-area-inset-bottom),1.5rem)] pt-6">
-        <div key={step} className="flex-1 animate-fade-in">{children}</div>
+      {/* Content — capped to viewport so steps scroll internally instead of pushing the CTA off-screen */}
+      <div
+        className="relative z-10 mx-auto flex w-full max-w-md flex-col px-4 pb-[max(env(safe-area-inset-bottom),1rem)] pt-3"
+        style={{ height: "calc(100dvh - 3rem)" }}
+      >
+        <div key={step} className="flex-1 min-h-0 overflow-y-auto animate-fade-in [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {children}
+        </div>
       </div>
     </div>
   );
