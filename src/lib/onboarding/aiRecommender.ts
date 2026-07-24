@@ -26,7 +26,7 @@ function lossPercent(input: RecommenderInput): number | null {
 }
 
 export function recommendFuelStyle(input: RecommenderInput): Recommendation<FuelStyle> {
-  const flags = input.fastingExperience?.safetyFlags ?? [];
+  const flags = (input.fastingExperience?.safetyFlags ?? []).filter((f) => f !== "none");
   const goals = input.goals ?? [];
   const loss = lossPercent(input);
   const activity = input.activity;
@@ -96,7 +96,7 @@ export function recommendFuelStyle(input: RecommenderInput): Recommendation<Fuel
 }
 
 export function recommendFastType(input: RecommenderInput): Recommendation<FastType> {
-  const flags = input.fastingExperience?.safetyFlags ?? [];
+  const flags = (input.fastingExperience?.safetyFlags ?? []).filter((f) => f !== "none");
   const level = input.fastingExperience?.experienceLevel ?? null;
   const longest = input.fastingExperience?.longestFastHours ?? 0;
   const tolerance = input.fastingExperience?.tolerance ?? null;
