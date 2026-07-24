@@ -25,6 +25,10 @@ function fmt(t: string) {
   return `${hr}:${String(m).padStart(2, "0")} ${period}`;
 }
 
+function humanize(text: string) {
+  return text.replace(/\b(\d{1,2}):(\d{2})\b/g, (_, h, m) => fmt(`${h}:${m}`));
+}
+
 function Section({
   title, defaultOpen = false, children,
 }: { title: string; defaultOpen?: boolean; children: React.ReactNode }) {
@@ -83,7 +87,7 @@ export default function AIPlanProposalCard({
           {proposal.reasoning.map((r, i) => (
             <li key={i} className="flex gap-2">
               <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[hsl(var(--primary))]" />
-              <span>{r}</span>
+              <span>{humanize(r)}</span>
             </li>
           ))}
         </ul>
@@ -96,7 +100,7 @@ export default function AIPlanProposalCard({
           {proposal.expectations.map((r, i) => (
             <li key={i} className="flex gap-2">
               <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-white/40" />
-              <span>{r}</span>
+              <span>{humanize(r)}</span>
             </li>
           ))}
         </ul>
