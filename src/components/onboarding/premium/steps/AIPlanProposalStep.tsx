@@ -65,6 +65,11 @@ export default function AIPlanProposalStep({
 
   return (
     <div className="flex h-full flex-col gap-3 overflow-y-auto">
+      {isPreview && (
+        <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 p-2.5 text-center text-[11px] text-yellow-200">
+          Preview mode — nothing will be saved to your account.
+        </div>
+      )}
       <AIPlanProposalCard
         proposal={proposal}
         loading={loading}
@@ -92,11 +97,6 @@ export default function AIPlanProposalStep({
           >
             Regenerate
           </button>
-        </div>
-      )}
-      {isPreview && (
-        <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 p-3 text-center text-xs text-yellow-200">
-          Preview mode — nothing will be saved to your account.
         </div>
       )}
     </div>
