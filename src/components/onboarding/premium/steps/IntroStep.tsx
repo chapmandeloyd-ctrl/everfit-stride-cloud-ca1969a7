@@ -42,7 +42,26 @@ export default function IntroStep({ onNext }: { onNext: () => void }) {
             Carbs are very important for living a balanced, healthy lifestyle. The problem is most people abuse them and don't understand that all carbs are not created equal, and there is a right place and time to consume them.
           </p>
           <p className="mb-4">
-            My APEX360 AI will teach you which carbs to consume, and most importantly <strong className="text-white">when</strong> to consume them. My APEX360 AI will design your entire plan and keep you accountable.
+            My APEX360 AI will teach you which carbs to consume, and most importantly <strong className="text-white">when</strong> to consume them.
+          </p>
+
+          <div className="mb-2 rounded-xl border border-[hsl(var(--primary))]/30 bg-[hsl(var(--primary))]/10 p-4">
+            <p className="mb-2 text-xs font-bold uppercase tracking-wider text-[hsl(var(--primary))]">
+              The Key to Success
+            </p>
+            <p className="mb-2 text-sm font-semibold text-white/90">
+              Fasting · Protein · Carb Timing
+            </p>
+            <p className="mb-2 text-sm text-white/70">
+              This is where most people fail — they never learn the difference between <strong className="text-white">low</strong> and <strong className="text-white">high glycemic carbs</strong>, or when to eat them.
+            </p>
+            <p className="text-sm text-white/70">
+              <strong className="text-white/90">Low GI carbs</strong> are your everyday fuel — steady energy, no crash, no brain fog. <strong className="text-white/90">High GI carbs</strong> are strategic — around your workout window, when your muscles need fast fuel and recovery. Pair that with consistent fasting and hitting your protein, and the results take care of themselves.
+            </p>
+          </div>
+
+          <p className="text-center text-sm font-semibold text-white/90">
+            My APEX360 AI will design your entire plan, teach you the difference, and keep you accountable.
           </p>
         </div>
       </div>
