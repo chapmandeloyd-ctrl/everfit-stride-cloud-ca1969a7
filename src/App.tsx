@@ -78,6 +78,7 @@ const PortalMockup = lazy(() => import("./pages/PortalMockup"));
 const ClientDashboard = lazy(() => import("./pages/client/ClientDashboardMinimal"));
 const ClientRingsDemo = lazy(() => import("./pages/client/ClientRingsDemo"));
 const ClientSmartPace = lazy(() => import("./pages/client/ClientSmartPace"));
+const ClientFastingCalendar = lazy(() => import("./pages/client/ClientFastingCalendar"));
 const SmartPacePreview = lazy(() => import("./pages/SmartPacePreview"));
 const ClientDailyScore = lazy(() => import("./pages/client/ClientDailyScore"));
 const ClientOnboarding = lazy(() => import("./pages/client/ClientOnboarding"));
@@ -253,7 +254,7 @@ const App = () => (
           <Route path="/client/grocery" element={<Navigate to="/client/dashboard" replace />} />
           <Route path="/client/nutrition" element={<Navigate to="/client/dashboard" replace />} />
           <Route path="/client/nutrition-dashboard" element={<Navigate to="/client/dashboard" replace />} />
-          <Route path="/client/calendar" element={<Navigate to="/client/dashboard" replace />} />
+          <Route path="/client/calendar" element={<ProtectedRoute allowedRoles={["client", "trainer"]}><ClientFastingCalendar /></ProtectedRoute>} />
           <Route path="/client/settings" element={<Navigate to="/client/profile?tab=settings" replace />} />
           <Route path="/client/goals" element={<Navigate to="/client/dashboard" replace />} />
           <Route path="/client/tasks" element={<Navigate to="/client/dashboard" replace />} />
