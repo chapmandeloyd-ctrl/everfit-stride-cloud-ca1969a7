@@ -3,24 +3,24 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Sparkles } from "lucide-react";
 import AIPlanProposalCard, { type AIProposal } from "@/components/client/AIPlanProposalCard";
+import AdjustPlanPanel from "./AdjustPlanPanel";
 
 export default function AIPlanProposalStep({
   clientId,
   onboardingPayload,
   isPreview,
   onAccept,
-  onAdjust,
 }: {
   clientId: string | null;
   onboardingPayload: Record<string, unknown>;
   isPreview: boolean;
   onAccept: (proposal: AIProposal) => void;
-  onAdjust: (proposal: AIProposal) => void;
 }) {
   const [proposal, setProposal] = useState<AIProposal | null>(null);
   const [loading, setLoading] = useState(true);
   const [regenReason, setRegenReason] = useState("");
   const [showRegen, setShowRegen] = useState(false);
+  const [adjusting, setAdjusting] = useState(false);
 
   const generate = async (reason?: string) => {
     setLoading(true);
@@ -63,6 +63,22 @@ export default function AIPlanProposalStep({
     );
   }
 
+  if (adjusting && proposal) {
+    return (
+      <div className="flex h-full flex-col overflow-y-auto">
+        <AdjustPlanPanel
+          proposal={proposal}
+          loading={loading}
+          onCancel={() => setAdjusting(false)}
+          onSave={(p) => {
+            setProposal(p);
+            onAccept(p);
+          }}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-full flex-col gap-3 overflow-y-auto">
       {isPreview && (
@@ -74,7 +90,7 @@ export default function AIPlanProposalStep({
         proposal={proposal}
         loading={loading}
         onAccept={() => onAccept(proposal)}
-        onAdjust={() => onAdjust(proposal)}
+        onAdjust={() => setAdjusting(true)}
         onRegenerate={() => setShowRegen((s) => !s)}
       />
       {showRegen && (
