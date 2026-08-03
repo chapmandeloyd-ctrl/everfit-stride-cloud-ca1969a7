@@ -85,7 +85,12 @@ export default function ClientOnboarding() {
   const isPreview =
     searchParams.get("preview") === "1" ||
     (userRole === "trainer" && !impersonatedClientId);
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(() => {
+    // Preview-only deep link: /client/onboarding?preview=1&step=20
+    const raw = Number(searchParams.get("step"));
+    if (searchParams.get("preview") === "1" && Number.isFinite(raw) && raw >= 1) return raw;
+    return 1;
+  });
   const [state, setState] = useState<OnboardingState>(INITIAL);
   const [loading, setLoading] = useState(false);
 
