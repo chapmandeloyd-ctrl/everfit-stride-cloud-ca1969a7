@@ -1,0 +1,176 @@
+import { useEffect, useState } from "react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Check, CalendarDays } from "lucide-react";
+import {
+  RATIOS,
+  RATIO_LABEL,
+  computeEnd,
+  defaultWeek,
+  formatHour,
+  timeToHour,
+  breakFastHourFor,
+  type FastRatio,
+  type WeeklyScheduleDay,
+} from "./calendarUtils";
+
+export type ApplyScope = "day" | "weekdays" | "weekends" | "week";
+
+interface Props {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  date: Date | null;
+  day: WeeklyScheduleDay | null;
+  saving?: boolean;
+  onSave: (day: WeeklyScheduleDay, scope: ApplyScope) => void;
+}
+
+const SCOPES: { id: ApplyScope; label: string }[] = [
+  { id: "day", label: "This day only" },
+  { id: "weekdays", label: "All weekdays" },
+  { id: "weekends", label: "All weekends" },
+  { id: "week", label: "Every day" },
+];
+
+export default function DayEditorSheet({
+  open,
+  onOpenChange,
+  date,
+  day,
+  saving,
+  onSave,
+}: Props) {
+  const base = day ?? defaultWeek()[date ? date.getDay() : 0];
+  const [ratio, setRatio] = useState<FastRatio>(base.ratio);
+  const [start, setStart] = useState(base.window_start_time.slice(0, 5));
+  const [rest, setRest] = useState(base.enabled === false);
+  const [scope, setScope] = useState<ApplyScope>("day");
+
+  useEffect(() => {
+    if (!open) return;
+    setRatio(base.ratio);
+    setStart(base.window_start_time.slice(0, 5));
+    setRest(base.enabled === false);
+    setScope("day");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, date?.toDateString()]);
+
+  const startHour = timeToHour(`${start}:00`);
+  const breaks = breakFastHourFor(ratio, startHour);
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="bottom" className="max-h-[92dvh] overflow-y-auto rounded-t-3xl px-4 pb-8">
+        <SheetHeader className="text-left">
+          <SheetTitle className="flex items-center gap-2 text-lg">
+            <CalendarDays className="h-4 w-4 text-primary" />
+            {date?.toLocaleDateString(undefined, {
+              weekday: "long",
+              month: "short",
+              day: "numeric",
+            })}
+          </SheetTitle>
+        </SheetHeader>
+
+        <div className="mt-4 space-y-4">
+          <button
+            onClick={() => setRest((r) => !r)}
+            className={`w-full rounded-2xl border px-4 py-3 text-left text-sm ${
+              rest
+                ? "border-primary bg-primary/10 text-foreground"
+                : "border-border bg-muted/20 text-muted-foreground"
+            }`}
+          >
+            <span className="font-semibold">Rest day</span>
+            <span className="block text-xs opacity-70">No fast scheduled — nothing counts against you.</span>
+          </button>
+
+          {!rest && (
+            <>
+              <div>
+                <div className="mb-2 text-[11px] uppercase tracking-wider text-muted-foreground">
+                  Fasting ratio
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {RATIOS.map((r) => (
+                    <button
+                      key={r}
+                      onClick={() => setRatio(r)}
+                      className={`rounded-xl border py-3 text-sm font-semibold ${
+                        ratio === r
+                          ? "border-primary bg-primary/15 text-foreground"
+                          : "border-border bg-muted/20 text-muted-foreground"
+                      }`}
+                    >
+                      {RATIO_LABEL[r]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {ratio !== "eat_all_day" && (
+                <div className="rounded-2xl border border-border bg-muted/20 p-4">
+                  <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                    Fast starts
+                  </div>
+                  <Input
+                    type="time"
+                    step={60}
+                    value={start}
+                    onChange={(e) => setStart(e.target.value)}
+                    className="mt-1 h-12 text-lg font-semibold"
+                  />
+                  <div className="mt-2 text-sm text-muted-foreground">
+                    Breaks at <span className="font-semibold text-foreground">{formatHour(breaks)}</span>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          <div>
+            <div className="mb-2 text-[11px] uppercase tracking-wider text-muted-foreground">
+              Apply to
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {SCOPES.map((s) => (
+                <button
+                  key={s.id}
+                  onClick={() => setScope(s.id)}
+                  className={`rounded-xl border py-3 text-xs font-semibold ${
+                    scope === s.id
+                      ? "border-primary bg-primary/15 text-foreground"
+                      : "border-border bg-muted/20 text-muted-foreground"
+                  }`}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <Button
+            size="lg"
+            disabled={saving}
+            onClick={() =>
+              onSave(
+                {
+                  day_of_week: date ? date.getDay() : 0,
+                  ratio,
+                  window_start_time: `${start}:00`,
+                  window_end_time: computeEnd(ratio, `${start}:00`),
+                  enabled: !rest,
+                },
+                scope,
+              )
+            }
+            className="h-14 w-full rounded-2xl text-base font-semibold"
+          >
+            <Check className="mr-2 h-4 w-4" /> {saving ? "Saving..." : "Save"}
+          </Button>
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
