@@ -1,129 +1,108 @@
-# Apex360 AI Plan Builder
+# Apex360-IF: The Custom Fasting Calendar (client-owned, mobile-first)
 
-Goal: onboarding gathers rich lifestyle data → Apex360 AI proposes a full personalized fasting + fuel plan → client reviews, accepts or adjusts → plan drives the existing Live Schedule calendar. Client can regenerate any time from the dashboard.
+The headline feature: **you build your own fasting calendar — day, week, month — and Apex AI helps when you get stuck or builds it for you.** It ties directly to the Smart Weight Tracker so every schedule change instantly re-projects your pace.
 
-## Guiding principles
-
-- **AI is the coach.** No coach picks the protocol anymore; the AI does.
-- **Nothing is one-size-fits-all.** The plan explains *why* each choice was made from the client's own answers.
-- **Client stays in control.** The AI output is a *proposal* — client must Accept or Adjust before it becomes their active plan.
-- **Keep what works.** The Live Schedule month calendar (last screenshot) stays as the "what's happening" surface. This builder feeds it.
+Everything the trainer console can do today moves to the client, redesigned for a phone.
 
 ---
 
-## 1. Smarter onboarding — what the AI needs to ask
+## 1. The Fasting Calendar (client side)
 
-Split into 3 short groups. Each answer feeds the AI prompt.
-
-**A. About you (already have most)**
-- Sex, age, height, current weight, goal weight
-- Activity level, training days/week, training time of day
-
-**B. Your day (new — this is what makes it smart)**
-- Wake time / sleep time (so we never suggest a 6 AM break-fast for a 10 AM riser)
-- Typical first-hunger time
-- Work schedule (9-5, shift work, flexible, night shift)
-- When you're usually with family / social meals (dinner is sacred? lunch at desk?)
-- Weekends different from weekdays? (Y/N)
-
-**C. Fasting & fuel history (new)**
-- Have you fasted before? (never / tried / regular)
-- Longest fast completed
-- Any medical flags (diabetes, pregnancy, ED history) → gate to safe protocols
-- Fuel preference: Balance / Performance / Lean / Recomp / Extreme *(existing Fuel Styles)*
-- Foods you avoid (vegetarian, dairy-free, etc.)
-- Caffeine (yes/no, when)
-
-**D. Motivation (1 line)**
-- "Why now?" free text → AI uses it in the "Why this plan works" explanation
-
----
-
-## 2. AI proposal screen (new)
-
-After the last question:
-
-> **"Apex360 AI is building your plan…"** (2–3 sec loading with reasoning bullets streaming in)
-
-Then a beautiful proposal card:
+One home for the whole schedule, three zooms:
 
 ```text
-YOUR APEX360 AI PLAN
-────────────────────
-Protocol:      16:8 Daily
-Fuel Style:    Performance
-Eating Window: 1:00 PM – 9:00 PM
-Duration:      21-day starter block
-Weekly:        7 days on, aligned to your wake time
+[ Month ]  [ Week ]  [ Day ]
+ ─────────────────────────────
+ Month : dots per day (fasting / eating-only / paused / travel)
+ Week  : 7 rows, tap a row to edit that day inline
+ Day   : full timeline — fast start, break-fast, last meal, macros
 ```
 
-Below it, **three collapsible sections**:
+- **Tap any day → edit that day only.** Ratio (16:8 / 18:6 / 20:4 / eat all day / rest), fast start time, break-fast auto-calculates.
+- **Long-press / "Apply to…"** → apply that day's setup to the rest of the week, all weekdays, all weekends, or the whole month.
+- **Drag the window** on the Day view to shift start/end — no typing.
+- Everything is mobile-first: full-screen sheets, big tap targets, thumb-reachable Save bar, no desktop tables.
 
-- **"Why this plan works for you"** — 4–6 bullets citing the client's own answers ("You wake at 10 AM, so we start your eating window at 1 PM instead of noon…", "You train Tue/Thu evenings, so your biggest meal lands post-workout…")
-- **Eating schedule breakdown** — mini timeline (Fast → Break-fast meal → Snack → Last meal → Fast), inspired by the Nora Minno screenshot
-- **What to expect week 1** — hunger curve, energy, tips
+## 2. Pause, travel, reschedule
 
-Bottom actions:
-- `Accept Plan` (primary)
-- `Adjust` → opens the existing WeeklyScheduleEditor pre-filled with AI values, client tweaks window times / days
-- `Regenerate` → "not quite right?" re-runs AI with a short "what should change?" text box
+A single **"Life happens"** button on the calendar:
 
----
+- **Pause plan** — pick dates, plan freezes, calendar greys out, no missed-fast penalties, Smart Pace target date auto-shifts.
+- **Travel / vacation mode** — lighter ratio for the range, then auto-revert.
+- **Shift plan** — move the whole plan forward N days (sick week, work trip).
+- **Rest day** — one-tap "no fast today", schedule stays intact.
 
-## 3. Dashboard integration
+These reuse the existing date-range override engine, wrapped in plain language.
 
-- **Live Schedule calendar stays exactly as-is** (last screenshot). It reads from the same `client_feature_settings` the AI writes to.
-- Add a small **"Coached by Apex360 AI"** chip under the protocol name.
-- New button in dashboard menu: **"Regenerate my plan"** → opens a light sheet: "What's changed?" (lost/gained weight, new schedule, plateaued, want more challenge) → re-runs AI → shows proposal again.
-- Keep the existing "adjust weekly schedule" and pre-fast email toggles.
+## 3. Ties into Smart Weight Tracker
 
----
+The calendar and the pace tracker are one system:
 
-## 4. Coach (trainer) side
+- Change your schedule → **instant re-projection**: "This still lands you at 185 lbs by Nov 12" or "This pushes your date back 6 days — want to keep it or tighten another day?"
+- Pause → target date extends automatically, no debt penalty for paused days.
+- Off pace 2 days → the calendar itself suggests the fix ("add one 18:6 day this week to catch up").
+- Weigh-in flows straight back into the calendar's daily debt/credit.
 
-- Coach panel becomes **read-only view of the AI's plan** + optional override toggle ("Override AI") that unlocks the manual calculator we already have. Nothing is lost — the manual path is still there for edge cases.
+## 4. Apex AI, right in the calendar
+
+Two modes, both always available:
+
+**Assist** — a floating AI button on the calendar. Ask anything mid-build:
+- "Is 20:4 too much on training days?"
+- "I work nights, when should I fast?"
+- "Can I move Sunday to eat-all-day?"
+Answers are contextual — the AI sees your current calendar, goal, pace, and training days.
+
+**Build it for me** — "Don't want to plan? Let Apex AI do it." A short question flow (wake/sleep, work pattern, training days, social meals, experience, goal), then it fills the entire month. Every single day it created is still editable — nothing is locked.
+
+## 5. Workout-schedule aware
+
+When a client is on a workout routine, the calendar reads their training days and warns/suggests around them:
+- Break-fast lands post-workout on training days.
+- Heavy training day + 20:4 → gentle flag with a one-tap fix.
+
+## 6. Trainer side
+
+Trainer keeps full visibility and can still edit, but the client owns the plan:
+- Client edits freely; trainer gets a "plan changed" notification.
+- Coach-set days show a "your coach suggested this" chip with **Restore coach's plan** — nothing is ever lost.
+- Existing Protocol Calculator stays available to the trainer for edge cases.
 
 ---
 
 ## Technical section
 
-**New edge function:** `supabase/functions/generate-ai-fasting-plan/`
-- Model: `google/gemini-3-flash-preview` (matches existing AI Coach memory)
-- Input: full onboarding payload + last weight + Fuel Styles catalog + safe protocols list
-- Uses AI SDK `generateText` with `Output.object` schema for the plan (protocol_id, fuel_style, window_start, window_end, duration_days, weekly_pattern, reasoning[], expectations[], schedule_breakdown[])
-- Prompt enforces: never suggest window before wake time, medical flags gate to 14:10/16:8 only, honors fuel preference.
+**Reuse (no rewrite):**
+- `client_weekly_schedule` + `client_schedule_overrides` tables and `useClientWeeklySchedule` — already power the trainer editor.
+- `resolveFastingWindow.ts`, `useClientComputedPlan.ts`, Live Schedule month view, Smart Pace engine (`smartPaceEngine.ts`, `useSmartPace.ts`).
+- `FastingProtocolCard` legacy timer stays untouched.
 
-**New tables (small):**
-- `ai_plan_proposals(id, client_id, payload jsonb, status text, created_at)` — every proposal stored so we can show history + "regenerated 3× this month" analytics. RLS: client sees own, trainer sees their clients, service_role all. GRANT SELECT/INSERT/UPDATE to authenticated, ALL to service_role.
+**New client surfaces (`src/pages/client/` + `src/components/client/calendar/`):**
+- `FastingCalendarPage.tsx` — Month/Week/Day segmented control, mobile-first shell.
+- `DayEditorSheet.tsx` — per-day ratio + fast start, "Apply to…" bulk action.
+- `WeekEditorList.tsx` — mobile rewrite of `WeeklyScheduleEditor` (stacked cards, not a table).
+- `LifeHappensSheet.tsx` — pause / travel / shift / rest, writes date-range overrides.
+- `PaceImpactBar.tsx` — live "what this does to your target date" strip, driven by Smart Pace.
 
-**Onboarding changes** (`src/pages/client/ClientOnboarding.tsx` + new steps in `src/components/onboarding/premium/steps/`):
-- Add `DailyRhythmStep` (wake/sleep/work), `FastingHistoryStep`, `MotivationStep` before the existing metabolic/synergy steps.
-- Replace current "coach picks later" ending with new `AIPlanProposalStep` that calls the edge function.
+**New data:**
+- `client_schedule_day_overrides(client_id, date, ratio, window_start_time, enabled, source)` — single-date edits, so a one-off change doesn't need a full range override. RLS: client own rows, trainer via existing client link, service_role all; GRANT SELECT/INSERT/UPDATE/DELETE to authenticated, ALL to service_role.
+- `plan_pauses(client_id, start_date, end_date, kind, created_at)` — feeds pace re-projection and suppresses adherence penalties.
 
-**New components:**
-- `AIPlanProposalCard.tsx` — the proposal card with the 3 collapsible sections + Accept/Adjust/Regenerate.
-- `EatingScheduleBreakdown.tsx` — mini timeline inspired by uploaded reference.
-- `RegeneratePlanSheet.tsx` — dashboard sheet.
+**AI:**
+- Extend `generate-ai-fasting-plan` with a `mode: "full_calendar"` that returns a per-day array for N days instead of a single protocol.
+- New `calendar-assist` edge function (`google/gemini-3-flash-preview`) — receives the current calendar + goal + pace state, answers questions and can return a suggested patch the user accepts with one tap.
 
-**Existing to reuse untouched:**
-- `LiveScheduleDialog.tsx` (the calendar you love — keep as-is)
-- `useClientComputedPlan.ts` (already reads from `client_feature_settings`, so AI writes there and everything renders)
-- `WeeklyScheduleEditor.tsx` for the Adjust path
-- Fuel Styles list, Fasting Protocols catalog
-- Fasting timer, milestones, all fasting logic
-
-**Not touched:** `FastingProtocolCard` legacy timer (per fasting-timer-preservation memory), the Live Schedule calendar UI, existing pre-fast email system.
+**Mobile pass:** every calendar surface built at 390px first, `100dvh` sheets, hidden scrollbars (existing `.onboarding-scroll-scope` pattern), sticky bottom action bar, no horizontal scroll anywhere.
 
 ---
 
-## Build order (I'd ship in this order)
+## Build order
 
-1. New onboarding steps (Daily Rhythm, Fasting History, Motivation) — no AI yet, just collect
-2. Edge function + `ai_plan_proposals` table + Gemini prompt
-3. `AIPlanProposalCard` + Accept path (writes to `client_feature_settings`)
-4. Adjust path (opens WeeklyScheduleEditor pre-filled)
-5. `EatingScheduleBreakdown` timeline component
-6. Dashboard "Regenerate my plan" sheet
-7. Coach panel → read-only view + Override toggle
-
-Ready to start with step 1 when you say go.
+1. Client Fasting Calendar shell — Month / Week / Day, read-only from existing data
+2. Day editor sheet + single-date override table (real editing)
+3. Week editor (mobile rewrite) + "Apply to…" bulk actions
+4. Life Happens: pause / travel / shift / rest + `plan_pauses`
+5. Smart Pace impact bar — live target-date re-projection on every edit
+6. Apex AI Assist button (contextual Q&A on the calendar)
+7. "Build it for me" full-calendar AI generation
+8. Workout-day awareness + trainer notification / restore-coach-plan
