@@ -401,7 +401,6 @@ export default function ClientOnboarding() {
           onboardingPayload={onboardingPayload}
           isPreview={isPreview}
           onAccept={(p) => acceptProposal(p)}
-          onAdjust={(p) => acceptProposal(p)}
         />
       )}
     </OnboardingShell>
