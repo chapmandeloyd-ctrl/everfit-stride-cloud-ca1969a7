@@ -3,12 +3,18 @@ import { CalendarDays, ChevronRight } from "lucide-react";
 import { useClientComputedPlan } from "@/hooks/useClientComputedPlan";
 import { addDays, dateKey } from "@/components/client/calendar/calendarUtils";
 
+interface ClientWeekStripProps {
+  /** Called when a day dot is tapped. Defaults to navigating to the calendar. */
+  onDayClick?: (date: Date, dayIndex: number) => void;
+}
+
 /**
  * Ultra-compact 7-day dot strip for the top of the client dashboard.
  * Shows next 7 days with color-coded dots (fast/eat/low-cal/refeed) so
  * clients can see the shape of their week at a glance above the lion timer.
+ * Tapping a day dot opens the day detail sheet when onDayClick is provided.
  */
-export function ClientWeekStrip() {
+export function ClientWeekStrip({ onDayClick }: ClientWeekStripProps) {
   const { plan, dayIndex } = useClientComputedPlan();
   const navigate = useNavigate();
   if (!plan || plan.days.length <= 1) return null;
@@ -43,10 +49,13 @@ export function ClientWeekStrip() {
         {window.map(({ d, i, idx }) => {
           const color = dotColor(d);
           const isToday = i === 0;
+          const date = addDays(new Date(), i);
           return (
             <button
               key={`${d.day}-${idx}`}
-              onClick={() => navigate(`/client/calendar?date=${dateKey(addDays(new Date(), i))}`)}
+              onClick={() =>
+                onDayClick ? onDayClick(date, idx) : navigate(`/client/calendar?date=${dateKey(date)}`)
+              }
               className={`flex flex-col items-center gap-0.5 py-0.5 rounded transition-colors active:bg-primary/20 ${
                 isToday ? "bg-primary/10" : ""
               }`}

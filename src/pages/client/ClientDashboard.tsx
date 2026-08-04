@@ -68,6 +68,10 @@ import { StartFastGate } from "@/components/client/StartFastGate";
 import { LiveSchedulePanel } from "@/components/client/LiveScheduleDialog";
 import { useClientComputedPlan } from "@/hooks/useClientComputedPlan";
 import { computePlan, type ComputedPlan } from "@/lib/protocolPlan";
+import DayEditorSheet, { type ApplyScope } from "@/components/client/calendar/DayEditorSheet";
+import { useClientWeeklySchedule } from "@/hooks/useClientWeeklySchedule";
+import { resolveDayForDate, type WeeklyScheduleDay } from "@/lib/resolveFastingWindow";
+import { dateKey } from "@/components/client/calendar/calendarUtils";
 import { BuildWorkoutSheet } from "@/components/workout/BuildWorkoutSheet";
 
 import { ProgramsSelector } from "@/components/ProgramsSelector";
@@ -1759,12 +1763,28 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
               )}
             </div>
             {hasDuration && !isMaintenanceMode && (
-              <div className="text-right shrink-0">
+              <div className="text-right shrink-0 space-y-1">
+                <button
+                  onClick={() => navigate("/client/calendar")}
+                  className="inline-flex items-center gap-1 rounded-full bg-white/10 hover:bg-white/15 active:bg-white/20 px-2 py-1 text-[10px] font-semibold text-white/80 transition-colors"
+                  aria-label="Open full calendar"
+                >
+                  <CalendarDays className="h-3 w-3" /> Calendar
+                </button>
                 <p className="text-[9px] uppercase tracking-wider text-white/40 font-medium">Day</p>
                 <p className="text-lg font-light text-white tabular-nums">
                   {dayNumber}<span className="text-white/40">/{activeProtocol!.duration_days}</span>
                 </p>
               </div>
+            )}
+            {(!hasDuration || isMaintenanceMode) && (
+              <button
+                onClick={() => navigate("/client/calendar")}
+                className="inline-flex items-center gap-1 rounded-full bg-white/10 hover:bg-white/15 active:bg-white/20 px-2 py-1 text-[10px] font-semibold text-white/80 transition-colors"
+                aria-label="Open full calendar"
+              >
+                <CalendarDays className="h-3 w-3" /> Calendar
+              </button>
             )}
             {isMaintenanceMode && <Badge variant="outline" className="text-xs border-white/30 text-white bg-white/10 shrink-0">Maintenance</Badge>}
           </div>
@@ -2565,6 +2585,64 @@ export default function ClientDashboard() {
   const [selectedCardioSession, setSelectedCardioSession] = useState<any>(null);
   const [calendarSelectedDate, setCalendarSelectedDate] = useState<Date | null>(null);
 
+  // Day editor sheet state — opened from the week strip on the dashboard
+  const [selectedDayDate, setSelectedDayDate] = useState<Date | null>(null);
+  const {
+    weekly: weeklySchedule,
+    overrides: scheduleOverrides,
+    saveWeekly,
+    saveOverride,
+  } = useClientWeeklySchedule(clientId);
+
+  const handleWeekStripDayClick = (date: Date) => {
+    setSelectedDayDate(date);
+  };
+
+  const handleSaveDay = async (day: WeeklyScheduleDay, scope: ApplyScope) => {
+    if (!selectedDayDate || !clientId) return;
+    const saving = saveWeekly.isPending || saveOverride.isPending;
+    if (saving) return;
+    try {
+      if (scope === "day") {
+        const key = dateKey(selectedDayDate);
+        const existing = (scheduleOverrides ?? []).find(
+          (o) => o.start_date === key && o.end_date === key,
+        );
+        const schedule = (weeklySchedule ?? []).map((d) =>
+          d.day_of_week === selectedDayDate.getDay() ? { ...day } : d,
+        );
+        await saveOverride.mutateAsync({
+          ...(existing?.id ? { id: existing.id } : {}),
+          label: "Day edit",
+          start_date: key,
+          end_date: key,
+          schedule,
+          active: true,
+        } as any);
+      } else {
+        const target = (dow: number) =>
+          scope === "week" ||
+          (scope === "weekdays" && dow >= 1 && dow <= 5) ||
+          (scope === "weekends" && (dow === 0 || dow === 6));
+        const next = (weeklySchedule ?? []).map((d) =>
+          target(d.day_of_week) ? { ...day, day_of_week: d.day_of_week } : d,
+        );
+        await saveWeekly.mutateAsync(next);
+      }
+      toast({ title: "Schedule updated" });
+      setSelectedDayDate(null);
+    } catch (e: any) {
+      toast({ title: "Couldn't save", description: e.message, variant: "destructive" });
+    }
+  };
+
+  const resolvedDayForSelected = selectedDayDate
+    ? resolveDayForDate(weeklySchedule ?? null, scheduleOverrides ?? null, selectedDayDate)
+    : null;
+  const scheduleSaving = saveWeekly.isPending || saveOverride.isPending;
+
+
+
   // When a non-today date is selected in the calendar strip, hide today's dashboard cards
   const isViewingOtherDay = !!(calendarSelectedDate && !isToday(calendarSelectedDate));
 
@@ -3193,7 +3271,7 @@ export default function ClientDashboard() {
             case "fasting":
               return settings.fasting_enabled && !engineConfig.fastingDisabled && !isViewingOtherDay ? (
                 <div key="fasting" className="space-y-3">
-                  <ClientWeekStrip />
+                  <ClientWeekStrip onDayClick={handleWeekStripDayClick} />
                   <FastingProtocolCard clientId={clientId} navigate={navigate} openEndFastFlowSignal={openEndFastFlowSignal} />
                   {dashRecentFastLog && (
                     <FastingStatusCard
@@ -3758,6 +3836,16 @@ export default function ClientDashboard() {
           clientId={clientId!}
         />
       )}
+
+      {/* Day editor sheet opened from the week strip */}
+      <DayEditorSheet
+        open={!!selectedDayDate}
+        onOpenChange={(v) => !v && setSelectedDayDate(null)}
+        date={selectedDayDate}
+        day={resolvedDayForSelected}
+        saving={scheduleSaving}
+        onSave={handleSaveDay}
+      />
     </ClientLayout>
   );
 }
