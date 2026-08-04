@@ -1,4 +1,7 @@
+import { useNavigate } from "react-router-dom";
+import { CalendarDays, ChevronRight } from "lucide-react";
 import { useClientComputedPlan } from "@/hooks/useClientComputedPlan";
+import { addDays, dateKey } from "@/components/client/calendar/calendarUtils";
 
 /**
  * Ultra-compact 7-day dot strip for the top of the client dashboard.
@@ -7,6 +10,7 @@ import { useClientComputedPlan } from "@/hooks/useClientComputedPlan";
  */
 export function ClientWeekStrip() {
   const { plan, dayIndex } = useClientComputedPlan();
+  const navigate = useNavigate();
   if (!plan || plan.days.length <= 1) return null;
 
   const dotColor = (d: (typeof plan.days)[number]) => {
@@ -24,14 +28,26 @@ export function ClientWeekStrip() {
 
   return (
     <div className="rounded-lg border border-border/50 bg-card/40 px-2.5 py-1.5">
+      <button
+        onClick={() => navigate("/client/calendar")}
+        className="mb-1 flex w-full items-center justify-between text-[10px] font-semibold uppercase tracking-wider text-muted-foreground"
+      >
+        <span className="flex items-center gap-1">
+          <CalendarDays className="h-3 w-3" /> My Fasting Calendar
+        </span>
+        <span className="flex items-center gap-0.5 text-primary">
+          Edit <ChevronRight className="h-3 w-3" />
+        </span>
+      </button>
       <div className="grid grid-cols-7 gap-1">
         {window.map(({ d, i, idx }) => {
           const color = dotColor(d);
           const isToday = i === 0;
           return (
-            <div
+            <button
               key={`${d.day}-${idx}`}
-              className={`flex flex-col items-center gap-0.5 py-0.5 rounded ${
+              onClick={() => navigate(`/client/calendar?date=${dateKey(addDays(new Date(), i))}`)}
+              className={`flex flex-col items-center gap-0.5 py-0.5 rounded transition-colors active:bg-primary/20 ${
                 isToday ? "bg-primary/10" : ""
               }`}
             >
@@ -49,7 +65,7 @@ export function ClientWeekStrip() {
               >
                 {isToday ? "Today" : d.day.replace(/\s.*/, "").slice(0, 3)}
               </span>
-            </div>
+            </button>
           );
         })}
       </div>
