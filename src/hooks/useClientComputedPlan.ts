@@ -243,12 +243,14 @@ export function useClientComputedPlan() {
       const dayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + offset);
       const schedDay = resolveDayForDate(weeklySchedule, scheduleOverrides, dayDate);
       if (!schedDay) return d;
-      if (schedDay.ratio === "eat_all_day") {
+      // A rest day the client set on their calendar is exactly like eat-all-day:
+      // no fast is scheduled, so nothing can auto-start.
+      if (schedDay.enabled === false || schedDay.ratio === "eat_all_day") {
         return {
           ...d,
           adFast: false,
           isRefeed: false,
-          fastWindow: "Eat all day",
+          fastWindow: schedDay.enabled === false ? "Rest day" : "Eat all day",
           eatStart: "All day",
           eatEnd: "All day",
           tight: false,

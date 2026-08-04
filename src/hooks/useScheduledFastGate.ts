@@ -32,11 +32,14 @@ export interface ScheduledFastGate {
   countdownLabel: string;    // "2h 14m" / "42m" / "3m"
 }
 
-function parseClockTo(dateBase: Date, clock: string, tz: string): Date {
+function parseClockTo(dateBase: Date, clock: string, tz: string): Date | null {
   // clock: "8:00 PM" | "20:00" | "6:30 AM"
   const s = clock.trim().toUpperCase();
   const m = s.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/);
-  if (!m) return dateBase;
+  // "All day" / "Rest day" / anything non-clock means there is NO scheduled
+  // fast start. Returning `dateBase` here would publish "now" to the server
+  // and let the cron auto-start a fast on an eat-all-day or rest day.
+  if (!m) return null;
   let h = parseInt(m[1], 10);
   const min = parseInt(m[2], 10);
   const mer = m[3];
