@@ -61,12 +61,21 @@ export function breakFastHourFor(ratio: FastRatio, fastStartHour: number): numbe
   return (fastStartHour + RATIO_FAST_HOURS[ratio]) % 24;
 }
 
+// Local-calendar date key (YYYY-MM-DD). Overrides are stored as local dates,
+// so lookups must not go through UTC (toISOString) or they shift a day east of UTC.
+function localDateKey(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
 export function findActiveOverride(
   overrides: ScheduleOverride[] | undefined | null,
   date: Date
 ): ScheduleOverride | null {
   if (!overrides?.length) return null;
-  const key = date.toISOString().slice(0, 10);
+  const key = localDateKey(date);
   return (
     overrides.find(
       (o) => o.active && key >= o.start_date && key <= o.end_date
