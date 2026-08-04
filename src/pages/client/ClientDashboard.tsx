@@ -1178,7 +1178,8 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
           <CardContent className="relative z-10 px-4 pt-6 pb-5 space-y-5 text-white sm:px-5">
             <IdleFastingHero
               centerImageSrc={fastingCardBg}
-              lastFastEndedAt={featureSettings?.last_fast_ended_at}
+              lastFastEndedAt={lastLoggedFast?.ended_at ?? null}
+              lastFastHours={lastLoggedFast?.actual_hours ?? null}
               statusLabel={fastingCardMsg}
             />
 
