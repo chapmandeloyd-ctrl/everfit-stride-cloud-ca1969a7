@@ -76,7 +76,7 @@ const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
 const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
 const PortalMockup = lazy(() => import("./pages/PortalMockup"));
 const ClientDashboard = lazy(() => import("./pages/client/ClientDashboardMinimal"));
-const ClientRingsDemo = lazy(() => import("./pages/client/ClientRingsDemo"));
+const ClientSmartPace = lazy(() => import("./pages/client/ClientSmartPace"));
 const ClientSmartPace = lazy(() => import("./pages/client/ClientSmartPace"));
 const ClientFastingCalendar = lazy(() => import("./pages/client/ClientFastingCalendar"));
 const SmartPacePreview = lazy(() => import("./pages/SmartPacePreview"));
