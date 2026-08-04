@@ -77,7 +77,7 @@ const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
 const PortalMockup = lazy(() => import("./pages/PortalMockup"));
 const ClientDashboard = lazy(() => import("./pages/client/ClientDashboardMinimal"));
 const ClientSmartPace = lazy(() => import("./pages/client/ClientSmartPace"));
-const ClientSmartPace = lazy(() => import("./pages/client/ClientSmartPace"));
+const ClientFastingCalendar = lazy(() => import("./pages/client/ClientFastingCalendar"));
 const ClientFastingCalendar = lazy(() => import("./pages/client/ClientFastingCalendar"));
 const SmartPacePreview = lazy(() => import("./pages/SmartPacePreview"));
 const ClientDailyScore = lazy(() => import("./pages/client/ClientDailyScore"));
