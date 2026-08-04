@@ -74,6 +74,7 @@ export default function ClientDashboardMinimal() {
   const resolvedDayForSelected = selectedDayDate
     ? resolveDayForDate(weeklySchedule ?? null, scheduleOverrides ?? null, selectedDayDate)
     : null;
+  const todaySchedule = resolveDayForDate(weeklySchedule ?? null, scheduleOverrides ?? null, new Date());
   const scheduleSaving = saveWeekly.isPending || saveOverride.isPending;
 
   return (
@@ -100,7 +101,7 @@ export default function ClientDashboardMinimal() {
         )}
 
         {/* Fasting timer / protocol */}
-        <FastingProtocolCard clientId={clientId} navigate={navigate} />
+        <FastingProtocolCard clientId={clientId} navigate={navigate} todaySchedule={todaySchedule} />
 
         {/* Daily trackers (journal/water/steps/calories/health) intentionally removed —
             those metrics live in Trainerize, not here. */}
