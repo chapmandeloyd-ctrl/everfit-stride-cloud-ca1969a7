@@ -183,7 +183,6 @@ const App = () => (
           <Route path="/checkout-test" element={<CheckoutTest />} />
           <Route path="/portal-mockup" element={<PortalMockup />} />
           <Route path="/synergy-card-demo" element={<SynergyCardDemo />} />
-          <Route path="/client/rings-demo" element={<ClientRingsDemo />} />
           <Route path="/preview/step-tracker" element={<StepTrackerPreview />} />
           
           {/* Trainer Routes */}
