@@ -322,7 +322,10 @@ export default function ClientOnboarding() {
           isPreview={isPreview}
           currentWeightKg={state.weightKg}
           goalWeightKg={state.goalWeightKg}
-          onNext={next}
+          onNext={(goalWeightKg) => {
+            persistDraft({ goalWeightKg });
+            next();
+          }}
         />
       )}
       {step === 11 && (
