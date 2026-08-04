@@ -7,8 +7,13 @@ import { toast } from "sonner";
 
 export type Profile = Tables<"profiles">;
 
-const TOKEN_REFRESH_INTERVAL = 4 * 60 * 1000;
 const SESSION_LOSS_GRACE_MS = 8 * 1000;
+// Only nudge a refresh when the access token is genuinely close to expiring.
+// Supabase's own autoRefreshToken handles the normal cadence; racing it with
+// extra refreshSession() calls invalidates the rotated refresh token and logs
+// the user out.
+const NEAR_EXPIRY_MS = 60 * 1000;
+const VISIBILITY_THROTTLE_MS = 30 * 1000;
 
 type UserRole = "trainer" | "client" | null;
 
@@ -60,6 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const refreshTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const lastVisibilityCheck = useRef(0);
   const sessionRecoveryTimer = useRef<number | null>(null);
   const sessionRecoveryRequestId = useRef(0);
   const initialSessionResolved = useRef(false);
@@ -81,18 +87,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const startTokenRefresh = useCallback(() => {
+    // No-op: the Supabase client is configured with autoRefreshToken, which
+    // owns token rotation. Kept as a hook so call sites stay unchanged.
     stopTokenRefresh();
-    refreshTimer.current = setInterval(() => {
-      logAuthEvent("interval-refresh");
-      supabase.auth
-        .refreshSession()
-        .then(({ error }) => {
-          if (error) logAuthEvent("interval-refresh-error", { message: error.message });
-        })
-        .catch((err) => {
-          logAuthEvent("interval-refresh-throw", { message: String(err) });
-        });
-    }, TOKEN_REFRESH_INTERVAL);
   }, [stopTokenRefresh]);
 
   const fetchProfile = useCallback(async (userId: string) => {
@@ -219,10 +216,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     const handleVisibility = () => {
-      if (document.visibilityState === "visible") {
-        logAuthEvent("visibility-refresh");
-        supabase.auth.refreshSession().catch(() => {});
-      }
+      if (document.visibilityState !== "visible") return;
+      const now = Date.now();
+      if (now - lastVisibilityCheck.current < VISIBILITY_THROTTLE_MS) return;
+      lastVisibilityCheck.current = now;
+
+      // getSession() reads storage and only refreshes when actually expired,
+      // so it never burns a still-valid refresh token.
+      supabase.auth
+        .getSession()
+        .then(({ data: { session: current } }) => {
+          if (cancelled || !current) return;
+          const expiresAtMs = (current.expires_at ?? 0) * 1000;
+          if (expiresAtMs - Date.now() > NEAR_EXPIRY_MS) return;
+          logAuthEvent("visibility-near-expiry-refresh");
+          supabase.auth.refreshSession().catch(() => {});
+        })
+        .catch(() => {});
     };
     document.addEventListener("visibilitychange", handleVisibility);
 
