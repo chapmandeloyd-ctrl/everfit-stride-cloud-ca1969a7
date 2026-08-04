@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { CalendarDays } from "lucide-react";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { useClientWeeklySchedule } from "@/hooks/useClientWeeklySchedule";
-import { resolveDayForDate, type WeeklyScheduleDay } from "@/lib/resolveFastingWindow";
+import { resolveDayState, type ResolvedDay } from "@/lib/resolveFastingWindow";
 import { addDays, dateKey } from "@/components/client/calendar/calendarUtils";
 
 interface ClientWeekStripProps {
@@ -19,13 +19,14 @@ interface ClientWeekStripProps {
  */
 export function ClientWeekStrip({ onDayClick }: ClientWeekStripProps) {
   const clientId = useEffectiveClientId();
-  const { weekly, overrides } = useClientWeeklySchedule(clientId);
+  const { weekly, overrides, planWindow } = useClientWeeklySchedule(clientId);
   const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
   const todayRef = useRef<HTMLButtonElement>(null);
 
-  const dotColor = (d: WeeklyScheduleDay | null) => {
-    if (!d || d.enabled === false) return "hsl(var(--muted-foreground))";
+  const dotColor = (r: ResolvedDay) => {
+    if (r.state !== "scheduled" || !r.day) return "hsl(var(--muted-foreground) / 0.4)";
+    const d = r.day;
     if (d.ratio === "eat_all_day") return "hsl(48 96% 53%)";
     if (d.ratio === "20:4") return "hsl(var(--primary))";
     if (d.ratio === "18:6") return "hsl(217 91% 60%)";
@@ -41,7 +42,7 @@ export function ClientWeekStrip({ onDayClick }: ClientWeekStripProps) {
   const days = Array.from({ length: 21 }).map((_, idx) => {
     const offset = idx - 3;
     const date = addDays(today, offset);
-    return { date, offset, day: resolveDayForDate(weekly, overrides, date) };
+    return { date, offset, resolved: resolveDayState(weekly, overrides, date, planWindow) };
   });
 
   useEffect(() => {
@@ -67,8 +68,9 @@ export function ClientWeekStrip({ onDayClick }: ClientWeekStripProps) {
         ref={scrollRef}
         className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
-        {days.map(({ date, offset, day }) => {
-          const color = dotColor(day);
+        {days.map(({ date, offset, resolved }) => {
+          const color = dotColor(resolved);
+          const muted = resolved.state === "out_of_plan";
           const isToday = dateKey(date) === todayKey;
           return (
             <button
@@ -83,7 +85,7 @@ export function ClientWeekStrip({ onDayClick }: ClientWeekStripProps) {
                 isToday
                   ? "border-primary bg-primary/15"
                   : "border-border/60 bg-card/40 active:bg-primary/10"
-              }`}
+              } ${muted ? "opacity-40" : ""}`}
             >
               <span
                 className={`text-lg font-bold leading-none ${
