@@ -54,6 +54,67 @@ function getCutLevelMeta(adjustment?: number | null) {
   return { label: "Aggressive Bulk", dot: "bg-sky-500", text: "text-sky-500" };
 }
 import { DayStripCalendar } from "@/components/DayStripCalendar";
+
+function formatTodaySchedule(day: WeeklyScheduleDay | null | undefined): {
+  label: string;
+  fastStart: string;
+  breakFast: string;
+  eatingEnd: string;
+  ratio: string;
+  isRestDay: boolean;
+} {
+  if (!day || !day.enabled || day.ratio === "eat_all_day") {
+    return { label: "Rest day", fastStart: "—", breakFast: "—", eatingEnd: "—", ratio: "—", isRestDay: true };
+  }
+  const start = timeToHour(day.window_start_time);
+  const fastEnd = breakFastHourFor(day.ratio, start);
+  const eatEnd = endHourFor(day.ratio, start);
+  return {
+    label: `${day.ratio} Today`,
+    fastStart: formatHour(start),
+    breakFast: formatHour(fastEnd),
+    eatingEnd: formatHour(eatEnd),
+    ratio: day.ratio,
+    isRestDay: false,
+  };
+}
+
+function TodayScheduleBar({ day, accent }: { day: WeeklyScheduleDay | null | undefined; accent?: string }) {
+  const schedule = formatTodaySchedule(day);
+  const color = accent || "hsl(var(--primary))";
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm px-3 py-2.5">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="text-xs font-bold uppercase tracking-wider text-white/50">Today</span>
+          <span className="text-xs font-bold text-white truncate">{schedule.label}</span>
+        </div>
+        {!schedule.isRestDay && (
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0" style={{ backgroundColor: `${color}20`, color: color }}>
+            {schedule.ratio}
+          </span>
+        )}
+      </div>
+      {!schedule.isRestDay && (
+        <div className="mt-1.5 grid grid-cols-3 gap-2 text-center">
+          <div className="rounded-md bg-black/30 px-1 py-1">
+            <p className="text-[10px] text-white/50 uppercase tracking-wider">Fast starts</p>
+            <p className="text-xs font-bold text-white">{schedule.fastStart}</p>
+          </div>
+          <div className="rounded-md bg-black/30 px-1 py-1">
+            <p className="text-[10px] text-white/50 uppercase tracking-wider">Break fast</p>
+            <p className="text-xs font-bold text-white">{schedule.breakFast}</p>
+          </div>
+          <div className="rounded-md bg-black/30 px-1 py-1">
+            <p className="text-[10px] text-white/50 uppercase tracking-wider">Eat until</p>
+            <p className="text-xs font-bold text-white">{schedule.eatingEnd}</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 import { QuickCardioFlow } from "@/components/cardio/QuickCardioFlow";
 import { CardioDetailSheet } from "@/components/cardio/CardioDetailSheet";
 import { SwipeToDeleteCardioRow } from "@/components/cardio/SwipeToDeleteCardioRow";
@@ -70,7 +131,7 @@ import { useClientComputedPlan } from "@/hooks/useClientComputedPlan";
 import { computePlan, type ComputedPlan } from "@/lib/protocolPlan";
 import DayEditorSheet, { type ApplyScope } from "@/components/client/calendar/DayEditorSheet";
 import { useClientWeeklySchedule } from "@/hooks/useClientWeeklySchedule";
-import { resolveDayForDate, type WeeklyScheduleDay } from "@/lib/resolveFastingWindow";
+import { resolveDayForDate, type WeeklyScheduleDay, timeToHour, breakFastHourFor, endHourFor, formatHour } from "@/lib/resolveFastingWindow";
 import { dateKey } from "@/components/client/calendar/calendarUtils";
 import { BuildWorkoutSheet } from "@/components/workout/BuildWorkoutSheet";
 
@@ -119,7 +180,7 @@ import {
 const SHOW_WEIGHT_TRACKER = false;
 
 // Fasting Program Card sub-component
-export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal = 0 }: { clientId: string | null; navigate: (path: string) => void; openEndFastFlowSignal?: number }) {
+export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal = 0, todaySchedule }: { clientId: string | null; navigate: (path: string) => void; openEndFastFlowSignal?: number; todaySchedule?: WeeklyScheduleDay | null }) {
   const queryClient = useQueryClient();
   const [now, setNow] = useState(new Date());
   const [showCreatePin, setShowCreatePin] = useState(false);
@@ -1089,7 +1150,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
       ? "No active protocol"
       : "Waiting for your trainer";
     const emptyStateBody = canChoose
-      ? "Choose a fasting plan to get started."
+      ? "Choose how you want to build your fasting plan."
       : "Your trainer will assign your fasting plan soon.";
     return (
       <Card className="overflow-hidden border-primary/20 shadow-lg relative">
@@ -1099,8 +1160,8 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
               className="absolute inset-0 bg-cover bg-center"
               style={{ backgroundImage: `url(${fastingCardBg})` }}
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-            <CardContent className="relative z-10 min-h-[240px] flex flex-col justify-end p-5 space-y-3">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/30" />
+            <CardContent className="relative z-10 min-h-[260px] flex flex-col justify-end p-5 space-y-3">
               <div className="text-left space-y-3">
                 <div>
                   <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-1 drop-shadow-lg">
@@ -1110,14 +1171,29 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                     {emptyStateBody}
                   </p>
                 </div>
-                {canChoose && (
-                  <Button
-                    onClick={() => navigate("/client/choose-protocol")}
-                    className="w-full"
-                    size="lg"
-                  >
-                    Choose Your Protocol
-                  </Button>
+                {canChoose ? (
+                  <div className="space-y-2">
+                    <Button
+                      onClick={() => navigate("/client/onboarding")}
+                      className="w-full"
+                      size="lg"
+                    >
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      APEX360 AI builds my plan
+                    </Button>
+                    <Button
+                      onClick={() => navigate("/client/calendar")}
+                      variant="outline"
+                      className="w-full border-white/20 text-white bg-white/5 hover:bg-white/10 hover:text-white"
+                      size="lg"
+                    >
+                      I&apos;ll build my own
+                    </Button>
+                  </div>
+                ) : (
+                  <p className="text-sm text-white/70 text-center">
+                    Your trainer will assign your plan soon.
+                  </p>
                 )}
               </div>
             </CardContent>
@@ -1132,14 +1208,29 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                 {emptyStateBody}
               </p>
             </div>
-            {canChoose && (
-              <Button
-                onClick={() => navigate("/client/choose-protocol")}
-                className="w-full"
-                size="lg"
-              >
-                Choose Your Protocol
-              </Button>
+            {canChoose ? (
+              <div className="space-y-2">
+                <Button
+                  onClick={() => navigate("/client/onboarding")}
+                  className="w-full"
+                  size="lg"
+                >
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  APEX360 AI builds my plan
+                </Button>
+                <Button
+                  onClick={() => navigate("/client/calendar")}
+                  variant="outline"
+                  className="w-full"
+                  size="lg"
+                >
+                  I&apos;ll build my own
+                </Button>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground text-center">
+                Your trainer will assign your plan soon.
+              </p>
             )}
           </CardContent>
         )}
@@ -1335,6 +1426,8 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
           </Sheet>
 
 
+          <TodayScheduleBar day={todaySchedule} accent={timerAccent} />
+
           <div className="!mt-4 flex justify-center overflow-hidden">
               <FastingTimer
                 fastStartAt={featureSettings.active_fast_start_at!}
@@ -1357,7 +1450,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
             </button>
           </div>
 
-          <div className="pt-1">
+          <div className="pt-1 space-y-2">
             {featureSettings.fast_lock_pin ? (
               <HoldToEndButton onHoldComplete={() => setShowVerifyPin(true)} />
             ) : isManualOpenFast ? (
@@ -1374,6 +1467,14 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                 End Fast
               </Button>
             )}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full text-white/70 hover:text-white hover:bg-white/10"
+              onClick={() => navigate("/client/calendar")}
+            >
+              Edit Today&apos;s Plan
+            </Button>
           </div>
 
           {/* PIN Dialogs */}
@@ -1572,6 +1673,9 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                 </Badge>
               )}
             </div>
+
+            <TodayScheduleBar day={todaySchedule} accent={timerAccent} />
+
             <div className="text-center py-6">
               <Badge
                 className="mb-3 bg-transparent uppercase tracking-[0.3em] text-[10px] font-medium"
@@ -1657,6 +1761,14 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                 <Clock className="h-4 w-4 mr-2" /> Choose next fast
               </Button>
             </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full text-white/70 hover:text-white hover:bg-white/10"
+              onClick={() => navigate("/client/calendar")}
+            >
+              Edit Today&apos;s Plan
+            </Button>
           </CardContent>
         </div>
 
@@ -1875,6 +1987,9 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
             );
           })()}
 
+          {/* Today&apos;s schedule readout */}
+          <TodayScheduleBar day={todaySchedule} accent={ketoAccent} />
+
           {/* Assignment status badge only — full program details live on the
               Program page (Explore → Program). No redundant "View" pills here. */}
           {(() => {
@@ -1923,18 +2038,26 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
 
           {/* Navigation CTAs — visible for every assigned client so the Today
               screen is consistent across coach-locked and self-guided plans. */}
-          <div className="pt-1">
+          <div className="pt-1 space-y-2">
             <EnablePushBanner />
             <NextFastCountdownRow accent={ketoAccent} />
             <button
               type="button"
               onClick={() => navigate("/client/program")}
-              className="mt-2 w-full flex items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/5 py-2.5 text-[11px] uppercase tracking-widest font-bold text-white/80 hover:bg-white/10 hover:text-white transition-colors"
+              className="w-full flex items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/5 py-2.5 text-[11px] uppercase tracking-widest font-bold text-white/80 hover:bg-white/10 hover:text-white transition-colors"
             >
               <Sparkles className="h-3.5 w-3.5" />
               Why your plan works
               <ChevronRight className="h-3.5 w-3.5" />
             </button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full text-white/70 hover:text-white hover:bg-white/10"
+              onClick={() => navigate("/client/calendar")}
+            >
+              Edit Today&apos;s Plan
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -2639,6 +2762,7 @@ export default function ClientDashboard() {
   const resolvedDayForSelected = selectedDayDate
     ? resolveDayForDate(weeklySchedule ?? null, scheduleOverrides ?? null, selectedDayDate)
     : null;
+  const todaySchedule = resolveDayForDate(weeklySchedule ?? null, scheduleOverrides ?? null, new Date());
   const scheduleSaving = saveWeekly.isPending || saveOverride.isPending;
 
 
@@ -3272,7 +3396,7 @@ export default function ClientDashboard() {
               return settings.fasting_enabled && !engineConfig.fastingDisabled && !isViewingOtherDay ? (
                 <div key="fasting" className="space-y-3">
                   <ClientWeekStrip onDayClick={handleWeekStripDayClick} />
-                  <FastingProtocolCard clientId={clientId} navigate={navigate} openEndFastFlowSignal={openEndFastFlowSignal} />
+                  <FastingProtocolCard clientId={clientId} navigate={navigate} openEndFastFlowSignal={openEndFastFlowSignal} todaySchedule={todaySchedule} />
                   {dashRecentFastLog && (
                     <FastingStatusCard
                       actualHours={dashRecentFastLog.actual_hours}
