@@ -148,11 +148,10 @@ export default function ClientFastingCalendar() {
   };
 
   const dotClass = (d: Date) => {
-    const ov = findActiveOverride(overrides, d);
-    const day = resolve(d);
-    if (!day || !day.enabled) return "bg-muted-foreground/40";
-    if (ov) return "bg-amber-400";
-    if (day.ratio === "eat_all_day") return "bg-emerald-400";
+    const r = resolve(d);
+    if (r.state !== "scheduled" || !r.day) return "bg-muted-foreground/30";
+    if (r.adjusted) return "bg-amber-400";
+    if (r.day.ratio === "eat_all_day") return "bg-emerald-400";
     return "bg-primary";
   };
 
@@ -249,7 +248,9 @@ export default function ClientFastingCalendar() {
                   <div className="text-sm font-semibold">
                     {d.toLocaleDateString(undefined, { weekday: "short", day: "numeric" })}
                   </div>
-                  <div className="text-[11px] text-muted-foreground">{dayHeadline(resolve(d))}</div>
+                  <div className="text-[11px] text-muted-foreground">
+                    {(() => { const r = resolve(d); return stateHeadline(r.state, r.day); })()}
+                  </div>
                 </div>
                 <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
               </button>
@@ -261,7 +262,9 @@ export default function ClientFastingCalendar() {
           <div className="space-y-3">
             <div className="rounded-2xl border border-border/60 bg-muted/20 p-5">
               <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Plan</div>
-              <div className="mt-1 text-lg font-bold">{dayHeadline(resolve(anchor))}</div>
+              <div className="mt-1 text-lg font-bold">
+                {(() => { const r = resolve(anchor); return stateHeadline(r.state, r.day); })()}
+              </div>
             </div>
             <Button
               size="lg"
@@ -327,7 +330,7 @@ export default function ClientFastingCalendar() {
         open={!!selected}
         onOpenChange={(v) => !v && setSelected(null)}
         date={selected}
-        day={selected ? resolve(selected) : null}
+        day={selected ? resolve(selected).day : null}
         saving={saving}
         onSave={handleSaveDay}
       />
