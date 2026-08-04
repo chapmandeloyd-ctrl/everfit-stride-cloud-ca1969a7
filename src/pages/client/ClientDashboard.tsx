@@ -455,6 +455,24 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
 
   const [slideshowIndex, setSlideshowIndex] = useState(0);
 
+  // Real "since last fast" source — the most recent logged fast, not a settings flag.
+  const { data: lastLoggedFast } = useQuery({
+    queryKey: ["last-fasting-log", clientId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("fasting_log")
+        .select("ended_at, actual_hours")
+        .eq("client_id", clientId!)
+        .not("ended_at", "is", null)
+        .order("ended_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data as { ended_at: string | null; actual_hours: number | null } | null;
+    },
+    enabled: !!clientId,
+  });
+
   const isFasting = !!featureSettings?.active_fast_start_at;
   const hasEatingWindow = !!featureSettings?.eating_window_ends_at && new Date(featureSettings.eating_window_ends_at) > now;
 
@@ -1160,7 +1178,8 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
           <CardContent className="relative z-10 px-4 pt-6 pb-5 space-y-5 text-white sm:px-5">
             <IdleFastingHero
               centerImageSrc={fastingCardBg}
-              lastFastEndedAt={featureSettings?.last_fast_ended_at}
+              lastFastEndedAt={lastLoggedFast?.ended_at ?? null}
+              lastFastHours={lastLoggedFast?.actual_hours ?? null}
               statusLabel={fastingCardMsg}
             />
 

@@ -1,10 +1,12 @@
-import { formatDistanceToNowStrict } from "date-fns";
+import { formatDistanceToNowStrict, differenceInMinutes } from "date-fns";
 import { cn } from "@/lib/utils";
 
 interface IdleFastingHeroProps {
   centerImageSrc: string;
   /** ISO timestamp of the last fast that ended, if any */
   lastFastEndedAt?: string | null;
+  /** Hours of that last logged fast, if known */
+  lastFastHours?: number | null;
   /** Small caption under the ring, e.g. "No plan yet" */
   statusLabel?: string;
   /** Hours the ring represents (default 16) — used only to place stage dots */
@@ -37,6 +39,7 @@ const STAGES = [
 export function IdleFastingHero({
   centerImageSrc,
   lastFastEndedAt,
+  lastFastHours,
   statusLabel,
   targetHours = 16,
   compact = true,
@@ -49,9 +52,18 @@ export function IdleFastingHero({
 
   const relevantStages = STAGES.filter((s) => s.hour <= targetHours);
 
-  const since = lastFastEndedAt
-    ? formatDistanceToNowStrict(new Date(lastFastEndedAt))
-    : null;
+  // Real elapsed time since the last logged fast. New clients get onboarding copy
+  // instead of a stale/fabricated duration.
+  let sinceLabel = "No fasts logged yet";
+  if (lastFastEndedAt) {
+    const ended = new Date(lastFastEndedAt);
+    const mins = differenceInMinutes(new Date(), ended);
+    const dur = mins < 1 ? "just now" : `${formatDistanceToNowStrict(ended)} ago`;
+    sinceLabel =
+      lastFastHours != null
+        ? `Last fast ${Math.round(lastFastHours)}h · ${dur}`
+        : `Last fast ${dur}`;
+  }
 
   function stagePos(hour: number) {
     const angle = (Math.min(hour / targetHours, 1) * 360 - 90) * (Math.PI / 180);
@@ -114,7 +126,7 @@ export function IdleFastingHero({
       {/* Since last fast — centered pill under the ring, same slot as the stage pill */}
       <div className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/40 px-3 py-1.5 backdrop-blur-sm">
         <span className="text-[10px] font-bold uppercase tracking-wider text-white/70">
-          {since ? `${since} since last fast` : "Ready when you are"}
+          {sinceLabel}
         </span>
       </div>
 
