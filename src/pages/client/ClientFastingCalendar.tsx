@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, ChevronLeft, ChevronRight, Sparkles, LifeBuoy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
@@ -26,6 +26,7 @@ const DOW = ["S", "M", "T", "W", "T", "F", "S"];
 
 export default function ClientFastingCalendar() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const clientId = useEffectiveClientId();
   const { weekly, overrides, saveWeekly, saveOverride } = useClientWeeklySchedule(clientId);
   const { data: pace } = useSmartPace();
@@ -34,6 +35,18 @@ export default function ClientFastingCalendar() {
   const [anchor, setAnchor] = useState(new Date());
   const [selected, setSelected] = useState<Date | null>(null);
   const [lifeOpen, setLifeOpen] = useState(false);
+
+  // Deep link: /client/calendar?date=YYYY-MM-DD opens that day's editor
+  useEffect(() => {
+    const raw = searchParams.get("date");
+    if (!raw) return;
+    const [y, m, d] = raw.split("-").map(Number);
+    if (!y || !m || !d) return;
+    const target = new Date(y, m - 1, d);
+    setAnchor(target);
+    setSelected(target);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   const week = weekly ?? defaultWeek();
   const saving = saveWeekly.isPending || saveOverride.isPending;
@@ -270,22 +283,37 @@ export default function ClientFastingCalendar() {
           </div>
         )}
 
-        <div className="mt-4 grid grid-cols-2 gap-2">
+        <div className="mt-6 rounded-2xl border border-border/60 bg-muted/20 p-4">
+          <div className="text-sm font-bold">Don't want to build it yourself?</div>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Let Apex360 AI design your full week around your goal, or ask your coach to set it up for you.
+            You can still change any day, any time.
+          </p>
+          <Button
+            size="lg"
+            onClick={() => navigate("/client/onboarding")}
+            className="mt-3 h-12 w-full rounded-2xl text-sm font-semibold"
+          >
+            <Sparkles className="mr-2 h-4 w-4" /> Let Apex360 AI build my plan
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate("/client/messages")}
+            className="mt-1 h-10 w-full rounded-2xl text-xs font-semibold text-muted-foreground"
+          >
+            Ask my coach to build it
+          </Button>
+        </div>
+
+        <div className="mt-3">
           <Button
             variant="outline"
             size="lg"
             onClick={() => setLifeOpen(true)}
-            className="h-14 rounded-2xl text-sm font-semibold"
+            className="h-14 w-full rounded-2xl text-sm font-semibold"
           >
             <LifeBuoy className="mr-2 h-4 w-4" /> Life happens
-          </Button>
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={() => navigate("/client/onboarding")}
-            className="h-14 rounded-2xl text-sm font-semibold"
-          >
-            <Sparkles className="mr-2 h-4 w-4" /> Apex AI build it
           </Button>
         </div>
       </main>
