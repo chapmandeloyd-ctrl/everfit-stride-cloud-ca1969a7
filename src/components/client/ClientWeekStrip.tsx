@@ -1,6 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { CalendarDays, ChevronRight } from "lucide-react";
-import { useClientComputedPlan } from "@/hooks/useClientComputedPlan";
+import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
+import { useClientWeeklySchedule } from "@/hooks/useClientWeeklySchedule";
+import { resolveDayForDate, type WeeklyScheduleDay } from "@/lib/resolveFastingWindow";
 import { addDays, dateKey } from "@/components/client/calendar/calendarUtils";
 
 interface ClientWeekStripProps {
@@ -15,21 +17,24 @@ interface ClientWeekStripProps {
  * Tapping a day dot opens the day detail sheet when onDayClick is provided.
  */
 export function ClientWeekStrip({ onDayClick }: ClientWeekStripProps) {
-  const { plan, dayIndex } = useClientComputedPlan();
+  const clientId = useEffectiveClientId();
+  const { weekly, overrides } = useClientWeeklySchedule(clientId);
   const navigate = useNavigate();
-  if (!plan || plan.days.length <= 1) return null;
 
-  const dotColor = (d: (typeof plan.days)[number]) => {
-    if (d.adFast) return "hsl(var(--primary))";
-    if (d.isRefeed) return "hsl(217 91% 60%)";
-    if (d.fastWindow.toLowerCase().startsWith("low-cal")) return "hsl(48 96% 53%)";
+  const dotColor = (d: WeeklyScheduleDay | null) => {
+    if (!d || d.enabled === false) return "hsl(var(--muted-foreground))";
+    if (d.ratio === "eat_all_day") return "hsl(48 96% 53%)";
+    if (d.ratio === "20:4") return "hsl(var(--primary))";
+    if (d.ratio === "18:6") return "hsl(217 91% 60%)";
     return "hsl(142 71% 45%)";
   };
 
-  // Show up to next 7 days rotated so today is first
-  const window = Array.from({ length: Math.min(7, plan.days.length) }).map((_, i) => {
-    const idx = (dayIndex + i) % plan.days.length;
-    return { d: plan.days[idx], i, idx };
+  const DOW = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+  // Next 7 days, today first
+  const days = Array.from({ length: 7 }).map((_, i) => {
+    const date = addDays(new Date(), i);
+    return { date, i, day: resolveDayForDate(weekly, overrides, date) };
   });
 
   return (
@@ -46,15 +51,14 @@ export function ClientWeekStrip({ onDayClick }: ClientWeekStripProps) {
         </span>
       </button>
       <div className="grid grid-cols-7 gap-1">
-        {window.map(({ d, i, idx }) => {
-          const color = dotColor(d);
+        {days.map(({ date, i, day }) => {
+          const color = dotColor(day);
           const isToday = i === 0;
-          const date = addDays(new Date(), i);
           return (
             <button
-              key={`${d.day}-${idx}`}
+              key={dateKey(date)}
               onClick={() =>
-                onDayClick ? onDayClick(date, idx) : navigate(`/client/calendar?date=${dateKey(date)}`)
+                onDayClick ? onDayClick(date, i) : navigate(`/client/calendar?date=${dateKey(date)}`)
               }
               className={`flex flex-col items-center gap-0.5 py-0.5 rounded transition-colors active:bg-primary/20 ${
                 isToday ? "bg-primary/10" : ""
@@ -72,7 +76,7 @@ export function ClientWeekStrip({ onDayClick }: ClientWeekStripProps) {
                   isToday ? "text-primary font-bold" : "text-muted-foreground"
                 }`}
               >
-                {isToday ? "Today" : d.day.replace(/\s.*/, "").slice(0, 3)}
+                {isToday ? "Today" : DOW[date.getDay()]}
               </span>
             </button>
           );
