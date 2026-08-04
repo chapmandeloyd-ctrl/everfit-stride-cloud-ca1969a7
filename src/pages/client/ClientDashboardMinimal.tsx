@@ -1,6 +1,5 @@
 import { ClientLayout } from "@/components/ClientLayout";
 import { useNavigate } from "react-router-dom";
-import { format } from "date-fns";
 import { useState } from "react";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { FastingProtocolCard } from "./ClientDashboard";
@@ -22,7 +21,6 @@ export default function ClientDashboardMinimal() {
   const clientId = useEffectiveClientId();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const today = format(new Date(), "yyyy-MM-dd");
   const [selectedDayDate, setSelectedDayDate] = useState<Date | null>(null);
   const {
     weekly: weeklySchedule,
