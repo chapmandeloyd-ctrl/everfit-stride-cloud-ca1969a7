@@ -94,6 +94,67 @@ export function resolveDayForDate(
   return src.find((d) => d.day_of_week === dow) ?? null;
 }
 
+// ---------------------------------------------------------------------------
+// Plan window (assignment) resolution
+// ---------------------------------------------------------------------------
+
+export interface PlanWindow {
+  /** YYYY-MM-DD the assigned plan starts on. */
+  startDate: string | null;
+  /** Number of days the assignment runs for. */
+  durationDays: number | null;
+  /** "one_time" = runs once then ends. "recurring" = first N days of each week. */
+  runMode: "one_time" | "recurring" | null;
+}
+
+export type DayState = "scheduled" | "rest" | "out_of_plan" | "unset";
+
+export interface ResolvedDay {
+  state: DayState;
+  day: WeeklyScheduleDay | null;
+  /** True when a date-range override (vacation / travel) drives this day. */
+  adjusted: boolean;
+}
+
+function daysBetween(startKey: string, date: Date): number {
+  const [y, m, d] = startKey.slice(0, 10).split("-").map(Number);
+  if (!y || !m || !d) return 0;
+  const start = new Date(y, m - 1, d);
+  start.setHours(0, 0, 0, 0);
+  const target = new Date(date);
+  target.setHours(0, 0, 0, 0);
+  return Math.round((target.getTime() - start.getTime()) / 86400000);
+}
+
+/** Is this date inside the assigned plan window? */
+export function isWithinPlanWindow(plan: PlanWindow | null | undefined, date: Date): boolean {
+  if (!plan?.startDate || !plan.durationDays || plan.durationDays <= 0) return true;
+  const offset = daysBetween(plan.startDate, date);
+  if (offset < 0) return false;
+  if (plan.runMode === "recurring") return offset % 7 < plan.durationDays;
+  return offset < plan.durationDays;
+}
+
+/**
+ * Single source of truth for what a calendar square should show.
+ * Never fabricates times: a day with no saved row resolves to "unset".
+ */
+export function resolveDayState(
+  weekly: WeeklyScheduleDay[] | undefined | null,
+  overrides: ScheduleOverride[] | undefined | null,
+  date: Date,
+  plan?: PlanWindow | null
+): ResolvedDay {
+  const override = findActiveOverride(overrides, date);
+  const day = resolveDayForDate(weekly, overrides, date);
+  if (!isWithinPlanWindow(plan, date)) {
+    return { state: "out_of_plan", day: null, adjusted: !!override };
+  }
+  if (!day) return { state: "unset", day: null, adjusted: !!override };
+  if (day.enabled === false) return { state: "rest", day, adjusted: !!override };
+  return { state: "scheduled", day, adjusted: !!override };
+}
+
 export const RATIO_LABEL: Record<FastRatio, string> = {
   "16:8": "16:8",
   "18:6": "18:6",
