@@ -1,6 +1,7 @@
 import {
   type FastRatio,
   type WeeklyScheduleDay,
+  type DayState,
   RATIO_LABEL,
   breakFastHourFor,
   formatHour,
@@ -59,6 +60,17 @@ export function dayHeadline(day: WeeklyScheduleDay | null): string {
   return `${RATIO_LABEL[day.ratio]} · fast ${formatHour(start)} → breaks ${formatHour(
     breakFastHourFor(day.ratio, start),
   )}`;
+}
+
+/**
+ * Headline that respects the resolved day state — an unset or out-of-plan day
+ * never renders a fabricated time.
+ */
+export function stateHeadline(state: DayState, day: WeeklyScheduleDay | null): string {
+  if (state === "out_of_plan") return "— Outside your plan";
+  if (state === "unset") return "— No fast scheduled";
+  if (state === "rest") return "Rest day";
+  return dayHeadline(day);
 }
 
 export { RATIO_LABEL, formatHour, timeToHour, breakFastHourFor };

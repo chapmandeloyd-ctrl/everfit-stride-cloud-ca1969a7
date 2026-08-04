@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type {
   FastRatio,
+  PlanWindow,
   ScheduleOverride,
   WeeklyScheduleDay,
 } from "@/lib/resolveFastingWindow";
@@ -21,19 +22,29 @@ export function useClientWeeklySchedule(clientId: string | null | undefined) {
         .eq("client_id", clientId)
         .order("day_of_week");
       if (error) throw error;
-      const rows = (data ?? []) as unknown as WeeklyScheduleDay[];
-      if (rows.length === 7) return rows;
-      // Fill missing days with default 16:8: fast starts 8PM, breaks 12PM.
-      const map = new Map(rows.map((r) => [r.day_of_week, r]));
-      return Array.from({ length: 7 }, (_, dow) =>
-        map.get(dow) ?? {
-          day_of_week: dow,
-          ratio: "16:8" as FastRatio,
-          window_start_time: "20:00:00",
-          window_end_time: "12:00:00",
-          enabled: true,
-        }
-      );
+      // Return ONLY the days the client actually has saved. Filling the gaps
+      // with a fabricated 16:8 / 8PM default made the calendar show phantom
+      // times for clients who have no plan at all.
+      return (data ?? []) as unknown as WeeklyScheduleDay[];
+    },
+    enabled: !!clientId,
+  });
+
+  const planWindowQ = useQuery({
+    queryKey: ["client-plan-window", clientId],
+    queryFn: async (): Promise<PlanWindow> => {
+      if (!clientId) return { startDate: null, durationDays: null, runMode: null };
+      const { data } = await supabase
+        .from("client_feature_settings")
+        .select("protocol_start_date, assigned_protocol_duration_days, protocol_run_mode")
+        .eq("client_id", clientId)
+        .maybeSingle();
+      const row = data as any;
+      return {
+        startDate: row?.protocol_start_date ? String(row.protocol_start_date).slice(0, 10) : null,
+        durationDays: row?.assigned_protocol_duration_days ?? null,
+        runMode: row?.protocol_run_mode === "recurring" ? "recurring" : row?.protocol_run_mode === "one_time" ? "one_time" : null,
+      };
     },
     enabled: !!clientId,
   });
@@ -115,6 +126,7 @@ export function useClientWeeklySchedule(clientId: string | null | undefined) {
   return {
     weekly: scheduleQ.data,
     overrides: overridesQ.data,
+    planWindow: planWindowQ.data,
     isLoading: scheduleQ.isLoading || overridesQ.isLoading,
     saveWeekly,
     saveOverride,
