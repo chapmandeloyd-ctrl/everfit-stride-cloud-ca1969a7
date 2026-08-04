@@ -283,9 +283,17 @@ export default function ClientPlanBuilder() {
         const { error } = await supabase.from("client_feature_settings").update(patch).eq("client_id", clientId);
         if (error) throw error;
       } else {
+        // `trainer_id` is NOT NULL. Self-built plans belong to the client's
+        // coach when there is one, otherwise the client owns their own row.
+        const { data: link } = await supabase
+          .from("trainer_clients")
+          .select("trainer_id")
+          .eq("client_id", clientId)
+          .limit(1)
+          .maybeSingle();
         const { error } = await supabase
           .from("client_feature_settings")
-          .insert([{ client_id: clientId, ...patch }] as any);
+          .insert([{ client_id: clientId, trainer_id: (link as any)?.trainer_id ?? clientId, ...patch }] as any);
         if (error) throw error;
       }
 
