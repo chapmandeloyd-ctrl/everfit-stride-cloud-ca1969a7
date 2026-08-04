@@ -1,18 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, ChevronLeft, ChevronRight, Sparkles, LifeBuoy } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Sparkles, LifeBuoy, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { useClientWeeklySchedule } from "@/hooks/useClientWeeklySchedule";
 import { useSmartPace } from "@/hooks/useSmartPace";
-import { resolveDayForDate, findActiveOverride } from "@/lib/resolveFastingWindow";
+import { resolveDayState } from "@/lib/resolveFastingWindow";
 import { toast } from "@/hooks/use-toast";
 import DayEditorSheet, { type ApplyScope } from "@/components/client/calendar/DayEditorSheet";
 import LifeHappensSheet from "@/components/client/calendar/LifeHappensSheet";
 import {
   addDays,
   dateKey,
-  dayHeadline,
+  stateHeadline,
   defaultWeek,
   monthGrid,
   startOfWeek,
@@ -28,7 +28,7 @@ export default function ClientFastingCalendar() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const clientId = useEffectiveClientId();
-  const { weekly, overrides, saveWeekly, saveOverride } = useClientWeeklySchedule(clientId);
+  const { weekly, overrides, planWindow, saveWeekly, saveOverride } = useClientWeeklySchedule(clientId);
   const { data: pace } = useSmartPace();
 
   const [view, setView] = useState<View>("month");
@@ -48,10 +48,15 @@ export default function ClientFastingCalendar() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
-  const week = weekly ?? defaultWeek();
+  // Only the days the client actually saved. Missing days stay missing so the
+  // calendar can render "—" instead of an invented 8 PM fast.
+  const savedWeek = weekly ?? [];
+  const week = savedWeek.length === 7
+    ? savedWeek
+    : defaultWeek().map((d) => savedWeek.find((s) => s.day_of_week === d.day_of_week) ?? d);
   const saving = saveWeekly.isPending || saveOverride.isPending;
 
-  const resolve = (d: Date) => resolveDayForDate(week, overrides, d);
+  const resolve = (d: Date) => resolveDayState(savedWeek, overrides, d, planWindow);
 
   const grid = useMemo(() => monthGrid(anchor), [anchor]);
   const weekDays = useMemo(
