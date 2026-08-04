@@ -1,5 +1,6 @@
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { CalendarDays, ChevronRight } from "lucide-react";
+import { CalendarDays } from "lucide-react";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { useClientWeeklySchedule } from "@/hooks/useClientWeeklySchedule";
 import { resolveDayForDate, type WeeklyScheduleDay } from "@/lib/resolveFastingWindow";
@@ -20,6 +21,8 @@ export function ClientWeekStrip({ onDayClick }: ClientWeekStripProps) {
   const clientId = useEffectiveClientId();
   const { weekly, overrides } = useClientWeeklySchedule(clientId);
   const navigate = useNavigate();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const todayRef = useRef<HTMLButtonElement>(null);
 
   const dotColor = (d: WeeklyScheduleDay | null) => {
     if (!d || d.enabled === false) return "hsl(var(--muted-foreground))";
@@ -31,53 +34,75 @@ export function ClientWeekStrip({ onDayClick }: ClientWeekStripProps) {
 
   const DOW = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-  // Next 7 days, today first
-  const days = Array.from({ length: 7 }).map((_, i) => {
-    const date = addDays(new Date(), i);
-    return { date, i, day: resolveDayForDate(weekly, overrides, date) };
+  const today = new Date();
+  const todayKey = dateKey(today);
+
+  // Scrollable range: 3 days back through 17 days ahead
+  const days = Array.from({ length: 21 }).map((_, idx) => {
+    const offset = idx - 3;
+    const date = addDays(today, offset);
+    return { date, offset, day: resolveDayForDate(weekly, overrides, date) };
   });
 
+  useEffect(() => {
+    todayRef.current?.scrollIntoView({ inline: "start", block: "nearest" });
+  }, []);
+
+  const headerLabel = today.toLocaleDateString(undefined, { month: "long", day: "numeric" });
+
   return (
-    <div className="rounded-lg border border-border/50 bg-card/40 px-2.5 py-1.5">
-      <button
-        onClick={() => navigate("/client/calendar")}
-        className="mb-1 flex w-full items-center justify-between text-[10px] font-semibold uppercase tracking-wider text-muted-foreground"
+    <div className="space-y-2">
+      <div className="flex items-center justify-between px-0.5">
+        <h2 className="text-lg font-bold tracking-tight text-foreground">{headerLabel}</h2>
+        <button
+          onClick={() => navigate("/client/calendar")}
+          className="flex items-center gap-2 text-sm font-semibold text-primary"
+        >
+          Today
+          <CalendarDays className="h-5 w-5" />
+        </button>
+      </div>
+
+      <div
+        ref={scrollRef}
+        className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
-        <span className="flex items-center gap-1">
-          <CalendarDays className="h-3 w-3" /> My Fasting Calendar
-        </span>
-        <span className="flex items-center gap-0.5 text-primary">
-          Edit <ChevronRight className="h-3 w-3" />
-        </span>
-      </button>
-      <div className="grid grid-cols-7 gap-1">
-        {days.map(({ date, i, day }) => {
+        {days.map(({ date, offset, day }) => {
           const color = dotColor(day);
-          const isToday = i === 0;
+          const isToday = dateKey(date) === todayKey;
           return (
             <button
               key={dateKey(date)}
+              ref={isToday ? todayRef : undefined}
               onClick={() =>
-                onDayClick ? onDayClick(date, i) : navigate(`/client/calendar?date=${dateKey(date)}`)
+                onDayClick
+                  ? onDayClick(date, offset)
+                  : navigate(`/client/calendar?date=${dateKey(date)}`)
               }
-              className={`flex flex-col items-center gap-0.5 py-0.5 rounded transition-colors active:bg-primary/20 ${
-                isToday ? "bg-primary/10" : ""
+              className={`flex h-[62px] w-[52px] shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl border transition-colors ${
+                isToday
+                  ? "border-primary bg-primary/15"
+                  : "border-border/60 bg-card/40 active:bg-primary/10"
               }`}
             >
               <span
-                className="h-1.5 w-1.5 rounded-full"
-                style={{
-                  background: color,
-                  boxShadow: isToday ? `0 0 6px ${color}` : undefined,
-                }}
-              />
-              <span
-                className={`text-[8px] leading-none ${
-                  isToday ? "text-primary font-bold" : "text-muted-foreground"
+                className={`text-lg font-bold leading-none ${
+                  isToday ? "text-primary" : "text-foreground"
                 }`}
               >
-                {isToday ? "Today" : DOW[date.getDay()]}
+                {date.getDate()}
               </span>
+              <span
+                className={`text-[11px] leading-none ${
+                  isToday ? "text-primary" : "text-muted-foreground"
+                }`}
+              >
+                {DOW[date.getDay()]}
+              </span>
+              <span
+                className="mt-0.5 h-1.5 w-1.5 rounded-full"
+                style={{ background: color, boxShadow: isToday ? `0 0 6px ${color}` : undefined }}
+              />
             </button>
           );
         })}
