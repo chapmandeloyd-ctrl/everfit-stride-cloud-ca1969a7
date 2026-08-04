@@ -1153,88 +1153,46 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
       ? "Choose how you want to build your fasting plan."
       : "Your trainer will assign your fasting plan soon.";
     return (
-      <Card className="overflow-hidden border-primary/20 shadow-lg relative">
-        {fastingCardBg ? (
-          <>
-            <div
-              className="absolute inset-0 bg-cover bg-center"
-              style={{ backgroundImage: `url(${fastingCardBg})` }}
+      <div id="fasting-protocol-card" className="space-y-3">
+        <h2 className="text-lg font-bold text-foreground px-1">Apex360-IF Fasting Timer</h2>
+        <Card className="overflow-hidden border-0 shadow-lg relative bg-black">
+          <CardContent className="relative z-10 px-4 pt-6 pb-5 space-y-5 text-white sm:px-5">
+            <IdleFastingHero
+              centerImageSrc={fastingCardBg}
+              lastFastEndedAt={featureSettings?.last_fast_ended_at}
+              statusLabel={fastingCardMsg}
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/30" />
-            <CardContent className="relative z-10 min-h-[260px] flex flex-col justify-end p-5 space-y-3">
-              <div className="text-left space-y-3">
-                <div>
-                  <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-1 drop-shadow-lg">
-                    {emptyStateHeadline}
-                  </p>
-                  <p className="text-base font-bold text-white drop-shadow-lg">
-                    {emptyStateBody}
-                  </p>
-                </div>
-                {canChoose ? (
-                  <div className="space-y-2">
-                    <Button
-                      onClick={() => navigate("/client/onboarding")}
-                      className="w-full"
-                      size="lg"
-                    >
-                      <Sparkles className="h-4 w-4 mr-2" />
-                      APEX360 AI builds my plan
-                    </Button>
-                    <Button
-                      onClick={() => navigate("/client/calendar")}
-                      variant="outline"
-                      className="w-full border-white/20 text-white bg-white/5 hover:bg-white/10 hover:text-white"
-                      size="lg"
-                    >
-                      I&apos;ll build my own
-                    </Button>
-                  </div>
-                ) : (
-                  <p className="text-sm text-white/70 text-center">
-                    Your trainer will assign your plan soon.
-                  </p>
-                )}
-              </div>
-            </CardContent>
-          </>
-        ) : (
-          <CardContent className="px-6 py-8 text-center space-y-4">
-            <div>
-              <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-1">
+
+            <div className="text-center space-y-1">
+              <p className="text-xs font-semibold text-primary uppercase tracking-wider">
                 {emptyStateHeadline}
               </p>
-              <p className="text-base font-bold">
-                {emptyStateBody}
-              </p>
+              <p className="text-base font-bold text-white">{emptyStateBody}</p>
             </div>
+
             {canChoose ? (
               <div className="space-y-2">
-                <Button
-                  onClick={() => navigate("/client/onboarding")}
-                  className="w-full"
-                  size="lg"
-                >
+                <Button onClick={() => navigate("/client/onboarding")} className="w-full" size="lg">
                   <Sparkles className="h-4 w-4 mr-2" />
                   APEX360 AI builds my plan
                 </Button>
                 <Button
                   onClick={() => navigate("/client/calendar")}
                   variant="outline"
-                  className="w-full"
+                  className="w-full border-white/20 text-white bg-white/5 hover:bg-white/10 hover:text-white"
                   size="lg"
                 >
                   I&apos;ll build my own
                 </Button>
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground text-center">
+              <p className="text-sm text-white/70 text-center">
                 Your trainer will assign your plan soon.
               </p>
             )}
           </CardContent>
-        )}
-      </Card>
+        </Card>
+      </div>
     );
   }
 
