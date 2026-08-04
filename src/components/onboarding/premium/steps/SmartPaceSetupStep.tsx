@@ -19,7 +19,7 @@ interface Props {
   currentWeightKg: number;
   /** Body-metrics goal weight in kg (optional) — used to prefill Goal weight. */
   goalWeightKg: number | null;
-  onNext: () => void;
+  onNext: (goalWeightKg: number) => void;
 }
 
 type Direction = "lose" | "gain" | "maintain";
@@ -168,7 +168,7 @@ export default function SmartPaceSetupStep({
     if (!valid) return;
     // Preview mode: don't write anything, just move on.
     if (isPreview || !clientId) {
-      onNext();
+      onNext(+(goalWeight / 2.20462).toFixed(1));
       return;
     }
     setSaving(true);
@@ -223,7 +223,7 @@ export default function SmartPaceSetupStep({
       ]);
 
       toast.success("Smart Pace activated — live on your dashboard");
-      onNext();
+      onNext(+(goalWeight / 2.20462).toFixed(1));
     } catch (e: any) {
       toast.error(e?.message ?? "Could not save your pace goal");
     } finally {
