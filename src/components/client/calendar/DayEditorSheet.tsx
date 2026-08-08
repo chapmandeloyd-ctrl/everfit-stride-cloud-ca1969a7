@@ -6,6 +6,8 @@ import { Check, CalendarDays } from "lucide-react";
 import {
   RATIOS,
   RATIO_LABEL,
+  RATIO_DESCRIPTION,
+  RATIO_BEST_FOR,
   computeEnd,
   defaultWeek,
   formatHour,
@@ -83,7 +85,9 @@ export default function DayEditorSheet({
             }`}
           >
             <span className="font-semibold">Rest day</span>
-            <span className="block text-xs opacity-70">No fast scheduled — nothing counts against you.</span>
+            <span className="block text-xs opacity-70">
+              No fast scheduled — the day is skipped entirely and nothing counts against you.
+            </span>
           </button>
 
           {!rest && (
@@ -97,15 +101,27 @@ export default function DayEditorSheet({
                     <button
                       key={r}
                       onClick={() => setRatio(r)}
-                      className={`rounded-xl border py-3 text-sm font-semibold ${
+                      className={`rounded-xl border px-3 py-2.5 text-left ${
                         ratio === r
                           ? "border-primary bg-primary/15 text-foreground"
                           : "border-border bg-muted/20 text-muted-foreground"
                       }`}
                     >
-                      {RATIO_LABEL[r]}
+                      <span className="block text-sm font-semibold">{RATIO_LABEL[r]}</span>
+                      <span className="mt-0.5 block text-[10px] leading-tight opacity-70">
+                        {RATIO_SHORT[r]}
+                      </span>
                     </button>
                   ))}
+                </div>
+
+                <div className="mt-2 rounded-xl border border-border/60 bg-muted/10 p-3">
+                  <p className="text-xs leading-relaxed text-foreground/90">
+                    {RATIO_DESCRIPTION[ratio]}
+                  </p>
+                  <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                    {RATIO_BEST_FOR[ratio]}
+                  </p>
                 </div>
               </div>
 
