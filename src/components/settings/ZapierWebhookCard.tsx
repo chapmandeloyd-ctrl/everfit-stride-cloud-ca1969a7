@@ -153,7 +153,7 @@ export function ZapierWebhookCard() {
   "client": { "id", "name", "email" },
   "fast":   { "start_at", "target_hours", "actual_hours", "last_ended_at" },
   "suggested_message": "...",      // pre-written push copy ready to paste
-  "links":  { "client_view", "apexbeast_dashboard" }
+  "links":  { "client_view", "dashboard" }
 }`}
           </pre>
         </details>
