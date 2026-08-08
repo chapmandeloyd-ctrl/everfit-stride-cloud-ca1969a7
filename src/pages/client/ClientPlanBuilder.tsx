@@ -52,6 +52,8 @@ import {
 } from "@/lib/protocolCalcShared";
 import {
   RATIO_LABEL,
+  RATIO_DESCRIPTION,
+  RATIO_BEST_FOR,
   breakFastHourFor,
   formatHour,
   timeToHour,
