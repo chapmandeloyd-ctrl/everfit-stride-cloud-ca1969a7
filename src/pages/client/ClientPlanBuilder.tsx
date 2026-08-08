@@ -712,10 +712,39 @@ export default function ClientPlanBuilder() {
             </AlertDialogContent>
           </AlertDialog>
         </div>
+
+        <AlertDialog open={confirmSaveOpen} onOpenChange={setConfirmSaveOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Replace your current plan?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Saving here overwrites your weekly schedule and any one-day calendar tweaks you made from this plan. Your weigh-ins, fasting history and badges are not affected.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setConfirmSaveOpen(false)}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  setConfirmSaveOpen(false);
+                  handleSave();
+                }}
+              >
+                Yes, save new plan
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
         <Button
           className="mt-2 h-14 w-full rounded-2xl text-base font-bold"
           disabled={saving || !ketoId}
-          onClick={handleSave}
+          onClick={() => {
+            if (settings?.protocol_start_date || settings?.selected_protocol_id) {
+              setConfirmSaveOpen(true);
+            } else {
+              handleSave();
+            }
+          }}
         >
           <Save className="mr-2 h-4 w-4" /> {saving ? "Saving…" : "Save My Plan"}
         </Button>
