@@ -1,7 +1,7 @@
 // Resolves a client's effective fasting schedule for a given date by combining
 // their base weekly schedule with any active date-range override (vacation).
 
-export type FastRatio = "16:8" | "18:6" | "20:4" | "eat_all_day";
+export type FastRatio = "16:8" | "18:6" | "20:4" | "omad" | "eat_all_day";
 
 export interface WeeklyScheduleDay {
   day_of_week: number; // 0 = Sunday .. 6 = Saturday
@@ -24,6 +24,7 @@ export const RATIO_FAST_HOURS: Record<FastRatio, number> = {
   "16:8": 16,
   "18:6": 18,
   "20:4": 20,
+  omad: 23,
   eat_all_day: 0,
 };
 
@@ -31,6 +32,7 @@ export const RATIO_EAT_HOURS: Record<FastRatio, number> = {
   "16:8": 8,
   "18:6": 6,
   "20:4": 4,
+  omad: 1,
   eat_all_day: 24,
 };
 
@@ -159,5 +161,24 @@ export const RATIO_LABEL: Record<FastRatio, string> = {
   "16:8": "16:8",
   "18:6": "18:6",
   "20:4": "20:4",
+  omad: "OMAD",
   eat_all_day: "Eat all day",
+};
+
+/** Short plain-language explanation of each ratio, shown under the picker. */
+export const RATIO_DESCRIPTION: Record<FastRatio, string> = {
+  "16:8": "Fast 16 hours, eat within an 8-hour window. The everyday starting point.",
+  "18:6": "Fast 18 hours, eat within 6 hours. A step up once 16:8 feels easy.",
+  "20:4": "Fast 20 hours, eat within 4 hours. Aggressive — best for experienced fasters.",
+  omad: "One Meal A Day. Fast 23 hours, eat one meal in a 1-hour window.",
+  eat_all_day: "No fasting window today — eat across the full 24 hours.",
+};
+
+/** One-line "who is this for" note, shown when a ratio is selected. */
+export const RATIO_BEST_FOR: Record<FastRatio, string> = {
+  "16:8": "Best for: steady fat loss you can hold every week.",
+  "18:6": "Best for: breaking a stall without cutting more calories.",
+  "20:4": "Best for: short pushes — not ideal every day.",
+  omad: "Best for: busy days or an occasional deep-fast reset. Hard to hit protein — don't run it daily.",
+  eat_all_day: "Best for: refeeds, holidays, travel, illness, or heavy training days. Still on plan — it just doesn't ask you to fast.",
 };

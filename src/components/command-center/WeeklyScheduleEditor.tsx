@@ -20,7 +20,7 @@ import {
 } from "@/lib/resolveFastingWindow";
 import { toast } from "@/hooks/use-toast";
 
-const RATIOS: FastRatio[] = ["16:8", "18:6", "20:4", "eat_all_day"];
+const RATIOS: FastRatio[] = ["16:8", "18:6", "20:4", "omad", "eat_all_day"];
 // Render Mon-Sun order regardless of storage order
 const RENDER_ORDER = [1, 2, 3, 4, 5, 6, 0];
 

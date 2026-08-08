@@ -210,10 +210,10 @@ export default function ClientOnboarding() {
       );
 
       // Seed the weekly schedule with the AI-picked window.
-      // client_weekly_schedule.ratio is constrained to 16:8, 18:6, 20:4, eat_all_day —
-      // map advanced protocols (OMAD, 5:2, 4:3) to the closest allowed value.
+      // client_weekly_schedule.ratio is constrained to 16:8, 18:6, 20:4, omad,
+      // eat_all_day — map advanced protocols (5:2, 4:3) to the closest value.
       const mapRatio = (fh: number): string => {
-        if (fh >= 22) return "20:4"; // OMAD / near-OMAD
+        if (fh >= 22) return "omad";
         if (fh >= 19) return "20:4";
         if (fh >= 17) return "18:6";
         if (fh >= 14) return "16:8";
