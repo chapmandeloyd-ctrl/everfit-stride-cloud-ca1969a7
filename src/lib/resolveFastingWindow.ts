@@ -165,20 +165,26 @@ export const RATIO_LABEL: Record<FastRatio, string> = {
   eat_all_day: "Eat all day",
 };
 
-/** Short plain-language explanation of each ratio, shown under the picker. */
+/** Full plain-language explanation of each ratio, shown under the picker. */
 export const RATIO_DESCRIPTION: Record<FastRatio, string> = {
-  "16:8": "Fast 16 hours, eat within an 8-hour window. The everyday starting point.",
-  "18:6": "Fast 18 hours, eat within 6 hours. A step up once 16:8 feels easy.",
-  "20:4": "Fast 20 hours, eat within 4 hours. Aggressive — best for experienced fasters.",
-  omad: "One Meal A Day. Fast 23 hours, eat one meal in a 1-hour window.",
-  eat_all_day: "No fasting window today — eat across the full 24 hours.",
+  "16:8":
+    "Fast 16 hours, eat inside an 8-hour window. This is the most sustainable everyday schedule: your body gets a daily fasting signal while you still have room for two meals and snacks.",
+  "18:6":
+    "Fast 18 hours, eat inside a 6-hour window. It compresses your eating time to deepen ketosis and fat oxidation without feeling extreme.",
+  "20:4":
+    "Fast 20 hours, eat inside a 4-hour window. An aggressive option for experienced fasters. Best for short pushes rather than every single day.",
+  omad:
+    "One Meal A Day. Fast 23 hours and fit one full meal into a 1-hour window. It creates a deep fast but makes protein and calorie targets harder to hit.",
+  eat_all_day:
+    "No fasting window today — eat across all 24 hours. This is a planned non-fasting day, not a failure.",
 };
 
-/** One-line "who is this for" note, shown when a ratio is selected. */
+/** One-line 'who is this for' note, shown when a ratio is selected. */
 export const RATIO_BEST_FOR: Record<FastRatio, string> = {
   "16:8": "Best for: steady fat loss you can hold every week.",
-  "18:6": "Best for: breaking a stall without cutting more calories.",
-  "20:4": "Best for: short pushes — not ideal every day.",
-  omad: "Best for: busy days or an occasional deep-fast reset. Hard to hit protein — don't run it daily.",
-  eat_all_day: "Best for: refeeds, holidays, travel, illness, or heavy training days. Still on plan — it just doesn't ask you to fast.",
+  "18:6": "Best for: breaking a stall when 16:8 no longer feels challenging.",
+  "20:4": "Best for: short, focused pushes — not ideal as a daily default.",
+  omad: "Best for: busy days or an occasional deep-fast reset. Hard to hit protein — don't use it daily.",
+  eat_all_day:
+    "Best for: refeeds, holidays, travel, illness, or heavy training days. Still on plan — it just doesn't ask you to fast.",
 };
