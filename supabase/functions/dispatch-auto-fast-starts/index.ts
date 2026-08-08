@@ -17,6 +17,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { sendWebPush, recordExpiredSubscription } from "../_shared/web-push.ts";
+import { computeScheduledFastStart, tzDateParts } from "../_shared/fast-schedule.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -51,6 +52,13 @@ serve(async (req) => {
   const results = { checked: 0, headsup: 0, started: 0, skipped: 0, failed: 0 };
 
   try {
+    // ---- Backfill pass -------------------------------------------------
+    // `next_scheduled_fast_at` is normally published by the app, which means a
+    // client who never opens the app that day would never get a heads-up or an
+    // auto-start. Recompute it server-side from the assigned protocol so the
+    // schedule is authoritative regardless of app usage.
+    await backfillScheduledStarts(supabase);
+
     // Widen the SQL filter so we only load clients whose scheduled moment is
     // in the +/- 40 min window around "now" — everyone else is irrelevant.
     const now = Date.now();
