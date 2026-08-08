@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
-import { getLevelTier, pointsForLevel, dailyPoints, LEVEL_UNLOCKS, type LevelTierInfo } from "@/lib/ksom360Levels";
+import { getLevelTier, pointsForLevel, dailyPoints, LEVEL_UNLOCKS, type LevelTierInfo } from "@/lib/apexbeastLevels";
 
 export interface LevelProgressionData {
   level: number;
@@ -13,12 +13,12 @@ export interface LevelProgressionData {
   nextUnlock: string | null;
 }
 
-export function useKsomLevelProgression() {
+export function useApexbeastLevelProgression() {
   const clientId = useEffectiveClientId();
   const queryClient = useQueryClient();
 
   const query = useQuery({
-    queryKey: ["ksom-level-progression", clientId],
+    queryKey: ["apexbeast-level-progression", clientId],
     queryFn: async (): Promise<LevelProgressionData> => {
       if (!clientId) throw new Error("No client");
 
@@ -97,7 +97,7 @@ export function useKsomLevelProgression() {
         .eq("client_id", clientId);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["ksom-level-progression", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["apexbeast-level-progression", clientId] });
     },
   });
 
