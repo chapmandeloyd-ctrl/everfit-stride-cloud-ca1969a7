@@ -1,7 +1,7 @@
 // Resolves a client's effective fasting schedule for a given date by combining
 // their base weekly schedule with any active date-range override (vacation).
 
-export type FastRatio = "16:8" | "18:6" | "20:4" | "eat_all_day";
+export type FastRatio = "16:8" | "18:6" | "20:4" | "omad" | "eat_all_day";
 
 export interface WeeklyScheduleDay {
   day_of_week: number; // 0 = Sunday .. 6 = Saturday
@@ -24,6 +24,7 @@ export const RATIO_FAST_HOURS: Record<FastRatio, number> = {
   "16:8": 16,
   "18:6": 18,
   "20:4": 20,
+  omad: 23,
   eat_all_day: 0,
 };
 
@@ -31,6 +32,7 @@ export const RATIO_EAT_HOURS: Record<FastRatio, number> = {
   "16:8": 8,
   "18:6": 6,
   "20:4": 4,
+  omad: 1,
   eat_all_day: 24,
 };
 
