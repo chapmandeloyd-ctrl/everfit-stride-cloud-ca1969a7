@@ -28,6 +28,7 @@ export function ClientWeekStrip({ onDayClick }: ClientWeekStripProps) {
     if (r.state !== "scheduled" || !r.day) return "hsl(var(--muted-foreground) / 0.4)";
     const d = r.day;
     if (d.ratio === "eat_all_day") return "hsl(48 96% 53%)";
+    if (d.ratio === "omad") return "hsl(0 84% 55%)";
     if (d.ratio === "20:4") return "hsl(var(--primary))";
     if (d.ratio === "18:6") return "hsl(217 91% 60%)";
     return "hsl(142 71% 45%)";
