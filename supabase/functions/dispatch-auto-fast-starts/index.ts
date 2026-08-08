@@ -201,6 +201,7 @@ async function sendPush(
   payload: { title: string; body: string; tag: string; url: string; data?: any },
   results: { failed: number },
 ) {
+  // (see backfillScheduledStarts below)
   const { data: subs } = await supabase
     .from("push_subscriptions")
     .select("id, endpoint, p256dh, auth, user_agent")
