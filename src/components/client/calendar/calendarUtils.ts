@@ -8,7 +8,7 @@ import {
   timeToHour,
 } from "@/lib/resolveFastingWindow";
 
-export const RATIOS: FastRatio[] = ["16:8", "18:6", "20:4", "eat_all_day"];
+export const RATIOS: FastRatio[] = ["16:8", "18:6", "20:4", "omad", "eat_all_day"];
 
 export function dateKey(d: Date): string {
   const y = d.getFullYear();

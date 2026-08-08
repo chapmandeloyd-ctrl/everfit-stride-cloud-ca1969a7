@@ -60,7 +60,7 @@ import {
 } from "@/lib/resolveFastingWindow";
 import { computeEnd, defaultWeek } from "@/components/client/calendar/calendarUtils";
 
-const RATIOS: FastRatio[] = ["16:8", "18:6", "20:4", "eat_all_day"];
+const RATIOS: FastRatio[] = ["16:8", "18:6", "20:4", "omad", "eat_all_day"];
 const RENDER_ORDER = [1, 2, 3, 4, 5, 6, 0];
 const DOW_LABEL = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
