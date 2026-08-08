@@ -12,10 +12,19 @@ serve(async (req: Request) => {
   }
 
   try {
-    const { pin } = await req.json();
-    const adminPin = Deno.env.get("ADMIN_PIN");
+    const body = await req.json().catch(() => ({}));
+    const pin = typeof body?.pin === "string" ? body.pin.trim() : "";
+    const adminPin = (Deno.env.get("ADMIN_PIN") ?? "").trim();
 
-    if (!adminPin || pin !== adminPin) {
+    if (!adminPin) {
+      console.error("ADMIN_PIN secret is not configured");
+      return new Response(
+        JSON.stringify({ error: "Admin PIN is not configured" }),
+        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    if (!pin || pin !== adminPin) {
       return new Response(
         JSON.stringify({ error: "Invalid PIN" }),
         { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
