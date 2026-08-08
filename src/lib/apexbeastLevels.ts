@@ -1,5 +1,5 @@
 /**
- * Apex360-IF Level Progression System
+ * APEXBEAST-IF Level Progression System
  *
  * 10+ levels with auto-progression based on:
  * - Streak length

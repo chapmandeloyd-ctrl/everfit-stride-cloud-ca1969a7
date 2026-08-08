@@ -2,7 +2,7 @@ import WidgetKit
 import SwiftUI
 
 @main
-struct KSOM360WidgetBundle: WidgetBundle {
+struct APEXBEASTIFWidgetBundle: WidgetBundle {
     var body: some Widget {
         TimerLiveActivity()
     }
