@@ -373,7 +373,7 @@ export default function ClientPlanBuilder() {
           <div className="min-w-0 flex-1">
             <h1 className="truncate text-base font-bold">Build My Plan</h1>
             <p className="truncate text-[11px] text-muted-foreground">
-              Same builder your coach uses — now it's yours.
+              Full program: fuel style, calories, macros, and weekly schedule.
             </p>
           </div>
           <button
