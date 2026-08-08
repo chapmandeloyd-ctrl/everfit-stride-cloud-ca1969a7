@@ -52,6 +52,8 @@ import {
 } from "@/lib/protocolCalcShared";
 import {
   RATIO_LABEL,
+  RATIO_DESCRIPTION,
+  RATIO_BEST_FOR,
   breakFastHourFor,
   formatHour,
   timeToHour,
@@ -95,6 +97,7 @@ export default function ClientPlanBuilder() {
   const [weekTouched, setWeekTouched] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [confirmSaveOpen, setConfirmSaveOpen] = useState(false);
 
   const { data: ketoTypes } = useQuery({
     queryKey: ["cpb-keto-types"],
@@ -372,8 +375,8 @@ export default function ClientPlanBuilder() {
           </button>
           <div className="min-w-0 flex-1">
             <h1 className="truncate text-base font-bold">Build My Plan</h1>
-            <p className="truncate text-[11px] text-muted-foreground">
-              Same builder your coach uses — now it's yours.
+            <p className="text-[11px] leading-relaxed text-muted-foreground">
+              Full program: fuel style, calories, macros, and weekly schedule.
             </p>
           </div>
           <button
@@ -616,8 +619,8 @@ export default function ClientPlanBuilder() {
           <AccordionItem value="schedule" className="rounded-2xl border border-border/60 bg-muted/10 px-4">
             <AccordionTrigger className="text-sm font-bold">4 · Weekly Fasting Schedule</AccordionTrigger>
             <AccordionContent className="space-y-3 pb-4">
-              <p className="text-[11px] text-muted-foreground">
-                Set the ratio and exact fast start for each day. Break-fast time calculates itself.
+              <p className="text-[11px] leading-relaxed text-muted-foreground">
+                This is your default weekly pattern. Want a one-time exception? Tap any day in your calendar — that only edits that day and won't touch the whole plan.
               </p>
               {RENDER_ORDER.map((dow) => {
                 const d = week.find((x) => x.day_of_week === dow)!;
@@ -650,6 +653,10 @@ export default function ClientPlanBuilder() {
                             ))}
                           </SelectContent>
                         </Select>
+                        <p className="text-[11px] leading-relaxed text-muted-foreground">
+                          {RATIO_DESCRIPTION[d.ratio]}{" "}
+                          <span className="text-primary/90">{RATIO_BEST_FOR[d.ratio]}</span>
+                        </p>
                         {!isEatAll && (
                           <div className="flex items-center gap-2">
                             <Input
@@ -705,10 +712,39 @@ export default function ClientPlanBuilder() {
             </AlertDialogContent>
           </AlertDialog>
         </div>
+
+        <AlertDialog open={confirmSaveOpen} onOpenChange={setConfirmSaveOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Replace your current plan?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Saving here overwrites your weekly schedule and any one-day calendar tweaks you made from this plan. Your weigh-ins, fasting history and badges are not affected.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setConfirmSaveOpen(false)}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  setConfirmSaveOpen(false);
+                  handleSave();
+                }}
+              >
+                Yes, save new plan
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
         <Button
           className="mt-2 h-14 w-full rounded-2xl text-base font-bold"
           disabled={saving || !ketoId}
-          onClick={handleSave}
+          onClick={() => {
+            if (settings?.protocol_start_date || settings?.selected_protocol_id) {
+              setConfirmSaveOpen(true);
+            } else {
+              handleSave();
+            }
+          }}
         >
           <Save className="mr-2 h-4 w-4" /> {saving ? "Saving…" : "Save My Plan"}
         </Button>
@@ -719,7 +755,13 @@ export default function ClientPlanBuilder() {
         onOpenChange={setPreviewOpen}
         plan={previewPlan}
         title="Your plan preview"
-        onConfirm={handleSave}
+        onConfirm={() => {
+          if (settings?.protocol_start_date || settings?.selected_protocol_id) {
+            setConfirmSaveOpen(true);
+          } else {
+            handleSave();
+          }
+        }}
         confirmLabel="Save My Plan"
       />
     </div>

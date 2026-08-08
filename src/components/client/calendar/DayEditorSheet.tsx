@@ -74,6 +74,10 @@ export default function DayEditorSheet({
               day: "numeric",
             })}
           </SheetTitle>
+          <p className="text-[11px] leading-relaxed text-muted-foreground">
+            Adjust just this day, or apply the same change to matching days (weekdays, weekends, or every day).
+            Your full program stays the same unless you open <strong>Build My Plan</strong>.
+          </p>
         </SheetHeader>
 
         <div className="mt-4 space-y-4">
@@ -120,7 +124,7 @@ export default function DayEditorSheet({
                   <p className="text-xs leading-relaxed text-foreground/90">
                     {RATIO_DESCRIPTION[ratio]}
                   </p>
-                  <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                  <p className="mt-1.5 text-[11px] leading-relaxed text-primary/90">
                     {RATIO_BEST_FOR[ratio]}
                   </p>
                 </div>
