@@ -38,7 +38,7 @@ const BookingConfirmationEmail = ({
     <Preview>Your {appointmentType || 'appointment'} is confirmed!</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Img src={LOGO_URL} alt="APEX360-IF" width="80" height="80" style={logo} />
+        <Img src={LOGO_URL} alt="APEXBEAST-IF" width="80" height="80" style={logo} />
         <Heading style={h1}>Booking Confirmed ✅</Heading>
         <Text style={text}>
           {name ? `Hey ${name}, your` : 'Your'} session has been booked!
@@ -58,9 +58,9 @@ const BookingConfirmationEmail = ({
           )}
         </Section>
         <Text style={text}>
-          Need to reschedule? Open the APEX360-IF app and visit your Appointments.
+          Need to reschedule? Open the APEXBEAST-IF app and visit your Appointments.
         </Text>
-        <Text style={footer}>— APEX360-IF</Text>
+        <Text style={footer}>— APEXBEAST-IF</Text>
       </Container>
     </Body>
   </Html>
@@ -76,7 +76,7 @@ export const template = {
     appointmentType: '1-on-1 Training',
     date: 'Tuesday, Jan 21',
     time: '10:00 AM',
-    location: 'APEX360-IF Performance Center',
+    location: 'APEXBEAST-IF Performance Center',
   },
 } satisfies TemplateEntry
 

@@ -23,7 +23,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
-const ADMIN_EMAILS = ["apex360if@gmail.com"];
+const ADMIN_EMAILS = ["apexbeastif@gmail.com"];
 
 interface CoachCommandCenterTabProps {
   clientId: string;

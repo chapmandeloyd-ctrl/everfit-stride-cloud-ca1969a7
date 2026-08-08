@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Gauge, Layers } from "lucide-react";
-import { getLevelTier } from "@/lib/ksom360Levels";
+import { getLevelTier } from "@/lib/apexbeastLevels";
 
 interface StatusOverviewPanelProps {
   clientId: string;
@@ -14,7 +14,7 @@ const ENGINE_CARD_BG: Record<string, string> = {
 };
 
 const ENGINE_LABELS: Record<string, string> = {
-  metabolic: "Apex360-IF",
+  metabolic: "APEXBEAST-IF",
   athletic: "Athletic",
 };
 

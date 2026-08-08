@@ -34,7 +34,7 @@ export default function AICoachIntroStep({ onNext }: { onNext: () => void }) {
           <MetabolicRing size={160} progress={0} />
           <img
             src={lionLogo}
-            alt="Apex360-IF"
+            alt="APEXBEAST-IF"
             className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 object-contain"
             style={{ filter: "grayscale(1) brightness(1.4) opacity(0.95)" }}
           />
@@ -47,7 +47,7 @@ export default function AICoachIntroStep({ onNext }: { onNext: () => void }) {
             Your metabolism tells a story.
           </h1>
           <p className="mx-auto max-w-sm text-sm leading-relaxed text-white/70">
-            APEX360 is not one-size-fits-all. Over the next few screens your AI Coach will gather the details most programs ignore — then design your entire FAST + FUEL program around your life.
+            APEXBEAST is not one-size-fits-all. Over the next few screens your AI Coach will gather the details most programs ignore — then design your entire FAST + FUEL program around your life.
           </p>
         </div>
 

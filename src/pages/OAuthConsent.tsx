@@ -83,10 +83,10 @@ export default function OAuthConsent() {
         ) : (
           <>
             <h1 className="text-xl font-semibold">
-              Connect {details.client?.name ?? "an app"} to Apex360-IF
+              Connect {details.client?.name ?? "an app"} to APEXBEAST-IF
             </h1>
             <p className="text-sm text-muted-foreground">
-              This lets {details.client?.name ?? "the client"} act as you inside Apex360-IF
+              This lets {details.client?.name ?? "the client"} act as you inside APEXBEAST-IF
               through the MCP server. You can revoke access anytime.
             </p>
             <div className="flex gap-2 pt-2">

@@ -103,8 +103,8 @@ export const CUSTOM_PLAN_HEX: Record<string, string> = {
   "fasting-goal": "#e879f9",   // fuchsia-400
 };
 
-const ACTIVE_KEY = "ksom_active_custom_plan_id";
-const EATING_KEY = "ksom_active_custom_plan_eat_id";
+const ACTIVE_KEY = "apexbeast_active_custom_plan_id";
+const EATING_KEY = "apexbeast_active_custom_plan_eat_id";
 
 export function setActiveCustomFastPlan(id: string | null) {
   try {

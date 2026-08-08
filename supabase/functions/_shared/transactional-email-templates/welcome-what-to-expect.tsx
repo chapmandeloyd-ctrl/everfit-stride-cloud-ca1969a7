@@ -27,13 +27,13 @@ interface WelcomeWhatToExpectProps {
 const WelcomeWhatToExpectEmail = ({ name, loginUrl }: WelcomeWhatToExpectProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Here's what you get with APEX360-IF</Preview>
+    <Preview>Here's what you get with APEXBEAST-IF</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Img src={LOGO_URL} alt="APEX360-IF" width="80" height="80" style={logo} />
+        <Img src={LOGO_URL} alt="APEXBEAST-IF" width="80" height="80" style={logo} />
         <Heading style={h1}>What to Expect 🎯</Heading>
         <Text style={text}>
-          {name ? `${name}, here's` : 'Here\'s'} what you can look forward to with APEX360-IF:
+          {name ? `${name}, here's` : 'Here\'s'} what you can look forward to with APEXBEAST-IF:
         </Text>
         <Section style={featureBox}>
           <Text style={featureItem}>🏋️ <strong>Custom Workouts</strong> — Personalized training plans built just for you</Text>
@@ -48,10 +48,10 @@ const WelcomeWhatToExpectEmail = ({ name, loginUrl }: WelcomeWhatToExpectProps) 
         </Text>
         {loginUrl && (
           <Button style={button} href={loginUrl}>
-            Explore APEX360-IF
+            Explore APEXBEAST-IF
           </Button>
         )}
-        <Text style={footer}>— The APEX360-IF Team</Text>
+        <Text style={footer}>— The APEXBEAST-IF Team</Text>
       </Container>
     </Body>
   </Html>
@@ -59,11 +59,11 @@ const WelcomeWhatToExpectEmail = ({ name, loginUrl }: WelcomeWhatToExpectProps) 
 
 export const template = {
   component: WelcomeWhatToExpectEmail,
-  subject: 'Here\'s What to Expect with APEX360-IF 🎯',
+  subject: 'Here\'s What to Expect with APEXBEAST-IF 🎯',
   displayName: 'Welcome - What to expect',
   previewData: {
     name: 'Jordan',
-    loginUrl: 'https://ksom-360.app/auth',
+    loginUrl: 'https://apexbeast-if.app/auth',
   },
 } satisfies TemplateEntry
 

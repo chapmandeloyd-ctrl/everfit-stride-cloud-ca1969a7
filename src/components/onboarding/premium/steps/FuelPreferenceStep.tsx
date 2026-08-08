@@ -47,7 +47,7 @@ export default function FuelPreferenceStep({
     <div className="flex h-full flex-col gap-5">
       <div>
         <div className="flex items-center gap-2 text-xs uppercase tracking-[0.25em] text-[hsl(var(--primary))]">
-          <Sparkles className="h-3.5 w-3.5" /> Apex360 AI Recommends
+          <Sparkles className="h-3.5 w-3.5" /> APEXBEAST AI Recommends
         </div>
         <h2 className="mt-1 text-2xl font-semibold tracking-tight">Your fuel style</h2>
         <p className="mt-1 text-sm text-white/60">Built from what you told us — you can adjust below.</p>

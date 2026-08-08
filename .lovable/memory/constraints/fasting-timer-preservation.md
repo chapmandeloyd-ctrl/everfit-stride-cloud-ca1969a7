@@ -1,10 +1,10 @@
 ---
 name: Lion Fasting Timer Preservation
-description: The lion fasting timer (FastingProtocolCard) is the signature feature of KSOM-360 and must NEVER be removed, replaced, or visually demoted. All new dashboard ideas must coexist with it.
+description: The lion fasting timer (FastingProtocolCard) is the signature feature of APEXBEAST-360 and must NEVER be removed, replaced, or visually demoted. All new dashboard ideas must coexist with it.
 type: constraint
 ---
 
-The lion fasting timer (rendered by `FastingProtocolCard` on `ClientDashboard`) is the signature, non-negotiable centerpiece of the KSOM-360 client experience.
+The lion fasting timer (rendered by `FastingProtocolCard` on `ClientDashboard`) is the signature, non-negotiable centerpiece of the APEXBEAST-360 client experience.
 
 **Hard rules:**
 - NEVER remove the lion timer from the dashboard

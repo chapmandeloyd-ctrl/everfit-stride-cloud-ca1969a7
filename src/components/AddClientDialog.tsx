@@ -30,23 +30,23 @@ function getEmailPreviews(name: string, coachName: string): EmailPreview[] {
     {
       id: "invitation",
       label: "1. Invitation",
-      subject: `${coachName} invited you to Apex360-IF`,
+      subject: `${coachName} invited you to APEXBEAST-IF`,
       description: "Login credentials and welcome",
       content: [
         "You're in! 🎉",
-        `Hey ${name}, ${coachName} has set up your Apex360-IF account. Log in to access your personalized training, nutrition, and progress tracking.`,
+        `Hey ${name}, ${coachName} has set up your APEXBEAST-IF account. Log in to access your personalized training, nutrition, and progress tracking.`,
         "Your temporary password: ••••••••",
-        "[Log In to Apex360-IF] button",
+        "[Log In to APEXBEAST-IF] button",
       ],
     },
     {
       id: "getting-started",
       label: "2. Getting Started",
-      subject: "Here's How to Get Started with Apex360-IF 🚀",
+      subject: "Here's How to Get Started with APEXBEAST-IF 🚀",
       description: "Step-by-step onboarding guide",
       content: [
         "Let's Get Started! 🚀",
-        `Hey ${name}, welcome to Apex360-IF! Here's a quick guide:`,
+        `Hey ${name}, welcome to APEXBEAST-IF! Here's a quick guide:`,
         "Step 1: Log in and explore your dashboard",
         "Step 2: Check out your assigned workouts and meal plans",
         "Step 3: Log your first check-in",
@@ -57,11 +57,11 @@ function getEmailPreviews(name: string, coachName: string): EmailPreview[] {
     {
       id: "meet-coach",
       label: "3. Meet Your Coach",
-      subject: `${coachName} welcomes you to Apex360-IF!`,
+      subject: `${coachName} welcomes you to APEXBEAST-IF!`,
       description: "Personal introduction from you",
       content: [
         "Meet Your Coach 🤝",
-        `Hey ${name}! I'm ${coachName}, your coach on Apex360-IF.`,
+        `Hey ${name}! I'm ${coachName}, your coach on APEXBEAST-IF.`,
         `"I'm excited to work with you! Together we'll build a plan that fits your life, push through plateaus, and celebrate every win along the way. Let's do this!"`,
         `Have a question? You can message ${coachName} anytime through the app.`,
         "[Say Hello 👋] button",
@@ -70,7 +70,7 @@ function getEmailPreviews(name: string, coachName: string): EmailPreview[] {
     {
       id: "what-to-expect",
       label: "4. What to Expect",
-      subject: "Here's What to Expect with Apex360-IF 🎯",
+      subject: "Here's What to Expect with APEXBEAST-IF 🎯",
       description: "Platform features overview",
       content: [
         "What to Expect 🎯",
@@ -81,7 +81,7 @@ function getEmailPreviews(name: string, coachName: string): EmailPreview[] {
         "💬 Coach Messaging — Direct access to your coach",
         "📸 Progress Photos — Visual timeline of your transformation",
         "🏆 Goals & Badges — Set targets and earn achievements",
-        "[Explore Apex360-IF] button",
+        "[Explore APEXBEAST-IF] button",
       ],
     },
   ];
@@ -149,7 +149,7 @@ export function AddClientDialog({ open, onOpenChange }: AddClientDialogProps) {
       if (password.length < 6) {
         throw new Error("Password must be at least 6 characters");
       }
-      const loginUrl = "https://ksom-360.app/auth";
+      const loginUrl = "https://apexbeast-if.app/auth";
       const { data, error } = await supabase.functions.invoke("create-client", {
         body: {
           email: email.trim(),
@@ -170,7 +170,7 @@ export function AddClientDialog({ open, onOpenChange }: AddClientDialogProps) {
       setCreatedCredentials(creds);
       setStep("success");
 
-      const loginUrl = "https://ksom-360.app/auth";
+      const loginUrl = "https://apexbeast-if.app/auth";
       const ts = Date.now();
       try {
         await supabase.functions.invoke("send-transactional-email", {
@@ -252,11 +252,11 @@ export function AddClientDialog({ open, onOpenChange }: AddClientDialogProps) {
     addClientMutation.mutate();
   };
 
-  const productionUrl = "https://ksom-360.app";
+  const productionUrl = "https://apexbeast-if.app";
 
   const getShareText = () => {
     if (!createdCredentials) return "";
-    return `Hey ${createdCredentials.name}! Your Apex360-IF account is ready 💪\n\nLogin here: ${productionUrl}/auth\nEmail: ${createdCredentials.email}\nPassword: ${createdCredentials.password}`;
+    return `Hey ${createdCredentials.name}! Your APEXBEAST-IF account is ready 💪\n\nLogin here: ${productionUrl}/auth\nEmail: ${createdCredentials.email}\nPassword: ${createdCredentials.password}`;
   };
 
   const handleCopy = async () => {
@@ -301,7 +301,7 @@ export function AddClientDialog({ open, onOpenChange }: AddClientDialogProps) {
             <div className="rounded-lg border border-border bg-muted/50 p-4 space-y-3 text-sm font-mono">
               <div>
                 <div className="text-muted-foreground text-xs mb-1">Login URL</div>
-                <div className="select-all break-all">https://ksom-360.app/auth</div>
+                <div className="select-all break-all">https://apexbeast-if.app/auth</div>
               </div>
               <div>
                 <div className="text-muted-foreground text-xs mb-1">Email</div>

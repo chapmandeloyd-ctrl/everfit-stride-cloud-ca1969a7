@@ -19,7 +19,7 @@ export default function WhyPairingStep({ onNext }: { onNext: () => void }) {
       <p className="text-base leading-relaxed text-white/75">
         One pillar alone = plateau. Stack FAST + FUEL + TRACK + RESTORE and
         fat adaptation accelerates, cravings vanish, energy stabilizes,
-        recovery compounds. This is the APEX360 edge.
+        recovery compounds. This is the APEXBEAST edge.
       </p>
       <div className="mt-auto pb-2 pt-4">
         <Button

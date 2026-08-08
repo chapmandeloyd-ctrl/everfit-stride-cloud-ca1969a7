@@ -18,7 +18,7 @@ UPDATE recipes SET carb_limit_note = 'Moderate carb (28g) — best suited for TK
 UPDATE recipes SET carb_limit_note = 'Very low carb (6g) — stays well within daily keto limits' WHERE name = 'Keto Antipasto Power Bowl';
 UPDATE recipes SET carb_limit_note = 'Ultra-low carb (4g) — deep ketosis safe, no carb concerns' WHERE name = 'Keto Cobb Power Bowl';
 UPDATE recipes SET carb_limit_note = 'Ultra-low carb (3g) — deep ketosis safe, no carb concerns' WHERE name = 'Keto Power Patties & Eggs Plate';
-UPDATE recipes SET carb_limit_note = 'Ultra-low carb (4g) — deep ketosis safe, no carb concerns' WHERE name = 'KSOM Breakfast Power Bowl with Eggs, Bacon & Avocado';
+UPDATE recipes SET carb_limit_note = 'Ultra-low carb (4g) — deep ketosis safe, no carb concerns' WHERE name = 'APEXBEAST Breakfast Power Bowl with Eggs, Bacon & Avocado';
 UPDATE recipes SET carb_limit_note = 'Low carb (12g) — fits standard keto if this is your primary carb source for the meal' WHERE name = 'Lean Chicken Avocado Power Bowl';
 UPDATE recipes SET carb_limit_note = 'Very low carb (10g) — stays well within daily keto limits' WHERE name = 'Loaded Beef Lettuce Wrap Tacos';
 UPDATE recipes SET carb_limit_note = 'Very low carb (6g) — stays well within daily keto limits' WHERE name = 'Mediterranean Keto Mozzarella & Avocado Bowl';

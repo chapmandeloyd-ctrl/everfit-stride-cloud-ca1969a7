@@ -55,7 +55,7 @@ export default function AIPlanProposalStep({
           <Sparkles className="h-10 w-10 text-[hsl(var(--primary))]" />
           <Loader2 className="absolute -right-2 -bottom-2 h-5 w-5 animate-spin text-white/70" />
         </div>
-        <div className="text-lg font-semibold text-white">Apex360 AI is building your plan…</div>
+        <div className="text-lg font-semibold text-white">APEXBEAST AI is building your plan…</div>
         <div className="max-w-xs text-sm text-white/60">
           Analyzing your rhythm, goals, and fuel style to design a plan that fits your real life.
         </div>

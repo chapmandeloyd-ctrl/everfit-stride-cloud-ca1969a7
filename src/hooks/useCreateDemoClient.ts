@@ -14,7 +14,7 @@ export function useCreateDemoClient() {
       if (!user?.id) throw new Error("Not authenticated");
 
       // Create a demo client profile
-      const demoEmail = `demo-${Date.now()}@ksom360.local`;
+      const demoEmail = `demo-${Date.now()}@apexbeastif.local`;
       const { data: client, error } = await supabase
         .from("profiles")
         .insert({

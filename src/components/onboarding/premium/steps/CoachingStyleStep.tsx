@@ -17,7 +17,7 @@ export default function CoachingStyleStep({ onNext }: { onNext: () => void }) {
         </div>
         <h2 className="mt-3 text-2xl font-semibold tracking-tight">Meet your AI Coach</h2>
         <p className="mt-1 text-sm text-white/60">
-          APEX360 AI designs your entire fasting plan, adapts it as you progress, and keeps you accountable.
+          APEXBEAST AI designs your entire fasting plan, adapts it as you progress, and keeps you accountable.
         </p>
       </div>
 

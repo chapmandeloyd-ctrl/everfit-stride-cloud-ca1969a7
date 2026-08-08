@@ -1,5 +1,5 @@
 /**
- * Apex360-IF Macro Validation Engine
+ * APEXBEAST-IF Macro Validation Engine
  * 
  * Validates macro accuracy, keto compliance, profile matching,
  * and flags meals that fail integrity checks.

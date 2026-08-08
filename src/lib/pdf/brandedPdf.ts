@@ -1,5 +1,5 @@
 /**
- * Apex360-IF branded PDF exporter.
+ * APEXBEAST-IF branded PDF exporter.
  *
  * Section-based, composable PDF generator built on pdf-lib. Used by every
  * "Export as PDF" feature in the app (keto plan, protocols, workouts...) so
@@ -55,7 +55,7 @@ export interface BrandedPdfOptions {
   subject?: string;
   /**
    * Trainer-controlled branding. When omitted, defaults are used (logo on,
-   * brand red, Apex360-IF wordmark, default footer right text). Pulled from
+   * brand red, APEXBEAST-IF wordmark, default footer right text). Pulled from
    * the trainer_pdf_branding table at the call site.
    */
   branding?: {
@@ -205,7 +205,7 @@ function drawHeader(ctx: Ctx) {
     });
     wordmarkX = MARGIN + targetW + 10;
   }
-  page.drawText("Apex360-IF", {
+  page.drawText("APEXBEAST-IF", {
     x: wordmarkX,
     y: top - (showLogo && logo ? 19 : 18),
     size: 13,
@@ -263,7 +263,7 @@ function drawFooter(ctx: Ctx) {
     ? footerText
     : clientName
       ? `Prepared for ${clientName}`
-      : "Prepared by Apex360-IF";
+      : "Prepared by APEXBEAST-IF";
   const left = safeText(leftRaw);
   page.drawText(left, {
     x: MARGIN,
@@ -272,7 +272,7 @@ function drawFooter(ctx: Ctx) {
     font: fontRegular,
     color: toColor(MUTED),
   });
-  const right = "ksom-360.app";
+  const right = "apexbeast-if.app";
   const rightW = fontRegular.widthOfTextAtSize(right, 8);
   page.drawText(right, {
     x: PAGE_WIDTH - MARGIN - rightW,
@@ -578,10 +578,10 @@ export async function exportBrandedPdf(options: BrandedPdfOptions): Promise<Uint
 
   const doc = await PDFDocument.create();
   doc.registerFontkit(fontkit);
-  doc.setTitle(`${options.documentLabel} — Apex360-IF`);
-  doc.setAuthor("Apex360-IF");
-  doc.setProducer("Apex360-IF");
-  doc.setCreator("Apex360-IF");
+  doc.setTitle(`${options.documentLabel} — APEXBEAST-IF`);
+  doc.setAuthor("APEXBEAST-IF");
+  doc.setProducer("APEXBEAST-IF");
+  doc.setCreator("APEXBEAST-IF");
   if (options.subject) doc.setSubject(options.subject);
 
   let fontRegular: PDFFont;

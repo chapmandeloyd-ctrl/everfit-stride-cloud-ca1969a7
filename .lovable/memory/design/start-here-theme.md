@@ -15,7 +15,7 @@ The new fasting onboarding flow uses an **Editorial Black & Gold** theme with a 
 - Gold accent (dividers, eyebrow, CTA border, lion tint): `hsl(42 70% 55%)`
 
 **Background lion watermark (required):**
-- KSOM logo (`@/assets/logo.png`)
+- APEXBEAST logo (`@/assets/logo.png`)
 - `absolute inset-0 m-auto w-[120%] h-[120%] object-contain`
 - `filter: sepia(1) hue-rotate(-15deg) saturate(2.5) brightness(1.2)` to tint gold
 - `opacity: 0.1`
@@ -38,4 +38,4 @@ The new fasting onboarding flow uses an **Editorial Black & Gold** theme with a 
 - Nutrients-to-focus-on section (Phase 5)
 - Any future "Start Here" empty states
 
-**Why:** Premium, exclusive, magazine-spread feel that preserves KSOM lion brand identity even on screens where the live timer doesn't appear.
+**Why:** Premium, exclusive, magazine-spread feel that preserves APEXBEAST lion brand identity even on screens where the live timer doesn't appear.

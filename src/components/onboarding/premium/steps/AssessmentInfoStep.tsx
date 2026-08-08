@@ -37,7 +37,7 @@ export default function AssessmentInfoStep({ onNext }: { onNext: () => void }) {
             />
             <img
               src={lionLogo}
-              alt="APEX360-IF"
+              alt="APEXBEAST-IF"
               className="relative z-10 h-full w-full object-contain"
               style={{ filter: "grayscale(1) brightness(1.4) opacity(0.95)" }}
             />
@@ -51,7 +51,7 @@ export default function AssessmentInfoStep({ onNext }: { onNext: () => void }) {
             <Sparkles className="h-3 w-3" />
           </div>
           <h1 className="text-2xl font-semibold leading-tight tracking-tight">
-            APEX360 is not one-size-fits-all.
+            APEXBEAST is not one-size-fits-all.
           </h1>
           <p className="mx-auto max-w-sm text-sm leading-relaxed text-white/70">
             Over the next few screens, your AI Coach will gather the details that
@@ -81,7 +81,7 @@ export default function AssessmentInfoStep({ onNext }: { onNext: () => void }) {
           <span className="font-semibold text-[hsl(174_72%_50%)]">The truth:</span>{" "}
           you still have to show up and do the work. But when your plan is built
           for your lifestyle, discipline stops feeling like punishment and starts
-          feeling like momentum. This assessment is what separates APEX360 from
+          feeling like momentum. This assessment is what separates APEXBEAST from
           everything else.
         </div>
       </div>

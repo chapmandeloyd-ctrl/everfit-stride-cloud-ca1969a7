@@ -64,7 +64,7 @@ export default function AIPlanProposalCard({
     <div className="flex h-full flex-col gap-4">
       <div className="flex items-center gap-2">
         <Sparkles className="h-4 w-4 text-[hsl(var(--primary))]" />
-        <div className="text-xs uppercase tracking-[0.25em] text-white/60">Your Apex360 AI plan</div>
+        <div className="text-xs uppercase tracking-[0.25em] text-white/60">Your APEXBEAST AI plan</div>
       </div>
       <div className="rounded-2xl border border-[hsl(var(--primary)/0.3)] bg-gradient-to-b from-[hsl(var(--primary)/0.08)] to-transparent p-5">
         <div className="text-2xl font-bold tracking-tight text-white">{proposal.protocol_name}</div>

@@ -9,7 +9,7 @@ export default function IntroStep({ onNext }: { onNext: () => void }) {
           <div className="relative flex h-40 w-40 items-center justify-center rounded-full border border-white/10 bg-white/5 shadow-[0_0_80px_hsl(var(--primary)/0.25)]">
             <img
               src={lionLogo}
-              alt="Apex360-IF"
+              alt="APEXBEAST-IF"
               className="h-28 w-28 object-contain"
               style={{ filter: "grayscale(1) brightness(1.4) opacity(0.95)" }}
             />
@@ -18,7 +18,7 @@ export default function IntroStep({ onNext }: { onNext: () => void }) {
 
         <div className="space-y-2 text-center">
           <h1 className="text-3xl font-semibold leading-tight tracking-tight">
-            Welcome to APEX360 AI
+            Welcome to APEXBEAST AI
           </h1>
           <p className="text-sm font-medium uppercase tracking-[0.18em] text-[hsl(var(--primary))]">
             Your fasting companion
@@ -30,7 +30,7 @@ export default function IntroStep({ onNext }: { onNext: () => void }) {
 
         <div className="mt-8 w-full flex-1 overflow-y-auto rounded-2xl border border-white/10 bg-white/[0.03] p-5 text-sm leading-relaxed text-white/70">
           <p className="mb-4">
-            APEX360 focuses on a balanced lifestyle and sustainability. Instead of eliminating food groups with diets like keto, paleo, or carnivore — these diets exclude carbs, dairy, and vegetables, and in some cases like carnivore exclude all three.
+            APEXBEAST focuses on a balanced lifestyle and sustainability. Instead of eliminating food groups with diets like keto, paleo, or carnivore — these diets exclude carbs, dairy, and vegetables, and in some cases like carnivore exclude all three.
           </p>
           <p className="mb-4">
             That is not to say these diets don't work. They are very effective, and I know firsthand because I've tried all three — especially keto.
@@ -42,7 +42,7 @@ export default function IntroStep({ onNext }: { onNext: () => void }) {
             Carbs are very important for living a balanced, healthy lifestyle. The problem is most people abuse them and don't understand that all carbs are not created equal, and there is a right place and time to consume them.
           </p>
           <p className="mb-4">
-            My APEX360 AI will teach you which carbs to consume, and most importantly <strong className="text-white">when</strong> to consume them.
+            My APEXBEAST AI will teach you which carbs to consume, and most importantly <strong className="text-white">when</strong> to consume them.
           </p>
 
           <div className="mb-2 rounded-xl border border-[hsl(var(--primary))]/30 bg-[hsl(var(--primary))]/10 p-4">
@@ -61,7 +61,7 @@ export default function IntroStep({ onNext }: { onNext: () => void }) {
           </div>
 
           <p className="text-center text-sm font-semibold text-white/90">
-            My APEX360 AI will design your entire plan, teach you the difference, and keep you accountable.
+            My APEXBEAST AI will design your entire plan, teach you the difference, and keep you accountable.
           </p>
         </div>
       </div>

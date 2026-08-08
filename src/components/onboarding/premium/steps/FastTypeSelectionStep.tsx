@@ -48,7 +48,7 @@ export default function FastTypeSelectionStep({
           <MetabolicRing size={140} progress={0} />
           <img
             src={lionLogo}
-            alt="Apex360-IF"
+            alt="APEXBEAST-IF"
             className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 object-contain"
             style={{ filter: "grayscale(1) brightness(1.4) opacity(0.95)" }}
           />
@@ -56,7 +56,7 @@ export default function FastTypeSelectionStep({
 
         <div className="text-center space-y-1.5">
           <div className="flex items-center justify-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-[hsl(var(--primary))]">
-            <Sparkles className="h-3 w-3" /> Apex360 AI Recommends
+            <Sparkles className="h-3 w-3" /> APEXBEAST AI Recommends
           </div>
           <h2 className="text-2xl font-semibold leading-tight tracking-tight">
             Your fasting path

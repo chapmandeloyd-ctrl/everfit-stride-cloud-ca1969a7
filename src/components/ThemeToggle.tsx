@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useImpersonation } from "@/hooks/useImpersonation";
 
 /** Only this account can toggle light/dark. Everyone else sees the app in dark mode only. */
-const OWNER_EMAIL = "ksomfast@yahoo.com";
+const OWNER_EMAIL = "apexbeastfast@yahoo.com";
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();

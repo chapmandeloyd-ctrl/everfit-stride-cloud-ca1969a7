@@ -22,12 +22,12 @@ const HEADERS: Record<FastType, { eyebrow: string; title: string; subtitle: stri
   intermittent: {
     eyebrow: "Daily Window Fasting",
     title: "Five daily windows to build around.",
-    subtitle: "From beginner-friendly 14:10 all the way to OMAD. Your Apex360 AI will pick the window that fits your biology.",
+    subtitle: "From beginner-friendly 14:10 all the way to OMAD. Your APEXBEAST AI will pick the window that fits your biology.",
   },
   long: {
     eyebrow: "Extended Fasting",
     title: "Five advanced fast lengths.",
-    subtitle: "Continuous fasts from 24 hours up to 5 days. Your Apex360 AI will recommend the safest duration for your experience level.",
+    subtitle: "Continuous fasts from 24 hours up to 5 days. Your APEXBEAST AI will recommend the safest duration for your experience level.",
   },
 };
 

@@ -1,5 +1,5 @@
 /**
- * Apex360-IF Macro Normalization Utility
+ * APEXBEAST-IF Macro Normalization Utility
  * 
  * Ensures all meals have valid, non-zero fat and consistent calories
  * before being saved to the database. Applied on ALL save paths.

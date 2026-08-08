@@ -1,12 +1,12 @@
 /**
- * Apex360-IF Streak Tier System
+ * APEXBEAST-IF Streak Tier System
  *
  * Tiers based on current streak length:
  *   1–3  → Starter
  *   4–7  → Building
  *   8–14 → Locked In
  *   15–30 → Metabolic Flow
- *   30+  → Apex360-IF Elite
+ *   30+  → APEXBEAST-IF Elite
  */
 
 export interface StreakTierInfo {
@@ -20,7 +20,7 @@ export interface StreakTierInfo {
 
 export function getStreakTier(streak: number): StreakTierInfo {
   if (streak >= 30) return {
-    tier: "Apex360-IF Elite",
+    tier: "APEXBEAST-IF Elite",
     color: "text-amber-400",
     bgColor: "bg-amber-500/15",
     pillColor: "#fbbf24",

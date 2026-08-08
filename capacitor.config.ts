@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.ksombeast.ksom360',
-  appName: 'KSOM360',
+  appId: 'com.apexbeast.apexbeastif',
+  appName: 'APEXBEAST-IF',
   webDir: 'dist',
   ios: {
     allowsLinkPreview: false,

@@ -294,7 +294,7 @@ export default function ClientFastingCalendar() {
         <div className="mt-6 rounded-2xl border border-border/60 bg-muted/20 p-4">
           <div className="text-sm font-bold">Don't want to build it yourself?</div>
           <p className="mt-1 text-xs text-muted-foreground">
-            Let Apex360 AI design your full week around your goal, or ask your coach to set it up for you.
+            Let APEXBEAST AI design your full week around your goal, or ask your coach to set it up for you.
             You can still change any day, any time.
           </p>
           <Button
@@ -302,7 +302,7 @@ export default function ClientFastingCalendar() {
             onClick={() => navigate("/client/onboarding")}
             className="mt-3 h-12 w-full rounded-2xl text-sm font-semibold"
           >
-            <Sparkles className="mr-2 h-4 w-4" /> Let Apex360 AI build my plan
+            <Sparkles className="mr-2 h-4 w-4" /> Let APEXBEAST AI build my plan
           </Button>
           <Button
             variant="ghost"
