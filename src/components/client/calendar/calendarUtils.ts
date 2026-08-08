@@ -3,6 +3,8 @@ import {
   type WeeklyScheduleDay,
   type DayState,
   RATIO_LABEL,
+  RATIO_DESCRIPTION,
+  RATIO_BEST_FOR,
   breakFastHourFor,
   formatHour,
   timeToHour,
@@ -73,5 +75,14 @@ export function stateHeadline(state: DayState, day: WeeklyScheduleDay | null): s
   return dayHeadline(day);
 }
 
-export { RATIO_LABEL, formatHour, timeToHour, breakFastHourFor };
+/** Two-or-three word hint rendered inside each ratio button. */
+export const RATIO_SHORT: Record<FastRatio, string> = {
+  "16:8": "Fast 16h · eat 8h",
+  "18:6": "Fast 18h · eat 6h",
+  "20:4": "Fast 20h · eat 4h",
+  omad: "Fast 23h · one meal",
+  eat_all_day: "No fast · eat 24h",
+};
+
+export { RATIO_LABEL, RATIO_DESCRIPTION, RATIO_BEST_FOR, formatHour, timeToHour, breakFastHourFor };
 export type { FastRatio, WeeklyScheduleDay };
