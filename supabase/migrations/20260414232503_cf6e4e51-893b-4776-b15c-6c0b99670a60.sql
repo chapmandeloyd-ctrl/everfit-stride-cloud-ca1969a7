@@ -19,7 +19,7 @@ UPDATE recipes SET fats = 28 WHERE name = 'High Protein Flex Bowl with Eggs, Cot
 UPDATE recipes SET fats = 48 WHERE name = 'Keto Antipasto Power Bowl';
 UPDATE recipes SET fats = 50 WHERE name = 'Keto Cobb Power Bowl';
 UPDATE recipes SET fats = 68 WHERE name = 'Keto Power Patties & Eggs Plate';
-UPDATE recipes SET fats = 48 WHERE name = 'KSOM Breakfast Power Bowl with Eggs, Bacon & Avocado';
+UPDATE recipes SET fats = 48 WHERE name = 'APEXBEAST Breakfast Power Bowl with Eggs, Bacon & Avocado';
 UPDATE recipes SET fats = 33 WHERE name = 'Lean Chicken Avocado Power Bowl';
 UPDATE recipes SET fats = 48 WHERE name = 'Loaded Beef Lettuce Wrap Tacos';
 UPDATE recipes SET fats = 45 WHERE name = 'Mediterranean Keto Mozzarella & Avocado Bowl';

@@ -7,7 +7,7 @@ export default function ApexPrincipleStep({ onNext }: { onNext: () => void }) {
     <div className="flex h-full flex-col gap-6 animate-fade-in">
       <div>
         <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[hsl(var(--primary))]">
-          The APEX360 Principle
+          The APEXBEAST Principle
         </div>
         <h2 className="mt-2 text-3xl font-semibold leading-tight tracking-tight">
           FAST + FUEL + TRACK + RESTORE. One system.

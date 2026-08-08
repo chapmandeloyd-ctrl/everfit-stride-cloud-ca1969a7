@@ -81,7 +81,7 @@ export function PortalEntry({ onSelectCategory }: PortalEntryProps) {
         muted
         playsInline
         preload="metadata"
-        poster="/portal/ksom-calm-earth-poster.jpg"
+        poster="/portal/apexbeast-calm-earth-poster.jpg"
         disablePictureInPicture
         disableRemotePlayback
         controls={false}
@@ -89,7 +89,7 @@ export function PortalEntry({ onSelectCategory }: PortalEntryProps) {
           videoReady ? "opacity-100" : "opacity-0"
         }`}
       >
-        <source src="/portal/ksom-calm-earth-optimized.mp4" type="video/mp4" />
+        <source src="/portal/apexbeast-calm-earth-optimized.mp4" type="video/mp4" />
       </video>
 
       {/* Top vignette to anchor title */}
@@ -115,7 +115,7 @@ export function PortalEntry({ onSelectCategory }: PortalEntryProps) {
         className="absolute top-[16%] inset-x-0 flex flex-col items-center"
       >
         <div className="text-white/40 text-[9px] uppercase tracking-[0.5em] mb-4">
-          ksom presents
+          apexbeast presents
         </div>
         <motion.h1
           animate={{

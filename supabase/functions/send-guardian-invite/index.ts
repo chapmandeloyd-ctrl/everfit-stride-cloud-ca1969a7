@@ -26,9 +26,9 @@ const handler = async (req: Request): Promise<Response> => {
     const viewUrl = `${appUrl}/guardian/${token}`;
 
     const emailResponse = await resend.emails.send({
-      from: "APEX360-IF <noreply@ksom-360.app>",
+      from: "APEXBEAST-IF <noreply@apexbeast-if.app>",
       to: [guardianEmail],
-      subject: `APEX360-IF Athletic — Weekly Recovery Summary for ${athleteName}`,
+      subject: `APEXBEAST-IF Athletic — Weekly Recovery Summary for ${athleteName}`,
       html: `
         <!DOCTYPE html>
         <html>
@@ -43,7 +43,7 @@ const handler = async (req: Request): Promise<Response> => {
           </head>
           <body>
             <div class="header">
-              <h1>APEX360-IF Athletic</h1>
+              <h1>APEXBEAST-IF Athletic</h1>
               <p>Weekly Recovery Summary Access</p>
             </div>
             <div class="content">

@@ -32,15 +32,15 @@ export const SignupEmail = ({
 }: SignupEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Welcome to APEX360-IF — verify your email</Preview>
+    <Preview>Welcome to APEXBEAST-IF — verify your email</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Img src={LOGO_URL} alt="APEX360-IF" width="80" height="80" style={logo} />
+        <Img src={LOGO_URL} alt="APEXBEAST-IF" width="80" height="80" style={logo} />
         <Heading style={h1}>Welcome aboard!</Heading>
         <Text style={text}>
           Thanks for joining{' '}
           <Link href={siteUrl} style={link}>
-            <strong>APEX360-IF</strong>
+            <strong>APEXBEAST-IF</strong>
           </Link>
           ! Let's get you started.
         </Text>

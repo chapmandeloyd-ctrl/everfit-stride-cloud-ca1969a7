@@ -36,17 +36,17 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 }
 
 // Configuration
-const SITE_NAME = "APEX360-IF"
-const SENDER_DOMAIN = "notify.ksom-360.app"
-const ROOT_DOMAIN = "ksom-360.app"
-const FROM_DOMAIN = "ksom-360.app" // Domain shown in From address (may be root or sender subdomain)
+const SITE_NAME = "APEXBEAST-IF"
+const SENDER_DOMAIN = "notify.apexbeast-if.app"
+const ROOT_DOMAIN = "apexbeast-if.app"
+const FROM_DOMAIN = "apexbeast-if.app" // Domain shown in From address (may be root or sender subdomain)
 
 // Sample data for preview mode ONLY (not used in actual email sending).
 // URLs are baked in at scaffold time from the project's real data.
 // The sample email uses a fixed placeholder (RFC 6761 .test TLD) so the Go backend
 // can always find-and-replace it with the actual recipient when sending test emails,
 // even if the project's domain has changed since the template was scaffolded.
-const SAMPLE_PROJECT_URL = "https://ksom-360.app"
+const SAMPLE_PROJECT_URL = "https://apexbeast-if.app"
 const SAMPLE_EMAIL = "user@example.test"
 const SAMPLE_DATA: Record<string, object> = {
   signup: {

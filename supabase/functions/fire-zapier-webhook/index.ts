@@ -17,7 +17,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const APP_URL = Deno.env.get("VITE_APP_URL") || "https://ksom-360.app";
+const APP_URL = Deno.env.get("VITE_APP_URL") || "https://apexbeast-if.app";
 
 const SUGGESTED_MESSAGES: Record<string, (name: string, hours?: number) => string> = {
   fast_started:    (n) => `${n} just started a fast. Cheer them on in Trainerize!`,
@@ -133,7 +133,7 @@ serve(async (req) => {
       suggested_message: suggestedMessage,
       links: {
         client_view: `${APP_URL}/clients/${client_id}`,
-        ksom_dashboard: `${APP_URL}/dashboard`,
+        dashboard: `${APP_URL}/dashboard`,
       },
     };
 

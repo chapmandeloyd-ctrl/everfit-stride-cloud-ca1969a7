@@ -75,7 +75,7 @@ export function EnablePushBanner() {
       if (perm !== "granted") {
         toast.error(
           perm === "denied"
-            ? "Notifications are blocked. Enable them in your device Settings → Notifications → Apex360-IF."
+            ? "Notifications are blocked. Enable them in your device Settings → Notifications → APEXBEAST-IF."
             : "Notification permission was not granted."
         );
         return;

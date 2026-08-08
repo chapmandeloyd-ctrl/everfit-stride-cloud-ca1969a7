@@ -9,7 +9,7 @@ function toUrlSafeNoPad(s: string): string {
   return (s || "").trim().replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
 }
 
-const VAPID_SUBJECT = "mailto:notifications@ksom-360.app";
+const VAPID_SUBJECT = "mailto:notifications@apexbeast-if.app";
 let vapidConfigured = false;
 
 function ensureVapid() {

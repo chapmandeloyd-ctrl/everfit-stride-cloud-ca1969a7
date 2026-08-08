@@ -105,7 +105,7 @@ export function parseStructuredRecipeText(text: string): ExtractedRecipe | null 
   const avoidIf = extractBulletList(text, "AVOID_IF");
   const mealTiming = extractSection(text, "MEAL_TIMING") || "";
 
-  // Apex360-IF strict fields
+  // APEXBEAST-IF strict fields
   const mealIntensity = extractSection(text, "MEAL_INTENSITY") || "";
   const satietyScore = parseNumber(extractSection(text, "SATIETY_SCORE"));
   const digestionLoad = extractSection(text, "DIGESTION_LOAD") || "";

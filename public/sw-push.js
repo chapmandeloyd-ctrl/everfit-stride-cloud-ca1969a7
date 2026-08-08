@@ -2,7 +2,7 @@
 // This file handles push events when the app is in the background or closed
 
 self.addEventListener("push", (event) => {
-  let data = { title: "Apex360-IF", body: "You have a new notification", icon: "/pwa-192x192.png" };
+  let data = { title: "APEXBEAST-IF", body: "You have a new notification", icon: "/pwa-192x192.png" };
 
   try {
     if (event.data) {
@@ -23,7 +23,7 @@ self.addEventListener("push", (event) => {
       { action: "dismiss", title: "Dismiss" },
     ],
     requireInteraction: true,
-    tag: data.tag || "ksom-notification",
+    tag: data.tag || "apexbeast-notification",
     renotify: true,
   };
 

@@ -17,13 +17,13 @@ export default function ParticleField() {
               height: size,
               left: `${left}%`,
               top: `${top}%`,
-              animation: `ksom-float ${dur}s ease-in-out ${delay}s infinite`,
+              animation: `apexbeast-float ${dur}s ease-in-out ${delay}s infinite`,
             }}
           />
         );
       })}
       <style>{`
-        @keyframes ksom-float {
+        @keyframes apexbeast-float {
           0%,100% { transform: translateY(0) translateX(0); opacity: 0.2; }
           50% { transform: translateY(-30px) translateX(10px); opacity: 0.7; }
         }

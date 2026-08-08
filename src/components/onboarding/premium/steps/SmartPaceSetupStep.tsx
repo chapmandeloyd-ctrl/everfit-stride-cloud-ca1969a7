@@ -457,7 +457,7 @@ export default function SmartPaceSetupStep({
                   </p>
                   <p className="text-white/75">
                     <span className="font-semibold text-white">We've still got you.</span> If you want to
-                    stick with this date, APEX360 AI will coach you day-by-day, protect your protein, and
+                    stick with this date, APEXBEAST AI will coach you day-by-day, protect your protein, and
                     tap the brakes the moment your body signals it's time. You can switch to
                     <span className="font-semibold text-white"> Balanced</span> anytime.
                   </p>

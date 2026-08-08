@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDailyScore } from "@/hooks/useDailyScore";
 import { useConsistencyStreak } from "@/hooks/useConsistencyStreak";
-import { useKsomLevelProgression } from "@/hooks/useKsomLevelProgression";
+import { useApexbeastLevelProgression } from "@/hooks/useApexbeastLevelProgression";
 import { cn } from "@/lib/utils";
 import { Flame, Zap, ChevronRight, Trophy, Star } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -17,7 +17,7 @@ export function DailyScoreRing() {
   const { toast } = useToast();
   const { data: score, isLoading: scoreLoading } = useDailyScore();
   const { data: streak, isLoading: streakLoading, recordScore } = useConsistencyStreak();
-  const { data: levelData, isLoading: levelLoading, addProgress } = useKsomLevelProgression();
+  const { data: levelData, isLoading: levelLoading, addProgress } = useApexbeastLevelProgression();
   const hasRecordedRef = useRef(false);
   const [showStreakAnim, setShowStreakAnim] = useState(false);
 

@@ -11,9 +11,9 @@
   },
   "mcp": {
     "server": {
-      "name": "ksom-360-mcp",
+      "name": "apexbeast-360-mcp",
       "version": "0.1.0",
-      "title": "Apex360-IF MCP"
+      "title": "APEXBEAST-IF MCP"
     },
     "tools": [
       {

@@ -46,8 +46,8 @@ From backend data and live device testing, health import is **fully working**:
 | Check | Status | Evidence |
 |-------|--------|----------|
 | HealthKit capability enabled | ✅ | `App.entitlements`: `com.apple.developer.healthkit = true` |
-| `NSHealthShareUsageDescription` in Info.plist | ✅ | "KSOM360 reads your heart rate, steps, calories, and workout data from Apple Health..." |
-| `NSHealthUpdateUsageDescription` in Info.plist | ✅ | "KSOM360 may save workout summaries to Apple Health." |
+| `NSHealthShareUsageDescription` in Info.plist | ✅ | "APEXBEASTIF reads your heart rate, steps, calories, and workout data from Apple Health..." |
+| `NSHealthUpdateUsageDescription` in Info.plist | ✅ | "APEXBEASTIF may save workout summaries to Apple Health." |
 | `npx cap sync ios` + clean build + device test | ✅ | Tested on physical iPhone |
 
 ### B. Runtime Permission Request ✅

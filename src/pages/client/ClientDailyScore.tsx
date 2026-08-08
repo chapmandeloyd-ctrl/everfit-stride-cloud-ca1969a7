@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useDailyScore } from "@/hooks/useDailyScore";
 import { useConsistencyStreak } from "@/hooks/useConsistencyStreak";
-import { useKsomLevelProgression } from "@/hooks/useKsomLevelProgression";
+import { useApexbeastLevelProgression } from "@/hooks/useApexbeastLevelProgression";
 import { cn } from "@/lib/utils";
 import { ChevronLeft, Flame, Trophy, Zap } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
@@ -16,7 +16,7 @@ export default function ClientDailyScore() {
   const navigate = useNavigate();
   const { data: score, isLoading: scoreLoading } = useDailyScore();
   const { data: streak, isLoading: streakLoading } = useConsistencyStreak();
-  const { data: levelData, isLoading: levelLoading } = useKsomLevelProgression();
+  const { data: levelData, isLoading: levelLoading } = useApexbeastLevelProgression();
 
   if (scoreLoading || streakLoading || levelLoading || !score) {
     return (

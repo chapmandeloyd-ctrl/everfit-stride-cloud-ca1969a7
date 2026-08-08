@@ -92,7 +92,7 @@ export default function QuickCheckStep({ onNext }: { onNext: () => void }) {
           Four levers. One result.
         </h2>
         <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-white/70">
-          APEX360-IF is not a diet. It is a system that works because each part reinforces the other.
+          APEXBEAST-IF is not a diet. It is a system that works because each part reinforces the other.
         </p>
       </div>
 
@@ -154,7 +154,7 @@ export default function QuickCheckStep({ onNext }: { onNext: () => void }) {
         <div className="space-y-1">
           <div className="text-sm font-semibold text-white/90">I understand the system.</div>
           <div className="text-xs leading-relaxed text-white/60">
-            Fasting + Fuel + Smart Tracking + Restore is the APEX360 edge. No other app connects all four.
+            Fasting + Fuel + Smart Tracking + Restore is the APEXBEAST edge. No other app connects all four.
           </div>
         </div>
         <div

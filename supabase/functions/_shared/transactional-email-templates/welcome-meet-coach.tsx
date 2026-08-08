@@ -28,13 +28,13 @@ interface WelcomeMeetCoachProps {
 const WelcomeMeetCoachEmail = ({ name, coachName, coachMessage, loginUrl }: WelcomeMeetCoachProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>{coachName ? `${coachName} welcomes you to APEX360-IF` : 'Your coach welcomes you!'}</Preview>
+    <Preview>{coachName ? `${coachName} welcomes you to APEXBEAST-IF` : 'Your coach welcomes you!'}</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Img src={LOGO_URL} alt="APEX360-IF" width="80" height="80" style={logo} />
+        <Img src={LOGO_URL} alt="APEXBEAST-IF" width="80" height="80" style={logo} />
         <Heading style={h1}>Meet Your Coach 🤝</Heading>
         <Text style={text}>
-          {name ? `Hey ${name}!` : 'Hey!'} {coachName ? `I'm ${coachName}, your coach on APEX360-IF.` : 'Your coach is excited to work with you!'}
+          {name ? `Hey ${name}!` : 'Hey!'} {coachName ? `I'm ${coachName}, your coach on APEXBEAST-IF.` : 'Your coach is excited to work with you!'}
         </Text>
         {coachMessage ? (
           <Text style={quoteBox}>"{coachMessage}"</Text>
@@ -51,7 +51,7 @@ const WelcomeMeetCoachEmail = ({ name, coachName, coachMessage, loginUrl }: Welc
             Say Hello 👋
           </Button>
         )}
-        <Text style={footer}>— {coachName || 'Your Coach'} & The APEX360-IF Team</Text>
+        <Text style={footer}>— {coachName || 'Your Coach'} & The APEXBEAST-IF Team</Text>
       </Container>
     </Body>
   </Html>
@@ -60,12 +60,12 @@ const WelcomeMeetCoachEmail = ({ name, coachName, coachMessage, loginUrl }: Welc
 export const template = {
   component: WelcomeMeetCoachEmail,
   subject: (data: Record<string, any>) =>
-    data.coachName ? `${data.coachName} welcomes you to APEX360-IF!` : 'Your Coach Welcomes You to APEX360-IF!',
+    data.coachName ? `${data.coachName} welcomes you to APEXBEAST-IF!` : 'Your Coach Welcomes You to APEXBEAST-IF!',
   displayName: 'Welcome - Meet your coach',
   previewData: {
     name: 'Jordan',
     coachName: 'Coach Mike',
-    loginUrl: 'https://ksom-360.app/auth',
+    loginUrl: 'https://apexbeast-if.app/auth',
   },
 } satisfies TemplateEntry
 

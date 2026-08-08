@@ -1,6 +1,6 @@
 import { BrainwaveType } from "@/lib/syntheticSounds";
 
-const STORAGE_KEY = "ksom-vibes-saved-mixes";
+const STORAGE_KEY = "apexbeast-vibes-saved-mixes";
 
 export interface SavedMix {
   id: string;

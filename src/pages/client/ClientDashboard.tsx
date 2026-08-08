@@ -159,7 +159,7 @@ import { InAppNotifications } from "@/components/InAppNotifications";
 import { useDashboardLayoutClient } from "@/hooks/useDashboardLayoutClient";
 import { SportHeroBanner } from "@/components/SportHeroBanner";
 import { AssignedPlanCard } from "@/components/dashboard/AssignedPlanCard";
-import { AskKsomAI } from "@/components/client/AskKsomAI";
+import { AskApexbeastAI } from "@/components/client/AskApexbeastAI";
 import { MetabolicControlDashboard } from "@/components/dashboard/MetabolicControlDashboard";
 import { DailyScoreRing } from "@/components/dashboard/DailyScoreRing";
 import { MealDecisionCard } from "@/components/dashboard/MealDecisionCard";
@@ -975,7 +975,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
     }
   };
   const fastingSubtitle = featureSettings?.fasting_card_subtitle || "Fasting is the foundation of your plan.";
-  const fastingTitle = (featureSettings as any)?.fasting_card_title || "Apex360-IF";
+  const fastingTitle = (featureSettings as any)?.fasting_card_title || "APEXBEAST-IF";
 
   // No protocol selected — empty state
   const hasQuickPlan = !!featureSettings?.selected_quick_plan_id && !!activeQuickPlan;
@@ -1173,7 +1173,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
       : "Your trainer will assign your fasting plan soon.";
     return (
       <div id="fasting-protocol-card" className="space-y-3">
-        <h2 className="text-lg font-bold text-foreground px-1">Apex360-IF Fasting Timer</h2>
+        <h2 className="text-lg font-bold text-foreground px-1">APEXBEAST-IF Fasting Timer</h2>
         <Card className="overflow-hidden border-0 shadow-lg relative bg-black">
           <CardContent className="relative z-10 px-4 pt-6 pb-5 space-y-5 text-white sm:px-5">
             <IdleFastingHero
@@ -1194,7 +1194,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
               <div className="space-y-2">
                 <Button onClick={() => navigate("/client/onboarding")} className="w-full" size="lg">
                   <Sparkles className="h-4 w-4 mr-2" />
-                  APEX360 AI builds my plan
+                  APEXBEAST AI builds my plan
                 </Button>
                 <Button
                   onClick={() => navigate("/client/calendar")}
@@ -1259,11 +1259,11 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
       <div id="fasting-protocol-card" className="space-y-3">
         {SHOW_WEIGHT_TRACKER && pace?.enabled && pace?.goal && (
           <div className="space-y-2">
-            <h2 className="text-lg font-bold text-foreground px-1">Apex360-IF Smart Weight Tracker</h2>
+            <h2 className="text-lg font-bold text-foreground px-1">APEXBEAST-IF Smart Weight Tracker</h2>
             <SmartPaceBanner allowRender />
           </div>
         )}
-        <h2 className="text-lg font-bold text-foreground px-1">Apex360-IF Fasting Timer</h2>
+        <h2 className="text-lg font-bold text-foreground px-1">APEXBEAST-IF Fasting Timer</h2>
         <Card className="overflow-hidden border-0 shadow-lg relative bg-black">
         <div className="absolute inset-0 bg-black" />
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-b from-transparent to-black" />
@@ -3123,7 +3123,7 @@ export default function ClientDashboard() {
                       <WelcomeCard
                         imageUrl={welcomeCard?.image_url}
                         message={welcomeCard?.message || "Welcome to your fitness journey!"}
-                        title={(welcomeCard as any)?.title || "Apex360-IF"}
+                        title={(welcomeCard as any)?.title || "APEXBEAST-IF"}
                       />
                     ) : (
                     <Card className="overflow-hidden">
@@ -3795,8 +3795,8 @@ export default function ClientDashboard() {
         ]}
       />
 
-      {/* Ask Apex360-IF AI */}
-      {clientId && <AskKsomAI clientId={clientId} />}
+      {/* Ask APEXBEAST-IF AI */}
+      {clientId && <AskApexbeastAI clientId={clientId} />}
 
       {/* Floating Message Button */}
       {/* Floating Message Button - positioned just above the nav bar */}

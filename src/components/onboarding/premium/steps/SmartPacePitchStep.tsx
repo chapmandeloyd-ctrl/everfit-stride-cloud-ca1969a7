@@ -36,14 +36,14 @@ export default function SmartPacePitchStep({ onNext }: { onNext: () => void }) {
         <div className="space-y-3">
           <div className="flex items-center justify-center gap-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-[hsl(var(--primary))]">
             <Sparkles className="h-3 w-3" />
-            The Apex360 Edge
+            The APEXBEAST Edge
             <Sparkles className="h-3 w-3" />
           </div>
           <h1 className="text-2xl font-semibold leading-tight tracking-tight">
             Meet your Smart Weight Tracker.
           </h1>
           <p className="mx-auto max-w-sm text-sm leading-relaxed text-white/70">
-            Most apps ask you to weigh in and hope for the best. APEX360 gives
+            Most apps ask you to weigh in and hope for the best. APEXBEAST gives
             you a real-pace coach that adjusts your daily target after every
             weigh-in — so you always know exactly what to lose today to stay on
             track.

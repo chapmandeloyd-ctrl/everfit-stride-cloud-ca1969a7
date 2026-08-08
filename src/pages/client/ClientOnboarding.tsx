@@ -256,7 +256,7 @@ export default function ClientOnboarding() {
         notes: state.heightCm ? `Height: ${state.heightCm} cm` : null,
       });
 
-      toast.success("Your Apex360 AI plan is live");
+      toast.success("Your APEXBEAST AI plan is live");
       navigate("/client/dashboard");
     } catch (e: any) {
       toast.error(e?.message ?? "Could not activate plan");

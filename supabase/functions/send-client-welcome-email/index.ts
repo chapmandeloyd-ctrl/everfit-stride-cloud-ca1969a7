@@ -26,9 +26,9 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Sending welcome email to:", email);
 
     const emailResponse = await resend.emails.send({
-      from: "APEX360-IF <noreply@ksom-360.app>",
+      from: "APEXBEAST-IF <noreply@apexbeast-if.app>",
       to: [email],
-      subject: "Welcome to APEX360-IF - Your Account Details",
+      subject: "Welcome to APEXBEAST-IF - Your Account Details",
       html: `
         <!DOCTYPE html>
         <html>
@@ -89,12 +89,12 @@ const handler = async (req: Request): Promise<Response> => {
           </head>
           <body>
             <div class="header">
-              <h1>Welcome to APEX360-IF!</h1>
+              <h1>Welcome to APEXBEAST-IF!</h1>
             </div>
             <div class="content">
               <p>Hi ${fullName},</p>
               
-              <p>Your trainer has created an account for you on APEX360-IF. You can now access your personalized fitness dashboard, track your progress, and view your workout plans.</p>
+              <p>Your trainer has created an account for you on APEXBEAST-IF. You can now access your personalized fitness dashboard, track your progress, and view your workout plans.</p>
               
               <div class="info-box">
                 <h3>Your Account:</h3>

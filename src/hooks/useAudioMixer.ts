@@ -14,7 +14,7 @@ import {
 import { BrainwaveType, getBrainwaveBuffer } from "@/lib/syntheticSounds";
 import { GuidedSession } from "@/lib/guidedSessions";
 
-const STORAGE_KEY = "ksom-vibes-state";
+const STORAGE_KEY = "apexbeast-vibes-state";
 const CROSSFADE_MS = 200;
 
 interface PersistedState {

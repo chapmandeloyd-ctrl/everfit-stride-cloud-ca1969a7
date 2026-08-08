@@ -120,7 +120,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Trainer-client relationship created");
 
     // Force production URL — never trust browser-provided URLs (could be Lovable editor)
-    const PROD_LOGIN_URL = "https://ksom-360.app/auth";
+    const PROD_LOGIN_URL = "https://apexbeast-if.app/auth";
     let emailSent = false;
     let emailErrorMessage: string | null = null;
 

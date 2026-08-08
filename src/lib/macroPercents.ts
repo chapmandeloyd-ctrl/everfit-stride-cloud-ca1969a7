@@ -1,5 +1,5 @@
 /**
- * Apex360-IF Macro Percentage Utility
+ * APEXBEAST-IF Macro Percentage Utility
  *
  * Computes the % of total calories coming from protein, fat, and carbs,
  * and checks whether that breakdown matches the meal's keto profile.
