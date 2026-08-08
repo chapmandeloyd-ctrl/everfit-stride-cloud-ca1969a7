@@ -223,3 +223,84 @@ async function sendPush(
     }
   }
 }
+/**
+ * Recompute and publish `next_scheduled_fast_at` for enforced clients whose
+ * value is missing (app never opened today). Only writes a value inside the
+ * dispatcher's active window so we never resurrect a stale schedule, and never
+ * for a moment that already fired or that the client skipped today.
+ */
+async function backfillScheduledStarts(supabase: any): Promise<void> {
+  const now = new Date();
+  const { data: rows, error } = await supabase
+    .from("client_feature_settings")
+    .select(
+      "client_id, schedule_timezone, day_start_hour, selected_protocol_id, selected_quick_plan_id, last_auto_fast_started_for, auto_fast_skip_date, protocol_start_date, assigned_protocol_duration_days",
+    )
+    .eq("fasting_enabled", true)
+    .eq("enforce_scheduled_start", true)
+    .is("active_fast_start_at", null)
+    .is("next_scheduled_fast_at", null);
+  if (error) {
+    console.error("backfillScheduledStarts query error", error);
+    return;
+  }
+
+  for (const r of rows ?? []) {
+    try {
+      const tz = r.schedule_timezone || "UTC";
+
+      // Protocol window guard
+      if (r.assigned_protocol_duration_days && r.protocol_start_date) {
+        const endMs = new Date(r.protocol_start_date + "T00:00:00Z").getTime()
+          + Number(r.assigned_protocol_duration_days) * 86_400_000;
+        if (now.getTime() > endMs) continue;
+      }
+
+      let fastHours = 0;
+      if (r.selected_protocol_id) {
+        const { data: p } = await supabase
+          .from("fasting_protocols")
+          .select("fast_target_hours")
+          .eq("id", r.selected_protocol_id)
+          .maybeSingle();
+        fastHours = Number(p?.fast_target_hours) || 0;
+      } else if (r.selected_quick_plan_id) {
+        const { data: q } = await supabase
+          .from("quick_fasting_plans")
+          .select("fast_hours")
+          .eq("id", r.selected_quick_plan_id)
+          .maybeSingle();
+        fastHours = Number(q?.fast_hours) || 0;
+      }
+      if (!fastHours) continue;
+
+      const startAt = computeScheduledFastStart({
+        fastHours,
+        dayStartHour: typeof r.day_start_hour === "number" ? r.day_start_hour : null,
+        tz,
+        now,
+      });
+      if (!startAt) continue;
+
+      const deltaMin = (now.getTime() - startAt.getTime()) / 60_000;
+      // Only publish once we're inside the heads-up / auto-start window.
+      if (deltaMin < -HEADSUP_LEAD_MIN || deltaMin > AUTOSTART_GRACE_MIN) continue;
+
+      const iso = startAt.toISOString();
+      if (r.last_auto_fast_started_for
+        && new Date(r.last_auto_fast_started_for).getTime() === startAt.getTime()) continue;
+
+      const { y, mo, d } = tzDateParts(now, tz);
+      const todayKey = `${y}-${String(mo).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+      if (r.auto_fast_skip_date && String(r.auto_fast_skip_date).slice(0, 10) === todayKey) continue;
+
+      await supabase
+        .from("client_feature_settings")
+        .update({ next_scheduled_fast_at: iso })
+        .eq("client_id", r.client_id)
+        .is("next_scheduled_fast_at", null);
+    } catch (err) {
+      console.error("backfillScheduledStarts row error", err);
+    }
+  }
+}
