@@ -88,10 +88,10 @@ export default function ClientDashboardMinimal() {
         {SHOW_WEIGHT_TRACKER && clientId && (
           <div className="space-y-3">
             <div>
-              <h2 className="text-3xl font-bold tracking-tight">
-                Smart Weight Tracker
+              <h2 className="text-lg font-bold text-foreground px-1">
+                APEXBEAST-IF Smart Weight Tracker
               </h2>
-              <p className="text-muted-foreground">
+              <p className="text-muted-foreground px-1 text-sm">
                 Your real-pace coach. Adjusts daily targets based on every weigh-in
                 so you always know exactly what to lose today to stay on track.
               </p>
