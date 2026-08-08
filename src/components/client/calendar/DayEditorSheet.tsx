@@ -8,6 +8,7 @@ import {
   RATIO_LABEL,
   RATIO_DESCRIPTION,
   RATIO_BEST_FOR,
+  RATIO_SHORT,
   computeEnd,
   defaultWeek,
   formatHour,
