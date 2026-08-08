@@ -653,6 +653,10 @@ export default function ClientPlanBuilder() {
                             ))}
                           </SelectContent>
                         </Select>
+                        <p className="text-[11px] leading-relaxed text-muted-foreground">
+                          {RATIO_DESCRIPTION[d.ratio]}{" "}
+                          <span className="text-primary/90">{RATIO_BEST_FOR[d.ratio]}</span>
+                        </p>
                         {!isEatAll && (
                           <div className="flex items-center gap-2">
                             <Input
