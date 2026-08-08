@@ -97,6 +97,7 @@ export default function ClientPlanBuilder() {
   const [weekTouched, setWeekTouched] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [confirmSaveOpen, setConfirmSaveOpen] = useState(false);
 
   const { data: ketoTypes } = useQuery({
     queryKey: ["cpb-keto-types"],
