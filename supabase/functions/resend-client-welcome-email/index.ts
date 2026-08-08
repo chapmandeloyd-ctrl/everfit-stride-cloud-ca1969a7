@@ -1,8 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.45.0";
-import { Resend } from "npm:resend@4.0.0";
-
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -79,98 +76,24 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Sending welcome email to:", clientProfile.email);
 
-    const emailResponse = await resend.emails.send({
-      from: "APEXBEAST-IF <onboarding@resend.dev>",
-      to: [clientProfile.email],
-      subject: "Welcome to APEXBEAST-IF - Access Your Account",
-      html: `
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <style>
-              body {
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-                line-height: 1.6;
-                color: #333;
-                max-width: 600px;
-                margin: 0 auto;
-                padding: 20px;
-              }
-              .header {
-                background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-                color: white;
-                padding: 30px;
-                border-radius: 10px 10px 0 0;
-                text-align: center;
-              }
-              .content {
-                background: #f9f9f9;
-                padding: 30px;
-                border-radius: 0 0 10px 10px;
-              }
-              .credentials {
-                background: white;
-                padding: 20px;
-                border-radius: 8px;
-                margin: 20px 0;
-                border-left: 4px solid #e53e3e;
-              }
-              .button {
-                display: inline-block;
-                background: #e53e3e;
-                color: white;
-                padding: 12px 30px;
-                text-decoration: none;
-                border-radius: 6px;
-                margin: 20px 0;
-                font-weight: 600;
-              }
-              .footer {
-                margin-top: 30px;
-                padding-top: 20px;
-                border-top: 1px solid #ddd;
-                color: #666;
-                font-size: 14px;
-              }
-              code {
-                background: #f4f4f4;
-                padding: 2px 8px;
-                border-radius: 4px;
-                font-family: 'Courier New', monospace;
-                color: #e53e3e;
-              }
-            </style>
-          </head>
-          <body>
-            <div class="header">
-              <h1>Welcome to APEXBEAST-IF!</h1>
-            </div>
-            <div class="content">
-              <p>Hi ${clientProfile.full_name},</p>
-              
-              <p>Your trainer has set up an account for you on APEXBEAST-IF. You can now access your personalized fitness dashboard, track your progress, and view your workout plans.</p>
-              
-              <div class="credentials">
-                <h3>Your Login Email:</h3>
-                <p><code>${clientProfile.email}</code></p>
-                <p style="margin-top: 15px;"><strong>Note:</strong> If you haven't set up your password yet or forgot it, please use the "Forgot Password" link on the login page to set a new password.</p>
-              </div>
-              
-              <center>
-                <a href="${loginUrl}" class="button">Login to Your Account</a>
-              </center>
-              
-              <div class="footer">
-                <p>If you have any questions or need assistance, please contact your trainer.</p>
-                <p style="margin-top: 10px;">Best regards,<br>The APEXBEAST-IF Team</p>
-              </div>
-            </div>
-          </body>
-        </html>
-      `,
+    const { error: sendError } = await supabaseClient.functions.invoke("send-transactional-email", {
+      body: {
+        templateName: "client-welcome",
+        recipientEmail: clientProfile.email,
+        idempotencyKey: `client-welcome-resend-${clientId}-${Date.now()}`,
+        templateData: {
+          fullName: clientProfile.full_name,
+          email: clientProfile.email,
+          loginLink: loginUrl,
+        },
+      },
     });
 
-    console.log("Email sent successfully:", emailResponse);
+    if (sendError) {
+      throw new Error(sendError.message || "Failed to send welcome email");
+    }
+
+    console.log("Welcome email queued for:", clientProfile.email);
 
     return new Response(
       JSON.stringify({

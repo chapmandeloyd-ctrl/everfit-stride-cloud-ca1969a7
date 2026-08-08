@@ -19,6 +19,8 @@ import { template as welcomeMeetCoach } from './welcome-meet-coach.tsx'
 import { template as welcomeWhatToExpect } from './welcome-what-to-expect.tsx'
 import { template as protocolReminder } from './protocol-reminder.tsx'
 import { template as preFastReminder } from './pre-fast-reminder.tsx'
+import { template as clientWelcome } from './client-welcome.tsx'
+import { template as guardianInvite } from './guardian-invite.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'welcome': welcome,
@@ -31,4 +33,6 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'welcome-what-to-expect': welcomeWhatToExpect,
   'protocol-reminder': protocolReminder,
   'pre-fast-reminder': preFastReminder,
+  'client-welcome': clientWelcome,
+  'guardian-invite': guardianInvite,
 }
