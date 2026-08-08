@@ -755,7 +755,13 @@ export default function ClientPlanBuilder() {
         onOpenChange={setPreviewOpen}
         plan={previewPlan}
         title="Your plan preview"
-        onConfirm={handleSave}
+        onConfirm={() => {
+          if (settings?.protocol_start_date || settings?.selected_protocol_id) {
+            setConfirmSaveOpen(true);
+          } else {
+            handleSave();
+          }
+        }}
         confirmLabel="Save My Plan"
       />
     </div>
