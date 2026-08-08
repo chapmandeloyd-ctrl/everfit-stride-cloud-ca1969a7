@@ -1,7 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "https://esm.sh/resend@4.0.0";
-
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+import { createClient } from "npm:@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -25,103 +23,26 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Sending welcome email to:", email);
 
-    const emailResponse = await resend.emails.send({
-      from: "APEXBEAST-IF <noreply@apexbeast-if.app>",
-      to: [email],
-      subject: "Welcome to APEXBEAST-IF - Your Account Details",
-      html: `
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <style>
-              body {
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-                line-height: 1.6;
-                color: #333;
-                max-width: 600px;
-                margin: 0 auto;
-                padding: 20px;
-              }
-              .header {
-                background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-                color: white;
-                padding: 30px;
-                border-radius: 10px 10px 0 0;
-                text-align: center;
-              }
-              .content {
-                background: #f9f9f9;
-                padding: 30px;
-                border-radius: 0 0 10px 10px;
-              }
-              .info-box {
-                background: white;
-                padding: 20px;
-                border-radius: 8px;
-                margin: 20px 0;
-                border-left: 4px solid #e53e3e;
-              }
-              .button {
-                display: inline-block;
-                background: #e53e3e;
-                color: white;
-                padding: 12px 30px;
-                text-decoration: none;
-                border-radius: 6px;
-                margin: 20px 0;
-                font-weight: 600;
-              }
-              .footer {
-                margin-top: 30px;
-                padding-top: 20px;
-                border-top: 1px solid #ddd;
-                color: #666;
-                font-size: 14px;
-              }
-              code {
-                background: #f4f4f4;
-                padding: 2px 8px;
-                border-radius: 4px;
-                font-family: 'Courier New', monospace;
-                color: #e53e3e;
-              }
-            </style>
-          </head>
-          <body>
-            <div class="header">
-              <h1>Welcome to APEXBEAST-IF!</h1>
-            </div>
-            <div class="content">
-              <p>Hi ${fullName},</p>
-              
-              <p>Your trainer has created an account for you on APEXBEAST-IF. You can now access your personalized fitness dashboard, track your progress, and view your workout plans.</p>
-              
-              <div class="info-box">
-                <h3>Your Account:</h3>
-                <p><strong>Email:</strong> <code>${email}</code></p>
-                <p>Click the button below to sign in and set up your account.</p>
-              </div>
-              
-              <center>
-                <a href="${loginLink}" class="button">Sign In to Your Account</a>
-              </center>
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    );
 
-              <p style="font-size: 13px; color: #888;">If the button doesn't work, copy and paste this link into your browser:<br/>${loginLink}</p>
-              
-              <div class="footer">
-                <p>If you have any questions or need help getting started, please don't hesitate to reach out to your trainer.</p>
-                <p style="color: #999; font-size: 12px;">If you didn't expect this email, please contact your trainer or ignore this message.</p>
-              </div>
-            </div>
-          </body>
-        </html>
-      `,
+    const { error: sendError } = await supabase.functions.invoke("send-transactional-email", {
+      body: {
+        templateName: "client-welcome",
+        recipientEmail: email,
+        idempotencyKey: `client-welcome-${email}-${new Date().toISOString().slice(0, 10)}`,
+        templateData: {
+          fullName,
+          email,
+          loginLink: loginLink || loginUrl || "https://apexbeast-if.app/auth",
+        },
+      },
     });
 
-    console.log("Email provider response:", emailResponse);
-
-    if (emailResponse?.error) {
-      throw new Error(emailResponse.error.message || "Failed to send welcome email");
+    if (sendError) {
+      throw new Error(sendError.message || "Failed to send welcome email");
     }
 
     return new Response(JSON.stringify({ success: true }), {
