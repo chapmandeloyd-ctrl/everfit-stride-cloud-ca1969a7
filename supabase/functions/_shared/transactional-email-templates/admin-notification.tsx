@@ -51,7 +51,7 @@ export const template = {
 
 const main = { backgroundColor: '#ffffff', fontFamily: "'Space Grotesk', Arial, sans-serif" }
 const container = { padding: '20px 25px', maxWidth: '600px', margin: '0 auto' }
-const logo = { margin: '0 auto 20px', display: 'block' as const }
+const logo = { margin: '0 auto 20px', display: 'block' as const, backgroundColor: '#000000', padding: '18px', borderRadius: '18px' }
 const h1 = { fontSize: '22px', fontWeight: 'bold' as const, color: '#1e1e1e', margin: '0 0 20px', textAlign: 'center' as const, fontFamily: "'Space Grotesk', Arial, sans-serif" }
 const text = { fontSize: '14px', color: '#55575d', lineHeight: '1.6', margin: '0 0 25px' }
 const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0', textAlign: 'center' as const }
