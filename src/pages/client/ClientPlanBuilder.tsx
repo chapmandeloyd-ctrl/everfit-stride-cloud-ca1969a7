@@ -616,8 +616,8 @@ export default function ClientPlanBuilder() {
           <AccordionItem value="schedule" className="rounded-2xl border border-border/60 bg-muted/10 px-4">
             <AccordionTrigger className="text-sm font-bold">4 · Weekly Fasting Schedule</AccordionTrigger>
             <AccordionContent className="space-y-3 pb-4">
-              <p className="text-[11px] text-muted-foreground">
-                Set the ratio and exact fast start for each day. Break-fast time calculates itself.
+              <p className="text-[11px] leading-relaxed text-muted-foreground">
+                This is your default weekly pattern. Want a one-time exception? Tap any day in your calendar — that only edits that day and won't touch the whole plan.
               </p>
               {RENDER_ORDER.map((dow) => {
                 const d = week.find((x) => x.day_of_week === dow)!;
