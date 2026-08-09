@@ -1095,6 +1095,32 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
   const hasKetoType = !!activeKetoType;
   const programFullyAssigned = hasAnyProtocol && hasKetoType;
 
+  // Cancelled-fast status view — full slide-up shown right after an active fast
+  // is stopped early. "Back to Today" clears it and returns to the normal card.
+  if (cancelledFastStats) {
+    return (
+      <div id="fasting-protocol-card" className="space-y-3">
+        <h2 className="text-lg font-bold text-foreground px-1">APEXBEAST-IF Fasting Timer</h2>
+        <Card className="overflow-hidden border-0 shadow-lg bg-black">
+          <CardContent className="px-5 py-10 text-center text-white/60 text-sm">Fast cancelled</CardContent>
+        </Card>
+        <CancelFastSheet
+          open
+          onOpenChange={(o) => {
+            if (!o) setCancelledFastStats(null);
+          }}
+          variant="active"
+          stage="summary"
+          stats={cancelledFastStats}
+          onDone={() => {
+            setCancelledFastStats(null);
+            navigate("/client/dashboard");
+          }}
+        />
+      </div>
+    );
+  }
+
   // Admin testing toggle: replace the fasting card with the Live Schedule card.
   // This is intentionally a full-card replacement, not a popup or a small CTA.
   if (showLiveScheduleCard) {
