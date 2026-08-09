@@ -43,19 +43,19 @@ const WEEK_ROWS = [
 // ---- Timeline (ms) -------------------------------------------------------
 const T = {
   thinking: 0,
-  fuelOpen: 1100,
-  fuelPick: 2300,
-  protoOpen: 3200,
-  protoPick: 4400,
-  numbers: 5300,
-  macros: 7000,
-  schedule: 8400,
-  saved: 11600,
-  timerIntro: 12800,
-  countdown: 13600,
-  fasting: 17600,
-  fastingEnd: 27600,
-  done: 29000,
+  fuelOpen: 4000,
+  fuelPick: 7000,
+  protoOpen: 10000,
+  protoPick: 13000,
+  numbers: 16000,
+  macros: 23000,
+  schedule: 30000,
+  saved: 40000,
+  timerIntro: 46000,
+  countdown: 48000,
+  fasting: 53000,
+  fastingEnd: 68000,
+  done: 71000,
 };
 const TOTAL = T.done;
 
@@ -333,6 +333,14 @@ export function AutoBuilderDemo({ onFinish }: { onFinish?: () => void }) {
     return current ?? INTRO_CAPTION;
   }, [t]);
 
+  const activeChapterNumber = useMemo(() => {
+    const index = CHAPTERS.findIndex((chapter, chapterIndex) => {
+      const next = CHAPTERS[chapterIndex + 1]?.at ?? TOTAL;
+      return t >= chapter.at && t < next;
+    });
+    return index < 0 ? 0 : index + 1;
+  }, [t]);
+
   const { stop: stopNarration } = useCaptionNarration(
     narration && playing ? `${activeCaption.title}. ${activeCaption.caption}` : "",
     narration
@@ -342,7 +350,7 @@ export function AutoBuilderDemo({ onFinish }: { onFinish?: () => void }) {
   }, [playing, stopNarration]);
 
   return (
-    <div className="flex h-full flex-col gap-4">
+    <div className="flex flex-col gap-4">
       {/* scrub bar */}
       <div className="space-y-2">
         <div className="flex items-center gap-3">
@@ -381,8 +389,8 @@ export function AutoBuilderDemo({ onFinish }: { onFinish?: () => void }) {
             />
           </div>
 
-          <span className="w-10 shrink-0 text-right text-[10px] tabular-nums text-white/50">
-            {(t / 1000).toFixed(1)}s
+          <span className="w-12 shrink-0 text-right text-[10px] tabular-nums text-white/50">
+            {Math.ceil(t / 1000)} / {TOTAL / 1000}s
           </span>
 
           <button
@@ -432,13 +440,18 @@ export function AutoBuilderDemo({ onFinish }: { onFinish?: () => void }) {
       {/* caption */}
       <div
         key={activeCaption.title}
-        className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 animate-fade-in"
+        className="min-h-[112px] rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 animate-fade-in"
         aria-live="polite"
       >
-        <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-[hsl(var(--primary))]">
-          {activeCaption.title}
+        <div className="flex items-start justify-between gap-3">
+          <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-[hsl(var(--primary))]">
+            {activeCaption.title}
+          </div>
+          <span className="shrink-0 text-[10px] font-medium text-white/40">
+            {activeChapterNumber === 0 ? "Introduction" : `${activeChapterNumber} of ${CHAPTERS.length}`}
+          </span>
         </div>
-        <p className="mt-1 text-[13px] leading-relaxed text-white/75">{activeCaption.caption}</p>
+        <p className="mt-2 text-sm leading-relaxed text-white/80">{activeCaption.caption}</p>
       </div>
 
       {!showTimer ? (
