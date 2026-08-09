@@ -159,7 +159,7 @@ export default function ClientPlanBuilder() {
   }, [assignment?.keto_type_id, isManualMode]);
 
   useEffect(() => {
-    if (!settings) return;
+    if (!settings || isManualMode) return;
     if (settings.selected_protocol_id) setProtocolId(settings.selected_protocol_id);
     const inputs = (settings.protocol_calc_inputs || {}) as any;
     if (inputs.weight != null) setWeight(String(inputs.weight));
@@ -174,7 +174,7 @@ export default function ClientPlanBuilder() {
     if (settings.protocol_run_mode === "recurring" || settings.protocol_run_mode === "one_time") {
       setRunMode(settings.protocol_run_mode);
     }
-  }, [settings]);
+  }, [settings, isManualMode]);
 
   useEffect(() => {
     if (weekTouched) return;
