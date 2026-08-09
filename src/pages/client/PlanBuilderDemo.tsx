@@ -141,7 +141,7 @@ function StepWalkthrough({ onNext }: { onNext: () => void }) {
   const [canContinue, setCanContinue] = useState(false);
 
   return (
-    <div className="flex h-full flex-col gap-4">
+    <div className="flex min-h-full flex-col gap-4 pb-2">
       <div>
         <h2 className="text-2xl font-semibold leading-tight tracking-tight">
           Watch it build itself
@@ -154,9 +154,9 @@ function StepWalkthrough({ onNext }: { onNext: () => void }) {
 
       <AutoBuilderDemo onFinish={() => setCanContinue(true)} />
 
-      <div className="mt-auto pb-2">
+      <div className="pt-2">
         <Button onClick={onNext} size="lg" className="h-14 w-full rounded-2xl text-base font-medium">
-          {canContinue ? "I\u2019m ready" : "Skip ahead"} <ChevronRight className="ml-1 h-4 w-4" />
+          {canContinue ? "Continue to build my plan" : "Skip demo"} <ChevronRight className="ml-1 h-4 w-4" />
         </Button>
       </div>
     </div>
