@@ -105,11 +105,8 @@ export function ScheduleCountdownRow({
     >
       <div className="flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-white/60">
         <Clock className="h-3 w-3" />
-        Fast starts in
+        Scheduled fast
       </div>
-      <p className="mt-0.5 text-2xl font-black tabular-nums text-white">
-        {fmt(target.getTime() - now)}
-      </p>
       <p className="mt-0.5 text-[11px] text-white/60">
         Starts {formatHour(startHour)} · breaks {formatHour(breaksAt)}
       </p>
