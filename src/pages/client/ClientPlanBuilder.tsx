@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
@@ -77,6 +77,8 @@ function Stat({ label, value }: { label: string; value: string }) {
 
 export default function ClientPlanBuilder() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isManualMode = searchParams.get("mode") === "manual";
   const clientId = useEffectiveClientId();
   const queryClient = useQueryClient();
   const { weekly, saveWeekly } = useClientWeeklySchedule(clientId);
@@ -153,11 +155,11 @@ export default function ClientPlanBuilder() {
 
   // Seed from what's already saved.
   useEffect(() => {
-    if (assignment?.keto_type_id) setKetoId(assignment.keto_type_id);
-  }, [assignment?.keto_type_id]);
+    if (assignment?.keto_type_id && !isManualMode) setKetoId(assignment.keto_type_id);
+  }, [assignment?.keto_type_id, isManualMode]);
 
   useEffect(() => {
-    if (!settings) return;
+    if (!settings || isManualMode) return;
     if (settings.selected_protocol_id) setProtocolId(settings.selected_protocol_id);
     const inputs = (settings.protocol_calc_inputs || {}) as any;
     if (inputs.weight != null) setWeight(String(inputs.weight));
@@ -172,14 +174,14 @@ export default function ClientPlanBuilder() {
     if (settings.protocol_run_mode === "recurring" || settings.protocol_run_mode === "one_time") {
       setRunMode(settings.protocol_run_mode);
     }
-  }, [settings]);
+  }, [settings, isManualMode]);
 
   useEffect(() => {
-    if (weekTouched) return;
+    if (isManualMode || weekTouched) return;
     const saved = weekly ?? [];
     if (!saved.length) return;
     setWeek(defaultWeek().map((d) => saved.find((s) => s.day_of_week === d.day_of_week) ?? d));
-  }, [weekly, weekTouched]);
+  }, [weekly, isManualMode, weekTouched]);
 
   const kt = useMemo(
     () => (ketoTypes || []).find((k: any) => k.id === ketoId) ?? null,
@@ -374,9 +376,11 @@ export default function ClientPlanBuilder() {
             <ArrowLeft className="h-5 w-5 text-muted-foreground" />
           </button>
           <div className="min-w-0 flex-1">
-            <h1 className="truncate text-base font-bold">Build My Plan</h1>
+            <h1 className="truncate text-base font-bold">{isManualMode ? "Build My Plan (Manual)" : "Build My Plan"}</h1>
             <p className="text-[11px] leading-relaxed text-muted-foreground">
-              Full program: fuel style, calories, macros, and weekly schedule.
+              {isManualMode
+                ? "Start fresh. Each section is set by you, not by a saved plan."
+                : "Full program: fuel style, calories, macros, and weekly schedule."}
             </p>
           </div>
           <button
@@ -390,6 +394,11 @@ export default function ClientPlanBuilder() {
       </header>
 
       <main className="px-4 pt-4">
+        {isManualMode && (
+          <div className="mb-3 rounded-2xl border border-[hsl(174_72%_50%)]/30 bg-[hsl(174_72%_50%)]/10 px-4 py-3 text-sm text-[hsl(174_72%_50%)]">
+            <strong className="font-semibold">Manual mode.</strong> You are building a new plan from scratch. Saved settings will not prefill these fields.
+          </div>
+        )}
         <Accordion type="multiple" defaultValue={["fuel", "numbers", "window", "schedule"]} className="space-y-3">
           <AccordionItem value="fuel" className="rounded-2xl border border-border/60 bg-muted/10 px-4">
             <AccordionTrigger className="text-sm font-bold">1 · Fuel Style & Protocol</AccordionTrigger>

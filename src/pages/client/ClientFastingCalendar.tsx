@@ -318,11 +318,14 @@ export default function ClientFastingCalendar() {
           <Button
             variant="outline"
             size="lg"
-            onClick={() => navigate("/client/plan-builder")}
+            onClick={() => navigate("/client/plan-builder-demo")}
             className="h-14 w-full rounded-2xl text-sm font-semibold"
           >
-            <SlidersHorizontal className="mr-2 h-4 w-4" /> Build my full plan
+            <SlidersHorizontal className="mr-2 h-4 w-4" /> Build or reset my full plan
           </Button>
+          <p className="mt-2 text-center text-xs text-muted-foreground">
+            This rebuilds the full weekly pattern. For one-day tweaks, tap any day above.
+          </p>
         </div>
 
         <div className="mt-3">

@@ -1260,12 +1260,12 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                   APEXBEAST AI builds my plan
                 </Button>
                 <Button
-                  onClick={() => navigate("/client/calendar")}
+                  onClick={() => navigate("/client/plan-builder-demo")}
                   variant="outline"
                   className="w-full border-white/20 text-white bg-white/5 hover:bg-white/10 hover:text-white"
                   size="lg"
                 >
-                  Build full calendar
+                  Build full plan
                 </Button>
               </div>
             ) : (
