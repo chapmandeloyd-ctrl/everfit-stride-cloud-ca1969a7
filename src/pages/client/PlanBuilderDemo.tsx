@@ -192,6 +192,9 @@ function StepWalkthrough({ onNext }: { onNext: () => void }) {
             <div className="mt-1 text-lg font-semibold">65g</div>
           </div>
         </div>
+        <div className="mt-2 text-center text-xs text-white/60">
+          Total daily target: <span className="font-semibold text-white">1,980 kcal</span>
+        </div>
       </div>
 
       <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
