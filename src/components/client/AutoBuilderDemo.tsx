@@ -182,24 +182,86 @@ function FieldShell({
   label,
   children,
   active,
+  done,
 }: {
   label: string;
   children: React.ReactNode;
   active?: boolean;
+  done?: boolean;
 }) {
   return (
-    <div className="min-w-0">
-      <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/45">{label}</div>
+    <div className="relative min-w-0">
+      <div className="mb-1.5 flex items-center gap-1.5">
+        <span
+          className={cn(
+            "text-[10px] font-semibold uppercase tracking-[0.18em] transition-colors duration-300",
+            active ? "text-[hsl(var(--primary))]" : "text-white/45"
+          )}
+        >
+          {label}
+        </span>
+        {active && (
+          <span className="rounded-full bg-[hsl(var(--primary))/20] px-1.5 py-[1px] text-[8px] font-bold uppercase tracking-wider text-[hsl(var(--primary))]">
+            AI
+          </span>
+        )}
+        {!active && done && <Check className="h-3 w-3 text-emerald-400" />}
+      </div>
       <div
         className={cn(
           "flex h-11 items-center justify-between gap-2 rounded-xl border px-3 text-sm transition-all duration-300",
           active
-            ? "border-[hsl(var(--primary))] bg-[hsl(var(--primary))/10] shadow-[0_0_0_3px_hsl(var(--primary)/0.15)]"
+            ? "scale-[1.015] border-[hsl(var(--primary))] bg-[hsl(var(--primary))/10] shadow-[0_0_0_4px_hsl(var(--primary)/0.18),0_0_22px_hsl(var(--primary)/0.35)] animate-[pulse_1.6s_ease-in-out_infinite]"
+            : done
+            ? "border-emerald-500/35 bg-emerald-500/[0.06]"
             : "border-white/10 bg-white/[0.04]"
         )}
       >
         {children}
       </div>
+    </div>
+  );
+}
+
+function SectionCard({
+  step,
+  title,
+  focused,
+  children,
+  className,
+}: {
+  step: number;
+  title: string;
+  focused?: boolean;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "relative rounded-2xl border p-4 transition-all duration-500",
+        focused
+          ? "border-[hsl(var(--primary))/60] bg-[hsl(var(--primary))/[0.06]] shadow-[0_0_0_1px_hsl(var(--primary)/0.25),0_0_30px_hsl(var(--primary)/0.18)]"
+          : "border-white/10 bg-white/[0.03]",
+        className
+      )}
+    >
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <span
+          className={cn(
+            "text-[10px] font-bold uppercase tracking-[0.25em] transition-colors duration-300",
+            focused ? "text-[hsl(var(--primary))]" : "text-white/40"
+          )}
+        >
+          {step} · {title}
+        </span>
+        {focused && (
+          <span className="flex items-center gap-1 rounded-full border border-[hsl(var(--primary))/40] bg-[hsl(var(--primary))/15] px-2 py-[2px] text-[9px] font-bold uppercase tracking-wider text-[hsl(var(--primary))]">
+            <Sparkles className="h-2.5 w-2.5" /> Filling now
+          </span>
+        )}
+      </div>
+      {children}
     </div>
   );
 }
