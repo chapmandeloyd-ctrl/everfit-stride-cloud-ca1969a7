@@ -11,7 +11,7 @@ function localDateKey(d: Date): string {
   return `${y}-${mo}-${da}`;
 }
 
-function nextOccurrence(hour: number): Date {
+export function nextOccurrence(hour: number): Date {
   const now = new Date();
   const d = new Date(now);
   const h = Math.floor(hour);
@@ -19,15 +19,6 @@ function nextOccurrence(hour: number): Date {
   d.setHours(h, m, 0, 0);
   if (d.getTime() <= now.getTime()) d.setDate(d.getDate() + 1);
   return d;
-}
-
-function fmt(ms: number): string {
-  const total = Math.max(0, Math.floor(ms / 1000));
-  const h = Math.floor(total / 3600);
-  const m = Math.floor((total % 3600) / 60);
-  const s = total % 60;
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${pad(h)}:${pad(m)}:${pad(s)}`;
 }
 
 /**
