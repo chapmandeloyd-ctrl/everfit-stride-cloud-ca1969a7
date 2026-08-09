@@ -148,6 +148,7 @@ const NotificationCenter = lazy(() => import("./pages/NotificationCenter"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const CheckoutTest = lazy(() => import("./pages/CheckoutTest"));
 const SynergyCardDemo = lazy(() => import("./pages/SynergyCardDemo"));
+const TmpDemo = lazy(() => import("./pages/client/PlanBuilderDemo"));
 const StepTrackerPreview = lazy(() => import("./pages/StepTrackerPreview"));
 
 const queryClient = new QueryClient();
@@ -185,6 +186,7 @@ const App = () => (
           <Route path="/checkout-test" element={<CheckoutTest />} />
           <Route path="/portal-mockup" element={<PortalMockup />} />
           <Route path="/synergy-card-demo" element={<SynergyCardDemo />} />
+          <Route path="/__demo-test" element={<TmpDemo />} />
           <Route path="/preview/step-tracker" element={<StepTrackerPreview />} />
           
           {/* Trainer Routes */}
