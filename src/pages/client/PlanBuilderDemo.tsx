@@ -165,14 +165,14 @@ function StepWalkthrough({ onNext }: { onNext: () => void }) {
             <Scale className="h-4 w-4" /> Weight
           </div>
           <div className="mt-2 text-2xl font-semibold text-white">185 lb</div>
-          <div className="mt-1 text-xs text-white/60">Active · Cut (-20%)</div>
+          <div className="mt-1 text-xs text-white/60">Active · Goal: Cut (-20%)</div>
         </div>
         <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
           <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-white/50">
-            <Flame className="h-4 w-4" /> Calories
+            <Flame className="h-4 w-4" /> Fuel style
           </div>
-          <div className="mt-2 text-2xl font-semibold text-white">1,980</div>
-          <div className="mt-1 text-xs text-white/60">Daily target</div>
+          <div className="mt-2 text-2xl font-semibold text-white">Lean</div>
+          <div className="mt-1 text-xs text-white/60">Higher protein, lower carbs</div>
         </div>
       </div>
 
