@@ -21,6 +21,24 @@ export function nextOccurrence(hour: number): Date {
   return d;
 }
 
+export function fastSkipKey(clientId: string | null | undefined): string {
+  return `autostart_skipped_${clientId ?? "anon"}_${localDateKey(new Date())}`;
+}
+
+/** Live "is today's fast cancelled" flag, synced across components. */
+export function useFastSkippedToday(clientId: string | null | undefined): boolean {
+  const key = useMemo(() => fastSkipKey(clientId), [clientId]);
+  const [skipped, setSkipped] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const read = () => setSkipped(window.localStorage.getItem(key) === "1");
+    read();
+    window.addEventListener("apex-fast-skip-changed", read);
+    return () => window.removeEventListener("apex-fast-skip-changed", read);
+  }, [key]);
+  return skipped;
+}
+
 /**
  * Countdown to today's scheduled fast start, driven purely by the client's
  * calendar day (works even when no protocol is assigned).
@@ -33,23 +51,15 @@ export function ScheduleCountdownRow({
   accent?: string;
 }) {
   const clientId = useEffectiveClientId();
-
-  const skipKey = useMemo(
-    () => `autostart_skipped_${clientId ?? "anon"}_${localDateKey(new Date())}`,
-    [clientId],
-  );
-  const [skipped, setSkipped] = useState(false);
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    setSkipped(window.localStorage.getItem(skipKey) === "1");
-  }, [skipKey]);
+  const skipKey = useMemo(() => fastSkipKey(clientId), [clientId]);
+  const skipped = useFastSkippedToday(clientId);
 
   const setSkip = (value: boolean) => {
     if (typeof window !== "undefined") {
       if (value) window.localStorage.setItem(skipKey, "1");
       else window.localStorage.removeItem(skipKey);
+      window.dispatchEvent(new Event("apex-fast-skip-changed"));
     }
-    setSkipped(value);
     if (clientId) {
       void supabase
         .from("client_feature_settings")
