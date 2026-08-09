@@ -155,8 +155,8 @@ export default function ClientPlanBuilder() {
 
   // Seed from what's already saved.
   useEffect(() => {
-    if (assignment?.keto_type_id) setKetoId(assignment.keto_type_id);
-  }, [assignment?.keto_type_id]);
+    if (assignment?.keto_type_id && !isManualMode) setKetoId(assignment.keto_type_id);
+  }, [assignment?.keto_type_id, isManualMode]);
 
   useEffect(() => {
     if (!settings) return;
