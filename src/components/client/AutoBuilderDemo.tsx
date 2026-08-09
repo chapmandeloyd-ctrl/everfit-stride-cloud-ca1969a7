@@ -286,6 +286,17 @@ export function AutoBuilderDemo({ onFinish }: { onFinish?: () => void }) {
   const goalSet = t >= T.numbers + 900;
   const activitySet = t >= T.numbers + 1300;
 
+  // ---- what the AI is touching right now ----
+  const focusFuel = t >= T.fuelOpen && t < T.protoOpen;
+  const focusProto = t >= T.protoOpen && t < T.numbers;
+  const focusSection1 = focusFuel || focusProto;
+  const focusWeight = t >= T.numbers && t < T.numbers + 900;
+  const focusGoal = t >= T.numbers + 900 && t < T.numbers + 1300;
+  const focusActivity = t >= T.numbers + 1300 && t < T.macros;
+  const focusNumbers = t >= T.numbers && t < T.macros;
+  const focusMacros = t >= T.macros && t < T.schedule;
+  const focusSchedule = t >= T.schedule && t < T.saved;
+
   const macroP = ease(seg(t, T.macros, T.macros + 1100));
   const calsShown = Math.round(macroP * TARGET_CALS);
 
