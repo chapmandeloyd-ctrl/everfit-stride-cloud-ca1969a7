@@ -77,6 +77,8 @@ function Stat({ label, value }: { label: string; value: string }) {
 
 export default function ClientPlanBuilder() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isManualMode = searchParams.get("mode") === "manual";
   const clientId = useEffectiveClientId();
   const queryClient = useQueryClient();
   const { weekly, saveWeekly } = useClientWeeklySchedule(clientId);
