@@ -440,7 +440,7 @@ export function AutoBuilderDemo({ onFinish }: { onFinish?: () => void }) {
       {/* caption */}
       <div
         key={activeCaption.title}
-        className="min-h-[112px] rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 animate-fade-in"
+        className="sticky top-0 z-30 min-h-[112px] rounded-2xl border border-white/10 bg-[hsl(0_0%_6%/0.96)] px-4 py-3 shadow-xl backdrop-blur-md animate-fade-in"
         aria-live="polite"
       >
         <div className="flex items-start justify-between gap-3">
