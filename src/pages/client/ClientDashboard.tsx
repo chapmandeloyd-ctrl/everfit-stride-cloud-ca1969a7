@@ -1187,6 +1187,13 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
               lastFastEndedAt={lastLoggedFast?.ended_at ?? null}
               lastFastHours={lastLoggedFast?.actual_hours ?? null}
               statusLabel={fastingCardMsg}
+              nextFastStartAt={
+                hasCalendarDay &&
+                todaySchedule?.enabled !== false &&
+                todaySchedule?.ratio !== "eat_all_day"
+                  ? nextOccurrence(timeToHour(todaySchedule!.window_start_time))
+                  : null
+              }
             />
 
             <div className="text-center space-y-1">
