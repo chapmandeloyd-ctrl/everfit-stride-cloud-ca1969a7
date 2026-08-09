@@ -41,12 +41,7 @@ export function ScheduleCountdownRow({
   day: WeeklyScheduleDay | null | undefined;
   accent?: string;
 }) {
-  const [now, setNow] = useState(() => Date.now());
   const clientId = useEffectiveClientId();
-  useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(id);
-  }, []);
 
   const skipKey = useMemo(
     () => `autostart_skipped_${clientId ?? "anon"}_${localDateKey(new Date())}`,
@@ -75,7 +70,6 @@ export function ScheduleCountdownRow({
   if (!day || day.enabled === false || day.ratio === "eat_all_day") return null;
 
   const startHour = timeToHour(day.window_start_time);
-  const target = nextOccurrence(startHour);
   const breaksAt = breakFastHourFor(day.ratio, startHour);
 
   if (skipped) {
