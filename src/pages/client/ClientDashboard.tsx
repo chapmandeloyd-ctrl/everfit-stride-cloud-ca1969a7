@@ -1203,7 +1203,16 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
               </div>
             )}
 
-            {canChoose ? (
+            {hasCalendarDay ? (
+              <Button
+                onClick={() => navigate("/client/calendar")}
+                variant="outline"
+                className="w-full border-white/20 text-white bg-white/5 hover:bg-white/10 hover:text-white"
+                size="lg"
+              >
+                Edit today&apos;s plan
+              </Button>
+            ) : canChoose ? (
               <div className="space-y-2">
                 <Button onClick={() => navigate("/client/onboarding")} className="w-full" size="lg">
                   <Sparkles className="h-4 w-4 mr-2" />
