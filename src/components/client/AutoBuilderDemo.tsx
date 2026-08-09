@@ -483,12 +483,9 @@ export function AutoBuilderDemo({ onFinish }: { onFinish?: () => void }) {
 
           {/* Section 2 — numbers */}
           {numbersP > 0 && (
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 animate-fade-in">
-              <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.25em] text-white/40">
-                2 · Your Numbers
-              </div>
+            <SectionCard step={2} title="Your Numbers" focused={focusNumbers} className="animate-fade-in">
               <div className="grid grid-cols-2 gap-3">
-                <FieldShell label="Weight (lbs)" active={weightTyped.length > 0 && weightTyped.length < 3}>
+                <FieldShell label="Weight (lbs)" active={focusWeight} done={weightTyped.length === 3}>
                   <span className="text-white">
                     {weightTyped || <span className="text-white/30">—</span>}
                     {weightTyped.length > 0 && weightTyped.length < 3 && (
@@ -496,30 +493,32 @@ export function AutoBuilderDemo({ onFinish }: { onFinish?: () => void }) {
                     )}
                   </span>
                 </FieldShell>
-                <FieldShell label="Goal" active={goalSet && !activitySet}>
+                <FieldShell label="Goal" active={focusGoal} done={goalSet}>
                   <span className={goalSet ? "text-white" : "text-white/30"}>
                     {goalSet ? "Cut (−20%)" : "—"}
                   </span>
                 </FieldShell>
               </div>
               <div className="mt-3">
-                <FieldShell label="Activity" active={activitySet && t < T.macros}>
+                <FieldShell label="Activity" active={focusActivity} done={activitySet}>
                   <span className={activitySet ? "text-white" : "text-white/30"}>
                     {activitySet ? "Moderate (3–5 days/wk)" : "—"}
                   </span>
                 </FieldShell>
               </div>
-            </div>
+            </SectionCard>
           )}
 
           {/* Section 3 — macros */}
           {macroP > 0 && (
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 animate-fade-in">
-              <div className="mb-3 flex items-baseline justify-between">
-                <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/40">
-                  3 · Calculated Macros
-                </span>
-                <span className="text-sm font-bold tabular-nums text-white">
+            <SectionCard step={3} title="Calculated Macros" focused={focusMacros} className="animate-fade-in">
+              <div className="mb-3 flex items-baseline justify-end">
+                <span
+                  className={cn(
+                    "text-sm font-bold tabular-nums transition-colors duration-300",
+                    focusMacros ? "text-[hsl(var(--primary))]" : "text-white"
+                  )}
+                >
                   {calsShown.toLocaleString()} kcal
                 </span>
               </div>
@@ -532,7 +531,12 @@ export function AutoBuilderDemo({ onFinish }: { onFinish?: () => void }) {
                         {Math.round(m.grams * macroP)}g · {m.pct}%
                       </span>
                     </div>
-                    <div className="h-2 overflow-hidden rounded-full bg-white/8">
+                    <div
+                      className={cn(
+                        "h-2 overflow-hidden rounded-full bg-white/8 transition-shadow duration-300",
+                        focusMacros && "shadow-[0_0_0_2px_hsl(var(--primary)/0.18)]"
+                      )}
+                    >
                       <div
                         className="h-full rounded-full"
                         style={{ width: `${m.pct * macroP}%`, background: m.color }}
@@ -541,20 +545,22 @@ export function AutoBuilderDemo({ onFinish }: { onFinish?: () => void }) {
                   </div>
                 ))}
               </div>
-            </div>
+            </SectionCard>
           )}
 
           {/* Section 4 — weekly schedule */}
           {rowsIn > 0 && (
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 animate-fade-in">
-              <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.25em] text-white/40">
-                4 · Weekly Fasting Schedule
-              </div>
+            <SectionCard step={4} title="Weekly Fasting Schedule" focused={focusSchedule} className="animate-fade-in">
               <div className="space-y-1.5">
-                {WEEK_ROWS.slice(0, rowsIn).map((r) => (
+                {WEEK_ROWS.slice(0, rowsIn).map((r, i) => (
                   <div
                     key={r.day}
-                    className="flex items-center justify-between rounded-lg bg-white/[0.04] px-3 py-2 text-[12px] animate-fade-in"
+                    className={cn(
+                      "flex items-center justify-between rounded-lg px-3 py-2 text-[12px] transition-all duration-300 animate-fade-in",
+                      focusSchedule && i === rowsIn - 1
+                        ? "border border-[hsl(var(--primary))/50] bg-[hsl(var(--primary))/10] shadow-[0_0_14px_hsl(var(--primary)/0.25)]"
+                        : "border border-transparent bg-white/[0.04]"
+                    )}
                   >
                     <div className="flex items-center gap-2.5">
                       <span className="w-8 text-[10px] font-bold tracking-wider text-white/45">{r.day}</span>
@@ -566,7 +572,7 @@ export function AutoBuilderDemo({ onFinish }: { onFinish?: () => void }) {
                   </div>
                 ))}
               </div>
-            </div>
+            </SectionCard>
           )}
 
           {saved && (
