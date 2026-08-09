@@ -315,6 +315,18 @@ export function AutoBuilderDemo({ onFinish }: { onFinish?: () => void }) {
         </div>
       </div>
 
+      {/* caption */}
+      <div
+        key={activeCaption.title}
+        className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 animate-fade-in"
+        aria-live="polite"
+      >
+        <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-[hsl(var(--primary))]">
+          {activeCaption.title}
+        </div>
+        <p className="mt-1 text-[13px] leading-relaxed text-white/75">{activeCaption.caption}</p>
+      </div>
+
       {!showTimer ? (
         <div className="flex flex-col gap-4 animate-fade-in">
           <div className="flex items-center gap-2">
