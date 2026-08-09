@@ -68,7 +68,7 @@ export function ScheduleCountdownRow({
   const skipKey = useMemo(() => fastSkipKey(clientId), [clientId]);
   const skipped = useFastSkippedToday(clientId);
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [stage, setStage] = useState<"confirm" | "options" | "summary">("confirm");
+  const [stage, setStage] = useState<"confirm" | "options" | "summary">("options");
   const [summary, setSummary] = useState<{ title: string; body: string } | null>(null);
 
   const setSkip = (value: boolean) => {
@@ -239,7 +239,20 @@ export function ScheduleCountdownRow({
         </p>
         <button
           type="button"
-          onClick={() => setSkip(false)}
+          onClick={() => {
+            setSkip(false);
+            if (clientId) {
+              void emitActivityEvent({
+                clientId,
+                eventType: "fast_cancel_undone",
+                title: "Cancelled fast restored",
+                subtitle: `${day.ratio} · back on for ${formatHour(startHour)}`,
+                category: "fasting",
+                icon: "play",
+                metadata: { ...baseMeta, action: "undo" },
+              });
+            }
+          }}
           className="mt-1.5 text-xs font-bold text-white underline underline-offset-4"
         >
           Undo
