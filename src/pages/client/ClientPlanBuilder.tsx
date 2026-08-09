@@ -376,9 +376,11 @@ export default function ClientPlanBuilder() {
             <ArrowLeft className="h-5 w-5 text-muted-foreground" />
           </button>
           <div className="min-w-0 flex-1">
-            <h1 className="truncate text-base font-bold">Build My Plan</h1>
+            <h1 className="truncate text-base font-bold">{isManualMode ? "Build My Plan (Manual)" : "Build My Plan"}</h1>
             <p className="text-[11px] leading-relaxed text-muted-foreground">
-              Full program: fuel style, calories, macros, and weekly schedule.
+              {isManualMode
+                ? "Start fresh. Each section is set by you, not by a saved plan."
+                : "Full program: fuel style, calories, macros, and weekly schedule."}
             </p>
           </div>
           <button
