@@ -194,6 +194,8 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
   const [showEndFastEarlySheet, setShowEndFastEarlySheet] = useState(false);
   const [showEndEatingWindowSheet, setShowEndEatingWindowSheet] = useState(false);
   const [showEndManualFastConfirm, setShowEndManualFastConfirm] = useState(false);
+  // Cancelled-fast status sheet (shown after an active fast is stopped early)
+  const [cancelledFastStats, setCancelledFastStats] = useState<{ label: string; value: string }[] | null>(null);
   // Custom Manual Plan overrides — populated from localStorage when the user
   // started a fast / eating window from /client/custom-plans. They re-key off
   // the active fast/eating window so they reset whenever those flip.
