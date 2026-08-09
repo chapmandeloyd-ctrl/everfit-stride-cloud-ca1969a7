@@ -421,14 +421,10 @@ export function AutoBuilderDemo({ onFinish }: { onFinish?: () => void }) {
           </div>
 
           {/* Section 1 — fuel + protocol */}
-          <div className="relative rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-            <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.25em] text-white/40">
-              1 · Fuel Style &amp; Protocol
-            </div>
-
+          <SectionCard step={1} title="Fuel Style & Protocol" focused={focusSection1}>
             <div className="space-y-3">
               <div className="relative">
-                <FieldShell label="Fuel Style" active={fuelOpen}>
+                <FieldShell label="Fuel Style" active={focusFuel} done={fuelChosen}>
                   <span className={cn("truncate", fuelChosen ? "text-white" : "text-white/40")}>
                     {fuelChosen
                       ? `${FUEL_OPTIONS[FUEL_PICK].code} · ${FUEL_OPTIONS[FUEL_PICK].name}`
@@ -460,7 +456,7 @@ export function AutoBuilderDemo({ onFinish }: { onFinish?: () => void }) {
               </div>
 
               <div className="relative">
-                <FieldShell label="Fasting Protocol" active={protoOpen}>
+                <FieldShell label="Fasting Protocol" active={focusProto} done={protoChosen}>
                   <span className={cn("truncate", protoChosen ? "text-white" : "text-white/40")}>
                     {protoChosen ? PROTOCOL_OPTIONS[PROTOCOL_PICK] : "Choose protocol…"}
                   </span>
@@ -483,7 +479,7 @@ export function AutoBuilderDemo({ onFinish }: { onFinish?: () => void }) {
                 )}
               </div>
             </div>
-          </div>
+          </SectionCard>
 
           {/* Section 2 — numbers */}
           {numbersP > 0 && (
