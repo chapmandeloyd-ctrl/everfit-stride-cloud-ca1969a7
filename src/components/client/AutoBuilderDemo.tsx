@@ -247,6 +247,12 @@ export function AutoBuilderDemo({ onFinish }: { onFinish?: () => void }) {
 
   const overallPct = (t / TOTAL) * 100;
 
+  const activeCaption = useMemo(() => {
+    let current: (typeof CHAPTERS)[number] | null = null;
+    for (const c of CHAPTERS) if (t >= c.at) current = c;
+    return current ?? INTRO_CAPTION;
+  }, [t]);
+
   return (
     <div className="flex h-full flex-col gap-4">
       {/* scrub bar */}
