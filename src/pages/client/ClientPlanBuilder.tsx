@@ -394,6 +394,11 @@ export default function ClientPlanBuilder() {
       </header>
 
       <main className="px-4 pt-4">
+        {isManualMode && (
+          <div className="mb-3 rounded-2xl border border-[hsl(174_72%_50%)]/30 bg-[hsl(174_72%_50%)]/10 px-4 py-3 text-sm text-[hsl(174_72%_50%)]">
+            <strong className="font-semibold">Manual mode.</strong> You are building a new plan from scratch. Saved settings will not prefill these fields.
+          </div>
+        )}
         <Accordion type="multiple" defaultValue={["fuel", "numbers", "window", "schedule"]} className="space-y-3">
           <AccordionItem value="fuel" className="rounded-2xl border border-border/60 bg-muted/10 px-4">
             <AccordionTrigger className="text-sm font-bold">1 · Fuel Style & Protocol</AccordionTrigger>
