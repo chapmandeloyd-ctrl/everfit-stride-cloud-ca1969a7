@@ -1237,9 +1237,9 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
               <p className="text-base font-bold text-white">{emptyStateBody}</p>
             </div>
 
-            {hasCalendarDay && (
+            {!!todaySchedule && (
               <div className="space-y-2">
-                <TodayScheduleBar day={todaySchedule} />
+                {hasCalendarDay && <TodayScheduleBar day={todaySchedule} />}
                 <ScheduleCountdownRow day={todaySchedule} hasFullPlan={false} />
               </div>
             )}
