@@ -482,7 +482,7 @@ export function AutoBuilderDemo({ onFinish }: { onFinish?: () => void }) {
           </SectionCard>
 
           {/* Section 2 — numbers */}
-          {numbersP > 0 && (
+          {t >= T.numbers && (
             <SectionCard step={2} title="Your Numbers" focused={focusNumbers} className="animate-fade-in">
               <div className="grid grid-cols-2 gap-3">
                 <FieldShell label="Weight (lbs)" active={focusWeight} done={weightTyped.length === 3}>
@@ -510,7 +510,7 @@ export function AutoBuilderDemo({ onFinish }: { onFinish?: () => void }) {
           )}
 
           {/* Section 3 — macros */}
-          {macroP > 0 && (
+          {t >= T.macros && (
             <SectionCard step={3} title="Calculated Macros" focused={focusMacros} className="animate-fade-in">
               <div className="mb-3 flex items-baseline justify-end">
                 <span
@@ -549,7 +549,7 @@ export function AutoBuilderDemo({ onFinish }: { onFinish?: () => void }) {
           )}
 
           {/* Section 4 — weekly schedule */}
-          {rowsIn > 0 && (
+          {t >= T.schedule && (
             <SectionCard step={4} title="Weekly Fasting Schedule" focused={focusSchedule} className="animate-fade-in">
               <div className="space-y-1.5">
                 {WEEK_ROWS.slice(0, rowsIn).map((r, i) => (
