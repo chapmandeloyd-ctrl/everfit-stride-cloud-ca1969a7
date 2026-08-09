@@ -58,16 +58,69 @@ const T = {
 };
 const TOTAL = T.done;
 
-const CHAPTERS: { label: string; at: number }[] = [
-  { label: "Fuel", at: T.fuelOpen },
-  { label: "Protocol", at: T.protoOpen },
-  { label: "Numbers", at: T.numbers },
-  { label: "Macros", at: T.macros },
-  { label: "Schedule", at: T.schedule },
-  { label: "Saved", at: T.saved },
-  { label: "Timer", at: T.timerIntro },
-  { label: "Fasting", at: T.fasting },
+const CHAPTERS: { label: string; at: number; title: string; caption: string }[] = [
+  {
+    label: "Fuel",
+    at: T.fuelOpen,
+    title: "Picking your Fuel Style",
+    caption:
+      "The AI matches a fuel style to your goal. Apex Lean cycles carbs for active people who still want to drop fat.",
+  },
+  {
+    label: "Protocol",
+    at: T.protoOpen,
+    title: "Choosing a fasting protocol",
+    caption:
+      "This sets how long each fast runs. 16:8 Weekdays fasts 16 hours Monday–Friday and eases up on weekends.",
+  },
+  {
+    label: "Numbers",
+    at: T.numbers,
+    title: "Entering your numbers",
+    caption:
+      "Weight, goal, and activity level drive the math. Change any of these later and the whole plan recalculates.",
+  },
+  {
+    label: "Macros",
+    at: T.macros,
+    title: "Calculating calories & macros",
+    caption:
+      "Daily calories and your protein, carb, and fat targets are computed from your numbers — no guesswork.",
+  },
+  {
+    label: "Schedule",
+    at: T.schedule,
+    title: "Filling the weekly schedule",
+    caption:
+      "Every day gets its own ratio and window. Harder days, lighter days, and a full eating day are all normal.",
+  },
+  {
+    label: "Saved",
+    at: T.saved,
+    title: "Plan saved and armed",
+    caption:
+      "Your plan lands on the calendar and the timer is armed. You can still tweak a single day from the day strip.",
+  },
+  {
+    label: "Timer",
+    at: T.timerIntro,
+    title: "The fast starts itself",
+    caption:
+      "No button to remember — at your scheduled start time the timer arms and begins automatically.",
+  },
+  {
+    label: "Fasting",
+    at: T.fasting,
+    title: "Watching the fast run",
+    caption:
+      "The ring fills as you move through each stage — blood sugar drop, glycogen burn, ketosis, then fat burning.",
+  },
 ];
+
+const INTRO_CAPTION = {
+  title: "APEXBEAST AI takes over",
+  caption: "Sit back — the AI is about to fill in the entire Full Plan builder for you, step by step.",
+};
 
 const TARGET_CALS = 1980;
 const MACROS = [
@@ -194,6 +247,12 @@ export function AutoBuilderDemo({ onFinish }: { onFinish?: () => void }) {
 
   const overallPct = (t / TOTAL) * 100;
 
+  const activeCaption = useMemo(() => {
+    let current: (typeof CHAPTERS)[number] | null = null;
+    for (const c of CHAPTERS) if (t >= c.at) current = c;
+    return current ?? INTRO_CAPTION;
+  }, [t]);
+
   return (
     <div className="flex h-full flex-col gap-4">
       {/* scrub bar */}
@@ -260,6 +319,18 @@ export function AutoBuilderDemo({ onFinish }: { onFinish?: () => void }) {
             );
           })}
         </div>
+      </div>
+
+      {/* caption */}
+      <div
+        key={activeCaption.title}
+        className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 animate-fade-in"
+        aria-live="polite"
+      >
+        <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-[hsl(var(--primary))]">
+          {activeCaption.title}
+        </div>
+        <p className="mt-1 text-[13px] leading-relaxed text-white/75">{activeCaption.caption}</p>
       </div>
 
       {!showTimer ? (
