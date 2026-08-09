@@ -3,6 +3,8 @@ import { Clock, X } from "lucide-react";
 import { formatHour, timeToHour, breakFastHourFor, type WeeklyScheduleDay } from "@/lib/resolveFastingWindow";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { supabase } from "@/integrations/supabase/client";
+import { CancelFastSheet } from "@/components/fasting/CancelFastSheet";
+import { emitActivityEvent } from "@/lib/activityEvents";
 
 function localDateKey(d: Date): string {
   const y = d.getFullYear();
@@ -53,6 +55,8 @@ export function ScheduleCountdownRow({
   const clientId = useEffectiveClientId();
   const skipKey = useMemo(() => fastSkipKey(clientId), [clientId]);
   const skipped = useFastSkippedToday(clientId);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [stage, setStage] = useState<"confirm" | "summary">("confirm");
 
   const setSkip = (value: boolean) => {
     if (typeof window !== "undefined") {
@@ -72,9 +76,52 @@ export function ScheduleCountdownRow({
 
   const startHour = timeToHour(day.window_start_time);
   const breaksAt = breakFastHourFor(day.ratio, startHour);
+  const fastHours = Math.round((((breaksAt - startHour) + 24) % 24) * 10) / 10;
+
+  const stats = [
+    { label: "Scheduled start", value: formatHour(startHour) },
+    { label: "Planned break", value: formatHour(breaksAt) },
+    { label: "Planned length", value: `${fastHours}h` },
+    { label: "Time fasted", value: "0h — never started" },
+  ];
+
+  const confirmCancel = () => {
+    setSkip(true);
+    if (clientId) {
+      void emitActivityEvent({
+        clientId,
+        eventType: "fast_cancelled",
+        title: "Scheduled fast cancelled",
+        subtitle: `${day.ratio} · was set to start ${formatHour(startHour)}`,
+        category: "fasting",
+        icon: "x-circle",
+        metadata: { ratio: day.ratio, start_hour: startHour, break_hour: breaksAt, planned_hours: fastHours, started: false },
+      });
+    }
+    setStage("summary");
+  };
+
+  const sheet = (
+    <CancelFastSheet
+      open={sheetOpen}
+      onOpenChange={(o) => {
+        setSheetOpen(o);
+        if (!o) setStage("confirm");
+      }}
+      variant="scheduled"
+      stage={stage}
+      stats={stats}
+      onConfirm={confirmCancel}
+      onDone={() => {
+        setSheetOpen(false);
+        setStage("confirm");
+      }}
+    />
+  );
 
   if (skipped) {
     return (
+      <>
       <div
         className="rounded-xl border px-3 py-2.5 text-center"
         style={{ borderColor: "rgba(255,255,255,0.12)", backgroundColor: "rgba(255,255,255,0.05)" }}
@@ -90,10 +137,13 @@ export function ScheduleCountdownRow({
           Undo
         </button>
       </div>
+      {sheet}
+      </>
     );
   }
 
   return (
+    <>
     <div
       className="rounded-xl border px-3 py-2.5 text-center"
       style={{ borderColor: `${accent}40`, backgroundColor: `${accent}12` }}
@@ -107,12 +157,17 @@ export function ScheduleCountdownRow({
       </p>
       <button
         type="button"
-        onClick={() => setSkip(true)}
+        onClick={() => {
+          setStage("confirm");
+          setSheetOpen(true);
+        }}
         className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-white/20 bg-black/40 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-white/80 hover:bg-black/60"
       >
         <X className="h-3 w-3" />
         Cancel today's fast
       </button>
     </div>
+    {sheet}
+    </>
   );
 }

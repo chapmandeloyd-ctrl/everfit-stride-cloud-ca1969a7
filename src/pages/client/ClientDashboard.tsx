@@ -145,6 +145,7 @@ import { FastingCoachTipCard } from "@/components/FastingCoachTipCard";
 import { ProtocolCompletionDialog } from "@/components/ProtocolCompletionDialog";
 import { MyProgressSection } from "@/components/MyProgressSection";
 import { EndFastEarlySheet } from "@/components/fasting/EndFastEarlySheet";
+import { CancelFastSheet } from "@/components/fasting/CancelFastSheet";
 import { EndEatingWindowEarlySheet } from "@/components/fasting/EndEatingWindowEarlySheet";
 import { WhatCanIDrinkSheet } from "@/components/fasting/WhatCanIDrinkSheet";
 import { AssignedProgramSheet } from "@/components/client/AssignedProgramSheet";
@@ -194,6 +195,8 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
   const [showEndFastEarlySheet, setShowEndFastEarlySheet] = useState(false);
   const [showEndEatingWindowSheet, setShowEndEatingWindowSheet] = useState(false);
   const [showEndManualFastConfirm, setShowEndManualFastConfirm] = useState(false);
+  // Cancelled-fast status sheet (shown after an active fast is stopped early)
+  const [cancelledFastStats, setCancelledFastStats] = useState<{ label: string; value: string }[] | null>(null);
   // Custom Manual Plan overrides — populated from localStorage when the user
   // started a fast / eating window from /client/custom-plans. They re-key off
   // the active fast/eating window so they reset whenever those flip.
@@ -737,7 +740,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
           });
         }
       }
-      return { endedEarly };
+      return { endedEarly, actualHours, targetHours, completionPct, startAt: startAt ?? null };
     },
     onSuccess: (result) => {
       liveActivity.stop(); // Dismiss lock screen timer
@@ -753,11 +756,14 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
         setCustomFastPlan(null);
       }
       if (result?.endedEarly) {
-        toast({
-          title: "Fast ended early",
-          description: "Part 1 ended before target, so no Fuel Phase or keto window was opened.",
-        });
-        navigate("/client/dashboard");
+        const remaining = Math.max(0, result.targetHours - result.actualHours);
+        setCancelledFastStats([
+          { label: "Started", value: result.startAt ? format(new Date(result.startAt), "h:mm a") : "—" },
+          { label: "Ended", value: format(new Date(), "h:mm a") },
+          { label: "Time fasted", value: `${result.actualHours.toFixed(1)}h of ${result.targetHours}h` },
+          { label: "Completion", value: `${result.completionPct}%` },
+          { label: "Short by", value: `${remaining.toFixed(1)}h` },
+        ]);
         return;
       }
 
@@ -1090,6 +1096,32 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
   const hasKetoType = !!activeKetoType;
   const programFullyAssigned = hasAnyProtocol && hasKetoType;
 
+  // Cancelled-fast status view — full slide-up shown right after an active fast
+  // is stopped early. "Back to Today" clears it and returns to the normal card.
+  if (cancelledFastStats) {
+    return (
+      <div id="fasting-protocol-card" className="space-y-3">
+        <h2 className="text-lg font-bold text-foreground px-1">APEXBEAST-IF Fasting Timer</h2>
+        <Card className="overflow-hidden border-0 shadow-lg bg-black">
+          <CardContent className="px-5 py-10 text-center text-white/60 text-sm">Fast cancelled</CardContent>
+        </Card>
+        <CancelFastSheet
+          open
+          onOpenChange={(o) => {
+            if (!o) setCancelledFastStats(null);
+          }}
+          variant="active"
+          stage="summary"
+          stats={cancelledFastStats}
+          onDone={() => {
+            setCancelledFastStats(null);
+            navigate("/client/dashboard");
+          }}
+        />
+      </div>
+    );
+  }
+
   // Admin testing toggle: replace the fasting card with the Live Schedule card.
   // This is intentionally a full-card replacement, not a popup or a small CTA.
   if (showLiveScheduleCard) {
@@ -1212,7 +1244,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
               </div>
             )}
 
-            {hasCalendarDay ? (
+            {hasCalendarDay && !fastSkippedToday ? (
               <Button
                 onClick={() => navigate("/client/calendar")}
                 variant="outline"
