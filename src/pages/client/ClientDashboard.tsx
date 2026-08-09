@@ -38,6 +38,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { getDietStylePreset } from "@/lib/dietStyles";
 import { SportEventCompletionDialog } from "@/components/SportEventCompletionDialog";
 import { NextFastCountdownRow } from "@/components/client/NextFastCountdownRow";
+import { ScheduleCountdownRow } from "@/components/client/ScheduleCountdownRow";
 import { EnablePushBanner } from "@/components/client/EnablePushBanner";
 
 // Mirror of getCutLevelMeta on ClientNutrition page so dashboard card stays in sync.
@@ -1165,12 +1166,17 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
     const fastingCardBg = fastingCardBgGoldImg;
     const fastingCardMsg = fastingSubtitle || universalFastingCard?.message || "Your fasting journey begins soon.";
     const canChoose = !featureSettings?.lock_client_plan_choice;
-    const emptyStateHeadline = canChoose
-      ? "No active protocol"
-      : "Waiting for your trainer";
-    const emptyStateBody = canChoose
-      ? "Choose how you want to build your fasting plan."
-      : "Your trainer will assign your fasting plan soon.";
+    const hasCalendarDay = !!todaySchedule;
+    const emptyStateHeadline = hasCalendarDay
+      ? "Your schedule"
+      : canChoose
+        ? "No active protocol"
+        : "Waiting for your trainer";
+    const emptyStateBody = hasCalendarDay
+      ? "Today's fasting window comes from your calendar."
+      : canChoose
+        ? "Choose how you want to build your fasting plan."
+        : "Your trainer will assign your fasting plan soon.";
     return (
       <div id="fasting-protocol-card" className="space-y-3">
         <h2 className="text-lg font-bold text-foreground px-1">APEXBEAST-IF Fasting Timer</h2>
@@ -1189,6 +1195,13 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
               </p>
               <p className="text-base font-bold text-white">{emptyStateBody}</p>
             </div>
+
+            {hasCalendarDay && (
+              <div className="space-y-2">
+                <TodayScheduleBar day={todaySchedule} />
+                <ScheduleCountdownRow day={todaySchedule} />
+              </div>
+            )}
 
             {canChoose ? (
               <div className="space-y-2">
