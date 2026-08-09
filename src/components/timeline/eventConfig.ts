@@ -15,6 +15,9 @@ import {
   Heart,
   BookOpen,
   Camera,
+  Clock,
+  CalendarPlus,
+  XCircle,
   type LucideIcon,
 } from "lucide-react";
 
@@ -55,6 +58,9 @@ const ICON_MAP: Record<string, LucideIcon> = {
   heart: Heart,
   "book-open": BookOpen,
   camera: Camera,
+  clock: Clock,
+  calendar: CalendarPlus,
+  "x-circle": XCircle,
 };
 
 const CATEGORY_VISUALS: Record<EventCategory, Omit<EventVisual, "icon">> = {
@@ -73,6 +79,10 @@ const TYPE_DEFAULT_ICON: Record<string, keyof typeof ICON_MAP> = {
   fast_started: "play",
   fast_ended_early: "stop-circle",
   fast_completed: "check-circle",
+  fast_cancelled: "x-circle",
+  fast_cancel_undone: "play",
+  fast_rescheduled: "clock",
+  plan_pushed_forward: "calendar",
   session_ended_early: "stop-circle",
   eating_window_opened: "utensils",
   eating_window_closed: "coffee",

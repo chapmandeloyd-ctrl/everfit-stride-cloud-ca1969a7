@@ -1199,7 +1199,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
     const fastingCardBg = fastingCardBgGoldImg;
     const fastingCardMsg = fastingSubtitle || universalFastingCard?.message || "Your fasting journey begins soon.";
     const canChoose = !featureSettings?.lock_client_plan_choice;
-    const hasCalendarDay = !!todaySchedule;
+    const hasCalendarDay = !!todaySchedule && !fastSkippedToday;
     const emptyStateHeadline = hasCalendarDay
       ? "Your schedule"
       : canChoose
@@ -1237,14 +1237,14 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
               <p className="text-base font-bold text-white">{emptyStateBody}</p>
             </div>
 
-            {hasCalendarDay && (
+            {!!todaySchedule && (
               <div className="space-y-2">
-                <TodayScheduleBar day={todaySchedule} />
-                <ScheduleCountdownRow day={todaySchedule} />
+                {hasCalendarDay && <TodayScheduleBar day={todaySchedule} />}
+                <ScheduleCountdownRow day={todaySchedule} hasFullPlan={false} />
               </div>
             )}
 
-            {hasCalendarDay && !fastSkippedToday ? (
+            {hasCalendarDay ? (
               <Button
                 onClick={() => navigate("/client/calendar")}
                 variant="outline"
