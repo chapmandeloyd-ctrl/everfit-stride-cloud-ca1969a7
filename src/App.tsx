@@ -256,7 +256,6 @@ const App = () => (
           <Route path="/client/nutrition-dashboard" element={<Navigate to="/client/dashboard" replace />} />
           <Route path="/client/calendar" element={<ProtectedRoute allowedRoles={["client", "trainer"]}><ClientFastingCalendar /></ProtectedRoute>} />
           <Route path="/client/plan-builder" element={<ProtectedRoute allowedRoles={["client", "trainer"]}><ClientPlanBuilder /></ProtectedRoute>} />
-          <Route path="/__demo-test" element={<PlanBuilderDemo />} />
           <Route path="/client/plan-builder-demo" element={<ProtectedRoute allowedRoles={["client", "trainer"]}><PlanBuilderDemo /></ProtectedRoute>} />
           <Route path="/client/settings" element={<Navigate to="/client/profile?tab=settings" replace />} />
           <Route path="/client/goals" element={<Navigate to="/client/dashboard" replace />} />
