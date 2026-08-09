@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { FastingTimer } from "@/components/FastingTimer";
 import { cn } from "@/lib/utils";
 import lionBg from "@/assets/fasting-timer-bg.png";
-import { Check, ChevronDown, Pause, Play, RotateCcw, Sparkles } from "lucide-react";
+import { Check, ChevronDown, Pause, Play, RotateCcw, Sparkles, Volume2, VolumeX } from "lucide-react";
+import { useCaptionNarration } from "@/hooks/useCaptionNarration";
 
 /**
  * Auto-playing, non-persisting walkthrough of the Full Plan builder.
@@ -273,6 +274,7 @@ function SectionCard({
 
 export function AutoBuilderDemo({ onFinish }: { onFinish?: () => void }) {
   const [resetKey, setResetKey] = useState(0);
+  const [narration, setNarration] = useState(false);
   const { t, playing, seek, toggle } = useScrubbableTicker(resetKey);
   const finished = t >= TOTAL;
 
@@ -331,6 +333,14 @@ export function AutoBuilderDemo({ onFinish }: { onFinish?: () => void }) {
     return current ?? INTRO_CAPTION;
   }, [t]);
 
+  const { stop: stopNarration } = useCaptionNarration(
+    narration && playing ? `${activeCaption.title}. ${activeCaption.caption}` : "",
+    narration
+  );
+  useEffect(() => {
+    if (!playing) stopNarration();
+  }, [playing, stopNarration]);
+
   return (
     <div className="flex h-full flex-col gap-4">
       {/* scrub bar */}
@@ -374,6 +384,26 @@ export function AutoBuilderDemo({ onFinish }: { onFinish?: () => void }) {
           <span className="w-10 shrink-0 text-right text-[10px] tabular-nums text-white/50">
             {(t / 1000).toFixed(1)}s
           </span>
+
+          <button
+            type="button"
+            onClick={() => {
+              setNarration((v) => {
+                if (v) stopNarration();
+                return !v;
+              });
+            }}
+            aria-pressed={narration}
+            aria-label={narration ? "Turn narration off" : "Turn narration on"}
+            className={cn(
+              "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-colors",
+              narration
+                ? "border-[hsl(var(--primary))] bg-[hsl(var(--primary))/15] text-[hsl(var(--primary))]"
+                : "border-white/15 bg-white/5 text-white/60 hover:bg-white/10"
+            )}
+          >
+            {narration ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
+          </button>
         </div>
 
         <div className="flex flex-wrap gap-1.5">
