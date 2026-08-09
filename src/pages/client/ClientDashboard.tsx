@@ -1265,7 +1265,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                   className="w-full border-white/20 text-white bg-white/5 hover:bg-white/10 hover:text-white"
                   size="lg"
                 >
-                  I&apos;ll build my own
+                  Build full calendar
                 </Button>
               </div>
             ) : (
