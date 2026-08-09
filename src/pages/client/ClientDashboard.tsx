@@ -739,7 +739,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
           });
         }
       }
-      return { endedEarly };
+      return { endedEarly, actualHours, targetHours, completionPct, startAt: startAt ?? null };
     },
     onSuccess: (result) => {
       liveActivity.stop(); // Dismiss lock screen timer
@@ -755,11 +755,14 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
         setCustomFastPlan(null);
       }
       if (result?.endedEarly) {
-        toast({
-          title: "Fast ended early",
-          description: "Part 1 ended before target, so no Fuel Phase or keto window was opened.",
-        });
-        navigate("/client/dashboard");
+        const remaining = Math.max(0, result.targetHours - result.actualHours);
+        setCancelledFastStats([
+          { label: "Started", value: result.startAt ? format(new Date(result.startAt), "h:mm a") : "—" },
+          { label: "Ended", value: format(new Date(), "h:mm a") },
+          { label: "Time fasted", value: `${result.actualHours.toFixed(1)}h of ${result.targetHours}h` },
+          { label: "Completion", value: `${result.completionPct}%` },
+          { label: "Short by", value: `${remaining.toFixed(1)}h` },
+        ]);
         return;
       }
 
