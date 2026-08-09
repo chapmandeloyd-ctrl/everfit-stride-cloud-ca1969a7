@@ -38,7 +38,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { getDietStylePreset } from "@/lib/dietStyles";
 import { SportEventCompletionDialog } from "@/components/SportEventCompletionDialog";
 import { NextFastCountdownRow } from "@/components/client/NextFastCountdownRow";
-import { ScheduleCountdownRow } from "@/components/client/ScheduleCountdownRow";
+import { ScheduleCountdownRow, nextOccurrence, useFastSkippedToday } from "@/components/client/ScheduleCountdownRow";
 import { EnablePushBanner } from "@/components/client/EnablePushBanner";
 
 // Mirror of getCutLevelMeta on ClientNutrition page so dashboard card stays in sync.
@@ -185,6 +185,7 @@ const SHOW_WEIGHT_TRACKER = false;
 export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal = 0, todaySchedule }: { clientId: string | null; navigate: (path: string) => void; openEndFastFlowSignal?: number; todaySchedule?: WeeklyScheduleDay | null }) {
   const queryClient = useQueryClient();
   const [now, setNow] = useState(new Date());
+  const fastSkippedToday = useFastSkippedToday(clientId);
   const [showCreatePin, setShowCreatePin] = useState(false);
   const [showVerifyPin, setShowVerifyPin] = useState(false);
   const [showCompletion, setShowCompletion] = useState(false);
@@ -1187,6 +1188,14 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
               lastFastEndedAt={lastLoggedFast?.ended_at ?? null}
               lastFastHours={lastLoggedFast?.actual_hours ?? null}
               statusLabel={fastingCardMsg}
+              nextFastStartAt={
+                hasCalendarDay &&
+                !fastSkippedToday &&
+                todaySchedule?.enabled !== false &&
+                todaySchedule?.ratio !== "eat_all_day"
+                  ? nextOccurrence(timeToHour(todaySchedule!.window_start_time))
+                  : null
+              }
             />
 
             <div className="text-center space-y-1">

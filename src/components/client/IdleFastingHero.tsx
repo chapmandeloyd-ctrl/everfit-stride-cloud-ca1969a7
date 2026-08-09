@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { formatDistanceToNowStrict, differenceInMinutes } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -12,6 +13,8 @@ interface IdleFastingHeroProps {
   /** Hours the ring represents (default 16) — used only to place stage dots */
   targetHours?: number;
   compact?: boolean;
+  /** When set, the readout becomes a live countdown to the next scheduled fast start */
+  nextFastStartAt?: Date | null;
 }
 
 /** Same stage set / colors as the live FastingTimer ring, shown dimmed while idle. */
@@ -43,7 +46,24 @@ export function IdleFastingHero({
   statusLabel,
   targetHours = 16,
   compact = true,
+  nextFastStartAt = null,
 }: IdleFastingHeroProps) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!nextFastStartAt) return;
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [nextFastStartAt]);
+
+  const countdownMs = nextFastStartAt ? nextFastStartAt.getTime() - now : null;
+  const readout = (() => {
+    if (countdownMs == null || countdownMs < 0) return "00:00:00";
+    const total = Math.floor(countdownMs / 1000);
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${pad(Math.floor(total / 3600))}:${pad(Math.floor((total % 3600) / 60))}:${pad(total % 60)}`;
+  })();
+  const readoutLabel = countdownMs != null && countdownMs >= 0 ? "Fast starts in" : "Not fasting";
+
   const size = compact ? 236 : 300;
   const bandWidth = compact ? 32 : 40;
   const radius = (size - bandWidth) / 2;
@@ -76,19 +96,21 @@ export function IdleFastingHero({
       <div className="flex flex-col items-center">
         <span
           className={cn(
-            "font-bold tabular-nums tracking-tight text-white/40 drop-shadow-lg",
+            "font-bold tabular-nums tracking-tight drop-shadow-lg",
+            countdownMs != null && countdownMs >= 0 ? "text-white" : "text-white/40",
             compact ? "text-[2.25rem] leading-none" : "text-4xl leading-none"
           )}
         >
-          00:00:00
+          {readout}
         </span>
         <span
           className={cn(
-            "mt-1 font-bold uppercase tracking-wider text-white/50",
+            "mt-1 font-bold uppercase tracking-wider",
+            countdownMs != null && countdownMs >= 0 ? "text-primary" : "text-white/50",
             compact ? "text-[9px]" : "text-[10px]"
           )}
         >
-          Not fasting
+          {readoutLabel}
         </span>
       </div>
 
