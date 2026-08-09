@@ -145,6 +145,7 @@ import { FastingCoachTipCard } from "@/components/FastingCoachTipCard";
 import { ProtocolCompletionDialog } from "@/components/ProtocolCompletionDialog";
 import { MyProgressSection } from "@/components/MyProgressSection";
 import { EndFastEarlySheet } from "@/components/fasting/EndFastEarlySheet";
+import { CancelFastSheet } from "@/components/fasting/CancelFastSheet";
 import { EndEatingWindowEarlySheet } from "@/components/fasting/EndEatingWindowEarlySheet";
 import { WhatCanIDrinkSheet } from "@/components/fasting/WhatCanIDrinkSheet";
 import { AssignedProgramSheet } from "@/components/client/AssignedProgramSheet";
