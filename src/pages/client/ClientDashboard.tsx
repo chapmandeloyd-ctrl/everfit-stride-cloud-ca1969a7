@@ -38,7 +38,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { getDietStylePreset } from "@/lib/dietStyles";
 import { SportEventCompletionDialog } from "@/components/SportEventCompletionDialog";
 import { NextFastCountdownRow } from "@/components/client/NextFastCountdownRow";
-import { ScheduleCountdownRow } from "@/components/client/ScheduleCountdownRow";
+import { ScheduleCountdownRow, nextOccurrence } from "@/components/client/ScheduleCountdownRow";
 import { EnablePushBanner } from "@/components/client/EnablePushBanner";
 
 // Mirror of getCutLevelMeta on ClientNutrition page so dashboard card stays in sync.
