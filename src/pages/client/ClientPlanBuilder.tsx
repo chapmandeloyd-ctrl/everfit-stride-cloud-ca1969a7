@@ -177,11 +177,11 @@ export default function ClientPlanBuilder() {
   }, [settings, isManualMode]);
 
   useEffect(() => {
-    if (weekTouched) return;
+    if (isManualMode || weekTouched) return;
     const saved = weekly ?? [];
     if (!saved.length) return;
     setWeek(defaultWeek().map((d) => saved.find((s) => s.day_of_week === d.day_of_week) ?? d));
-  }, [weekly, weekTouched]);
+  }, [weekly, isManualMode, weekTouched]);
 
   const kt = useMemo(
     () => (ketoTypes || []).find((k: any) => k.id === ketoId) ?? null,
