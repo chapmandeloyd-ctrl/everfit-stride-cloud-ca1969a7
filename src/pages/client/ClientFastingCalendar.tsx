@@ -318,7 +318,7 @@ export default function ClientFastingCalendar() {
           <Button
             variant="outline"
             size="lg"
-            onClick={() => navigate("/client/plan-builder")}
+            onClick={() => navigate("/client/plan-builder-demo")}
             className="h-14 w-full rounded-2xl text-sm font-semibold"
           >
             <SlidersHorizontal className="mr-2 h-4 w-4" /> Build or reset my full plan
