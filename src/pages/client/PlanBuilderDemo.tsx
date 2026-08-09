@@ -19,25 +19,25 @@ const FUEL_CARDS = [
   {
     Icon: Flame,
     title: "Fuel Style",
-    desc: "Pick the metabolic approach that matches your goal: Cut, Maintain, Bulk, or a custom deficit.",
+    desc: "Choose your metabolic approach: Balance, Performance, Lean, Recomp, or Extreme. This sets how calories and macros are split across the week.",
     color: "hsl(var(--primary))",
   },
   {
     Icon: Clock,
     title: "Fasting Protocol",
-    desc: "Choose how long each fast lasts: 16:8, 18:6, 20:4, OMAD, or extended multi-day fasts.",
+    desc: "Pick how long each fast lasts: 16:8, 18:6, 20:4, OMAD, or extended multi-day fasts. This drives the timer and eating window.",
     color: "hsl(174 72% 50%)",
   },
   {
     Icon: Utensils,
     title: "Macros & Calories",
-    desc: "Your protein, carbs, fats, and total calories are calculated from your weight, activity, and goal.",
+    desc: "Your daily protein, carbs, fats, and total calories are calculated from your weight, activity level, and chosen goal.",
     color: "hsl(43 65% 52%)",
   },
   {
     Icon: CalendarDays,
     title: "Weekly Schedule",
-    desc: "Set a repeating pattern for each day of the week. Different ratios for training days, rest days, and weekends.",
+    desc: "Set a repeating pattern for each day of the week. Different ratios for training days, rest days, and weekends keep the plan flexible.",
     color: "hsl(250 65% 68%)",
   },
 ];
