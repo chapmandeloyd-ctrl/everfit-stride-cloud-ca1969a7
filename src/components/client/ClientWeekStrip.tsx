@@ -65,6 +65,10 @@ export function ClientWeekStrip({ onDayClick }: ClientWeekStripProps) {
         </button>
       </div>
 
+      <p className="px-0.5 text-[11px] leading-relaxed text-muted-foreground">
+        Your week at a glance. Each dot color shows the fasting plan for that day — tap any day to preview or edit it. Days outside your program are dimmed.
+      </p>
+
       <div
         ref={scrollRef}
         className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
