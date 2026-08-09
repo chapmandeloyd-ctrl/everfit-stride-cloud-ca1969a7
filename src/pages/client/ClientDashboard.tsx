@@ -1212,7 +1212,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
               </div>
             )}
 
-            {hasCalendarDay ? (
+            {hasCalendarDay && !fastSkippedToday ? (
               <Button
                 onClick={() => navigate("/client/calendar")}
                 variant="outline"
