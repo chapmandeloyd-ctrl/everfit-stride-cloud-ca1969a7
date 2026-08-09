@@ -79,6 +79,7 @@ const ClientDashboard = lazy(() => import("./pages/client/ClientDashboardMinimal
 const ClientSmartPace = lazy(() => import("./pages/client/ClientSmartPace"));
 const ClientFastingCalendar = lazy(() => import("./pages/client/ClientFastingCalendar"));
 const ClientPlanBuilder = lazy(() => import("./pages/client/ClientPlanBuilder"));
+const PlanBuilderDemo = lazy(() => import("./pages/client/PlanBuilderDemo"));
 const SmartPacePreview = lazy(() => import("./pages/SmartPacePreview"));
 const ClientDailyScore = lazy(() => import("./pages/client/ClientDailyScore"));
 const ClientOnboarding = lazy(() => import("./pages/client/ClientOnboarding"));
