@@ -2,13 +2,13 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import OnboardingShell from "@/components/onboarding/premium/OnboardingShell";
+import { AutoBuilderDemo } from "@/components/client/AutoBuilderDemo";
 import {
   CalendarDays,
   ChevronRight,
   Clock,
   Dumbbell,
   Flame,
-  Scale,
   Sparkles,
   Utensils,
 } from "lucide-react";
@@ -40,16 +40,6 @@ const FUEL_CARDS = [
     desc: "Set a repeating pattern for each day of the week. Different ratios for training days, rest days, and weekends keep the plan flexible.",
     color: "hsl(250 65% 68%)",
   },
-];
-
-const SAMPLE_WEEK = [
-  { day: "Mon", ratio: "16:8", start: "8:00 PM", eat: "12:00 PM → 8:00 PM" },
-  { day: "Tue", ratio: "16:8", start: "8:00 PM", eat: "12:00 PM → 8:00 PM" },
-  { day: "Wed", ratio: "18:6", start: "8:00 PM", eat: "2:00 PM → 8:00 PM" },
-  { day: "Thu", ratio: "16:8", start: "8:00 PM", eat: "12:00 PM → 8:00 PM" },
-  { day: "Fri", ratio: "20:4", start: "6:00 PM", eat: "4:00 PM → 8:00 PM" },
-  { day: "Sat", ratio: "OMAD", start: "6:00 PM", eat: "7:00 PM → 8:00 PM" },
-  { day: "Sun", ratio: "Eat all day", start: "—", eat: "All day — no fast" },
 ];
 
 function StepIntro({ onNext }: { onNext: () => void }) {
@@ -148,78 +138,25 @@ function StepOverview({ onNext }: { onNext: () => void }) {
 }
 
 function StepWalkthrough({ onNext }: { onNext: () => void }) {
+  const [canContinue, setCanContinue] = useState(false);
+
   return (
-    <div className="flex h-full flex-col gap-5">
+    <div className="flex h-full flex-col gap-4">
       <div>
         <h2 className="text-2xl font-semibold leading-tight tracking-tight">
-          Sample full plan
+          Watch it build itself
         </h2>
         <p className="mt-2 text-sm text-white/70">
-          A read-only example. Your real numbers will be calculated from your profile.
+          A live demo — APEXBEAST AI fills the builder, then the lion timer runs a
+          16-hour fast in fast-forward. Nothing here is saved.
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-          <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-white/50">
-            <Scale className="h-4 w-4" /> Weight
-          </div>
-          <div className="mt-2 text-2xl font-semibold text-white">185 lb</div>
-          <div className="mt-1 text-xs text-white/60">Active · Goal: Cut (-20%)</div>
-        </div>
-        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-          <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-white/50">
-            <Flame className="h-4 w-4" /> Fuel style
-          </div>
-          <div className="mt-2 text-2xl font-semibold text-white">Lean</div>
-          <div className="mt-1 text-xs text-white/60">Higher protein, lower carbs</div>
-        </div>
-      </div>
-
-      <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-        <div className="text-xs uppercase tracking-wider text-white/50">Daily macros</div>
-        <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-          <div className="rounded-xl bg-white/5 p-3">
-            <div className="text-[10px] uppercase tracking-wider text-blue-300">Protein</div>
-            <div className="mt-1 text-lg font-semibold">200g</div>
-          </div>
-          <div className="rounded-xl bg-white/5 p-3">
-            <div className="text-[10px] uppercase tracking-wider text-green-300">Carbs</div>
-            <div className="mt-1 text-lg font-semibold">120g</div>
-          </div>
-          <div className="rounded-xl bg-white/5 p-3">
-            <div className="text-[10px] uppercase tracking-wider text-yellow-300">Fat</div>
-            <div className="mt-1 text-lg font-semibold">65g</div>
-          </div>
-        </div>
-        <div className="mt-2 text-center text-xs text-white/60">
-          Total daily target: <span className="font-semibold text-white">1,980 kcal</span>
-        </div>
-      </div>
-
-      <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-        <div className="mb-2 flex items-center justify-between text-xs uppercase tracking-wider text-white/50">
-          <span>Weekly schedule</span>
-          <span className="text-[10px] normal-case text-white/40">Recurring 12 weeks</span>
-        </div>
-        <div className="space-y-2">
-          {SAMPLE_WEEK.map((row) => (
-            <div key={row.day} className="flex items-center justify-between text-sm">
-              <div className="flex items-center gap-3">
-                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-white/5 text-[10px] font-semibold text-white/70">
-                  {row.day}
-                </div>
-                <div className="font-medium text-white">{row.ratio}</div>
-              </div>
-              <div className="text-xs text-white/60">{row.eat}</div>
-            </div>
-          ))}
-        </div>
-      </div>
+      <AutoBuilderDemo onFinish={() => setCanContinue(true)} />
 
       <div className="mt-auto pb-2">
         <Button onClick={onNext} size="lg" className="h-14 w-full rounded-2xl text-base font-medium">
-          I&apos;m ready <ChevronRight className="ml-1 h-4 w-4" />
+          {canContinue ? "I\u2019m ready" : "Skip ahead"} <ChevronRight className="ml-1 h-4 w-4" />
         </Button>
       </div>
     </div>
