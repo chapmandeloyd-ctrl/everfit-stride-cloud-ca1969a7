@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { FastingTimer } from "@/components/FastingTimer";
 import { cn } from "@/lib/utils";
 import lionBg from "@/assets/fasting-timer-bg.png";
-import { Check, ChevronDown, RotateCcw, Sparkles } from "lucide-react";
+import { Check, ChevronDown, Pause, Play, RotateCcw, Sparkles } from "lucide-react";
 
 /**
  * Auto-playing, non-persisting walkthrough of the Full Plan builder.
@@ -58,6 +58,17 @@ const T = {
 };
 const TOTAL = T.done;
 
+const CHAPTERS: { label: string; at: number }[] = [
+  { label: "Fuel", at: T.fuelOpen },
+  { label: "Protocol", at: T.protoOpen },
+  { label: "Numbers", at: T.numbers },
+  { label: "Macros", at: T.macros },
+  { label: "Schedule", at: T.schedule },
+  { label: "Saved", at: T.saved },
+  { label: "Timer", at: T.timerIntro },
+  { label: "Fasting", at: T.fasting },
+];
+
 const TARGET_CALS = 1980;
 const MACROS = [
   { label: "Protein", grams: 198, pct: 40, color: "#60a5fa" },
@@ -65,23 +76,46 @@ const MACROS = [
   { label: "Fat", grams: 66, pct: 30, color: "#facc15" },
 ];
 
-function useTicker(running: boolean, resetKey: number) {
+function useScrubbableTicker(resetKey: number) {
   const [t, setT] = useState(0);
-  const startRef = useRef(0);
+  const [playing, setPlaying] = useState(true);
+  const tRef = useRef(0);
+  const originRef = useRef(0);
+
+  const commit = (next: number) => {
+    const clamped = Math.min(Math.max(next, 0), TOTAL);
+    tRef.current = clamped;
+    originRef.current = performance.now() - clamped;
+    setT(clamped);
+  };
+
   useEffect(() => {
-    setT(0);
-    if (!running) return;
-    startRef.current = performance.now();
+    commit(0);
+    setPlaying(true);
+  }, [resetKey]);
+
+  useEffect(() => {
+    if (!playing) return;
+    originRef.current = performance.now() - tRef.current;
     let raf = 0;
     const loop = (now: number) => {
-      const elapsed = now - startRef.current;
-      setT(Math.min(elapsed, TOTAL));
+      const elapsed = Math.min(now - originRef.current, TOTAL);
+      tRef.current = elapsed;
+      setT(elapsed);
       if (elapsed < TOTAL) raf = requestAnimationFrame(loop);
+      else setPlaying(false);
     };
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
-  }, [running, resetKey]);
-  return t;
+  }, [playing, resetKey]);
+
+  const seek = (next: number) => commit(next);
+  const toggle = () => {
+    if (!playing && tRef.current >= TOTAL) commit(0);
+    setPlaying((p) => !p);
+  };
+
+  return { t, playing, seek, toggle };
 }
 
 function ease(x: number) {
@@ -119,7 +153,7 @@ function FieldShell({
 
 export function AutoBuilderDemo({ onFinish }: { onFinish?: () => void }) {
   const [resetKey, setResetKey] = useState(0);
-  const t = useTicker(true, resetKey);
+  const { t, playing, seek, toggle } = useScrubbableTicker(resetKey);
   const finished = t >= TOTAL;
 
   // ---- derived animation state ----
@@ -162,12 +196,70 @@ export function AutoBuilderDemo({ onFinish }: { onFinish?: () => void }) {
 
   return (
     <div className="flex h-full flex-col gap-4">
-      {/* progress */}
-      <div className="h-1 w-full overflow-hidden rounded-full bg-white/10">
-        <div
-          className="h-full rounded-full bg-[hsl(var(--primary))]"
-          style={{ width: `${overallPct}%` }}
-        />
+      {/* scrub bar */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={toggle}
+            aria-label={playing ? "Pause demo" : "Play demo"}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white transition-colors hover:bg-white/10"
+          >
+            {playing ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5 translate-x-[1px]" />}
+          </button>
+
+          <div className="relative flex-1">
+            <div className="pointer-events-none absolute left-0 right-0 top-1/2 h-1 -translate-y-1/2 overflow-hidden rounded-full bg-white/10">
+              <div
+                className="h-full rounded-full bg-[hsl(var(--primary))]"
+                style={{ width: `${overallPct}%` }}
+              />
+            </div>
+            {CHAPTERS.map((c) => (
+              <span
+                key={c.label}
+                className="pointer-events-none absolute top-1/2 h-2 w-[2px] -translate-y-1/2 rounded-full bg-white/35"
+                style={{ left: `${(c.at / TOTAL) * 100}%` }}
+              />
+            ))}
+            <input
+              type="range"
+              min={0}
+              max={TOTAL}
+              step={50}
+              value={Math.round(t)}
+              aria-label="Scrub demo timeline"
+              onChange={(e) => seek(Number(e.target.value))}
+              className="relative h-6 w-full cursor-pointer appearance-none bg-transparent [&::-moz-range-thumb]:h-3.5 [&::-moz-range-thumb]:w-3.5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-[hsl(var(--primary))] [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[hsl(var(--primary))] [&::-webkit-slider-thumb]:shadow-[0_0_0_3px_hsl(var(--primary)/0.25)]"
+            />
+          </div>
+
+          <span className="w-10 shrink-0 text-right text-[10px] tabular-nums text-white/50">
+            {(t / 1000).toFixed(1)}s
+          </span>
+        </div>
+
+        <div className="flex flex-wrap gap-1.5">
+          {CHAPTERS.map((c, i) => {
+            const next = CHAPTERS[i + 1]?.at ?? TOTAL;
+            const active = t >= c.at && t < next;
+            return (
+              <button
+                key={c.label}
+                type="button"
+                onClick={() => seek(c.at)}
+                className={cn(
+                  "rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider transition-colors",
+                  active
+                    ? "border-[hsl(var(--primary))] bg-[hsl(var(--primary))/15] text-white"
+                    : "border-white/10 bg-white/[0.04] text-white/55 hover:bg-white/10"
+                )}
+              >
+                {c.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {!showTimer ? (
