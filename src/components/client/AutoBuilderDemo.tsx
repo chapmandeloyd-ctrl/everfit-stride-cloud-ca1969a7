@@ -236,8 +236,13 @@ function SectionCard({
   children: React.ReactNode;
   className?: string;
 }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (focused) ref.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [focused]);
   return (
     <div
+      ref={ref}
       className={cn(
         "relative rounded-2xl border p-4 transition-all duration-500",
         focused
