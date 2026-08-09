@@ -185,6 +185,7 @@ const SHOW_WEIGHT_TRACKER = false;
 export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal = 0, todaySchedule }: { clientId: string | null; navigate: (path: string) => void; openEndFastFlowSignal?: number; todaySchedule?: WeeklyScheduleDay | null }) {
   const queryClient = useQueryClient();
   const [now, setNow] = useState(new Date());
+  const fastSkippedToday = useFastSkippedToday(clientId);
   const [showCreatePin, setShowCreatePin] = useState(false);
   const [showVerifyPin, setShowVerifyPin] = useState(false);
   const [showCompletion, setShowCompletion] = useState(false);
