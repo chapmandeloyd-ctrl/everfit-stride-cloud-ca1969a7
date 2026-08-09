@@ -2,13 +2,13 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import OnboardingShell from "@/components/onboarding/premium/OnboardingShell";
+import { AutoBuilderDemo } from "@/components/client/AutoBuilderDemo";
 import {
   CalendarDays,
   ChevronRight,
   Clock,
   Dumbbell,
   Flame,
-  Scale,
   Sparkles,
   Utensils,
 } from "lucide-react";
@@ -40,16 +40,6 @@ const FUEL_CARDS = [
     desc: "Set a repeating pattern for each day of the week. Different ratios for training days, rest days, and weekends keep the plan flexible.",
     color: "hsl(250 65% 68%)",
   },
-];
-
-const SAMPLE_WEEK = [
-  { day: "Mon", ratio: "16:8", start: "8:00 PM", eat: "12:00 PM → 8:00 PM" },
-  { day: "Tue", ratio: "16:8", start: "8:00 PM", eat: "12:00 PM → 8:00 PM" },
-  { day: "Wed", ratio: "18:6", start: "8:00 PM", eat: "2:00 PM → 8:00 PM" },
-  { day: "Thu", ratio: "16:8", start: "8:00 PM", eat: "12:00 PM → 8:00 PM" },
-  { day: "Fri", ratio: "20:4", start: "6:00 PM", eat: "4:00 PM → 8:00 PM" },
-  { day: "Sat", ratio: "OMAD", start: "6:00 PM", eat: "7:00 PM → 8:00 PM" },
-  { day: "Sun", ratio: "Eat all day", start: "—", eat: "All day — no fast" },
 ];
 
 function StepIntro({ onNext }: { onNext: () => void }) {
