@@ -669,7 +669,9 @@ export function AutoBuilderDemo({
                         key={o.code}
                         className={cn(
                           "rounded-lg px-2.5 py-2 transition-colors duration-200",
-                          fuelChosen && i === FUEL_PICK && "bg-white/10"
+                          fuelChosen && i === FUEL_PICK && "bg-white/10",
+                          activeBeat.fuelHi === i &&
+                            "bg-white/10 ring-1 ring-[hsl(var(--primary))/70] shadow-[0_0_18px_hsl(var(--primary)/0.25)]"
                         )}
                       >
                         <div className="flex items-center gap-2 text-[13px] font-semibold" style={{ color: o.color }}>
@@ -699,7 +701,9 @@ export function AutoBuilderDemo({
                         key={o}
                         className={cn(
                           "rounded-lg px-2.5 py-2 text-[13px] text-white/85 transition-colors duration-200",
-                          protoChosen && i === PROTOCOL_PICK && "bg-[hsl(var(--primary))/25] text-white"
+                          protoChosen && i === PROTOCOL_PICK && "bg-[hsl(var(--primary))/25] text-white",
+                          activeBeat.protoHi === i &&
+                            "bg-white/10 text-white ring-1 ring-[hsl(var(--primary))/70] shadow-[0_0_18px_hsl(var(--primary)/0.25)]"
                         )}
                       >
                         {o}
