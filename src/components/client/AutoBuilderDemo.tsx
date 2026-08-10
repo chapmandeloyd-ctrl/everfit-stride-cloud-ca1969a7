@@ -306,7 +306,7 @@ const BEATS: Beat[] = [
     at: T.done,
     title: "And there you have it",
     caption:
-      "And there you have it — a complete demo of your full calendar build. Fuel style, fasting protocol, calories and macros, a full week of day types, saved to your calendar with the timer arming itself. Tap Finish demo and I'll give you two ways to go: take you straight to your full calendar build, or take you back to your home page.",
+      "And there you have it — a complete demo of your full calendar build. Fuel style, fasting protocol, calories and macros, a full week of day types, saved to your calendar with the timer arming itself. Tap Finish demo and you'll have three choices: build your own plan, build your real plan with AI, or take me back to home.",
   },
 ];
 
