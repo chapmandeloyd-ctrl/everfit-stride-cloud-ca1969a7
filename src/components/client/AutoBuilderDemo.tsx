@@ -672,7 +672,12 @@ export function AutoBuilderDemo({
           <SectionCard step={1} title="Fuel Style & Protocol" focused={focusSection1}>
             <div className="space-y-3">
               <div className="relative">
-                <FieldShell label="Fuel Style" active={focusFuel} done={fuelChosen}>
+                <FieldShell
+                  label="Fuel Style"
+                  active={focusFuel}
+                  pulse={focusFuel && activeBeat.fuelHi === undefined}
+                  done={fuelChosen}
+                >
                   <span className={cn("truncate", fuelChosen ? "text-white" : "text-white/40")}>
                     {fuelChosen
                       ? `${FUEL_OPTIONS[FUEL_PICK].code} · ${FUEL_OPTIONS[FUEL_PICK].name}`
@@ -683,13 +688,16 @@ export function AutoBuilderDemo({
                 {fuelOpen && (
                   <div className="absolute left-0 right-0 top-[64px] z-20 space-y-1 rounded-xl border border-white/15 bg-[#0c0c0c] p-2 shadow-2xl animate-scale-in">
                     {FUEL_OPTIONS.map((o, i) => (
-                      <div
+                      <button
+                        type="button"
                         key={o.code}
+                        onClick={activeBeat.fuelHi === i ? goNext : undefined}
+                        disabled={activeBeat.fuelHi !== i || !canAdvance}
                         className={cn(
-                          "rounded-lg px-2.5 py-2 transition-colors duration-200",
+                          "block w-full rounded-lg px-2.5 py-2 text-left transition-colors duration-200 disabled:cursor-default",
                           fuelChosen && i === FUEL_PICK && "bg-white/10",
                           activeBeat.fuelHi === i &&
-                            "bg-white/10 ring-1 ring-[hsl(var(--primary))/70] shadow-[0_0_18px_hsl(var(--primary)/0.25)]"
+                            "bg-white/10 ring-2 ring-[hsl(var(--primary))] shadow-[0_0_22px_hsl(var(--primary)/0.4)] animate-[pulse_1.2s_ease-in-out_infinite]"
                         )}
                       >
                         <div className="flex items-center gap-2 text-[13px] font-semibold" style={{ color: o.color }}>
@@ -699,14 +707,19 @@ export function AutoBuilderDemo({
                         <div className="mt-0.5 pl-4 text-[11px] text-white/55">
                           {o.macros} — {o.blurb}
                         </div>
-                      </div>
+                      </button>
                     ))}
                   </div>
                 )}
               </div>
 
               <div className="relative">
-                <FieldShell label="Fasting Protocol" active={focusProto} done={protoChosen}>
+                <FieldShell
+                  label="Fasting Protocol"
+                  active={focusProto}
+                  pulse={focusProto && activeBeat.protoHi === undefined}
+                  done={protoChosen}
+                >
                   <span className={cn("truncate", protoChosen ? "text-white" : "text-white/40")}>
                     {protoChosen ? PROTOCOL_OPTIONS[PROTOCOL_PICK] : "Choose protocol…"}
                   </span>
@@ -715,17 +728,20 @@ export function AutoBuilderDemo({
                 {protoOpen && (
                   <div className="absolute left-0 right-0 top-[64px] z-20 space-y-0.5 rounded-xl border border-white/15 bg-[#0c0c0c] p-2 shadow-2xl animate-scale-in">
                     {PROTOCOL_OPTIONS.map((o, i) => (
-                      <div
+                      <button
+                        type="button"
                         key={o}
+                        onClick={activeBeat.protoHi === i ? goNext : undefined}
+                        disabled={activeBeat.protoHi !== i || !canAdvance}
                         className={cn(
-                          "rounded-lg px-2.5 py-2 text-[13px] text-white/85 transition-colors duration-200",
+                          "block w-full rounded-lg px-2.5 py-2 text-left text-[13px] text-white/85 transition-colors duration-200 disabled:cursor-default",
                           protoChosen && i === PROTOCOL_PICK && "bg-[hsl(var(--primary))/25] text-white",
                           activeBeat.protoHi === i &&
-                            "bg-white/10 text-white ring-1 ring-[hsl(var(--primary))/70] shadow-[0_0_18px_hsl(var(--primary)/0.25)]"
+                            "bg-white/10 text-white ring-2 ring-[hsl(var(--primary))] shadow-[0_0_22px_hsl(var(--primary)/0.4)] animate-[pulse_1.2s_ease-in-out_infinite]"
                         )}
                       >
                         {o}
-                      </div>
+                      </button>
                     ))}
                   </div>
                 )}
