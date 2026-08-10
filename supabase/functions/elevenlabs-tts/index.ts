@@ -10,20 +10,51 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const lovableTts = async (text: string) => {
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) return null;
+    const r = await fetch("https://ai.gateway.lovable.dev/v1/audio/speech", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "openai/gpt-4o-mini-tts",
+        input: text,
+        voice: "alloy",
+        response_format: "mp3",
+      }),
+    });
+    if (!r.ok) {
+      console.error("Lovable TTS fallback failed:", r.status, await r.text().catch(() => ""));
+      return null;
+    }
+    return await r.arrayBuffer();
+  };
+
   try {
     const { text, voiceId: requestedVoiceId } = await req.json();
     const ELEVENLABS_API_KEY = Deno.env.get("ELEVENLABS_API_KEY");
 
-    if (!ELEVENLABS_API_KEY) {
-      return new Response(JSON.stringify({ error: "ElevenLabs API key not configured" }), {
-        status: 500,
+    if (!text) {
+      return new Response(JSON.stringify({ error: "No text provided" }), {
+        status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    if (!text) {
-      return new Response(JSON.stringify({ error: "No text provided" }), {
-        status: 400,
+    const audioHeaders = {
+      ...corsHeaders,
+      "Content-Type": "audio/mpeg",
+      "Cache-Control": "public, max-age=3600",
+    };
+
+    if (!ELEVENLABS_API_KEY) {
+      const fallback = await lovableTts(text);
+      if (fallback) return new Response(fallback, { headers: audioHeaders });
+      return new Response(JSON.stringify({ error: "No TTS provider configured" }), {
+        status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -56,6 +87,8 @@ serve(async (req) => {
     if (!response.ok) {
       const err = await response.text();
       console.error("ElevenLabs error:", err);
+      const fallback = await lovableTts(text);
+      if (fallback) return new Response(fallback, { headers: audioHeaders });
       return new Response(JSON.stringify({ error: "ElevenLabs request failed", detail: err }), {
         status: 502,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -64,13 +97,7 @@ serve(async (req) => {
 
     const audioBuffer = await response.arrayBuffer();
 
-    return new Response(audioBuffer, {
-      headers: {
-        ...corsHeaders,
-        "Content-Type": "audio/mpeg",
-        "Cache-Control": "public, max-age=3600",
-      },
-    });
+    return new Response(audioBuffer, { headers: audioHeaders });
   } catch (err) {
     console.error("TTS error:", err);
     return new Response(JSON.stringify({ error: String(err) }), {
