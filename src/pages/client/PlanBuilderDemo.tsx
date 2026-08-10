@@ -26,23 +26,6 @@ const STEP_SCRIPT: Record<number, string> = {
   4: "You're ready to build. Start the manual builder to control every detail yourself, or let APEXBEAST AI recommend a full plan after a quick assessment. You can edit anything the AI suggests.",
 };
 
-function NarrationToggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onToggle}
-      aria-pressed={on}
-      className={`mb-3 inline-flex items-center gap-2 self-start rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider transition-colors ${
-        on
-          ? "border-[hsl(var(--primary))] bg-[hsl(var(--primary))/15] text-[hsl(var(--primary))]"
-          : "border-white/15 bg-white/5 text-white/60 hover:bg-white/10"
-      }`}
-    >
-      {on ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
-      {on ? "Voice guide on" : "Voice guide off"}
-    </button>
-  );
-}
 
 const FUEL_CARDS = [
   {
