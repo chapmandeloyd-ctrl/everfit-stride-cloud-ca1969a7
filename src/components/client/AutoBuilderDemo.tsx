@@ -551,6 +551,7 @@ export function AutoBuilderDemo({
   );
 
   const pageAnimationComplete = t >= pageStop;
+  const [autoPlay, setAutoPlay] = useState(true);
   const canAdvance = pageAnimationComplete && (!narration || narrationComplete);
   const isLastPage = guidedPage === GUIDED_STARTS.length - 1;
 
