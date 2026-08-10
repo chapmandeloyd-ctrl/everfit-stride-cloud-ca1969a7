@@ -11,8 +11,16 @@ import { lazy as reactLazy, Suspense, type ComponentType } from "react";
  */
 const CHUNK_RELOAD_KEY = "chunk-reload-attempted";
 function lazy<T extends ComponentType<any>>(factory: () => Promise<{ default: T }>) {
+  // Retry once (transient network / partially-deployed asset) before reloading.
+  const load = () =>
+    factory().catch(
+      (err: unknown) =>
+        new Promise<{ default: T }>((resolve, reject) =>
+          setTimeout(() => factory().then(resolve, () => reject(err)), 600),
+        ),
+    );
   return reactLazy(() =>
-    factory().then((mod) => {
+    load().then((mod) => {
       try { sessionStorage.removeItem(CHUNK_RELOAD_KEY); } catch {}
       return mod;
     }).catch((err: unknown) => {
