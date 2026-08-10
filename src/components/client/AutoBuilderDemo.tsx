@@ -59,58 +59,229 @@ const T = {
 };
 const TOTAL = T.done;
 
-const CHAPTERS: { label: string; at: number; title: string; caption: string }[] = [
+/**
+ * Narrated beats. Several beats can share the same timeline position — the
+ * demo pauses on each one, the voice explains it, then the user taps Next.
+ * This turns the walkthrough into a crash course on every dropdown option.
+ */
+type Beat = {
+  chapter: string;
+  at: number;
+  title: string;
+  caption: string;
+  fuelHi?: number;
+  protoHi?: number;
+};
+
+const BEATS: Beat[] = [
   {
-    label: "Fuel",
+    chapter: "Intro",
+    at: 0,
+    title: "APEXBEAST AI takes over",
+    caption:
+      "Sit back. APEXBEAST AI is about to build your entire plan. Before each choice, I'll explain every option so you know exactly what you're picking.",
+  },
+
+  // ---- Fuel Style: one beat per option, then the pick ----
+  {
+    chapter: "Fuel",
     at: T.fuelOpen,
-    title: "Picking your Fuel Style",
+    title: "Fuel Style · Apex Balance",
     caption:
-      "The AI matches a fuel style to your goal. Apex Lean cycles carbs for active people who still want to drop fat.",
+      "APEX-B, Apex Balance. Fifty percent protein, thirty percent carbs, twenty percent fat. This is your foundational everyday fuel — an even split that's the easiest to sustain long term.",
+    fuelHi: 0,
   },
   {
-    label: "Protocol",
+    chapter: "Fuel",
+    at: T.fuelOpen,
+    title: "Fuel Style · Apex Performance",
+    caption:
+      "APEX-P, Apex Performance. Forty-five percent protein, thirty-five percent carbs, twenty percent fat. The highest carbs of the group, built for training volume so you protect muscle while you train hard.",
+    fuelHi: 1,
+  },
+  {
+    chapter: "Fuel",
+    at: T.fuelOpen,
+    title: "Fuel Style · Apex Lean",
+    caption:
+      "APEX-L, Apex Lean. Forty percent protein, thirty percent carbs, thirty percent fat, with strategic carb cycling — more carbs on training days, fewer on rest days. Made for active people who still want to drop fat.",
+    fuelHi: 2,
+  },
+  {
+    chapter: "Fuel",
+    at: T.fuelOpen,
+    title: "Fuel Style · Apex Recomp",
+    caption:
+      "APEX-R, Apex Recomp. Also forty, thirty, thirty, but loaded toward your training days. This is the one for building muscle and dropping fat at the same time.",
+    fuelHi: 3,
+  },
+  {
+    chapter: "Fuel",
+    at: T.fuelOpen,
+    title: "Fuel Style · Apex Low-Carb Extreme",
+    caption:
+      "APEX-X, Apex Low-Carb Extreme. Twenty percent protein, ten percent carbs, seventy percent fat. A deep low-carb reset for stubborn fat and strong appetite control.",
+    fuelHi: 4,
+  },
+  {
+    chapter: "Fuel",
+    at: T.fuelPick,
+    title: "Fuel Style selected",
+    caption:
+      "For this example we'll use Apex Lean. Click Next to continue.",
+    fuelHi: 2,
+  },
+
+  // ---- Fasting Protocol: one beat per option, then the pick ----
+  {
+    chapter: "Protocol",
     at: T.protoOpen,
-    title: "Choosing a fasting protocol",
+    title: "Protocol · 16:8 Daily",
     caption:
-      "This sets how long each fast runs. 16:8 Weekdays fasts 16 hours Monday–Friday and eases up on weekends.",
+      "Sixteen eight daily. You fast sixteen hours and eat within eight, every single day. This is the proven starting point and the easiest rhythm to keep.",
+    protoHi: 0,
   },
   {
-    label: "Numbers",
+    chapter: "Protocol",
+    at: T.protoOpen,
+    title: "Protocol · 16:8 Weekdays",
+    caption:
+      "Sixteen eight weekdays. The same sixteen hour fast Monday through Friday, with relaxed weekends. Best if you have a social schedule you don't want to fight.",
+    protoHi: 1,
+  },
+  {
+    chapter: "Protocol",
+    at: T.protoOpen,
+    title: "Protocol · 18:6 Daily",
+    caption:
+      "Eighteen six daily. Eighteen hours fasting, six hours eating. This pushes you deeper into ketosis every day — step up to it once sixteen eight feels easy.",
+    protoHi: 2,
+  },
+  {
+    chapter: "Protocol",
+    at: T.protoOpen,
+    title: "Protocol · 20:4 Warrior",
+    caption:
+      "Twenty four warrior. Twenty hours fasting with one large meal and one small one. Strong autophagy and serious appetite control.",
+    protoHi: 3,
+  },
+  {
+    chapter: "Protocol",
+    at: T.protoOpen,
+    title: "Protocol · OMAD",
+    caption:
+      "O-MAD, one meal a day. Twenty-three hours fasting. This is the maximum fat-burning window, and it's for advanced fasters only.",
+    protoHi: 4,
+  },
+  {
+    chapter: "Protocol",
+    at: T.protoPick,
+    title: "Protocol selected",
+    caption:
+      "For this example we'll use sixteen eight weekdays. Click Next to continue.",
+    protoHi: 1,
+  },
+
+  // ---- Numbers ----
+  {
+    chapter: "Numbers",
     at: T.numbers,
-    title: "Entering your numbers",
+    title: "Your numbers · Weight",
     caption:
-      "Weight, goal, and activity level drive the math. Change any of these later and the whole plan recalculates.",
+      "Your current weight is the anchor for everything. It sets your baseline calorie burn, so keep it updated as you progress.",
   },
   {
-    label: "Macros",
+    chapter: "Numbers",
+    at: T.numbers + 900,
+    title: "Your numbers · Goal",
+    caption:
+      "Your goal decides the direction. Cut pulls calories below your burn rate, maintain holds you steady, and gain pushes above it.",
+  },
+  {
+    chapter: "Numbers",
+    at: T.numbers + 1300,
+    title: "Your numbers · Activity",
+    caption:
+      "Activity level tells the engine how much you move outside of fasting. Moderate means three to five training days a week.",
+  },
+  {
+    chapter: "Numbers",
+    at: T.numbers + 1600,
+    title: "Your numbers · Recalculation",
+    caption:
+      "Change any one of these later and the whole plan recalculates — calories, macros, and every day on your calendar.",
+  },
+
+  // ---- Macros ----
+  {
+    chapter: "Macros",
     at: T.macros,
-    title: "Calculating calories & macros",
+    title: "Calories",
     caption:
-      "Daily calories and your protein, carb, and fat targets are computed from your numbers — no guesswork.",
+      "Your daily calorie target is calculated from your weight, activity, and goal. For this example that lands at one thousand nine hundred and eighty calories.",
   },
   {
-    label: "Schedule",
+    chapter: "Macros",
+    at: T.macros + 1200,
+    title: "Protein",
+    caption:
+      "Protein protects your muscle while you're in a deficit and keeps you full. One hundred and ninety-eight grams, forty percent of your intake.",
+  },
+  {
+    chapter: "Macros",
+    at: T.macros + 1400,
+    title: "Carbs",
+    caption:
+      "Carbs fuel your training and refill glycogen. One hundred and forty-nine grams, thirty percent — cycled higher on training days.",
+  },
+  {
+    chapter: "Macros",
+    at: T.macros + 1600,
+    title: "Fat",
+    caption:
+      "Fat drives your hormones and carries you through the fasted hours. Sixty-six grams, thirty percent of your intake.",
+  },
+
+  // ---- Weekly schedule ----
+  {
+    chapter: "Schedule",
     at: T.schedule,
-    title: "Filling the weekly schedule",
+    title: "Weekly schedule · Day types",
     caption:
-      "Every day gets its own ratio and window. Harder days, lighter days, and a full eating day are all normal.",
+      "Your week is built from four day types. Standard fasting days, harder days like eighteen six, an O-MAD day, and an eat all day — a full refeed with no fast, used to keep your metabolism and your adherence high.",
   },
   {
-    label: "Saved",
+    chapter: "Schedule",
+    at: T.schedule + 4000,
+    title: "Weekly schedule · Weekdays",
+    caption:
+      "Monday through Thursday run your standard sixteen eight — fast starts at eight PM and breaks at noon the next day.",
+  },
+  {
+    chapter: "Schedule",
+    at: T.saved - 300,
+    title: "Weekly schedule · Weekend",
+    caption:
+      "Friday steps up to eighteen six, Saturday runs an O-MAD, and Sunday is your eat all day. Hard days, lighter days, and a full eating day are all normal.",
+  },
+
+  // ---- Saved + timer ----
+  {
+    chapter: "Saved",
     at: T.saved,
     title: "Plan saved and armed",
     caption:
-      "Your plan lands on the calendar and the timer is armed. You can still tweak a single day from the day strip.",
+      "Your plan lands on the calendar and the timer is armed. You can still tweak a single day from the day strip at the top of your home page.",
   },
   {
-    label: "Timer",
+    chapter: "Timer",
     at: T.timerIntro,
     title: "The fast starts itself",
     caption:
       "No button to remember — at your scheduled start time the timer arms and begins automatically.",
   },
   {
-    label: "Fasting",
+    chapter: "Fasting",
     at: T.fasting,
     title: "Watching the fast run",
     caption:
@@ -118,10 +289,7 @@ const CHAPTERS: { label: string; at: number; title: string; caption: string }[] 
   },
 ];
 
-const INTRO_CAPTION = {
-  title: "APEXBEAST AI takes over",
-  caption: "Sit back — the AI is about to fill in the entire Full Plan builder for you, step by step.",
-};
+const CHAPTER_LABELS = Array.from(new Set(BEATS.map((b) => b.chapter)));
 
 const TARGET_CALS = 1980;
 const MACROS = [
@@ -287,7 +455,7 @@ export function AutoBuilderDemo({
   const [resetKey, setResetKey] = useState(0);
   const [guidedPage, setGuidedPage] = useState(0);
   const narration = narrationProp ?? false;
-  const GUIDED_STARTS = useMemo(() => [0, ...CHAPTERS.map((chapter) => chapter.at)], []);
+  const GUIDED_STARTS = useMemo(() => BEATS.map((beat) => beat.at), []);
   const pageStart = GUIDED_STARTS[guidedPage] ?? 0;
   const nextPageStart = GUIDED_STARTS[guidedPage + 1] ?? TOTAL;
   const pageStop = guidedPage === GUIDED_STARTS.length - 1 ? TOTAL : Math.max(pageStart, nextPageStart - 100);
@@ -339,19 +507,15 @@ export function AutoBuilderDemo({
 
   const overallPct = (t / TOTAL) * 100;
 
-  const activeCaption = useMemo(() => {
-    let current: (typeof CHAPTERS)[number] | null = null;
-    for (const c of CHAPTERS) if (t >= c.at) current = c;
-    return current ?? INTRO_CAPTION;
-  }, [t]);
+  const activeBeat = BEATS[Math.min(guidedPage, BEATS.length - 1)];
+  const activeCaption = activeBeat;
 
-  const activeChapterNumber = useMemo(() => {
-    const index = CHAPTERS.findIndex((chapter, chapterIndex) => {
-      const next = CHAPTERS[chapterIndex + 1]?.at ?? TOTAL;
-      return t >= chapter.at && t < next;
-    });
-    return index < 0 ? 0 : index + 1;
-  }, [t]);
+  const chapterBeats = useMemo(
+    () => BEATS.filter((b) => b.chapter === activeBeat.chapter),
+    [activeBeat.chapter]
+  );
+  const beatInChapter = chapterBeats.indexOf(activeBeat) + 1;
+  const activeChapterIndex = CHAPTER_LABELS.indexOf(activeBeat.chapter);
 
   const {
     stop: stopNarration,
@@ -415,14 +579,14 @@ export function AutoBuilderDemo({
         </div>
 
         <div className="flex flex-wrap gap-1.5" aria-label="Demo chapters">
-          {["Intro", ...CHAPTERS.map((chapter) => chapter.label)].map((label, index) => (
+          {CHAPTER_LABELS.map((label, index) => (
             <span
               key={label}
               className={cn(
                 "rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider",
-                index === guidedPage
+                index === activeChapterIndex
                   ? "border-[hsl(var(--primary))] bg-[hsl(var(--primary))/15] text-white"
-                  : index < guidedPage
+                  : index < activeChapterIndex
                   ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-300"
                   : "border-white/10 bg-white/[0.04] text-white/35"
               )}
@@ -444,7 +608,9 @@ export function AutoBuilderDemo({
             {activeCaption.title}
           </div>
           <span className="shrink-0 text-[10px] font-medium text-white/40">
-            {activeChapterNumber === 0 ? "Introduction" : `${activeChapterNumber} of ${CHAPTERS.length}`}
+            {chapterBeats.length > 1
+              ? `${beatInChapter} of ${chapterBeats.length}`
+              : `${activeChapterIndex + 1} of ${CHAPTER_LABELS.length}`}
           </span>
         </div>
         <p className="mt-2 text-sm leading-relaxed text-white/80">{activeCaption.caption}</p>
@@ -503,7 +669,9 @@ export function AutoBuilderDemo({
                         key={o.code}
                         className={cn(
                           "rounded-lg px-2.5 py-2 transition-colors duration-200",
-                          fuelChosen && i === FUEL_PICK && "bg-white/10"
+                          fuelChosen && i === FUEL_PICK && "bg-white/10",
+                          activeBeat.fuelHi === i &&
+                            "bg-white/10 ring-1 ring-[hsl(var(--primary))/70] shadow-[0_0_18px_hsl(var(--primary)/0.25)]"
                         )}
                       >
                         <div className="flex items-center gap-2 text-[13px] font-semibold" style={{ color: o.color }}>
@@ -533,7 +701,9 @@ export function AutoBuilderDemo({
                         key={o}
                         className={cn(
                           "rounded-lg px-2.5 py-2 text-[13px] text-white/85 transition-colors duration-200",
-                          protoChosen && i === PROTOCOL_PICK && "bg-[hsl(var(--primary))/25] text-white"
+                          protoChosen && i === PROTOCOL_PICK && "bg-[hsl(var(--primary))/25] text-white",
+                          activeBeat.protoHi === i &&
+                            "bg-white/10 text-white ring-1 ring-[hsl(var(--primary))/70] shadow-[0_0_18px_hsl(var(--primary)/0.25)]"
                         )}
                       >
                         {o}
