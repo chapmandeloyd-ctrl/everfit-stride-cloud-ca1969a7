@@ -579,14 +579,14 @@ export function AutoBuilderDemo({
         </div>
 
         <div className="flex flex-wrap gap-1.5" aria-label="Demo chapters">
-          {["Intro", ...CHAPTERS.map((chapter) => chapter.label)].map((label, index) => (
+          {CHAPTER_LABELS.map((label, index) => (
             <span
               key={label}
               className={cn(
                 "rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider",
-                index === guidedPage
+                index === activeChapterIndex
                   ? "border-[hsl(var(--primary))] bg-[hsl(var(--primary))/15] text-white"
-                  : index < guidedPage
+                  : index < activeChapterIndex
                   ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-300"
                   : "border-white/10 bg-white/[0.04] text-white/35"
               )}
@@ -608,7 +608,9 @@ export function AutoBuilderDemo({
             {activeCaption.title}
           </div>
           <span className="shrink-0 text-[10px] font-medium text-white/40">
-            {activeChapterNumber === 0 ? "Introduction" : `${activeChapterNumber} of ${CHAPTERS.length}`}
+            {chapterBeats.length > 1
+              ? `${beatInChapter} of ${chapterBeats.length}`
+              : `${activeChapterIndex + 1} of ${CHAPTER_LABELS.length}`}
           </span>
         </div>
         <p className="mt-2 text-sm leading-relaxed text-white/80">{activeCaption.caption}</p>
