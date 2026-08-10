@@ -537,7 +537,11 @@ export function AutoBuilderDemo({
     isSpeaking,
     isComplete: narrationComplete,
   } = useCaptionNarration(
-    narration ? `${activeCaption.title}. ${activeCaption.caption}` : "",
+    narration
+      ? activeCaption.captionOnly
+        ? activeCaption.caption
+        : `${activeCaption.title}. ${activeCaption.caption}`
+      : "",
     narration
   );
 
