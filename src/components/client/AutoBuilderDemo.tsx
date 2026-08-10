@@ -584,11 +584,14 @@ export function AutoBuilderDemo({
         <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={toggle}
-            aria-label={playing ? "Pause demo" : "Play demo"}
+            onClick={() => {
+              setAutoPlay((a) => !a);
+              if (!playing) toggle();
+            }}
+            aria-label={autoPlay ? "Pause demo" : "Play demo"}
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white transition-colors hover:bg-white/10"
           >
-            {playing ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5 translate-x-[1px]" />}
+            {autoPlay ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5 translate-x-[1px]" />}
           </button>
 
           <div className="relative flex-1" aria-label={`Demo page ${guidedPage + 1} of ${GUIDED_STARTS.length}`}>
@@ -664,7 +667,7 @@ export function AutoBuilderDemo({
               ? "Showing this step…"
               : isLastPage
               ? "Finish demo"
-              : playing
+              : autoPlay
               ? "Continuing…"
               : "Continue"}
             {canAdvance && !isLastPage && <ChevronRight className="ml-1.5 h-4 w-4" />}
