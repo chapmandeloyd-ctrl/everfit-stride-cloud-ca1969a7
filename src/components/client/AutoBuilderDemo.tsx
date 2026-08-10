@@ -566,6 +566,16 @@ export function AutoBuilderDemo({
     advance(GUIDED_STARTS[nextPage] ?? TOTAL);
   };
 
+  // Auto-advance: once the animation and narration for this beat finish,
+  // move to the next beat on its own. Pausing the demo stops auto-advance.
+  const goNextRef = useRef(goNext);
+  goNextRef.current = goNext;
+  useEffect(() => {
+    if (!canAdvance || isLastPage || !playing) return;
+    const id = window.setTimeout(() => goNextRef.current(), 800);
+    return () => window.clearTimeout(id);
+  }, [canAdvance, isLastPage, playing, guidedPage]);
+
   return (
     <div className="flex flex-col gap-4">
       {/* Guided progress — chapters advance only after narration + animation */}
