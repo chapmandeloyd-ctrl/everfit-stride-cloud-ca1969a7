@@ -663,7 +663,9 @@ export function AutoBuilderDemo({
               ? "Showing this step…"
               : isLastPage
               ? "Finish demo"
-              : "Click Next to continue"}
+              : playing
+              ? "Continuing…"
+              : "Continue"}
             {canAdvance && !isLastPage && <ChevronRight className="ml-1.5 h-4 w-4" />}
           </Button>
         </div>
