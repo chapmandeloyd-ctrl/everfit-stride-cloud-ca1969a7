@@ -12,12 +12,9 @@ import {
   Flame,
   Sparkles,
   Utensils,
-  Volume2,
-  VolumeX,
 } from "lucide-react";
 
 const DEMO_KEY = "plan_demo_completed";
-const NARRATION_KEY = "plan_demo_narration";
 
 /** Spoken script for each non-demo step so the whole experience is narrated. */
 const STEP_SCRIPT: Record<number, string> = {
@@ -26,23 +23,6 @@ const STEP_SCRIPT: Record<number, string> = {
   4: "You're ready to build. Start the manual builder to control every detail yourself, or let APEXBEAST AI recommend a full plan after a quick assessment. You can edit anything the AI suggests.",
 };
 
-function NarrationToggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onToggle}
-      aria-pressed={on}
-      className={`mb-3 inline-flex items-center gap-2 self-start rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider transition-colors ${
-        on
-          ? "border-[hsl(var(--primary))] bg-[hsl(var(--primary))/15] text-[hsl(var(--primary))]"
-          : "border-white/15 bg-white/5 text-white/60 hover:bg-white/10"
-      }`}
-    >
-      {on ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
-      {on ? "Voice guide on" : "Voice guide off"}
-    </button>
-  );
-}
 
 const FUEL_CARDS = [
   {
@@ -72,8 +52,6 @@ const FUEL_CARDS = [
 ];
 
 function StepIntro({ onNext }: { onNext: () => void }) {
-  const navigate = useNavigate();
-
   return (
     <div className="flex h-full flex-col gap-6">
       <div className="relative flex flex-col items-center text-center pt-2">
@@ -105,16 +83,6 @@ function StepIntro({ onNext }: { onNext: () => void }) {
           Continue <ChevronRight className="ml-1 h-4 w-4" />
         </Button>
       </div>
-
-      <button
-        onClick={() => {
-          try { localStorage.setItem(DEMO_KEY, "1"); } catch {}
-          navigate("/client/plan-builder?mode=manual");
-        }}
-        className="absolute right-4 top-1 text-[11px] font-medium uppercase tracking-wider text-white/50 hover:text-white/90"
-      >
-        Skip demo
-      </button>
     </div>
   );
 }
@@ -168,12 +136,8 @@ function StepOverview({ onNext }: { onNext: () => void }) {
 
 function StepWalkthrough({
   onNext,
-  narration,
-  setNarration,
 }: {
   onNext: () => void;
-  narration: boolean;
-  setNarration: (v: boolean) => void;
 }) {
   const [canContinue, setCanContinue] = useState(false);
 
@@ -191,13 +155,12 @@ function StepWalkthrough({
 
       <AutoBuilderDemo
         onFinish={() => setCanContinue(true)}
-        narration={narration}
-        onNarrationChange={setNarration}
+        narration={true}
       />
 
       <div className="pt-2">
-        <Button onClick={onNext} size="lg" className="h-14 w-full rounded-2xl text-base font-medium">
-          {canContinue ? "Continue to build my plan" : "Skip demo"} <ChevronRight className="ml-1 h-4 w-4" />
+        <Button onClick={onNext} disabled={!canContinue} size="lg" className="h-14 w-full rounded-2xl text-base font-medium">
+          Continue to build my plan <ChevronRight className="ml-1 h-4 w-4" />
         </Button>
       </div>
     </div>
@@ -262,23 +225,12 @@ function StepStart({ onBack }: { onBack: () => void }) {
 export default function PlanBuilderDemo() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
-  const [narration, setNarrationState] = useState(() => {
-    try {
-      return localStorage.getItem(NARRATION_KEY) === "1";
-    } catch {
-      return false;
-    }
-  });
 
-  const setNarration = (v: boolean) => {
-    setNarrationState(v);
-    try {
-      localStorage.setItem(NARRATION_KEY, v ? "1" : "0");
-    } catch {}
-  };
+  // Narration is always on for the full guided experience.
+  const narration = true;
 
   // Narrate the intro/overview/start steps (step 3 narrates its own captions)
-  useCaptionNarration(narration && step !== 3 ? STEP_SCRIPT[step] ?? "" : "", narration);
+  useCaptionNarration(step !== 3 ? STEP_SCRIPT[step] ?? "" : "", narration);
 
   useEffect(() => {
     try {
@@ -297,14 +249,11 @@ export default function PlanBuilderDemo() {
       onBack={step > 1 ? () => setStep((s) => s - 1) : undefined}
     >
       <div className="flex min-h-full flex-col">
-        {step !== 3 && (
-          <NarrationToggle on={narration} onToggle={() => setNarration(!narration)} />
-        )}
         <div className="flex min-h-0 flex-1 flex-col">
           {step === 1 && <StepIntro onNext={() => setStep(2)} />}
           {step === 2 && <StepOverview onNext={() => setStep(3)} />}
           {step === 3 && (
-            <StepWalkthrough onNext={() => setStep(4)} narration={narration} setNarration={setNarration} />
+            <StepWalkthrough onNext={() => setStep(4)} />
           )}
           {step === 4 && <StepStart onBack={() => setStep(3)} />}
         </div>

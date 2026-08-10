@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { FastingTimer } from "@/components/FastingTimer";
 import { cn } from "@/lib/utils";
 import lionBg from "@/assets/fasting-timer-bg.png";
-import { Check, ChevronDown, ChevronRight, Pause, Play, RotateCcw, Sparkles, Volume2, VolumeX } from "lucide-react";
+import { Check, ChevronDown, ChevronRight, Pause, Play, RotateCcw, Sparkles } from "lucide-react";
 import { useCaptionNarration } from "@/hooks/useCaptionNarration";
 
 /**
@@ -280,21 +280,13 @@ function SectionCard({
 export function AutoBuilderDemo({
   onFinish,
   narration: narrationProp,
-  onNarrationChange,
 }: {
   onFinish?: () => void;
   narration?: boolean;
-  onNarrationChange?: (v: boolean) => void;
 }) {
   const [resetKey, setResetKey] = useState(0);
   const [guidedPage, setGuidedPage] = useState(0);
-  const [narrationLocal, setNarrationLocal] = useState(false);
-  const narration = narrationProp ?? narrationLocal;
-  const setNarration = (updater: (v: boolean) => boolean) => {
-    const next = updater(narration);
-    if (onNarrationChange) onNarrationChange(next);
-    else setNarrationLocal(next);
-  };
+  const narration = narrationProp ?? false;
   const GUIDED_STARTS = useMemo(() => [0, ...CHAPTERS.map((chapter) => chapter.at)], []);
   const pageStart = GUIDED_STARTS[guidedPage] ?? 0;
   const nextPageStart = GUIDED_STARTS[guidedPage + 1] ?? TOTAL;
@@ -420,26 +412,6 @@ export function AutoBuilderDemo({
           <span className="w-12 shrink-0 text-right text-[10px] tabular-nums text-white/50">
             {guidedPage + 1} / {GUIDED_STARTS.length}
           </span>
-
-          <button
-            type="button"
-            onClick={() => {
-              setNarration((v) => {
-                if (v) stopNarration();
-                return !v;
-              });
-            }}
-            aria-pressed={narration}
-            aria-label={narration ? "Turn narration off" : "Turn narration on"}
-            className={cn(
-              "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-colors",
-              narration
-                ? "border-[hsl(var(--primary))] bg-[hsl(var(--primary))/15] text-[hsl(var(--primary))]"
-                : "border-white/15 bg-white/5 text-white/60 hover:bg-white/10"
-            )}
-          >
-            {narration ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
-          </button>
         </div>
 
         <div className="flex flex-wrap gap-1.5" aria-label="Demo chapters">
