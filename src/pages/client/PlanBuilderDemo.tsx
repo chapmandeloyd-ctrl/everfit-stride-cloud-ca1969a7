@@ -18,9 +18,9 @@ const DEMO_KEY = "plan_demo_completed";
 
 /** Spoken script for each non-demo step so the whole experience is narrated. */
 const STEP_SCRIPT: Record<number, string> = {
-  1: "Welcome to APEX build your full plan mode. Unlike the calendar strip at the top of your home page that's designed for quick one day tweaks, full plan mode allows you to create fuel style, calories, macros, fasting windows, and durations. Click continue to dive into a full demo of your full plan mode.",
-  2: "Full Plan covers four sections that work together. Fuel Style sets your metabolic approach. Fasting Protocol sets how long each fast lasts. Macros and Calories are calculated from your weight, activity, and goal. And the Weekly Schedule sets a repeating pattern for training days, rest days, and weekends.",
-  4: "You're ready to build. Start the manual builder to control every detail yourself, or let APEXBEAST AI recommend a full plan after a quick assessment. You can edit anything the AI suggests.",
+  1: "Welcome to APEX build your full plan mode. Unlike the calendar strip at the top of your home page that's designed for quick one day tweaks, full plan mode allows you to create fuel style, calories, macros, fasting windows, and durations. Click Continue to see how it works.",
+  2: "Full Plan covers four sections that work together. Fuel Style sets your metabolic approach. Fasting Protocol sets how long each fast lasts. Macros and Calories are calculated from your weight, activity, and goal. And the Weekly Schedule sets a repeating pattern for training days, rest days, and weekends. Click See how it works to continue.",
+  4: "You're ready to build. Start the manual builder to control every detail yourself, or let APEXBEAST AI recommend a full plan after a quick assessment. You can edit anything the AI suggests. Click Start manual builder to build your full plan.",
 };
 
 
@@ -127,7 +127,7 @@ function StepOverview({ onNext }: { onNext: () => void }) {
 
       <div className="mt-auto pb-2">
         <Button onClick={onNext} size="lg" className="h-14 w-full rounded-2xl text-base font-medium">
-          See how it looks <ChevronRight className="ml-1 h-4 w-4" />
+          See how it works <ChevronRight className="ml-1 h-4 w-4" />
         </Button>
       </div>
     </div>
