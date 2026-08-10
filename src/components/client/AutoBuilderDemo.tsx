@@ -564,9 +564,9 @@ export function AutoBuilderDemo({
                 style={{ width: `${overallPct}%` }}
               />
             </div>
-            {GUIDED_STARTS.slice(1).map((at) => (
+            {GUIDED_STARTS.slice(1).map((at, i) => (
               <span
-                key={at}
+                key={`${at}-${i}`}
                 className="pointer-events-none absolute top-1/2 h-2 w-[2px] -translate-y-1/2 rounded-full bg-white/35"
                 style={{ left: `${(at / TOTAL) * 100}%` }}
               />
