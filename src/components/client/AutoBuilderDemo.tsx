@@ -272,9 +272,23 @@ function SectionCard({
   );
 }
 
-export function AutoBuilderDemo({ onFinish }: { onFinish?: () => void }) {
+export function AutoBuilderDemo({
+  onFinish,
+  narration: narrationProp,
+  onNarrationChange,
+}: {
+  onFinish?: () => void;
+  narration?: boolean;
+  onNarrationChange?: (v: boolean) => void;
+}) {
   const [resetKey, setResetKey] = useState(0);
-  const [narration, setNarration] = useState(false);
+  const [narrationLocal, setNarrationLocal] = useState(false);
+  const narration = narrationProp ?? narrationLocal;
+  const setNarration = (updater: (v: boolean) => boolean) => {
+    const next = updater(narration);
+    if (onNarrationChange) onNarrationChange(next);
+    else setNarrationLocal(next);
+  };
   const { t, playing, seek, toggle } = useScrubbableTicker(resetKey);
   const finished = t >= TOTAL;
 
