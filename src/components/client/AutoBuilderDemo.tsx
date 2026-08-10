@@ -71,6 +71,8 @@ type Beat = {
   caption: string;
   fuelHi?: number;
   protoHi?: number;
+  /** When true the on-screen title is not spoken (avoids repeating the name). */
+  captionOnly?: boolean;
 };
 
 const BEATS: Beat[] = [
@@ -88,40 +90,45 @@ const BEATS: Beat[] = [
     at: T.fuelOpen,
     title: "Fuel Style · Apex Balance",
     caption:
-      "APEX-B, Apex Balance. Fifty percent protein, thirty percent carbs, twenty percent fat. This is your foundational everyday fuel — an even split that's the easiest to sustain long term.",
+      "Fuel style, Apex Balance. Fifty percent protein, thirty percent carbs, twenty percent fat. This is your foundational everyday fuel — an even split that's the easiest to sustain long term.",
     fuelHi: 0,
+    captionOnly: true,
   },
   {
     chapter: "Fuel",
     at: T.fuelOpen,
     title: "Fuel Style · Apex Performance",
     caption:
-      "APEX-P, Apex Performance. Forty-five percent protein, thirty-five percent carbs, twenty percent fat. The highest carbs of the group, built for training volume so you protect muscle while you train hard.",
+      "Fuel style, Apex Performance. Forty-five percent protein, thirty-five percent carbs, twenty percent fat. The highest carbs of the group, built for training volume so you protect muscle while you train hard.",
     fuelHi: 1,
+    captionOnly: true,
   },
   {
     chapter: "Fuel",
     at: T.fuelOpen,
     title: "Fuel Style · Apex Lean",
     caption:
-      "APEX-L, Apex Lean. Forty percent protein, thirty percent carbs, thirty percent fat, with strategic carb cycling — more carbs on training days, fewer on rest days. Made for active people who still want to drop fat.",
+      "Fuel style, Apex Lean. Forty percent protein, thirty percent carbs, thirty percent fat, with strategic carb cycling — more carbs on training days, fewer on rest days. Made for active people who still want to drop fat.",
     fuelHi: 2,
+    captionOnly: true,
   },
   {
     chapter: "Fuel",
     at: T.fuelOpen,
     title: "Fuel Style · Apex Recomp",
     caption:
-      "APEX-R, Apex Recomp. Also forty, thirty, thirty, but loaded toward your training days. This is the one for building muscle and dropping fat at the same time.",
+      "Fuel style, Apex Recomp. Also forty, thirty, thirty, but loaded toward your training days. This is the one for building muscle and dropping fat at the same time.",
     fuelHi: 3,
+    captionOnly: true,
   },
   {
     chapter: "Fuel",
     at: T.fuelOpen,
     title: "Fuel Style · Apex Low-Carb Extreme",
     caption:
-      "APEX-X, Apex Low-Carb Extreme. Twenty percent protein, ten percent carbs, seventy percent fat. A deep low-carb reset for stubborn fat and strong appetite control.",
+      "Fuel style, Apex Low-Carb Extreme. Twenty percent protein, ten percent carbs, seventy percent fat. A deep low-carb reset for stubborn fat and strong appetite control.",
     fuelHi: 4,
+    captionOnly: true,
   },
   {
     chapter: "Fuel",
@@ -130,6 +137,7 @@ const BEATS: Beat[] = [
     caption:
       "For this example we'll use Apex Lean. Click Next to continue.",
     fuelHi: 2,
+    captionOnly: true,
   },
 
   // ---- Fasting Protocol: one beat per option, then the pick ----
@@ -140,6 +148,7 @@ const BEATS: Beat[] = [
     caption:
       "Sixteen eight daily. You fast sixteen hours and eat within eight, every single day. This is the proven starting point and the easiest rhythm to keep.",
     protoHi: 0,
+    captionOnly: true,
   },
   {
     chapter: "Protocol",
@@ -148,6 +157,7 @@ const BEATS: Beat[] = [
     caption:
       "Sixteen eight weekdays. The same sixteen hour fast Monday through Friday, with relaxed weekends. Best if you have a social schedule you don't want to fight.",
     protoHi: 1,
+    captionOnly: true,
   },
   {
     chapter: "Protocol",
@@ -156,6 +166,7 @@ const BEATS: Beat[] = [
     caption:
       "Eighteen six daily. Eighteen hours fasting, six hours eating. This pushes you deeper into ketosis every day — step up to it once sixteen eight feels easy.",
     protoHi: 2,
+    captionOnly: true,
   },
   {
     chapter: "Protocol",
@@ -164,6 +175,7 @@ const BEATS: Beat[] = [
     caption:
       "Twenty four warrior. Twenty hours fasting with one large meal and one small one. Strong autophagy and serious appetite control.",
     protoHi: 3,
+    captionOnly: true,
   },
   {
     chapter: "Protocol",
@@ -172,6 +184,7 @@ const BEATS: Beat[] = [
     caption:
       "O-MAD, one meal a day. Twenty-three hours fasting. This is the maximum fat-burning window, and it's for advanced fasters only.",
     protoHi: 4,
+    captionOnly: true,
   },
   {
     chapter: "Protocol",
@@ -180,6 +193,7 @@ const BEATS: Beat[] = [
     caption:
       "For this example we'll use sixteen eight weekdays. Click Next to continue.",
     protoHi: 1,
+    captionOnly: true,
   },
 
   // ---- Numbers ----
