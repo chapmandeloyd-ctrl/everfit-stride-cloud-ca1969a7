@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import OnboardingShell from "@/components/onboarding/premium/OnboardingShell";
 import { AutoBuilderDemo } from "@/components/client/AutoBuilderDemo";
+import { useCaptionNarration } from "@/hooks/useCaptionNarration";
 import {
   CalendarDays,
   ChevronRight,
@@ -11,9 +12,37 @@ import {
   Flame,
   Sparkles,
   Utensils,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 
 const DEMO_KEY = "plan_demo_completed";
+const NARRATION_KEY = "plan_demo_narration";
+
+/** Spoken script for each non-demo step so the whole experience is narrated. */
+const STEP_SCRIPT: Record<number, string> = {
+  1: "Welcome to Full Plan Mode. The day strip is for quick, one day tweaks. This is where you design your entire weekly system: fuel style, calories, macros, fasting windows, and duration.",
+  2: "Full Plan covers four sections that work together. Fuel Style sets your metabolic approach. Fasting Protocol sets how long each fast lasts. Macros and Calories are calculated from your weight, activity, and goal. And the Weekly Schedule sets a repeating pattern for training days, rest days, and weekends.",
+  4: "You're ready to build. Start the manual builder to control every detail yourself, or let APEXBEAST AI recommend a full plan after a quick assessment. You can edit anything the AI suggests.",
+};
+
+function NarrationToggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-pressed={on}
+      className={`mb-3 inline-flex items-center gap-2 self-start rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider transition-colors ${
+        on
+          ? "border-[hsl(var(--primary))] bg-[hsl(var(--primary))/15] text-[hsl(var(--primary))]"
+          : "border-white/15 bg-white/5 text-white/60 hover:bg-white/10"
+      }`}
+    >
+      {on ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
+      {on ? "Voice guide on" : "Voice guide off"}
+    </button>
+  );
+}
 
 const FUEL_CARDS = [
   {
@@ -137,7 +166,15 @@ function StepOverview({ onNext }: { onNext: () => void }) {
   );
 }
 
-function StepWalkthrough({ onNext }: { onNext: () => void }) {
+function StepWalkthrough({
+  onNext,
+  narration,
+  setNarration,
+}: {
+  onNext: () => void;
+  narration: boolean;
+  setNarration: (v: boolean) => void;
+}) {
   const [canContinue, setCanContinue] = useState(false);
 
   return (
@@ -152,7 +189,11 @@ function StepWalkthrough({ onNext }: { onNext: () => void }) {
         </p>
       </div>
 
-      <AutoBuilderDemo onFinish={() => setCanContinue(true)} />
+      <AutoBuilderDemo
+        onFinish={() => setCanContinue(true)}
+        narration={narration}
+        onNarrationChange={setNarration}
+      />
 
       <div className="pt-2">
         <Button onClick={onNext} size="lg" className="h-14 w-full rounded-2xl text-base font-medium">
@@ -221,6 +262,23 @@ function StepStart({ onBack }: { onBack: () => void }) {
 export default function PlanBuilderDemo() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
+  const [narration, setNarrationState] = useState(() => {
+    try {
+      return localStorage.getItem(NARRATION_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
+
+  const setNarration = (v: boolean) => {
+    setNarrationState(v);
+    try {
+      localStorage.setItem(NARRATION_KEY, v ? "1" : "0");
+    } catch {}
+  };
+
+  // Narrate the intro/overview/start steps (step 3 narrates its own captions)
+  useCaptionNarration(narration && step !== 3 ? STEP_SCRIPT[step] ?? "" : "", narration);
 
   useEffect(() => {
     try {
@@ -238,10 +296,19 @@ export default function PlanBuilderDemo() {
       totalSteps={totalSteps}
       onBack={step > 1 ? () => setStep((s) => s - 1) : undefined}
     >
-      {step === 1 && <StepIntro onNext={() => setStep(2)} />}
-      {step === 2 && <StepOverview onNext={() => setStep(3)} />}
-      {step === 3 && <StepWalkthrough onNext={() => setStep(4)} />}
-      {step === 4 && <StepStart onBack={() => setStep(3)} />}
+      <div className="flex min-h-full flex-col">
+        {step !== 3 && (
+          <NarrationToggle on={narration} onToggle={() => setNarration(!narration)} />
+        )}
+        <div className="flex min-h-0 flex-1 flex-col">
+          {step === 1 && <StepIntro onNext={() => setStep(2)} />}
+          {step === 2 && <StepOverview onNext={() => setStep(3)} />}
+          {step === 3 && (
+            <StepWalkthrough onNext={() => setStep(4)} narration={narration} setNarration={setNarration} />
+          )}
+          {step === 4 && <StepStart onBack={() => setStep(3)} />}
+        </div>
+      </div>
     </OnboardingShell>
   );
 }
