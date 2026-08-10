@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const FN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-tts`;
 const ANON = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
@@ -12,22 +12,35 @@ export function useCaptionNarration(text: string, enabled: boolean) {
   const cache = useRef<Map<string, string>>(new Map());
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const lastSpoken = useRef<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isComplete, setIsComplete] = useState(!enabled || !text);
 
   const stop = useCallback(() => {
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
     }
+    setIsSpeaking(false);
   }, []);
 
   useEffect(() => {
     if (!enabled) {
       stop();
       lastSpoken.current = null;
+      setIsLoading(false);
+      setIsComplete(true);
       return;
     }
-    if (!text || text === lastSpoken.current) return;
+    if (!text) {
+      setIsComplete(true);
+      return;
+    }
+    if (text === lastSpoken.current) return;
     lastSpoken.current = text;
+    setIsLoading(true);
+    setIsSpeaking(false);
+    setIsComplete(false);
 
     let cancelled = false;
     (async () => {
@@ -41,6 +54,10 @@ export function useCaptionNarration(text: string, enabled: boolean) {
           });
           if (!res.ok) {
             console.error("Narration failed:", res.status, await res.text().catch(() => ""));
+            if (!cancelled) {
+              setIsLoading(false);
+              setIsComplete(true);
+            }
             return;
           }
           url = URL.createObjectURL(await res.blob());
@@ -52,9 +69,34 @@ export function useCaptionNarration(text: string, enabled: boolean) {
         audioRef.current = audio;
         audio.src = url;
         audio.volume = 1;
-        await audio.play().catch(() => {});
+        audio.onplay = () => {
+          if (cancelled) return;
+          setIsLoading(false);
+          setIsSpeaking(true);
+        };
+        audio.onended = () => {
+          if (cancelled) return;
+          setIsSpeaking(false);
+          setIsComplete(true);
+        };
+        audio.onerror = () => {
+          if (cancelled) return;
+          setIsLoading(false);
+          setIsSpeaking(false);
+          setIsComplete(true);
+        };
+        await audio.play().catch(() => {
+          if (cancelled) return;
+          setIsLoading(false);
+          setIsComplete(true);
+        });
       } catch (err) {
         console.error("Narration error:", err);
+        if (!cancelled) {
+          setIsLoading(false);
+          setIsSpeaking(false);
+          setIsComplete(true);
+        }
       }
     })();
 
@@ -73,5 +115,5 @@ export function useCaptionNarration(text: string, enabled: boolean) {
     };
   }, []);
 
-  return { stop };
+  return { stop, isLoading, isSpeaking, isComplete };
 }

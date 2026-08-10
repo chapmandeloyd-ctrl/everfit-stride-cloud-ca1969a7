@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { FastingTimer } from "@/components/FastingTimer";
 import { cn } from "@/lib/utils";
 import lionBg from "@/assets/fasting-timer-bg.png";
-import { Check, ChevronDown, Pause, Play, RotateCcw, Sparkles, Volume2, VolumeX } from "lucide-react";
+import { Check, ChevronDown, ChevronRight, Pause, Play, RotateCcw, Sparkles, Volume2, VolumeX } from "lucide-react";
 import { useCaptionNarration } from "@/hooks/useCaptionNarration";
 
 /**
@@ -130,7 +130,7 @@ const MACROS = [
   { label: "Fat", grams: 66, pct: 30, color: "#facc15" },
 ];
 
-function useScrubbableTicker(resetKey: number) {
+function useScrubbableTicker(resetKey: number, stopAt: number) {
   const [t, setT] = useState(0);
   const [playing, setPlaying] = useState(true);
   const tRef = useRef(0);
@@ -153,15 +153,15 @@ function useScrubbableTicker(resetKey: number) {
     originRef.current = performance.now() - tRef.current;
     let raf = 0;
     const loop = (now: number) => {
-      const elapsed = Math.min(now - originRef.current, TOTAL);
+      const elapsed = Math.min(now - originRef.current, stopAt, TOTAL);
       tRef.current = elapsed;
       setT(elapsed);
-      if (elapsed < TOTAL) raf = requestAnimationFrame(loop);
+      if (elapsed < stopAt && elapsed < TOTAL) raf = requestAnimationFrame(loop);
       else setPlaying(false);
     };
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
-  }, [playing, resetKey]);
+  }, [playing, resetKey, stopAt]);
 
   const seek = (next: number) => commit(next);
   const toggle = () => {
@@ -169,7 +169,12 @@ function useScrubbableTicker(resetKey: number) {
     setPlaying((p) => !p);
   };
 
-  return { t, playing, seek, toggle };
+  const advance = (next: number) => {
+    commit(next);
+    setPlaying(true);
+  };
+
+  return { t, playing, seek, toggle, advance };
 }
 
 function ease(x: number) {
@@ -282,6 +287,7 @@ export function AutoBuilderDemo({
   onNarrationChange?: (v: boolean) => void;
 }) {
   const [resetKey, setResetKey] = useState(0);
+  const [guidedPage, setGuidedPage] = useState(0);
   const [narrationLocal, setNarrationLocal] = useState(false);
   const narration = narrationProp ?? narrationLocal;
   const setNarration = (updater: (v: boolean) => boolean) => {
@@ -289,7 +295,11 @@ export function AutoBuilderDemo({
     if (onNarrationChange) onNarrationChange(next);
     else setNarrationLocal(next);
   };
-  const { t, playing, seek, toggle } = useScrubbableTicker(resetKey);
+  const GUIDED_STARTS = useMemo(() => [0, ...CHAPTERS.map((chapter) => chapter.at)], []);
+  const pageStart = GUIDED_STARTS[guidedPage] ?? 0;
+  const nextPageStart = GUIDED_STARTS[guidedPage + 1] ?? TOTAL;
+  const pageStop = guidedPage === GUIDED_STARTS.length - 1 ? TOTAL : Math.max(pageStart, nextPageStart - 100);
+  const { t, playing, toggle, advance } = useScrubbableTicker(resetKey, pageStop);
   const finished = t >= TOTAL;
 
   // ---- derived animation state ----
@@ -329,10 +339,6 @@ export function AutoBuilderDemo({
   const fastProgress = seg(t, T.fasting, T.fastingEnd);
   const isFasting = t >= T.fasting;
 
-  useEffect(() => {
-    if (finished) onFinish?.();
-  }, [finished, onFinish]);
-
   const fakeStart = useMemo(() => new Date(2026, 0, 1, 20, 0, 0), []);
   const fakeNow = useMemo(
     () => new Date(fakeStart.getTime() + fastProgress * 16 * 3600000),
@@ -355,17 +361,35 @@ export function AutoBuilderDemo({
     return index < 0 ? 0 : index + 1;
   }, [t]);
 
-  const { stop: stopNarration } = useCaptionNarration(
-    narration && playing ? `${activeCaption.title}. ${activeCaption.caption}` : "",
+  const {
+    stop: stopNarration,
+    isLoading: narrationLoading,
+    isSpeaking,
+    isComplete: narrationComplete,
+  } = useCaptionNarration(
+    narration ? `${activeCaption.title}. ${activeCaption.caption}` : "",
     narration
   );
-  useEffect(() => {
-    if (!playing) stopNarration();
-  }, [playing, stopNarration]);
+
+  const pageAnimationComplete = t >= pageStop;
+  const canAdvance = pageAnimationComplete && (!narration || narrationComplete);
+  const isLastPage = guidedPage === GUIDED_STARTS.length - 1;
+
+  const goNext = () => {
+    if (!canAdvance) return;
+    if (isLastPage) {
+      onFinish?.();
+      return;
+    }
+    stopNarration();
+    const nextPage = guidedPage + 1;
+    setGuidedPage(nextPage);
+    advance(GUIDED_STARTS[nextPage] ?? TOTAL);
+  };
 
   return (
     <div className="flex flex-col gap-4">
-      {/* scrub bar */}
+      {/* Guided progress — chapters advance only after narration + animation */}
       <div className="space-y-2">
         <div className="flex items-center gap-3">
           <button
@@ -377,34 +401,24 @@ export function AutoBuilderDemo({
             {playing ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5 translate-x-[1px]" />}
           </button>
 
-          <div className="relative flex-1">
+          <div className="relative flex-1" aria-label={`Demo page ${guidedPage + 1} of ${GUIDED_STARTS.length}`}>
             <div className="pointer-events-none absolute left-0 right-0 top-1/2 h-1 -translate-y-1/2 overflow-hidden rounded-full bg-white/10">
               <div
                 className="h-full rounded-full bg-[hsl(var(--primary))]"
                 style={{ width: `${overallPct}%` }}
               />
             </div>
-            {CHAPTERS.map((c) => (
+            {GUIDED_STARTS.slice(1).map((at) => (
               <span
-                key={c.label}
+                key={at}
                 className="pointer-events-none absolute top-1/2 h-2 w-[2px] -translate-y-1/2 rounded-full bg-white/35"
-                style={{ left: `${(c.at / TOTAL) * 100}%` }}
+                style={{ left: `${(at / TOTAL) * 100}%` }}
               />
             ))}
-            <input
-              type="range"
-              min={0}
-              max={TOTAL}
-              step={50}
-              value={Math.round(t)}
-              aria-label="Scrub demo timeline"
-              onChange={(e) => seek(Number(e.target.value))}
-              className="relative h-6 w-full cursor-pointer appearance-none bg-transparent [&::-moz-range-thumb]:h-3.5 [&::-moz-range-thumb]:w-3.5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-[hsl(var(--primary))] [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[hsl(var(--primary))] [&::-webkit-slider-thumb]:shadow-[0_0_0_3px_hsl(var(--primary)/0.25)]"
-            />
           </div>
 
           <span className="w-12 shrink-0 text-right text-[10px] tabular-nums text-white/50">
-            {Math.ceil(t / 1000)} / {TOTAL / 1000}s
+            {guidedPage + 1} / {GUIDED_STARTS.length}
           </span>
 
           <button
@@ -428,26 +442,22 @@ export function AutoBuilderDemo({
           </button>
         </div>
 
-        <div className="flex flex-wrap gap-1.5">
-          {CHAPTERS.map((c, i) => {
-            const next = CHAPTERS[i + 1]?.at ?? TOTAL;
-            const active = t >= c.at && t < next;
-            return (
-              <button
-                key={c.label}
-                type="button"
-                onClick={() => seek(c.at)}
-                className={cn(
-                  "rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider transition-colors",
-                  active
-                    ? "border-[hsl(var(--primary))] bg-[hsl(var(--primary))/15] text-white"
-                    : "border-white/10 bg-white/[0.04] text-white/55 hover:bg-white/10"
-                )}
-              >
-                {c.label}
-              </button>
-            );
-          })}
+        <div className="flex flex-wrap gap-1.5" aria-label="Demo chapters">
+          {["Intro", ...CHAPTERS.map((chapter) => chapter.label)].map((label, index) => (
+            <span
+              key={label}
+              className={cn(
+                "rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider",
+                index === guidedPage
+                  ? "border-[hsl(var(--primary))] bg-[hsl(var(--primary))/15] text-white"
+                  : index < guidedPage
+                  ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-300"
+                  : "border-white/10 bg-white/[0.04] text-white/35"
+              )}
+            >
+              {label}
+            </span>
+          ))}
         </div>
       </div>
 
@@ -466,6 +476,26 @@ export function AutoBuilderDemo({
           </span>
         </div>
         <p className="mt-2 text-sm leading-relaxed text-white/80">{activeCaption.caption}</p>
+        <div className="mt-3 border-t border-white/10 pt-3">
+          <Button
+            type="button"
+            size="sm"
+            onClick={goNext}
+            disabled={!canAdvance}
+            className="h-10 w-full rounded-xl text-sm font-semibold"
+          >
+            {narration && narrationLoading
+              ? "Preparing voice…"
+              : narration && isSpeaking
+              ? "Voice guide is speaking…"
+              : !pageAnimationComplete
+              ? "Showing this step…"
+              : isLastPage
+              ? "Finish demo"
+              : "Click Next to continue"}
+            {canAdvance && !isLastPage && <ChevronRight className="ml-1.5 h-4 w-4" />}
+          </Button>
+        </div>
       </div>
 
       {!showTimer ? (
@@ -693,7 +723,11 @@ export function AutoBuilderDemo({
           {finished && (
             <Button
               variant="outline"
-              onClick={() => setResetKey((k) => k + 1)}
+              onClick={() => {
+                stopNarration();
+                setGuidedPage(0);
+                setResetKey((k) => k + 1);
+              }}
               className="mt-2 rounded-full border-white/20 bg-white/5 text-xs hover:bg-white/10 hover:text-white"
             >
               <RotateCcw className="mr-1.5 h-3.5 w-3.5" /> Replay demo
