@@ -412,26 +412,6 @@ export function AutoBuilderDemo({
           <span className="w-12 shrink-0 text-right text-[10px] tabular-nums text-white/50">
             {guidedPage + 1} / {GUIDED_STARTS.length}
           </span>
-
-          <button
-            type="button"
-            onClick={() => {
-              setNarration((v) => {
-                if (v) stopNarration();
-                return !v;
-              });
-            }}
-            aria-pressed={narration}
-            aria-label={narration ? "Turn narration off" : "Turn narration on"}
-            className={cn(
-              "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-colors",
-              narration
-                ? "border-[hsl(var(--primary))] bg-[hsl(var(--primary))/15] text-[hsl(var(--primary))]"
-                : "border-white/15 bg-white/5 text-white/60 hover:bg-white/10"
-            )}
-          >
-            {narration ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
-          </button>
         </div>
 
         <div className="flex flex-wrap gap-1.5" aria-label="Demo chapters">
