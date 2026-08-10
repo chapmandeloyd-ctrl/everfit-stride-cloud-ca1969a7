@@ -370,11 +370,13 @@ function FieldShell({
   label,
   children,
   active,
+  pulse,
   done,
 }: {
   label: string;
   children: React.ReactNode;
   active?: boolean;
+  pulse?: boolean;
   done?: boolean;
 }) {
   return (
@@ -399,7 +401,10 @@ function FieldShell({
         className={cn(
           "flex h-11 items-center justify-between gap-2 rounded-xl border px-3 text-sm transition-all duration-300",
           active
-            ? "scale-[1.015] border-[hsl(var(--primary))] bg-[hsl(var(--primary))/10] shadow-[0_0_0_4px_hsl(var(--primary)/0.18),0_0_22px_hsl(var(--primary)/0.35)] animate-[pulse_1.6s_ease-in-out_infinite]"
+            ? cn(
+                "border-[hsl(var(--primary))] bg-[hsl(var(--primary))/10] shadow-[0_0_0_4px_hsl(var(--primary)/0.18),0_0_22px_hsl(var(--primary)/0.35)]",
+                pulse !== false && "scale-[1.015] animate-[pulse_1.6s_ease-in-out_infinite]"
+              )
             : done
             ? "border-emerald-500/35 bg-emerald-500/[0.06]"
             : "border-white/10 bg-white/[0.04]"
