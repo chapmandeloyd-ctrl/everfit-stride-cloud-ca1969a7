@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { FastingTimer } from "@/components/FastingTimer";
 import { cn } from "@/lib/utils";
 import lionBg from "@/assets/fasting-timer-bg.png";
-import { Check, ChevronDown, ChevronRight, Pause, Play, RotateCcw, Sparkles, Volume2, VolumeX } from "lucide-react";
+import { Check, ChevronDown, ChevronRight, Pause, Play, RotateCcw, Sparkles } from "lucide-react";
 import { useCaptionNarration } from "@/hooks/useCaptionNarration";
 
 /**
@@ -280,21 +280,13 @@ function SectionCard({
 export function AutoBuilderDemo({
   onFinish,
   narration: narrationProp,
-  onNarrationChange,
 }: {
   onFinish?: () => void;
   narration?: boolean;
-  onNarrationChange?: (v: boolean) => void;
 }) {
   const [resetKey, setResetKey] = useState(0);
   const [guidedPage, setGuidedPage] = useState(0);
-  const [narrationLocal, setNarrationLocal] = useState(false);
-  const narration = narrationProp ?? narrationLocal;
-  const setNarration = (updater: (v: boolean) => boolean) => {
-    const next = updater(narration);
-    if (onNarrationChange) onNarrationChange(next);
-    else setNarrationLocal(next);
-  };
+  const narration = narrationProp ?? false;
   const GUIDED_STARTS = useMemo(() => [0, ...CHAPTERS.map((chapter) => chapter.at)], []);
   const pageStart = GUIDED_STARTS[guidedPage] ?? 0;
   const nextPageStart = GUIDED_STARTS[guidedPage + 1] ?? TOTAL;
