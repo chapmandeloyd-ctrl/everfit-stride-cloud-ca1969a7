@@ -20,7 +20,7 @@ const DEMO_KEY = "plan_demo_completed";
 const STEP_SCRIPT: Record<number, string> = {
   1: "Welcome to APEX build your full plan mode. Unlike the calendar strip at the top of your home page that's designed for quick one day tweaks, full plan mode allows you to create fuel style, calories, macros, fasting windows, and durations. Click Continue to see how it works.",
   2: "Full Plan covers four sections that work together. Fuel Style sets your metabolic approach. Fasting Protocol sets how long each fast lasts. Macros and Calories are calculated from your weight, activity, and goal. And the Weekly Schedule sets a repeating pattern for training days, rest days, and weekends. Click See how it works to continue.",
-  4: "That's your full crash course, start to finish. Now it's your turn. Click, take me to my full calendar build, and you'll go straight into the builder where you control every detail yourself — or let APEXBEAST AI recommend a full plan after a quick assessment, and you can edit anything it suggests. If you'd rather look around first, click, take me back to my home page. Your calendar will be waiting.",
+  4: "And there you have it — a complete demo of your full calendar build. You have three choices now. Click Build my own plan to open the real builder and design every detail yourself. Click Build my real plan with AI to answer a few questions and let APEXBEAST AI generate a live starting plan you can edit. Or click Take me back to Home if you want to explore first and come back later.",
 };
 
 
@@ -180,18 +180,18 @@ function StepStart({ onBack }: { onBack: () => void }) {
           That's the full build
         </h2>
         <p className="mt-3 text-base leading-relaxed text-white/70">
-          You've seen it end to end. Jump into your real calendar build now, or head back home and come back when you're ready.
+          You've seen it end to end. Pick your next move — build it yourself, let AI build it live, or head back home.
         </p>
       </div>
 
       <div className="mt-2 space-y-3">
         <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-          <div className="font-semibold text-white">Full calendar build</div>
+          <div className="font-semibold text-white">Build my own plan</div>
           <div className="mt-1 text-sm text-white/60">You control every detail: fuel style, calories, macros, and weekly windows.</div>
         </div>
         <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-          <div className="font-semibold text-white">AI-assisted</div>
-          <div className="mt-1 text-sm text-white/60">Answer a few questions and the AI fills in a starting plan you can edit.</div>
+          <div className="font-semibold text-white">Build my real plan with AI</div>
+          <div className="mt-1 text-sm text-white/60">Answer a few questions and APEXBEAST AI fills in a starting plan you can edit.</div>
         </div>
       </div>
 
@@ -204,7 +204,7 @@ function StepStart({ onBack }: { onBack: () => void }) {
           size="lg"
           className="h-14 w-full rounded-2xl text-base font-medium"
         >
-          Take me to my full calendar build
+          Build my own plan
         </Button>
         <Button
           onClick={() => {
@@ -215,7 +215,7 @@ function StepStart({ onBack }: { onBack: () => void }) {
           size="lg"
           className="h-14 w-full rounded-2xl border-white/20 bg-white/5 text-base font-medium hover:bg-white/10 hover:text-white"
         >
-          <Sparkles className="mr-2 h-4 w-4" /> Let APEXBEAST AI build it
+          <Sparkles className="mr-2 h-4 w-4" /> Build my real plan with AI
         </Button>
         <Button
           onClick={() => {
@@ -226,7 +226,7 @@ function StepStart({ onBack }: { onBack: () => void }) {
           size="lg"
           className="h-12 w-full rounded-2xl text-sm font-medium text-white/70 hover:bg-white/5 hover:text-white"
         >
-          Take me back to my home page
+          Take me back to Home
         </Button>
       </div>
     </div>
