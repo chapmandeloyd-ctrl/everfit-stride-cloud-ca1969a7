@@ -455,7 +455,7 @@ export function AutoBuilderDemo({
   const [resetKey, setResetKey] = useState(0);
   const [guidedPage, setGuidedPage] = useState(0);
   const narration = narrationProp ?? false;
-  const GUIDED_STARTS = useMemo(() => [0, ...CHAPTERS.map((chapter) => chapter.at)], []);
+  const GUIDED_STARTS = useMemo(() => BEATS.map((beat) => beat.at), []);
   const pageStart = GUIDED_STARTS[guidedPage] ?? 0;
   const nextPageStart = GUIDED_STARTS[guidedPage + 1] ?? TOTAL;
   const pageStop = guidedPage === GUIDED_STARTS.length - 1 ? TOTAL : Math.max(pageStart, nextPageStart - 100);
@@ -507,19 +507,15 @@ export function AutoBuilderDemo({
 
   const overallPct = (t / TOTAL) * 100;
 
-  const activeCaption = useMemo(() => {
-    let current: (typeof CHAPTERS)[number] | null = null;
-    for (const c of CHAPTERS) if (t >= c.at) current = c;
-    return current ?? INTRO_CAPTION;
-  }, [t]);
+  const activeBeat = BEATS[Math.min(guidedPage, BEATS.length - 1)];
+  const activeCaption = activeBeat;
 
-  const activeChapterNumber = useMemo(() => {
-    const index = CHAPTERS.findIndex((chapter, chapterIndex) => {
-      const next = CHAPTERS[chapterIndex + 1]?.at ?? TOTAL;
-      return t >= chapter.at && t < next;
-    });
-    return index < 0 ? 0 : index + 1;
-  }, [t]);
+  const chapterBeats = useMemo(
+    () => BEATS.filter((b) => b.chapter === activeBeat.chapter),
+    [activeBeat.chapter]
+  );
+  const beatInChapter = chapterBeats.indexOf(activeBeat) + 1;
+  const activeChapterIndex = CHAPTER_LABELS.indexOf(activeBeat.chapter);
 
   const {
     stop: stopNarration,
