@@ -301,6 +301,13 @@ const BEATS: Beat[] = [
     caption:
       "The ring fills as you move through each stage — blood sugar drop, glycogen burn, ketosis, then fat burning.",
   },
+  {
+    chapter: "Wrap",
+    at: T.done,
+    title: "And there you have it",
+    caption:
+      "And there you have it — a complete demo of your full calendar build. Fuel style, fasting protocol, calories and macros, a full week of day types, saved to your calendar with the timer arming itself. Tap Finish demo and I'll give you two ways to go: take you straight to your full calendar build, or take you back to your home page.",
+  },
 ];
 
 const CHAPTER_LABELS = Array.from(new Set(BEATS.map((b) => b.chapter)));
