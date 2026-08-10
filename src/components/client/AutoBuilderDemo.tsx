@@ -90,7 +90,7 @@ const BEATS: Beat[] = [
     at: T.fuelOpen,
     title: "Fuel Style · Apex Balance",
     caption:
-      "Fuel style, Apex Balance. Fifty percent protein, thirty percent carbs, twenty percent fat. This is your foundational everyday fuel — an even split that's the easiest to sustain long term. Click Next to continue.",
+      "Fuel style, Apex Balance. Fifty percent protein, thirty percent carbs, twenty percent fat. This is your foundational everyday fuel — an even split that's the easiest to sustain long term.",
     fuelHi: 0,
     captionOnly: true,
   },
@@ -99,7 +99,7 @@ const BEATS: Beat[] = [
     at: T.fuelOpen,
     title: "Fuel Style · Apex Performance",
     caption:
-      "Fuel style, Apex Performance. Forty-five percent protein, thirty-five percent carbs, twenty percent fat. The highest carbs of the group, built for training volume so you protect muscle while you train hard. Click Next to continue.",
+      "Fuel style, Apex Performance. Forty-five percent protein, thirty-five percent carbs, twenty percent fat. The highest carbs of the group, built for training volume so you protect muscle while you train hard.",
     fuelHi: 1,
     captionOnly: true,
   },
@@ -108,7 +108,7 @@ const BEATS: Beat[] = [
     at: T.fuelOpen,
     title: "Fuel Style · Apex Lean",
     caption:
-      "Fuel style, Apex Lean. Forty percent protein, thirty percent carbs, thirty percent fat, with strategic carb cycling — more carbs on training days, fewer on rest days. Made for active people who still want to drop fat. Click Next to continue.",
+      "Fuel style, Apex Lean. Forty percent protein, thirty percent carbs, thirty percent fat, with strategic carb cycling — more carbs on training days, fewer on rest days. Made for active people who still want to drop fat.",
     fuelHi: 2,
     captionOnly: true,
   },
@@ -117,7 +117,7 @@ const BEATS: Beat[] = [
     at: T.fuelOpen,
     title: "Fuel Style · Apex Recomp",
     caption:
-      "Fuel style, Apex Recomp. Also forty, thirty, thirty, but loaded toward your training days. This is the one for building muscle and dropping fat at the same time. Click Next to continue.",
+      "Fuel style, Apex Recomp. Also forty, thirty, thirty, but loaded toward your training days. This is the one for building muscle and dropping fat at the same time.",
     fuelHi: 3,
     captionOnly: true,
   },
@@ -126,7 +126,7 @@ const BEATS: Beat[] = [
     at: T.fuelOpen,
     title: "Fuel Style · Apex Low-Carb Extreme",
     caption:
-      "Fuel style, Apex Low-Carb Extreme. Twenty percent protein, ten percent carbs, seventy percent fat. A deep low-carb reset for stubborn fat and strong appetite control. Click Next to continue.",
+      "Fuel style, Apex Low-Carb Extreme. Twenty percent protein, ten percent carbs, seventy percent fat. A deep low-carb reset for stubborn fat and strong appetite control.",
     fuelHi: 4,
     captionOnly: true,
   },
@@ -135,7 +135,7 @@ const BEATS: Beat[] = [
     at: T.fuelPick,
     title: "Fuel Style selected",
     caption:
-      "For this example we'll use Apex Lean. Click Next to continue.",
+      "For this example we'll use Apex Lean.",
     fuelHi: 2,
     captionOnly: true,
   },
@@ -146,7 +146,7 @@ const BEATS: Beat[] = [
     at: T.protoOpen,
     title: "Protocol · 16:8 Daily",
     caption:
-      "Sixteen eight daily. You fast sixteen hours and eat within eight, every single day. This is the proven starting point and the easiest rhythm to keep. Click Next to continue.",
+      "Sixteen eight daily. You fast sixteen hours and eat within eight, every single day. This is the proven starting point and the easiest rhythm to keep.",
     protoHi: 0,
     captionOnly: true,
   },
@@ -155,7 +155,7 @@ const BEATS: Beat[] = [
     at: T.protoOpen,
     title: "Protocol · 16:8 Weekdays",
     caption:
-      "Sixteen eight weekdays. The same sixteen hour fast Monday through Friday, with relaxed weekends. Best if you have a social schedule you don't want to fight. Click Next to continue.",
+      "Sixteen eight weekdays. The same sixteen hour fast Monday through Friday, with relaxed weekends. Best if you have a social schedule you don't want to fight.",
     protoHi: 1,
     captionOnly: true,
   },
@@ -164,7 +164,7 @@ const BEATS: Beat[] = [
     at: T.protoOpen,
     title: "Protocol · 18:6 Daily",
     caption:
-      "Eighteen six daily. Eighteen hours fasting, six hours eating. This pushes you deeper into ketosis every day — step up to it once sixteen eight feels easy. Click Next to continue.",
+      "Eighteen six daily. Eighteen hours fasting, six hours eating. This pushes you deeper into ketosis every day — step up to it once sixteen eight feels easy.",
     protoHi: 2,
     captionOnly: true,
   },
@@ -173,7 +173,7 @@ const BEATS: Beat[] = [
     at: T.protoOpen,
     title: "Protocol · 20:4 Warrior",
     caption:
-      "Twenty four warrior. Twenty hours fasting with one large meal and one small one. Strong autophagy and serious appetite control. Click Next to continue.",
+      "Twenty four warrior. Twenty hours fasting with one large meal and one small one. Strong autophagy and serious appetite control.",
     protoHi: 3,
     captionOnly: true,
   },
@@ -182,7 +182,7 @@ const BEATS: Beat[] = [
     at: T.protoOpen,
     title: "Protocol · OMAD",
     caption:
-      "O-MAD, one meal a day. Twenty-three hours fasting. This is the maximum fat-burning window, and it's for advanced fasters only. Click Next to continue.",
+      "O-MAD, one meal a day. Twenty-three hours fasting. This is the maximum fat-burning window, and it's for advanced fasters only.",
     protoHi: 4,
     captionOnly: true,
   },
@@ -191,7 +191,7 @@ const BEATS: Beat[] = [
     at: T.protoPick,
     title: "Protocol selected",
     caption:
-      "For this example we'll use sixteen eight weekdays. Click Next to continue.",
+      "For this example we'll use sixteen eight weekdays.",
     protoHi: 1,
     captionOnly: true,
   },
@@ -551,6 +551,7 @@ export function AutoBuilderDemo({
   );
 
   const pageAnimationComplete = t >= pageStop;
+  const [autoPlay, setAutoPlay] = useState(true);
   const canAdvance = pageAnimationComplete && (!narration || narrationComplete);
   const isLastPage = guidedPage === GUIDED_STARTS.length - 1;
 
@@ -566,6 +567,16 @@ export function AutoBuilderDemo({
     advance(GUIDED_STARTS[nextPage] ?? TOTAL);
   };
 
+  // Auto-advance: once the animation and narration for this beat finish,
+  // move to the next beat on its own. Pausing the demo stops auto-advance.
+  const goNextRef = useRef(goNext);
+  goNextRef.current = goNext;
+  useEffect(() => {
+    if (!canAdvance || isLastPage || !autoPlay) return;
+    const id = window.setTimeout(() => goNextRef.current(), 800);
+    return () => window.clearTimeout(id);
+  }, [canAdvance, isLastPage, autoPlay, guidedPage]);
+
   return (
     <div className="flex flex-col gap-4">
       {/* Guided progress — chapters advance only after narration + animation */}
@@ -573,11 +584,14 @@ export function AutoBuilderDemo({
         <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={toggle}
-            aria-label={playing ? "Pause demo" : "Play demo"}
+            onClick={() => {
+              setAutoPlay((a) => !a);
+              if (!playing) toggle();
+            }}
+            aria-label={autoPlay ? "Pause demo" : "Play demo"}
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white transition-colors hover:bg-white/10"
           >
-            {playing ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5 translate-x-[1px]" />}
+            {autoPlay ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5 translate-x-[1px]" />}
           </button>
 
           <div className="relative flex-1" aria-label={`Demo page ${guidedPage + 1} of ${GUIDED_STARTS.length}`}>
@@ -653,7 +667,9 @@ export function AutoBuilderDemo({
               ? "Showing this step…"
               : isLastPage
               ? "Finish demo"
-              : "Click Next to continue"}
+              : autoPlay
+              ? "Continuing…"
+              : "Continue"}
             {canAdvance && !isLastPage && <ChevronRight className="ml-1.5 h-4 w-4" />}
           </Button>
         </div>
