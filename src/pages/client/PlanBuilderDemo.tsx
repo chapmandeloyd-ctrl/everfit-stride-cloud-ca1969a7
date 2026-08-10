@@ -155,7 +155,7 @@ function StepWalkthrough({
 
       <AutoBuilderDemo
         onFinish={() => setCanContinue(true)}
-        narration={false}
+        narration={true}
       />
 
       <div className="pt-2">
