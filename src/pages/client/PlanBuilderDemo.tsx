@@ -220,7 +220,7 @@ function StepStart({ onBack }: { onBack: () => void }) {
         <Button
           onClick={() => {
             try { localStorage.setItem(DEMO_KEY, "1"); } catch {}
-            navigate("/client");
+            navigate("/client/dashboard");
           }}
           variant="ghost"
           size="lg"
