@@ -571,10 +571,10 @@ export function AutoBuilderDemo({
   const goNextRef = useRef(goNext);
   goNextRef.current = goNext;
   useEffect(() => {
-    if (!canAdvance || isLastPage || !playing) return;
+    if (!canAdvance || isLastPage || !autoPlay) return;
     const id = window.setTimeout(() => goNextRef.current(), 800);
     return () => window.clearTimeout(id);
-  }, [canAdvance, isLastPage, playing, guidedPage]);
+  }, [canAdvance, isLastPage, autoPlay, guidedPage]);
 
   return (
     <div className="flex flex-col gap-4">
