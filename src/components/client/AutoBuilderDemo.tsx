@@ -339,10 +339,6 @@ export function AutoBuilderDemo({
   const fastProgress = seg(t, T.fasting, T.fastingEnd);
   const isFasting = t >= T.fasting;
 
-  useEffect(() => {
-    if (finished) onFinish?.();
-  }, [finished, onFinish]);
-
   const fakeStart = useMemo(() => new Date(2026, 0, 1, 20, 0, 0), []);
   const fakeNow = useMemo(
     () => new Date(fakeStart.getTime() + fastProgress * 16 * 3600000),
@@ -727,7 +723,11 @@ export function AutoBuilderDemo({
           {finished && (
             <Button
               variant="outline"
-              onClick={() => setResetKey((k) => k + 1)}
+              onClick={() => {
+                stopNarration();
+                setGuidedPage(0);
+                setResetKey((k) => k + 1);
+              }}
               className="mt-2 rounded-full border-white/20 bg-white/5 text-xs hover:bg-white/10 hover:text-white"
             >
               <RotateCcw className="mr-1.5 h-3.5 w-3.5" /> Replay demo
