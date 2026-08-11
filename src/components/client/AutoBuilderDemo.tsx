@@ -580,9 +580,7 @@ export function AutoBuilderDemo({
     const target = Math.max(0, Math.min(page, GUIDED_STARTS.length - 1));
     stopNarration();
     setGuidedPage(target);
-    advance(
-      target === GUIDED_STARTS.length - 1 ? TOTAL : GUIDED_STARTS[target + 1] - 100
-    );
+    advance(GUIDED_STARTS[target] ?? 0);
   };
 
   // Auto-advance: once the animation and narration for this beat finish,
