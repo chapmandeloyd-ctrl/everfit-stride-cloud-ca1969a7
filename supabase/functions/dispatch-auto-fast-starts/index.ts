@@ -17,7 +17,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { sendWebPush, recordExpiredSubscription } from "../_shared/web-push.ts";
-import { computeScheduledFastStart, tzDateParts } from "../_shared/fast-schedule.ts";
+import { computeScheduledFastStart, tzDateParts, makeDateInTz } from "../_shared/fast-schedule.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -248,6 +248,16 @@ async function backfillScheduledStarts(supabase: any): Promise<void> {
   for (const r of rows ?? []) {
     try {
       const tz = r.schedule_timezone || "UTC";
+      const { y, mo, d } = tzDateParts(now, tz);
+      const todayKey = `${y}-${String(mo).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+      const dow = new Date(`${todayKey}T12:00:00Z`).getUTCDay();
+
+      // Respect the client's own calendar: a day marked as a rest day
+      // (enabled = false) or "eat all day" must never auto-start a fast.
+      const scheduledDay = await resolveScheduledDay(supabase, r.client_id, todayKey, dow);
+      if (scheduledDay && (scheduledDay.enabled === false || scheduledDay.ratio === "eat_all_day")) {
+        continue;
+      }
 
       // Protocol window guard
       if (r.assigned_protocol_duration_days && r.protocol_start_date) {
@@ -274,12 +284,16 @@ async function backfillScheduledStarts(supabase: any): Promise<void> {
       }
       if (!fastHours) continue;
 
-      const startAt = computeScheduledFastStart({
-        fastHours,
-        dayStartHour: typeof r.day_start_hour === "number" ? r.day_start_hour : null,
-        tz,
-        now,
-      });
+      // Prefer the exact start time the client sees in their calendar.
+      const calendarStartHour = parseStartHour(scheduledDay?.window_start_time);
+      const startAt = calendarStartHour !== null
+        ? makeDateInTz(y, mo, d, Math.floor(calendarStartHour), Math.round((calendarStartHour % 1) * 60), tz)
+        : computeScheduledFastStart({
+            fastHours,
+            dayStartHour: typeof r.day_start_hour === "number" ? r.day_start_hour : null,
+            tz,
+            now,
+          });
       if (!startAt) continue;
 
       const deltaMin = (now.getTime() - startAt.getTime()) / 60_000;
@@ -290,8 +304,6 @@ async function backfillScheduledStarts(supabase: any): Promise<void> {
       if (r.last_auto_fast_started_for
         && new Date(r.last_auto_fast_started_for).getTime() === startAt.getTime()) continue;
 
-      const { y, mo, d } = tzDateParts(now, tz);
-      const todayKey = `${y}-${String(mo).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
       if (r.auto_fast_skip_date && String(r.auto_fast_skip_date).slice(0, 10) === todayKey) continue;
 
       await supabase
