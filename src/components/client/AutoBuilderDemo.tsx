@@ -565,6 +565,7 @@ export function AutoBuilderDemo({
   const goNext = () => {
     if (!canAdvance) return;
     if (isLastPage) {
+      stopNarration();
       onFinish?.();
       return;
     }
