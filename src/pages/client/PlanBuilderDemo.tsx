@@ -139,8 +139,6 @@ function StepWalkthrough({
 }: {
   onNext: () => void;
 }) {
-  const [canContinue, setCanContinue] = useState(false);
-
   return (
     <div className="flex min-h-full flex-col gap-4 pb-2">
       <div>
@@ -153,16 +151,7 @@ function StepWalkthrough({
         </p>
       </div>
 
-      <AutoBuilderDemo
-        onFinish={() => setCanContinue(true)}
-        narration={true}
-      />
-
-      <div className="pt-2">
-        <Button onClick={onNext} disabled={!canContinue} size="lg" className="h-14 w-full rounded-2xl text-base font-medium">
-          Continue to build my plan <ChevronRight className="ml-1 h-4 w-4" />
-        </Button>
-      </div>
+      <AutoBuilderDemo onFinish={onNext} narration={true} />
     </div>
   );
 }
