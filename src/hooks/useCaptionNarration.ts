@@ -4,6 +4,21 @@ const FN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-tts
 const ANON = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
 
 /**
+ * Global registry so only ONE narration audio element can play at a time,
+ * even when multiple components mount the hook (e.g. page-level script +
+ * in-demo captions). Starting a new line silences every other one.
+ */
+const activeAudios = new Set<HTMLAudioElement>();
+function silenceOthers(current: HTMLAudioElement | null) {
+  activeAudios.forEach((a) => {
+    if (a !== current) {
+      a.pause();
+      a.currentTime = 0;
+    }
+  });
+}
+
+/**
  * Optional voice narration for a changing caption string.
  * Fetches TTS audio per unique line, caches it, and plays the newest line
  * (cancelling whatever was speaking). Fully silent + no requests when disabled.
@@ -33,6 +48,8 @@ export function useCaptionNarration(text: string, enabled: boolean) {
       return;
     }
     if (!text) {
+      stop();
+      lastSpoken.current = null;
       setIsComplete(true);
       return;
     }
@@ -67,9 +84,12 @@ export function useCaptionNarration(text: string, enabled: boolean) {
         stop();
         const audio = audioRef.current ?? new Audio();
         audioRef.current = audio;
+        activeAudios.add(audio);
+        silenceOthers(audio);
         audio.src = url;
         audio.volume = 1;
         audio.onplay = () => {
+          silenceOthers(audio);
           if (cancelled) return;
           setIsLoading(false);
           setIsSpeaking(true);
@@ -109,7 +129,10 @@ export function useCaptionNarration(text: string, enabled: boolean) {
   useEffect(() => {
     const cached = cache.current;
     return () => {
-      audioRef.current?.pause();
+      if (audioRef.current) {
+        audioRef.current.pause();
+        activeAudios.delete(audioRef.current);
+      }
       cached.forEach((u) => URL.revokeObjectURL(u));
       cached.clear();
     };
