@@ -17,7 +17,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { sendWebPush, recordExpiredSubscription } from "../_shared/web-push.ts";
-import { computeScheduledFastStart, tzDateParts } from "../_shared/fast-schedule.ts";
+import { computeScheduledFastStart, tzDateParts, makeDateInTz } from "../_shared/fast-schedule.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -248,6 +248,16 @@ async function backfillScheduledStarts(supabase: any): Promise<void> {
   for (const r of rows ?? []) {
     try {
       const tz = r.schedule_timezone || "UTC";
+      const { y, mo, d } = tzDateParts(now, tz);
+      const todayKey = `${y}-${String(mo).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+      const dow = new Date(`${todayKey}T12:00:00Z`).getUTCDay();
+
+      // Respect the client's own calendar: a day marked as a rest day
+      // (enabled = false) or "eat all day" must never auto-start a fast.
+      const scheduledDay = await resolveScheduledDay(supabase, r.client_id, todayKey, dow);
+      if (scheduledDay && (scheduledDay.enabled === false || scheduledDay.ratio === "eat_all_day")) {
+        continue;
+      }
 
       // Protocol window guard
       if (r.assigned_protocol_duration_days && r.protocol_start_date) {
@@ -274,12 +284,16 @@ async function backfillScheduledStarts(supabase: any): Promise<void> {
       }
       if (!fastHours) continue;
 
-      const startAt = computeScheduledFastStart({
-        fastHours,
-        dayStartHour: typeof r.day_start_hour === "number" ? r.day_start_hour : null,
-        tz,
-        now,
-      });
+      // Prefer the exact start time the client sees in their calendar.
+      const calendarStartHour = parseStartHour(scheduledDay?.window_start_time);
+      const startAt = calendarStartHour !== null
+        ? makeDateInTz(y, mo, d, Math.floor(calendarStartHour), Math.round((calendarStartHour % 1) * 60), tz)
+        : computeScheduledFastStart({
+            fastHours,
+            dayStartHour: typeof r.day_start_hour === "number" ? r.day_start_hour : null,
+            tz,
+            now,
+          });
       if (!startAt) continue;
 
       const deltaMin = (now.getTime() - startAt.getTime()) / 60_000;
@@ -290,8 +304,6 @@ async function backfillScheduledStarts(supabase: any): Promise<void> {
       if (r.last_auto_fast_started_for
         && new Date(r.last_auto_fast_started_for).getTime() === startAt.getTime()) continue;
 
-      const { y, mo, d } = tzDateParts(now, tz);
-      const todayKey = `${y}-${String(mo).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
       if (r.auto_fast_skip_date && String(r.auto_fast_skip_date).slice(0, 10) === todayKey) continue;
 
       await supabase
@@ -303,4 +315,53 @@ async function backfillScheduledStarts(supabase: any): Promise<void> {
       console.error("backfillScheduledStarts row error", err);
     }
   }
+}
+
+type ScheduledDay = {
+  day_of_week: number;
+  ratio?: string | null;
+  window_start_time?: string | null;
+  enabled?: boolean | null;
+};
+
+/** "20:00:00" -> 20, "20:30" -> 20.5, anything else -> null */
+function parseStartHour(v: string | null | undefined): number | null {
+  if (!v) return null;
+  const m = /^(\d{1,2}):(\d{2})/.exec(String(v));
+  if (!m) return null;
+  const h = Number(m[1]);
+  const min = Number(m[2]);
+  if (Number.isNaN(h) || Number.isNaN(min) || h > 23) return null;
+  return h + min / 60;
+}
+
+/**
+ * The day the client actually sees for `dateKey`: a single-date override wins
+ * over the recurring weekly template. Returns null when nothing is saved.
+ */
+async function resolveScheduledDay(
+  supabase: any,
+  clientId: string,
+  dateKey: string,
+  dow: number,
+): Promise<ScheduledDay | null> {
+  const { data: overrides } = await supabase
+    .from("client_schedule_overrides")
+    .select("schedule, start_date, end_date, active")
+    .eq("client_id", clientId)
+    .eq("active", true)
+    .lte("start_date", dateKey)
+    .gte("end_date", dateKey);
+  for (const o of overrides ?? []) {
+    const hit = (o.schedule as ScheduledDay[] | null)?.find((d) => d?.day_of_week === dow);
+    if (hit) return hit;
+  }
+
+  const { data: weekly } = await supabase
+    .from("client_weekly_schedule")
+    .select("day_of_week, ratio, window_start_time, enabled")
+    .eq("client_id", clientId)
+    .eq("day_of_week", dow)
+    .maybeSingle();
+  return (weekly as ScheduledDay | null) ?? null;
 }

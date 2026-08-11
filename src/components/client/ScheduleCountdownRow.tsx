@@ -113,17 +113,37 @@ export function ScheduleCountdownRow({
     if (action === "reschedule" && newStartTime) {
       const newHour = timeToHour(`${newStartTime}:00`);
       if (clientId) {
-        await supabase.from("client_weekly_schedule" as any).upsert(
-          {
-            client_id: clientId,
-            day_of_week: new Date().getDay(),
-            ratio: day.ratio,
-            window_start_time: hourToTime(newHour),
-            window_end_time: hourToTime(endHourFor(day.ratio, breakFastHourFor(day.ratio, newHour))),
-            enabled: true,
-          },
-          { onConflict: "client_id,day_of_week" },
-        );
+        // Single-day change only: write a date-scoped override so the client's
+        // recurring weekly template (every future same weekday) is untouched.
+        const todayKey = localDateKey(new Date());
+        const dow = new Date().getDay();
+        const editedDay = {
+          day_of_week: dow,
+          ratio: day.ratio,
+          window_start_time: hourToTime(newHour),
+          window_end_time: hourToTime(endHourFor(day.ratio, breakFastHourFor(day.ratio, newHour))),
+          enabled: true,
+        };
+        const { data: existing } = await supabase
+          .from("client_schedule_overrides" as any)
+          .select("id, schedule")
+          .eq("client_id", clientId)
+          .eq("start_date", todayKey)
+          .eq("end_date", todayKey)
+          .maybeSingle();
+        const prior = ((existing as any)?.schedule ?? []) as any[];
+        const schedule = prior.some((d) => d?.day_of_week === dow)
+          ? prior.map((d) => (d?.day_of_week === dow ? editedDay : d))
+          : [...prior, editedDay];
+        await supabase.from("client_schedule_overrides" as any).upsert({
+          ...((existing as any)?.id ? { id: (existing as any).id } : {}),
+          client_id: clientId,
+          label: "Start later today",
+          start_date: todayKey,
+          end_date: todayKey,
+          schedule,
+          active: true,
+        });
         void emitActivityEvent({
           clientId,
           eventType: "fast_rescheduled",
@@ -133,7 +153,7 @@ export function ScheduleCountdownRow({
           icon: "clock",
           metadata: { ...baseMeta, action: "reschedule", reason: reasonLabel, new_start_hour: newHour },
         });
-        qc.invalidateQueries({ queryKey: ["client-weekly-schedule", clientId] });
+        qc.invalidateQueries({ queryKey: ["client-schedule-overrides", clientId] });
       }
       setSkip(false);
       setSummary({
