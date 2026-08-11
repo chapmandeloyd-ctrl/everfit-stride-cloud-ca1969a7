@@ -2772,9 +2772,14 @@ export default function ClientDashboard() {
         const existing = (scheduleOverrides ?? []).find(
           (o) => o.start_date === key && o.end_date === key,
         );
-        const schedule = (weeklySchedule ?? []).map((d) =>
-          d.day_of_week === selectedDayDate.getDay() ? { ...day } : d,
-        );
+        const dow = selectedDayDate.getDay();
+        const edited = { ...day, day_of_week: dow };
+        const base = weeklySchedule ?? [];
+        // Always include the edited day, even when the client has no saved
+        // weekly rows yet (otherwise the override saved an empty schedule).
+        const schedule = base.some((d) => d.day_of_week === dow)
+          ? base.map((d) => (d.day_of_week === dow ? edited : d))
+          : [...base, edited];
         await saveOverride.mutateAsync({
           ...(existing?.id ? { id: existing.id } : {}),
           label: "Day edit",
@@ -2788,9 +2793,12 @@ export default function ClientDashboard() {
           scope === "week" ||
           (scope === "weekdays" && dow >= 1 && dow <= 5) ||
           (scope === "weekends" && (dow === 0 || dow === 6));
-        const next = (weeklySchedule ?? []).map((d) =>
-          target(d.day_of_week) ? { ...day, day_of_week: d.day_of_week } : d,
-        );
+        const base = weeklySchedule ?? [];
+        const next = Array.from({ length: 7 }, (_, dow) => {
+          const existing = base.find((d) => d.day_of_week === dow);
+          if (target(dow)) return { ...day, day_of_week: dow };
+          return existing ?? null;
+        }).filter(Boolean) as WeeklyScheduleDay[];
         await saveWeekly.mutateAsync(next);
       }
       toast({ title: "Schedule updated" });
