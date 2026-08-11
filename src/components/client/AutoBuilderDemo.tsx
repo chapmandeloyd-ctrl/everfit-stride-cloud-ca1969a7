@@ -575,6 +575,16 @@ export function AutoBuilderDemo({
     advance(GUIDED_STARTS[nextPage] ?? TOTAL);
   };
 
+  /** Jump straight to any beat (used by chapter pills + skip to end). */
+  const jumpToPage = (page: number) => {
+    const target = Math.max(0, Math.min(page, GUIDED_STARTS.length - 1));
+    stopNarration();
+    setGuidedPage(target);
+    advance(
+      target === GUIDED_STARTS.length - 1 ? TOTAL : GUIDED_STARTS[target + 1] - 100
+    );
+  };
+
   // Auto-advance: once the animation and narration for this beat finish,
   // move to the next beat on its own. Pausing the demo stops auto-advance.
   const goNextRef = useRef(goNext);
