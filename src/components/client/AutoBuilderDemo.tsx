@@ -629,23 +629,36 @@ export function AutoBuilderDemo({
           <span className="w-12 shrink-0 text-right text-[10px] tabular-nums text-white/50">
             {guidedPage + 1} / {GUIDED_STARTS.length}
           </span>
+
+          <button
+            type="button"
+            onClick={() => jumpToPage(GUIDED_STARTS.length - 1)}
+            className="shrink-0 rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+          >
+            Skip to end
+          </button>
         </div>
 
         <div className="flex flex-wrap gap-1.5" aria-label="Demo chapters">
           {CHAPTER_LABELS.map((label, index) => (
-            <span
+            <button
               key={label}
+              type="button"
+              onClick={() => {
+                const target = BEATS.findIndex((b) => b.chapter === label);
+                if (target >= 0) jumpToPage(target);
+              }}
               className={cn(
-                "rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider",
+                "rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider transition-colors",
                 index === activeChapterIndex
                   ? "border-[hsl(var(--primary))] bg-[hsl(var(--primary))/15] text-white"
                   : index < activeChapterIndex
-                  ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-300"
-                  : "border-white/10 bg-white/[0.04] text-white/35"
+                  ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20"
+                  : "border-white/10 bg-white/[0.04] text-white/35 hover:bg-white/10 hover:text-white/70"
               )}
             >
               {label}
-            </span>
+            </button>
           ))}
         </div>
       </div>
