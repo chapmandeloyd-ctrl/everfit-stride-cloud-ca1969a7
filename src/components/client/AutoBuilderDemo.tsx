@@ -81,7 +81,7 @@ const BEATS: Beat[] = [
     at: 0,
     title: "APEXBEAST AI takes over",
     caption:
-      "Sit back. APEXBEAST AI is about to build your entire plan. Before each choice, I'll explain every option so you know exactly what you're picking.",
+      "Sit back. APEXBEAST AI is about to build your entire program. Keep in mind this is a walkthrough animated demo. Once this is done, you have the option to build your program on your own, or I can build your plan for you. Now let's get into the demo so you can see how the complete builder works.",
   },
 
   // ---- Fuel Style: one beat per option, then the pick ----
