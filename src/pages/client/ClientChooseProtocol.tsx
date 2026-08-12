@@ -12,6 +12,7 @@ import { LifestylePlanSelector } from "@/components/LifestylePlanSelector";
 import { TransformationPathCard } from "@/components/TransformationPathCard";
 import { useEngineMode } from "@/hooks/useEngineMode";
 import { CustomManualPlansSection } from "@/components/CustomManualPlansSection";
+import { JuiceFastSection } from "@/components/client/juice/JuiceFastSection";
 import { useClientFeatureSettings } from "@/hooks/useClientFeatureSettings";
 
 export default function ClientChooseProtocol() {
@@ -50,6 +51,8 @@ export default function ClientChooseProtocol() {
             <TransformationPathCard />
             <ProgramsSelector navigate={navigate} />
             <QuickPlansSelector navigate={navigate} />
+
+            <JuiceFastSection />
 
             {(settings as any)?.custom_manual_plans_enabled && (
               <CustomManualPlansSection />

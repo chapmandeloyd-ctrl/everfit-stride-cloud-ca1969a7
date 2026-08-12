@@ -5660,6 +5660,119 @@ export type Database = {
           },
         ]
       }
+      juice_fast_daily_logs: {
+        Row: {
+          client_id: string
+          created_at: string
+          day_number: number | null
+          energy_rating: number | null
+          id: string
+          juice_count: number
+          log_date: string
+          notes: string | null
+          photo_url: string | null
+          session_id: string
+          snack_note: string | null
+          snacked: boolean
+          updated_at: string
+          water_oz: number
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          day_number?: number | null
+          energy_rating?: number | null
+          id?: string
+          juice_count?: number
+          log_date?: string
+          notes?: string | null
+          photo_url?: string | null
+          session_id: string
+          snack_note?: string | null
+          snacked?: boolean
+          updated_at?: string
+          water_oz?: number
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          day_number?: number | null
+          energy_rating?: number | null
+          id?: string
+          juice_count?: number
+          log_date?: string
+          notes?: string | null
+          photo_url?: string | null
+          session_id?: string
+          snack_note?: string | null
+          snacked?: boolean
+          updated_at?: string
+          water_oz?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "juice_fast_daily_logs_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "juice_fast_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      juice_fast_sessions: {
+        Row: {
+          client_id: string
+          created_at: string
+          end_reason: string | null
+          ended_at: string | null
+          ended_early: boolean
+          ends_at: string | null
+          id: string
+          includes_refeed: boolean
+          mode: string
+          notes: string | null
+          planned_days: number
+          started_at: string
+          status: string
+          trainer_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          end_reason?: string | null
+          ended_at?: string | null
+          ended_early?: boolean
+          ends_at?: string | null
+          id?: string
+          includes_refeed?: boolean
+          mode?: string
+          notes?: string | null
+          planned_days?: number
+          started_at?: string
+          status?: string
+          trainer_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          end_reason?: string | null
+          ended_at?: string | null
+          ended_early?: boolean
+          ends_at?: string | null
+          id?: string
+          includes_refeed?: boolean
+          mode?: string
+          notes?: string | null
+          planned_days?: number
+          started_at?: string
+          status?: string
+          trainer_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       keto_categories: {
         Row: {
           color: string

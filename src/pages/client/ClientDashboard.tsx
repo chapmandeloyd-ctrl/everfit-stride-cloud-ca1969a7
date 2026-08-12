@@ -127,6 +127,7 @@ import { SpeedDialFAB } from "@/components/SpeedDialFAB";
 import { FastingStatusCard } from "@/components/client/FastingStatusCard";
 import { TodaysWindowCard } from "@/components/client/TodaysWindowCard";
 import { ClientWeekStrip } from "@/components/client/ClientWeekStrip";
+import { JuiceFastDashboardSlot } from "@/components/client/juice/JuiceFastDashboardSlot";
 import { StartFastGate } from "@/components/client/StartFastGate";
 import { LiveSchedulePanel } from "@/components/client/LiveScheduleDialog";
 import { useClientComputedPlan } from "@/hooks/useClientComputedPlan";
@@ -3444,8 +3445,12 @@ export default function ClientDashboard() {
             case "fasting":
               return settings.fasting_enabled && !engineConfig.fastingDisabled && !isViewingOtherDay ? (
                 <div key="fasting" className="space-y-3">
-                  <ClientWeekStrip onDayClick={handleWeekStripDayClick} />
-                  <FastingProtocolCard clientId={clientId} navigate={navigate} openEndFastFlowSignal={openEndFastFlowSignal} todaySchedule={todaySchedule} />
+                  <JuiceFastDashboardSlot centerImageSrc={fastingCardBgGoldImg}>
+                    <div className="space-y-3">
+                      <ClientWeekStrip onDayClick={handleWeekStripDayClick} />
+                      <FastingProtocolCard clientId={clientId} navigate={navigate} openEndFastFlowSignal={openEndFastFlowSignal} todaySchedule={todaySchedule} />
+                    </div>
+                  </JuiceFastDashboardSlot>
                   {dashRecentFastLog && (
                     <FastingStatusCard
                       actualHours={dashRecentFastLog.actual_hours}
