@@ -1,8 +1,10 @@
 import { ClientLayout } from "@/components/ClientLayout";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import fastingCardBgGoldImg from "@/assets/fasting-timer-bg.png";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { FastingProtocolCard } from "./ClientDashboard";
+import { JuiceFastDashboardSlot } from "@/components/client/juice/JuiceFastDashboardSlot";
 import { SmartPaceCollapsible } from "@/components/smart-pace/SmartPaceCollapsible";
 import { ClientWeekStrip } from "@/components/client/ClientWeekStrip";
 import { useClientWeeklySchedule } from "@/hooks/useClientWeeklySchedule";
@@ -110,7 +112,9 @@ export default function ClientDashboardMinimal() {
         )}
 
         {/* Fasting timer / protocol */}
-        <FastingProtocolCard clientId={clientId} navigate={navigate} todaySchedule={todaySchedule} />
+        <JuiceFastDashboardSlot centerImageSrc={fastingCardBgGoldImg}>
+          <FastingProtocolCard clientId={clientId} navigate={navigate} todaySchedule={todaySchedule} />
+        </JuiceFastDashboardSlot>
 
         {/* Daily trackers (journal/water/steps/calories/health) intentionally removed —
             those metrics live in Trainerize, not here. */}
