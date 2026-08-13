@@ -11,7 +11,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { CheckCircle2, PenLine } from "lucide-react";
+import { Bell, CheckCircle2, PenLine } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { JuiceFastHero } from "./JuiceFastHero";
 import { JuiceDayLogSheet } from "./JuiceDayLogSheet";
 import { useJuiceFast } from "@/hooks/useJuiceFast";
@@ -26,7 +27,7 @@ interface Props {
  * client has no juice fast running, so it can be mounted unconditionally.
  */
 export function ActiveJuiceFastCard({ centerImageSrc }: Props) {
-  const { session, todayLog, endFast, saveDayLog } = useJuiceFast();
+  const { session, todayLog, endFast, saveDayLog, setLogReminder } = useJuiceFast();
   const [logOpen, setLogOpen] = useState(false);
   const [confirmEnd, setConfirmEnd] = useState(false);
 
@@ -62,6 +63,35 @@ export function ActiveJuiceFastCard({ centerImageSrc }: Props) {
               "End early"
             )}
           </Button>
+        </div>
+
+        {/* Daily log reminder */}
+        <div className="w-full rounded-xl border border-white/10 bg-white/[0.03] p-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <Bell className="h-4 w-4 text-emerald-400" />
+              <div>
+                <p className="text-xs font-semibold text-white/85">Daily log reminder</p>
+                <p className="text-[10px] text-white/45">Nudges you if the day isn't logged yet.</p>
+              </div>
+            </div>
+            <Switch
+              checked={session.log_reminder_enabled !== false}
+              onCheckedChange={(v) => setLogReminder.mutate({ enabled: v })}
+              disabled={setLogReminder.isPending}
+            />
+          </div>
+          {session.log_reminder_enabled !== false && (
+            <div className="mt-3 flex items-center justify-between gap-3">
+              <span className="text-[11px] text-white/55">Remind me at</span>
+              <input
+                type="time"
+                value={(session.log_reminder_time || "19:00").slice(0, 5)}
+                onChange={(e) => setLogReminder.mutate({ time: e.target.value })}
+                className="rounded-lg border border-white/10 bg-black px-2 py-1 text-xs text-white/85"
+              />
+            </div>
+          )}
         </div>
 
         {session.includes_refeed && (
