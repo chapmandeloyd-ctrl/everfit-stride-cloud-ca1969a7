@@ -2706,43 +2706,6 @@ export default function ClientDashboard() {
   });
 
 
-  const { data: todaySportEvents } = useQuery({
-    queryKey: ["client-sport-events-today", clientId],
-    queryFn: async () => {
-      const today = format(new Date(), "yyyy-MM-dd");
-      const { data, error } = await supabase
-        .from("sport_schedule_events")
-        .select("*")
-        .eq("client_id", clientId)
-        .gte("start_time", `${today}T00:00:00`)
-        .lte("start_time", `${today}T23:59:59`)
-        .order("start_time", { ascending: true });
-      if (error) throw error;
-      return data as any[];
-    },
-    enabled: !!clientId && settings.sport_schedule_enabled !== false,
-  });
-
-  // Fetch custom sport day cards (practice/game)
-  const { data: sportDayCards } = useQuery({
-    queryKey: ["sport-day-cards", clientId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("client_sport_day_cards" as any)
-        .select("*")
-        .eq("client_id", clientId);
-      if (error) throw error;
-      return data as any[];
-    },
-    enabled: !!clientId,
-  });
-
-  const practiceCard = sportDayCards?.find((c: any) => c.card_type === "practice");
-  const gameCard = sportDayCards?.find((c: any) => c.card_type === "game");
-
-  // Sport event completion dialog state
-  const [selectedSportEvent, setSelectedSportEvent] = useState<any>(null);
-  const [sportCompletionOpen, setSportCompletionOpen] = useState(false);
   const [cardioFlowOpen, setCardioFlowOpen] = useState(false);
   const [wodSheetOpen, setWodSheetOpen] = useState(false);
   const [selectedCardioSession, setSelectedCardioSession] = useState<any>(null);
@@ -2953,14 +2916,14 @@ export default function ClientDashboard() {
     return isToday(parseISO(s.scheduled_date));
   });
 
-  const hasSportEvents = (todaySportEvents?.length || 0) > 0;
+  const hasSportEvents = false;
   const hasNoPlanEver = !clientWorkouts || clientWorkouts.length === 0;
   const isRestDay = todaysWorkouts.length === 0 && !hasSportEvents && todaysScheduledCardio.length === 0;
   // Show the trainer's universal Welcome Card on any rest day for clients
   // without a custom rest-day card. Falls back to defaults so it appears
   // for every new client even before the trainer customizes it.
   const showWelcomeCard = isRestDay && !restDayCard?.image_url && !restDayCard?.message;
-  const totalCards = todaysWorkouts.length + (todaySportEvents?.length || 0) + todaysScheduledCardio.length;
+  const totalCards = todaysWorkouts.length + todaysScheduledCardio.length;
   const hasMultiple = totalCards > 1;
 
   // Attach scroll listener
@@ -3340,82 +3303,6 @@ export default function ClientDashboard() {
                             </Card>
                           );
                         })}
-                        {todaySportEvents?.map((event: any) => {
-                          const isGame = event.event_type === "game" || event.event_type === "event";
-                          const customCard = isGame ? gameCard : practiceCard;
-                          const EventIcon = isGame ? Swords : Trophy;
-                          const gradientFrom = isGame ? "from-rose-500/20" : "from-sky-500/20";
-                          const gradientTo = isGame ? "to-rose-500/5" : "to-sky-500/5";
-                          const iconColor = isGame ? "text-rose-400/30" : "text-sky-400/30";
-                          const label = isGame ? "Game Day" : "Practice";
-                          const startTime = formatEventTime(event.start_time);
-                          const endTime = event.end_time ? formatEventTime(event.end_time) : null;
-                          const timeDisplay = endTime && endTime !== startTime ? `${startTime} - ${endTime}` : startTime;
-                          const completion = sportEventCompletions?.find((c: any) => c.sport_event_id === event.id);
-                          const isEventCompleted = !!completion;
-                          return (
-                            <Card
-                              key={event.id}
-                              className={`overflow-hidden shrink-0 snap-center cursor-pointer hover:shadow-md transition-all ${hasMultiple ? "w-full min-w-full" : "w-full"} ${isEventCompleted ? "opacity-75" : ""}`}
-                              onClick={() => {
-                                if (!isEventCompleted) {
-                                  setSelectedSportEvent(event);
-                                  setSportCompletionOpen(true);
-                                }
-                              }}
-                            >
-                              <div className={`relative h-56 bg-gradient-to-br ${gradientFrom} ${gradientTo}`}>
-                                {customCard?.image_url ? (
-                                  <img src={customCard.image_url} alt={label} className="w-full h-full object-cover" />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center">
-                                    <EventIcon className={`h-16 w-16 ${iconColor}`} />
-                                  </div>
-                                )}
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                                {isEventCompleted && (
-                                  <div className="absolute top-3 right-3">
-                                    <div className={`px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1 ${
-                                      completion.status === 'completed' ? 'bg-emerald-500 text-white' :
-                                      completion.status === 'incomplete' ? 'bg-amber-500 text-white' :
-                                      'bg-destructive text-white'
-                                    }`}>
-                                      <Check className="h-3 w-3" />
-                                      {completion.status === 'completed' ? 'Done' : completion.status === 'incomplete' ? 'Partial' : 'Missed'}
-                                    </div>
-                                  </div>
-                                )}
-                                <div className="absolute bottom-0 left-0 right-0 p-4">
-                                  <p className="text-xs font-semibold text-white/70 uppercase tracking-wider">{label}</p>
-                                  <p className="text-lg font-bold text-white">{event.title}</p>
-                                  <div className="flex items-center gap-3 mt-1">
-                                    <p className="text-sm text-white/80">{timeDisplay}</p>
-                                    {event.location && (
-                                      <p className="text-sm text-white/80 flex items-center gap-1">
-                                        <MapPin className="h-3 w-3" />
-                                        {event.location}
-                                      </p>
-                                    )}
-                                  </div>
-                                  {customCard?.message && (
-                                    <p className="text-sm text-white/90 mt-1 font-medium">{customCard.message}</p>
-                                  )}
-                                </div>
-                              </div>
-                              {!isEventCompleted && (
-                                <CardContent className="p-3">
-                                  <Button className="w-full" size="lg" variant="outline" onClick={(e) => {
-                                    e.stopPropagation();
-                                    setSelectedSportEvent(event);
-                                    setSportCompletionOpen(true);
-                                  }}>
-                                    Log {isGame ? "Game" : "Practice"}
-                                  </Button>
-                                </CardContent>
-                              )}
-                            </Card>
-                          );
-                        })}
                       </div>
                       {hasMultiple && (
                         <div className="flex justify-center gap-1.5 mt-3">
@@ -3776,8 +3663,6 @@ export default function ClientDashboard() {
                 <MyProgressSection key="progress" clientId={clientId} />
               ) : null;
 
-            case "game_stats":
-              return <LatestGameStatsCard key="game_stats" clientId={clientId} navigate={navigate} />;
 
             case "cardio":
               return null;
@@ -4011,73 +3896,3 @@ export default function ClientDashboard() {
   );
 }
 
-function LatestGameStatsCard({ clientId, navigate }: { clientId: string | undefined; navigate: (path: string) => void }) {
-  const { data: latestGame } = useQuery({
-    queryKey: ["latest-game-stat", clientId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("game_stat_entries" as any)
-        .select("*")
-        .eq("client_id", clientId)
-        .order("game_date", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (error) throw error;
-      return data as any;
-    },
-    enabled: !!clientId,
-  });
-
-  if (!latestGame) return null;
-
-  const battingAvg = latestGame.at_bats > 0 ? (latestGame.hits / latestGame.at_bats).toFixed(3) : ".000";
-
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-2">
-        <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Last Game</h2>
-        <button onClick={() => navigate("/client/sports")} className="text-xs font-semibold text-primary">View all</button>
-      </div>
-      <Card className="cursor-pointer hover:shadow-sm transition-shadow" onClick={() => navigate("/client/sports")}>
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-semibold">{latestGame.opponent ? `vs ${latestGame.opponent}` : "Game"}</p>
-              <p className="text-xs text-muted-foreground">{latestGame.game_date}</p>
-            </div>
-            {latestGame.result && (
-              <span className={`px-2 py-0.5 rounded-full text-xs font-bold uppercase ${
-                latestGame.result === "win" ? "bg-emerald-500/10 text-emerald-600" :
-                latestGame.result === "loss" ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"
-              }`}>
-                {latestGame.result}
-              </span>
-            )}
-          </div>
-          <div className="grid grid-cols-5 gap-2 mt-3 text-center">
-            <div>
-              <p className="text-base font-bold">{battingAvg}</p>
-              <p className="text-[9px] text-muted-foreground font-semibold uppercase">AVG</p>
-            </div>
-            <div>
-              <p className="text-base font-bold">{latestGame.hits}/{latestGame.at_bats}</p>
-              <p className="text-[9px] text-muted-foreground font-semibold uppercase">H/AB</p>
-            </div>
-            <div>
-              <p className="text-base font-bold">{latestGame.runs || 0}</p>
-              <p className="text-[9px] text-muted-foreground font-semibold uppercase">R</p>
-            </div>
-            <div>
-              <p className="text-base font-bold">{latestGame.rbis || 0}</p>
-              <p className="text-[9px] text-muted-foreground font-semibold uppercase">RBI</p>
-            </div>
-            <div>
-              <p className="text-base font-bold">{latestGame.home_runs || 0}</p>
-              <p className="text-[9px] text-muted-foreground font-semibold uppercase">HR</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
