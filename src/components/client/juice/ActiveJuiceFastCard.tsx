@@ -16,7 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { JuiceFastHero } from "./JuiceFastHero";
-import { JuiceDayLogSheet } from "./JuiceDayLogSheet";
+import { JuiceDailyCheckinSheet } from "./JuiceDailyCheckinSheet";
 import { JuiceReminderHistorySheet } from "./JuiceReminderHistorySheet";
 import { useJuiceFast } from "@/hooks/useJuiceFast";
 import { juiceProgress, modeMeta } from "@/lib/juiceFast";
@@ -30,7 +30,7 @@ interface Props {
  * client has no juice fast running, so it can be mounted unconditionally.
  */
 export function ActiveJuiceFastCard({ centerImageSrc }: Props) {
-  const { session, todayLog, endFast, saveDayLog, setLogReminder, snoozeLogReminder } = useJuiceFast();
+  const { session, logs, todayLog, endFast, saveDayLog, setLogReminder, snoozeLogReminder } = useJuiceFast();
   const [logOpen, setLogOpen] = useState(false);
   const [confirmEnd, setConfirmEnd] = useState(false);
   const [testing, setTesting] = useState(false);
@@ -75,7 +75,7 @@ export function ActiveJuiceFastCard({ centerImageSrc }: Props) {
         <div className="grid w-full grid-cols-2 gap-2">
           <Button variant="outline" onClick={() => setLogOpen(true)}>
             <PenLine className="mr-1.5 h-4 w-4" />
-            {todayLog ? "Edit today" : "Log day"}
+            {todayLog ? "Edit check-in" : "Daily check-in"}
           </Button>
           <Button
             variant={complete ? "default" : "ghost"}
@@ -174,12 +174,13 @@ export function ActiveJuiceFastCard({ centerImageSrc }: Props) {
 
       <JuiceReminderHistorySheet open={historyOpen} onOpenChange={setHistoryOpen} />
 
-      <JuiceDayLogSheet
+      <JuiceDailyCheckinSheet
         open={logOpen}
         onOpenChange={setLogOpen}
         session={session}
         dayNumber={dayNumber}
         existing={todayLog}
+        loggedDays={logs.length}
         saving={saveDayLog.isPending}
         onSave={(input) => saveDayLog.mutate(input, { onSuccess: () => setLogOpen(false) })}
       />
