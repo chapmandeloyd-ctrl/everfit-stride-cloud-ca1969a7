@@ -21,8 +21,7 @@ export function StartJuiceFastButton() {
       <Button
         onClick={() => setOpen(true)}
         variant="outline"
-        size="lg"
-        className="w-full border-emerald-500/40 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 hover:text-emerald-200"
+        className="w-full h-12 rounded-xl text-sm font-semibold border-emerald-500/40 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 hover:text-emerald-200"
       >
         <CupSoda className="mr-2 h-4 w-4" />
         Start a juice fast
