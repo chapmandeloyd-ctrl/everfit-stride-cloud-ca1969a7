@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { formatRemaining, juiceProgress, modeMeta, type JuiceFastSession } from "@/lib/juiceFast";
+import { currentJuiceStage, relevantJuiceStages } from "@/lib/juiceStages";
 
 interface Props {
   session: JuiceFastSession;
@@ -8,13 +10,25 @@ interface Props {
   compact?: boolean;
 }
 
+function describeArc(cx: number, cy: number, r: number, startDeg: number, endDeg: number) {
+  const startRad = (startDeg * Math.PI) / 180;
+  const endRad = (endDeg * Math.PI) / 180;
+  const x1 = cx + r * Math.cos(startRad);
+  const y1 = cy + r * Math.sin(startRad);
+  const x2 = cx + r * Math.cos(endRad);
+  const y2 = cy + r * Math.sin(endRad);
+  const largeArc = endDeg - startDeg > 180 ? 1 : 0;
+  return `M ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2}`;
+}
+
 /**
  * Day-based version of the lion ring. Same visual language as the live
- * FastingTimer, but the arc represents the whole multi-day juice fast
- * instead of a single fasting window. Purely presentational.
+ * FastingTimer: multi-colored stage arc segments across the WHOLE fast,
+ * stage markers on the band, and a tappable stage pill. Purely presentational.
  */
 export function JuiceFastHero({ session, centerImageSrc, compact = true }: Props) {
   const [now, setNow] = useState(() => Date.now());
+  const [stageSheetOpen, setStageSheetOpen] = useState(false);
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
@@ -22,6 +36,10 @@ export function JuiceFastHero({ session, centerImageSrc, compact = true }: Props
 
   const { pct, dayNumber, remainingMs, elapsedHours } = juiceProgress(session, now);
   const meta = modeMeta(session.mode);
+  const totalHours = session.planned_days * 24;
+
+  const stages = relevantJuiceStages(session.mode, totalHours);
+  const currentStage = currentJuiceStage(session.mode, elapsedHours, totalHours);
 
   const size = compact ? 236 : 300;
   const bandWidth = compact ? 32 : 40;
@@ -29,6 +47,29 @@ export function JuiceFastHero({ session, centerImageSrc, compact = true }: Props
   const cx = size / 2;
   const cy = size / 2;
   const circumference = 2 * Math.PI * radius;
+
+  // Colored arc segments for the elapsed portion
+  const progressAngle = pct * 360;
+  const arcSegments: { startAngle: number; endAngle: number; color: string }[] = [];
+  for (let i = 0; i < stages.length; i++) {
+    const stage = stages[i];
+    const next = stages[i + 1];
+    const startAngle = (stage.hour / totalHours) * 360;
+    const endAngle = next ? (next.hour / totalHours) * 360 : 360;
+    if (progressAngle <= startAngle) break;
+    const segEnd = Math.min(endAngle, progressAngle);
+    if (segEnd - startAngle < 0.3) continue;
+    arcSegments.push({ startAngle, endAngle: segEnd, color: stage.color });
+  }
+
+  function stagePos(hour: number) {
+    const angle = (Math.min(hour / totalHours, 1) * 360 - 90) * (Math.PI / 180);
+    return { x: cx + radius * Math.cos(angle), y: cy + radius * Math.sin(angle) };
+  }
+
+  const indicatorRad = (pct * 360 - 90) * (Math.PI / 180);
+  const indicatorX = cx + radius * Math.cos(indicatorRad);
+  const indicatorY = cy + radius * Math.sin(indicatorRad);
 
   return (
     <div className="flex w-full flex-col items-center gap-2">
@@ -42,7 +83,7 @@ export function JuiceFastHero({ session, centerImageSrc, compact = true }: Props
           {formatRemaining(remainingMs)}
         </span>
         <span className={cn("mt-1 font-bold uppercase tracking-wider text-emerald-400", compact ? "text-[9px]" : "text-[10px]")}>
-          {remainingMs > 0 ? "Juice fast remaining" : "Juice fast complete"}
+          {remainingMs > 0 ? `Juice fast remaining (${Math.round(pct * 100)}%)` : "Juice fast complete"}
         </span>
       </div>
 
@@ -53,46 +94,85 @@ export function JuiceFastHero({ session, centerImageSrc, compact = true }: Props
           aria-hidden="true"
           className="pointer-events-none absolute left-1/2 top-1/2 z-0 h-[130%] w-[130%] -translate-x-1/2 -translate-y-1/2 select-none object-contain opacity-90"
         />
-        <svg width={size} height={size} className="relative z-10 -rotate-90">
+        <svg width={size} height={size} className="relative z-10">
           <circle cx={cx} cy={cy} r={radius} fill="none" stroke="black" strokeWidth={bandWidth} opacity={0.85} />
-          <circle cx={cx} cy={cy} r={radius} fill="none" stroke="white" strokeWidth={1.5} opacity={0.35} />
-          <circle
-            cx={cx}
-            cy={cy}
-            r={radius}
-            fill="none"
-            stroke="hsl(var(--primary))"
-            strokeWidth={bandWidth * 0.42}
-            strokeLinecap="round"
-            strokeDasharray={circumference}
-            strokeDashoffset={circumference * (1 - pct)}
-            className="transition-[stroke-dashoffset] duration-1000 ease-linear"
-          />
+
+          {arcSegments.map((seg, i) => (
+            <path
+              key={i}
+              d={describeArc(cx, cy, radius, seg.startAngle - 90, seg.endAngle - 90)}
+              fill="none"
+              stroke={seg.color}
+              strokeWidth={bandWidth}
+              strokeLinecap="butt"
+              className="transition-all duration-1000 ease-linear"
+              style={{ filter: `drop-shadow(0 0 8px ${seg.color}66)` }}
+            />
+          ))}
+
+          <circle cx={cx} cy={cy} r={radius} fill="none" stroke="white" strokeWidth={1.5} opacity={0.7} />
+          <circle cx={cx} cy={cy} r={radius} fill="none" stroke="transparent" strokeDasharray={circumference} />
+
+          {pct > 0.005 && pct < 1 && (
+            <circle
+              cx={indicatorX}
+              cy={indicatorY}
+              r={bandWidth * 0.22}
+              fill="white"
+              style={{ filter: `drop-shadow(0 0 6px ${currentStage.color})` }}
+            />
+          )}
         </svg>
 
-        {/* Day markers around the ring */}
-        {Array.from({ length: session.planned_days }, (_, i) => {
-          const angle = ((i / session.planned_days) * 360 - 90) * (Math.PI / 180);
-          const x = cx + radius * Math.cos(angle);
-          const y = cy + radius * Math.sin(angle);
-          const passed = i < dayNumber;
+        {/* Stage markers around the ring */}
+        {stages.map((stage) => {
+          const pos = stagePos(stage.hour);
+          const reached = elapsedHours >= stage.hour;
+          const isCurrent = currentStage.hour === stage.hour;
           return (
             <div
-              key={i}
+              key={stage.hour}
               className={cn(
-                "absolute z-20 flex h-4 w-4 -ml-2 -mt-2 items-center justify-center rounded-full text-[8px] font-bold",
-                passed ? "bg-emerald-400 text-black" : "bg-muted/60 text-white/50",
+                "absolute z-20 flex items-center justify-center rounded-full transition-all duration-500",
+                isCurrent
+                  ? "h-5 w-5 -ml-2.5 -mt-2.5 scale-110"
+                  : reached
+                    ? "h-4 w-4 -ml-2 -mt-2 bg-card/90"
+                    : "h-3.5 w-3.5 -ml-[7px] -mt-[7px] bg-muted/60 opacity-40",
               )}
-              style={{ left: x, top: y }}
-              title={`Day ${i + 1}`}
+              style={{
+                left: pos.x,
+                top: pos.y,
+                ...(isCurrent
+                  ? { backgroundColor: `${stage.color}25`, boxShadow: `0 0 0 2px ${stage.color}55` }
+                  : reached
+                    ? { boxShadow: `0 0 0 1px ${stage.color}40` }
+                    : {}),
+              }}
+              title={`${stage.label} (day ${Math.floor(stage.hour / 24) + 1}) – ${stage.description}`}
             >
-              {i + 1}
+              <span className={cn("text-[8px]", !reached && "grayscale")}>{stage.icon}</span>
             </div>
           );
         })}
       </div>
 
-      <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/40 px-3 py-1.5 backdrop-blur-sm">
+      {/* Stage pill — tap for benefits */}
+      <button
+        type="button"
+        onClick={() => setStageSheetOpen(true)}
+        aria-label={`View benefits of ${currentStage.label} stage`}
+        className="mt-3 inline-flex items-center gap-1.5 rounded-full border bg-black/40 px-3 py-1.5 backdrop-blur-sm transition-transform hover:brightness-110 active:scale-95"
+        style={{ borderColor: `${currentStage.color}66`, boxShadow: `0 0 12px ${currentStage.color}40` }}
+      >
+        <span className="text-sm">{currentStage.icon}</span>
+        <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: currentStage.color }}>
+          {currentStage.label}
+        </span>
+        <span className="text-[9px] font-semibold uppercase tracking-wider text-white/50">Tap ⓘ</span>
+      </button>
+
+      <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/40 px-3 py-1.5 backdrop-blur-sm">
         <span className="text-[10px] font-bold uppercase tracking-wider text-white/70">
           Day {dayNumber} of {session.planned_days}
         </span>
@@ -101,8 +181,67 @@ export function JuiceFastHero({ session, centerImageSrc, compact = true }: Props
       </div>
 
       <p className="mt-1 text-center text-xs font-medium text-white/50">
-        {Math.floor(elapsedHours)}h in · {Math.round(pct * 100)}% complete
+        {Math.floor(elapsedHours)}h in · {currentStage.description}
       </p>
+
+      <Sheet open={stageSheetOpen} onOpenChange={setStageSheetOpen}>
+        <SheetContent
+          side="bottom"
+          className="max-h-[85vh] overflow-y-auto rounded-t-2xl border-t-0 bg-background"
+          style={{ boxShadow: `0 -8px 40px ${currentStage.color}55` }}
+        >
+          <SheetHeader className="text-left">
+            <div className="flex items-center gap-3">
+              <div
+                className="flex h-12 w-12 items-center justify-center rounded-full text-2xl"
+                style={{ backgroundColor: `${currentStage.color}20`, boxShadow: `0 0 0 2px ${currentStage.color}55` }}
+              >
+                {currentStage.icon}
+              </div>
+              <div className="flex-1">
+                <SheetTitle style={{ color: currentStage.color }}>{currentStage.label}</SheetTitle>
+                <SheetDescription>
+                  Day {Math.floor(currentStage.hour / 24) + 1}+ • {meta.label} • {currentStage.description}
+                </SheetDescription>
+              </div>
+            </div>
+          </SheetHeader>
+          <div className="mt-5">
+            <h4 className="mb-3 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              What's happening in your body
+            </h4>
+            <ul className="space-y-2.5">
+              {currentStage.benefits.map((b, i) => (
+                <li key={i} className="flex items-start gap-2.5">
+                  <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: currentStage.color }} />
+                  <p className="text-sm leading-relaxed text-foreground/90">{b}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="mt-5">
+            <h4 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">Full stage map</h4>
+            <ul className="space-y-1.5">
+              {stages.map((s) => (
+                <li
+                  key={s.hour}
+                  className={cn(
+                    "flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs",
+                    s.hour === currentStage.hour ? "bg-muted/60 font-semibold" : "opacity-60",
+                  )}
+                >
+                  <span>{s.icon}</span>
+                  <span style={{ color: s.color }}>{s.label}</span>
+                  <span className="ml-auto text-[10px] text-muted-foreground">Day {Math.floor(s.hour / 24) + 1}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <p className="mt-6 rounded-lg bg-muted/40 px-3 py-2 text-[11px] italic text-muted-foreground">
+            Stages are guides, not guarantees — hydration, electrolytes and sleep move you through them faster.
+          </p>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
