@@ -11,7 +11,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Bell, CheckCircle2, History, Loader2, PenLine, Send } from "lucide-react";
+import { Bell, CheckCircle2, Droplets, History, Loader2, PenLine, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
@@ -30,10 +30,20 @@ interface Props {
  * client has no juice fast running, so it can be mounted unconditionally.
  */
 export function ActiveJuiceFastCard({ centerImageSrc }: Props) {
-  const { session, logs, todayLog, endFast, saveDayLog, setLogReminder, snoozeLogReminder } = useJuiceFast();
+  const {
+    session,
+    logs,
+    todayLog,
+    endFast,
+    saveDayLog,
+    setLogReminder,
+    snoozeLogReminder,
+    setHydrationReminder,
+  } = useJuiceFast();
   const [logOpen, setLogOpen] = useState(false);
   const [confirmEnd, setConfirmEnd] = useState(false);
   const [testing, setTesting] = useState(false);
+  const [testingHydration, setTestingHydration] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
 
   const sendTestReminder = async () => {
@@ -57,6 +67,22 @@ export function ActiveJuiceFastCard({ centerImageSrc }: Props) {
       toast.error(e?.message || "Could not send test reminder");
     } finally {
       setTesting(false);
+    }
+  };
+
+  const sendHydrationTest = async () => {
+    setTestingHydration(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("dispatch-juice-hydration-reminders", {
+        body: { test: true },
+      });
+      if (error) throw error;
+      if (data?.pushed) toast.success(`Test hydration nudge sent — ${data.pushed} device(s)`);
+      else toast.warning("Sent to your in-app inbox. No push device delivered — enable notifications.");
+    } catch (e: any) {
+      toast.error(e?.message || "Could not send test nudge");
+    } finally {
+      setTestingHydration(false);
     }
   };
 
