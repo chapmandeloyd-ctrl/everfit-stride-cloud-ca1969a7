@@ -145,7 +145,9 @@ export function ExtendedFastSheet({ open, onOpenChange, starting = false, onStar
                         <p className="text-sm font-bold text-foreground">
                           {formatDurationLabel(phase.hours)}
                         </p>
-                        <p className="text-[10px] text-muted-foreground">{phase.hours} Hours</p>
+                        {phase.hours >= 24 && (
+                          <p className="text-[10px] text-muted-foreground">{phase.hours} Hours</p>
+                        )}
                       </div>
                     </div>
                     <p className="text-[11px] text-muted-foreground">
