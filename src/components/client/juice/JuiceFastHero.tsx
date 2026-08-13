@@ -170,7 +170,7 @@ export function JuiceFastHero({ session, centerImageSrc, compact = true }: Props
       {/* Stage pill — tap for benefits */}
       <button
         type="button"
-        onClick={() => setStageSheetOpen(true)}
+        onClick={() => openStageSheet(currentStage.hour)}
         aria-label={`View benefits of ${currentStage.label} stage`}
         className="mt-3 inline-flex items-center gap-1.5 rounded-full border bg-black/40 px-3 py-1.5 backdrop-blur-sm transition-transform hover:brightness-110 active:scale-95"
         style={{ borderColor: `${currentStage.color}66`, boxShadow: `0 0 12px ${currentStage.color}40` }}
@@ -181,6 +181,30 @@ export function JuiceFastHero({ session, centerImageSrc, compact = true }: Props
         </span>
         <span className="text-[9px] font-semibold uppercase tracking-wider text-white/50">Tap ⓘ</span>
       </button>
+
+      {/* Next-stage preview */}
+      {nextStage ? (
+        <button
+          type="button"
+          onClick={() => openStageSheet(nextStage.hour)}
+          aria-label={`Preview next stage: ${nextStage.label}`}
+          className="mt-1.5 inline-flex max-w-full items-center gap-1.5 rounded-full border border-white/10 bg-black/30 px-2.5 py-1 backdrop-blur-sm transition-transform hover:brightness-125 active:scale-95"
+        >
+          <span className="text-[9px] font-bold uppercase tracking-wider text-white/40">Next</span>
+          <span className="text-xs grayscale-[0.4]">{nextStage.icon}</span>
+          <span className="truncate text-[10px] font-bold uppercase tracking-wider" style={{ color: `${nextStage.color}cc` }}>
+            {nextStage.label}
+          </span>
+          <span className="text-white/20">·</span>
+          <span className="whitespace-nowrap text-[9px] font-semibold uppercase tracking-wider text-white/45">
+            {hoursToNext <= 24 ? `in ${hoursToNext}h` : `day ${nextStageDay}`}
+          </span>
+        </button>
+      ) : (
+        <p className="mt-1.5 text-[10px] font-bold uppercase tracking-wider text-white/35">
+          Final stage — ride it out
+        </p>
+      )}
 
       <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/40 px-3 py-1.5 backdrop-blur-sm">
         <span className="text-[10px] font-bold uppercase tracking-wider text-white/70">
