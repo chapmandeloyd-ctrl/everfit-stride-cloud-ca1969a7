@@ -59,6 +59,126 @@ serve(async (req) => {
 
   const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
+  // ---- Test mode: caller-authenticated, immediate send, no time/dedupe gates ----
+  let isTest = false;
+  if (req.method === "POST") {
+    try {
+      const raw = await req.text();
+      if (raw) isTest = !!JSON.parse(raw)?.test;
+    } catch { /* cron sends {"time": ...} */ }
+  }
+
+  if (isTest) {
+    try {
+      const jwt = (req.headers.get("Authorization") || "").replace("Bearer ", "");
+      const { data: userData, error: authErr } = await supabase.auth.getUser(jwt);
+      const userId = userData?.user?.id;
+      if (authErr || !userId) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const { data: s } = await supabase
+        .from("juice_fast_sessions")
+        .select("id, mode, planned_days, started_at")
+        .eq("client_id", userId)
+        .eq("status", "active")
+        .maybeSingle();
+
+      const tz = await getClientTimezone(supabase, userId);
+      const plannedDays = s?.planned_days ?? 3;
+      const dayNumber = s ? Math.max(1, dayNumberFor(s.started_at, tz)) : 1;
+      const modeLabel = MODE_LABEL[s?.mode ?? ""] || "Juice fast";
+      const title = `Test — log day ${dayNumber} of ${plannedDays} 🥤`;
+      const body = "This is a test reminder. Delivery is working.";
+
+      const { data: subs } = await supabase
+        .from("push_subscriptions")
+        .select("id, endpoint, p256dh, auth, user_agent")
+        .eq("user_id", userId);
+
+      let delivered = 0, failedPush = 0;
+      for (const sub of subs ?? []) {
+        const r = await sendWebPush(sub, {
+          title,
+          body,
+          tag: `juice-log-test`,
+          url: "/client/dashboard",
+          data: { kind: "juice_log_test" },
+        });
+        if (r.ok) delivered++;
+        else {
+          failedPush++;
+          if (r.expired) {
+            await recordExpiredSubscription(supabase, {
+              subscription_id: sub.id,
+              user_id: userId,
+              endpoint: sub.endpoint,
+              user_agent: (sub as any).user_agent,
+              status: r.status,
+              removed_by: "dispatch-juice-log-reminders",
+            });
+          }
+        }
+      }
+
+      let emailSent = false;
+      let emailError: string | null = null;
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("email, full_name")
+        .eq("id", userId)
+        .maybeSingle();
+      const recipient = (profile as any)?.email;
+      if (recipient) {
+        const firstName = ((profile as any)?.full_name || "").trim().split(/\s+/)[0] || undefined;
+        const res = await fetch(`${SUPABASE_URL}/functions/v1/send-transactional-email`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${SERVICE_KEY}` },
+          body: JSON.stringify({
+            templateName: "juice-log-reminder",
+            recipientEmail: recipient,
+            idempotencyKey: `juice-log-test-${userId}-${Date.now()}`,
+            templateData: { name: firstName, dayNumber, plannedDays, modeLabel },
+          }),
+        });
+        emailSent = res.ok;
+        if (!emailSent) emailError = await res.text();
+      }
+
+      await supabase.from("in_app_notifications").insert({
+        user_id: userId,
+        type: "juice_log_reminder",
+        title,
+        body,
+        reference_id: `juice-log-test-${Date.now()}`,
+        action_url: "/client/dashboard",
+      });
+
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          test: true,
+          subscriptions: subs?.length ?? 0,
+          pushed: delivered,
+          pushFailed: failedPush,
+          emailed: emailSent,
+          emailTo: recipient ?? null,
+          emailError,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    } catch (err: any) {
+      console.error("juice log test reminder error:", err);
+      return new Response(JSON.stringify({ error: err?.message || String(err) }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+  }
+
   try {
     const { data: sessions, error } = await supabase
       .from("juice_fast_sessions")
