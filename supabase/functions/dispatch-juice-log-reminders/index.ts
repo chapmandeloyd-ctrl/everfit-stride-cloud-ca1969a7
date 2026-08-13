@@ -168,10 +168,11 @@ serve(async (req) => {
       // In-app notification so the reminder is visible even without push/email.
       await supabase.from("in_app_notifications").insert({
         user_id: s.client_id,
-        kind: "juice_log",
+        type: "juice_log_reminder",
         title,
         body,
-        link: "/client/dashboard",
+        reference_id: refId,
+        action_url: "/client/dashboard",
       });
 
       await supabase.from("notification_log").insert({
