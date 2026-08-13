@@ -24,6 +24,15 @@ const MODE_LABEL: Record<string, string> = {
   juice_plus_light: "Juice + Light",
 };
 
+/** Append a delivery-history row. Never let logging break a send. */
+async function recordAttempt(supabase: any, row: Record<string, unknown>) {
+  try {
+    await supabase.from("juice_fast_reminder_log").insert(row);
+  } catch (e) {
+    console.error("juice reminder log insert failed", e);
+  }
+}
+
 /** Minutes since local midnight for an "HH:MM" string. */
 function toMinutes(hhmm: string): number | null {
   const m = /^(\d{1,2}):(\d{2})/.exec(hhmm || "");
@@ -148,13 +157,33 @@ serve(async (req) => {
         if (!emailSent) emailError = await res.text();
       }
 
-      await supabase.from("in_app_notifications").insert({
+      const testRefId = `juice-log-test-${Date.now()}`;
+      const { error: inAppErr } = await supabase.from("in_app_notifications").insert({
         user_id: userId,
         type: "juice_log_reminder",
         title,
         body,
-        reference_id: `juice-log-test-${Date.now()}`,
+        reference_id: testRefId,
         action_url: "/client/dashboard",
+      });
+
+      await recordAttempt(supabase, {
+        client_id: userId,
+        session_id: s?.id ?? null,
+        trigger: "test",
+        day_number: dayNumber,
+        planned_days: plannedDays,
+        title,
+        body,
+        subscription_count: subs?.length ?? 0,
+        push_delivered_count: delivered,
+        push_failed_count: failedPush,
+        email_sent: emailSent,
+        email_to: recipient ?? null,
+        in_app_created: !inAppErr,
+        status: delivered > 0 || emailSent ? "sent" : "failed",
+        error: emailError ?? (delivered === 0 && !emailSent ? "No device or email reached" : null),
+        reference_id: testRefId,
       });
 
       return new Response(
@@ -172,6 +201,18 @@ serve(async (req) => {
       );
     } catch (err: any) {
       console.error("juice log test reminder error:", err);
+      try {
+        const jwt = (req.headers.get("Authorization") || "").replace("Bearer ", "");
+        const { data: u } = await supabase.auth.getUser(jwt);
+        if (u?.user?.id) {
+          await recordAttempt(supabase, {
+            client_id: u.user.id,
+            trigger: "test",
+            status: "error",
+            error: err?.message || String(err),
+          });
+        }
+      } catch { /* best effort */ }
       return new Response(JSON.stringify({ error: err?.message || String(err) }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -273,6 +314,8 @@ serve(async (req) => {
 
       // Email fallback when no device could be reached.
       let emailSent = false;
+      let emailError: string | null = null;
+      let emailRecipient: string | null = null;
       if (delivered === 0) {
         const { data: profile } = await supabase
           .from("profiles")
@@ -299,12 +342,15 @@ serve(async (req) => {
           });
           emailSent = res.ok;
           if (emailSent) emailed++;
-          else console.error("juice log email failed", await res.text());
+          else {
+            emailError = await res.text();
+            console.error("juice log email failed", emailError);
+          }
         }
       }
 
       // In-app notification so the reminder is visible even without push/email.
-      await supabase.from("in_app_notifications").insert({
+      const { error: inAppErr } = await supabase.from("in_app_notifications").insert({
         user_id: s.client_id,
         type: "juice_log_reminder",
         title,
@@ -322,6 +368,25 @@ serve(async (req) => {
         status: delivered > 0 || emailSent ? "sent" : "failed",
         subscription_count: subs?.length ?? 0,
         delivered_count: delivered,
+      });
+
+      await recordAttempt(supabase, {
+        client_id: s.client_id,
+        session_id: s.id,
+        trigger: dueBySnooze ? "snoozed" : "scheduled",
+        day_number: dayNumber,
+        planned_days: s.planned_days,
+        title,
+        body,
+        subscription_count: subs?.length ?? 0,
+        push_delivered_count: delivered,
+        push_failed_count: Math.max(0, (subs?.length ?? 0) - delivered),
+        email_sent: emailSent,
+        email_to: emailRecipient,
+        in_app_created: !inAppErr,
+        status: delivered > 0 || emailSent ? "sent" : "failed",
+        error: emailError ?? (delivered === 0 && !emailSent ? "No device or email reached" : null),
+        reference_id: refId,
       });
       fired++;
     }
