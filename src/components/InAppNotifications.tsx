@@ -2,13 +2,23 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { Button } from "@/components/ui/button";
-import { Check, X } from "lucide-react";
+import { Check, Clock, X } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useJuiceFast } from "@/hooks/useJuiceFast";
 import { formatDistanceToNow } from "date-fns";
 import logoSrc from "@/assets/logo.png";
 import { notificationQueryKeys } from "@/lib/notification-query-keys";
 
+const SNOOZE_OPTIONS = [1, 2, 4] as const;
+
 interface DashboardNotification {
   id: string;
+  type: string | null;
   title: string;
   body: string | null;
   read_at: string | null;
@@ -18,6 +28,7 @@ interface DashboardNotification {
 export function InAppNotifications() {
   const clientId = useEffectiveClientId();
   const queryClient = useQueryClient();
+  const { session: juiceSession, snoozeLogReminder } = useJuiceFast();
   const notificationsQueryKey = notificationQueryKeys.dashboardEvents(clientId);
 
   const { data: notifications } = useQuery({
@@ -103,6 +114,11 @@ export function InAppNotifications() {
     },
   });
 
+  const handleSnooze = (id: string, hours: number) => {
+    snoozeLogReminder.mutate({ hours });
+    dismissMutation.mutate(id);
+  };
+
   if (!notifications || notifications.length === 0) return null;
 
   const formatTime = (dateStr: string | null) => {
@@ -154,6 +170,28 @@ export function InAppNotifications() {
 
               {/* Actions */}
               <div className="flex flex-col gap-1 shrink-0">
+                {n.type === "juice_log_reminder" && juiceSession && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 rounded-full hover:bg-primary/10 hover:text-primary"
+                        title="Snooze reminder"
+                        disabled={snoozeLogReminder.isPending}
+                      >
+                        <Clock className="h-3.5 w-3.5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      {SNOOZE_OPTIONS.map((h) => (
+                        <DropdownMenuItem key={h} onClick={() => handleSnooze(n.id, h)}>
+                          Remind me in {h} hour{h > 1 ? "s" : ""}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
                 <Button
                   variant="ghost"
                   size="icon"
