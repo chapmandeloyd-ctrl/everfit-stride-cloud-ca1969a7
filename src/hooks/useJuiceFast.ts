@@ -143,6 +143,23 @@ export function useJuiceFast() {
     onError: (e: Error) => toast({ title: "Couldn't save", description: e.message, variant: "destructive" }),
   });
 
+  const setLogReminder = useMutation({
+    mutationFn: async (input: { enabled?: boolean; time?: string }) => {
+      if (!session) throw new Error("No active juice fast");
+      const patch: Record<string, unknown> = {};
+      if (input.enabled !== undefined) patch.log_reminder_enabled = input.enabled;
+      if (input.time !== undefined) patch.log_reminder_time = input.time;
+      const { error } = await supabase.from("juice_fast_sessions").update(patch).eq("id", session.id);
+      if (error) throw error;
+    },
+    onSuccess: (_d, vars) => {
+      invalidate();
+      if (vars.enabled === false) toast({ title: "Daily log reminder off" });
+      else if (vars.enabled === true) toast({ title: "Daily log reminder on" });
+    },
+    onError: (e: Error) => toast({ title: "Couldn't update reminder", description: e.message, variant: "destructive" }),
+  });
+
   return {
     session,
     logs,
@@ -151,5 +168,6 @@ export function useJuiceFast() {
     startFast,
     endFast,
     saveDayLog,
+    setLogReminder,
   };
 }
