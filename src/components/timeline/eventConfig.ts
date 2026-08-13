@@ -18,6 +18,9 @@ import {
   Clock,
   CalendarPlus,
   XCircle,
+  CupSoda,
+  Droplets,
+  Sparkles,
   type LucideIcon,
 } from "lucide-react";
 
@@ -30,6 +33,7 @@ export type EventCategory =
   | "trainer"
   | "habits"
   | "journal"
+  | "juice"
   | "general";
 
 export interface EventVisual {
@@ -61,6 +65,9 @@ const ICON_MAP: Record<string, LucideIcon> = {
   clock: Clock,
   calendar: CalendarPlus,
   "x-circle": XCircle,
+  "cup-soda": CupSoda,
+  droplets: Droplets,
+  sparkles: Sparkles,
 };
 
 const CATEGORY_VISUALS: Record<EventCategory, Omit<EventVisual, "icon">> = {
@@ -72,6 +79,7 @@ const CATEGORY_VISUALS: Record<EventCategory, Omit<EventVisual, "icon">> = {
   trainer: { iconBg: "bg-purple-500/15", iconFg: "text-purple-400", categoryLabel: "Trainer" },
   habits: { iconBg: "bg-cyan-500/15", iconFg: "text-cyan-400", categoryLabel: "Habits" },
   journal: { iconBg: "bg-teal-500/15", iconFg: "text-teal-400", categoryLabel: "Journal" },
+  juice: { iconBg: "bg-emerald-500/15", iconFg: "text-emerald-400", categoryLabel: "Juice fast" },
   general: { iconBg: "bg-muted", iconFg: "text-muted-foreground", categoryLabel: "Other" },
 };
 
@@ -97,6 +105,11 @@ const TYPE_DEFAULT_ICON: Record<string, keyof typeof ICON_MAP> = {
   coach_override: "edit",
   goal_set: "target",
   habit_completed: "flame",
+  juice_fast_started: "cup-soda",
+  juice_fast_completed: "check-circle",
+  juice_fast_ended_early: "stop-circle",
+  juice_day_logged: "droplets",
+  juice_stage_advanced: "sparkles",
 };
 
 export function getEventVisual(eventType: string, category: string, iconKey?: string | null): EventVisual {
@@ -113,6 +126,7 @@ export const CATEGORY_FILTERS: { value: EventCategory | "all"; label: string }[]
   { value: "workout", label: "Workout" },
   { value: "metrics", label: "Metrics" },
   { value: "journal", label: "Journal" },
+  { value: "juice", label: "Juice fast" },
   { value: "badges", label: "Badges" },
   { value: "trainer", label: "Trainer" },
 ];
