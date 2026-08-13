@@ -17,6 +17,7 @@ import { NudgeSettings } from "@/components/NudgeSettings";
 import { ClientRemindersSection } from "@/components/ClientRemindersSection";
 import { HabitLoopSettings } from "@/components/notifications/HabitLoopSettings";
 import { PushStatusCard } from "@/components/notifications/PushStatusCard";
+import { ManagePushDevicesCard } from "@/components/notifications/ManagePushDevicesCard";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -355,6 +356,7 @@ export default function ClientProfile() {
             </Alert>
 
             <PushStatusCard />
+            <ManagePushDevicesCard />
             <NotificationSettings />
             <HabitLoopSettings />
             <NudgeSettings />
