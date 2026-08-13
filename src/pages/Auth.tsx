@@ -27,7 +27,14 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
-    if (loading || !user || !profile) return;
+    if (loading || !user) return;
+
+    // If the profile row can't be read, still let the user in rather than
+    // stranding them on a spinning sign-in screen.
+    if (!profile) {
+      goPostAuth("/");
+      return;
+    }
 
     if (profile.role === "client") {
       goPostAuth(!profile.onboarding_completed ? "/client/onboarding" : "/client/dashboard");
