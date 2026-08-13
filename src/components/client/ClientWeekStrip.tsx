@@ -1,6 +1,7 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CalendarDays } from "lucide-react";
+import { CalendarDays, Sparkles } from "lucide-react";
+import { CalendarStripTourSheet } from "@/components/client/CalendarStripTourSheet";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { useClientWeeklySchedule } from "@/hooks/useClientWeeklySchedule";
 import { resolveDayState, type ResolvedDay } from "@/lib/resolveFastingWindow";
@@ -23,6 +24,7 @@ export function ClientWeekStrip({ onDayClick }: ClientWeekStripProps) {
   const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
   const todayRef = useRef<HTMLButtonElement>(null);
+  const [tourOpen, setTourOpen] = useState(false);
 
   const dotColor = (r: ResolvedDay) => {
     if (r.state !== "scheduled" || !r.day) return "hsl(var(--muted-foreground) / 0.4)";
@@ -69,6 +71,14 @@ export function ClientWeekStrip({ onDayClick }: ClientWeekStripProps) {
         Your week at a glance. Each dot color shows the fasting plan for that day — tap any day to preview or edit it. Days outside your program are dimmed.
       </p>
 
+      <button
+        onClick={() => setTourOpen(true)}
+        className="flex items-center gap-1.5 px-0.5 text-[11px] font-semibold text-primary"
+      >
+        <Sparkles className="h-3.5 w-3.5" />
+        Click here to learn about the calendar strip
+      </button>
+
       <div
         ref={scrollRef}
         className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
@@ -114,6 +124,8 @@ export function ClientWeekStrip({ onDayClick }: ClientWeekStripProps) {
           );
         })}
       </div>
+
+      <CalendarStripTourSheet open={tourOpen} onOpenChange={setTourOpen} />
     </div>
   );
 }
