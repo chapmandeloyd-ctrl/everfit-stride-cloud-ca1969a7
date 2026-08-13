@@ -123,22 +123,7 @@ export default function ClientCalendar() {
     enabled: !!clientId,
   });
 
-  // Sport events
-  const { data: sportEvents } = useQuery({
-    queryKey: ["agenda-sport", clientId, startStr, endStr],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("sport_schedule_events")
-        .select("*")
-        .eq("client_id", clientId!)
-        .gte("start_time", startStr)
-        .lte("start_time", `${endStr}T23:59:59`)
-        .order("start_time");
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!clientId,
-  });
+  const sportEvents: any[] = [];
 
   // Appointments
   const { data: appointments } = useQuery({
