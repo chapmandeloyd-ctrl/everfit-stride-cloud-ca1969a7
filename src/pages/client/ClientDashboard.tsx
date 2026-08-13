@@ -1188,6 +1188,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
           <Button variant="ghost" size="sm" className="w-full text-xs" onClick={() => navigate("/client/programs")}>
             Start a new protocol
           </Button>
+          <StartJuiceFastButton />
         </CardContent>
       </Card>
     );
