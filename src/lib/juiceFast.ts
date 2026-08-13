@@ -60,6 +60,7 @@ export interface JuiceFastSession {
   status: "active" | "completed" | "cancelled";
   log_reminder_enabled?: boolean;
   log_reminder_time?: string;
+  log_reminder_snoozed_until?: string | null;
   ended_early: boolean;
   end_reason: string | null;
   includes_refeed: boolean;

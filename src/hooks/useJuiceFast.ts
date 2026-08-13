@@ -160,6 +160,32 @@ export function useJuiceFast() {
     onError: (e: Error) => toast({ title: "Couldn't update reminder", description: e.message, variant: "destructive" }),
   });
 
+  const snoozeLogReminder = useMutation({
+    mutationFn: async (input: { hours: number | null }) => {
+      if (!session) throw new Error("No active juice fast");
+      const until =
+        input.hours === null ? null : new Date(Date.now() + input.hours * 3_600_000).toISOString();
+      const { error } = await supabase
+        .from("juice_fast_sessions")
+        .update({ log_reminder_snoozed_until: until })
+        .eq("id", session.id);
+      if (error) throw error;
+      return until;
+    },
+    onSuccess: (_d, vars) => {
+      invalidate();
+      toast(
+        vars.hours === null
+          ? { title: "Snooze cleared", description: "Back to your saved reminder time." }
+          : {
+              title: `Reminder snoozed ${vars.hours}h`,
+              description: "Your saved reminder time is unchanged.",
+            },
+      );
+    },
+    onError: (e: Error) => toast({ title: "Couldn't snooze", description: e.message, variant: "destructive" }),
+  });
+
   return {
     session,
     logs,
@@ -169,5 +195,6 @@ export function useJuiceFast() {
     endFast,
     saveDayLog,
     setLogReminder,
+    snoozeLogReminder,
   };
 }

@@ -5730,6 +5730,7 @@ export type Database = {
           id: string
           includes_refeed: boolean
           log_reminder_enabled: boolean
+          log_reminder_snoozed_until: string | null
           log_reminder_time: string
           mode: string
           notes: string | null
@@ -5749,6 +5750,7 @@ export type Database = {
           id?: string
           includes_refeed?: boolean
           log_reminder_enabled?: boolean
+          log_reminder_snoozed_until?: string | null
           log_reminder_time?: string
           mode?: string
           notes?: string | null
@@ -5768,6 +5770,7 @@ export type Database = {
           id?: string
           includes_refeed?: boolean
           log_reminder_enabled?: boolean
+          log_reminder_snoozed_until?: string | null
           log_reminder_time?: string
           mode?: string
           notes?: string | null
