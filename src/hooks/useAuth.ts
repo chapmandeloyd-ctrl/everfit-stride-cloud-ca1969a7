@@ -274,7 +274,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loading,
     signOut,
     isTrainer: profile?.role === "trainer",
-  }), [session, user, profile, userRole, loading]);
+    refreshProfile: async () => {
+      if (user?.id) await fetchProfile(user.id);
+    },
+  }), [session, user, profile, userRole, loading, fetchProfile]);
 
   return createElement(AuthContext.Provider, { value }, children);
 }
