@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Button } from "@/components/ui/button";
 import { useCaptionNarration } from "@/hooks/useCaptionNarration";
 import { ChevronLeft, ChevronRight, Volume2, VolumeX, Sparkles } from "lucide-react";
@@ -82,6 +83,9 @@ export function CalendarStripTourSheet({ open, onOpenChange }: Props) {
   return (
     <Sheet open={open} onOpenChange={(o) => (o ? onOpenChange(true) : close())}>
       <SheetContent side="bottom" className="max-h-[88vh] overflow-y-auto rounded-t-3xl px-5 pb-6 pt-5">
+        <VisuallyHidden asChild>
+          <SheetTitle>Calendar strip tour</SheetTitle>
+        </VisuallyHidden>
         <div className="mx-auto w-full max-w-md space-y-5">
           <div className="flex items-center gap-2 pr-8">
             <Sparkles className="h-4 w-4 text-primary" />
