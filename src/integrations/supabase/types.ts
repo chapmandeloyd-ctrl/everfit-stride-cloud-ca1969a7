@@ -5729,6 +5729,8 @@ export type Database = {
           ends_at: string | null
           id: string
           includes_refeed: boolean
+          log_reminder_enabled: boolean
+          log_reminder_time: string
           mode: string
           notes: string | null
           planned_days: number
@@ -5746,6 +5748,8 @@ export type Database = {
           ends_at?: string | null
           id?: string
           includes_refeed?: boolean
+          log_reminder_enabled?: boolean
+          log_reminder_time?: string
           mode?: string
           notes?: string | null
           planned_days?: number
@@ -5763,6 +5767,8 @@ export type Database = {
           ends_at?: string | null
           id?: string
           includes_refeed?: boolean
+          log_reminder_enabled?: boolean
+          log_reminder_time?: string
           mode?: string
           notes?: string | null
           planned_days?: number
