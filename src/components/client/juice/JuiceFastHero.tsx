@@ -43,7 +43,7 @@ export function JuiceFastHero({ session, centerImageSrc, compact = true }: Props
   const currentStage = currentJuiceStage(session.mode, elapsedHours, totalHours);
   const nextStage = stages.find((s) => s.hour > elapsedHours) ?? null;
   const nextStageDay = nextStage ? Math.floor(nextStage.hour / 24) + 1 : null;
-  const hoursToNext = nextStage ? Math.max(0, Math.ceil(nextStage.hour - elapsedHours)) : 0;
+  const msToNext = nextStage ? Math.max(0, (nextStage.hour - elapsedHours) * 3600000) : 0;
   const sheetStage = stages.find((s) => s.hour === sheetStageHour) ?? currentStage;
 
   function openStageSheet(hour: number | null) {
@@ -197,8 +197,13 @@ export function JuiceFastHero({ session, centerImageSrc, compact = true }: Props
           </span>
           <span className="text-white/20">·</span>
           <span className="whitespace-nowrap text-[9px] font-semibold uppercase tracking-wider text-white/45">
-            {hoursToNext <= 24 ? `in ${hoursToNext}h` : `day ${nextStageDay}`}
+            {msToNext > 24 * 3600000 ? `day ${nextStageDay}` : "in"}
           </span>
+          {msToNext <= 24 * 3600000 && (
+            <span className="whitespace-nowrap font-mono text-[10px] font-bold tabular-nums text-white/75">
+              {formatRemaining(msToNext)}
+            </span>
+          )}
         </button>
       ) : (
         <p className="mt-1.5 text-[10px] font-bold uppercase tracking-wider text-white/35">
