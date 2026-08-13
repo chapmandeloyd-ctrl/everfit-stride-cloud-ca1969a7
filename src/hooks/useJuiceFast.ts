@@ -186,6 +186,33 @@ export function useJuiceFast() {
     onError: (e: Error) => toast({ title: "Couldn't snooze", description: e.message, variant: "destructive" }),
   });
 
+  const setHydrationReminder = useMutation({
+    mutationFn: async (input: {
+      enabled?: boolean;
+      intervalHours?: number;
+      windowStart?: string;
+      windowEnd?: string;
+    }) => {
+      if (!session) throw new Error("No active juice fast");
+      const patch: Record<string, unknown> = {};
+      if (input.enabled !== undefined) patch.hydration_reminder_enabled = input.enabled;
+      if (input.intervalHours !== undefined) patch.hydration_interval_hours = input.intervalHours;
+      if (input.windowStart !== undefined) patch.hydration_window_start = input.windowStart;
+      if (input.windowEnd !== undefined) patch.hydration_window_end = input.windowEnd;
+      // Turning it on shouldn't wait out a stale interval from a previous run.
+      if (input.enabled === true) patch.hydration_last_sent_at = null;
+      const { error } = await supabase.from("juice_fast_sessions").update(patch).eq("id", session.id);
+      if (error) throw error;
+    },
+    onSuccess: (_d, vars) => {
+      invalidate();
+      if (vars.enabled === true) toast({ title: "Hydration reminders on" });
+      else if (vars.enabled === false) toast({ title: "Hydration reminders off" });
+    },
+    onError: (e: Error) =>
+      toast({ title: "Couldn't update hydration reminders", description: e.message, variant: "destructive" }),
+  });
+
   return {
     session,
     logs,
@@ -196,5 +223,6 @@ export function useJuiceFast() {
     saveDayLog,
     setLogReminder,
     snoozeLogReminder,
+    setHydrationReminder,
   };
 }
