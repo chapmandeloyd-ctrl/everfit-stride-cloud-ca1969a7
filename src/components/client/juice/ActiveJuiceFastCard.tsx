@@ -29,7 +29,7 @@ interface Props {
  * client has no juice fast running, so it can be mounted unconditionally.
  */
 export function ActiveJuiceFastCard({ centerImageSrc }: Props) {
-  const { session, todayLog, endFast, saveDayLog, setLogReminder } = useJuiceFast();
+  const { session, todayLog, endFast, saveDayLog, setLogReminder, snoozeLogReminder } = useJuiceFast();
   const [logOpen, setLogOpen] = useState(false);
   const [confirmEnd, setConfirmEnd] = useState(false);
   const [testing, setTesting] = useState(false);
@@ -119,6 +119,26 @@ export function ActiveJuiceFastCard({ centerImageSrc }: Props) {
               />
             </div>
           )}
+          {session.log_reminder_snoozed_until &&
+            new Date(session.log_reminder_snoozed_until).getTime() > Date.now() && (
+              <div className="mt-2 flex items-center justify-between gap-2 rounded-lg bg-amber-500/10 px-2.5 py-1.5">
+                <span className="text-[11px] text-amber-300">
+                  Snoozed until{" "}
+                  {new Date(session.log_reminder_snoozed_until).toLocaleTimeString([], {
+                    hour: "numeric",
+                    minute: "2-digit",
+                  })}
+                </span>
+                <button
+                  type="button"
+                  className="text-[11px] font-semibold text-amber-200 underline underline-offset-2"
+                  onClick={() => snoozeLogReminder.mutate({ hours: null })}
+                  disabled={snoozeLogReminder.isPending}
+                >
+                  Undo
+                </button>
+              </div>
+            )}
           <Button
             variant="ghost"
             size="sm"
