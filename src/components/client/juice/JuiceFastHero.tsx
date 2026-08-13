@@ -29,6 +29,7 @@ function describeArc(cx: number, cy: number, r: number, startDeg: number, endDeg
 export function JuiceFastHero({ session, centerImageSrc, compact = true }: Props) {
   const [now, setNow] = useState(() => Date.now());
   const [stageSheetOpen, setStageSheetOpen] = useState(false);
+  const [sheetStageHour, setSheetStageHour] = useState<number | null>(null);
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
@@ -40,6 +41,15 @@ export function JuiceFastHero({ session, centerImageSrc, compact = true }: Props
 
   const stages = relevantJuiceStages(session.mode, totalHours);
   const currentStage = currentJuiceStage(session.mode, elapsedHours, totalHours);
+  const nextStage = stages.find((s) => s.hour > elapsedHours) ?? null;
+  const nextStageDay = nextStage ? Math.floor(nextStage.hour / 24) + 1 : null;
+  const hoursToNext = nextStage ? Math.max(0, Math.ceil(nextStage.hour - elapsedHours)) : 0;
+  const sheetStage = stages.find((s) => s.hour === sheetStageHour) ?? currentStage;
+
+  function openStageSheet(hour: number | null) {
+    setSheetStageHour(hour);
+    setStageSheetOpen(true);
+  }
 
   const size = compact ? 236 : 300;
   const bandWidth = compact ? 32 : 40;
@@ -160,7 +170,7 @@ export function JuiceFastHero({ session, centerImageSrc, compact = true }: Props
       {/* Stage pill — tap for benefits */}
       <button
         type="button"
-        onClick={() => setStageSheetOpen(true)}
+        onClick={() => openStageSheet(currentStage.hour)}
         aria-label={`View benefits of ${currentStage.label} stage`}
         className="mt-3 inline-flex items-center gap-1.5 rounded-full border bg-black/40 px-3 py-1.5 backdrop-blur-sm transition-transform hover:brightness-110 active:scale-95"
         style={{ borderColor: `${currentStage.color}66`, boxShadow: `0 0 12px ${currentStage.color}40` }}
@@ -171,6 +181,30 @@ export function JuiceFastHero({ session, centerImageSrc, compact = true }: Props
         </span>
         <span className="text-[9px] font-semibold uppercase tracking-wider text-white/50">Tap ⓘ</span>
       </button>
+
+      {/* Next-stage preview */}
+      {nextStage ? (
+        <button
+          type="button"
+          onClick={() => openStageSheet(nextStage.hour)}
+          aria-label={`Preview next stage: ${nextStage.label}`}
+          className="mt-1.5 inline-flex max-w-full items-center gap-1.5 rounded-full border border-white/10 bg-black/30 px-2.5 py-1 backdrop-blur-sm transition-transform hover:brightness-125 active:scale-95"
+        >
+          <span className="text-[9px] font-bold uppercase tracking-wider text-white/40">Next</span>
+          <span className="text-xs grayscale-[0.4]">{nextStage.icon}</span>
+          <span className="truncate text-[10px] font-bold uppercase tracking-wider" style={{ color: `${nextStage.color}cc` }}>
+            {nextStage.label}
+          </span>
+          <span className="text-white/20">·</span>
+          <span className="whitespace-nowrap text-[9px] font-semibold uppercase tracking-wider text-white/45">
+            {hoursToNext <= 24 ? `in ${hoursToNext}h` : `day ${nextStageDay}`}
+          </span>
+        </button>
+      ) : (
+        <p className="mt-1.5 text-[10px] font-bold uppercase tracking-wider text-white/35">
+          Final stage — ride it out
+        </p>
+      )}
 
       <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/40 px-3 py-1.5 backdrop-blur-sm">
         <span className="text-[10px] font-bold uppercase tracking-wider text-white/70">
@@ -184,36 +218,49 @@ export function JuiceFastHero({ session, centerImageSrc, compact = true }: Props
         {Math.floor(elapsedHours)}h in · {currentStage.description}
       </p>
 
-      <Sheet open={stageSheetOpen} onOpenChange={setStageSheetOpen}>
+      <Sheet
+        open={stageSheetOpen}
+        onOpenChange={(open) => {
+          setStageSheetOpen(open);
+          if (!open) setSheetStageHour(null);
+        }}
+      >
         <SheetContent
           side="bottom"
           className="max-h-[85vh] overflow-y-auto rounded-t-2xl border-t-0 bg-background"
-          style={{ boxShadow: `0 -8px 40px ${currentStage.color}55` }}
+          style={{ boxShadow: `0 -8px 40px ${sheetStage.color}55` }}
         >
           <SheetHeader className="text-left">
             <div className="flex items-center gap-3">
               <div
                 className="flex h-12 w-12 items-center justify-center rounded-full text-2xl"
-                style={{ backgroundColor: `${currentStage.color}20`, boxShadow: `0 0 0 2px ${currentStage.color}55` }}
+                style={{ backgroundColor: `${sheetStage.color}20`, boxShadow: `0 0 0 2px ${sheetStage.color}55` }}
               >
-                {currentStage.icon}
+                {sheetStage.icon}
               </div>
               <div className="flex-1">
-                <SheetTitle style={{ color: currentStage.color }}>{currentStage.label}</SheetTitle>
+                <SheetTitle style={{ color: sheetStage.color }}>
+                  {sheetStage.label}
+                  {sheetStage.hour !== currentStage.hour && (
+                    <span className="ml-2 align-middle text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                      Upcoming
+                    </span>
+                  )}
+                </SheetTitle>
                 <SheetDescription>
-                  Day {Math.floor(currentStage.hour / 24) + 1}+ • {meta.label} • {currentStage.description}
+                  Day {Math.floor(sheetStage.hour / 24) + 1}+ • {meta.label} • {sheetStage.description}
                 </SheetDescription>
               </div>
             </div>
           </SheetHeader>
           <div className="mt-5">
             <h4 className="mb-3 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              What's happening in your body
+              {sheetStage.hour !== currentStage.hour ? "What changes when you reach this stage" : "What's happening in your body"}
             </h4>
             <ul className="space-y-2.5">
-              {currentStage.benefits.map((b, i) => (
+              {sheetStage.benefits.map((b, i) => (
                 <li key={i} className="flex items-start gap-2.5">
-                  <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: currentStage.color }} />
+                  <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: sheetStage.color }} />
                   <p className="text-sm leading-relaxed text-foreground/90">{b}</p>
                 </li>
               ))}
@@ -226,13 +273,25 @@ export function JuiceFastHero({ session, centerImageSrc, compact = true }: Props
                 <li
                   key={s.hour}
                   className={cn(
-                    "flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs",
-                    s.hour === currentStage.hour ? "bg-muted/60 font-semibold" : "opacity-60",
+                    "text-xs",
+                    s.hour === sheetStage.hour ? "font-semibold" : "opacity-60",
                   )}
                 >
-                  <span>{s.icon}</span>
-                  <span style={{ color: s.color }}>{s.label}</span>
-                  <span className="ml-auto text-[10px] text-muted-foreground">Day {Math.floor(s.hour / 24) + 1}</span>
+                  <button
+                    type="button"
+                    onClick={() => setSheetStageHour(s.hour)}
+                    className={cn(
+                      "flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-muted/40",
+                      s.hour === sheetStage.hour && "bg-muted/60",
+                    )}
+                  >
+                    <span>{s.icon}</span>
+                    <span style={{ color: s.color }}>{s.label}</span>
+                    {s.hour === currentStage.hour && (
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Now</span>
+                    )}
+                    <span className="ml-auto text-[10px] text-muted-foreground">Day {Math.floor(s.hour / 24) + 1}</span>
+                  </button>
                 </li>
               ))}
             </ul>
