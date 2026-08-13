@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { useToast } from "@/hooks/use-toast";
 import { needsRefeed, type JuiceDayLog, type JuiceFastMode, type JuiceFastSession } from "@/lib/juiceFast";
+import { emitActivityEvent } from "@/lib/activityEvents";
 
 function todayKey() {
   const d = new Date();
@@ -77,8 +78,19 @@ export function useJuiceFast() {
       if (error) throw error;
       return data as JuiceFastSession;
     },
-    onSuccess: () => {
+    onSuccess: (data, vars) => {
       invalidate();
+      if (clientId) {
+        emitActivityEvent({
+          clientId,
+          eventType: "juice_fast_started",
+          category: "juice",
+          icon: "cup-soda",
+          title: `Juice fast started — ${vars.days} day${vars.days === 1 ? "" : "s"}`,
+          subtitle: vars.mode === "juice_only" ? "Juice only" : "Juice + light food",
+          metadata: { session_id: data.id, mode: vars.mode, planned_days: vars.days },
+        });
+      }
       toast({ title: "Juice fast started", description: "Your day counter is live on the dashboard." });
     },
     onError: (e: Error) => toast({ title: "Couldn't start", description: e.message, variant: "destructive" }),
@@ -100,6 +112,18 @@ export function useJuiceFast() {
     },
     onSuccess: (_d, vars) => {
       invalidate();
+      if (clientId) {
+        const days = session?.planned_days ?? 0;
+        emitActivityEvent({
+          clientId,
+          eventType: vars.early ? "juice_fast_ended_early" : "juice_fast_completed",
+          category: "juice",
+          icon: vars.early ? "stop-circle" : "check-circle",
+          title: vars.early ? "Juice fast ended early" : `Juice fast complete — ${days} day${days === 1 ? "" : "s"}`,
+          subtitle: vars.reason ?? null,
+          metadata: { session_id: session?.id, early: vars.early, reason: vars.reason ?? null },
+        });
+      }
       toast({
         title: vars.early ? "Juice fast ended early" : "Juice fast complete",
         description: vars.early ? "Logged. Ease back in with something light." : "Nice work — start your refeed gently.",
@@ -136,8 +160,28 @@ export function useJuiceFast() {
       );
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_d, vars) => {
       invalidate();
+      if (clientId) {
+        emitActivityEvent({
+          clientId,
+          eventType: "juice_day_logged",
+          category: "juice",
+          icon: "droplets",
+          title: `Juice fast day ${vars.dayNumber} logged`,
+          subtitle: `${vars.juiceCount} juice${vars.juiceCount === 1 ? "" : "s"} · ${vars.waterOz} oz water${
+            vars.snacked ? " · had a snack" : ""
+          }`,
+          metadata: {
+            session_id: session?.id,
+            day_number: vars.dayNumber,
+            juice_count: vars.juiceCount,
+            water_oz: vars.waterOz,
+            snacked: vars.snacked,
+            energy_rating: vars.energyRating ?? null,
+          },
+        });
+      }
       toast({ title: "Day logged" });
     },
     onError: (e: Error) => toast({ title: "Couldn't save", description: e.message, variant: "destructive" }),
