@@ -1378,6 +1378,12 @@ export type Database = {
           extended_fast_48h_enabled: boolean
           extended_fast_72h_enabled: boolean
           extended_fast_96h_enabled: boolean
+          fast_hydration_interval_hours: number
+          fast_hydration_last_sent_at: string | null
+          fast_hydration_min_hours: number
+          fast_hydration_reminder_enabled: boolean
+          fast_hydration_window_end: string
+          fast_hydration_window_start: string
           fast_lock_pin: string | null
           fasting_card_image_url: string | null
           fasting_card_subtitle: string
@@ -1501,6 +1507,12 @@ export type Database = {
           extended_fast_48h_enabled?: boolean
           extended_fast_72h_enabled?: boolean
           extended_fast_96h_enabled?: boolean
+          fast_hydration_interval_hours?: number
+          fast_hydration_last_sent_at?: string | null
+          fast_hydration_min_hours?: number
+          fast_hydration_reminder_enabled?: boolean
+          fast_hydration_window_end?: string
+          fast_hydration_window_start?: string
           fast_lock_pin?: string | null
           fasting_card_image_url?: string | null
           fasting_card_subtitle?: string
@@ -1624,6 +1636,12 @@ export type Database = {
           extended_fast_48h_enabled?: boolean
           extended_fast_72h_enabled?: boolean
           extended_fast_96h_enabled?: boolean
+          fast_hydration_interval_hours?: number
+          fast_hydration_last_sent_at?: string | null
+          fast_hydration_min_hours?: number
+          fast_hydration_reminder_enabled?: boolean
+          fast_hydration_window_end?: string
+          fast_hydration_window_start?: string
           fast_lock_pin?: string | null
           fasting_card_image_url?: string | null
           fasting_card_subtitle?: string
