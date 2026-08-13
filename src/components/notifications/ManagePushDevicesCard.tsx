@@ -206,29 +206,6 @@ export function ManagePushDevicesCard() {
     }
   };
 
-  const removeAllStaleUnused = async () => {
-    const ids = (devices ?? []).filter(isStale).map((d) => d.id);
-    if (!ids.length) return;
-    setRemovingId("stale");
-    try {
-      const { error } = await supabase.from("push_subscriptions").delete().in("id", ids);
-      if (error) throw error;
-      await queryClient.invalidateQueries({ queryKey: ["push-devices"] });
-      toast({
-        title: `Removed ${ids.length} stale device${ids.length === 1 ? "" : "s"}`,
-        description: "Test reminders will now only target active devices.",
-      });
-    } catch (err) {
-      toast({
-        title: "Cleanup failed",
-        description: (err as Error).message,
-        variant: "destructive",
-      });
-    } finally {
-      setRemovingId(null);
-    }
-  };
-
   return (
     <>
       <Card>
