@@ -84,14 +84,7 @@ export function useAdaptiveRecommendation() {
           .select("fasting_enabled, current_level, level_start_date")
           .eq("client_id", clientId)
           .maybeSingle(),
-        engineMode === "athletic"
-          ? supabase
-              .from("client_ical_feeds")
-              .select("id")
-              .eq("client_id", clientId)
-              .eq("is_active", true)
-              .limit(1)
-          : Promise.resolve({ data: [] }),
+        Promise.resolve({ data: [] as { id: string }[] }),
       ]);
 
       const checkins = checkinsRes.data || [];

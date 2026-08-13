@@ -31,7 +31,7 @@ export interface SimulationResult {
   allowed: boolean;
 }
 
-const ENGINES: EngineMode[] = ["metabolic", "performance", "athletic"];
+const ENGINES: EngineMode[] = ["metabolic"];
 const TIERS: SubscriptionTier[] = ["starter", "pro", "elite", "enterprise"];
 const ACTIONS: AuthorityAction[] = [
   "level_auto_advance",

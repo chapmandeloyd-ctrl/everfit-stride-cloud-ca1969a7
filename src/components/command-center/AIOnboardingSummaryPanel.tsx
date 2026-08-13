@@ -52,11 +52,7 @@ export function AIOnboardingSummaryPanel({ clientId, trainerId }: AIOnboardingSu
         protocolName = proto?.name ?? null;
       }
 
-      const { data: sportProfile } = await supabase
-        .from("client_sport_profiles")
-        .select("sport, position, team_name")
-        .eq("client_id", clientId)
-        .maybeSingle();
+      const sportProfile: any = null;
 
       const ketoName = (ketoAssignment as any)?.keto_types?.name ?? null;
 

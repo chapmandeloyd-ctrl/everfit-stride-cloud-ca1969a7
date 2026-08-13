@@ -9,12 +9,9 @@ import { Dumbbell, MessageSquare, Camera, CheckSquare, Utensils, Activity, Targe
 import { InsightCoachControls } from "./InsightCoachControls";
 import { CoachPlanOverrides } from "./CoachPlanOverrides";
 import { Lock } from "lucide-react";
-import { ENGINE_MODE_OPTIONS, type EngineMode, getEngineConfig } from "@/lib/engineConfig";
+import { getEngineConfig } from "@/lib/engineConfig";
 import { Slider } from "@/components/ui/slider";
 import { RestDayCardEditor } from "./RestDayCardEditor";
-import { SportDayCardEditor } from "./SportDayCardEditor";
-import { ClientSportScheduleCard } from "./ClientSportScheduleCard";
-import { ClientSportProfileEditor } from "./ClientSportProfileEditor";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Input } from "@/components/ui/input";
 import { ClientRemindersSection } from "@/components/ClientRemindersSection";
@@ -230,26 +227,6 @@ export function ClientSettingsTab({ clientId, trainerId }: ClientSettingsTabProp
     },
   });
 
-  // Engine mode mutation (updates both profiles + feature settings)
-  const engineModeMutation = useMutation({
-    mutationFn: async (mode: EngineMode) => {
-      const [profileRes, settingsRes] = await Promise.all([
-        supabase.from("profiles").update({ engine_mode: mode as any }).eq("id", clientId),
-        supabase.from("client_feature_settings").update({ engine_mode: mode as any }).eq("client_id", clientId),
-      ]);
-      if (profileRes.error) throw profileRes.error;
-      if (settingsRes.error) throw settingsRes.error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["client-feature-settings", clientId] });
-      queryClient.invalidateQueries({ queryKey: ["engine-mode", clientId] });
-      toast({ title: "Engine mode updated" });
-    },
-    onError: () => {
-      toast({ title: "Error", description: "Failed to update engine mode", variant: "destructive" });
-    },
-  });
-
   if (isLoading) {
     return (
       <Card>
@@ -259,12 +236,6 @@ export function ClientSettingsTab({ clientId, trainerId }: ClientSettingsTabProp
       </Card>
     );
   }
-
-  const ENGINE_ICONS_MAP: Record<EngineMode, React.ReactNode> = {
-    metabolic: <Shield className="h-5 w-5" />,
-    performance: <TrendingUp className="h-5 w-5" />,
-    athletic: <Zap className="h-5 w-5" />,
-  };
 
   return (
     <div className="space-y-6">
@@ -486,11 +457,6 @@ export function ClientSettingsTab({ clientId, trainerId }: ClientSettingsTabProp
         </CardContent>
       </Card>
 
-      <div className={cn("space-y-6 transition-opacity", !settings?.sport_schedule_enabled && "opacity-40 pointer-events-none")}>
-        <ClientSportProfileEditor clientId={clientId} trainerId={trainerId} />
-        <ClientSportScheduleCard clientId={clientId} trainerId={trainerId} />
-        <SportDayCardEditor clientId={clientId} trainerId={trainerId} />
-      </div>
       <RestDayCardEditor clientId={clientId} trainerId={trainerId} />
 
       {/* Meal Plan Configuration */}
@@ -1128,23 +1094,13 @@ function DashboardLayoutSection({ clientId, trainerId, settings }: { clientId: s
   const { cards, isLoading, save, isSaving } = useDashboardLayout(trainerId, clientId);
 
   // Compute which cards are N/A based on engine mode + feature settings
-  const engineMode = (settings?.engine_mode || "metabolic") as EngineMode;
-  const engineConfig = getEngineConfig(engineMode);
+  const engineConfig = getEngineConfig();
 
   const disabledCards: Record<string, string> = {};
 
-  // Engine-based restrictions
-  if (engineConfig.fastingDisabled) {
-    disabledCards["fasting"] = "N/A — Athletic engine";
-    disabledCards["coach_tip"] = "N/A — No fasting";
-  }
-  if (!engineConfig.features.showGameStats) {
-    disabledCards["game_stats"] = `N/A — ${engineConfig.shortLabel} engine`;
-  }
-
   // Feature flag restrictions
   if (!settings?.training_enabled) disabledCards["workouts"] = "Training disabled";
-  if (!settings?.fasting_enabled && !engineConfig.fastingDisabled) disabledCards["fasting"] = "Fasting disabled";
+  if (!settings?.fasting_enabled) disabledCards["fasting"] = "Fasting disabled";
   if (!settings?.tasks_enabled) {
     disabledCards["tasks"] = "Tasks disabled";
     disabledCards["habits"] = "Tasks disabled";
@@ -1153,9 +1109,6 @@ function DashboardLayoutSection({ clientId, trainerId, settings }: { clientId: s
   if (!settings?.food_journal_enabled) disabledCards["food_journal"] = "Food journal disabled";
   if (!settings?.activity_logging_enabled) disabledCards["step_tracker"] = "Activity logging disabled";
   if (!settings?.body_metrics_enabled) disabledCards["progress"] = "Body metrics disabled";
-  if (!settings?.sport_schedule_enabled && !engineConfig.features.showGameStats) {
-    disabledCards["game_stats"] = "Sport schedule disabled";
-  }
 
   if (isLoading) return null;
 

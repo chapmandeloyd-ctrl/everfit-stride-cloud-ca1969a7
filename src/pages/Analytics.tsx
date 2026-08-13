@@ -181,14 +181,7 @@ export default function Analytics() {
       if (compError) throw compError;
       if (!completions || completions.length === 0) return [];
 
-      // Fetch associated sport events
-      const eventIds = [...new Set((completions as any[]).map((c: any) => c.sport_event_id))];
-      const { data: events, error: evError } = await supabase
-        .from("sport_schedule_events")
-        .select("*")
-        .in("id", eventIds);
-
-      if (evError) throw evError;
+      const events: any[] = [];
 
       const eventMap = new Map((events || []).map((e: any) => [e.id, e]));
       return (completions as any[]).map((c: any) => ({

@@ -73,21 +73,7 @@ export function ClientCalendarTab({ clientId, trainerId }: ClientCalendarTabProp
     enabled: !!clientId,
   });
 
-  const { data: sportEvents } = useQuery({
-    queryKey: ["cc-sport-events", clientId, format(monthStart, "yyyy-MM")],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("sport_schedule_events")
-        .select("*")
-        .eq("client_id", clientId)
-        .gte("start_time", format(monthStart, "yyyy-MM-dd"))
-        .lte("start_time", format(monthEnd, "yyyy-MM-dd'T'23:59:59"))
-        .order("start_time");
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!clientId,
-  });
+  const sportEvents: any[] = [];
 
   const { data: habits } = useQuery({
     queryKey: ["cc-calendar-habits", clientId, format(monthStart, "yyyy-MM")],

@@ -16,8 +16,6 @@ import { useImpersonation } from "@/hooks/useImpersonation";
 
 const ENGINE_LABELS: Record<EngineMode, { label: string; color: string }> = {
   metabolic: { label: "APEXBEAST-IF", color: "text-blue-400" },
-  performance: { label: "APEXBEAST-IF", color: "text-blue-400" },
-  athletic: { label: "Athletic", color: "text-green-400" },
 };
 
 const STEP_LABELS = ["Intro 1", "Intro 2", "Intro 3", "Profile", "Questions", "Complete"];

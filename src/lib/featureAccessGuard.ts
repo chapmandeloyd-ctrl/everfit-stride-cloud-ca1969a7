@@ -82,8 +82,8 @@ const TIER_FEATURES: Record<SubscriptionTier, Set<GatedFeature>> = {
 const TIER_ENGINES: Record<SubscriptionTier, EngineMode[]> = {
   starter: ["metabolic"],
   pro: ["metabolic"],
-  elite: ["metabolic", "athletic"],
-  enterprise: ["metabolic", "athletic"],
+  elite: ["metabolic"],
+  enterprise: ["metabolic"],
 };
 
 // ─── Level caps ─────────────────────────────────────────
@@ -186,16 +186,6 @@ export function getUpgradeCopy(engine: EngineMode): { headline: string; subtext:
         headline: "Unlock your full APEXBEAST-IF potential.",
         subtext: "Upgrade to access advanced fasting structures, deeper scoring, and coach-level analytics.",
       };
-    case "performance":
-      return {
-        headline: "Unlock your full APEXBEAST-IF potential.",
-        subtext: "Upgrade to access advanced fasting structures, deeper scoring, and coach-level analytics.",
-      };
-    case "athletic":
-      return {
-        headline: "Build a stronger competitive edge.",
-        subtext: "Upgrade to access guardian oversight, full-level progression, and advanced recovery tools.",
-      };
     default:
       return {
         headline: "Unlock the full platform.",
@@ -238,15 +228,13 @@ export type AuthorityToggle =
   | "auto_nudge_optimization_enabled";
 
 /**
- * Returns true only if the toggle is allowed given tier, engine, and toggle state.
- * Athletic engine hard-locks all toggles to false.
+ * Returns true only if the toggle is allowed given tier and toggle state.
  */
 export function checkAuthorityGate(
   tier: SubscriptionTier,
   engine: EngineMode,
   toggleValue: boolean,
 ): boolean {
-  if (engine === "athletic") return false;
   if (tier === "starter") return false;
   if (tier === "pro") return toggleValue;
   return toggleValue;

@@ -48,14 +48,10 @@ const MIN_SAMPLES = 20;
 
 const ENGINE_OUTCOME_MAP: Record<EngineMode, string> = {
   metabolic: "bodyweightDelta",
-  performance: "bodyweightDelta",
-  athletic: "recoveryDelta",
 };
 
 const ENGINE_FACTORS: Record<EngineMode, ScoreFactor[]> = {
   metabolic: ["fasting", "sleep", "nutrition", "weekly_completion"],
-  performance: ["fasting", "sleep", "nutrition", "weekly_completion"],
-  athletic: ["sleep", "training_load", "recovery", "nutrition"],
 };
 
 // ─── Correlation Math ───────────────────────────────────
@@ -116,8 +112,7 @@ export function computeCalibration(
   const factors = ENGINE_FACTORS[engine] || [];
   const outcomeKey = ENGINE_OUTCOME_MAP[engine];
 
-  // For athletic engine, also check injury correlation
-  const isAthletic = engine === "athletic";
+  const isAthletic = false;
 
   const impacts: FactorImpact[] = factors.map((factor) => {
     // Extract paired data points
@@ -208,8 +203,6 @@ export function getCopilotPriorityMultipliers(
  */
 export const ENGINE_OUTCOME_LABELS: Record<EngineMode, string> = {
   metabolic: "Fat Loss Prediction",
-  performance: "Fat Loss Prediction",
-  athletic: "Injury Risk Reduction",
 };
 
 export const FACTOR_DISPLAY_LABELS: Record<string, string> = {

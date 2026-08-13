@@ -63,7 +63,7 @@ export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEn
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Fetch workouts, sport events, tasks, habits
+  // Fetch workouts, tasks, habits
   const { data: workouts } = useQuery({
     queryKey: ["day-strip-workouts", clientId, startDate, endDate],
     queryFn: async () => {
@@ -77,22 +77,6 @@ export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEn
       return data;
     },
     enabled: !!clientId && trainingEnabled,
-  });
-
-  const { data: sportEvents } = useQuery({
-    queryKey: ["day-strip-sport-events", clientId, startDate, endDate],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("sport_schedule_events")
-        .select("*")
-        .eq("client_id", clientId)
-        .gte("start_time", `${startDate}T00:00:00`)
-        .lte("start_time", `${endDate}T23:59:59`)
-        .order("start_time", { ascending: true });
-      if (error) throw error;
-      return data as any[];
-    },
-    enabled: !!clientId,
   });
 
   const { data: tasks } = useQuery({
@@ -172,27 +156,11 @@ export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEn
     enabled: !!clientId && trainingEnabled,
   });
 
-  const { data: sportDayCards } = useQuery({
-    queryKey: ["day-strip-sport-cards", clientId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("client_sport_day_cards" as any)
-        .select("*")
-        .eq("client_id", clientId);
-      if (error) throw error;
-      return data as any[];
-    },
-    enabled: !!clientId,
-  });
-
-  const practiceCard = sportDayCards?.find((c: any) => c.card_type === "practice");
-  const gameCard = sportDayCards?.find((c: any) => c.card_type === "game");
-
   function getDayData(date: Date): DayData {
     const dateStr = format(date, "yyyy-MM-dd");
     return {
       workouts: workouts?.filter(w => w.scheduled_date === dateStr) || [],
-      sportEvents: sportEvents?.filter(e => e.start_time?.startsWith(dateStr)) || [],
+      sportEvents: [] as any[],
       tasks: tasks?.filter(t => t.due_date === dateStr) || [],
       habits: habits?.filter(h => {
         if (h.end_date && h.end_date < dateStr) return false;
@@ -209,7 +177,7 @@ export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEn
     const data = getDayData(date);
     return {
       hasWorkout: data.workouts.length > 0 || data.cardio.length > 0,
-      hasSport: data.sportEvents.length > 0,
+      hasSport: false,
       hasTask: data.tasks.length > 0 || data.habits.length > 0,
     };
   }
@@ -353,7 +321,7 @@ export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEn
           trainingEnabled={trainingEnabled}
           tasksEnabled={tasksEnabled}
           restDayCard={restDayCard}
-          sportDayCards={sportDayCards || []}
+          sportDayCards={[]}
         />
       )}
 
@@ -363,50 +331,6 @@ export function DayStripCalendar({ clientId, daysAhead, trainingEnabled, tasksEn
           <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
             {format(viewDate, "EEEE, MMM d")}
           </p>
-
-          {viewData.sportEvents.map((event: any) => {
-            const isGame = event.event_type === "game" || event.event_type === "event";
-            const customCard = isGame ? gameCard : practiceCard;
-            const EventIcon = isGame ? Swords : Trophy;
-            const label = isGame ? "Game Day" : "Practice";
-            const startTime = formatEventTime(event.start_time);
-            const endTime = event.end_time ? formatEventTime(event.end_time) : null;
-            const timeDisplay = endTime && endTime !== startTime ? `${startTime} - ${endTime}` : startTime;
-
-            return (
-              <Card key={event.id} className="overflow-hidden">
-                <div className={cn(
-                  "relative h-56",
-                  isGame ? "bg-gradient-to-br from-destructive/20 to-destructive/5" : "bg-gradient-to-br from-primary/20 to-primary/5"
-                )}>
-                  {customCard?.image_url ? (
-                    <img src={customCard.image_url} alt={label} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <EventIcon className={cn("h-16 w-16", isGame ? "text-destructive/30" : "text-primary/30")} />
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <p className="text-xs font-semibold text-white/70 uppercase tracking-wider">{label}</p>
-                    <p className="text-lg font-bold text-white">{event.title}</p>
-                    <div className="flex items-center gap-3 mt-1">
-                      <p className="text-sm text-white/80">{timeDisplay}</p>
-                      {event.location && (
-                        <p className="text-sm text-white/80 flex items-center gap-1">
-                          <MapPin className="h-3 w-3" />
-                          {event.location}
-                        </p>
-                      )}
-                    </div>
-                    {customCard?.message && (
-                      <p className="text-xs text-white/70 mt-1">{customCard.message}</p>
-                    )}
-                  </div>
-                </div>
-              </Card>
-            );
-          })}
 
           {viewData.workouts.map((w: any) => (
             <Card key={w.id} className="overflow-hidden">

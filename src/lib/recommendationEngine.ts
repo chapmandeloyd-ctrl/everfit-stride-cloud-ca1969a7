@@ -231,7 +231,7 @@ function computePerformance(days: DailyInputs[], fastingEnabled: boolean): Engin
   const lowestFactor = [...factors].sort((a, b) => a.normalized - b.normalized)[0];
 
   return {
-    engine: "performance",
+    engine: "metabolic",
     score,
     status,
     recommendation: getRecommendation(status),
@@ -242,62 +242,18 @@ function computePerformance(days: DailyInputs[], fastingEnabled: boolean): Engin
   };
 }
 
-function computeAthletic(days: DailyInputs[]): EngineResult {
-  const last7 = days.slice(0, 7);
-
-  const sleepNorms = last7.map((d) => normSleep(d.sleepHours));
-  const trainingNorms = last7.map((d) => normBool(d.workoutCompleted ? true : null));
-  const recoveryNorms = last7.map((d) => normBool(d.recoveryCompleted));
-  const nutritionNorms = last7.map((d) => normBool(d.nutritionOnTrack));
-
-  const { factors, missingPct } = buildFactorsWithRedistribution([
-    { factor: "sleep", normalized: avg(sleepNorms), weight: 0.30 },
-    { factor: "training_load", normalized: avg(trainingNorms), weight: 0.25 },
-    { factor: "recovery", normalized: avg(recoveryNorms), weight: 0.25 },
-    { factor: "nutrition", normalized: avg(nutritionNorms), weight: 0.20 },
-  ]);
-
-  let score = Math.min(100, Math.max(0, Math.round(factors.reduce((s, f) => s + f.weighted, 0))));
-  let status = getStatus(score);
-  if (missingPct > 0.5 && status === "strong") status = "moderate";
-
-  const lowestFactor = [...factors].sort((a, b) => a.normalized - b.normalized)[0];
-
-  return {
-    engine: "athletic",
-    score,
-    status,
-    recommendation: getRecommendation(status),
-    lowestFactor,
-    factors,
-    streakDays: calculateStreak(days, "workoutCompleted"),
-    weeklyCompletionPct: Math.round(weeklyPct(days, "workoutCompleted")),
-  };
-}
-
 // ─── Public API ─────────────────────────────────────────
 
 export function computeEngineScore(
-  engine: EngineMode,
+  _engine: EngineMode,
   days: DailyInputs[],
-  fastingEnabled = true,
+  _fastingEnabled = true,
 ): EngineResult {
-  switch (engine) {
-    case "metabolic":
-      return computeMetabolic(days);
-    case "performance":
-      return computePerformance(days, fastingEnabled);
-    case "athletic":
-      return computeAthletic(days);
-    default:
-      return computePerformance(days, fastingEnabled);
-  }
+  return computeMetabolic(days);
 }
 
 export const ENGINE_SCORE_LABELS: Record<EngineMode, string> = {
   metabolic: "APEXBEAST-IF Readiness Index",
-  performance: "APEXBEAST-IF Readiness Index",
-  athletic: "Recovery & Game Readiness Score",
 };
 
 export const STATUS_DISPLAY: Record<StatusLabel, { label: string; color: string }> = {

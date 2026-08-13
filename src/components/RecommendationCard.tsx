@@ -14,8 +14,6 @@ import type { EngineMode } from "@/lib/engineConfig";
 
 const ENGINE_ICONS: Record<EngineMode, React.ReactNode> = {
   metabolic: <Shield className="h-5 w-5" />,
-  performance: <TrendingUp className="h-5 w-5" />,
-  athletic: <Zap className="h-5 w-5" />,
 };
 
 const STATUS_BADGE_COLORS: Record<StatusLabel, string> = {

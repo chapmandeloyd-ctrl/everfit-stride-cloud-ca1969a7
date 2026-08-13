@@ -183,49 +183,6 @@ export function evaluatePlanGating(
     };
   }
 
-  // ── Athletic engine: hide all fasting plans entirely
-  if (ctx.engineMode === "athletic" && plan.plan_type === "fasting") {
-    return {
-      planId: plan.id,
-      isVisible: false,
-      isAccessible: false,
-      lockReason: "youth_safety",
-      lockMessage: getLockMessage("youth_safety"),
-      isCoachApproved: false,
-      isOptionalTool: false,
-    };
-  }
-
-  // ── Athletic engine: only youth-safe plans visible
-  if (ctx.engineMode === "athletic" && !plan.is_youth_safe) {
-    return {
-      planId: plan.id,
-      isVisible: false,
-      isAccessible: false,
-      lockReason: "youth_safety",
-      lockMessage: getLockMessage("youth_safety"),
-      isCoachApproved: false,
-      isOptionalTool: false,
-    };
-  }
-
-  // ── Athletic engine: hide extreme conditioning if game within 48h
-  if (
-    ctx.engineMode === "athletic" &&
-    ctx.upcomingGameOrPractice &&
-    plan.intensity_tier === "extreme"
-  ) {
-    return {
-      planId: plan.id,
-      isVisible: false,
-      isAccessible: false,
-      lockReason: "youth_safety",
-      lockMessage: getLockMessage("youth_safety"),
-      isCoachApproved: false,
-      isOptionalTool: false,
-    };
-  }
-
   // ── Engine mode check
   if (!plan.engine_allowed.includes(ctx.engineMode)) {
     return {
@@ -241,7 +198,6 @@ export function evaluatePlanGating(
 
   // ── Fasting plans marked as "Optional Tool" when fasting disabled
   const isOptionalTool =
-    (ctx.engineMode === "performance" || ctx.engineMode === "metabolic") &&
     !ctx.fastingEnabled &&
     plan.plan_type === "fasting";
 
@@ -352,9 +308,7 @@ export function evaluatePlanGating(
     };
   }
 
-  // ── Performance: high intensity locked if sleep is lowest and not strong
   if (
-    ctx.engineMode === "performance" &&
     (plan.intensity_tier === "high" || plan.intensity_tier === "extreme") &&
     ctx.lowestFactor === "sleep" &&
     ctx.scoreStatus !== "strong"
