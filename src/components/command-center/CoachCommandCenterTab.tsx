@@ -74,7 +74,6 @@ export function CoachCommandCenterTab({ clientId, trainerId }: CoachCommandCente
     },
   });
 
-  const showParentLink = settings?.is_minor && settings?.engine_mode === "athletic" && settings?.parent_link_enabled;
 
   return (
     <div className="space-y-6">
