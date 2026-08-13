@@ -5811,6 +5811,7 @@ export type Database = {
           hydration_window_start: string
           id: string
           includes_refeed: boolean
+          last_stage_notified_hour: number | null
           log_reminder_enabled: boolean
           log_reminder_snoozed_until: string | null
           log_reminder_time: string
@@ -5836,6 +5837,7 @@ export type Database = {
           hydration_window_start?: string
           id?: string
           includes_refeed?: boolean
+          last_stage_notified_hour?: number | null
           log_reminder_enabled?: boolean
           log_reminder_snoozed_until?: string | null
           log_reminder_time?: string
@@ -5861,6 +5863,7 @@ export type Database = {
           hydration_window_start?: string
           id?: string
           includes_refeed?: boolean
+          last_stage_notified_hour?: number | null
           log_reminder_enabled?: boolean
           log_reminder_snoozed_until?: string | null
           log_reminder_time?: string
