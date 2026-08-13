@@ -197,8 +197,13 @@ export function JuiceFastHero({ session, centerImageSrc, compact = true }: Props
           </span>
           <span className="text-white/20">·</span>
           <span className="whitespace-nowrap text-[9px] font-semibold uppercase tracking-wider text-white/45">
-            {hoursToNext <= 24 ? `in ${hoursToNext}h` : `day ${nextStageDay}`}
+            {msToNext > 24 * 3600000 ? `day ${nextStageDay}` : "in"}
           </span>
+          {msToNext <= 24 * 3600000 && (
+            <span className="whitespace-nowrap font-mono text-[10px] font-bold tabular-nums text-white/75">
+              {formatRemaining(msToNext)}
+            </span>
+          )}
         </button>
       ) : (
         <p className="mt-1.5 text-[10px] font-bold uppercase tracking-wider text-white/35">
