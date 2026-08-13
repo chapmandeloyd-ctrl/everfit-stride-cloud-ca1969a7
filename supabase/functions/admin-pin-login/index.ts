@@ -6,6 +6,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -52,14 +54,23 @@ serve(async (req: Request) => {
       );
     }
 
-    // Generate a magic link for the trainer
-    const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
-      type: "magiclink",
-      email: trainerProfile.email,
-    });
+    // Auth can occasionally return a retryable gateway timeout even while the
+    // rest of the backend is healthy. Retry once before failing the PIN login.
+    let linkData = null;
+    let linkError: unknown = null;
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      const result = await supabaseAdmin.auth.admin.generateLink({
+        type: "magiclink",
+        email: trainerProfile.email,
+      });
+      linkData = result.data;
+      linkError = result.error;
+      if (linkData && !linkError) break;
+      if (attempt === 0) await wait(750);
+    }
 
     if (linkError || !linkData) {
-      console.error("Error generating link:", linkError);
+      console.error("Error generating link after retry:", linkError);
       return new Response(
         JSON.stringify({ error: "Failed to generate login link" }),
         { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
