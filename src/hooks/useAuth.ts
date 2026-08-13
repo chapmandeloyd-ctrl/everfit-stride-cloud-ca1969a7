@@ -56,6 +56,7 @@ interface AuthContextValue {
   loading: boolean;
   signOut: () => Promise<void>;
   isTrainer: boolean;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
