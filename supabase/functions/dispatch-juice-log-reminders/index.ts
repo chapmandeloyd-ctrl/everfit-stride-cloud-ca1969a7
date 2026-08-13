@@ -182,7 +182,9 @@ serve(async (req) => {
   try {
     const { data: sessions, error } = await supabase
       .from("juice_fast_sessions")
-      .select("id, client_id, mode, planned_days, started_at, log_reminder_enabled, log_reminder_time")
+      .select(
+        "id, client_id, mode, planned_days, started_at, log_reminder_enabled, log_reminder_time, log_reminder_snoozed_until",
+      )
       .eq("status", "active")
       .eq("log_reminder_enabled", true);
     if (error) throw error;
@@ -193,11 +195,19 @@ serve(async (req) => {
       const tz = await getClientTimezone(supabase, s.client_id);
       const { date: localDate, hour, minute } = nowInZone(tz);
 
+      // Snooze wins over the saved time: silent until it elapses, then fires once.
+      const snoozeMs = s.log_reminder_snoozed_until ? Date.parse(s.log_reminder_snoozed_until) : null;
+      let dueBySnooze = false;
+      if (snoozeMs && !Number.isNaN(snoozeMs)) {
+        if (Date.now() < snoozeMs) { skipped++; continue; }
+        dueBySnooze = true;
+      }
+
       const target = toMinutes(s.log_reminder_time || "19:00");
       if (target === null) { skipped++; continue; }
       const nowMin = hour * 60 + minute;
       // 5-minute cron window: fire once the local clock has reached the target.
-      if (nowMin < target || nowMin >= target + 5) { skipped++; continue; }
+      if (!dueBySnooze && (nowMin < target || nowMin >= target + 5)) { skipped++; continue; }
 
       // Already logged today? Nothing to nag about.
       const { data: log } = await supabase
@@ -208,7 +218,7 @@ serve(async (req) => {
         .maybeSingle();
       if (log) { skipped++; continue; }
 
-      const refId = `${s.id}:${localDate}`;
+      const refId = dueBySnooze ? `${s.id}:${localDate}:s${snoozeMs}` : `${s.id}:${localDate}`;
       const { data: already } = await supabase
         .from("notification_log")
         .select("id")
@@ -217,6 +227,14 @@ serve(async (req) => {
         .eq("reference_id", refId)
         .maybeSingle();
       if (already) { skipped++; continue; }
+
+      // Consume the snooze so it can't re-fire on the next cron tick.
+      if (dueBySnooze) {
+        await supabase
+          .from("juice_fast_sessions")
+          .update({ log_reminder_snoozed_until: null })
+          .eq("id", s.id);
+      }
 
       const dayNumber = Math.max(1, dayNumberFor(s.started_at, tz));
       const modeLabel = MODE_LABEL[s.mode] || "Juice fast";
