@@ -29,6 +29,7 @@ function describeArc(cx: number, cy: number, r: number, startDeg: number, endDeg
 export function JuiceFastHero({ session, centerImageSrc, compact = true }: Props) {
   const [now, setNow] = useState(() => Date.now());
   const [stageSheetOpen, setStageSheetOpen] = useState(false);
+  const [sheetStageHour, setSheetStageHour] = useState<number | null>(null);
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
@@ -40,6 +41,15 @@ export function JuiceFastHero({ session, centerImageSrc, compact = true }: Props
 
   const stages = relevantJuiceStages(session.mode, totalHours);
   const currentStage = currentJuiceStage(session.mode, elapsedHours, totalHours);
+  const nextStage = stages.find((s) => s.hour > elapsedHours) ?? null;
+  const nextStageDay = nextStage ? Math.floor(nextStage.hour / 24) + 1 : null;
+  const hoursToNext = nextStage ? Math.max(0, Math.ceil(nextStage.hour - elapsedHours)) : 0;
+  const sheetStage = stages.find((s) => s.hour === sheetStageHour) ?? currentStage;
+
+  function openStageSheet(hour: number | null) {
+    setSheetStageHour(hour);
+    setStageSheetOpen(true);
+  }
 
   const size = compact ? 236 : 300;
   const bandWidth = compact ? 32 : 40;
