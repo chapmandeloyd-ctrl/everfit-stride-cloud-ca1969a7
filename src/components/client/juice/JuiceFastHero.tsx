@@ -131,7 +131,7 @@ export function JuiceFastHero({ session, centerImageSrc, compact = true }: Props
             className="absolute inset-0 z-30 flex animate-fade-in flex-col items-center justify-center rounded-full bg-black/80 px-6 text-center backdrop-blur-sm"
             style={{ boxShadow: `0 0 40px ${celebrateStage.color}88` }}
           >
-            <span className="animate-scale-in text-4xl">{celebrateStage.icon}</span>
+            <span className="animate-fade-in text-4xl">{celebrateStage.icon}</span>
             <span className="mt-2 text-[10px] font-bold uppercase tracking-widest text-white/50">
               Stage {celebrateIndex} unlocked
             </span>
