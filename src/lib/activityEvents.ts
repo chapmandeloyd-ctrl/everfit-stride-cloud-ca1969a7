@@ -5,7 +5,7 @@ export type EmitEventInput = {
   eventType: string;
   title: string;
   subtitle?: string | null;
-  category?: "fasting" | "eating" | "workout" | "metrics" | "badges" | "trainer" | "habits" | "general";
+  category?: "fasting" | "eating" | "workout" | "metrics" | "badges" | "trainer" | "habits" | "juice" | "general";
   icon?: string | null;
   metadata?: Record<string, any>;
   source?: "client" | "trainer" | "system" | "backfill";
