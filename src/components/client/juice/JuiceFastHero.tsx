@@ -43,7 +43,7 @@ export function JuiceFastHero({ session, centerImageSrc, compact = true }: Props
   const currentStage = currentJuiceStage(session.mode, elapsedHours, totalHours);
   const nextStage = stages.find((s) => s.hour > elapsedHours) ?? null;
   const nextStageDay = nextStage ? Math.floor(nextStage.hour / 24) + 1 : null;
-  const hoursToNext = nextStage ? Math.max(0, Math.ceil(nextStage.hour - elapsedHours)) : 0;
+  const msToNext = nextStage ? Math.max(0, (nextStage.hour - elapsedHours) * 3600000) : 0;
   const sheetStage = stages.find((s) => s.hour === sheetStageHour) ?? currentStage;
 
   function openStageSheet(hour: number | null) {
