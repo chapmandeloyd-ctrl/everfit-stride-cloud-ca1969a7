@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Sparkles, ChevronDown, ChevronUp, RefreshCw, Check, Settings2 } from "lucide-react";
+import { Sparkles, ChevronDown, ChevronUp, RefreshCw, Check, Settings2, CalendarDays } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import EatingScheduleBreakdown, { type ScheduleItem } from "./EatingScheduleBreakdown";
 
 export interface AIProposal {
@@ -53,13 +55,27 @@ export default function AIPlanProposalCard({
   onAdjust,
   onRegenerate,
   loading,
+  startDate,
+  onStartDateChange,
 }: {
   proposal: AIProposal;
   onAccept: () => void;
   onAdjust: () => void;
   onRegenerate: () => void;
   loading?: boolean;
+  startDate: Date;
+  onStartDateChange: (d: Date) => void;
 }) {
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const isTomorrow = startDate.toDateString() === tomorrow.toDateString();
+  const startLabel = isTomorrow
+    ? `Tomorrow, ${startDate.toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" })}`
+    : startDate.toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" });
+
   return (
     <div className="flex h-full flex-col gap-4">
       <div className="flex items-center gap-2">
@@ -105,6 +121,44 @@ export default function AIPlanProposalCard({
           ))}
         </ul>
       </Section>
+      {/* Start day — always defaults to tomorrow so there's a prep runway */}
+      <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+        <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-[hsl(var(--primary))]">
+          <CalendarDays className="h-3 w-3" />
+          Your plan starts
+        </div>
+        <div className="mt-1.5 text-lg font-bold text-white">{startLabel}</div>
+        <div className="text-sm text-white/70">
+          First fast begins at {fmt(proposal.window_end_time)} · breaks {fmt(proposal.window_start_time)}
+        </div>
+        <p className="mt-2 text-[12px] leading-relaxed text-white/50">
+          Plans always start the next day so you have time to prep. Want to start later — say Monday?
+          Pick any day and we'll coach you through the runway until then.
+        </p>
+        <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              className="mt-3 w-full rounded-xl border border-white/15 bg-black/40 px-4 py-2.5 text-sm font-semibold text-white"
+            >
+              Choose a different start day
+            </button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="center">
+            <Calendar
+              mode="single"
+              selected={startDate}
+              onSelect={(d) => {
+                if (d) onStartDateChange(d);
+                setPickerOpen(false);
+              }}
+              disabled={(d) => d < tomorrow}
+              initialFocus
+              className="pointer-events-auto"
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
       <div className="mt-2 space-y-2 pb-2">
         <Button
           onClick={onAccept}

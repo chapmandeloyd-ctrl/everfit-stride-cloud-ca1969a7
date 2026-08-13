@@ -156,7 +156,15 @@ export default function ClientOnboarding() {
     }
   };
 
-  const acceptProposal = async (proposal: AIProposal) => {
+  const acceptProposal = async (proposal: AIProposal, startDate?: Date) => {
+    // Plans always begin the day after onboarding unless the client picked a
+    // later start day, so there's a prep runway before the first fast.
+    const planStart = startDate ?? (() => {
+      const d = new Date();
+      d.setDate(d.getDate() + 1);
+      return d;
+    })();
+    const planStartKey = `${planStart.getFullYear()}-${String(planStart.getMonth() + 1).padStart(2, "0")}-${String(planStart.getDate()).padStart(2, "0")}`;
     if (!snap || !state.activity) {
       toast.error("Missing onboarding data");
       return;
@@ -202,7 +210,7 @@ export default function ClientOnboarding() {
           client_id: clientId,
           selected_protocol_id: proposal.protocol_id,
           selected_quick_plan_id: null,
-          protocol_start_date: new Date().toISOString().slice(0, 10),
+          protocol_start_date: planStartKey,
           assigned_protocol_duration_days: proposal.duration_days,
           protocol_run_mode: "recurring",
         },
@@ -408,7 +416,7 @@ export default function ClientOnboarding() {
           clientId={clientId ?? null}
           onboardingPayload={onboardingPayload}
           isPreview={isPreview}
-          onAccept={(p) => acceptProposal(p)}
+          onAccept={(p, d) => acceptProposal(p, d)}
         />
       )}
     </OnboardingShell>

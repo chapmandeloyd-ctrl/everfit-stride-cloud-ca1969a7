@@ -14,13 +14,20 @@ export default function AIPlanProposalStep({
   clientId: string | null;
   onboardingPayload: Record<string, unknown>;
   isPreview: boolean;
-  onAccept: (proposal: AIProposal) => void;
+  onAccept: (proposal: AIProposal, startDate: Date) => void;
 }) {
   const [proposal, setProposal] = useState<AIProposal | null>(null);
   const [loading, setLoading] = useState(true);
   const [regenReason, setRegenReason] = useState("");
   const [showRegen, setShowRegen] = useState(false);
   const [adjusting, setAdjusting] = useState(false);
+  // Plans always start the next day so the client gets a prep runway.
+  const [startDate, setStartDate] = useState<Date>(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() + 1);
+    return d;
+  });
 
   const generate = async (reason?: string) => {
     setLoading(true);
@@ -72,7 +79,7 @@ export default function AIPlanProposalStep({
           onCancel={() => setAdjusting(false)}
           onSave={(p) => {
             setProposal(p);
-            onAccept(p);
+            onAccept(p, startDate);
           }}
         />
       </div>
@@ -89,7 +96,9 @@ export default function AIPlanProposalStep({
       <AIPlanProposalCard
         proposal={proposal}
         loading={loading}
-        onAccept={() => onAccept(proposal)}
+        startDate={startDate}
+        onStartDateChange={setStartDate}
+        onAccept={() => onAccept(proposal, startDate)}
         onAdjust={() => setAdjusting(true)}
         onRegenerate={() => setShowRegen((s) => !s)}
       />
