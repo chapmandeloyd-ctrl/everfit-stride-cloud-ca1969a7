@@ -5719,6 +5719,83 @@ export type Database = {
           },
         ]
       }
+      juice_fast_reminder_log: {
+        Row: {
+          attempted_at: string
+          body: string | null
+          client_id: string
+          created_at: string
+          day_number: number | null
+          email_sent: boolean
+          email_to: string | null
+          error: string | null
+          id: string
+          in_app_created: boolean
+          planned_days: number | null
+          push_delivered_count: number
+          push_failed_count: number
+          reference_id: string | null
+          session_id: string | null
+          status: string
+          subscription_count: number
+          title: string | null
+          trigger: string
+          updated_at: string
+        }
+        Insert: {
+          attempted_at?: string
+          body?: string | null
+          client_id: string
+          created_at?: string
+          day_number?: number | null
+          email_sent?: boolean
+          email_to?: string | null
+          error?: string | null
+          id?: string
+          in_app_created?: boolean
+          planned_days?: number | null
+          push_delivered_count?: number
+          push_failed_count?: number
+          reference_id?: string | null
+          session_id?: string | null
+          status?: string
+          subscription_count?: number
+          title?: string | null
+          trigger?: string
+          updated_at?: string
+        }
+        Update: {
+          attempted_at?: string
+          body?: string | null
+          client_id?: string
+          created_at?: string
+          day_number?: number | null
+          email_sent?: boolean
+          email_to?: string | null
+          error?: string | null
+          id?: string
+          in_app_created?: boolean
+          planned_days?: number | null
+          push_delivered_count?: number
+          push_failed_count?: number
+          reference_id?: string | null
+          session_id?: string | null
+          status?: string
+          subscription_count?: number
+          title?: string | null
+          trigger?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "juice_fast_reminder_log_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "juice_fast_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       juice_fast_sessions: {
         Row: {
           client_id: string

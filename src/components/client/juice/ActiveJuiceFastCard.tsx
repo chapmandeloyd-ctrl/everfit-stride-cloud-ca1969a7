@@ -11,12 +11,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Bell, CheckCircle2, Loader2, PenLine, Send } from "lucide-react";
+import { Bell, CheckCircle2, History, Loader2, PenLine, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { JuiceFastHero } from "./JuiceFastHero";
 import { JuiceDayLogSheet } from "./JuiceDayLogSheet";
+import { JuiceReminderHistorySheet } from "./JuiceReminderHistorySheet";
 import { useJuiceFast } from "@/hooks/useJuiceFast";
 import { juiceProgress, modeMeta } from "@/lib/juiceFast";
 
@@ -33,6 +34,7 @@ export function ActiveJuiceFastCard({ centerImageSrc }: Props) {
   const [logOpen, setLogOpen] = useState(false);
   const [confirmEnd, setConfirmEnd] = useState(false);
   const [testing, setTesting] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const sendTestReminder = async () => {
     setTesting(true);
@@ -153,6 +155,14 @@ export function ActiveJuiceFastCard({ centerImageSrc }: Props) {
             )}
             Send test reminder
           </Button>
+          <button
+            type="button"
+            className="mt-1 flex w-full items-center justify-center gap-1.5 text-[11px] text-white/45 hover:text-white/70"
+            onClick={() => setHistoryOpen(true)}
+          >
+            <History className="h-3 w-3" />
+            Delivery history
+          </button>
         </div>
 
         {session.includes_refeed && (
@@ -161,6 +171,8 @@ export function ActiveJuiceFastCard({ centerImageSrc }: Props) {
           </p>
         )}
       </CardContent>
+
+      <JuiceReminderHistorySheet open={historyOpen} onOpenChange={setHistoryOpen} />
 
       <JuiceDayLogSheet
         open={logOpen}
