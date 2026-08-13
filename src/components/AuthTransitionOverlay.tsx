@@ -30,7 +30,17 @@ export default function AuthTransitionOverlay() {
   // When we've landed on a post-auth route, hold briefly then fade out.
   useEffect(() => {
     if (!visible) return;
-    if (location.pathname === "/auth") return;
+    // On the sign-in page the overlay must never persist — a stale flag from a
+    // previous attempt would otherwise spin forever and block login.
+    if (location.pathname === "/auth") {
+      const clear = window.setTimeout(() => {
+        setVisible(false);
+        try {
+          sessionStorage.removeItem(FLAG);
+        } catch {}
+      }, 1200);
+      return () => clearTimeout(clear);
+    }
     const hide = window.setTimeout(() => {
       setVisible(false);
       try {
