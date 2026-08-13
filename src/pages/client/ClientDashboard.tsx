@@ -127,6 +127,7 @@ import { FastingStatusCard } from "@/components/client/FastingStatusCard";
 import { TodaysWindowCard } from "@/components/client/TodaysWindowCard";
 import { ClientWeekStrip } from "@/components/client/ClientWeekStrip";
 import { JuiceFastDashboardSlot } from "@/components/client/juice/JuiceFastDashboardSlot";
+import { StartJuiceFastButton } from "@/components/client/juice/StartJuiceFastButton";
 import { StartFastGate } from "@/components/client/StartFastGate";
 import { LiveSchedulePanel } from "@/components/client/LiveScheduleDialog";
 import { useClientComputedPlan } from "@/hooks/useClientComputedPlan";
