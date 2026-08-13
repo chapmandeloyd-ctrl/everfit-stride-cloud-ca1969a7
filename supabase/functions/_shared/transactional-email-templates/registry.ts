@@ -21,6 +21,7 @@ import { template as protocolReminder } from './protocol-reminder.tsx'
 import { template as preFastReminder } from './pre-fast-reminder.tsx'
 import { template as clientWelcome } from './client-welcome.tsx'
 import { template as guardianInvite } from './guardian-invite.tsx'
+import { template as juiceLogReminder } from './juice-log-reminder.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'welcome': welcome,
@@ -35,4 +36,5 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'pre-fast-reminder': preFastReminder,
   'client-welcome': clientWelcome,
   'guardian-invite': guardianInvite,
+  'juice-log-reminder': juiceLogReminder,
 }
