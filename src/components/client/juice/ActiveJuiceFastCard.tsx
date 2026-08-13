@@ -11,7 +11,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Bell, CheckCircle2, PenLine } from "lucide-react";
+import { Bell, CheckCircle2, Loader2, PenLine, Send } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { JuiceFastHero } from "./JuiceFastHero";
 import { JuiceDayLogSheet } from "./JuiceDayLogSheet";
@@ -30,6 +32,31 @@ export function ActiveJuiceFastCard({ centerImageSrc }: Props) {
   const { session, todayLog, endFast, saveDayLog, setLogReminder } = useJuiceFast();
   const [logOpen, setLogOpen] = useState(false);
   const [confirmEnd, setConfirmEnd] = useState(false);
+  const [testing, setTesting] = useState(false);
+
+  const sendTestReminder = async () => {
+    setTesting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("dispatch-juice-log-reminders", {
+        body: { test: true },
+      });
+      if (error) throw error;
+      const parts: string[] = [];
+      if (data?.pushed) parts.push(`${data.pushed} push`);
+      if (data?.emailed) parts.push(`email to ${data.emailTo}`);
+      if (parts.length) toast.success(`Test reminder sent — ${parts.join(" + ")}`);
+      else
+        toast.warning(
+          data?.subscriptions
+            ? "No delivery — push failed and email could not be sent."
+            : "No push devices registered. Enable notifications, then retry.",
+        );
+    } catch (e: any) {
+      toast.error(e?.message || "Could not send test reminder");
+    } finally {
+      setTesting(false);
+    }
+  };
 
   if (!session) return null;
 
@@ -92,6 +119,20 @@ export function ActiveJuiceFastCard({ centerImageSrc }: Props) {
               />
             </div>
           )}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="mt-2 h-8 w-full text-[11px] text-emerald-300 hover:text-emerald-200"
+            onClick={sendTestReminder}
+            disabled={testing}
+          >
+            {testing ? (
+              <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Send className="mr-1.5 h-3.5 w-3.5" />
+            )}
+            Send test reminder
+          </Button>
         </div>
 
         {session.includes_refeed && (
