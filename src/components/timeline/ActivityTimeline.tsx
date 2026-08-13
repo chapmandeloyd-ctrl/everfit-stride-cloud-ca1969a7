@@ -94,6 +94,23 @@ export function ActivityTimeline({ clientId, trainerMode = false }: ActivityTime
     refetchInterval: 60_000,
   });
 
+  const { data: activeJuice } = useQuery({
+    queryKey: ["timeline-active-juice", clientId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("juice_fast_sessions")
+        .select("id, mode, planned_days, started_at")
+        .eq("client_id", clientId)
+        .eq("status", "active")
+        .order("started_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    refetchInterval: 60_000,
+  });
+
   const backfillMutation = useMutation({
     mutationFn: async () => {
       const { data, error } = await supabase.rpc("backfill_activity_events", { p_client_id: clientId });
@@ -182,10 +199,25 @@ export function ActivityTimeline({ clientId, trainerMode = false }: ActivityTime
             <DateGutter date={new Date()} />
             <div className="relative min-w-0 flex-1 pl-4">
               <Rail />
-              <LiveStatusInline
-                activeFastStartAt={activeState?.active_fast_start_at ?? null}
-                eatingWindowEndsAt={activeState?.eating_window_ends_at ?? null}
-              />
+              {activeJuice ? (
+                <div className="py-2">
+                  <h3 className="text-2xl font-bold text-foreground">Juice fast in progress</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Day{" "}
+                    {Math.min(
+                      activeJuice.planned_days ?? 1,
+                      Math.floor((Date.now() - new Date(activeJuice.started_at).getTime()) / 86_400_000) + 1,
+                    )}{" "}
+                    of {activeJuice.planned_days} ·{" "}
+                    {activeJuice.mode === "juice_only" ? "Juice only" : "Juice + light food"}
+                  </p>
+                </div>
+              ) : (
+                <LiveStatusInline
+                  activeFastStartAt={activeState?.active_fast_start_at ?? null}
+                  eatingWindowEndsAt={activeState?.eating_window_ends_at ?? null}
+                />
+              )}
             </div>
           </div>
 
