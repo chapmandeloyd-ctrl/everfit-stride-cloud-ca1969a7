@@ -127,6 +127,7 @@ import { FastingStatusCard } from "@/components/client/FastingStatusCard";
 import { TodaysWindowCard } from "@/components/client/TodaysWindowCard";
 import { ClientWeekStrip } from "@/components/client/ClientWeekStrip";
 import { JuiceFastDashboardSlot } from "@/components/client/juice/JuiceFastDashboardSlot";
+import { StartJuiceFastButton } from "@/components/client/juice/StartJuiceFastButton";
 import { StartFastGate } from "@/components/client/StartFastGate";
 import { LiveSchedulePanel } from "@/components/client/LiveScheduleDialog";
 import { useClientComputedPlan } from "@/hooks/useClientComputedPlan";
@@ -1187,6 +1188,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
           <Button variant="ghost" size="sm" className="w-full text-xs" onClick={() => navigate("/client/programs")}>
             Start a new protocol
           </Button>
+          <StartJuiceFastButton />
         </CardContent>
       </Card>
     );
@@ -1272,6 +1274,8 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                 Your trainer will assign your plan soon.
               </p>
             )}
+
+            <StartJuiceFastButton />
           </CardContent>
         </Card>
       </div>
