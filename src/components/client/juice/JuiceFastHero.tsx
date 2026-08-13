@@ -30,6 +30,7 @@ export function JuiceFastHero({ session, centerImageSrc, compact = true }: Props
   const [now, setNow] = useState(() => Date.now());
   const [stageSheetOpen, setStageSheetOpen] = useState(false);
   const [sheetStageHour, setSheetStageHour] = useState<number | null>(null);
+  const [celebrateHour, setCelebrateHour] = useState<number | null>(null);
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
@@ -45,6 +46,28 @@ export function JuiceFastHero({ session, centerImageSrc, compact = true }: Props
   const nextStageDay = nextStage ? Math.floor(nextStage.hour / 24) + 1 : null;
   const msToNext = nextStage ? Math.max(0, (nextStage.hour - elapsedHours) * 3600000) : 0;
   const sheetStage = stages.find((s) => s.hour === sheetStageHour) ?? currentStage;
+
+  // One-time celebration the first time you open the app after advancing a stage.
+  const seenKey = `juiceStageSeen:${session.id}`;
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(seenKey);
+      const seen = raw === null ? null : Number(raw);
+      if (seen === null || Number.isNaN(seen)) {
+        localStorage.setItem(seenKey, String(currentStage.hour));
+        return;
+      }
+      if (currentStage.hour > seen) {
+        setCelebrateHour(currentStage.hour);
+        localStorage.setItem(seenKey, String(currentStage.hour));
+      }
+    } catch {
+      /* storage unavailable — skip the celebration */
+    }
+  }, [seenKey, currentStage.hour]);
+
+  const celebrateStage = stages.find((s) => s.hour === celebrateHour) ?? null;
+  const celebrateIndex = celebrateStage ? stages.findIndex((s) => s.hour === celebrateStage.hour) + 1 : 0;
 
   function openStageSheet(hour: number | null) {
     setSheetStageHour(hour);
@@ -98,6 +121,32 @@ export function JuiceFastHero({ session, centerImageSrc, compact = true }: Props
       </div>
 
       <div className="relative shrink-0" style={{ width: size, height: size }}>
+        {celebrateStage && (
+          <button
+            type="button"
+            onClick={() => {
+              setCelebrateHour(null);
+              openStageSheet(celebrateStage.hour);
+            }}
+            className="absolute inset-0 z-30 flex animate-fade-in flex-col items-center justify-center rounded-full bg-black/80 px-6 text-center backdrop-blur-sm"
+            style={{ boxShadow: `0 0 40px ${celebrateStage.color}88` }}
+          >
+            <span className="animate-scale-in text-4xl">{celebrateStage.icon}</span>
+            <span className="mt-2 text-[10px] font-bold uppercase tracking-widest text-white/50">
+              Stage {celebrateIndex} unlocked
+            </span>
+            <span
+              className="mt-1 text-lg font-bold leading-tight"
+              style={{ color: celebrateStage.color }}
+            >
+              {celebrateStage.label}
+            </span>
+            <span className="mt-1 text-[11px] leading-snug text-white/70">{celebrateStage.description}</span>
+            <span className="mt-3 text-[9px] font-bold uppercase tracking-widest text-white/40">
+              Tap to see what changed
+            </span>
+          </button>
+        )}
         <img
           src={centerImageSrc}
           alt=""
