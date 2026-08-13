@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Check, CalendarDays } from "lucide-react";
+import { Check, CalendarDays, CupSoda } from "lucide-react";
+import { StartJuiceFastSheet } from "@/components/client/juice/StartJuiceFastSheet";
+import { useJuiceFast } from "@/hooks/useJuiceFast";
+import { useAuth } from "@/hooks/useAuth";
 import {
   RATIOS,
   RATIO_LABEL,
@@ -49,6 +52,9 @@ export default function DayEditorSheet({
   const [start, setStart] = useState(base.window_start_time.slice(0, 5));
   const [rest, setRest] = useState(base.enabled === false);
   const [scope, setScope] = useState<ApplyScope>("day");
+  const [juiceOpen, setJuiceOpen] = useState(false);
+  const { session: juiceSession, startFast } = useJuiceFast();
+  const { userRole } = useAuth();
 
   useEffect(() => {
     if (!open) return;
@@ -190,8 +196,40 @@ export default function DayEditorSheet({
           >
             <Check className="mr-2 h-4 w-4" /> {saving ? "Saving..." : "Save"}
           </Button>
+
+          {!juiceSession && (
+            <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-4">
+              <div className="text-sm font-semibold text-emerald-300">Doing a juice fast instead?</div>
+              <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                A juice fast runs across multiple days, so it isn't a single-day ratio. Start it here and it
+                takes over your dashboard and timeline until it's done.
+              </p>
+              <Button
+                variant="outline"
+                className="mt-3 w-full border-emerald-500/40 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 hover:text-emerald-200"
+                onClick={() => setJuiceOpen(true)}
+              >
+                <CupSoda className="mr-2 h-4 w-4" /> Start a juice fast
+              </Button>
+            </div>
+          )}
         </div>
       </SheetContent>
+
+      <StartJuiceFastSheet
+        open={juiceOpen}
+        onOpenChange={setJuiceOpen}
+        isTrainer={userRole === "trainer"}
+        starting={startFast.isPending}
+        onStart={(input) =>
+          startFast.mutate(input, {
+            onSuccess: () => {
+              setJuiceOpen(false);
+              onOpenChange(false);
+            },
+          })
+        }
+      />
     </Sheet>
   );
 }
