@@ -218,36 +218,49 @@ export function JuiceFastHero({ session, centerImageSrc, compact = true }: Props
         {Math.floor(elapsedHours)}h in · {currentStage.description}
       </p>
 
-      <Sheet open={stageSheetOpen} onOpenChange={setStageSheetOpen}>
+      <Sheet
+        open={stageSheetOpen}
+        onOpenChange={(open) => {
+          setStageSheetOpen(open);
+          if (!open) setSheetStageHour(null);
+        }}
+      >
         <SheetContent
           side="bottom"
           className="max-h-[85vh] overflow-y-auto rounded-t-2xl border-t-0 bg-background"
-          style={{ boxShadow: `0 -8px 40px ${currentStage.color}55` }}
+          style={{ boxShadow: `0 -8px 40px ${sheetStage.color}55` }}
         >
           <SheetHeader className="text-left">
             <div className="flex items-center gap-3">
               <div
                 className="flex h-12 w-12 items-center justify-center rounded-full text-2xl"
-                style={{ backgroundColor: `${currentStage.color}20`, boxShadow: `0 0 0 2px ${currentStage.color}55` }}
+                style={{ backgroundColor: `${sheetStage.color}20`, boxShadow: `0 0 0 2px ${sheetStage.color}55` }}
               >
-                {currentStage.icon}
+                {sheetStage.icon}
               </div>
               <div className="flex-1">
-                <SheetTitle style={{ color: currentStage.color }}>{currentStage.label}</SheetTitle>
+                <SheetTitle style={{ color: sheetStage.color }}>
+                  {sheetStage.label}
+                  {sheetStage.hour !== currentStage.hour && (
+                    <span className="ml-2 align-middle text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                      Upcoming
+                    </span>
+                  )}
+                </SheetTitle>
                 <SheetDescription>
-                  Day {Math.floor(currentStage.hour / 24) + 1}+ • {meta.label} • {currentStage.description}
+                  Day {Math.floor(sheetStage.hour / 24) + 1}+ • {meta.label} • {sheetStage.description}
                 </SheetDescription>
               </div>
             </div>
           </SheetHeader>
           <div className="mt-5">
             <h4 className="mb-3 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              What's happening in your body
+              {sheetStage.hour !== currentStage.hour ? "What changes when you reach this stage" : "What's happening in your body"}
             </h4>
             <ul className="space-y-2.5">
-              {currentStage.benefits.map((b, i) => (
+              {sheetStage.benefits.map((b, i) => (
                 <li key={i} className="flex items-start gap-2.5">
-                  <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: currentStage.color }} />
+                  <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: sheetStage.color }} />
                   <p className="text-sm leading-relaxed text-foreground/90">{b}</p>
                 </li>
               ))}
@@ -260,13 +273,25 @@ export function JuiceFastHero({ session, centerImageSrc, compact = true }: Props
                 <li
                   key={s.hour}
                   className={cn(
-                    "flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs",
-                    s.hour === currentStage.hour ? "bg-muted/60 font-semibold" : "opacity-60",
+                    "text-xs",
+                    s.hour === sheetStage.hour ? "font-semibold" : "opacity-60",
                   )}
                 >
-                  <span>{s.icon}</span>
-                  <span style={{ color: s.color }}>{s.label}</span>
-                  <span className="ml-auto text-[10px] text-muted-foreground">Day {Math.floor(s.hour / 24) + 1}</span>
+                  <button
+                    type="button"
+                    onClick={() => setSheetStageHour(s.hour)}
+                    className={cn(
+                      "flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-muted/40",
+                      s.hour === sheetStage.hour && "bg-muted/60",
+                    )}
+                  >
+                    <span>{s.icon}</span>
+                    <span style={{ color: s.color }}>{s.label}</span>
+                    {s.hour === currentStage.hour && (
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Now</span>
+                    )}
+                    <span className="ml-auto text-[10px] text-muted-foreground">Day {Math.floor(s.hour / 24) + 1}</span>
+                  </button>
                 </li>
               ))}
             </ul>
