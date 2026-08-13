@@ -5,6 +5,7 @@ import fastingCardBgGoldImg from "@/assets/fasting-timer-bg.png";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { FastingProtocolCard } from "./ClientDashboard";
 import { JuiceFastDashboardSlot } from "@/components/client/juice/JuiceFastDashboardSlot";
+import { StartJuiceFastButton } from "@/components/client/juice/StartJuiceFastButton";
 import { SmartPaceCollapsible } from "@/components/smart-pace/SmartPaceCollapsible";
 import { ClientWeekStrip } from "@/components/client/ClientWeekStrip";
 import { useClientWeeklySchedule } from "@/hooks/useClientWeeklySchedule";
@@ -115,6 +116,9 @@ export default function ClientDashboardMinimal() {
         <JuiceFastDashboardSlot centerImageSrc={fastingCardBgGoldImg}>
           <FastingProtocolCard clientId={clientId} navigate={navigate} todaySchedule={todaySchedule} />
         </JuiceFastDashboardSlot>
+
+        {/* Juice fast entry point — hidden while a juice fast is running */}
+        <StartJuiceFastButton />
 
         {/* Daily trackers (journal/water/steps/calories/health) intentionally removed —
             those metrics live in Trainerize, not here. */}

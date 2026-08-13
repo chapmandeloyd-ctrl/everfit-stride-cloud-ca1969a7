@@ -93,6 +93,18 @@ serve(async (req) => {
         action_url: "/client/dashboard",
       });
 
+      // Timeline entry so stage transitions show up in the client's activity feed.
+      await supabase.from("activity_events").insert({
+        client_id: s.client_id,
+        event_type: "juice_stage_advanced",
+        category: "juice",
+        icon: "sparkles",
+        title: `Juice stage ${index + 1} — ${stage.label}`,
+        subtitle: stage.blurb,
+        source: "system",
+        metadata: { session_id: s.id, stage_hour: stage.hour, stage_index: index + 1, mode: s.mode },
+      });
+
       await supabase.from("juice_fast_sessions")
         .update({ last_stage_notified_hour: stage.hour })
         .eq("id", s.id);
