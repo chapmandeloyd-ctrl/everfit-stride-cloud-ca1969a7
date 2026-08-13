@@ -6,6 +6,7 @@ import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { FastingProtocolCard } from "./ClientDashboard";
 import { JuiceFastDashboardSlot } from "@/components/client/juice/JuiceFastDashboardSlot";
 import { StartJuiceFastButton } from "@/components/client/juice/StartJuiceFastButton";
+import { ExtendedFastButton } from "@/components/client/extended/ExtendedFastButton";
 import { SmartPaceCollapsible } from "@/components/smart-pace/SmartPaceCollapsible";
 import { ClientWeekStrip } from "@/components/client/ClientWeekStrip";
 import { useClientWeeklySchedule } from "@/hooks/useClientWeeklySchedule";
@@ -118,7 +119,8 @@ export default function ClientDashboardMinimal() {
         </JuiceFastDashboardSlot>
 
         {/* Juice fast entry point — hidden while a juice fast is running */}
-        <div className="px-5">
+        <div className="space-y-2.5 px-5">
+          <ExtendedFastButton />
           <StartJuiceFastButton />
         </div>
 
