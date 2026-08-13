@@ -82,9 +82,16 @@ export default function Auth() {
     }
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke("admin-pin-login", {
+      const request = supabase.functions.invoke("admin-pin-login", {
         body: { pin: adminPin.trim() },
       });
+      const timeout = new Promise<never>((_, reject) => {
+        window.setTimeout(
+          () => reject(new Error("Login service timed out. Please tap Verify again.")),
+          25000,
+        );
+      });
+      const { data, error } = await Promise.race([request, timeout]);
 
       if (error) throw error;
       if (!data?.token_hash) throw new Error(data?.error || "Invalid PIN");
