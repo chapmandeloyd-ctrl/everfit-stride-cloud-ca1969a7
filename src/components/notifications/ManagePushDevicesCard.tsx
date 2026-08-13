@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Smartphone, Monitor, Tablet, Trash2, RefreshCw, AlertTriangle } from "lucide-react";
+import { Loader2, Smartphone, Monitor, Tablet, Trash2, RefreshCw, AlertTriangle, Send } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -80,6 +80,7 @@ export function ManagePushDevicesCard() {
   const [currentEndpoint, setCurrentEndpoint] = useState<string | null>(null);
   const [pendingRemoval, setPendingRemoval] = useState<DeviceRow | null>(null);
   const [removingId, setRemovingId] = useState<string | null>(null);
+  const [testingId, setTestingId] = useState<string | null>(null);
 
   // Identify which row belongs to the browser we're looking at right now.
   useEffect(() => {
@@ -174,6 +175,34 @@ export function ManagePushDevicesCard() {
       });
     } finally {
       setRemovingId(null);
+    }
+  };
+
+  /** Fire a push at exactly one registered endpoint (no email / in-app copy). */
+  const sendTestToDevice = async (row: DeviceRow) => {
+    setTestingId(row.id);
+    try {
+      const { data, error } = await supabase.functions.invoke("dispatch-juice-log-reminders", {
+        body: { test: true, subscriptionId: row.id },
+      });
+      if (error) throw error;
+      const pushed = (data as any)?.pushed ?? 0;
+      toast({
+        title: pushed > 0 ? "Test sent to this device" : "Delivery failed",
+        description:
+          pushed > 0
+            ? `${describeDevice(row)} should show a notification within a few seconds.`
+            : `${describeDevice(row)} rejected the push. It may need reminders re-enabled.`,
+        variant: pushed > 0 ? undefined : "destructive",
+      });
+    } catch (err) {
+      toast({
+        title: "Couldn't send test",
+        description: (err as Error).message,
+        variant: "destructive",
+      });
+    } finally {
+      setTestingId(null);
     }
   };
 
@@ -272,6 +301,21 @@ export function ManagePushDevicesCard() {
                           Last active {relativeTime(row.last_seen_at)}
                         </p>
                       </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="shrink-0"
+                        onClick={() => sendTestToDevice(row)}
+                        disabled={testingId === row.id || removingId === row.id}
+                        aria-label={`Send test to ${describeDevice(row)}`}
+                        title="Send test to this device"
+                      >
+                        {testingId === row.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Send className="h-4 w-4" />
+                        )}
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"

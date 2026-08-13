@@ -70,10 +70,16 @@ serve(async (req) => {
 
   // ---- Test mode: caller-authenticated, immediate send, no time/dedupe gates ----
   let isTest = false;
+  let targetSubscriptionId: string | null = null;
   if (req.method === "POST") {
     try {
       const raw = await req.text();
-      if (raw) isTest = !!JSON.parse(raw)?.test;
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        isTest = !!parsed?.test;
+        const sid = parsed?.subscriptionId;
+        if (typeof sid === "string" && sid.length > 0) targetSubscriptionId = sid;
+      }
     } catch { /* cron sends {"time": ...} */ }
   }
 
@@ -101,12 +107,24 @@ serve(async (req) => {
       const dayNumber = s ? Math.max(1, dayNumberFor(s.started_at, tz)) : 1;
       const modeLabel = MODE_LABEL[s?.mode ?? ""] || "Juice fast";
       const title = `Test — log day ${dayNumber} of ${plannedDays} 🥤`;
-      const body = "This is a test reminder. Delivery is working.";
+      const body = targetSubscriptionId
+        ? "Single-device test. If you see this, this device is delivering."
+        : "This is a test reminder. Delivery is working.";
 
-      const { data: subs } = await supabase
+      let subsQuery = supabase
         .from("push_subscriptions")
         .select("id, endpoint, p256dh, auth, user_agent")
         .eq("user_id", userId);
+      if (targetSubscriptionId) subsQuery = subsQuery.eq("id", targetSubscriptionId);
+      const { data: subs } = await subsQuery;
+
+      // Targeting a device that isn't registered to this user is a client error.
+      if (targetSubscriptionId && !(subs ?? []).length) {
+        return new Response(JSON.stringify({ error: "Device not found" }), {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
 
       let delivered = 0, failedPush = 0;
       for (const sub of subs ?? []) {
@@ -135,12 +153,14 @@ serve(async (req) => {
 
       let emailSent = false;
       let emailError: string | null = null;
+      let recipient: string | null = null;
+      if (!targetSubscriptionId) {
       const { data: profile } = await supabase
         .from("profiles")
         .select("email, full_name")
         .eq("id", userId)
         .maybeSingle();
-      const recipient = (profile as any)?.email;
+      recipient = (profile as any)?.email ?? null;
       if (recipient) {
         const firstName = ((profile as any)?.full_name || "").trim().split(/\s+/)[0] || undefined;
         const res = await fetch(`${SUPABASE_URL}/functions/v1/send-transactional-email`, {
@@ -156,9 +176,12 @@ serve(async (req) => {
         emailSent = res.ok;
         if (!emailSent) emailError = await res.text();
       }
+      }
 
       const testRefId = `juice-log-test-${Date.now()}`;
-      const { error: inAppErr } = await supabase.from("in_app_notifications").insert({
+      const { error: inAppErr } = targetSubscriptionId
+        ? { error: null }
+        : await supabase.from("in_app_notifications").insert({
         user_id: userId,
         type: "juice_log_reminder",
         title,
@@ -170,7 +193,7 @@ serve(async (req) => {
       await recordAttempt(supabase, {
         client_id: userId,
         session_id: s?.id ?? null,
-        trigger: "test",
+        trigger: targetSubscriptionId ? "test_device" : "test",
         day_number: dayNumber,
         planned_days: plannedDays,
         title,
@@ -180,9 +203,15 @@ serve(async (req) => {
         push_failed_count: failedPush,
         email_sent: emailSent,
         email_to: recipient ?? null,
-        in_app_created: !inAppErr,
+        in_app_created: !targetSubscriptionId && !inAppErr,
         status: delivered > 0 || emailSent ? "sent" : "failed",
-        error: emailError ?? (delivered === 0 && !emailSent ? "No device or email reached" : null),
+        error:
+          emailError ??
+          (delivered === 0 && !emailSent
+            ? targetSubscriptionId
+              ? "Push to this device failed"
+              : "No device or email reached"
+            : null),
         reference_id: testRefId,
       });
 
@@ -190,6 +219,7 @@ serve(async (req) => {
         JSON.stringify({
           ok: true,
           test: true,
+          targeted: !!targetSubscriptionId,
           subscriptions: subs?.length ?? 0,
           pushed: delivered,
           pushFailed: failedPush,
