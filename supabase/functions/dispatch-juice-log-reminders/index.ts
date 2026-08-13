@@ -323,6 +323,7 @@ serve(async (req) => {
           .eq("id", s.client_id)
           .maybeSingle();
         const recipient = (profile as any)?.email;
+        emailRecipient = recipient ?? null;
         if (recipient) {
           const firstName = ((profile as any)?.full_name || "").trim().split(/\s+/)[0] || undefined;
           const res = await fetch(`${SUPABASE_URL}/functions/v1/send-transactional-email`, {
