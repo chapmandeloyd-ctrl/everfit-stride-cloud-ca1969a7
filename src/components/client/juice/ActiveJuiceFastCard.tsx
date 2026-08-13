@@ -11,7 +11,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Bell, CheckCircle2, History, Loader2, PenLine, Send } from "lucide-react";
+import { Bell, CheckCircle2, Droplets, History, Loader2, PenLine, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
@@ -30,10 +30,20 @@ interface Props {
  * client has no juice fast running, so it can be mounted unconditionally.
  */
 export function ActiveJuiceFastCard({ centerImageSrc }: Props) {
-  const { session, logs, todayLog, endFast, saveDayLog, setLogReminder, snoozeLogReminder } = useJuiceFast();
+  const {
+    session,
+    logs,
+    todayLog,
+    endFast,
+    saveDayLog,
+    setLogReminder,
+    snoozeLogReminder,
+    setHydrationReminder,
+  } = useJuiceFast();
   const [logOpen, setLogOpen] = useState(false);
   const [confirmEnd, setConfirmEnd] = useState(false);
   const [testing, setTesting] = useState(false);
+  const [testingHydration, setTestingHydration] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
 
   const sendTestReminder = async () => {
@@ -57,6 +67,22 @@ export function ActiveJuiceFastCard({ centerImageSrc }: Props) {
       toast.error(e?.message || "Could not send test reminder");
     } finally {
       setTesting(false);
+    }
+  };
+
+  const sendHydrationTest = async () => {
+    setTestingHydration(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("dispatch-juice-hydration-reminders", {
+        body: { test: true },
+      });
+      if (error) throw error;
+      if (data?.pushed) toast.success(`Test hydration nudge sent — ${data.pushed} device(s)`);
+      else toast.warning("Sent to your in-app inbox. No push device delivered — enable notifications.");
+    } catch (e: any) {
+      toast.error(e?.message || "Could not send test nudge");
+    } finally {
+      setTestingHydration(false);
     }
   };
 
@@ -163,6 +189,82 @@ export function ActiveJuiceFastCard({ centerImageSrc }: Props) {
             <History className="h-3 w-3" />
             Delivery history
           </button>
+        </div>
+
+        {/* Hydration + electrolyte reminders */}
+        <div className="w-full rounded-xl border border-white/10 bg-white/[0.03] p-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <Droplets className="h-4 w-4 text-cyan-400" />
+              <div>
+                <p className="text-xs font-semibold text-white/85">Hydration &amp; electrolytes</p>
+                <p className="text-[10px] text-white/45">Repeating nudges between stage transitions.</p>
+              </div>
+            </div>
+            <Switch
+              checked={session.hydration_reminder_enabled === true}
+              onCheckedChange={(v) => setHydrationReminder.mutate({ enabled: v })}
+              disabled={setHydrationReminder.isPending}
+            />
+          </div>
+
+          {session.hydration_reminder_enabled === true && (
+            <>
+              <div className="mt-3 flex items-center justify-between gap-3">
+                <span className="text-[11px] text-white/55">Every</span>
+                <div className="flex gap-1">
+                  {[2, 3, 4, 6].map((h) => (
+                    <button
+                      key={h}
+                      type="button"
+                      onClick={() => setHydrationReminder.mutate({ intervalHours: h })}
+                      className={`rounded-lg border px-2.5 py-1 text-[11px] transition-colors ${
+                        (session.hydration_interval_hours ?? 3) === h
+                          ? "border-cyan-400/60 bg-cyan-400/15 text-cyan-200"
+                          : "border-white/10 text-white/55 hover:text-white/80"
+                      }`}
+                    >
+                      {h}h
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-3 flex items-center justify-between gap-2">
+                <span className="text-[11px] text-white/55">Between</span>
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="time"
+                    value={(session.hydration_window_start || "08:00").slice(0, 5)}
+                    onChange={(e) => setHydrationReminder.mutate({ windowStart: e.target.value })}
+                    className="rounded-lg border border-white/10 bg-black px-2 py-1 text-xs text-white/85"
+                  />
+                  <span className="text-[11px] text-white/40">to</span>
+                  <input
+                    type="time"
+                    value={(session.hydration_window_end || "20:00").slice(0, 5)}
+                    onChange={(e) => setHydrationReminder.mutate({ windowEnd: e.target.value })}
+                    className="rounded-lg border border-white/10 bg-black px-2 py-1 text-xs text-white/85"
+                  />
+                </div>
+              </div>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                className="mt-2 h-8 w-full text-[11px] text-cyan-300 hover:text-cyan-200"
+                onClick={sendHydrationTest}
+                disabled={testingHydration}
+              >
+                {testingHydration ? (
+                  <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Send className="mr-1.5 h-3.5 w-3.5" />
+                )}
+                Send test hydration nudge
+              </Button>
+            </>
+          )}
         </div>
 
         {session.includes_refeed && (

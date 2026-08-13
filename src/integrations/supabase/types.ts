@@ -5804,6 +5804,11 @@ export type Database = {
           ended_at: string | null
           ended_early: boolean
           ends_at: string | null
+          hydration_interval_hours: number
+          hydration_last_sent_at: string | null
+          hydration_reminder_enabled: boolean
+          hydration_window_end: string
+          hydration_window_start: string
           id: string
           includes_refeed: boolean
           log_reminder_enabled: boolean
@@ -5824,6 +5829,11 @@ export type Database = {
           ended_at?: string | null
           ended_early?: boolean
           ends_at?: string | null
+          hydration_interval_hours?: number
+          hydration_last_sent_at?: string | null
+          hydration_reminder_enabled?: boolean
+          hydration_window_end?: string
+          hydration_window_start?: string
           id?: string
           includes_refeed?: boolean
           log_reminder_enabled?: boolean
@@ -5844,6 +5854,11 @@ export type Database = {
           ended_at?: string | null
           ended_early?: boolean
           ends_at?: string | null
+          hydration_interval_hours?: number
+          hydration_last_sent_at?: string | null
+          hydration_reminder_enabled?: boolean
+          hydration_window_end?: string
+          hydration_window_start?: string
           id?: string
           includes_refeed?: boolean
           log_reminder_enabled?: boolean
