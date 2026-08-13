@@ -102,7 +102,7 @@ export default function ClientDashboardMinimal() {
               <h2 className="text-lg font-bold text-foreground px-1">
                 APEXBEAST-IF Smart Weight Tracker
               </h2>
-              <p className="text-muted-foreground px-1 text-sm">
+              <p className="px-1 text-[11px] leading-relaxed text-muted-foreground">
                 Your real-pace coach. Adjusts daily targets based on every weigh-in
                 so you always know exactly what to lose today to stay on track.
               </p>
