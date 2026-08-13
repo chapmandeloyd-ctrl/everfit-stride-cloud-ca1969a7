@@ -1,0 +1,1 @@
+ALTER TABLE public.juice_fast_sessions ADD COLUMN IF NOT EXISTS last_stage_notified_hour integer;
