@@ -94,14 +94,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchProfile = useCallback(async (userId: string) => {
     const requestId = ++profileRequestId.current;
-    const { data } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", userId)
-      .single();
+    // Never let a hung network request keep the app on a spinner forever.
+    const query = supabase.from("profiles").select("*").eq("id", userId).single();
+    const timeout = new Promise<{ data: null }>((resolve) =>
+      setTimeout(() => resolve({ data: null }), 8000),
+    );
+    let data: Profile | null = null;
+    try {
+      const result = (await Promise.race([query, timeout])) as { data: Profile | null };
+      data = result?.data ?? null;
+    } catch {
+      data = null;
+    }
 
     if (requestId !== profileRequestId.current) return;
-    setProfile(data ?? null);
+    setProfile(data);
     setLoading(false);
   }, []);
 
