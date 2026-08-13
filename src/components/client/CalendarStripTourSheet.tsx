@@ -22,37 +22,37 @@ const DEMO_DAYS = [
   { d: 11, dow: "Tue", color: "hsl(142 71% 45%)", label: "16:8" },
   { d: 12, dow: "Wed", color: "hsl(217 91% 60%)", label: "18:6" },
   { d: 13, dow: "Thu", color: "hsl(var(--primary))", label: "20:4" },
-  { d: 14, dow: "Fri", color: "hsl(0 84% 55%)", label: "OMAD" },
+  { d: 14, dow: "Fri", color: "hsl(280 80% 62%)", label: "OMAD" },
   { d: 15, dow: "Sat", color: "hsl(48 96% 53%)", label: "Eat all day" },
 ];
 
 const BEATS: Beat[] = [
   {
     title: "Your week at a glance",
-    body: "The strip at the top of your home page shows the days around today. Each tile is one day of your fasting plan, and today is always outlined in red.",
+    body: "The strip at the top of your home page shows the days around today. Each tile is one day of your fasting plan, and today is always outlined in red. Click Next to continue.",
     script:
-      "This is your calendar strip. It sits at the top of your home page and shows the days around today. Each tile is one day of your fasting plan, and today is always outlined so you never lose your place.",
+      "This is your calendar strip. It sits at the top of your home page and shows the days around today. Each tile is one day of your fasting plan, and today is always outlined so you never lose your place. Click next to continue.",
     highlight: null,
   },
   {
     title: "The dot is the plan",
-    body: "The colored dot under each date tells you the fasting ratio for that day — green 16:8, blue 18:6, red 20:4, deep red OMAD, and gold for an eat all day.",
+    body: "The colored dot under each date tells you the fasting ratio for that day — green 16:8, blue 18:6, red 20:4, purple OMAD, and gold for an eat all day. Click Next to continue.",
     script:
-      "The colored dot under each date tells you the fasting ratio for that day. Green is sixteen eight, blue is eighteen six, red is twenty four, deep red is one meal a day, and gold means eat all day, no fast.",
+      "The colored dot under each date tells you the fasting ratio for that day. Green is sixteen eight, blue is eighteen six, red is twenty four, purple is one meal a day, and gold means eat all day, no fast. Click next to continue.",
     highlight: 2,
   },
   {
     title: "Tap a day to edit it",
-    body: "Tap any day to open the day details. From there you can change the ratio, move the start time, or make it a rest day — just for that one day.",
+    body: "Tap any day to open the day details. From there you can change the ratio, move the start time, or make it a rest day — just for that one day. Click Next to continue.",
     script:
-      "Tap any day to open its details. From there you can change the ratio, move the start time, or make it a rest day. This changes that single day only, nothing else in your plan.",
+      "Tap any day to open its details. From there you can change the ratio, move the start time, or make it a rest day. This changes that single day only, nothing else in your plan. Click next to continue.",
     highlight: 3,
   },
   {
     title: "Dim days are outside your plan",
-    body: "Faded tiles fall outside your active program window, so there is nothing scheduled there yet. Start a plan and they fill in automatically.",
+    body: "Faded tiles fall outside your active program window, so there is nothing scheduled there yet. Start a plan and they fill in automatically. Click Next to continue.",
     script:
-      "Faded tiles fall outside your active program window, so nothing is scheduled there yet. Once a plan is running, those days fill in automatically.",
+      "Faded tiles fall outside your active program window, so nothing is scheduled there yet. Once a plan is running, those days fill in automatically. Click next to continue.",
     highlight: null,
   },
   {
