@@ -48,23 +48,6 @@ export function DayStripPastSnapshot({
     enabled: !!clientId && trainingEnabled,
   });
 
-  // Sport events
-  const { data: sportEvents } = useQuery({
-    queryKey: ["snapshot-sport-events", clientId, dateStr],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("sport_schedule_events")
-        .select("*")
-        .eq("client_id", clientId)
-        .gte("start_time", `${dateStr}T00:00:00`)
-        .lte("start_time", `${dateStr}T23:59:59`)
-        .order("start_time", { ascending: true });
-      if (error) throw error;
-      return data as any[];
-    },
-    enabled: !!clientId,
-  });
-
   // Tasks
   const { data: tasks } = useQuery({
     queryKey: ["snapshot-tasks", clientId, dateStr],
@@ -136,11 +119,11 @@ export function DayStripPastSnapshot({
     return `${displayHour}:${match[2]} ${ampm}`;
   }
 
-  const isRestDay = (workouts?.length || 0) === 0 && (sportEvents?.length || 0) === 0;
+  const isRestDay = (workouts?.length || 0) === 0 && 0 === 0;
   const completedTasks = tasks?.filter(t => t.completed_at) || [];
   const incompleteTasks = tasks?.filter(t => !t.completed_at) || [];
 
-  const hasTraining = (workouts?.length || 0) > 0 || (sportEvents?.length || 0) > 0;
+  const hasTraining = (workouts?.length || 0) > 0 || 0 > 0;
   const hasTasks = (tasks?.length || 0) > 0;
   const hasHabits = (habitCompletions?.length || 0) > 0;
   const hasCheckin = !!checkin;
@@ -162,51 +145,6 @@ export function DayStripPastSnapshot({
       <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
         {format(date, "EEEE, MMM d")}
       </p>
-
-      {/* Sport Event Cards */}
-      {sportEvents?.map((event: any) => {
-        const isGame = event.event_type === "game" || event.event_type === "event";
-        const customCard = isGame ? gameCard : practiceCard;
-        const EventIcon = isGame ? Swords : Trophy;
-        const label = isGame ? "Game Day" : "Practice";
-        const startTime = formatEventTime(event.start_time);
-        const endTime = event.end_time ? formatEventTime(event.end_time) : null;
-        const timeDisplay = endTime && endTime !== startTime ? `${startTime} - ${endTime}` : startTime;
-
-        return (
-          <Card key={event.id} className="overflow-hidden">
-            <div className={cn(
-              "relative h-56",
-              isGame ? "bg-gradient-to-br from-rose-500/20 to-rose-500/5" : "bg-gradient-to-br from-sky-500/20 to-sky-500/5"
-            )}>
-              {customCard?.image_url ? (
-                <img src={customCard.image_url} alt={label} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <EventIcon className={cn("h-16 w-16", isGame ? "text-rose-400/30" : "text-sky-400/30")} />
-                </div>
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-4">
-                <p className="text-xs font-semibold text-white/70 uppercase tracking-wider">{label}</p>
-                <p className="text-lg font-bold text-white">{event.title}</p>
-                <div className="flex items-center gap-3 mt-1">
-                  <p className="text-sm text-white/80">{timeDisplay}</p>
-                  {event.location && (
-                    <p className="text-sm text-white/80 flex items-center gap-1">
-                      <MapPin className="h-3 w-3" />
-                      {event.location}
-                    </p>
-                  )}
-                </div>
-                {customCard?.message && (
-                  <p className="text-xs text-white/70 mt-1">{customCard.message}</p>
-                )}
-              </div>
-            </div>
-          </Card>
-        );
-      })}
 
       {/* Workout Cards — horizontal carousel if multiple */}
       {workouts && workouts.length > 0 && (() => {

@@ -77,34 +77,6 @@ const TODAY_STATUS_TEMPLATES: Record<EngineMode, Record<StatusLabel, string[]>> 
       "Reestablish consistency before increasing intensity.",
     ],
   },
-  performance: {
-    strong: [
-      "Performance readiness is high. Execute fully.",
-      "Training capacity is strong. Push with control.",
-    ],
-    moderate: [
-      "Refine recovery and execution to increase output.",
-      "Tighten structure to maximize today's session.",
-    ],
-    needs_support: [
-      "Recovery and structure need attention before intensity.",
-      "Stabilize fundamentals before increasing workload.",
-    ],
-  },
-  athletic: {
-    strong: [
-      "Game readiness is strong. Train with confidence.",
-      "Recovery supports full performance today.",
-    ],
-    moderate: [
-      "Sharpen recovery habits to boost readiness.",
-      "Focus on sleep and hydration.",
-    ],
-    needs_support: [
-      "Recovery must improve before high intensity.",
-      "Protect your body first, then perform.",
-    ],
-  },
 };
 
 // Factor-specific overrides (take priority over status templates)
@@ -115,20 +87,6 @@ const TODAY_FACTOR_OVERRIDES: Record<EngineMode, Partial<Record<ScoreFactor, str
     nutrition: "Prioritize whole foods and reduce excess intake within your window.",
     weekly_completion: "Consistency compounds. Complete today's full protocol.",
   },
-  performance: {
-    workout: "Complete your scheduled session to reinforce adaptation.",
-    sleep: "Recovery quality determines performance output.",
-    recovery: "Add light mobility or lower load if fatigue is elevated.",
-    fasting: "Nutritional timing should support training energy.",
-    weekly_completion: "Full weekly execution accelerates results.",
-  },
-  athletic: {
-    sleep: "Sleep fuels speed and reaction time.",
-    training_load: "Finish today's reps with focus.",
-    recovery: "Stretch, hydrate, and protect your body.",
-    nutrition: "Fuel properly to support power and endurance.",
-    weekly_completion: "Consistency builds competitive advantage.",
-  },
 };
 
 // ─── Week templates by trend + completion ───────────────
@@ -138,16 +96,6 @@ const WEEK_TEMPLATES: Record<EngineMode, Record<TrendDirection, string>> = {
     up: "Your metabolic trend is improving. Maintain current plan.",
     flat: "Progress is steady. Tighten execution for greater gains.",
     down: "Recent trends show instability. Reduce variability and reinforce sleep.",
-  },
-  performance: {
-    up: "Performance trajectory is improving. Maintain volume.",
-    flat: "Consistency is present. Improve recovery quality.",
-    down: "Reduce load slightly and prioritize recovery.",
-  },
-  athletic: {
-    up: "Preparation is trending upward. Stay disciplined.",
-    flat: "Build sharper recovery habits.",
-    down: "Prioritize sleep and recovery before adding intensity.",
   },
 };
 
@@ -202,8 +150,6 @@ function evaluatePlanSuggestion(
   ) {
     const engineDeload: Record<EngineMode, string> = {
       metabolic: "Consider reducing fasting window duration or switching to a lighter protocol.",
-      performance: "Recommend a recovery week with reduced training volume.",
-      athletic: "Reduce training intensity and prioritize recovery around upcoming events.",
     };
     return {
       type: "deload",
@@ -235,18 +181,10 @@ function evaluatePlanSuggestion(
     };
   }
 
-  if ((engineMode === "performance" || engineMode === "metabolic") && scoreStatus === "moderate" && trend === "down") {
+  if (engineMode === "metabolic" && scoreStatus === "moderate" && trend === "down") {
     return {
       type: "shift",
       text: "Consider adjusting training volume or toggling fasting to improve readiness.",
-      coachOverrideRequired: true,
-    };
-  }
-
-  if (engineMode === "athletic" && upcomingGameOrPractice && scoreStatus !== "strong") {
-    return {
-      type: "shift",
-      text: "Game/practice upcoming with sub-optimal readiness. Adjust load and recovery emphasis.",
       coachOverrideRequired: true,
     };
   }

@@ -139,16 +139,8 @@ export function getLevelDefinition(level: number): LevelDefinition {
   return LEVEL_DEFINITIONS[Math.min(Math.max(level, 1), 7) - 1];
 }
 
-export function getLevelRange(level: number, engine: EngineMode): string {
-  const def = getLevelDefinition(level);
-  switch (engine) {
-    case "metabolic":
-      return def.metabolicRange;
-    case "performance":
-      return def.performanceRange;
-    case "athletic":
-      return def.athleticRange;
-  }
+export function getLevelRange(level: number, _engine?: EngineMode): string {
+  return getLevelDefinition(level).metabolicRange;
 }
 
 export interface DailyScoreEntry {

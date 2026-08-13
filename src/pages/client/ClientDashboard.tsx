@@ -36,7 +36,6 @@ import { useImpersonation } from "@/hooks/useImpersonation";
 
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { getDietStylePreset } from "@/lib/dietStyles";
-import { SportEventCompletionDialog } from "@/components/SportEventCompletionDialog";
 import { NextFastCountdownRow } from "@/components/client/NextFastCountdownRow";
 import { ScheduleCountdownRow, nextOccurrence, useFastSkippedToday } from "@/components/client/ScheduleCountdownRow";
 import { EnablePushBanner } from "@/components/client/EnablePushBanner";
@@ -160,7 +159,6 @@ import { useSmartPace } from "@/hooks/useSmartPace";
 
 import { InAppNotifications } from "@/components/InAppNotifications";
 import { useDashboardLayoutClient } from "@/hooks/useDashboardLayoutClient";
-import { SportHeroBanner } from "@/components/SportHeroBanner";
 import { AssignedPlanCard } from "@/components/dashboard/AssignedPlanCard";
 import { AskApexbeastAI } from "@/components/client/AskApexbeastAI";
 import { MetabolicControlDashboard } from "@/components/dashboard/MetabolicControlDashboard";
@@ -3027,11 +3025,6 @@ export default function ClientDashboard() {
           </div>
         </div>
 
-        {/* Sport Hero Banner — always at top when sport_schedule_enabled */}
-        {settings.sport_schedule_enabled && clientId && (
-          <SportHeroBanner clientId={clientId} firstName={firstName} />
-        )}
-
         {/* Dashboard Hero Message */}
         {settings.dashboard_hero_message && (
           <Card className="overflow-hidden border-primary/20 bg-primary/5">
@@ -4004,16 +3997,6 @@ export default function ClientDashboard() {
           </div>
         </SheetContent>
       </Sheet>
-
-      {/* Sport Event Completion Dialog */}
-      {selectedSportEvent && (
-        <SportEventCompletionDialog
-          open={sportCompletionOpen}
-          onOpenChange={setSportCompletionOpen}
-          event={selectedSportEvent}
-          clientId={clientId!}
-        />
-      )}
 
       {/* Day editor sheet opened from the week strip */}
       <DayEditorSheet

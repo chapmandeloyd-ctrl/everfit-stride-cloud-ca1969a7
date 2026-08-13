@@ -54,18 +54,6 @@ const ENGINE_DEFAULTS: Record<EngineMode, Record<string, boolean>> = {
     auto_plan_adjust_enabled: false,
     auto_nudge_optimization_enabled: false,
   },
-  performance: {
-    ai_suggestions_enabled: true,
-    auto_level_advance_enabled: false,
-    auto_plan_adjust_enabled: false,
-    auto_nudge_optimization_enabled: false,
-  },
-  athletic: {
-    ai_suggestions_enabled: false,
-    auto_level_advance_enabled: false,
-    auto_plan_adjust_enabled: false,
-    auto_nudge_optimization_enabled: false,
-  },
 };
 
 function getAuthorityMode(settings: AuthoritySettings | null): {
@@ -83,14 +71,13 @@ function getAuthorityMode(settings: AuthoritySettings | null): {
 }
 
 function canOverride(tier: SubscriptionTier, engine: EngineMode): boolean {
-  if (engine === "athletic") return false;
   if (tier === "starter") return false;
   if (tier === "pro") return true;
   return true; // elite / enterprise
 }
 
-function isToggleHardLocked(engine: EngineMode, _key: string): boolean {
-  return engine === "athletic";
+function isToggleHardLocked(_engine: EngineMode, _key: string): boolean {
+  return false;
 }
 
 export function AuthorityControls({ clientId, trainerId }: AuthorityControlsProps) {
@@ -152,11 +139,9 @@ export function AuthorityControls({ clientId, trainerId }: AuthorityControlsProp
           Control automation authority for this client's engine.
           {!overridesAllowed && (
             <span className="block text-xs mt-1 text-destructive">
-              {engine === "athletic"
-                ? "Athletic engine: all automation hard-locked."
-                : tier === "starter"
-                  ? "Upgrade to Pro or above to unlock authority overrides."
-                  : "Overrides not available for this engine on Pro tier."}
+              {tier === "starter"
+                ? "Upgrade to Pro or above to unlock authority overrides."
+                : "Overrides not available on this tier."}
             </span>
           )}
         </CardDescription>

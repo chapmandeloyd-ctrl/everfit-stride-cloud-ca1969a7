@@ -142,7 +142,6 @@ const Scheduling = lazy(() => import("./pages/Scheduling"));
 const TrainerSettings = lazy(() => import("./pages/TrainerSettings"));
 const TrainerExploreManager = lazy(() => import("./pages/TrainerExploreManager"));
 import { ProtectedRoute } from "./components/ProtectedRoute";
-import { FastingRouteGuard } from "./components/FastingRouteGuard";
 import { ImpersonationProvider } from "./hooks/useImpersonation";
 import { AuthProvider } from "./hooks/useAuth";
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
@@ -295,13 +294,13 @@ const App = () => (
           <Route path="/client/cardio-player" element={<Navigate to="/client/dashboard" replace />} />
           <Route path="/client/wod-builder" element={<Navigate to="/client/dashboard" replace />} />
           <Route path="/client/my-workouts" element={<Navigate to="/client/dashboard" replace />} />
-          <Route path="/client/programs" element={<ProtectedRoute allowedRoles={["client"]}><FastingRouteGuard><ClientPrograms /></FastingRouteGuard></ProtectedRoute>} />
+          <Route path="/client/programs" element={<ProtectedRoute allowedRoles={["client"]}><ClientPrograms /></ProtectedRoute>} />
           <Route path="/client/choose-protocol" element={<ProtectedRoute allowedRoles={["client"]}><ClientChooseProtocol /></ProtectedRoute>} />
           <Route path="/client/custom-plans" element={<ProtectedRoute allowedRoles={["client"]}><ClientCustomPlans /></ProtectedRoute>} />
           <Route path="/client/begin-reset" element={<ProtectedRoute allowedRoles={["client"]}><ClientFastingPlansPreview /></ProtectedRoute>} />
-          <Route path="/client/quick-plans" element={<ProtectedRoute allowedRoles={["client"]}><FastingRouteGuard><ClientQuickPlans /></FastingRouteGuard></ProtectedRoute>} />
-          <Route path="/client/quick-plan/:id" element={<ProtectedRoute allowedRoles={["client"]}><FastingRouteGuard><ClientQuickPlanDetail /></FastingRouteGuard></ProtectedRoute>} />
-          <Route path="/client/protocol/:id" element={<ProtectedRoute allowedRoles={["client"]}><FastingRouteGuard><ClientProtocolDetail /></FastingRouteGuard></ProtectedRoute>} />
+          <Route path="/client/quick-plans" element={<ProtectedRoute allowedRoles={["client"]}><ClientQuickPlans /></ProtectedRoute>} />
+          <Route path="/client/quick-plan/:id" element={<ProtectedRoute allowedRoles={["client"]}><ClientQuickPlanDetail /></ProtectedRoute>} />
+          <Route path="/client/protocol/:id" element={<ProtectedRoute allowedRoles={["client"]}><ClientProtocolDetail /></ProtectedRoute>} />
           <Route path="/client/program" element={<ProtectedRoute allowedRoles={["client", "trainer"]}><ClientProgram /></ProtectedRoute>} />
           {/* Legacy gold combined view kept as a backup, redirected to the new dark Program page. */}
           <Route path="/client/complete-plan" element={<Navigate to="/client/program" replace />} />
