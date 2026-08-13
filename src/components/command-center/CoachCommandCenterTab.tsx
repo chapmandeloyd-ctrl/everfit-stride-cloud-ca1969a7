@@ -2,7 +2,6 @@ import { InsightCoachControls } from "./InsightCoachControls";
 
 
 import { ActivityLog } from "./ActivityLog";
-import { ParentLinkSection } from "./ParentLinkSection";
 import { ActivityTimeline } from "@/components/timeline/ActivityTimeline";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Activity } from "lucide-react";
@@ -102,15 +101,6 @@ export function CoachCommandCenterTab({ clientId, trainerId }: CoachCommandCente
 
       {/* Protocol + Keto Synergy Preview */}
       <SynergyPreviewPanel clientId={clientId} trainerId={trainerId} />
-
-      {/* F) Parent / Guardian Link (Athletic minors only) */}
-      {showParentLink && (
-        <ParentLinkSection
-          clientId={clientId}
-          trainerId={trainerId}
-          athleteName={clientProfile?.full_name || "Athlete"}
-        />
-      )}
 
       {/* Recurring Check-in Scheduler */}
       <RecurringCheckinScheduler clientId={clientId} trainerId={trainerId} />

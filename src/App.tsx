@@ -145,7 +145,6 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { ImpersonationProvider } from "./hooks/useImpersonation";
 import { AuthProvider } from "./hooks/useAuth";
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
-const GuardianSummary = lazy(() => import("./pages/GuardianSummary"));
 const StudioProgramDetail = lazy(() => import("./pages/StudioProgramDetail"));
 const KetoTypesManager = lazy(() => import("./pages/KetoTypesManager"));
 const ClientKetoTypes = lazy(() => import("./pages/client/ClientKetoTypes"));
@@ -187,7 +186,6 @@ const App = () => (
           <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-          <Route path="/guardian/:token" element={<GuardianSummary />} />
           <Route path="/unsubscribe" element={<Unsubscribe />} />
           <Route path="/checkout-test" element={<CheckoutTest />} />
           <Route path="/portal-mockup" element={<PortalMockup />} />
