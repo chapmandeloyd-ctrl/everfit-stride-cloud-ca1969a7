@@ -61,6 +61,11 @@ export interface JuiceFastSession {
   log_reminder_enabled?: boolean;
   log_reminder_time?: string;
   log_reminder_snoozed_until?: string | null;
+  hydration_reminder_enabled?: boolean;
+  hydration_interval_hours?: number;
+  hydration_window_start?: string;
+  hydration_window_end?: string;
+  hydration_last_sent_at?: string | null;
   ended_early: boolean;
   end_reason: string | null;
   includes_refeed: boolean;
