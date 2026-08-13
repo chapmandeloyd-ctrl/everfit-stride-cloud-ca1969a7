@@ -118,7 +118,9 @@ export default function ClientDashboardMinimal() {
         </JuiceFastDashboardSlot>
 
         {/* Juice fast entry point — hidden while a juice fast is running */}
-        <StartJuiceFastButton />
+        <div className="px-5">
+          <StartJuiceFastButton />
+        </div>
 
         {/* Daily trackers (journal/water/steps/calories/health) intentionally removed —
             those metrics live in Trainerize, not here. */}
