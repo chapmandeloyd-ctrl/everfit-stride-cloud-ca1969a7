@@ -1272,6 +1272,8 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                 Your trainer will assign your plan soon.
               </p>
             )}
+
+            <StartJuiceFastButton />
           </CardContent>
         </Card>
       </div>
