@@ -127,7 +127,7 @@ export function NextFastCountdownRow({ accent = "hsl(var(--primary))" }: { accen
       if (typeof window !== "undefined" && firedKey) {
         window.localStorage.setItem(firedKey, "1");
       }
-      startFast.mutate();
+      startFast.mutate(undefined);
     }
   }, [withinAutoStartWindow, skipped, startFast, scheduledMs, clientId, alreadyFired, endedThisWindow, firedKey]);
 
