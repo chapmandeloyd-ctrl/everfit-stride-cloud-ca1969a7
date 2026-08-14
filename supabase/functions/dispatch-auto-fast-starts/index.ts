@@ -79,7 +79,6 @@ serve(async (req) => {
     for (const r of rows ?? []) {
       results.checked++;
       if (r.fasting_enabled === false) { results.skipped++; continue; }
-      if (r.enforce_scheduled_start !== true) { results.skipped++; continue; }
       const scheduledIso = r.next_scheduled_fast_at as string;
       const scheduledMs = new Date(scheduledIso).getTime();
       const deltaMin = (now - scheduledMs) / 60_000;
@@ -237,7 +236,6 @@ async function backfillScheduledStarts(supabase: any): Promise<void> {
       "client_id, schedule_timezone, day_start_hour, selected_protocol_id, selected_quick_plan_id, last_auto_fast_started_for, auto_fast_skip_date, protocol_start_date, assigned_protocol_duration_days",
     )
     .eq("fasting_enabled", true)
-    .eq("enforce_scheduled_start", true)
     .is("active_fast_start_at", null)
     .is("next_scheduled_fast_at", null);
   if (error) {
@@ -282,6 +280,9 @@ async function backfillScheduledStarts(supabase: any): Promise<void> {
           .maybeSingle();
         fastHours = Number(q?.fast_hours) || 0;
       }
+      // No protocol/quick plan assigned: fall back to the ratio the client
+      // sees on their own calendar (e.g. "18:6" -> 18 fasting hours).
+      if (!fastHours) fastHours = parseRatioHours(scheduledDay?.ratio) || 0;
       if (!fastHours) continue;
 
       // Prefer the exact start time the client sees in their calendar.
@@ -308,7 +309,7 @@ async function backfillScheduledStarts(supabase: any): Promise<void> {
 
       await supabase
         .from("client_feature_settings")
-        .update({ next_scheduled_fast_at: iso })
+        .update({ next_scheduled_fast_at: iso, active_fast_target_hours: fastHours })
         .eq("client_id", r.client_id)
         .is("next_scheduled_fast_at", null);
     } catch (err) {
@@ -325,6 +326,15 @@ type ScheduledDay = {
 };
 
 /** "20:00:00" -> 20, "20:30" -> 20.5, anything else -> null */
+/** "18:6" -> 18 fasting hours; null when the ratio is missing/not numeric. */
+function parseRatioHours(v: string | null | undefined): number | null {
+  if (!v) return null;
+  const m = /^(\d{1,2})\s*:\s*(\d{1,2})$/.exec(String(v).trim());
+  if (!m) return null;
+  const h = Number(m[1]);
+  return h > 0 && h <= 23 ? h : null;
+}
+
 function parseStartHour(v: string | null | undefined): number | null {
   if (!v) return null;
   const m = /^(\d{1,2}):(\d{2})/.exec(String(v));
