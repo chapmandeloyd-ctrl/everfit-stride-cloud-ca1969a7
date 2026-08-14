@@ -1476,7 +1476,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
           </Sheet>
 
 
-          <TodayScheduleBar day={todaySchedule} accent={timerAccent} />
+          <TodayScheduleBar day={todaySchedule} accent={timerAccent} isFasting={isFasting} />
 
           <div className="!mt-4 flex justify-center overflow-hidden">
               <FastingTimer
@@ -1724,7 +1724,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
               )}
             </div>
 
-            <TodayScheduleBar day={todaySchedule} accent={timerAccent} />
+            <TodayScheduleBar day={todaySchedule} accent={timerAccent} isFasting={isFasting} />
 
             <div className="text-center py-6">
               <Badge
