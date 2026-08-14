@@ -80,7 +80,15 @@ function formatTodaySchedule(day: WeeklyScheduleDay | null | undefined): {
   };
 }
 
-function TodayScheduleBar({ day, accent }: { day: WeeklyScheduleDay | null | undefined; accent?: string }) {
+function TodayScheduleBar({
+  day,
+  accent,
+  isFasting,
+}: {
+  day: WeeklyScheduleDay | null | undefined;
+  accent?: string;
+  isFasting?: boolean;
+}) {
   const schedule = formatTodaySchedule(day);
   const color = accent || "hsl(var(--primary))";
   return (
@@ -97,18 +105,18 @@ function TodayScheduleBar({ day, accent }: { day: WeeklyScheduleDay | null | und
         )}
       </div>
       {!schedule.isRestDay && (
-        <div className="mt-1.5 grid grid-cols-3 gap-2 text-center">
+        <div className="mt-1.5 grid grid-cols-2 gap-2 text-center">
           <div className="rounded-md bg-black/30 px-1 py-1">
-            <p className="text-[10px] text-white/50 uppercase tracking-wider">Fast starts</p>
+            <p className="text-[10px] text-white/50 uppercase tracking-wider">
+              {isFasting ? "Fast started" : "Fast starts"}
+            </p>
             <p className="text-xs font-bold text-white">{schedule.fastStart}</p>
           </div>
           <div className="rounded-md bg-black/30 px-1 py-1">
-            <p className="text-[10px] text-white/50 uppercase tracking-wider">Break fast</p>
-            <p className="text-xs font-bold text-white">{schedule.breakFast}</p>
-          </div>
-          <div className="rounded-md bg-black/30 px-1 py-1">
-            <p className="text-[10px] text-white/50 uppercase tracking-wider">Eat until</p>
-            <p className="text-xs font-bold text-white">{schedule.eatingEnd}</p>
+            <p className="text-[10px] text-white/50 uppercase tracking-wider">You can eat</p>
+            <p className="text-xs font-bold text-white">
+              {schedule.breakFast} – {schedule.eatingEnd}
+            </p>
           </div>
         </div>
       )}
@@ -1468,7 +1476,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
           </Sheet>
 
 
-          <TodayScheduleBar day={todaySchedule} accent={timerAccent} />
+          <TodayScheduleBar day={todaySchedule} accent={timerAccent} isFasting={isFasting} />
 
           <div className="!mt-4 flex justify-center overflow-hidden">
               <FastingTimer
@@ -1716,7 +1724,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
               )}
             </div>
 
-            <TodayScheduleBar day={todaySchedule} accent={timerAccent} />
+            <TodayScheduleBar day={todaySchedule} accent={timerAccent} isFasting={isFasting} />
 
             <div className="text-center py-6">
               <Badge
