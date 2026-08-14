@@ -15,7 +15,7 @@ export function useStartFast() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async () => {
+    mutationFn: async (scheduledStartAt?: string) => {
       if (!clientId) throw new Error("No client selected");
       // Look up existing target (or fall back to 16h). Kept lightweight — the
       // full protocol-aware resolution still lives in ClientDashboard.
@@ -25,7 +25,9 @@ export function useStartFast() {
         .eq("client_id", clientId)
         .maybeSingle();
       const targetHours = (existing as any)?.active_fast_target_hours || 16;
-      const startedAt = new Date().toISOString();
+      // Automatic calendar starts retain the scheduled timestamp so elapsed
+      // fasting time remains accurate if the app wakes shortly afterward.
+      const startedAt = scheduledStartAt ?? new Date().toISOString();
       const { data, error } = await supabase
         .from("client_feature_settings")
         .update({

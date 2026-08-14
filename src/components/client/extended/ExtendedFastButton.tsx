@@ -68,7 +68,7 @@ export function ExtendedFastButton() {
       .from("client_feature_settings")
       .update({ active_fast_target_hours: hours } as any)
       .eq("client_id", clientId);
-    await startFast.mutateAsync();
+    await startFast.mutateAsync(undefined);
     qc.invalidateQueries({ queryKey: ["active-fast-elapsed", clientId] });
   };
 

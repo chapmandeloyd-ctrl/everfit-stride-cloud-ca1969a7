@@ -110,7 +110,7 @@ export function LiveSchedulePanel({
   className, completionVisible = false,
 }: LiveSchedulePanelProps) {
   const startFast = useStartFast();
-  const handleStart = onStartFast ?? (() => startFast.mutate());
+  const handleStart = onStartFast ?? (() => startFast.mutate(undefined));
   const today = useMemo(() => new Date(), []);
   const [cursor, setCursor] = useState<Date>(() => new Date(today.getFullYear(), today.getMonth(), 1));
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
