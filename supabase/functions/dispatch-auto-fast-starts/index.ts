@@ -326,6 +326,15 @@ type ScheduledDay = {
 };
 
 /** "20:00:00" -> 20, "20:30" -> 20.5, anything else -> null */
+/** "18:6" -> 18 fasting hours; null when the ratio is missing/not numeric. */
+function parseRatioHours(v: string | null | undefined): number | null {
+  if (!v) return null;
+  const m = /^(\d{1,2})\s*:\s*(\d{1,2})$/.exec(String(v).trim());
+  if (!m) return null;
+  const h = Number(m[1]);
+  return h > 0 && h <= 23 ? h : null;
+}
+
 function parseStartHour(v: string | null | undefined): number | null {
   if (!v) return null;
   const m = /^(\d{1,2}):(\d{2})/.exec(String(v));
