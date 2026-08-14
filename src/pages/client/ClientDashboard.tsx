@@ -105,7 +105,7 @@ function TodayScheduleBar({
         )}
       </div>
       {!schedule.isRestDay && (
-        <div className="mt-1.5 grid grid-cols-3 gap-2 text-center">
+        <div className="mt-1.5 grid grid-cols-2 gap-2 text-center">
           <div className="rounded-md bg-black/30 px-1 py-1">
             <p className="text-[10px] text-white/50 uppercase tracking-wider">
               {isFasting ? "Fast started" : "Fast starts"}
@@ -116,12 +116,14 @@ function TodayScheduleBar({
             <p className="text-[10px] text-white/50 uppercase tracking-wider">Fast ends</p>
             <p className="text-xs font-bold text-white">{schedule.breakFast}</p>
           </div>
-          <div className="rounded-md bg-black/30 px-1 py-1">
-            <p className="text-[10px] text-white/50 uppercase tracking-wider">You can eat</p>
-            <p className="text-xs font-bold text-white">
-              {schedule.breakFast} – {schedule.eatingEnd}
-            </p>
-          </div>
+        </div>
+      )}
+      {!schedule.isRestDay && (
+        <div className="mt-2 flex items-center justify-between gap-2 rounded-md bg-black/30 px-2 py-1.5">
+          <p className="text-[10px] text-white/50 uppercase tracking-wider whitespace-nowrap">Eating window</p>
+          <p className="text-xs font-bold text-white whitespace-nowrap">
+            {schedule.breakFast} – {schedule.eatingEnd}
+          </p>
         </div>
       )}
     </div>
