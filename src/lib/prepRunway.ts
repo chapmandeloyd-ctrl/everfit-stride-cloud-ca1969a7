@@ -63,7 +63,7 @@ export function findNextFastStart(
   return null;
 }
 
-export type RunwayPhase = "far" | "wind_down" | "prep" | "start_day";
+export type RunwayPhase = "far" | "wind_down" | "prep" | "start_day" | "in_fast";
 
 export interface RunwayContent {
   phase: RunwayPhase;
@@ -88,6 +88,19 @@ export function runwayContent(
   const { dayLabel, startTime, daysAway } = opts;
 
   switch (phase) {
+    case "in_fast":
+      return {
+        phase,
+        eyebrow: "Fast in progress",
+        headline: "Break this one well",
+        blurb: `You're fasting right now — no prep needed. When the timer ends, how you break the fast matters as much as the fast itself. Your next window starts ${dayLabel} at ${startTime}.`,
+        items: [
+          { id: "if_broth", label: "Break with broth, protein, or something soft", hint: "Go slow — no big carb or fried meal first" },
+          { id: "if_wait", label: "Wait 30-45 min before your real meal" },
+          { id: "if_salt", label: "Keep electrolytes going while you fast" },
+          { id: "if_water", label: "Water, black coffee or plain tea only until then" },
+        ],
+      };
     case "far":
       return {
         phase,
