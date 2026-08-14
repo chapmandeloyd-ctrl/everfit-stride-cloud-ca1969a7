@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Clock, X } from "lucide-react";
 import { formatHour, timeToHour, breakFastHourFor, endHourFor, type WeeklyScheduleDay } from "@/lib/resolveFastingWindow";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { CancelFastSheet, type CancelAction } from "@/components/fasting/CancelFastSheet";
 import { emitActivityEvent } from "@/lib/activityEvents";
 import { useQueryClient } from "@tanstack/react-query";
+import { useStartFast } from "@/hooks/useStartFast";
 
 function hourToTime(h: number): string {
   const total = ((h % 24) + 24) % 24;
@@ -27,7 +28,6 @@ export function nextOccurrence(hour: number): Date {
   const h = Math.floor(hour);
   const m = Math.round((hour - h) * 60);
   d.setHours(h, m, 0, 0);
-  if (d.getTime() <= now.getTime()) d.setDate(d.getDate() + 1);
   return d;
 }
 
@@ -81,6 +81,8 @@ export function ScheduleCountdownRow({
 }) {
   const clientId = useEffectiveClientId();
   const qc = useQueryClient();
+  const startFast = useStartFast();
+  const autoStartFired = useRef(false);
   const skipKey = useMemo(() => fastSkipKey(clientId), [clientId]);
   const skipped = useFastSkippedToday(clientId);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -106,6 +108,20 @@ export function ScheduleCountdownRow({
   const startHour = timeToHour(day.window_start_time);
   const breaksAt = breakFastHourFor(day.ratio, startHour);
   const fastHours = Math.round((((breaksAt - startHour) + 24) % 24) * 10) / 10;
+
+  // Calendar-only schedules do not pass through the assigned-plan gate. Start
+  // them here when today's scheduled moment arrives, preserving that exact
+  // timestamp if the app was asleep or closed at the time.
+  useEffect(() => {
+    if (skipped || autoStartFired.current || startFast.isPending) return;
+    const scheduledAt = nextOccurrence(startHour);
+    if (scheduledAt.getTime() > Date.now()) return;
+    const firedKey = `calendar_autostart_fired_${clientId ?? "anon"}_${localDateKey(scheduledAt)}`;
+    if (typeof window !== "undefined" && window.localStorage.getItem(firedKey) === "1") return;
+    autoStartFired.current = true;
+    if (typeof window !== "undefined") window.localStorage.setItem(firedKey, "1");
+    startFast.mutate(scheduledAt.toISOString());
+  }, [clientId, skipped, startFast, startHour]);
 
   const stats = [
     { label: "Scheduled start", value: formatHour(startHour) },
