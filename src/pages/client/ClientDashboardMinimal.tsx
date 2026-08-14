@@ -5,8 +5,7 @@ import fastingCardBgGoldImg from "@/assets/fasting-timer-bg.png";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { FastingProtocolCard } from "./ClientDashboard";
 import { JuiceFastDashboardSlot } from "@/components/client/juice/JuiceFastDashboardSlot";
-import { StartJuiceFastButton } from "@/components/client/juice/StartJuiceFastButton";
-import { ExtendedFastButton } from "@/components/client/extended/ExtendedFastButton";
+import { AlternateFastOptions } from "@/components/client/AlternateFastOptions";
 import { PrepRunwayCard } from "@/components/client/PrepRunwayCard";
 import { SmartPaceCollapsible } from "@/components/smart-pace/SmartPaceCollapsible";
 import { ClientWeekStrip } from "@/components/client/ClientWeekStrip";
@@ -126,8 +125,7 @@ export default function ClientDashboardMinimal() {
 
         {/* Juice fast entry point — hidden while a juice fast is running */}
         <div className="space-y-2.5 px-5">
-          <ExtendedFastButton />
-          <StartJuiceFastButton />
+          <AlternateFastOptions />
         </div>
 
         {/* Daily trackers (journal/water/steps/calories/health) intentionally removed —
