@@ -309,7 +309,7 @@ async function backfillScheduledStarts(supabase: any): Promise<void> {
 
       await supabase
         .from("client_feature_settings")
-        .update({ next_scheduled_fast_at: iso })
+        .update({ next_scheduled_fast_at: iso, active_fast_target_hours: fastHours })
         .eq("client_id", r.client_id)
         .is("next_scheduled_fast_at", null);
     } catch (err) {
