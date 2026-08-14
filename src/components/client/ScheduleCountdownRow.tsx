@@ -35,6 +35,22 @@ export function fastSkipKey(clientId: string | null | undefined): string {
   return `autostart_skipped_${clientId ?? "anon"}_${localDateKey(new Date())}`;
 }
 
+/** Cancel (or restore) today's scheduled auto-start, locally + server-side. */
+export function setFastSkipToday(clientId: string | null | undefined, value: boolean) {
+  if (typeof window !== "undefined") {
+    const key = fastSkipKey(clientId);
+    if (value) window.localStorage.setItem(key, "1");
+    else window.localStorage.removeItem(key);
+    window.dispatchEvent(new Event("apex-fast-skip-changed"));
+  }
+  if (clientId) {
+    void supabase
+      .from("client_feature_settings")
+      .update({ auto_fast_skip_date: value ? localDateKey(new Date()) : null } as any)
+      .eq("client_id", clientId);
+  }
+}
+
 /** Live "is today's fast cancelled" flag, synced across components. */
 export function useFastSkippedToday(clientId: string | null | undefined): boolean {
   const key = useMemo(() => fastSkipKey(clientId), [clientId]);
