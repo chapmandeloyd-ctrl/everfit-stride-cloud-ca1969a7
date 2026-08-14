@@ -5,6 +5,7 @@ import { useClientWeeklySchedule } from "@/hooks/useClientWeeklySchedule";
 import { formatHour } from "@/lib/resolveFastingWindow";
 import { findNextFastStart, runwayContent, runwayPhaseFor } from "@/lib/prepRunway";
 import { useFastSkippedToday } from "@/components/client/ScheduleCountdownRow";
+import { useActiveFastElapsed } from "@/hooks/useActiveFastElapsed";
 
 function dayLabelFor(date: Date, daysAway: number): string {
   if (daysAway === 0) return "today";
@@ -39,6 +40,7 @@ export function PrepRunwayCard() {
   const clientId = useEffectiveClientId();
   const { weekly, overrides, planWindow } = useClientWeeklySchedule(clientId);
   const skippedToday = useFastSkippedToday(clientId);
+  const { isFasting } = useActiveFastElapsed();
   useTick();
 
   const now = new Date();
@@ -48,7 +50,7 @@ export function PrepRunwayCard() {
     [weekly, overrides, planWindow, Math.floor(now.getTime() / 60000)],
   );
 
-  const phase = next ? runwayPhaseFor(next.daysAway) : null;
+  const phase = next ? (isFasting ? ("in_fast" as const) : runwayPhaseFor(next.daysAway)) : null;
   const storageKey = next
     ? `apex_prep_${clientId ?? "anon"}_${next.at.toDateString()}_${phase}`
     : "";
@@ -76,7 +78,7 @@ export function PrepRunwayCard() {
   };
 
   if (!next || !phase) return null;
-  if (next.daysAway === 0 && skippedToday) return null;
+  if (!isFasting && next.daysAway === 0 && skippedToday) return null;
 
   const dayLabel = dayLabelFor(next.at, next.daysAway);
   const startTime = formatHour(next.startHour);
@@ -119,7 +121,7 @@ export function PrepRunwayCard() {
           </div>
         ))}
         <div className="ml-auto text-right text-[11px] leading-tight text-muted-foreground">
-          Fast starts
+          {isFasting ? "Next fast starts" : "Fast starts"}
           <br />
           <span className="font-semibold text-foreground">
             {next.daysAway <= 1 ? dayLabel : next.at.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })} · {startTime}
@@ -132,7 +134,11 @@ export function PrepRunwayCard() {
       {open && (
         <>
           <div className="mt-3 flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-            <span>Do this {next.daysAway === 0 ? "before you start" : "today"}</span>
+            <span>
+              {isFasting
+                ? "When you break it"
+                : `Do this ${next.daysAway === 0 ? "before you start" : "today"}`}
+            </span>
             <span>
               {doneCount}/{content.items.length}
             </span>
