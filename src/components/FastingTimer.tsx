@@ -185,7 +185,7 @@ export function FastingTimer({ fastStartAt, targetHours, now, demoProgress, comp
             cx={cx} cy={cy} r={innerRadius}
             fill="none"
             stroke="white"
-            strokeOpacity={0.35}
+            strokeOpacity={0.9}
             strokeWidth={compact ? 2 : 2.5}
           />
           <circle
@@ -223,20 +223,16 @@ export function FastingTimer({ fastStartAt, targetHours, now, demoProgress, comp
               key={stage.hour}
               className={cn(
                 "absolute z-10 flex items-center justify-center rounded-full transition-all duration-500",
-                isCurrent
-                  ? compact
-                    ? "h-6 w-6 -ml-3 -mt-3 scale-110"
-                    : "h-7 w-7 -ml-3.5 -mt-3.5 scale-110"
-                  : compact
-                    ? "h-5 w-5 -ml-2.5 -mt-2.5"
-                    : "h-6 w-6 -ml-3 -mt-3"
+                compact
+                  ? "h-5 w-5 -ml-2.5 -mt-2.5"
+                  : "h-6 w-6 -ml-3 -mt-3"
               )}
               style={{
                 left: pos.cx,
                 top: pos.cy,
                 backgroundColor: stage.color,
                 boxShadow: isCurrent
-                  ? `0 0 0 3px rgba(255,255,255,0.95), 0 0 12px ${stage.color}`
+                  ? `0 0 0 2px rgba(255,255,255,0.95), 0 0 12px ${stage.color}`
                   : `0 0 0 2px rgba(255,255,255,0.9)`,
               }}
               title={`${stage.label} (${stage.hour}h) – ${stage.description}`}
