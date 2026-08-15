@@ -55,6 +55,7 @@ function getCutLevelMeta(adjustment?: number | null) {
   return { label: "Aggressive Bulk", dot: "bg-sky-500", text: "text-sky-500" };
 }
 import { DayStripCalendar } from "@/components/DayStripCalendar";
+import { EditTodayScheduleSheet } from "@/components/client/EditTodayScheduleSheet";
 
 function formatTodaySchedule(day: WeeklyScheduleDay | null | undefined): {
   label: string;
@@ -91,10 +92,16 @@ function TodayScheduleBar({
 }) {
   const schedule = formatTodaySchedule(day);
   const color = accent || "hsl(var(--primary))";
+  const [editOpen, setEditOpen] = useState(false);
   return (
     <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm px-3 py-2.5">
       {!schedule.isRestDay && (
-        <div className="grid grid-cols-3 gap-2 text-center">
+        <button
+          type="button"
+          onClick={() => setEditOpen(true)}
+          aria-label="Edit today's fasting times"
+          className="w-full grid grid-cols-3 gap-2 text-center active:opacity-80 transition-opacity"
+        >
           <div className="rounded-md bg-black/30 px-2 py-1.5 min-w-0">
             <p className="text-[9px] text-white/50 uppercase tracking-wider whitespace-nowrap">
               {isFasting ? "Started" : "Starts"}
@@ -111,12 +118,20 @@ function TodayScheduleBar({
               {schedule.breakFast} – {schedule.eatingEnd}
             </p>
           </div>
-        </div>
+        </button>
       )}
       <div className={`flex items-center gap-2 min-w-0 ${schedule.isRestDay ? "" : "mt-1.5"}`}>
         <span className="text-[10px] font-bold uppercase tracking-wider text-white/50">Today</span>
         <span className="text-[10px] font-bold truncate" style={{ color }}>{schedule.label}</span>
+        <button
+          type="button"
+          onClick={() => setEditOpen(true)}
+          className="ml-auto text-[10px] font-bold uppercase tracking-wider text-white/60 hover:text-white shrink-0"
+        >
+          Edit
+        </button>
       </div>
+      <EditTodayScheduleSheet open={editOpen} onOpenChange={setEditOpen} />
     </div>
   );
 }
