@@ -55,6 +55,7 @@ function getCutLevelMeta(adjustment?: number | null) {
   return { label: "Aggressive Bulk", dot: "bg-sky-500", text: "text-sky-500" };
 }
 import { DayStripCalendar } from "@/components/DayStripCalendar";
+import { EditTodayScheduleSheet } from "@/components/client/EditTodayScheduleSheet";
 
 function formatTodaySchedule(day: WeeklyScheduleDay | null | undefined): {
   label: string;
