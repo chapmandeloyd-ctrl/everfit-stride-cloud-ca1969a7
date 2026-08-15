@@ -100,21 +100,21 @@ function TodayScheduleBar({
           type="button"
           onClick={() => setEditOpen(true)}
           aria-label="Edit today's fasting times"
-          className="w-full grid grid-cols-3 gap-2 text-center active:opacity-80 transition-opacity"
+          className="w-full grid grid-cols-[1fr_1fr_1.6fr] gap-1.5 text-center active:opacity-80 transition-opacity"
         >
-          <div className="rounded-md bg-black/30 px-2 py-1.5 min-w-0">
+          <div className="rounded-md bg-black/30 px-1.5 py-1.5 min-w-0">
             <p className="text-[9px] text-white/50 uppercase tracking-wider whitespace-nowrap">
               {isFasting ? "Started" : "Starts"}
             </p>
             <p className="text-[11px] font-bold text-white whitespace-nowrap">{schedule.fastStart}</p>
           </div>
-          <div className="rounded-md bg-black/30 px-2 py-1.5 min-w-0">
+          <div className="rounded-md bg-black/30 px-1.5 py-1.5 min-w-0">
             <p className="text-[9px] text-white/50 uppercase tracking-wider whitespace-nowrap">Ends</p>
             <p className="text-[11px] font-bold text-white whitespace-nowrap">{schedule.breakFast}</p>
           </div>
-          <div className="rounded-md bg-black/30 px-2 py-1.5 min-w-0">
+          <div className="rounded-md bg-black/30 px-1.5 py-1.5 min-w-0 overflow-hidden">
             <p className="text-[9px] text-white/50 uppercase tracking-wider whitespace-nowrap">Eating window</p>
-            <p className="text-[10px] font-bold text-white whitespace-nowrap">
+            <p className="text-[10px] font-bold text-white whitespace-nowrap tracking-tight">
               {schedule.breakFast} – {schedule.eatingEnd}
             </p>
           </div>
