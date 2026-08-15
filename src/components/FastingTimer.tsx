@@ -121,8 +121,8 @@ export function FastingTimer({ fastStartAt, targetHours, now, demoProgress, comp
   // Circumference for background track
   const circumference = 2 * Math.PI * radius;
 
-  // Inner thin progress arc (inset inside the colored band)
-  const innerRadius = radius - bandWidth / 2 + (compact ? 5 : 6);
+  // Thin progress arc centered on the colored band
+  const innerRadius = radius;
   const innerCircumference = 2 * Math.PI * innerRadius;
   const innerDash = progress * innerCircumference;
   const knobRad = ((progress * 360 - 90) * Math.PI) / 180;
