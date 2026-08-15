@@ -93,19 +93,8 @@ function TodayScheduleBar({
   const color = accent || "hsl(var(--primary))";
   return (
     <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm px-3 py-2.5">
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="text-xs font-bold uppercase tracking-wider text-white/50">Today</span>
-          <span className="text-xs font-bold text-white truncate">{schedule.label}</span>
-        </div>
-        {!schedule.isRestDay && (
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0" style={{ backgroundColor: `${color}20`, color: color }}>
-            {schedule.ratio}
-          </span>
-        )}
-      </div>
       {!schedule.isRestDay && (
-        <div className="mt-1.5 grid grid-cols-[auto_auto_1fr] gap-1.5 text-center">
+        <div className="grid grid-cols-[auto_auto_1fr] gap-1.5 text-center">
           <div className="rounded-md bg-black/30 px-1.5 py-1">
             <p className="text-[9px] text-white/50 uppercase tracking-wider whitespace-nowrap">
               {isFasting ? "Started" : "Starts"}
@@ -124,6 +113,10 @@ function TodayScheduleBar({
           </div>
         </div>
       )}
+      <div className={`flex items-center gap-2 min-w-0 ${schedule.isRestDay ? "" : "mt-1.5"}`}>
+        <span className="text-[10px] font-bold uppercase tracking-wider text-white/50">Today</span>
+        <span className="text-[10px] font-bold truncate" style={{ color }}>{schedule.label}</span>
+      </div>
     </div>
   );
 }
