@@ -243,6 +243,7 @@ const App = () => (
           <Route path="/client/plan-history" element={<ProtectedRoute allowedRoles={["client", "trainer"]}><ClientPlanHistory /></ProtectedRoute>} />
           <Route path="/client/pace" element={<ProtectedRoute allowedRoles={["client"]}><ClientSmartPace /></ProtectedRoute>} />
           <Route path="/dev/pace-preview" element={<SmartPacePreview />} />
+          <Route path="/dev/ring-demo" element={<FastingRingDemo />} />
           <Route path="/client/daily-score" element={<ProtectedRoute allowedRoles={["client"]}><ClientDailyScore /></ProtectedRoute>} />
           <Route path="/client/coaching" element={<Navigate to="/client/dashboard" replace />} />
           <Route path="/client/profile" element={<ProtectedRoute allowedRoles={["client", "trainer"]}><ClientProfile /></ProtectedRoute>} />
