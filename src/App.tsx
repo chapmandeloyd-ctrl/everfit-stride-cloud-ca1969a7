@@ -89,6 +89,7 @@ const ClientFastingCalendar = lazy(() => import("./pages/client/ClientFastingCal
 const ClientPlanBuilder = lazy(() => import("./pages/client/ClientPlanBuilder"));
 const PlanBuilderDemo = lazy(() => import("./pages/client/PlanBuilderDemo"));
 const SmartPacePreview = lazy(() => import("./pages/SmartPacePreview"));
+const FastingRingDemo = lazy(() => import("./pages/FastingRingDemo"));
 const ClientDailyScore = lazy(() => import("./pages/client/ClientDailyScore"));
 const ClientOnboarding = lazy(() => import("./pages/client/ClientOnboarding"));
 const ClientResourceCollectionDetail = lazy(() => import("./pages/client/ClientResourceCollectionDetail"));
@@ -242,6 +243,7 @@ const App = () => (
           <Route path="/client/plan-history" element={<ProtectedRoute allowedRoles={["client", "trainer"]}><ClientPlanHistory /></ProtectedRoute>} />
           <Route path="/client/pace" element={<ProtectedRoute allowedRoles={["client"]}><ClientSmartPace /></ProtectedRoute>} />
           <Route path="/dev/pace-preview" element={<SmartPacePreview />} />
+          <Route path="/dev/ring-demo" element={<FastingRingDemo />} />
           <Route path="/client/daily-score" element={<ProtectedRoute allowedRoles={["client"]}><ClientDailyScore /></ProtectedRoute>} />
           <Route path="/client/coaching" element={<Navigate to="/client/dashboard" replace />} />
           <Route path="/client/profile" element={<ProtectedRoute allowedRoles={["client", "trainer"]}><ClientProfile /></ProtectedRoute>} />
