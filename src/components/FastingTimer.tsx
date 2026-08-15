@@ -185,8 +185,8 @@ export function FastingTimer({ fastStartAt, targetHours, now, demoProgress, comp
             cx={cx} cy={cy} r={innerRadius}
             fill="none"
             stroke="white"
-            strokeOpacity={0.25}
-            strokeWidth={1.5}
+            strokeOpacity={0.35}
+            strokeWidth={compact ? 2 : 2.5}
           />
           <circle
             cx={cx} cy={cy} r={innerRadius}
