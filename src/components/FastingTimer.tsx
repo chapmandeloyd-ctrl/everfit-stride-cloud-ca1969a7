@@ -75,7 +75,7 @@ export function FastingTimer({ fastStartAt, targetHours, now, demoProgress, comp
   const cx = size / 2;
   const cy = size / 2;
 
-  // Build colored arc segments (only for elapsed portion)
+  // Build colored arc segments — FULL ring is painted (timeline look)
   const progressAngle = progress * 360;
   const arcSegments: { startAngle: number; endAngle: number; color: string }[] = [];
 
@@ -87,11 +87,8 @@ export function FastingTimer({ fastStartAt, targetHours, now, demoProgress, comp
     const stageStartAngle = stageStartFraction * 360;
     const stageEndAngle = stageEndFraction * 360;
 
-    // Only draw if progress has reached this stage
-    if (progressAngle <= stageStartAngle) break;
-
     const segStart = stageStartAngle;
-    const segEnd = Math.min(stageEndAngle, progressAngle);
+    const segEnd = stageEndAngle;
 
     // Need at least a tiny arc
     if (segEnd - segStart < 0.3) continue;
@@ -123,6 +120,14 @@ export function FastingTimer({ fastStartAt, targetHours, now, demoProgress, comp
 
   // Circumference for background track
   const circumference = 2 * Math.PI * radius;
+
+  // Inner thin progress arc (inset inside the colored band)
+  const innerRadius = radius - bandWidth / 2 + (compact ? 5 : 6);
+  const innerCircumference = 2 * Math.PI * innerRadius;
+  const innerDash = progress * innerCircumference;
+  const knobRad = ((progress * 360 - 90) * Math.PI) / 180;
+  const knobX = cx + innerRadius * Math.cos(knobRad);
+  const knobY = cy + innerRadius * Math.sin(knobRad);
 
   return (
     <div className={cn("flex w-full flex-col items-center", compact ? "gap-2" : "") }>
@@ -169,32 +174,41 @@ export function FastingTimer({ fastStartAt, targetHours, now, demoProgress, comp
               stroke={seg.color}
               strokeWidth={bandWidth}
               strokeLinecap="butt"
-              className="transition-all duration-1000 ease-linear"
               style={{
                 filter: `drop-shadow(0 0 8px ${seg.color}66)`,
               }}
             />
           ))}
 
-          {/* Thin center divider line through the band */}
+          {/* Inner thin elapsed-progress arc */}
           <circle
-            cx={cx} cy={cy} r={radius}
+            cx={cx} cy={cy} r={innerRadius}
             fill="none"
             stroke="white"
+            strokeOpacity={0.25}
             strokeWidth={1.5}
-            opacity={0.7}
+          />
+          <circle
+            cx={cx} cy={cy} r={innerRadius}
+            fill="none"
+            stroke="white"
+            strokeWidth={compact ? 2 : 2.5}
+            strokeLinecap="round"
+            strokeDasharray={`${innerDash} ${innerCircumference}`}
+            transform={`rotate(-90 ${cx} ${cy})`}
+            className="transition-all duration-700 ease-linear"
+            style={{ filter: "drop-shadow(0 0 4px rgba(255,255,255,0.8))" }}
           />
 
-          {/* Progress indicator nub */}
+          {/* Progress knob on the inner arc */}
           {progress > 0.005 && (
             <circle
-              cx={indicatorX} cy={indicatorY} r={compact ? 5 : 6}
-              fill={indicatorColor}
-              stroke="hsl(var(--background))"
+              cx={knobX} cy={knobY} r={compact ? 5 : 6}
+              fill="white"
+              stroke={indicatorColor}
               strokeWidth={2}
-              style={{
-                filter: `drop-shadow(0 0 6px ${indicatorColor}99)`,
-              }}
+              className="transition-all duration-700 ease-linear"
+              style={{ filter: `drop-shadow(0 0 6px ${indicatorColor}99)` }}
             />
           )}
         </svg>
@@ -208,32 +222,26 @@ export function FastingTimer({ fastStartAt, targetHours, now, demoProgress, comp
             <div
               key={stage.hour}
               className={cn(
-                "absolute flex items-center justify-center rounded-full text-xs transition-all duration-500",
+                "absolute z-10 flex items-center justify-center rounded-full transition-all duration-500",
                 isCurrent
                   ? compact
-                    ? "h-5 w-5 -ml-2.5 -mt-2.5 scale-110 z-10"
-                    : "h-6 w-6 -ml-3 -mt-3 scale-110 z-10"
-                  : isReached
-                    ? compact
-                      ? "h-4 w-4 -ml-2 -mt-2 bg-card/90"
-                      : "h-5 w-5 -ml-2.5 -mt-2.5 bg-card/90"
-                    : compact
-                      ? "h-3.5 w-3.5 -ml-[7px] -mt-[7px] bg-muted/60 opacity-40"
-                      : "h-4 w-4 -ml-2 -mt-2 bg-muted/60 opacity-40"
+                    ? "h-6 w-6 -ml-3 -mt-3 scale-110"
+                    : "h-7 w-7 -ml-3.5 -mt-3.5 scale-110"
+                  : compact
+                    ? "h-5 w-5 -ml-2.5 -mt-2.5"
+                    : "h-6 w-6 -ml-3 -mt-3"
               )}
               style={{
                 left: pos.cx,
                 top: pos.cy,
-                ...(isCurrent ? {
-                  backgroundColor: `${stage.color}25`,
-                  boxShadow: `0 0 0 2px ${stage.color}55`,
-                } : isReached ? {
-                  boxShadow: `0 0 0 1px ${stage.color}40`,
-                } : {}),
+                backgroundColor: stage.color,
+                boxShadow: isCurrent
+                  ? `0 0 0 3px rgba(255,255,255,0.95), 0 0 12px ${stage.color}`
+                  : `0 0 0 2px rgba(255,255,255,0.9)`,
               }}
               title={`${stage.label} (${stage.hour}h) – ${stage.description}`}
             >
-              <span className={cn(compact ? "text-[8px]" : "text-[9px]", !isReached && "grayscale")}>{stage.icon}</span>
+              <span className={cn(compact ? "text-[9px]" : "text-[11px]", "leading-none")}>{stage.icon}</span>
             </div>
           );
         })}
