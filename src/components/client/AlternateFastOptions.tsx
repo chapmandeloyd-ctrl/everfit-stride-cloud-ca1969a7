@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, PlayCircle } from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ExtendedFastButton } from "@/components/client/extended/ExtendedFastButton";
 import { StartJuiceFastButton } from "@/components/client/juice/StartJuiceFastButton";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
@@ -32,10 +33,13 @@ import { cn } from "@/lib/utils";
  */
 export function AlternateFastOptions() {
   const clientId = useEffectiveClientId();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const startParam = searchParams.get("start");
   const { weekly, overrides, planWindow } = useClientWeeklySchedule(clientId);
   const skippedToday = useFastSkippedToday(clientId);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(startParam === "extended" || startParam === "juice");
 
   const next = useMemo(
     () => findNextFastStart(weekly, overrides, planWindow, new Date()),
@@ -103,8 +107,28 @@ export function AlternateFastOptions() {
         </button>
       </CollapsibleTrigger>
       <CollapsibleContent className="space-y-2 pt-2">
-        <ExtendedFastButton />
-        <StartJuiceFastButton />
+        <div className="space-y-1">
+          <ExtendedFastButton autoOpen={startParam === "extended"} />
+          <button
+            type="button"
+            onClick={() => navigate("/client/extended-fast-demo")}
+            className="flex w-full items-center justify-center gap-1.5 py-1 text-[11px] font-medium text-muted-foreground underline underline-offset-4"
+          >
+            <PlayCircle className="h-3 w-3" />
+            How extended fasting works
+          </button>
+        </div>
+        <div className="space-y-1">
+          <StartJuiceFastButton autoOpen={startParam === "juice"} />
+          <button
+            type="button"
+            onClick={() => navigate("/client/juice-fast-demo")}
+            className="flex w-full items-center justify-center gap-1.5 py-1 text-[11px] font-medium text-muted-foreground underline underline-offset-4"
+          >
+            <PlayCircle className="h-3 w-3" />
+            How juice fasting works
+          </button>
+        </div>
       </CollapsibleContent>
     </Collapsible>
   );
