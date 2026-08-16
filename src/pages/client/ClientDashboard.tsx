@@ -1,5 +1,6 @@
 import { ClientLayout } from "@/components/ClientLayout";
 import fastingCardBgGoldImg from "@/assets/fasting-timer-bg.png";
+import { PrepRunwayCard, useEatingWindowOpen } from "@/components/client/PrepRunwayCard";
 import { IdleFastingHero } from "@/components/client/IdleFastingHero";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
