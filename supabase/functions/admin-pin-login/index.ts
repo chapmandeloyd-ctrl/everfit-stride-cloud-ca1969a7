@@ -48,26 +48,38 @@ serve(async (req: Request) => {
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    // 1. Resolve the trainer account (bounded).
+    // 1. Resolve the trainer account. A brief REST gateway interruption used
+    // to fail a valid PIN immediately, so retry this stage just like auth.
     let email: string | null = null;
-    try {
+    let trainerLookupError: unknown = null;
+    for (let attempt = 0; attempt < 2; attempt += 1) {
       const t0 = Date.now();
-      const { data, error } = await withTimeout(
-        supabaseAdmin
-          .from("profiles")
-          .select("email")
-          .eq("role", "trainer")
-          .order("created_at", { ascending: true })
-          .limit(1)
-          .maybeSingle(),
-        6000,
-        "trainer lookup"
-      );
-      console.log(`trainer lookup took ${Date.now() - t0}ms`);
-      if (error) throw error;
-      email = data?.email ?? null;
-    } catch (e) {
-      console.error("Trainer lookup failed:", e);
+      try {
+        const { data, error } = await withTimeout(
+          supabaseAdmin
+            .from("profiles")
+            .select("email")
+            .eq("role", "trainer")
+            .order("created_at", { ascending: true })
+            .limit(1)
+            .maybeSingle(),
+          4000,
+          "trainer lookup"
+        );
+        console.log(`trainer lookup attempt ${attempt + 1} took ${Date.now() - t0}ms`);
+        if (error) throw error;
+        email = data?.email ?? null;
+        trainerLookupError = null;
+        break;
+      } catch (e) {
+        trainerLookupError = e;
+        console.error(`trainer lookup attempt ${attempt + 1} failed after ${Date.now() - t0}ms:`, e);
+        if (attempt === 0) await wait(350);
+      }
+    }
+
+    if (trainerLookupError) {
+      console.error("Trainer lookup failed after retries:", trainerLookupError);
       return json({ error: "Login service is busy. Tap Enter again." }, 503);
     }
 
@@ -77,12 +89,12 @@ serve(async (req: Request) => {
     //    retry quickly so we always answer well inside the client timeout.
     let actionLink: string | null = null;
     let lastError: unknown = null;
-    for (let attempt = 0; attempt < 3; attempt += 1) {
+    for (let attempt = 0; attempt < 2; attempt += 1) {
       const t0 = Date.now();
       try {
         const { data, error } = await withTimeout(
           supabaseAdmin.auth.admin.generateLink({ type: "magiclink", email }),
-          6000,
+          4000,
           "generateLink"
         );
         console.log(`generateLink attempt ${attempt + 1} took ${Date.now() - t0}ms`);
@@ -93,7 +105,7 @@ serve(async (req: Request) => {
       } catch (e) {
         lastError = e;
         console.error(`generateLink attempt ${attempt + 1} failed after ${Date.now() - t0}ms:`, e);
-        if (attempt < 2) await wait(500);
+        if (attempt === 0) await wait(350);
       }
     }
 
