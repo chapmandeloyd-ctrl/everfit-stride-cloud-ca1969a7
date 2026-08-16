@@ -5,7 +5,7 @@ import { FASTING_STAGES } from "@/lib/fastingStages";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { format, isToday } from "date-fns";
 import { useEffect, useState, useRef } from "react";
 
@@ -70,7 +70,8 @@ export default function ClientFastComplete() {
   const clientId = useEffectiveClientId();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const isDemo = searchParams.get("demo") === "1";
+  const location = useLocation();
+  const isDemo = searchParams.get("demo") === "1" || location.pathname.startsWith("/dev/");
   const [showConfetti, setShowConfetti] = useState(true);
 
   useEffect(() => {
