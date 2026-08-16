@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { ChevronDown } from "lucide-react";
 import { ExtendedFastButton } from "@/components/client/extended/ExtendedFastButton";
 import { StartJuiceFastButton } from "@/components/client/juice/StartJuiceFastButton";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
@@ -17,6 +18,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { cn } from "@/lib/utils";
 
 /**
  * Extended / juice fast entry points.
@@ -28,6 +35,7 @@ export function AlternateFastOptions() {
   const { weekly, overrides, planWindow } = useClientWeeklySchedule(clientId);
   const skippedToday = useFastSkippedToday(clientId);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [open, setOpen] = useState(false);
 
   const next = useMemo(
     () => findNextFastStart(weekly, overrides, planWindow, new Date()),
@@ -82,9 +90,22 @@ export function AlternateFastOptions() {
   }
 
   return (
-    <>
-      <ExtendedFastButton />
-      <StartJuiceFastButton />
-    </>
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <CollapsibleTrigger asChild>
+        <button
+          type="button"
+          className="w-full h-11 rounded-xl border border-border bg-card/60 px-4 flex items-center justify-between text-sm font-semibold"
+        >
+          <span>More ways to fast</span>
+          <ChevronDown
+            className={cn("h-4 w-4 transition-transform", open && "rotate-180")}
+          />
+        </button>
+      </CollapsibleTrigger>
+      <CollapsibleContent className="space-y-2 pt-2">
+        <ExtendedFastButton />
+        <StartJuiceFastButton />
+      </CollapsibleContent>
+    </Collapsible>
   );
 }
