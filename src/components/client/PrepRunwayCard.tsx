@@ -15,6 +15,7 @@ import { useFastSkippedToday } from "@/components/client/ScheduleCountdownRow";
 import { useActiveFastElapsed } from "@/hooks/useActiveFastElapsed";
 import { EditTodayScheduleSheet } from "@/components/client/EditTodayScheduleSheet";
 import { useStartFast } from "@/hooks/useStartFast";
+import { usePrepChecklist } from "@/hooks/usePrepChecklist";
 import { AlternateFastOptions } from "@/components/client/AlternateFastOptions";
 import lionBg from "@/assets/fasting-timer-bg.png";
 
@@ -103,29 +104,10 @@ export function PrepRunwayCard({ embedded = false }: { embedded?: boolean }) {
     ? `apex_prep_${clientId ?? "anon"}_${next.at.toDateString()}_${phase}`
     : "";
 
-  const [checked, setChecked] = useState<string[]>([]);
   const [open, setOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const startFast = useStartFast();
-
-  useEffect(() => {
-    if (!storageKey || typeof window === "undefined") return;
-    try {
-      setChecked(JSON.parse(window.localStorage.getItem(storageKey) ?? "[]"));
-    } catch {
-      setChecked([]);
-    }
-  }, [storageKey]);
-
-  const toggle = (id: string) => {
-    setChecked((prev) => {
-      const nextVal = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
-      if (storageKey && typeof window !== "undefined") {
-        window.localStorage.setItem(storageKey, JSON.stringify(nextVal));
-      }
-      return nextVal;
-    });
-  };
+  const { checked, toggle } = usePrepChecklist(clientId, storageKey);
 
   if (!next || !phase) return null;
   if (!isFasting && next.daysAway === 0 && skippedToday) return null;
