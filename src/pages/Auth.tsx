@@ -82,19 +82,29 @@ export default function Auth() {
     }
     setIsLoading(true);
     try {
-      const request = supabase.functions.invoke("admin-pin-login", {
-        body: { pin: adminPin.trim() },
-      });
-      const timeout = new Promise<never>((_, reject) => {
-        window.setTimeout(
-          () => reject(new Error("Login service timed out. Please tap Verify again.")),
-          25000,
-        );
-      });
-      const { data, error } = await Promise.race([request, timeout]);
+      const pin = adminPin.trim();
+      const callOnce = async () => {
+        const request = supabase.functions.invoke("admin-pin-login", { body: { pin } });
+        const timeout = new Promise<never>((_, reject) => {
+          window.setTimeout(
+            () => reject(new Error("Login service timed out. Please tap Enter again.")),
+            25000,
+          );
+        });
+        return await Promise.race([request, timeout]);
+      };
 
-      if (error) throw error;
-      if (!data?.token_hash) throw new Error(data?.error || "Invalid PIN");
+      let { data, error } = await callOnce();
+      // A busy auth service returns 503 — retry once automatically before
+      // bothering the user.
+      if ((error || !data?.token_hash) && data?.error !== "Invalid PIN") {
+        await new Promise((r) => window.setTimeout(r, 600));
+        ({ data, error } = await callOnce());
+      }
+
+      if (!data?.token_hash) {
+        throw new Error(data?.error || error?.message || "Invalid PIN");
+      }
 
       const { error: verifyError } = await supabase.auth.verifyOtp({
         token_hash: data.token_hash,
