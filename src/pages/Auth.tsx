@@ -82,19 +82,53 @@ export default function Auth() {
     }
     setIsLoading(true);
     try {
-      const request = supabase.functions.invoke("admin-pin-login", {
-        body: { pin: adminPin.trim() },
-      });
-      const timeout = new Promise<never>((_, reject) => {
-        window.setTimeout(
-          () => reject(new Error("Login service timed out. Please tap Verify again.")),
-          25000,
-        );
-      });
-      const { data, error } = await Promise.race([request, timeout]);
+      const pin = adminPin.trim();
+      // Raw fetch so we can read the status code and the JSON error body even
+      // on non-2xx responses (functions.invoke swallows the body).
+      const endpoint = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-pin-login`;
+      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      const callOnce = async () => {
+        const controller = new AbortController();
+        const timer = window.setTimeout(() => controller.abort(), 20000);
+        try {
+          const res = await fetch(endpoint, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              apikey: anonKey,
+              Authorization: `Bearer ${anonKey}`,
+            },
+            body: JSON.stringify({ pin }),
+            signal: controller.signal,
+          });
+          const payload = await res.json().catch(() => ({}));
+          return { status: res.status, payload } as { status: number; payload: any };
+        } finally {
+          window.clearTimeout(timer);
+        }
+      };
 
-      if (error) throw error;
-      if (!data?.token_hash) throw new Error(data?.error || "Invalid PIN");
+      let result: { status: number; payload: any };
+      try {
+        result = await callOnce();
+      } catch {
+        result = { status: 0, payload: {} };
+      }
+      // 401 = genuinely wrong PIN. Anything else is transient — retry once.
+      if (result.status !== 200 && result.status !== 401) {
+        await new Promise((r) => window.setTimeout(r, 800));
+        try {
+          result = await callOnce();
+        } catch {
+          result = { status: 0, payload: {} };
+        }
+      }
+
+      const data = result.payload;
+      if (result.status === 401) throw new Error("Invalid PIN");
+      if (!data?.token_hash) {
+        throw new Error(data?.error || "Login service is busy. Tap Enter again.");
+      }
 
       const { error: verifyError } = await supabase.auth.verifyOtp({
         token_hash: data.token_hash,
@@ -104,12 +138,13 @@ export default function Auth() {
       if (verifyError) throw verifyError;
 
       toast.success("Welcome back!");
+      setAdminPin("");
       goPostAuth("/");
     } catch (error: any) {
       toast.error(error.message || "Invalid PIN");
+      if (error?.message === "Invalid PIN") setAdminPin("");
     } finally {
       setIsLoading(false);
-      setAdminPin("");
     }
   };
 
