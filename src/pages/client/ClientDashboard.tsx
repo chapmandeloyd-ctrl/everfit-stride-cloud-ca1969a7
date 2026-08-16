@@ -88,12 +88,33 @@ function TodayScheduleBar({
   day,
   accent,
   isFasting,
+  activeFastStartAt,
+  activeFastTargetHours,
 }: {
   day: WeeklyScheduleDay | null | undefined;
   accent?: string;
   isFasting?: boolean;
+  activeFastStartAt?: string | null;
+  activeFastTargetHours?: number | null;
 }) {
-  const schedule = formatTodaySchedule(day);
+  const base = formatTodaySchedule(day);
+  // When a fast is actually running (e.g. a 24h extended fast), the bar must
+  // reflect THAT fast — not the generic daily window.
+  const active = activeFastStartAt && activeFastTargetHours
+    ? (() => {
+        const s = new Date(activeFastStartAt);
+        const e = new Date(s.getTime() + activeFastTargetHours * 3600000);
+        return {
+          label: `${activeFastTargetHours}h Fast · Active`,
+          fastStart: format(s, "h:mm a"),
+          breakFast: format(e, "h:mm a"),
+          eatingEnd: "—",
+          ratio: `${activeFastTargetHours}h`,
+          isRestDay: false,
+        };
+      })()
+    : null;
+  const schedule = active || base;
   const color = accent || "hsl(var(--primary))";
   const [editOpen, setEditOpen] = useState(false);
   return (
@@ -116,9 +137,11 @@ function TodayScheduleBar({
             <p className="text-[11px] font-bold text-white whitespace-nowrap">{schedule.breakFast}</p>
           </div>
           <div className="rounded-md bg-black/30 px-1.5 py-1.5 min-w-0 overflow-hidden">
-            <p className="text-[9px] text-white/50 uppercase tracking-wider whitespace-nowrap">Eating window</p>
+            <p className="text-[9px] text-white/50 uppercase tracking-wider whitespace-nowrap">
+              {active ? "Eating opens" : "Eating window"}
+            </p>
             <p className="text-[10px] font-bold text-white whitespace-nowrap tracking-tight">
-              {schedule.breakFast} – {schedule.eatingEnd}
+              {active ? schedule.breakFast : `${schedule.breakFast} – ${schedule.eatingEnd}`}
             </p>
           </div>
         </button>
