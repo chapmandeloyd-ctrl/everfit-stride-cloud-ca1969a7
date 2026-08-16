@@ -214,6 +214,38 @@ export function PrepRunwayCard({ embedded = false }: { embedded?: boolean }) {
 
       <p className="mt-3 text-[12px] leading-relaxed text-muted-foreground">{content.blurb}</p>
 
+      {/* Thin schedule strip + inline edit */}
+      <div className="mt-3 flex items-center gap-3 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-[11px]">
+        <span className="text-muted-foreground">
+          Starts <span className="font-semibold text-foreground">{startTime}</span>
+        </span>
+        <span className="text-muted-foreground">
+          Breaks <span className="font-semibold text-foreground">{breakTime}</span>
+        </span>
+        <span className="text-muted-foreground">
+          Window <span className="font-semibold text-foreground">{eatHours}h</span>
+        </span>
+        <button
+          type="button"
+          onClick={() => setEditOpen(true)}
+          className="ml-auto text-[10px] font-bold uppercase tracking-widest text-[hsl(var(--primary))]"
+        >
+          Edit
+        </button>
+      </div>
+
+      {showStartNow && (
+        <button
+          type="button"
+          disabled={startFast.isPending}
+          onClick={() => startFast.mutate(undefined)}
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-[hsl(var(--primary))] px-4 py-3 text-sm font-bold text-primary-foreground disabled:opacity-60"
+        >
+          <Play className="h-4 w-4" />
+          Start fast now
+        </button>
+      )}
+
       {open && (
         <>
           <div className="mt-3 flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
