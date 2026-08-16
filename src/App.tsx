@@ -9,7 +9,30 @@ import { lazy as reactLazy, Suspense, type ComponentType } from "react";
  * (after a redeploy) triggers a one-time hard reload instead of rendering
  * a permanently blank screen.
  */
-const CHUNK_RELOAD_KEY = "chunk-reload-attempted";
+const CHUNK_RELOAD_KEY = "chunk-reload-attempts";
+const MAX_CHUNK_RELOADS = 2;
+
+function ChunkLoadFallback() {
+  return (
+    <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background px-6 text-center">
+      <p className="text-sm text-muted-foreground">
+        A new version of the app is available, but this page failed to load.
+      </p>
+      <button
+        className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+        onClick={() => {
+          try { sessionStorage.removeItem(CHUNK_RELOAD_KEY); } catch {}
+          const url = new URL(window.location.href);
+          url.searchParams.set("_r", Date.now().toString());
+          window.location.replace(url.toString());
+        }}
+      >
+        Reload app
+      </button>
+    </div>
+  );
+}
+
 function lazy<T extends ComponentType<any>>(factory: () => Promise<{ default: T }>) {
   // Retry once (transient network / partially-deployed asset) before reloading.
   const load = () =>
@@ -31,8 +54,9 @@ function lazy<T extends ComponentType<any>>(factory: () => Promise<{ default: T 
         );
       if (isChunkError && typeof window !== "undefined") {
         try {
-          if (!sessionStorage.getItem(CHUNK_RELOAD_KEY)) {
-            sessionStorage.setItem(CHUNK_RELOAD_KEY, "1");
+          const attempts = Number(sessionStorage.getItem(CHUNK_RELOAD_KEY) ?? "0");
+          if (attempts < MAX_CHUNK_RELOADS) {
+            sessionStorage.setItem(CHUNK_RELOAD_KEY, String(attempts + 1));
             // Bust any cached HTML/SW response referencing the stale chunk hash.
             (async () => {
               try {
@@ -53,9 +77,12 @@ function lazy<T extends ComponentType<any>>(factory: () => Promise<{ default: T 
             // until the reload actually happens.
             return new Promise<{ default: T }>(() => {});
           }
+          // Reloads exhausted — show a recovery screen instead of a blank page.
+          return { default: ChunkLoadFallback as unknown as T };
         } catch {
           // sessionStorage may throw in privacy modes — fall through and rethrow.
         }
+        return { default: ChunkLoadFallback as unknown as T };
       }
       throw err;
     }),
