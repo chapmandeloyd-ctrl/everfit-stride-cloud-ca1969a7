@@ -70,7 +70,10 @@ function formatTodaySchedule(day: WeeklyScheduleDay | null | undefined): {
   }
   const start = timeToHour(day.window_start_time);
   const fastEnd = breakFastHourFor(day.ratio, start);
-  const eatEnd = endHourFor(day.ratio, start);
+  // The eating window closes when the next fast begins — same clock time the
+  // fast starts. (endHourFor measured from the fast start, which read an hour
+  // that disagreed with the countdown card.)
+  const eatEnd = start;
   return {
     label: `${day.ratio} Today`,
     fastStart: formatHour(start),
