@@ -192,35 +192,29 @@ export function PrepRunwayCard({ embedded = false }: { embedded?: boolean }) {
             <span className="tabular-nums text-foreground">{startTime}</span>
           </span>
         </div>
-        <div className="flex items-end gap-3">
-        {segments.map((seg) => (
-          <div key={seg.l} className="text-center">
-            <div className="text-2xl font-bold leading-none tabular-nums text-foreground">
-              {String(seg.v).padStart(2, "0")}
-            </div>
-            <div className="mt-0.5 text-[9px] uppercase tracking-widest text-muted-foreground">{seg.l}</div>
-          </div>
-        ))}
-        <div className="ml-auto text-right text-[11px] leading-tight text-muted-foreground">
+        <div className="text-center text-[9px] font-bold uppercase tracking-[0.25em] text-muted-foreground">
           {eatingWindowOpen ? (
-            <>
-              remaining until
-              <br />
-              <span className="font-semibold text-foreground">{startTime} today</span>
-            </>
+            "Remaining"
           ) : (
             <>
-              {isFasting ? "Next fast starts" : "Fast starts"}
-              <br />
-              <span className="font-semibold text-foreground">
+              {isFasting ? "Next fast starts" : "Fast starts"}{" "}
+              <span className="text-foreground">
                 {next.daysAway <= 1
                   ? dayLabel
-                  : next.at.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}{" "}
-                · {startTime}
+                  : next.at.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}
               </span>
             </>
           )}
         </div>
+        <div className="mt-1.5 flex items-end justify-center gap-5">
+          {segments.map((seg) => (
+            <div key={seg.l} className="text-center">
+              <div className="text-3xl font-bold leading-none tabular-nums text-foreground">
+                {String(seg.v).padStart(2, "0")}
+              </div>
+              <div className="mt-0.5 text-[9px] uppercase tracking-widest text-muted-foreground">{seg.l}</div>
+            </div>
+          ))}
         </div>
       </div>
 
