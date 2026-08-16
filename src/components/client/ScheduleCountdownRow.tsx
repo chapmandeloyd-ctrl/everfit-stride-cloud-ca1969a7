@@ -110,19 +110,7 @@ export function ScheduleCountdownRow({
   const [stage, setStage] = useState<"confirm" | "options" | "summary">("options");
   const [summary, setSummary] = useState<{ title: string; body: string } | null>(null);
 
-  const setSkip = (value: boolean) => {
-    if (typeof window !== "undefined") {
-      if (value) window.localStorage.setItem(skipKey, "1");
-      else window.localStorage.removeItem(skipKey);
-      window.dispatchEvent(new Event("apex-fast-skip-changed"));
-    }
-    if (clientId) {
-      void supabase
-        .from("client_feature_settings")
-        .update({ auto_fast_skip_date: value ? localDateKey(new Date()) : null } as any)
-        .eq("client_id", clientId);
-    }
-  };
+  const setSkip = (value: boolean) => setFastSkipToday(clientId, value);
 
   if (!day || day.enabled === false || day.ratio === "eat_all_day") return null;
 
