@@ -1,12 +1,22 @@
 import { ClientLayout } from "@/components/ClientLayout";
 import { Button } from "@/components/ui/button";
-import { Flame, Zap, BarChart3, UtensilsCrossed, PenLine } from "lucide-react";
+import { Flame, Zap, Timer, Flame as FlameIcon, ExternalLink, Activity, Droplets } from "lucide-react";
+import { FASTING_STAGES } from "@/lib/fastingStages";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { useNavigate } from "react-router-dom";
 import { format, isToday } from "date-fns";
 import { useEffect, useState, useRef } from "react";
+
+const TRAINERIZE_URL = "https://www.trainerize.com/login.aspx";
+
+const REFEED_TIPS = [
+  "Start light — broth, water, or a small protein-forward bite.",
+  "Electrolytes first: sodium, potassium, magnesium.",
+  "Give it 20–30 minutes before a full meal.",
+  "Log what you eat in Trainerize so your coach sees it.",
+];
 
 // Confetti particle component
 function ConfettiParticle({ delay, x }: { delay: number; x: number }) {
@@ -90,30 +100,31 @@ export default function ClientFastComplete() {
     navigate("/client/dashboard", { replace: true });
   }, [navigate, shouldBlockFastComplete]);
 
-  // Keto type
-  const { data: ketoType } = useQuery({
-    queryKey: ["fast-complete-keto", clientId],
+  // Last completed fast (stats)
+  const { data: lastFast } = useQuery({
+    queryKey: ["fast-complete-last-fast", clientId],
     queryFn: async () => {
       const { data } = await supabase
-        .from("client_keto_assignments")
-        .select("keto_type_id, keto_types (name, abbreviation, color, fat_pct, protein_pct, carbs_pct)")
+        .from("fasting_log")
+        .select("started_at, ended_at, target_hours, actual_hours")
         .eq("client_id", clientId!)
-        .eq("is_active", true)
+        .not("ended_at", "is", null)
+        .order("ended_at", { ascending: false })
+        .limit(1)
         .maybeSingle();
-      return (data as any)?.keto_types || null;
+      return data;
     },
     enabled: !!clientId,
   });
 
-  // Macro targets
-  const { data: macros } = useQuery({
-    queryKey: ["fast-complete-macros", clientId],
+  // Streak
+  const { data: streak } = useQuery({
+    queryKey: ["fast-complete-streak", clientId],
     queryFn: async () => {
       const { data } = await supabase
-        .from("client_macro_targets")
-        .select("target_protein, target_fats, target_carbs, target_calories")
+        .from("client_consistency_streaks")
+        .select("current_streak, longest_streak")
         .eq("client_id", clientId!)
-        .eq("is_active", true)
         .maybeSingle();
       return data;
     },
@@ -127,6 +138,25 @@ export default function ClientFastComplete() {
   const eatingEnd = settings?.eating_window_ends_at
     ? format(new Date(settings.eating_window_ends_at), "h:mm a")
     : null;
+
+  const actualHours =
+    lastFast?.actual_hours ??
+    (lastFast?.started_at && lastFast?.ended_at
+      ? (new Date(lastFast.ended_at).getTime() - new Date(lastFast.started_at).getTime()) / 3600000
+      : null);
+  const targetHours = lastFast?.target_hours ?? null;
+  const stageReached =
+    actualHours != null
+      ? [...FASTING_STAGES].reverse().find((st) => actualHours >= st.minHours) || FASTING_STAGES[0]
+      : null;
+
+  const msLeft = settings?.eating_window_ends_at
+    ? new Date(settings.eating_window_ends_at).getTime() - now.getTime()
+    : null;
+  const closesInLabel =
+    msLeft != null && msLeft > 0
+      ? `${Math.floor(msLeft / 3600000)}h ${Math.floor((msLeft % 3600000) / 60000)}m`
+      : null;
 
   if (shouldBlockFastComplete) {
     return null;
@@ -163,60 +193,68 @@ export default function ClientFastComplete() {
         {/* Part 2 Header */}
         <div className="flex items-center gap-3 mt-6 mb-4 animate-fade-in" style={{ animationDelay: "0.3s" }}>
           <div className="h-px flex-1 bg-border" />
-          <span className="text-xs font-bold uppercase tracking-widest text-primary">Part 2: Fuel Phase</span>
+          <span className="text-xs font-bold uppercase tracking-widest text-primary">Your Fast Recap</span>
           <div className="h-px flex-1 bg-border" />
         </div>
 
         {/* Info Cards */}
         <div className="space-y-4 animate-fade-in" style={{ animationDelay: "0.4s" }}>
-          {/* Next Phase */}
+          {/* Fast stats */}
+          <div className="rounded-2xl border bg-card p-5 space-y-3">
+            <div className="flex items-center gap-2">
+              <Activity className="h-5 w-5 text-primary" />
+              <h2 className="text-sm font-bold uppercase tracking-wide">The Numbers</h2>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <StatTile label="Fasted" value={actualHours != null ? `${actualHours.toFixed(1)}h` : "—"} />
+              <StatTile label="Target" value={targetHours != null ? `${targetHours}h` : "—"} />
+              <StatTile label="Streak" value={`${streak?.current_streak ?? 0}d`} />
+            </div>
+            <div className="rounded-xl bg-muted/50 p-3 space-y-1">
+              <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Deepest stage reached</p>
+              <p className="text-base font-bold" style={{ color: stageReached?.dotColor }}>
+                {stageReached ? stageReached.label : "—"}
+              </p>
+              {stageReached && (
+                <p className="text-xs text-muted-foreground">{stageReached.description}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Fuel window timing */}
           <div className="rounded-2xl border bg-card p-5 space-y-3">
             <div className="flex items-center gap-2">
               <Zap className="h-5 w-5 text-primary" />
               <h2 className="text-sm font-bold uppercase tracking-wide">Your Fuel Window</h2>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-xl bg-muted/50 p-3 space-y-1">
-                <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Eating Window</p>
-                <p className="text-base font-bold">
-                  {eatingEnd ? `${eatingStart} – ${eatingEnd}` : `${settings?.eating_window_hours || 8}h window`}
-                </p>
-              </div>
-              <div className="rounded-xl bg-muted/50 p-3 space-y-1">
-                <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Keto Type</p>
-                <p className="text-base font-bold">
-                  {ketoType?.abbreviation || ketoType?.name || "Standard"}
-                </p>
-              </div>
+            <div className="rounded-xl bg-muted/50 p-3 space-y-1">
+              <p className="text-[11px] text-muted-foreground uppercase tracking-wider">You can eat</p>
+              <p className="text-base font-bold">
+                {eatingEnd ? `${eatingStart} – ${eatingEnd}` : `${settings?.eating_window_hours || 8}h window`}
+              </p>
             </div>
+            {closesInLabel && (
+              <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Timer className="h-3.5 w-3.5" />
+                Window closes in {closesInLabel}
+              </p>
+            )}
           </div>
 
-          {/* Macros */}
+          {/* Refeed guidance */}
           <div className="rounded-2xl border bg-card p-5 space-y-3">
             <div className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5 text-primary" />
-              <h2 className="text-sm font-bold uppercase tracking-wide">Your Macros</h2>
+              <Droplets className="h-5 w-5 text-primary" />
+              <h2 className="text-sm font-bold uppercase tracking-wide">Break It Well</h2>
             </div>
-
-            {macros ? (
-              <div className="grid grid-cols-3 gap-3">
-                <MacroTile label="Protein" value={`${macros.target_protein || 0}g`} color="bg-blue-500" />
-                <MacroTile label="Fat" value={`${macros.target_fats || 0}g`} color="bg-amber-500" />
-                <MacroTile label="Carbs" value={`${macros.target_carbs || 0}g`} color="bg-emerald-500" />
-              </div>
-            ) : ketoType ? (
-              <div className="grid grid-cols-3 gap-3">
-                <MacroTile label="Protein" value={`${ketoType.protein_pct || 0}%`} color="bg-blue-500" />
-                <MacroTile label="Fat" value={`${ketoType.fat_pct || 0}%`} color="bg-amber-500" />
-                <MacroTile label="Carbs" value={`${ketoType.carbs_pct || 0}%`} color="bg-emerald-500" />
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">No macro targets set yet.</p>
-            )}
-
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              These macros keep you in fat-burning while supporting recovery.
-            </p>
+            <ul className="space-y-2">
+              {REFEED_TIPS.map((tip) => (
+                <li key={tip} className="flex items-start gap-2 text-sm text-foreground/85">
+                  <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-primary" />
+                  <span>{tip}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
 
@@ -224,25 +262,25 @@ export default function ClientFastComplete() {
         <div className="mt-8 space-y-3 pb-4 animate-fade-in" style={{ animationDelay: "0.6s" }}>
           <Button
             className="w-full h-14 text-base font-bold rounded-2xl shadow-lg shadow-primary/20"
-            onClick={() => navigate("/client/meal-select?from=fast_complete")}
+            onClick={() => navigate("/client/dashboard")}
           >
-            <UtensilsCrossed className="h-5 w-5 mr-2" />
-            Choose Your Meal
+            <FlameIcon className="h-5 w-5 mr-2" />
+            Back to Today
           </Button>
           <Button
             variant="outline"
             className="w-full h-12 text-sm font-medium rounded-2xl"
-            onClick={() => navigate("/client/log-meal")}
+            onClick={() => window.open(TRAINERIZE_URL, "_blank", "noopener,noreferrer")}
           >
-            <PenLine className="h-4 w-4 mr-2" />
-            Track Your Own Meal
+            <ExternalLink className="h-4 w-4 mr-2" />
+            Log meals in Trainerize
           </Button>
           <Button
             variant="ghost"
             className="w-full text-sm text-muted-foreground"
-            onClick={() => navigate("/client/dashboard")}
+            onClick={() => navigate("/client/timeline")}
           >
-            Back to Dashboard
+            View my timeline
           </Button>
         </div>
       </div>
@@ -250,10 +288,9 @@ export default function ClientFastComplete() {
   );
 }
 
-function MacroTile({ label, value, color }: { label: string; value: string; color: string }) {
+function StatTile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl bg-muted/50 p-3 text-center space-y-1.5">
-      <div className={`h-2 w-2 rounded-full ${color} mx-auto`} />
+    <div className="rounded-xl bg-muted/50 p-3 text-center space-y-1">
       <p className="text-lg font-bold">{value}</p>
       <p className="text-[11px] text-muted-foreground">{label}</p>
     </div>
