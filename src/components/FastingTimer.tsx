@@ -244,9 +244,13 @@ export function FastingTimer({ fastStartAt, targetHours, now, demoProgress, comp
                 left: pos.cx,
                 top: pos.cy,
                 backgroundColor: stage.color,
+                opacity: isReached ? 1 : 0.3,
+                filter: isReached ? undefined : "grayscale(0.7)",
                 boxShadow: isCurrent
                   ? `0 0 0 2px rgba(255,255,255,0.95), 0 0 12px ${stage.color}`
-                  : `0 0 0 2px rgba(255,255,255,0.9)`,
+                  : isReached
+                    ? `0 0 0 2px rgba(255,255,255,0.9)`
+                    : `0 0 0 1.5px rgba(255,255,255,0.35)`,
               }}
               title={`${stage.label} (${stage.hour}h) – ${stage.description}`}
             >
