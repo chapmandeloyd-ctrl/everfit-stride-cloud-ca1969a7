@@ -246,18 +246,31 @@ export function PrepRunwayCard({ embedded = false }: { embedded?: boolean }) {
         </button>
       )}
 
+      {/* Checklist toggle — always visible so the prep list is discoverable */}
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="mt-3 flex w-full items-center justify-between rounded-xl border border-white/10 bg-black/20 px-3 py-2.5 text-left"
+      >
+        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+          {isFasting
+            ? "When you break it"
+            : `Do this ${next.daysAway === 0 ? "before you start" : "today"}`}
+        </span>
+        <span className="flex items-center gap-2">
+          <span className="text-[11px] font-bold tabular-nums text-foreground">
+            {doneCount}/{content.items.length}
+          </span>
+          {open ? (
+            <ChevronUp className="h-4 w-4 text-muted-foreground" />
+          ) : (
+            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+          )}
+        </span>
+      </button>
+
       {open && (
         <>
-          <div className="mt-3 flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-            <span>
-              {isFasting
-                ? "When you break it"
-                : `Do this ${next.daysAway === 0 ? "before you start" : "today"}`}
-            </span>
-            <span>
-              {doneCount}/{content.items.length}
-            </span>
-          </div>
           <ul className="mt-2 space-y-1.5">
             {content.items.map((item) => {
               const isDone = checked.includes(item.id);
