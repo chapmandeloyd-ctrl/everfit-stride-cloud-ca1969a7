@@ -5,7 +5,7 @@ import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { supabase } from "@/integrations/supabase/client";
 import { CancelFastSheet, type CancelAction } from "@/components/fasting/CancelFastSheet";
 import { emitActivityEvent } from "@/lib/activityEvents";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useStartFast } from "@/hooks/useStartFast";
 
 function hourToTime(h: number): string {
@@ -40,7 +40,7 @@ export function setFastSkipToday(clientId: string | null | undefined, value: boo
   if (typeof window !== "undefined") {
     const key = fastSkipKey(clientId);
     if (value) window.localStorage.setItem(key, "1");
-    else window.localStorage.removeItem(key);
+    else window.localStorage.setItem(key, "0"); // explicit restore beats the saved date
     window.dispatchEvent(new Event("apex-fast-skip-changed"));
   }
   if (clientId) {
@@ -51,18 +51,39 @@ export function setFastSkipToday(clientId: string | null | undefined, value: boo
   }
 }
 
-/** Live "is today's fast cancelled" flag, synced across components. */
+/**
+ * Live "is today's fast cancelled" flag, synced across components.
+ * Local storage answers instantly; the saved `auto_fast_skip_date` makes the
+ * cancellation survive reloads and other devices.
+ */
 export function useFastSkippedToday(clientId: string | null | undefined): boolean {
   const key = useMemo(() => fastSkipKey(clientId), [clientId]);
-  const [skipped, setSkipped] = useState(false);
+  const [local, setLocal] = useState<string | null>(null);
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const read = () => setSkipped(window.localStorage.getItem(key) === "1");
+    const read = () => setLocal(window.localStorage.getItem(key));
     read();
     window.addEventListener("apex-fast-skip-changed", read);
     return () => window.removeEventListener("apex-fast-skip-changed", read);
   }, [key]);
-  return skipped;
+
+  const { data: remoteSkipDate } = useQuery({
+    queryKey: ["auto-fast-skip-date", clientId],
+    enabled: !!clientId,
+    staleTime: 30_000,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("client_feature_settings")
+        .select("auto_fast_skip_date")
+        .eq("client_id", clientId!)
+        .maybeSingle();
+      return ((data as any)?.auto_fast_skip_date as string | null) ?? null;
+    },
+  });
+
+  if (local === "1") return true;
+  if (local === "0") return false;
+  return !!remoteSkipDate && String(remoteSkipDate).slice(0, 10) === localDateKey(new Date());
 }
 
 /**
@@ -83,25 +104,12 @@ export function ScheduleCountdownRow({
   const qc = useQueryClient();
   const startFast = useStartFast();
   const autoStartFired = useRef(false);
-  const skipKey = useMemo(() => fastSkipKey(clientId), [clientId]);
   const skipped = useFastSkippedToday(clientId);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [stage, setStage] = useState<"confirm" | "options" | "summary">("options");
   const [summary, setSummary] = useState<{ title: string; body: string } | null>(null);
 
-  const setSkip = (value: boolean) => {
-    if (typeof window !== "undefined") {
-      if (value) window.localStorage.setItem(skipKey, "1");
-      else window.localStorage.removeItem(skipKey);
-      window.dispatchEvent(new Event("apex-fast-skip-changed"));
-    }
-    if (clientId) {
-      void supabase
-        .from("client_feature_settings")
-        .update({ auto_fast_skip_date: value ? localDateKey(new Date()) : null } as any)
-        .eq("client_id", clientId);
-    }
-  };
+  const setSkip = (value: boolean) => setFastSkipToday(clientId, value);
 
   if (!day || day.enabled === false || day.ratio === "eat_all_day") return null;
 
