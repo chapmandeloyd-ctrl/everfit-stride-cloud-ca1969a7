@@ -1,6 +1,6 @@
 import { ClientLayout } from "@/components/ClientLayout";
 import fastingCardBgGoldImg from "@/assets/fasting-timer-bg.png";
-import { PrepRunwayCard, useEatingWindowOpen } from "@/components/client/PrepRunwayCard";
+import { PrepRunwayCard } from "@/components/client/PrepRunwayCard";
 import { IdleFastingHero } from "@/components/client/IdleFastingHero";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -216,7 +216,6 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
   const [showEndEatingWindowConfirm, setShowEndEatingWindowConfirm] = useState(false);
   const [showCloseEatingWindowConfirm, setShowCloseEatingWindowConfirm] = useState(false);
   const [showEndFastEarlySheet, setShowEndFastEarlySheet] = useState(false);
-  const [showEndEatingWindowSheet, setShowEndEatingWindowSheet] = useState(false);
   const [showEndManualFastConfirm, setShowEndManualFastConfirm] = useState(false);
   // Cancelled-fast status sheet (shown after an active fast is stopped early)
   const [cancelledFastStats, setCancelledFastStats] = useState<{ label: string; value: string }[] | null>(null);
@@ -233,7 +232,6 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
   const [showWhatCanIDrink, setShowWhatCanIDrink] = useState(false);
   const [programSheetOpen, setProgramSheetOpen] = useState(false);
   const [showCoachWaitLock, setShowCoachWaitLock] = useState(false);
-  const [eatingWindowSheetIntent, setEatingWindowSheetIntent] = useState<"end_window" | "choose_next_fast">("end_window");
   const liveActivity = useLiveActivity();
   const { toast } = useToast();
   const { data: pace } = useSmartPace();
@@ -1634,224 +1632,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
 
   // Eating window active state
   if (hasEatingWindow && featureSettings?.eating_window_ends_at) {
-    const ewEnd = new Date(featureSettings.eating_window_ends_at);
-    const ewRemainingMs = Math.max(ewEnd.getTime() - now.getTime(), 0);
-    const ewH = Math.floor(ewRemainingMs / 3600000);
-    const ewM = Math.floor((ewRemainingMs % 3600000) / 60000);
-    const ewS = Math.floor((ewRemainingMs % 60000) / 1000);
-    const ewTimeStr = `${String(ewH).padStart(2, "0")}:${String(ewM).padStart(2, "0")}:${String(ewS).padStart(2, "0")}`;
-
-    const ewCardImageUrl = featureSettings?.eating_window_card_image_url;
-    // Use slideshow photo if available, otherwise fall back to the single card image
-    const activeSlideshowPhoto = mealPhotos.length > 0 ? mealPhotos[slideshowIndex] : null;
-    const backgroundImage = activeSlideshowPhoto || ewCardImageUrl;
-    const hasBackground = !!backgroundImage;
-
-    return (
-      <Card
-        className="overflow-hidden border shadow-lg"
-        style={{ backgroundColor: "hsl(var(--background))", borderColor: timerAccentMuted }}
-      >
-        <div className="relative">
-          {/* Editorial Black & Gold — faint gold lion watermark */}
-          <img
-            src="/logo.png"
-            alt=""
-            aria-hidden="true"
-            className="absolute inset-0 m-auto w-[120%] h-[120%] object-contain pointer-events-none"
-            style={{
-              filter: activeCustomPlan
-                ? "sepia(1) hue-rotate(-15deg) saturate(2.5) brightness(1.2)"
-                : "sepia(1) hue-rotate(310deg) saturate(6) brightness(0.85)",
-              opacity: 0.1,
-            }}
-          />
-
-          <CardContent
-            className="px-5 pt-8 pb-6 space-y-4 relative"
-            style={{ color: "hsl(var(--foreground))" }}
-          >
-            <div className="flex items-start justify-between">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <p
-                    className="text-[10px] font-medium uppercase tracking-[0.4em]"
-                    style={{ color: timerAccent }}
-                  >
-                    {isMaintenanceMode
-                      ? "Maintenance Schedule"
-                      : activeCustomPlan
-                        ? "Custom Plan"
-                        : "Fasting Program"}
-                  </p>
-                  {!isMaintenanceMode && !activeCustomPlan && (
-                    <Badge
-                      className="text-[10px] px-2 py-0.5 font-medium bg-transparent"
-                      style={{ borderColor: timerAccentMuted, color: timerAccent, backgroundColor: timerAccentSubtle }}
-                    >
-                      {isCoachAssigned ? "Coach Assigned" : "My Assigned"}
-                    </Badge>
-                  )}
-                  {activeCustomPlan && (
-                    <Badge
-                      className="text-[10px] px-2 py-0.5 font-medium border bg-transparent"
-                      style={{ borderColor: planAccentHex ?? undefined, color: planAccentHex ?? undefined }}
-                    >
-                      {isManualOpenEat ? "Open-ended" : `${featureSettings.eating_window_hours ?? 8}h Window`}
-                    </Badge>
-                  )}
-                </div>
-                <h3
-                  className="text-2xl font-light tracking-tight mt-1"
-                  style={{ fontFamily: "Georgia, serif", color: "hsl(var(--foreground))" }}
-                >
-                  {isMaintenanceMode ? (maintenanceLabel || "Maintenance") : planName}
-                </h3>
-                {activeKetoType && !isMaintenanceMode && !activeCustomPlan && (
-                  <div className="flex items-center gap-2 mt-1">
-                    <div
-                      className="h-5 w-auto px-2 rounded-full flex items-center gap-1.5 text-[10px] font-bold"
-                      style={{ backgroundColor: `${activeKetoType.color || '#ef4444'}20`, color: activeKetoType.color || '#ef4444' }}
-                    >
-                      {activeKetoType.abbreviation}
-                      <span style={{ color: "hsl(var(--muted-foreground))" }}>·</span>
-                      <span className="font-medium" style={{ color: "hsl(var(--muted-foreground))" }}>{activeKetoType.name}</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-              {hasDuration && !isMaintenanceMode && !activeCustomPlan && (
-                <Badge
-                  variant="outline"
-                  className="text-[10px] font-medium px-3 py-1 rounded-full shrink-0 bg-transparent uppercase tracking-widest"
-                  style={{ borderColor: timerAccentMuted, color: timerAccent, backgroundColor: timerAccentSubtle }}
-                >
-                  Day {dayNumber} / {activeProtocol!.duration_days}
-                </Badge>
-              )}
-              {isMaintenanceMode && (
-                <Badge
-                  variant="outline"
-                  className="text-[10px] uppercase tracking-widest bg-transparent"
-                  style={{ borderColor: timerAccentMuted, color: timerAccent, backgroundColor: timerAccentSubtle }}
-                >
-                  Maintenance
-                </Badge>
-              )}
-            </div>
-
-            <TodayScheduleBar day={todaySchedule} accent={timerAccent} isFasting={isFasting} />
-
-            {/* Merged: the state card (countdown + coaching checklist) lives
-                inside this hero so there's one card, one clock. */}
-            <PrepRunwayCard embedded />
-
-            <div className="flex flex-col sm:flex-row gap-2">
-              {ewRemainingMs > 0 && (
-                <Button
-                  variant="ghost"
-                  className="w-full h-12 text-sm font-medium uppercase tracking-widest bg-transparent border hover:bg-transparent"
-                  style={{ borderColor: timerAccent, color: timerAccent, backgroundColor: timerAccentSubtle }}
-                  onClick={async () => {
-                    if (isManualOpenEat) {
-                      // Open-ended manual eating window — close immediately,
-                      // no coaching sheet, no "are you sure".
-                      await supabase
-                        .from("client_feature_settings")
-                        .update({ eating_window_ends_at: null })
-                        .eq("client_id", clientId);
-                      setActiveCustomEatPlan(null);
-                      setCustomEatPlan(null);
-                      queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting", clientId] });
-                      queryClient.invalidateQueries({ queryKey: ["my-feature-settings", clientId] });
-                      queryClient.invalidateQueries({ queryKey: ["fasting-profile-data"] });
-                      navigate("/client/dashboard");
-                      return;
-                    }
-                    setEatingWindowSheetIntent("end_window");
-                    setShowEndEatingWindowSheet(true);
-                  }}
-                >
-                  <Clock className="h-4 w-4 mr-2" /> End Eating Window
-                </Button>
-              )}
-              <Button
-                variant="ghost"
-                className="w-full h-12 text-sm font-medium uppercase tracking-widest bg-transparent border hover:bg-transparent"
-                style={{ borderColor: timerAccentMuted, color: "hsl(var(--foreground))" }}
-                onClick={() => {
-                  if (ewRemainingMs > 0) {
-                    setEatingWindowSheetIntent("choose_next_fast");
-                    setShowEndEatingWindowSheet(true);
-                  } else {
-                    navigate("/client/begin-reset");
-                  }
-                }}
-              >
-                <Clock className="h-4 w-4 mr-2" /> Choose next fast
-              </Button>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full text-white/70 hover:text-white hover:bg-white/10"
-              onClick={() => navigate("/client/calendar")}
-            >
-              Edit Today&apos;s Plan
-            </Button>
-          </CardContent>
-        </div>
-
-        <EndEatingWindowEarlySheet
-          open={showEndEatingWindowSheet}
-          onOpenChange={setShowEndEatingWindowSheet}
-          remainingMs={ewRemainingMs}
-          windowHours={featureSettings?.eating_window_hours || 8}
-          elapsedMs={Math.max(
-            0,
-            (featureSettings?.eating_window_hours || 8) * 3_600_000 - ewRemainingMs,
-          )}
-          intent={eatingWindowSheetIntent}
-          onConfirm={async (meta) => {
-            if (!clientId) return;
-            const targetH = featureSettings?.eating_window_hours || 8;
-            const completionPct = targetH > 0
-              ? Math.min(Math.round((meta.elapsedHours / targetH) * 100), 100)
-              : 0;
-            // Log early-end metadata
-            try {
-              await supabase.from("early_session_ends").insert({
-                client_id: clientId,
-                session_type: "eating_window",
-                elapsed_hours: meta.elapsedHours,
-                target_hours: targetH,
-                percent_complete: completionPct,
-                reason: meta.reason,
-                action_attempted: null,
-                ai_suggestion_shown: false,
-                ai_suggestion_text: null,
-                note: meta.note || null,
-              });
-            } catch (e) {
-              console.warn("early_session_ends insert (eating_window) failed:", e);
-            }
-
-            if (eatingWindowSheetIntent === "choose_next_fast") {
-              navigate("/client/begin-reset");
-            } else {
-              await supabase
-                .from("client_feature_settings")
-                .update({ eating_window_ends_at: null })
-                .eq("client_id", clientId);
-              queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting", clientId] });
-              queryClient.invalidateQueries({ queryKey: ["my-feature-settings", clientId] });
-              queryClient.invalidateQueries({ queryKey: ["fasting-profile-data"] });
-              navigate("/client/dashboard");
-            }
-          }}
-        />
-      </Card>
-    );
+    return <PrepRunwayCard />;
   }
 
   // Not fasting — ready state
