@@ -11,7 +11,7 @@ import {
   RATIO_EAT_HOURS,
 } from "@/lib/resolveFastingWindow";
 import { findNextFastStart, runwayContent, runwayPhaseFor } from "@/lib/prepRunway";
-import { useFastSkippedToday } from "@/components/client/ScheduleCountdownRow";
+import { useFastSkippedToday, setFastSkipToday } from "@/components/client/ScheduleCountdownRow";
 import { useActiveFastElapsed } from "@/hooks/useActiveFastElapsed";
 import { EditTodayScheduleSheet } from "@/components/client/EditTodayScheduleSheet";
 import { useStartFast } from "@/hooks/useStartFast";
@@ -110,7 +110,59 @@ export function PrepRunwayCard({ embedded = false }: { embedded?: boolean }) {
   const { checked, toggle } = usePrepChecklist(clientId, storageKey);
 
   if (!next || !phase) return null;
-  if (!isFasting && next.daysAway === 0 && skippedToday) return null;
+
+  // Today's scheduled fast was cancelled. Never leave the dashboard empty —
+  // show what happened plus every way back in (restore, start now, switch type).
+  if (!isFasting && next.daysAway === 0 && skippedToday) {
+    return (
+      <div
+        className={
+          embedded
+            ? "relative"
+            : "relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-4"
+        }
+      >
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 bg-center bg-no-repeat opacity-[0.07]"
+          style={{ backgroundImage: `url(${lionBg})`, backgroundSize: "150%" }}
+        />
+        <div className="relative space-y-3">
+          <div>
+            <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-[hsl(var(--primary))]">
+              <CalendarClock className="h-3 w-3" />
+              Today's fast cancelled
+            </div>
+            <h3 className="mt-1 text-base font-bold text-foreground">Pick how you want to fast</h3>
+            <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">
+              Your scheduled {formatHour(next.startHour)} start is off for today. Start a fast now, switch to an
+              extended or juice fast, or put your schedule back.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            disabled={startFast.isPending}
+            onClick={() => startFast.mutate(undefined)}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[hsl(var(--primary))] px-4 py-3 text-sm font-bold text-primary-foreground disabled:opacity-60"
+          >
+            <Play className="h-4 w-4" />
+            Start fast now
+          </button>
+
+          <AlternateFastOptions />
+
+          <button
+            type="button"
+            onClick={() => setFastSkipToday(clientId, false)}
+            className="mx-auto block text-[11px] font-medium text-muted-foreground underline underline-offset-4"
+          >
+            Restore today's scheduled fast
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const dayLabel = dayLabelFor(next.at, next.daysAway);
   const startTime = formatHour(next.startHour);
