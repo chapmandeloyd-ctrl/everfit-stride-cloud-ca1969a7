@@ -1738,44 +1738,15 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
 
             <TodayScheduleBar day={todaySchedule} accent={timerAccent} isFasting={isFasting} />
 
-            <div className="text-center py-6">
+            {/* The eating-window countdown now lives in the Prep Runway card
+                below (single source of truth, schedule-derived close time). */}
+            <div className="py-2 text-center">
               <Badge
-                className="mb-3 bg-transparent uppercase tracking-[0.3em] text-[10px] font-medium"
+                className="bg-transparent uppercase tracking-[0.3em] text-[10px] font-medium"
                 style={{ borderColor: timerAccentMuted, color: timerAccent, backgroundColor: timerAccentSubtle }}
               >
-                Eating Window
+                Eating Window Open
               </Badge>
-              <p
-                className="text-5xl font-light tabular-nums tracking-tight"
-                style={{ fontFamily: "Georgia, serif", color: "hsl(var(--foreground))" }}
-              >
-                {ewTimeStr}
-              </p>
-              <p className="text-sm mt-2" style={{ color: "hsl(var(--muted-foreground))" }}>
-                Closes in {ewH}h {ewM}m
-              </p>
-              <p
-                className="text-xs font-medium mt-2 uppercase tracking-[0.3em]"
-                style={{ color: timerAccent }}
-              >
-                Meals are available
-              </p>
-              <div className="flex justify-center gap-3 mt-2">
-                {featureSettings?.last_fast_ended_at && (
-                  <span
-                    className="text-[11px] px-3 py-1.5 rounded-sm border bg-transparent"
-                    style={{ borderColor: timerAccentMuted, color: "hsl(var(--muted-foreground))", backgroundColor: timerAccentSubtle }}
-                  >
-                    Fast ended: {format(new Date(featureSettings.last_fast_ended_at), "MMM d, h:mm a")}
-                  </span>
-                )}
-                <span
-                  className="text-[11px] px-3 py-1.5 rounded-sm border bg-transparent"
-                  style={{ borderColor: timerAccentMuted, color: "hsl(var(--muted-foreground))", backgroundColor: timerAccentSubtle }}
-                >
-                  Window closes: {format(ewEnd, "MMM d, h:mm a")}
-                </span>
-              </div>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-2">
