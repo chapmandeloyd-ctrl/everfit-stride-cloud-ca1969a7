@@ -1,6 +1,5 @@
 import { ClientLayout } from "@/components/ClientLayout";
 import fastingCardBgGoldImg from "@/assets/fasting-timer-bg.png";
-import { PrepRunwayCard } from "@/components/client/PrepRunwayCard";
 import { IdleFastingHero } from "@/components/client/IdleFastingHero";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -1628,11 +1627,6 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
         {clientId && <BeveragesTodayCard clientId={clientId} />}
       </div>
     );
-  }
-
-  // Eating window active state
-  if (hasEatingWindow && featureSettings?.eating_window_ends_at) {
-    return <PrepRunwayCard />;
   }
 
   // Not fasting — ready state
