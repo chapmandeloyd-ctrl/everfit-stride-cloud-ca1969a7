@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { CalendarClock, Check, ChevronDown, ChevronUp, Play } from "lucide-react";
+import { CalendarClock, Check, ChevronDown, ChevronUp, Pencil, Play } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
@@ -166,6 +166,14 @@ export function PrepRunwayCard({ embedded = false }: { embedded?: boolean }) {
           <span className="rounded-full border border-white/15 bg-black/30 px-2 py-1 text-[10px] font-bold tracking-wide text-foreground">
             {RATIO_LABEL[ratio]} · {fastHours}h
           </span>
+          <button
+            type="button"
+            onClick={() => setEditOpen(true)}
+            aria-label="Edit today's schedule"
+            className="rounded-full border border-white/15 bg-black/30 p-1.5 text-[hsl(var(--primary))]"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+          </button>
         </div>
       </div>
 
@@ -217,26 +225,6 @@ export function PrepRunwayCard({ embedded = false }: { embedded?: boolean }) {
       </div>
 
       <p className="mt-3 text-[12px] leading-relaxed text-muted-foreground">{content.blurb}</p>
-
-      {/* Thin schedule strip + inline edit */}
-      <div className="mt-3 flex items-center gap-3 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-[11px]">
-        <span className="text-muted-foreground">
-          Starts <span className="font-semibold text-foreground">{startTime}</span>
-        </span>
-        <span className="text-muted-foreground">
-          Breaks <span className="font-semibold text-foreground">{breakTime}</span>
-        </span>
-        <span className="text-muted-foreground">
-          Window <span className="font-semibold text-foreground">{eatHours}h</span>
-        </span>
-        <button
-          type="button"
-          onClick={() => setEditOpen(true)}
-          className="ml-auto text-[10px] font-bold uppercase tracking-widest text-[hsl(var(--primary))]"
-        >
-          Edit
-        </button>
-      </div>
 
       {showStartNow && (
         <button
