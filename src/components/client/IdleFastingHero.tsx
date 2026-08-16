@@ -89,7 +89,7 @@ export function IdleFastingHero({
     d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
   const subRow =
     eatingOpensAt && nextFastStartAt
-      ? `Eat ${fmtTime(eatingOpensAt)} → ${fmtTime(nextFastStartAt)} · Fast starts ${fmtTime(nextFastStartAt)}`
+      ? `Eat ${fmtTime(eatingOpensAt)} → ${fmtTime(nextFastStartAt)} · Fast ${fmtTime(nextFastStartAt)} → ${fmtTime(eatingOpensAt)}`
       : nextFastStartAt
         ? `Fast starts ${fmtTime(nextFastStartAt)}`
         : null;
