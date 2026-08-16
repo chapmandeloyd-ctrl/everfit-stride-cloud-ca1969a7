@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CupSoda } from "lucide-react";
 import { StartJuiceFastSheet } from "./StartJuiceFastSheet";
@@ -9,10 +9,14 @@ import { useAuth } from "@/hooks/useAuth";
  * Slim dashboard entry point for juice fasting.
  * Hidden while a juice fast is already running (the hero swaps in that case).
  */
-export function StartJuiceFastButton() {
+export function StartJuiceFastButton({ autoOpen = false }: { autoOpen?: boolean }) {
   const { session, startFast } = useJuiceFast();
   const { userRole } = useAuth();
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (autoOpen) setOpen(true);
+  }, [autoOpen]);
 
   if (session) return null;
 
