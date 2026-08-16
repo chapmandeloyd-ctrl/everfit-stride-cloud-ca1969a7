@@ -104,7 +104,6 @@ export function ScheduleCountdownRow({
   const qc = useQueryClient();
   const startFast = useStartFast();
   const autoStartFired = useRef(false);
-  const skipKey = useMemo(() => fastSkipKey(clientId), [clientId]);
   const skipped = useFastSkippedToday(clientId);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [stage, setStage] = useState<"confirm" | "options" | "summary">("options");
