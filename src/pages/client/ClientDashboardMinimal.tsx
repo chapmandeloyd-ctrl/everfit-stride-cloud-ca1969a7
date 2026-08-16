@@ -6,7 +6,7 @@ import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { FastingProtocolCard } from "./ClientDashboard";
 import { JuiceFastDashboardSlot } from "@/components/client/juice/JuiceFastDashboardSlot";
 import { AlternateFastOptions } from "@/components/client/AlternateFastOptions";
-import { PrepRunwayCard, useEatingWindowOpen } from "@/components/client/PrepRunwayCard";
+import { useEatingWindowOpen } from "@/components/client/PrepRunwayCard";
 import { SmartPaceCollapsible } from "@/components/smart-pace/SmartPaceCollapsible";
 import { ClientWeekStrip } from "@/components/client/ClientWeekStrip";
 import { useClientWeeklySchedule } from "@/hooks/useClientWeeklySchedule";
@@ -121,15 +121,7 @@ export default function ClientDashboardMinimal() {
           <FastingProtocolCard clientId={clientId} navigate={navigate} todaySchedule={todaySchedule} />
         </JuiceFastDashboardSlot>
 
-        {/* Runway to the next fast — prep coaching while the countdown runs */}
-        {!eatingWindowOpen && (
-          <div className="px-1">
-            <PrepRunwayCard />
-          </div>
-        )}
-
-        {/* Juice fast entry point — hidden while a juice fast is running.
-            During the eating window it lives inside the PrepRunwayCard hero. */}
+        {/* Juice fast entry point — hidden while a juice fast is running. */}
         {!eatingWindowOpen && (
           <div className="space-y-2.5 px-5">
             <AlternateFastOptions />
