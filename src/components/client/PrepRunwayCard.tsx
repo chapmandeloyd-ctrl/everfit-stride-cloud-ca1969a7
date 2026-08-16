@@ -1,13 +1,22 @@
 import { useEffect, useMemo, useState } from "react";
-import { CalendarClock, Check, ChevronDown, ChevronUp } from "lucide-react";
+import { CalendarClock, Check, ChevronDown, ChevronUp, Play } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { useClientWeeklySchedule } from "@/hooks/useClientWeeklySchedule";
-import { formatHour } from "@/lib/resolveFastingWindow";
+import {
+  formatHour,
+  RATIO_LABEL,
+  RATIO_FAST_HOURS,
+  RATIO_EAT_HOURS,
+} from "@/lib/resolveFastingWindow";
 import { findNextFastStart, runwayContent, runwayPhaseFor } from "@/lib/prepRunway";
 import { useFastSkippedToday } from "@/components/client/ScheduleCountdownRow";
 import { useActiveFastElapsed } from "@/hooks/useActiveFastElapsed";
+import { EditTodayScheduleSheet } from "@/components/client/EditTodayScheduleSheet";
+import { useStartFast } from "@/hooks/useStartFast";
+import { AlternateFastOptions } from "@/components/client/AlternateFastOptions";
+import lionBg from "@/assets/fasting-timer-bg.png";
 
 function dayLabelFor(date: Date, daysAway: number): string {
   if (daysAway === 0) return "today";
@@ -95,7 +104,9 @@ export function PrepRunwayCard({ embedded = false }: { embedded?: boolean }) {
     : "";
 
   const [checked, setChecked] = useState<string[]>([]);
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const startFast = useStartFast();
 
   useEffect(() => {
     if (!storageKey || typeof window === "undefined") return;
