@@ -138,12 +138,13 @@ export default function Auth() {
       if (verifyError) throw verifyError;
 
       toast.success("Welcome back!");
+      setAdminPin("");
       goPostAuth("/");
     } catch (error: any) {
       toast.error(error.message || "Invalid PIN");
+      if (error?.message === "Invalid PIN") setAdminPin("");
     } finally {
       setIsLoading(false);
-      setAdminPin("");
     }
   };
 
