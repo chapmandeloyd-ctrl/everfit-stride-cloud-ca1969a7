@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { CalendarClock, Check, ChevronDown, ChevronUp } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { useClientWeeklySchedule } from "@/hooks/useClientWeeklySchedule";
 import { formatHour } from "@/lib/resolveFastingWindow";
@@ -25,9 +27,11 @@ function countdownParts(target: Date, now: Date) {
   const ms = Math.max(0, target.getTime() - now.getTime());
   const totalMin = Math.floor(ms / 60000);
   return {
+    ms,
     days: Math.floor(totalMin / 1440),
     hours: Math.floor((totalMin % 1440) / 60),
     minutes: totalMin % 60,
+    seconds: Math.floor((ms % 60000) / 1000),
   };
 }
 
@@ -41,7 +45,27 @@ export function PrepRunwayCard() {
   const { weekly, overrides, planWindow } = useClientWeeklySchedule(clientId);
   const skippedToday = useFastSkippedToday(clientId);
   const { isFasting } = useActiveFastElapsed();
-  useTick();
+
+  // Is an eating window open right now? (used only to pick the card's voice —
+  // the countdown target still comes from the schedule so both agree.)
+  const { data: windowEndsAt } = useQuery({
+    queryKey: ["prep-runway-eating-window", clientId],
+    enabled: !!clientId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("client_feature_settings")
+        .select("eating_window_ends_at")
+        .eq("client_id", clientId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data?.eating_window_ends_at ?? null;
+    },
+  });
+  const eatingWindowOpen =
+    !isFasting && !!windowEndsAt && new Date(windowEndsAt).getTime() > Date.now();
+
+  // Tick every second inside the final 15 minutes so the MM:SS readout is live.
+  useTick(1_000);
 
   const now = new Date();
   const next = useMemo(
@@ -50,7 +74,13 @@ export function PrepRunwayCard() {
     [weekly, overrides, planWindow, Math.floor(now.getTime() / 60000)],
   );
 
-  const phase = next ? (isFasting ? ("in_fast" as const) : runwayPhaseFor(next.daysAway)) : null;
+  const phase = next
+    ? isFasting
+      ? ("in_fast" as const)
+      : eatingWindowOpen
+        ? ("eating_window" as const)
+        : runwayPhaseFor(next.daysAway)
+    : null;
   const storageKey = next
     ? `apex_prep_${clientId ?? "anon"}_${next.at.toDateString()}_${phase}`
     : "";
@@ -83,7 +113,18 @@ export function PrepRunwayCard() {
   const dayLabel = dayLabelFor(next.at, next.daysAway);
   const startTime = formatHour(next.startHour);
   const content = runwayContent(phase, { dayLabel, startTime, daysAway: next.daysAway });
-  const { days, hours, minutes } = countdownParts(next.at, now);
+  const { ms, days, hours, minutes, seconds } = countdownParts(next.at, now);
+  const finalStretch = ms > 0 && ms <= 15 * 60_000;
+  const segments = finalStretch
+    ? [
+        { v: minutes, l: "min" },
+        { v: seconds, l: "sec" },
+      ]
+    : [
+        ...(days > 0 ? [{ v: days, l: "days" }] : []),
+        { v: hours, l: "hrs" },
+        { v: minutes, l: "min" },
+      ];
   const doneCount = content.items.filter((i) => checked.includes(i.id)).length;
 
   return (
@@ -108,11 +149,7 @@ export function PrepRunwayCard() {
 
       {/* Countdown */}
       <div className="mt-3 flex items-end gap-3 rounded-xl border border-[hsl(var(--primary)/0.25)] bg-[hsl(var(--primary)/0.07)] px-3 py-2.5">
-        {[
-          { v: days, l: "days" },
-          { v: hours, l: "hrs" },
-          { v: minutes, l: "min" },
-        ].map((seg) => (
+        {segments.map((seg) => (
           <div key={seg.l} className="text-center">
             <div className="text-2xl font-bold leading-none tabular-nums text-foreground">
               {String(seg.v).padStart(2, "0")}
@@ -121,7 +158,7 @@ export function PrepRunwayCard() {
           </div>
         ))}
         <div className="ml-auto text-right text-[11px] leading-tight text-muted-foreground">
-          {isFasting ? "Next fast starts" : "Fast starts"}
+          {isFasting ? "Next fast starts" : eatingWindowOpen ? "Window closes" : "Fast starts"}
           <br />
           <span className="font-semibold text-foreground">
             {next.daysAway <= 1 ? dayLabel : next.at.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })} · {startTime}
