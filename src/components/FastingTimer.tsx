@@ -165,20 +165,33 @@ export function FastingTimer({ fastStartAt, targetHours, now, demoProgress, comp
             opacity={0.85}
           />
 
-          {/* Multi-colored progress arc segments */}
+          {/* Full ring shown dim (upcoming), colored only up to current progress */}
           {arcSegments.map((seg, i) => (
             <path
-              key={i}
+              key={`dim-${i}`}
               d={describeArc(cx, cy, radius, seg.startAngle - 90, seg.endAngle - 90)}
               fill="none"
               stroke={seg.color}
               strokeWidth={bandWidth}
               strokeLinecap="butt"
-              style={{
-                filter: `drop-shadow(0 0 8px ${seg.color}66)`,
-              }}
+              opacity={0.18}
             />
           ))}
+          {arcSegments.map((seg, i) => {
+            const litEnd = Math.min(seg.endAngle, progressAngle);
+            if (litEnd - seg.startAngle < 0.3) return null;
+            return (
+              <path
+                key={`lit-${i}`}
+                d={describeArc(cx, cy, radius, seg.startAngle - 90, litEnd - 90)}
+                fill="none"
+                stroke={seg.color}
+                strokeWidth={bandWidth}
+                strokeLinecap="butt"
+                style={{ filter: `drop-shadow(0 0 8px ${seg.color}66)` }}
+              />
+            );
+          })}
 
           {/* Inner thin elapsed-progress arc */}
           <circle
