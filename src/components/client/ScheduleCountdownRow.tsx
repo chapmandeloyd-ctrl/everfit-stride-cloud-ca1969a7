@@ -5,7 +5,7 @@ import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { supabase } from "@/integrations/supabase/client";
 import { CancelFastSheet, type CancelAction } from "@/components/fasting/CancelFastSheet";
 import { emitActivityEvent } from "@/lib/activityEvents";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useStartFast } from "@/hooks/useStartFast";
 
 function hourToTime(h: number): string {
@@ -40,7 +40,7 @@ export function setFastSkipToday(clientId: string | null | undefined, value: boo
   if (typeof window !== "undefined") {
     const key = fastSkipKey(clientId);
     if (value) window.localStorage.setItem(key, "1");
-    else window.localStorage.removeItem(key);
+    else window.localStorage.setItem(key, "0"); // explicit restore beats the saved date
     window.dispatchEvent(new Event("apex-fast-skip-changed"));
   }
   if (clientId) {
@@ -58,10 +58,10 @@ export function setFastSkipToday(clientId: string | null | undefined, value: boo
  */
 export function useFastSkippedToday(clientId: string | null | undefined): boolean {
   const key = useMemo(() => fastSkipKey(clientId), [clientId]);
-  const [skipped, setSkipped] = useState(false);
+  const [local, setLocal] = useState<string | null>(null);
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const read = () => setSkipped(window.localStorage.getItem(key) === "1");
+    const read = () => setLocal(window.localStorage.getItem(key));
     read();
     window.addEventListener("apex-fast-skip-changed", read);
     return () => window.removeEventListener("apex-fast-skip-changed", read);
@@ -81,10 +81,9 @@ export function useFastSkippedToday(clientId: string | null | undefined): boolea
     },
   });
 
-  const remoteSkipped =
-    !!remoteSkipDate && String(remoteSkipDate).slice(0, 10) === localDateKey(new Date());
-
-  return skipped || remoteSkipped;
+  if (local === "1") return true;
+  if (local === "0") return false;
+  return !!remoteSkipDate && String(remoteSkipDate).slice(0, 10) === localDateKey(new Date());
 }
 
 /**
