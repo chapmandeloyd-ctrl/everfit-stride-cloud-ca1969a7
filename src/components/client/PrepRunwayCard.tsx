@@ -149,8 +149,27 @@ export function PrepRunwayCard({ embedded = false }: { embedded?: boolean }) {
       ];
   const doneCount = content.items.filter((i) => checked.includes(i.id)).length;
 
+  const ratio = next.day.ratio;
+  const fastHours = RATIO_FAST_HOURS[ratio];
+  const eatHours = RATIO_EAT_HOURS[ratio];
+  const breakTime = formatHour(next.breakHour);
+  const showStartNow = !isFasting;
+
   return (
-    <div className={embedded ? "" : "rounded-2xl border border-white/10 bg-white/[0.03] p-4"}>
+    <div
+      className={
+        embedded
+          ? "relative"
+          : "relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-4"
+      }
+    >
+      {/* Faint lion watermark so this reads as the hero card */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-center bg-no-repeat opacity-[0.07]"
+        style={{ backgroundImage: `url(${lionBg})`, backgroundSize: "150%" }}
+      />
+      <div className="relative">
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-[hsl(var(--primary))]">
@@ -159,14 +178,19 @@ export function PrepRunwayCard({ embedded = false }: { embedded?: boolean }) {
           </div>
           <h3 className="mt-1 text-base font-bold text-foreground">{content.headline}</h3>
         </div>
-        <button
-          type="button"
-          onClick={() => setOpen((o) => !o)}
-          aria-label={open ? "Collapse" : "Expand"}
-          className="rounded-lg border border-white/10 p-1.5 text-muted-foreground"
-        >
-          {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-        </button>
+        <div className="flex shrink-0 items-center gap-2">
+          <span className="rounded-full border border-white/15 bg-black/30 px-2 py-1 text-[10px] font-bold tracking-wide text-foreground">
+            {RATIO_LABEL[ratio]} · {fastHours}h
+          </span>
+          <button
+            type="button"
+            onClick={() => setOpen((o) => !o)}
+            aria-label={open ? "Collapse" : "Expand"}
+            className="rounded-lg border border-white/10 p-1.5 text-muted-foreground"
+          >
+            {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </button>
+        </div>
       </div>
 
       {/* Countdown */}
