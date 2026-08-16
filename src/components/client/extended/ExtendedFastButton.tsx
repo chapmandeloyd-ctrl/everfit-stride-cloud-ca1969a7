@@ -34,7 +34,7 @@ function fmt(ms: number): string {
  * Dashboard entry point for extended (24h+) fasts.
  * Hidden while a juice fast or a regular fast is already running.
  */
-export function ExtendedFastButton() {
+export function ExtendedFastButton({ autoOpen = false }: { autoOpen?: boolean }) {
   const { session } = useJuiceFast();
   const { isFasting } = useActiveFastElapsed();
   const clientId = useEffectiveClientId();
@@ -56,6 +56,10 @@ export function ExtendedFastButton() {
     const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
   }, []);
+
+  useEffect(() => {
+    if (autoOpen) setOpen(true);
+  }, [autoOpen]);
 
   const clearPrep = () => {
     if (typeof window !== "undefined") window.localStorage.removeItem(key);
