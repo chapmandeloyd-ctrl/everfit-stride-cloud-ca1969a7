@@ -298,6 +298,12 @@ export function PrepRunwayCard({ embedded = false }: { embedded?: boolean }) {
           </ul>
         </>
       )}
+
+      <div className="mt-3">
+        <AlternateFastOptions />
+      </div>
+      </div>
+      <EditTodayScheduleSheet open={editOpen} onOpenChange={setEditOpen} />
     </div>
   );
 }
