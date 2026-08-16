@@ -1741,16 +1741,9 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
 
             <TodayScheduleBar day={todaySchedule} accent={timerAccent} isFasting={isFasting} />
 
-            {/* The eating-window countdown now lives in the Prep Runway card
-                below (single source of truth, schedule-derived close time). */}
-            <div className="py-2 text-center">
-              <Badge
-                className="bg-transparent uppercase tracking-[0.3em] text-[10px] font-medium"
-                style={{ borderColor: timerAccentMuted, color: timerAccent, backgroundColor: timerAccentSubtle }}
-              >
-                Eating Window Open
-              </Badge>
-            </div>
+            {/* Merged: the state card (countdown + coaching checklist) lives
+                inside this hero so there's one card, one clock. */}
+            <PrepRunwayCard embedded />
 
             <div className="flex flex-col sm:flex-row gap-2">
               {ewRemainingMs > 0 && (
