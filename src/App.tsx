@@ -116,6 +116,8 @@ const ClientFastingCalendar = lazy(() => import("./pages/client/ClientFastingCal
 const ClientPlanBuilder = lazy(() => import("./pages/client/ClientPlanBuilder"));
 const PlanBuilderDemo = lazy(() => import("./pages/client/PlanBuilderDemo"));
 const AIPlanBuilderDemo = lazy(() => import("./pages/client/AIPlanBuilderDemo"));
+const ExtendedFastDemo = lazy(() => import("./pages/client/ExtendedFastDemo"));
+const JuiceFastDemo = lazy(() => import("./pages/client/JuiceFastDemo"));
 const SmartPacePreview = lazy(() => import("./pages/SmartPacePreview"));
 const FastingRingDemo = lazy(() => import("./pages/FastingRingDemo"));
 const ClientDailyScore = lazy(() => import("./pages/client/ClientDailyScore"));
@@ -294,6 +296,8 @@ const App = () => (
           <Route path="/__demo-test" element={<PlanBuilderDemo />} />
           <Route path="/client/plan-builder-demo" element={<ProtectedRoute allowedRoles={["client", "trainer"]}><PlanBuilderDemo /></ProtectedRoute>} />
           <Route path="/client/ai-plan-demo" element={<ProtectedRoute allowedRoles={["client", "trainer"]}><AIPlanBuilderDemo /></ProtectedRoute>} />
+          <Route path="/client/extended-fast-demo" element={<ProtectedRoute allowedRoles={["client", "trainer"]}><ExtendedFastDemo /></ProtectedRoute>} />
+          <Route path="/client/juice-fast-demo" element={<ProtectedRoute allowedRoles={["client", "trainer"]}><JuiceFastDemo /></ProtectedRoute>} />
           <Route path="/client/settings" element={<Navigate to="/client/profile?tab=settings" replace />} />
           <Route path="/client/goals" element={<Navigate to="/client/dashboard" replace />} />
           <Route path="/client/tasks" element={<Navigate to="/client/dashboard" replace />} />
