@@ -159,7 +159,7 @@ export function IdleFastingHero({
             cy={cy}
             r={radius}
             fill="none"
-            stroke={eatingOpen ? "white" : "hsl(var(--primary))"}
+            stroke={active && !eatingOpen ? "hsl(var(--primary))" : "white"}
             strokeWidth={1.5}
             opacity={0.7}
           />
