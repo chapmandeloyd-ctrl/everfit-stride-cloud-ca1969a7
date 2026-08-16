@@ -186,11 +186,20 @@ export function PrepRunwayCard({ embedded = false }: { embedded?: boolean }) {
           </div>
         ))}
         <div className="ml-auto text-right text-[11px] leading-tight text-muted-foreground">
-          {isFasting ? "Next fast starts" : eatingWindowOpen ? "Window closes" : "Fast starts"}
-          <br />
-          <span className="font-semibold text-foreground">
-            {next.daysAway <= 1 ? dayLabel : next.at.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })} · {startTime}
-          </span>
+          {eatingWindowOpen ? (
+            <span className="font-semibold text-foreground">Time left in your eating window</span>
+          ) : (
+            <>
+              {isFasting ? "Next fast starts" : "Fast starts"}
+              <br />
+              <span className="font-semibold text-foreground">
+                {next.daysAway <= 1
+                  ? dayLabel
+                  : next.at.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}{" "}
+                · {startTime}
+              </span>
+            </>
+          )}
         </div>
       </div>
 
