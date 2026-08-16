@@ -150,8 +150,6 @@ export function PrepRunwayCard({ embedded = false }: { embedded?: boolean }) {
             Start fast now
           </button>
 
-          <AlternateFastOptions />
-
           <button
             type="button"
             onClick={() => setFastSkipToday(clientId, false)}
