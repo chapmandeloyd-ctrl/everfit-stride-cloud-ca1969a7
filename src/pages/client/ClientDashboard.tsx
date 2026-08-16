@@ -790,7 +790,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
       // Ending today's scheduled fast early is also a cancellation of today's
       // calendar occurrence. Keep the idle hero/countdown from immediately
       // rebuilding the same fast after the active timer clears.
-      if (result?.endedEarly) setFastSkipToday(clientId, true);
+      if (result?.endedEarly) void setFastSkipToday(clientId, true);
       queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting"] });
       queryClient.invalidateQueries({ queryKey: ["fasting-gate-state"] });
       queryClient.invalidateQueries({ queryKey: ["today-fasting-log"] });
@@ -998,7 +998,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
       // A mistaken start still came from today's scheduled occurrence. Mark it
       // skipped before clearing the timer so it cannot instantly auto-start or
       // reappear as a pending countdown.
-      setFastSkipToday(clientId, true);
+      void setFastSkipToday(clientId, true);
       queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting"] });
       queryClient.invalidateQueries({ queryKey: ["my-feature-settings"] });
       queryClient.invalidateQueries({ queryKey: ["fasting-gate-state"] });

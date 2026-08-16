@@ -75,8 +75,8 @@ export function AlternateFastOptions() {
             <AlertDialogFooter>
               <AlertDialogCancel>Keep it</AlertDialogCancel>
               <AlertDialogAction
-                onClick={() => {
-                  setFastSkipToday(clientId, true);
+                onClick={async () => {
+                  await setFastSkipToday(clientId, true);
                   setConfirmOpen(false);
                 }}
               >
