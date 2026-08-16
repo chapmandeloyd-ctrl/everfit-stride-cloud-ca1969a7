@@ -1630,11 +1630,6 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
     );
   }
 
-  // Eating window active state
-  if (hasEatingWindow && featureSettings?.eating_window_ends_at) {
-    return <PrepRunwayCard />;
-  }
-
   // Not fasting — ready state
   // Gold lion is the universal default background for the premium
   // "Quiet Luxury" Fasting Protocol card per design spec.
