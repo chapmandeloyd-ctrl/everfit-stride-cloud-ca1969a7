@@ -308,7 +308,7 @@ export function ActiveFastingTimer({
                 {formatTime(remainingMs)}
               </p>
               <p className="text-xs font-semibold uppercase tracking-wider text-white/60 mt-1">
-                Elapsed ({percentElapsed}%)
+                Remaining · {percentElapsed}% done
               </p>
             </div>
           </div>
