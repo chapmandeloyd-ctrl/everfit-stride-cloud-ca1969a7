@@ -36,18 +36,12 @@ function countdownParts(target: Date, now: Date) {
 }
 
 /**
- * "Runway to your first fast" — a coaching card that fills the wait between
- * finishing onboarding and the fast actually starting. Content changes by how
- * many days out the start is; checked items persist per start-day + phase.
+ * Shared truth for "is an eating window open right now" so the dashboard hero
+ * and this card agree on which one hosts the countdown.
  */
-export function PrepRunwayCard() {
+export function useEatingWindowOpen(): boolean {
   const clientId = useEffectiveClientId();
-  const { weekly, overrides, planWindow } = useClientWeeklySchedule(clientId);
-  const skippedToday = useFastSkippedToday(clientId);
   const { isFasting } = useActiveFastElapsed();
-
-  // Is an eating window open right now? (used only to pick the card's voice —
-  // the countdown target still comes from the schedule so both agree.)
   const { data: windowEndsAt } = useQuery({
     queryKey: ["prep-runway-eating-window", clientId],
     enabled: !!clientId,
@@ -61,8 +55,23 @@ export function PrepRunwayCard() {
       return data?.eating_window_ends_at ?? null;
     },
   });
-  const eatingWindowOpen =
-    !isFasting && !!windowEndsAt && new Date(windowEndsAt).getTime() > Date.now();
+  return !isFasting && !!windowEndsAt && new Date(windowEndsAt).getTime() > Date.now();
+}
+
+/**
+ * "Runway to your first fast" — a coaching card that fills the wait between
+ * finishing onboarding and the fast actually starting. Content changes by how
+ * many days out the start is; checked items persist per start-day + phase.
+ */
+export function PrepRunwayCard({ embedded = false }: { embedded?: boolean }) {
+  const clientId = useEffectiveClientId();
+  const { weekly, overrides, planWindow } = useClientWeeklySchedule(clientId);
+  const skippedToday = useFastSkippedToday(clientId);
+  const { isFasting } = useActiveFastElapsed();
+
+  // Is an eating window open right now? (used only to pick the card's voice —
+  // the countdown target still comes from the schedule so both agree.)
+  const eatingWindowOpen = useEatingWindowOpen();
 
   // Tick every second so the countdown reads live down to the second.
   useTick(1_000);
@@ -130,7 +139,7 @@ export function PrepRunwayCard() {
   const doneCount = content.items.filter((i) => checked.includes(i.id)).length;
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+    <div className={embedded ? "" : "rounded-2xl border border-white/10 bg-white/[0.03] p-4"}>
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-[hsl(var(--primary))]">
