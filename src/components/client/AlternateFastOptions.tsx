@@ -52,7 +52,7 @@ export function AlternateFastOptions() {
           onClick={() => setConfirmOpen(true)}
           className="mx-auto block text-[11px] font-medium text-muted-foreground underline underline-offset-4"
         >
-          Change today's fast instead
+          Switch fast type (extended or juice)
         </button>
 
         <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
