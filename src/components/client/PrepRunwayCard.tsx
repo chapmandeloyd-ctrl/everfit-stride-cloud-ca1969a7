@@ -64,7 +64,7 @@ export function PrepRunwayCard() {
   const eatingWindowOpen =
     !isFasting && !!windowEndsAt && new Date(windowEndsAt).getTime() > Date.now();
 
-  // Tick every second inside the final 15 minutes so the MM:SS readout is live.
+  // Tick every second so the countdown reads live down to the second.
   useTick(1_000);
 
   const now = new Date();
@@ -122,8 +122,10 @@ export function PrepRunwayCard() {
       ]
     : [
         ...(days > 0 ? [{ v: days, l: "days" }] : []),
-        { v: hours, l: "hrs" },
+        ...(days > 0 ? [] : [{ v: hours, l: "hrs" }]),
+        ...(days > 0 ? [{ v: hours, l: "hrs" }] : []),
         { v: minutes, l: "min" },
+        ...(days > 0 ? [] : [{ v: seconds, l: "sec" }]),
       ];
   const doneCount = content.items.filter((i) => checked.includes(i.id)).length;
 
