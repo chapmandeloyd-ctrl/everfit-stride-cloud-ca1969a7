@@ -1248,6 +1248,15 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                   ? nextOccurrence(timeToHour(todaySchedule!.window_start_time))
                   : null
               }
+              eatingOpensAt={
+                hasCalendarDay &&
+                !fastSkippedToday &&
+                todaySchedule?.enabled !== false &&
+                todaySchedule?.ratio !== "eat_all_day" &&
+                todaySchedule?.window_end_time
+                  ? nextOccurrence(timeToHour(todaySchedule!.window_end_time))
+                  : null
+              }
             />
 
             <div className="text-center space-y-1">

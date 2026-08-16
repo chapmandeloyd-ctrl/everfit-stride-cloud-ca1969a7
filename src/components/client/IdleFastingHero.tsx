@@ -15,6 +15,8 @@ interface IdleFastingHeroProps {
   compact?: boolean;
   /** When set, the readout becomes a live countdown to the next scheduled fast start */
   nextFastStartAt?: Date | null;
+  /** When set, the time today's eating window opens (the break-fast time) */
+  eatingOpensAt?: Date | null;
 }
 
 /** Same stage set / colors as the live FastingTimer ring, shown dimmed while idle. */
@@ -47,22 +49,50 @@ export function IdleFastingHero({
   targetHours = 16,
   compact = true,
   nextFastStartAt = null,
+  eatingOpensAt = null,
 }: IdleFastingHeroProps) {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
-    if (!nextFastStartAt) return;
+    if (!nextFastStartAt && !eatingOpensAt) return;
     const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
-  }, [nextFastStartAt]);
+  }, [nextFastStartAt, eatingOpensAt]);
 
-  const countdownMs = nextFastStartAt ? nextFastStartAt.getTime() - now : null;
+  // Phase-aware readout: the big number always counts down the phase you are
+  // actually in. Before the eating window opens it counts to the window
+  // opening; once it's open it counts the eating time you have left (which
+  // ends exactly when the next fast starts).
+  const fastStartMs = nextFastStartAt ? nextFastStartAt.getTime() : null;
+  const eatOpenMs = eatingOpensAt ? eatingOpensAt.getTime() : null;
+  const eatingOpen =
+    eatOpenMs != null && fastStartMs != null && now >= eatOpenMs && now < fastStartMs;
+  const beforeEating = eatOpenMs != null && now < eatOpenMs;
+
+  const targetMs = beforeEating ? eatOpenMs : fastStartMs;
+  const countdownMs = targetMs != null ? targetMs - now : null;
   const readout = (() => {
     if (countdownMs == null || countdownMs < 0) return "00:00:00";
     const total = Math.floor(countdownMs / 1000);
     const pad = (n: number) => String(n).padStart(2, "0");
     return `${pad(Math.floor(total / 3600))}:${pad(Math.floor((total % 3600) / 60))}:${pad(total % 60)}`;
   })();
-  const readoutLabel = countdownMs != null && countdownMs >= 0 ? "Fast starts in" : "Not fasting";
+  const active = countdownMs != null && countdownMs >= 0;
+  const readoutLabel = !active
+    ? "Not fasting"
+    : beforeEating
+      ? "Eating opens in"
+      : eatingOpen
+        ? "Eating window · time left"
+        : "Fast starts in";
+
+  const fmtTime = (d: Date) =>
+    d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  const subRow =
+    eatingOpensAt && nextFastStartAt
+      ? `Eat ${fmtTime(eatingOpensAt)} → ${fmtTime(nextFastStartAt)} · Fast ${fmtTime(nextFastStartAt)} → ${fmtTime(eatingOpensAt)}`
+      : nextFastStartAt
+        ? `Fast starts ${fmtTime(nextFastStartAt)}`
+        : null;
 
   const size = compact ? 236 : 300;
   const bandWidth = compact ? 32 : 40;
@@ -97,7 +127,7 @@ export function IdleFastingHero({
         <span
           className={cn(
             "font-bold tabular-nums tracking-tight drop-shadow-lg",
-            countdownMs != null && countdownMs >= 0 ? "text-white" : "text-white/40",
+            active ? "text-white" : "text-white/40",
             compact ? "text-[2.25rem] leading-none" : "text-4xl leading-none"
           )}
         >
@@ -106,7 +136,7 @@ export function IdleFastingHero({
         <span
           className={cn(
             "mt-1 font-bold uppercase tracking-wider",
-            countdownMs != null && countdownMs >= 0 ? "text-primary" : "text-white/50",
+            active ? (eatingOpen ? "text-white/80" : "text-primary") : "text-white/50",
             compact ? "text-[9px]" : "text-[10px]"
           )}
         >
@@ -124,7 +154,15 @@ export function IdleFastingHero({
         />
         <svg width={size} height={size} className="relative z-10">
           <circle cx={cx} cy={cy} r={radius} fill="none" stroke="black" strokeWidth={bandWidth} opacity={0.85} />
-          <circle cx={cx} cy={cy} r={radius} fill="none" stroke="white" strokeWidth={1.5} opacity={0.7} />
+          <circle
+            cx={cx}
+            cy={cy}
+            r={radius}
+            fill="none"
+            stroke={eatingOpen ? "white" : "hsl(var(--primary))"}
+            strokeWidth={1.5}
+            opacity={0.7}
+          />
         </svg>
 
         {relevantStages.map((stage) => {
@@ -151,6 +189,13 @@ export function IdleFastingHero({
           {sinceLabel}
         </span>
       </div>
+
+      {/* Both facts always visible — eating window and fast start */}
+      {subRow && (
+        <p className="mt-2 text-center text-[10px] font-bold uppercase tracking-wider text-white/55">
+          {subRow}
+        </p>
+      )}
 
       {statusLabel && (
         <p className="mt-2 text-center text-xs font-medium text-white/50">{statusLabel}</p>
