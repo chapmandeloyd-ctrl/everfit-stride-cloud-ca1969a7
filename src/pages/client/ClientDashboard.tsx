@@ -37,7 +37,7 @@ import { useImpersonation } from "@/hooks/useImpersonation";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { getDietStylePreset } from "@/lib/dietStyles";
 import { NextFastCountdownRow } from "@/components/client/NextFastCountdownRow";
-import { ScheduleCountdownRow, nextOccurrence, useFastSkippedToday } from "@/components/client/ScheduleCountdownRow";
+import { ScheduleCountdownRow, nextOccurrence, setFastSkipToday, useFastSkippedToday } from "@/components/client/ScheduleCountdownRow";
 import { EnablePushBanner } from "@/components/client/EnablePushBanner";
 
 // Mirror of getCutLevelMeta on ClientNutrition page so dashboard card stays in sync.
@@ -764,6 +764,10 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
     },
     onSuccess: (result) => {
       liveActivity.stop(); // Dismiss lock screen timer
+      // Ending today's scheduled fast early is also a cancellation of today's
+      // calendar occurrence. Keep the idle hero/countdown from immediately
+      // rebuilding the same fast after the active timer clears.
+      if (result?.endedEarly) setFastSkipToday(clientId, true);
       queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting"] });
       queryClient.invalidateQueries({ queryKey: ["fasting-gate-state"] });
       queryClient.invalidateQueries({ queryKey: ["today-fasting-log"] });
@@ -968,6 +972,10 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
     },
     onSuccess: () => {
       liveActivity.stop();
+      // A mistaken start still came from today's scheduled occurrence. Mark it
+      // skipped before clearing the timer so it cannot instantly auto-start or
+      // reappear as a pending countdown.
+      setFastSkipToday(clientId, true);
       queryClient.invalidateQueries({ queryKey: ["my-feature-settings-fasting"] });
       queryClient.invalidateQueries({ queryKey: ["my-feature-settings"] });
       queryClient.invalidateQueries({ queryKey: ["fasting-gate-state"] });
