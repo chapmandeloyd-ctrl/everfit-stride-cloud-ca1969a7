@@ -6,7 +6,7 @@ import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { FastingProtocolCard } from "./ClientDashboard";
 import { JuiceFastDashboardSlot } from "@/components/client/juice/JuiceFastDashboardSlot";
 import { AlternateFastOptions } from "@/components/client/AlternateFastOptions";
-import { PrepRunwayCard } from "@/components/client/PrepRunwayCard";
+import { PrepRunwayCard, useEatingWindowOpen } from "@/components/client/PrepRunwayCard";
 import { SmartPaceCollapsible } from "@/components/smart-pace/SmartPaceCollapsible";
 import { ClientWeekStrip } from "@/components/client/ClientWeekStrip";
 import { useClientWeeklySchedule } from "@/hooks/useClientWeeklySchedule";
