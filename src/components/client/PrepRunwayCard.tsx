@@ -169,10 +169,11 @@ export function PrepRunwayCard({ embedded = false }: { embedded?: boolean }) {
           <button
             type="button"
             onClick={() => setEditOpen(true)}
-            aria-label="Edit today's schedule"
-            className="rounded-full border border-white/15 bg-black/30 p-1.5 text-[hsl(var(--primary))]"
+            aria-label="Edit today's fast times"
+            className="flex items-center gap-1 rounded-full border border-white/15 bg-black/30 px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-[hsl(var(--primary))]"
           >
-            <Pencil className="h-3.5 w-3.5" />
+            <Pencil className="h-3 w-3" />
+            Edit times
           </button>
         </div>
       </div>
