@@ -15,6 +15,7 @@ import { useFastSkippedToday } from "@/components/client/ScheduleCountdownRow";
 import { useActiveFastElapsed } from "@/hooks/useActiveFastElapsed";
 import { EditTodayScheduleSheet } from "@/components/client/EditTodayScheduleSheet";
 import { useStartFast } from "@/hooks/useStartFast";
+import { usePrepChecklist } from "@/hooks/usePrepChecklist";
 import { AlternateFastOptions } from "@/components/client/AlternateFastOptions";
 import lionBg from "@/assets/fasting-timer-bg.png";
 
