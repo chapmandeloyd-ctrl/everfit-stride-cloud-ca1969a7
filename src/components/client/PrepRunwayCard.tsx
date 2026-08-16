@@ -1,13 +1,22 @@
 import { useEffect, useMemo, useState } from "react";
-import { CalendarClock, Check, ChevronDown, ChevronUp } from "lucide-react";
+import { CalendarClock, Check, ChevronDown, ChevronUp, Play } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { useClientWeeklySchedule } from "@/hooks/useClientWeeklySchedule";
-import { formatHour } from "@/lib/resolveFastingWindow";
+import {
+  formatHour,
+  RATIO_LABEL,
+  RATIO_FAST_HOURS,
+  RATIO_EAT_HOURS,
+} from "@/lib/resolveFastingWindow";
 import { findNextFastStart, runwayContent, runwayPhaseFor } from "@/lib/prepRunway";
 import { useFastSkippedToday } from "@/components/client/ScheduleCountdownRow";
 import { useActiveFastElapsed } from "@/hooks/useActiveFastElapsed";
+import { EditTodayScheduleSheet } from "@/components/client/EditTodayScheduleSheet";
+import { useStartFast } from "@/hooks/useStartFast";
+import { AlternateFastOptions } from "@/components/client/AlternateFastOptions";
+import lionBg from "@/assets/fasting-timer-bg.png";
 
 function dayLabelFor(date: Date, daysAway: number): string {
   if (daysAway === 0) return "today";
@@ -95,7 +104,9 @@ export function PrepRunwayCard({ embedded = false }: { embedded?: boolean }) {
     : "";
 
   const [checked, setChecked] = useState<string[]>([]);
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const startFast = useStartFast();
 
   useEffect(() => {
     if (!storageKey || typeof window === "undefined") return;
@@ -138,8 +149,27 @@ export function PrepRunwayCard({ embedded = false }: { embedded?: boolean }) {
       ];
   const doneCount = content.items.filter((i) => checked.includes(i.id)).length;
 
+  const ratio = next.day.ratio;
+  const fastHours = RATIO_FAST_HOURS[ratio];
+  const eatHours = RATIO_EAT_HOURS[ratio];
+  const breakTime = formatHour(next.breakHour);
+  const showStartNow = !isFasting;
+
   return (
-    <div className={embedded ? "" : "rounded-2xl border border-white/10 bg-white/[0.03] p-4"}>
+    <div
+      className={
+        embedded
+          ? "relative"
+          : "relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-4"
+      }
+    >
+      {/* Faint lion watermark so this reads as the hero card */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-center bg-no-repeat opacity-[0.07]"
+        style={{ backgroundImage: `url(${lionBg})`, backgroundSize: "150%" }}
+      />
+      <div className="relative">
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-[hsl(var(--primary))]">
@@ -148,14 +178,19 @@ export function PrepRunwayCard({ embedded = false }: { embedded?: boolean }) {
           </div>
           <h3 className="mt-1 text-base font-bold text-foreground">{content.headline}</h3>
         </div>
-        <button
-          type="button"
-          onClick={() => setOpen((o) => !o)}
-          aria-label={open ? "Collapse" : "Expand"}
-          className="rounded-lg border border-white/10 p-1.5 text-muted-foreground"
-        >
-          {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-        </button>
+        <div className="flex shrink-0 items-center gap-2">
+          <span className="rounded-full border border-white/15 bg-black/30 px-2 py-1 text-[10px] font-bold tracking-wide text-foreground">
+            {RATIO_LABEL[ratio]} · {fastHours}h
+          </span>
+          <button
+            type="button"
+            onClick={() => setOpen((o) => !o)}
+            aria-label={open ? "Collapse" : "Expand"}
+            className="rounded-lg border border-white/10 p-1.5 text-muted-foreground"
+          >
+            {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </button>
+        </div>
       </div>
 
       {/* Countdown */}
@@ -178,6 +213,38 @@ export function PrepRunwayCard({ embedded = false }: { embedded?: boolean }) {
       </div>
 
       <p className="mt-3 text-[12px] leading-relaxed text-muted-foreground">{content.blurb}</p>
+
+      {/* Thin schedule strip + inline edit */}
+      <div className="mt-3 flex items-center gap-3 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-[11px]">
+        <span className="text-muted-foreground">
+          Starts <span className="font-semibold text-foreground">{startTime}</span>
+        </span>
+        <span className="text-muted-foreground">
+          Breaks <span className="font-semibold text-foreground">{breakTime}</span>
+        </span>
+        <span className="text-muted-foreground">
+          Window <span className="font-semibold text-foreground">{eatHours}h</span>
+        </span>
+        <button
+          type="button"
+          onClick={() => setEditOpen(true)}
+          className="ml-auto text-[10px] font-bold uppercase tracking-widest text-[hsl(var(--primary))]"
+        >
+          Edit
+        </button>
+      </div>
+
+      {showStartNow && (
+        <button
+          type="button"
+          disabled={startFast.isPending}
+          onClick={() => startFast.mutate(undefined)}
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-[hsl(var(--primary))] px-4 py-3 text-sm font-bold text-primary-foreground disabled:opacity-60"
+        >
+          <Play className="h-4 w-4" />
+          Start fast now
+        </button>
+      )}
 
       {open && (
         <>
@@ -231,6 +298,14 @@ export function PrepRunwayCard({ embedded = false }: { embedded?: boolean }) {
           </ul>
         </>
       )}
+
+      {phase === "eating_window" && (
+        <div className="mt-3">
+          <AlternateFastOptions />
+        </div>
+      )}
+      </div>
+      <EditTodayScheduleSheet open={editOpen} onOpenChange={setEditOpen} />
     </div>
   );
 }

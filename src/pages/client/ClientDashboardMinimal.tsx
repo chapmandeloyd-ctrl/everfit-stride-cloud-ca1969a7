@@ -128,10 +128,13 @@ export default function ClientDashboardMinimal() {
           </div>
         )}
 
-        {/* Juice fast entry point — hidden while a juice fast is running */}
-        <div className="space-y-2.5 px-5">
-          <AlternateFastOptions />
-        </div>
+        {/* Juice fast entry point — hidden while a juice fast is running.
+            During the eating window it lives inside the PrepRunwayCard hero. */}
+        {!eatingWindowOpen && (
+          <div className="space-y-2.5 px-5">
+            <AlternateFastOptions />
+          </div>
+        )}
 
         {/* Daily trackers (journal/water/steps/calories/health) intentionally removed —
             those metrics live in Trainerize, not here. */}
