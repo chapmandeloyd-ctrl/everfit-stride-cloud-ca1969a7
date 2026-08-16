@@ -1529,7 +1529,13 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
           </Sheet>
 
 
-          <TodayScheduleBar day={todaySchedule} accent={timerAccent} isFasting={isFasting} />
+          <TodayScheduleBar
+            day={todaySchedule}
+            accent={timerAccent}
+            isFasting={isFasting}
+            activeFastStartAt={featureSettings?.active_fast_start_at}
+            activeFastTargetHours={featureSettings?.active_fast_target_hours}
+          />
 
           <div className="!mt-4 flex justify-center overflow-hidden">
               <FastingTimer
