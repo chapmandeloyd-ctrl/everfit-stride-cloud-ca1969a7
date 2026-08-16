@@ -63,7 +63,13 @@ export function findNextFastStart(
   return null;
 }
 
-export type RunwayPhase = "far" | "wind_down" | "prep" | "start_day" | "in_fast";
+export type RunwayPhase =
+  | "far"
+  | "wind_down"
+  | "prep"
+  | "start_day"
+  | "in_fast"
+  | "eating_window";
 
 export interface RunwayContent {
   phase: RunwayPhase;
@@ -88,6 +94,19 @@ export function runwayContent(
   const { dayLabel, startTime, daysAway } = opts;
 
   switch (phase) {
+    case "eating_window":
+      return {
+        phase,
+        eyebrow: "Eating window",
+        headline: `Window closes at ${startTime}`,
+        blurb: `Your window is open until ${startTime} ${dayLabel === "today" ? "today" : dayLabel}, then the fast starts automatically. Eat like the next fast already started.`,
+        items: [
+          { id: "ew_protein", label: "Get your protein in first", hint: "Protein-forward meals carry you deepest into the fast" },
+          { id: "ew_lastmeal", label: `Finish your last meal before ${startTime}` },
+          { id: "ew_hydrate", label: "Hydrate now — water plus electrolytes" },
+          { id: "ew_prep", label: "Have black coffee, tea, or sparkling water ready" },
+        ],
+      };
     case "in_fast":
       return {
         phase,
