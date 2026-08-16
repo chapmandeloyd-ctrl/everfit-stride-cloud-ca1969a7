@@ -133,6 +133,14 @@ export default function FastingRingDemo() {
                 {speed}x
               </Button>
             </div>
+
+            <Button
+              variant="secondary"
+              className="w-full"
+              onClick={() => (window.location.href = "/dev/fast-complete-demo")}
+            >
+              Finish fast → see Fast Complete screen
+            </Button>
           </CardContent>
         </Card>
       </div>
