@@ -158,20 +158,14 @@ export function PrepRunwayCard({ embedded = false }: { embedded?: boolean }) {
             <CalendarClock className="h-3 w-3" />
             {content.eyebrow}
           </div>
-          <h3 className="mt-1 text-base font-bold text-foreground">{content.headline}</h3>
+          {!eatingWindowOpen && (
+            <h3 className="mt-1 text-base font-bold text-foreground">{content.headline}</h3>
+          )}
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <span className="rounded-full border border-white/15 bg-black/30 px-2 py-1 text-[10px] font-bold tracking-wide text-foreground">
             {RATIO_LABEL[ratio]} · {fastHours}h
           </span>
-          <button
-            type="button"
-            onClick={() => setOpen((o) => !o)}
-            aria-label={open ? "Collapse" : "Expand"}
-            className="rounded-lg border border-white/10 p-1.5 text-muted-foreground"
-          >
-            {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-          </button>
         </div>
       </div>
 
