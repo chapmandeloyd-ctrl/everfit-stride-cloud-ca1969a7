@@ -51,7 +51,11 @@ export function setFastSkipToday(clientId: string | null | undefined, value: boo
   }
 }
 
-/** Live "is today's fast cancelled" flag, synced across components. */
+/**
+ * Live "is today's fast cancelled" flag, synced across components.
+ * Local storage answers instantly; the saved `auto_fast_skip_date` makes the
+ * cancellation survive reloads and other devices.
+ */
 export function useFastSkippedToday(clientId: string | null | undefined): boolean {
   const key = useMemo(() => fastSkipKey(clientId), [clientId]);
   const [skipped, setSkipped] = useState(false);
@@ -62,7 +66,25 @@ export function useFastSkippedToday(clientId: string | null | undefined): boolea
     window.addEventListener("apex-fast-skip-changed", read);
     return () => window.removeEventListener("apex-fast-skip-changed", read);
   }, [key]);
-  return skipped;
+
+  const { data: remoteSkipDate } = useQuery({
+    queryKey: ["auto-fast-skip-date", clientId],
+    enabled: !!clientId,
+    staleTime: 30_000,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("client_feature_settings")
+        .select("auto_fast_skip_date")
+        .eq("client_id", clientId!)
+        .maybeSingle();
+      return ((data as any)?.auto_fast_skip_date as string | null) ?? null;
+    },
+  });
+
+  const remoteSkipped =
+    !!remoteSkipDate && String(remoteSkipDate).slice(0, 10) === localDateKey(new Date());
+
+  return skipped || remoteSkipped;
 }
 
 /**
