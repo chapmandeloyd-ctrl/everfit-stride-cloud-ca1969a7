@@ -156,7 +156,6 @@ const ClientQuickPlans = lazy(() => import("./pages/client/ClientQuickPlans"));
 const ClientQuickPlanDetail = lazy(() => import("./pages/client/ClientQuickPlanDetail"));
 const ClientProtocolDetail = lazy(() => import("./pages/client/ClientProtocolDetail"));
 const ClientProtocolCardDemo = lazy(() => import("./pages/client/ClientProtocolCardDemo"));
-const ClientKetoTypeCardDemo = lazy(() => import("./pages/client/ClientKetoTypeCardDemo"));
 const ClientFastingPlansPreview = lazy(() => import("./pages/client/ClientFastingPlansPreview"));
 const WindowsCardDemo = lazy(() => import("./pages/client/WindowsCardDemo"));
 const ClientFastingPlanDetailPreview = lazy(() => import("./pages/client/ClientFastingPlanDetailPreview"));
@@ -335,8 +334,6 @@ const App = () => (
           <Route path="/client/protocol-card-demo" element={<ProtectedRoute allowedRoles={["client"]}><ClientProtocolCardDemo /></ProtectedRoute>} />
           {/* Trainer-accessible alias for previewing the protocol card demo without impersonation */}
           <Route path="/protocol-card-demo" element={<ClientProtocolCardDemo />} />
-          <Route path="/client/keto-type-card-demo" element={<ProtectedRoute allowedRoles={["client"]}><ClientKetoTypeCardDemo /></ProtectedRoute>} />
-          <Route path="/keto-type-card-demo" element={<ClientKetoTypeCardDemo />} />
           <Route path="/client/fasting-plans-preview" element={<ProtectedRoute allowedRoles={["client", "trainer"]}><ClientFastingPlansPreview /></ProtectedRoute>} />
           <Route path="/fasting-plans-preview" element={<ClientFastingPlansPreview />} />
           <Route path="/client/fasting-plan-detail-preview" element={<ProtectedRoute allowedRoles={["client", "trainer"]}><ClientFastingPlanDetailPreview /></ProtectedRoute>} />
