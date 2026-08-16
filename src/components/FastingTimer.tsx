@@ -141,7 +141,7 @@ export function FastingTimer({ fastStartAt, targetHours, now, demoProgress, comp
           "mt-1 font-bold uppercase tracking-wider text-white/80",
           compact ? "text-[9px]" : "text-[10px]"
         )}>
-          Elapsed ({elapsedPct}%)
+          Remaining · {elapsedPct}% done
         </span>
       </div>
 
