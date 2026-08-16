@@ -1,9 +1,10 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { AlertTriangle, Check } from "lucide-react";
+import { toast } from "sonner";
 import {
   EXTENDED_FAST_PRESETS,
   buildExtendedFastPlan,
@@ -24,6 +25,21 @@ export function ExtendedFastSheet({ open, onOpenChange, starting = false, onStar
   const [presetId, setPresetId] = useState(EXTENDED_FAST_PRESETS[0].id);
   const [startNow, setStartNow] = useState(true);
   const [ack, setAck] = useState(false);
+  const [nudge, setNudge] = useState(false);
+  const ackRef = useRef<HTMLLabelElement | null>(null);
+
+  const handleStartClick = () => {
+    if (!ack) {
+      setNudge(true);
+      ackRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      toast.error("Confirm the safety check first", {
+        description: "Tick the box to confirm you've read the safety notes.",
+      });
+      window.setTimeout(() => setNudge(false), 2000);
+      return;
+    }
+    onStart({ preset, startNow });
+  };
 
   const preset = EXTENDED_FAST_PRESETS.find((p) => p.id === presetId)!;
 
@@ -174,7 +190,14 @@ export function ExtendedFastSheet({ open, onOpenChange, starting = false, onStar
           </section>
 
           {/* Safety */}
-          <section className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
+          <section
+            className={cn(
+              "rounded-xl border p-4 transition",
+              nudge
+                ? "border-primary bg-primary/10 ring-2 ring-primary"
+                : "border-amber-500/30 bg-amber-500/10",
+            )}
+          >
             <div className="flex items-start gap-2">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
               <div className="space-y-2">
@@ -186,7 +209,7 @@ export function ExtendedFastSheet({ open, onOpenChange, starting = false, onStar
                   <li>Talk to your doctor first if you take any medication.</li>
                   <li>This app is not medical advice.</li>
                 </ul>
-                <label className="flex items-start gap-2 pt-1">
+                <label ref={ackRef} className="flex cursor-pointer items-start gap-2 pt-1">
                   <Checkbox checked={ack} onCheckedChange={(v) => setAck(v === true)} className="mt-0.5" />
                   <span className="text-[11px] font-medium text-foreground">
                     I've read this and I'm cleared to do an extended fast.
@@ -199,8 +222,9 @@ export function ExtendedFastSheet({ open, onOpenChange, starting = false, onStar
           <Button
             className="w-full"
             size="lg"
-            disabled={!ack || starting}
-            onClick={() => onStart({ preset, startNow })}
+            variant={ack ? "default" : "secondary"}
+            disabled={starting}
+            onClick={handleStartClick}
           >
             {starting
               ? "Starting…"
@@ -208,6 +232,11 @@ export function ExtendedFastSheet({ open, onOpenChange, starting = false, onStar
                 ? `Start ${preset.shortLabel} fast now`
                 : `Begin ${preset.prepareHours}h prep for ${preset.shortLabel}`}
           </Button>
+          {!ack && !starting && (
+            <p className="-mt-4 text-center text-[11px] text-muted-foreground">
+              Tick the safety box above to unlock this.
+            </p>
+          )}
         </div>
       </SheetContent>
     </Sheet>
