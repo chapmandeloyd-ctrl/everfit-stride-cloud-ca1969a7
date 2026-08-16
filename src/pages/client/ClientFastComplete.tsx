@@ -5,7 +5,7 @@ import { FASTING_STAGES } from "@/lib/fastingStages";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { format, isToday } from "date-fns";
 import { useEffect, useState, useRef } from "react";
 
@@ -69,6 +69,8 @@ function ConfettiOverlay() {
 export default function ClientFastComplete() {
   const clientId = useEffectiveClientId();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isDemo = searchParams.get("demo") === "1";
   const [showConfetti, setShowConfetti] = useState(true);
 
   useEffect(() => {
@@ -93,7 +95,7 @@ export default function ClientFastComplete() {
   const now = new Date();
   const hasCompletedFastToday = !!settings?.last_fast_completed_at && isToday(new Date(settings.last_fast_completed_at));
   const hasActiveFuelPhase = !!settings?.eating_window_ends_at && new Date(settings.eating_window_ends_at) > now;
-  const shouldBlockFastComplete = !!settings && (!hasCompletedFastToday || !hasActiveFuelPhase || !!settings.active_fast_start_at);
+  const shouldBlockFastComplete = !isDemo && !!settings && (!hasCompletedFastToday || !hasActiveFuelPhase || !!settings.active_fast_start_at);
 
   useEffect(() => {
     if (!shouldBlockFastComplete) return;
@@ -132,26 +134,40 @@ export default function ClientFastComplete() {
   });
 
   // Compute eating window times
-  const eatingStart = settings?.last_fast_ended_at
-    ? format(new Date(settings.last_fast_ended_at), "h:mm a")
+  const eatingStart = (demoSettings ?? settings)?.last_fast_ended_at
+    ? format(new Date(((demoSettings ?? settings) as any).last_fast_ended_at), "h:mm a")
     : "Now";
-  const eatingEnd = settings?.eating_window_ends_at
-    ? format(new Date(settings.eating_window_ends_at), "h:mm a")
+  const eatingEnd = (demoSettings ?? settings)?.eating_window_ends_at
+    ? format(new Date(((demoSettings ?? settings) as any).eating_window_ends_at), "h:mm a")
+    : null;
+
+  const demoNow = now.getTime();
+  const demoSettings = isDemo
+    ? {
+        last_fast_ended_at: new Date(demoNow - 15 * 60000).toISOString(),
+        eating_window_ends_at: new Date(demoNow + 6.2 * 3600000).toISOString(),
+        eating_window_hours: 6,
+      }
+    : null;
+  const demoFast = isDemo
+    ? { actual_hours: 18.4, target_hours: 18, started_at: null, ended_at: null }
     : null;
 
   const actualHours =
+    demoFast?.actual_hours ??
     lastFast?.actual_hours ??
     (lastFast?.started_at && lastFast?.ended_at
       ? (new Date(lastFast.ended_at).getTime() - new Date(lastFast.started_at).getTime()) / 3600000
       : null);
-  const targetHours = lastFast?.target_hours ?? null;
+  const targetHours = demoFast?.target_hours ?? lastFast?.target_hours ?? null;
   const stageReached =
     actualHours != null
       ? [...FASTING_STAGES].reverse().find((st) => actualHours >= st.minHours) || FASTING_STAGES[0]
       : null;
 
-  const msLeft = settings?.eating_window_ends_at
-    ? new Date(settings.eating_window_ends_at).getTime() - now.getTime()
+  const effSettings = (demoSettings ?? settings) as typeof settings;
+  const msLeft = effSettings?.eating_window_ends_at
+    ? new Date(effSettings.eating_window_ends_at).getTime() - now.getTime()
     : null;
   const closesInLabel =
     msLeft != null && msLeft > 0
@@ -208,7 +224,7 @@ export default function ClientFastComplete() {
             <div className="grid grid-cols-3 gap-3">
               <StatTile label="Fasted" value={actualHours != null ? `${actualHours.toFixed(1)}h` : "—"} />
               <StatTile label="Target" value={targetHours != null ? `${targetHours}h` : "—"} />
-              <StatTile label="Streak" value={`${streak?.current_streak ?? 0}d`} />
+              <StatTile label="Streak" value={`${isDemo ? 12 : streak?.current_streak ?? 0}d`} />
             </div>
             <div className="rounded-xl bg-muted/50 p-3 space-y-1">
               <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Deepest stage reached</p>
@@ -230,7 +246,7 @@ export default function ClientFastComplete() {
             <div className="rounded-xl bg-muted/50 p-3 space-y-1">
               <p className="text-[11px] text-muted-foreground uppercase tracking-wider">You can eat</p>
               <p className="text-base font-bold">
-                {eatingEnd ? `${eatingStart} – ${eatingEnd}` : `${settings?.eating_window_hours || 8}h window`}
+                {eatingEnd ? `${eatingStart} – ${eatingEnd}` : `${(demoSettings ?? settings)?.eating_window_hours || 8}h window`}
               </p>
             </div>
             {closesInLabel && (
