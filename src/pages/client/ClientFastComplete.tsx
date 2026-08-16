@@ -296,13 +296,3 @@ function StatTile({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
-
-function LegacyMacroTile({ label, value, color }: { label: string; value: string; color: string }) {
-  return (
-    <div className="rounded-xl bg-muted/50 p-3 text-center space-y-1.5">
-      <div className={`h-2 w-2 rounded-full ${color} mx-auto`} />
-      <p className="text-lg font-bold">{value}</p>
-      <p className="text-[11px] text-muted-foreground">{label}</p>
-    </div>
-  );
-}
