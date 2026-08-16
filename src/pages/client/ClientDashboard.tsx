@@ -1313,21 +1313,53 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                 Edit today&apos;s plan
               </Button>
             ) : canChoose ? (
-              <div className="space-y-2.5">
-                <Button
-                  onClick={() => navigate("/client/onboarding")}
-                  className="w-full h-12 rounded-xl text-sm font-semibold"
+              <div className="space-y-3">
+                <div className="text-center">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/45">
+                    Choose how you build
+                  </p>
+                  <p className="mt-1 text-lg font-black text-white">Two ways to start</p>
+                </div>
+
+                <button
+                  onClick={() => navigate("/client/ai-plan-demo")}
+                  className="relative w-full overflow-hidden rounded-2xl border border-primary/40 bg-gradient-to-br from-primary/20 via-primary/5 to-transparent p-5 text-left transition-transform active:scale-[0.98]"
                 >
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  APEXBEAST AI builds my plan
-                </Button>
-                <Button
+                  <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-primary/30 blur-3xl" />
+                  <div className="relative flex items-start gap-4">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/20">
+                      <Sparkles className="h-6 w-6 text-primary" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-base font-black text-white">APEXBEAST AI</span>
+                        <span className="rounded-full bg-primary px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary-foreground">
+                          Recommended
+                        </span>
+                      </div>
+                      <p className="mt-1 text-xs leading-relaxed text-white/70">
+                        Answer a few questions — AI builds your fuel style, protocol, calories, macros, and weekly windows.
+                      </p>
+                    </div>
+                  </div>
+                </button>
+
+                <button
                   onClick={() => navigate("/client/plan-builder-demo")}
-                  variant="outline"
-                  className="w-full h-12 rounded-xl text-sm font-semibold border-white/20 text-white bg-white/5 hover:bg-white/10 hover:text-white"
+                  className="w-full rounded-2xl border border-white/15 bg-white/[0.04] p-5 text-left transition-transform active:scale-[0.98]"
                 >
-                  Build full plan
-                </Button>
+                  <div className="flex items-start gap-4">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/5">
+                      <CalendarDays className="h-6 w-6 text-white/80" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-base font-black text-white">Build it myself</div>
+                      <p className="mt-1 text-xs leading-relaxed text-white/60">
+                        Full manual control over every number, window, and day of the week.
+                      </p>
+                    </div>
+                  </div>
+                </button>
               </div>
             ) : (
               <p className="text-sm text-white/70 text-center">
