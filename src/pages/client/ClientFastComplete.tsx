@@ -93,6 +93,18 @@ export default function ClientFastComplete() {
   });
 
   const now = new Date();
+  const demoNow = now.getTime();
+  const demoSettings = isDemo
+    ? {
+        last_fast_ended_at: new Date(demoNow - 15 * 60000).toISOString(),
+        eating_window_ends_at: new Date(demoNow + 6.2 * 3600000).toISOString(),
+        eating_window_hours: 6,
+      }
+    : null;
+  const demoFast = isDemo
+    ? { actual_hours: 18.4, target_hours: 18, started_at: null, ended_at: null }
+    : null;
+
   const hasCompletedFastToday = !!settings?.last_fast_completed_at && isToday(new Date(settings.last_fast_completed_at));
   const hasActiveFuelPhase = !!settings?.eating_window_ends_at && new Date(settings.eating_window_ends_at) > now;
   const shouldBlockFastComplete = !isDemo && !!settings && (!hasCompletedFastToday || !hasActiveFuelPhase || !!settings.active_fast_start_at);
@@ -139,18 +151,6 @@ export default function ClientFastComplete() {
     : "Now";
   const eatingEnd = (demoSettings ?? settings)?.eating_window_ends_at
     ? format(new Date(((demoSettings ?? settings) as any).eating_window_ends_at), "h:mm a")
-    : null;
-
-  const demoNow = now.getTime();
-  const demoSettings = isDemo
-    ? {
-        last_fast_ended_at: new Date(demoNow - 15 * 60000).toISOString(),
-        eating_window_ends_at: new Date(demoNow + 6.2 * 3600000).toISOString(),
-        eating_window_hours: 6,
-      }
-    : null;
-  const demoFast = isDemo
-    ? { actual_hours: 18.4, target_hours: 18, started_at: null, ended_at: null }
     : null;
 
   const actualHours =
