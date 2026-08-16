@@ -176,7 +176,21 @@ export function PrepRunwayCard({ embedded = false }: { embedded?: boolean }) {
       </div>
 
       {/* Countdown */}
-      <div className="mt-3 flex items-end gap-3 rounded-xl border border-[hsl(var(--primary)/0.25)] bg-[hsl(var(--primary)/0.07)] px-3 py-2.5">
+      <div className="mt-3 rounded-xl border border-[hsl(var(--primary)/0.25)] bg-[hsl(var(--primary)/0.07)] px-3 py-2.5">
+        <div className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+          <span>
+            Now{" "}
+            <span className="tabular-nums text-foreground">
+              {now.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit", second: "2-digit" })}
+            </span>
+          </span>
+          <span className="h-px flex-1 bg-white/10" />
+          <span>
+            {eatingWindowOpen ? "Closes" : "Starts"}{" "}
+            <span className="tabular-nums text-foreground">{startTime}</span>
+          </span>
+        </div>
+        <div className="flex items-end gap-3">
         {segments.map((seg) => (
           <div key={seg.l} className="text-center">
             <div className="text-2xl font-bold leading-none tabular-nums text-foreground">
@@ -188,11 +202,9 @@ export function PrepRunwayCard({ embedded = false }: { embedded?: boolean }) {
         <div className="ml-auto text-right text-[11px] leading-tight text-muted-foreground">
           {eatingWindowOpen ? (
             <>
-              Counting down to
+              remaining until
               <br />
               <span className="font-semibold text-foreground">{startTime} today</span>
-              <br />
-              window closes
             </>
           ) : (
             <>
@@ -206,6 +218,7 @@ export function PrepRunwayCard({ embedded = false }: { embedded?: boolean }) {
               </span>
             </>
           )}
+        </div>
         </div>
       </div>
 
