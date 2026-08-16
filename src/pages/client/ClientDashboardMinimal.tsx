@@ -23,6 +23,9 @@ const SHOW_WEIGHT_TRACKER = true;
 
 export default function ClientDashboardMinimal() {
   const clientId = useEffectiveClientId();
+  // The fasting protocol slot already renders the Prep card while the eating
+  // window is open — avoid showing a second copy below it.
+  const eatingWindowOpen = useEatingWindowOpen();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [selectedDayDate, setSelectedDayDate] = useState<Date | null>(null);
@@ -119,9 +122,11 @@ export default function ClientDashboardMinimal() {
         </JuiceFastDashboardSlot>
 
         {/* Runway to the next fast — prep coaching while the countdown runs */}
-        <div className="px-1">
-          <PrepRunwayCard />
-        </div>
+        {!eatingWindowOpen && (
+          <div className="px-1">
+            <PrepRunwayCard />
+          </div>
+        )}
 
         {/* Juice fast entry point — hidden while a juice fast is running */}
         <div className="space-y-2.5 px-5">
