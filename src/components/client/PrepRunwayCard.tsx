@@ -152,7 +152,7 @@ export function PrepRunwayCard({ embedded = false }: { embedded?: boolean }) {
 
           <button
             type="button"
-            onClick={() => setFastSkipToday(clientId, false)}
+            onClick={() => void setFastSkipToday(clientId, false)}
             className="mx-auto block text-[11px] font-medium text-muted-foreground underline underline-offset-4"
           >
             Restore today's scheduled fast

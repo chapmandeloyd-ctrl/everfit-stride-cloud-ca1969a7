@@ -36,18 +36,29 @@ export function fastSkipKey(clientId: string | null | undefined): string {
 }
 
 /** Cancel (or restore) today's scheduled auto-start, locally + server-side. */
-export function setFastSkipToday(clientId: string | null | undefined, value: boolean) {
+export async function setFastSkipToday(clientId: string | null | undefined, value: boolean) {
+  const key = fastSkipKey(clientId);
+  const prior = typeof window !== "undefined" ? window.localStorage.getItem(key) : null;
   if (typeof window !== "undefined") {
-    const key = fastSkipKey(clientId);
     if (value) window.localStorage.setItem(key, "1");
     else window.localStorage.setItem(key, "0"); // explicit restore beats the saved date
     window.dispatchEvent(new Event("apex-fast-skip-changed"));
   }
   if (clientId) {
-    void supabase
+    const { data, error } = await supabase
       .from("client_feature_settings")
       .update({ auto_fast_skip_date: value ? localDateKey(new Date()) : null } as any)
-      .eq("client_id", clientId);
+      .eq("client_id", clientId)
+      .select("client_id")
+      .maybeSingle();
+    if (error || !data) {
+      if (typeof window !== "undefined") {
+        if (prior === null) window.localStorage.removeItem(key);
+        else window.localStorage.setItem(key, prior);
+        window.dispatchEvent(new Event("apex-fast-skip-changed"));
+      }
+      throw error ?? new Error("The cancelled fast could not be saved.");
+    }
   }
 }
 
@@ -72,10 +83,11 @@ export function useFastSkippedToday(clientId: string | null | undefined): boolea
     enabled: !!clientId,
     staleTime: 30_000,
     queryFn: async () => {
+      if (!clientId) return null;
       const { data } = await supabase
         .from("client_feature_settings")
         .select("auto_fast_skip_date")
-        .eq("client_id", clientId!)
+        .eq("client_id", clientId)
         .maybeSingle();
       return ((data as any)?.auto_fast_skip_date as string | null) ?? null;
     },
@@ -109,7 +121,10 @@ export function ScheduleCountdownRow({
   const [stage, setStage] = useState<"confirm" | "options" | "summary">("options");
   const [summary, setSummary] = useState<{ title: string; body: string } | null>(null);
 
-  const setSkip = (value: boolean) => setFastSkipToday(clientId, value);
+  const setSkip = async (value: boolean) => {
+    await setFastSkipToday(clientId, value);
+    await qc.invalidateQueries({ queryKey: ["auto-fast-skip-date", clientId] });
+  };
 
   if (!day || day.enabled === false || day.ratio === "eat_all_day") return null;
 
@@ -195,7 +210,7 @@ export function ScheduleCountdownRow({
         });
         qc.invalidateQueries({ queryKey: ["client-schedule-overrides", clientId] });
       }
-      setSkip(false);
+      await setSkip(false);
       setSummary({
         title: "Fast rescheduled",
         body: `Today's fast now starts at ${formatHour(newHour)} and breaks at ${formatHour(breakFastHourFor(day.ratio, newHour))}. It still counts.`,
@@ -232,7 +247,7 @@ export function ScheduleCountdownRow({
         qc.invalidateQueries({ queryKey: ["ccp-settings", clientId] });
         qc.invalidateQueries({ queryKey: ["client-plan-window", clientId] });
       }
-      setSkip(true);
+      await setSkip(true);
       setSummary({
         title: "Plan pushed forward",
         body: "Today is off and your whole plan shifted one day later, so you don't lose a day.",
@@ -242,7 +257,7 @@ export function ScheduleCountdownRow({
     }
 
     // Skip today
-    setSkip(true);
+    await setSkip(true);
     if (clientId) {
       void emitActivityEvent({
         clientId,
@@ -300,7 +315,7 @@ export function ScheduleCountdownRow({
         <button
           type="button"
           onClick={() => {
-            setSkip(false);
+            void setSkip(false);
             if (clientId) {
               void emitActivityEvent({
                 clientId,
