@@ -187,7 +187,13 @@ export function PrepRunwayCard({ embedded = false }: { embedded?: boolean }) {
         ))}
         <div className="ml-auto text-right text-[11px] leading-tight text-muted-foreground">
           {eatingWindowOpen ? (
-            <span className="font-semibold text-foreground">Time left in your eating window</span>
+            <>
+              Counting down to
+              <br />
+              <span className="font-semibold text-foreground">{startTime} today</span>
+              <br />
+              window closes
+            </>
           ) : (
             <>
               {isFasting ? "Next fast starts" : "Fast starts"}
