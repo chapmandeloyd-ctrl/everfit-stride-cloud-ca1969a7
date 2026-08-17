@@ -165,18 +165,7 @@ export function FastingTimer({ fastStartAt, targetHours, now, demoProgress, comp
             opacity={0.85}
           />
 
-          {/* Full ring shown dim (upcoming), colored only up to current progress */}
-          {arcSegments.map((seg, i) => (
-            <path
-              key={`dim-${i}`}
-              d={describeArc(cx, cy, radius, seg.startAngle - 90, seg.endAngle - 90)}
-              fill="none"
-              stroke={seg.color}
-              strokeWidth={bandWidth}
-              strokeLinecap="butt"
-              opacity={0.18}
-            />
-          ))}
+          {/* Only the portion already earned is painted — the rest of the ring stays empty */}
           {arcSegments.map((seg, i) => {
             const litEnd = Math.min(seg.endAngle, progressAngle);
             if (litEnd - seg.startAngle < 0.3) return null;
@@ -231,6 +220,7 @@ export function FastingTimer({ fastStartAt, targetHours, now, demoProgress, comp
           const pos = getStagePosition(stage.hour);
           const isReached = elapsedHours >= stage.hour;
           const isCurrent = currentStage.hour === stage.hour;
+          if (!isReached) return null;
           return (
             <div
               key={stage.hour}
