@@ -14,6 +14,7 @@ import { resolveDayForDate, type WeeklyScheduleDay } from "@/lib/resolveFastingW
 import { dateKey } from "@/components/client/calendar/calendarUtils";
 import DayEditorSheet, { type ApplyScope } from "@/components/client/calendar/DayEditorSheet";
 import { useToast } from "@/hooks/use-toast";
+import { useActiveFastElapsed } from "@/hooks/useActiveFastElapsed";
 
 /**
  * Minimal client dashboard — Fasting + Smart Pace + Health tracking tiles.
@@ -26,6 +27,7 @@ export default function ClientDashboardMinimal() {
   // The fasting protocol slot already renders the Prep card while the eating
   // window is open — avoid showing a second copy below it.
   const eatingWindowOpen = useEatingWindowOpen();
+  const { isFasting } = useActiveFastElapsed();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [selectedDayDate, setSelectedDayDate] = useState<Date | null>(null);
@@ -122,7 +124,7 @@ export default function ClientDashboardMinimal() {
         </JuiceFastDashboardSlot>
 
         {/* Juice fast entry point — hidden while a juice fast is running. */}
-        {!eatingWindowOpen && (
+        {!eatingWindowOpen && !isFasting && (
           <div className="space-y-2.5 px-5">
             <AlternateFastOptions />
           </div>

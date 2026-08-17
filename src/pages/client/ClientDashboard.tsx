@@ -1608,14 +1608,6 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
                 End Fast
               </Button>
             )}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full text-white/70 hover:text-white hover:bg-white/10"
-              onClick={() => navigate("/client/calendar")}
-            >
-              Edit Today&apos;s Plan
-            </Button>
           </div>
 
           {/* PIN Dialogs */}
