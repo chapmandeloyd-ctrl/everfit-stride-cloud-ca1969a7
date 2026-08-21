@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Download, X } from 'lucide-react';
 import { isNativeApp } from '@/lib/nativePlatform';
+import { isIOSDevice as isIOSPlatform } from '@/lib/pushNotifications';
+
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -17,9 +19,12 @@ export function InstallPrompt() {
     // Never show in a native Capacitor app
     if (isNativeApp()) return;
 
-    // Check if iOS
-    const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    const isInStandaloneMode = window.matchMedia('(display-mode: standalone)').matches;
+    // Check if iOS (iPadOS Safari reports a desktop "Macintosh" UA)
+    const isIOSDevice = isIOSPlatform();
+    const isInStandaloneMode =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      (navigator as Navigator & { standalone?: boolean }).standalone === true;
+
     
     if (isIOSDevice && !isInStandaloneMode) {
       setIsIOS(true);
