@@ -25,8 +25,16 @@ export class PushSubscriptionError extends Error {
 
 export function isIOSDevice(): boolean {
   if (typeof navigator === "undefined") return false;
-  return /iPad|iPhone|iPod/.test(navigator.userAgent);
+  if (/iPad|iPhone|iPod/.test(navigator.userAgent)) return true;
+  // iPadOS Safari reports a desktop "Macintosh" user agent by default.
+  return (
+    /Macintosh/.test(navigator.userAgent) &&
+    typeof document !== "undefined" &&
+    "ontouchend" in document &&
+    (navigator.maxTouchPoints ?? 0) > 1
+  );
 }
+
 
 export function isStandalonePWA(): boolean {
   if (typeof window === "undefined" || typeof navigator === "undefined") return false;
