@@ -23,7 +23,7 @@ import { LiveScheduleHost } from "@/components/client/LiveScheduleHost";
 
 /* ──────────────────────────────────────────────────────────────────────
    /client/program — Dark unified Program page.
-   Combines the assigned Protocol + assigned Keto Type + Daily Meal
+   Combines the assigned Protocol + assigned Fuel Style + Daily Meal
    Timeline. Replaces the legacy gold /client/complete-plan view.
    ────────────────────────────────────────────────────────────────────── */
 
@@ -238,13 +238,13 @@ export default function ClientProgram() {
             </h2>
             <p className="text-sm text-foreground/75 leading-relaxed">
               The lion timer tells you what to do. The live schedule tells you when to do it.
-              This page explains why the fasting window, keto type, stage, and refeed logic work together.
+              This page explains why the fasting window, fuel style, stage, and refeed logic work together.
             </p>
           </div>
           {hasProgram && protocolDemo && ketoType && (
             <div className="grid grid-cols-2 gap-2">
               <MiniSummary label="Protocol" value={protocolDemo.title} icon={<Timer className="h-3.5 w-3.5" />} />
-              <MiniSummary label="Keto Type" value={ketoType.abbreviation} icon={<Beaker className="h-3.5 w-3.5" />} />
+              <MiniSummary label="Fuel Style" value={ketoType.abbreviation} icon={<Beaker className="h-3.5 w-3.5" />} />
             </div>
           )}
         </div>
@@ -323,19 +323,19 @@ export default function ClientProgram() {
 
         {!ketoType && (
           <EmptySlot
-            label="Keto Type"
-            cta="Choose a keto type"
+            label="Fuel Style"
+            cta="Choose your fuel style"
             onClick={() => navigate("/client/keto-types")}
           />
         )}
 
-        {/* Keto Type */}
+        {/* Fuel Style */}
         {ketoType && (
           <section className="space-y-3">
             <div className="flex items-center gap-2">
               <Beaker className="h-3.5 w-3.5 text-primary" />
               <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary">
-                Why This Keto Type Fits
+                Why This Fuel Style Fits
               </p>
             </div>
             <InteractiveKetoTypeCard
@@ -364,7 +364,7 @@ export default function ClientProgram() {
               <ExecutionCard
                 icon={<Utensils className="h-4 w-4" />}
                 title="Eating window"
-                detail="Break the fast on time, hit protein first, then keep carbs inside the keto type target."
+                detail="Break the fast on time, hit protein first, then keep carbs inside your fuel style target."
               />
               <ExecutionCard
                 icon={<Droplets className="h-4 w-4" />}
@@ -432,7 +432,7 @@ export default function ClientProgram() {
                 className="border-border"
                 onClick={() => navigate("/client/keto-types")}
               >
-                Browse Keto Types
+                Browse Fuel Styles
               </Button>
             )}
           </div>
