@@ -304,7 +304,7 @@ export function InteractiveKetoTypeCard({
     accentColorClass: palette.accentColorClass,
     iconGradient: palette.iconGradient,
     surfaceTintGradient: palette.surfaceTintGradient,
-    eyebrow: isCurrent ? "Your Active Keto Type" : "Keto Type",
+    eyebrow: isCurrent ? "Your Active Fuel Style" : "Fuel Style",
     subEyebrow: ketoType.name,
     title: ketoType.abbreviation,
     titleSuffix: ketoType.subtitle ? ` — ${ketoType.subtitle}` : "",
