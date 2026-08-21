@@ -68,7 +68,7 @@ export function KetoTypeDetailView({ ketoType: kt, allTypes, isActive = false }:
               className="text-[11px] font-bold uppercase tracking-wider"
               style={{ color: kt.color }}
             >
-              {isActive ? "Your Active Keto Type" : "Keto Type"}
+              {isActive ? "Your Active Fuel Style" : "Fuel Style"}
             </span>
             {isActive && (
               <Badge

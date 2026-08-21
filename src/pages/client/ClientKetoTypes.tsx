@@ -183,7 +183,7 @@ export default function ClientKetoTypes() {
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <h1 className="text-2xl font-black tracking-tight">All Keto Types</h1>
+          <h1 className="text-2xl font-black tracking-tight">All Fuel Styles</h1>
         </div>
 
         {pendingProtocol && (
@@ -194,7 +194,7 @@ export default function ClientKetoTypes() {
                 Building your APEXBEAST-IF Synergy program
               </p>
               <p className="text-sm">
-                Pick a keto type to pair with{" "}
+                Pick a fuel style to pair with{" "}
                 <span className="font-semibold">{pendingProtocol.name}</span>
               </p>
             </div>
@@ -221,7 +221,7 @@ export default function ClientKetoTypes() {
         {assignedKeto && (
           <section className="space-y-3">
             <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-primary">
-              Your Current Keto Type
+              Your Current Fuel Style
             </p>
             <KetoPhaseCard
               startDate={activeAssignment?.assigned_at ?? null}
@@ -244,7 +244,7 @@ export default function ClientKetoTypes() {
           return (
             <section key={group.category.id} className="space-y-3">
               <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-muted-foreground">
-                {group.category.name}
+                {group.category.name.replace(/keto/gi, "Fuel")}
               </p>
               <div className="space-y-6">
                 {items.map((kt) => {
@@ -268,7 +268,7 @@ export default function ClientKetoTypes() {
 
         {!isLoading && grouped.length === 0 && (
           <p className="text-xs text-muted-foreground">
-            No keto types available yet. Your coach will set these up for you.
+            No fuel styles available yet. Your coach will set these up for you.
           </p>
         )}
       </div>

@@ -155,7 +155,7 @@ function buildContent(kt: KetoTypeForCard): ProtocolCardContent {
   if (kt.how_it_works) overview.push(kt.how_it_works);
   if (overview.length === 0) {
     overview.push(
-      `${kt.name} is a ketogenic approach designed to keep your body in fat-burning mode while matching your activity level and goals.`
+      `${kt.name} is a structured fuel approach designed to support your metabolism while matching your activity level and goals.`
     );
   }
 
@@ -168,11 +168,11 @@ function buildContent(kt: KetoTypeForCard): ProtocolCardContent {
     {
       range: "Days 3–7",
       title: "Fat Adaptation Begins",
-      detail: `Fat rises to ${kt.fat_pct}% of intake. Hunger stabilizes, energy starts to even out, and ketones begin to appear.`,
+      detail: `Fat adjusts to ${kt.fat_pct}% of intake. Hunger stabilizes and energy starts to even out.`,
     },
     {
       range: "Week 2",
-      title: "Ketosis Locked In",
+      title: "Fueling Pattern Locked In",
       detail: `Protein at ${kt.protein_pct}% protects lean mass while fat fuels training, focus, and daily output.`,
     },
     {
@@ -195,13 +195,13 @@ function buildContent(kt: KetoTypeForCard): ProtocolCardContent {
   const rules: string[] = [
     `Keep carbs at ${kt.carbs_pct}% of intake (≤${kt.carb_limit_grams ?? 30}g net carbs/day)`,
     `Hit fat at ~${kt.fat_pct}% of intake — don't fear the fat`,
-    `Protein at ~${kt.protein_pct}% — enough to protect muscle, not so much it kicks you out of ketosis`,
+    `Protein at ~${kt.protein_pct}% — enough to protect muscle and support recovery`,
     "Hydrate aggressively — water + sodium, potassium, magnesium",
     "Plan meals around the eating window — no random snacking",
   ];
 
   const mentalReality = [
-    "Days 2–4 are usually the hardest — this is the keto adaptation curve.",
+    "Days 2–4 are usually the hardest while your body adapts to the new fuel pattern.",
     "Once fat-adapted, hunger and energy flatten out. That's the goal.",
     "Stay consistent — most people quit one week before it gets easy.",
   ];
@@ -304,7 +304,7 @@ export function InteractiveKetoTypeCard({
     accentColorClass: palette.accentColorClass,
     iconGradient: palette.iconGradient,
     surfaceTintGradient: palette.surfaceTintGradient,
-    eyebrow: isCurrent ? "Your Active Keto Type" : "Keto Type",
+    eyebrow: isCurrent ? "Your Active Fuel Style" : "Fuel Style",
     subEyebrow: ketoType.name,
     title: ketoType.abbreviation,
     titleSuffix: ketoType.subtitle ? ` — ${ketoType.subtitle}` : "",

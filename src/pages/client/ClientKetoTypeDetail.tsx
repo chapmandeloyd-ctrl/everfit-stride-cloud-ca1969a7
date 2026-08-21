@@ -265,13 +265,13 @@ export default function ClientKetoTypeDetail() {
       queryClient.invalidateQueries({ queryKey: ["keto-preview-feature-settings", clientId] });
       queryClient.invalidateQueries({ queryKey: ["complete-plan-keto", clientId] });
       queryClient.invalidateQueries({ queryKey: ["complete-plan-keto-type"] });
-      toast.success(`${ketoType?.abbreviation} — ${ketoType?.name} set as your keto type`);
+      toast.success(`${ketoType?.abbreviation} — ${ketoType?.name} set as your fuel style`);
       // New synergy flow: skip the legacy cross-sell and pair dialogs and
       // route straight to the Complete Plan view (the user has already
       // confirmed the program via the Recap modal).
       navigate("/client/program");
     },
-    onError: (e) => toast.error(e instanceof Error ? e.message : "Could not update your keto type"),
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Could not update your fuel style"),
   });
 
   const handleSetClick = () => {
@@ -374,7 +374,7 @@ export default function ClientKetoTypeDetail() {
           onClick={() => navigate(-1)}
         >
           <ArrowLeft className="h-4 w-4" />
-          Keto Types
+          Fuel Styles
         </button>
 
         {/* Shared detail view */}
@@ -406,7 +406,7 @@ export default function ClientKetoTypeDetail() {
                 border: `1px solid ${accent}30`,
               }}
             >
-              Your current keto type
+              Your current fuel style
             </div>
             <div className="grid grid-cols-2 gap-2">
               <Button
@@ -421,7 +421,7 @@ export default function ClientKetoTypeDetail() {
                 style={{ backgroundColor: accent, color: accentContrast }}
                 onClick={() => navigate("/client/keto-types")}
               >
-                Browse other keto types
+                Browse other fuel styles
               </Button>
             </div>
           </div>
@@ -489,7 +489,7 @@ export default function ClientKetoTypeDetail() {
           <AlertDialogHeader>
             <AlertDialogTitle>End your active fast?</AlertDialogTitle>
             <AlertDialogDescription>
-              You have an active{activePlanName ? ` ${activePlanName}` : ""} fast running. Switching keto types will end it so you can pick a fasting protocol that pairs with{" "}
+              You have an active{activePlanName ? ` ${activePlanName}` : ""} fast running. Switching fuel styles will end it so you can pick a fasting protocol that pairs with{" "}
               <span className="font-semibold text-foreground">{ketoType.abbreviation}</span>.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -609,14 +609,14 @@ export default function ClientKetoTypeDetail() {
             </div>
             <p className="text-sm mb-4" style={{ color: MUTED }}>
               {pendingProtocol
-                ? "You're building your APEXBEAST-IF Synergy program with a new fasting protocol AND a new keto type:"
-                : "By keeping your current fasting protocol, you're updating your keto type only. Your new APEXBEAST-IF Synergy program will be:"}
+                ? "You're building your APEXBEAST-IF Synergy program with a new fasting protocol AND a new fuel style:"
+                : "By keeping your current fasting protocol, you're updating your fuel style only. Your new APEXBEAST-IF Synergy program will be:"}
             </p>
 
             <div className="space-y-2 mb-5">
               <div className="rounded-xl p-3" style={{ background: SURFACE, border: `1px solid ${accent}22` }}>
                 <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: MUTED }}>
-                  Keto Type
+                  Fuel Style
                 </div>
                 <div className="text-sm" style={{ color: IVORY }}>
                   <span style={{ color: MUTED, textDecoration: "line-through" }}>
