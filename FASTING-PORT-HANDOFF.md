@@ -1,7 +1,8 @@
 # APEXBEAST-IF → Fasting System Port Handoff
 
 Paste this whole document into the target project's chat (Apex Elite Athlete / apexbeast-daf),
-along with an `@mention` of the APEXBEAST-IF project so the AI can read its source files.
+along with an `@mention` of the source project: **`@everfit-stride-cloud`**
+so the AI can read its source files.
 
 ---
 
@@ -12,6 +13,23 @@ app **without breaking** anything that already exists here (Athlete-OS, admin co
 auth, clients, youth athlete features).
 
 Do it in the phases below, verifying live in the browser after each phase.
+
+---
+
+## Important Architecture Note
+
+The source project uses **Supabase Edge Functions** for server-side dispatch jobs. The target
+app (Apex Elite Athlete-OS) runs on **TanStack Start**, which does not use Supabase Edge Functions.
+
+Therefore:
+- **Phase 1 (database schema)** ports over nearly verbatim.
+- **Phase 2 (edge functions)** must be adapted into **TanStack Start server routes/API routes**
+  inside this app, using the same business logic but this project's existing push/email infra.
+- **Phase 3 (cron jobs)** must be wired into this project's scheduler/cron mechanism
+  (e.g., Vercel Cron, Inngest, or whatever periodic job runner this app already uses),
+  calling the new server routes instead of Supabase function URLs.
+
+Keep the logic identical; only the deployment target changes.
 
 ---
 
