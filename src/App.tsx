@@ -182,7 +182,6 @@ const ClientKetoTypeDetail = lazy(() => import("./pages/client/ClientKetoTypeDet
 const CardStylesPreview = lazy(() => import("./pages/client/CardStylesPreview"));
 const NotificationCenter = lazy(() => import("./pages/NotificationCenter"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
-const CheckoutTest = lazy(() => import("./pages/CheckoutTest"));
 const SynergyCardDemo = lazy(() => import("./pages/SynergyCardDemo"));
 const StepTrackerPreview = lazy(() => import("./pages/StepTrackerPreview"));
 
@@ -217,7 +216,6 @@ const App = () => (
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/unsubscribe" element={<Unsubscribe />} />
-          <Route path="/checkout-test" element={<CheckoutTest />} />
           <Route path="/portal-mockup" element={<PortalMockup />} />
           <Route path="/synergy-card-demo" element={<SynergyCardDemo />} />
           <Route path="/preview/step-tracker" element={<StepTrackerPreview />} />
