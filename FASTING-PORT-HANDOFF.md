@@ -89,9 +89,11 @@ as TanStack Start server routes / API routes in this app:
 
 ---
 
-## Phase 3 — Cron jobs
+## Phase 3 — Cron / scheduled jobs
 
-Run via `run_sql` (not migrations) with **this project's own** function URL and anon key:
+Wire these schedules into this project's existing cron/job runner, each hitting the corresponding
+TanStack Start server route created in Phase 2. If this project uses `pg_cron`/`pg_net`, use this
+project's own server-route URL and auth headers.
 
 | Job | Schedule |
 |---|---|
