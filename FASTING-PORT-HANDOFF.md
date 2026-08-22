@@ -64,9 +64,10 @@ pre-fast email toggle. Copy the exact column set from the source project's table
 
 ---
 
-## Phase 2 — Edge functions
+## Phase 2 — Server-side dispatch logic
 
-Copy these functions verbatim from `supabase/functions/` in the source project and deploy them:
+Copy the logic from these `supabase/functions/` files in the source project, but implement them
+as TanStack Start server routes / API routes in this app:
 
 | Function | Purpose |
 |---|---|
