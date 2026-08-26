@@ -56,28 +56,31 @@ export function ClientWeekStrip({ onDayClick }: ClientWeekStripProps) {
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between px-0.5">
+      <div className="flex items-center justify-between gap-2 px-0.5">
         <h2 className="text-lg font-bold tracking-tight text-foreground">{headerLabel}</h2>
-        <button
-          onClick={() => navigate("/client/calendar")}
-          className="flex items-center gap-2 text-sm font-semibold text-primary"
-        >
-          Today
-          <CalendarDays className="h-5 w-5" />
-        </button>
+        <div className="ml-auto flex shrink-0 items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setTourOpen(true)}
+            className="flex shrink-0 items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary"
+          >
+            <Sparkles className="h-3 w-3" />
+            Learn more
+          </button>
+          <button
+            onClick={() => navigate("/client/calendar")}
+            className="flex items-center gap-2 text-sm font-semibold text-primary"
+          >
+            Today
+            <CalendarDays className="h-5 w-5" />
+          </button>
+        </div>
       </div>
 
       <p className="px-0.5 text-[11px] leading-relaxed text-muted-foreground">
         Your week at a glance. Each dot color shows the fasting plan for that day — tap any day to preview or edit it. Days outside your program are dimmed.
       </p>
 
-      <button
-        onClick={() => setTourOpen(true)}
-        className="flex items-center gap-1.5 px-0.5 text-[11px] font-semibold text-primary"
-      >
-        <Sparkles className="h-3.5 w-3.5" />
-        Click here to learn about the calendar strip
-      </button>
 
       <div
         ref={scrollRef}
