@@ -120,6 +120,7 @@ const ExtendedFastDemo = lazy(() => import("./pages/client/ExtendedFastDemo"));
 const JuiceFastDemo = lazy(() => import("./pages/client/JuiceFastDemo"));
 const SmartPacePreview = lazy(() => import("./pages/SmartPacePreview"));
 const FastingRingDemo = lazy(() => import("./pages/FastingRingDemo"));
+const SmartPaceTourPreview = lazy(() => import("./pages/SmartPaceTourPreview"));
 const ClientDailyScore = lazy(() => import("./pages/client/ClientDailyScore"));
 const ClientOnboarding = lazy(() => import("./pages/client/ClientOnboarding"));
 const ClientResourceCollectionDetail = lazy(() => import("./pages/client/ClientResourceCollectionDetail"));
@@ -271,6 +272,7 @@ const App = () => (
           <Route path="/client/pace" element={<ProtectedRoute allowedRoles={["client"]}><ClientSmartPace /></ProtectedRoute>} />
           <Route path="/dev/pace-preview" element={<SmartPacePreview />} />
           <Route path="/dev/ring-demo" element={<FastingRingDemo />} />
+          <Route path="/dev/pace-tour" element={<SmartPaceTourPreview />} />
           <Route path="/dev/fast-complete-demo" element={<ClientFastComplete />} />
           <Route path="/client/daily-score" element={<ProtectedRoute allowedRoles={["client"]}><ClientDailyScore /></ProtectedRoute>} />
           <Route path="/client/coaching" element={<Navigate to="/client/dashboard" replace />} />

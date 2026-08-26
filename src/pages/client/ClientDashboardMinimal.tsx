@@ -15,6 +15,9 @@ import { dateKey } from "@/components/client/calendar/calendarUtils";
 import DayEditorSheet, { type ApplyScope } from "@/components/client/calendar/DayEditorSheet";
 import { useToast } from "@/hooks/use-toast";
 import { useActiveFastElapsed } from "@/hooks/useActiveFastElapsed";
+import { SmartPaceTourSheet } from "@/components/smart-pace/SmartPaceTourSheet";
+import { useSmartPace } from "@/hooks/useSmartPace";
+import { Sparkles } from "lucide-react";
 
 /**
  * Minimal client dashboard — Fasting + Smart Pace + Health tracking tiles.
@@ -31,6 +34,8 @@ export default function ClientDashboardMinimal() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [selectedDayDate, setSelectedDayDate] = useState<Date | null>(null);
+  const [paceTourOpen, setPaceTourOpen] = useState(false);
+  const { data: smartPace } = useSmartPace();
   const {
     weekly: weeklySchedule,
     overrides: scheduleOverrides,
@@ -106,9 +111,19 @@ export default function ClientDashboardMinimal() {
         {SHOW_WEIGHT_TRACKER && clientId && (
           <div className="space-y-3">
             <div>
-              <h2 className="text-lg font-bold text-foreground px-1">
-                APEXBEAST-IF Smart Weight Tracker
-              </h2>
+              <div className="flex items-center gap-2 px-1">
+                <h2 className="text-lg font-bold text-foreground">
+                  APEXBEAST-IF Smart Weight Tracker
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => setPaceTourOpen(true)}
+                  className="ml-auto flex shrink-0 items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary"
+                >
+                  <Sparkles className="h-3 w-3" />
+                  Learn more
+                </button>
+              </div>
               <p className="px-1 text-[11px] leading-relaxed text-muted-foreground">
                 Your real-pace coach. Adjusts daily targets based on every weigh-in
                 so you always know exactly what to lose today to stay on track.
@@ -117,6 +132,7 @@ export default function ClientDashboardMinimal() {
             <SmartPaceCollapsible />
           </div>
         )}
+
 
         {/* Fasting timer / protocol */}
         <JuiceFastDashboardSlot centerImageSrc={fastingCardBgGoldImg}>
@@ -135,6 +151,12 @@ export default function ClientDashboardMinimal() {
       </div>
 
       {/* Day editor sheet — tap any day in the strip to edit it */}
+      <SmartPaceTourSheet
+        open={paceTourOpen}
+        onOpenChange={setPaceTourOpen}
+        basePaceLbs={smartPace?.baseLbs ?? 0.6}
+      />
+
       <DayEditorSheet
         open={!!selectedDayDate}
         onOpenChange={(v) => !v && setSelectedDayDate(null)}
