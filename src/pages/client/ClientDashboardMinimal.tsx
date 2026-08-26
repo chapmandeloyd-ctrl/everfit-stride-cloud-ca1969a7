@@ -15,6 +15,9 @@ import { dateKey } from "@/components/client/calendar/calendarUtils";
 import DayEditorSheet, { type ApplyScope } from "@/components/client/calendar/DayEditorSheet";
 import { useToast } from "@/hooks/use-toast";
 import { useActiveFastElapsed } from "@/hooks/useActiveFastElapsed";
+import { SmartPaceTourSheet } from "@/components/smart-pace/SmartPaceTourSheet";
+import { useSmartPace } from "@/hooks/useSmartPace";
+import { Sparkles } from "lucide-react";
 
 /**
  * Minimal client dashboard — Fasting + Smart Pace + Health tracking tiles.
@@ -31,6 +34,8 @@ export default function ClientDashboardMinimal() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [selectedDayDate, setSelectedDayDate] = useState<Date | null>(null);
+  const [paceTourOpen, setPaceTourOpen] = useState(false);
+  const { data: smartPace } = useSmartPace();
   const {
     weekly: weeklySchedule,
     overrides: scheduleOverrides,
@@ -146,6 +151,12 @@ export default function ClientDashboardMinimal() {
       </div>
 
       {/* Day editor sheet — tap any day in the strip to edit it */}
+      <SmartPaceTourSheet
+        open={paceTourOpen}
+        onOpenChange={setPaceTourOpen}
+        basePaceLbs={smartPace?.baseLbs ?? 0.6}
+      />
+
       <DayEditorSheet
         open={!!selectedDayDate}
         onOpenChange={(v) => !v && setSelectedDayDate(null)}
