@@ -79,6 +79,7 @@ const DEFAULT_SETTINGS: ClientFeatureSettings = {
 
 export function useClientFeatureSettings() {
   const clientId = useEffectiveClientId();
+  const queryClient = useQueryClient();
 
   const { data: settings, isLoading } = useQuery({
     queryKey: ["my-feature-settings", clientId],
@@ -96,7 +97,37 @@ export function useClientFeatureSettings() {
     staleTime: 0,
     refetchOnMount: "always",
     refetchOnWindowFocus: true,
+    // The auto-start cron flips `active_fast_start_at` server-side, so poll
+    // often enough that the timer appears without a manual reload.
+    refetchInterval: 30_000,
+    refetchIntervalInBackground: false,
   });
+
+  // Realtime: pick up server-side auto-starts (and any trainer edits) instantly.
+  useEffect(() => {
+    if (!clientId) return;
+    const channel = supabase
+      .channel(`cfs-live-${clientId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "client_feature_settings",
+          filter: `client_id=eq.${clientId}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["my-feature-settings", clientId] });
+          queryClient.invalidateQueries({ queryKey: ["active-fast-elapsed", clientId] });
+          queryClient.invalidateQueries({ queryKey: ["ccp-enforce", clientId] });
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [clientId, queryClient]);
+
 
   // When clientId is not yet available (auth loading), treat as loading
   // to prevent premature redirects based on DEFAULT_SETTINGS
