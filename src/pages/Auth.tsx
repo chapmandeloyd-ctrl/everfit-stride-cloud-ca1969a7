@@ -89,7 +89,7 @@ export default function Auth() {
       const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
       const callOnce = async () => {
         const controller = new AbortController();
-        const timer = window.setTimeout(() => controller.abort(), 20000);
+        const timer = window.setTimeout(() => controller.abort(), 30000);
         try {
           const res = await fetch(endpoint, {
             method: "POST",
