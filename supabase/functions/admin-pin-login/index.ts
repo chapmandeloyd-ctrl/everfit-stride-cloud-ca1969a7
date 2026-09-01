@@ -63,7 +63,7 @@ serve(async (req: Request) => {
             .order("created_at", { ascending: true })
             .limit(1)
             .maybeSingle(),
-          4000,
+          6000,
           "trainer lookup"
         );
         console.log(`trainer lookup attempt ${attempt + 1} took ${Date.now() - t0}ms`);
@@ -94,7 +94,7 @@ serve(async (req: Request) => {
       try {
         const { data, error } = await withTimeout(
           supabaseAdmin.auth.admin.generateLink({ type: "magiclink", email }),
-          4000,
+          6000,
           "generateLink"
         );
         console.log(`generateLink attempt ${attempt + 1} took ${Date.now() - t0}ms`);
