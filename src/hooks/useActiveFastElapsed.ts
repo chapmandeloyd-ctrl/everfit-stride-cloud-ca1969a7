@@ -12,6 +12,8 @@ export function useActiveFastElapsed() {
   const { data } = useQuery({
     queryKey: ["active-fast-elapsed", clientId],
     enabled: !!clientId,
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("client_feature_settings")
