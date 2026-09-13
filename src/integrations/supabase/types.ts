@@ -11269,6 +11269,21 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      get_guardian_link_by_token: {
+        Args: { _token: string }
+        Returns: {
+          athlete_user_id: string
+          coach_note: string
+          created_at: string
+          expires_at: string
+          guardian_email: string
+          id: string
+          linked_at: string
+          status: string
+          trainer_id: string
+          weekly_summary_enabled: boolean
+        }[]
+      }
       is_conversation_member: {
         Args: { _conversation_id: string; _user_id: string }
         Returns: boolean
