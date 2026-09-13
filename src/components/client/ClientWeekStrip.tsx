@@ -54,12 +54,14 @@ export function ClientWeekStrip({ onDayClick }: ClientWeekStripProps) {
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between gap-2 px-0.5">
-        <h2 className="text-lg font-bold tracking-tight text-foreground uppercase">DYNAMIC CALENDAR STRIP</h2>
+      <div className="flex flex-nowrap items-center justify-between gap-2 px-0.5">
+        <h2 className="min-w-0 flex-1 truncate text-[15px] font-bold uppercase leading-tight tracking-tight text-foreground sm:text-lg">
+          DYNAMIC CALENDAR STRIP
+        </h2>
         <button
           type="button"
           onClick={() => setTourOpen(true)}
-          className="flex shrink-0 items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary"
+          className="flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-primary/40 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary"
         >
           <Sparkles className="h-3 w-3" />
           Learn more
