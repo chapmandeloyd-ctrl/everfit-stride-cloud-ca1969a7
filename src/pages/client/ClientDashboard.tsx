@@ -1152,7 +1152,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
   if (cancelledFastStats) {
     return (
       <div id="fasting-protocol-card" className="space-y-3">
-        <h2 className="text-lg font-bold text-foreground px-1 uppercase">APEXBEAST-IF FASTING TIMER</h2>
+        <h2 className="text-[15px] sm:text-lg font-bold text-foreground px-1 uppercase leading-tight truncate">APEXBEAST-IF FASTING TIMER</h2>
         <Card className="overflow-hidden border-0 shadow-lg bg-black">
           <CardContent className="px-5 py-10 text-center text-white/60 text-sm">Fast cancelled</CardContent>
         </Card>
@@ -1263,7 +1263,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
         : "Your trainer will assign your fasting plan soon.";
     return (
       <div id="fasting-protocol-card" className="space-y-3">
-        <h2 className="text-lg font-bold text-foreground px-1 uppercase">APEXBEAST-IF FASTING TIMER</h2>
+        <h2 className="text-[15px] sm:text-lg font-bold text-foreground px-1 uppercase leading-tight truncate">APEXBEAST-IF FASTING TIMER</h2>
         <Card className="overflow-hidden border-0 shadow-lg relative bg-black">
           <CardContent className="relative z-10 px-4 pt-6 pb-5 space-y-5 text-white sm:px-5">
             <IdleFastingHero
@@ -1416,11 +1416,11 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
       <div id="fasting-protocol-card" className="space-y-3">
         {SHOW_WEIGHT_TRACKER && pace?.enabled && pace?.goal && (
           <div className="space-y-2">
-            <h2 className="text-lg font-bold text-foreground px-1 uppercase">Smart Weight Tracker</h2>
+            <h2 className="text-[15px] sm:text-lg font-bold text-foreground px-1 uppercase leading-tight truncate">Smart Weight Tracker</h2>
             <SmartPaceBanner allowRender />
           </div>
         )}
-        <h2 className="text-lg font-bold text-foreground px-1 uppercase">APEXBEAST-IF FASTING TIMER</h2>
+        <h2 className="text-[15px] sm:text-lg font-bold text-foreground px-1 uppercase leading-tight truncate">APEXBEAST-IF FASTING TIMER</h2>
         <Card className="overflow-hidden border-0 shadow-lg relative bg-black">
         <div className="absolute inset-0 bg-black" />
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-b from-transparent to-black" />

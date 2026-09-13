@@ -111,14 +111,14 @@ export default function ClientDashboardMinimal() {
         {SHOW_WEIGHT_TRACKER && clientId && (
           <div className="space-y-3">
             <div>
-              <div className="flex items-center gap-2 px-1">
-                <h2 className="text-lg font-bold text-foreground uppercase">
+              <div className="flex flex-nowrap items-center gap-2 px-1">
+                <h2 className="min-w-0 flex-1 truncate text-[15px] font-bold uppercase leading-tight text-foreground sm:text-lg">
                   Smart Weight Tracker
                 </h2>
                 <button
                   type="button"
                   onClick={() => setPaceTourOpen(true)}
-                  className="ml-auto flex shrink-0 items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary"
+                  className="ml-auto flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-primary/40 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary"
                 >
                   <Sparkles className="h-3 w-3" />
                   Learn more
