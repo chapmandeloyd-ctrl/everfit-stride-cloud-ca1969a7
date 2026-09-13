@@ -113,7 +113,7 @@ export default function ClientDashboardMinimal() {
             <div>
               <div className="flex items-center gap-2 px-1">
                 <h2 className="text-lg font-bold text-foreground uppercase">
-                  APEXBEAST-IF SMART WEIGHT TRACKER
+                  Smart Weight Tracker
                 </h2>
                 <button
                   type="button"
