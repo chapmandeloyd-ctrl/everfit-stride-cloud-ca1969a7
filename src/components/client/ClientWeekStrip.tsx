@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CalendarDays, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { CalendarStripTourSheet } from "@/components/client/CalendarStripTourSheet";
 import { useEffectiveClientId } from "@/hooks/useEffectiveClientId";
 import { useClientWeeklySchedule } from "@/hooks/useClientWeeklySchedule";
@@ -56,23 +56,14 @@ export function ClientWeekStrip({ onDayClick }: ClientWeekStripProps) {
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-2 px-0.5">
         <h2 className="text-lg font-bold tracking-tight text-foreground uppercase">DYNAMIC CALENDAR STRIP</h2>
-        <div className="ml-auto flex shrink-0 items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setTourOpen(true)}
-            className="flex shrink-0 items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary"
-          >
-            <Sparkles className="h-3 w-3" />
-            Learn more
-          </button>
-          <button
-            onClick={() => navigate("/client/calendar")}
-            className="flex items-center gap-2 text-sm font-semibold text-primary"
-          >
-            Today
-            <CalendarDays className="h-5 w-5" />
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => setTourOpen(true)}
+          className="flex shrink-0 items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary"
+        >
+          <Sparkles className="h-3 w-3" />
+          Learn more
+        </button>
       </div>
 
       <p className="px-0.5 text-[11px] leading-relaxed text-muted-foreground">
