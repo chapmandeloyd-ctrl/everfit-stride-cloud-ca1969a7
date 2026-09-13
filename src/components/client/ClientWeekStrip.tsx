@@ -55,7 +55,7 @@ export function ClientWeekStrip({ onDayClick }: ClientWeekStripProps) {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-2 px-0.5">
-        <h2 className="text-lg font-bold tracking-tight text-foreground uppercase">APEXBEAST-DYNAMIC CALENDAR STRIP</h2>
+        <h2 className="text-lg font-bold tracking-tight text-foreground uppercase">Big Calendar Strip</h2>
         <div className="ml-auto flex shrink-0 items-center gap-2">
           <button
             type="button"

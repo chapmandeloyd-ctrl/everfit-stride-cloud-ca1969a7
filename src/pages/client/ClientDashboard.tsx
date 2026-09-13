@@ -1416,7 +1416,7 @@ export function FastingProtocolCard({ clientId, navigate, openEndFastFlowSignal 
       <div id="fasting-protocol-card" className="space-y-3">
         {SHOW_WEIGHT_TRACKER && pace?.enabled && pace?.goal && (
           <div className="space-y-2">
-            <h2 className="text-lg font-bold text-foreground px-1 uppercase">APEXBEAST-IF SMART WEIGHT TRACKER</h2>
+            <h2 className="text-lg font-bold text-foreground px-1 uppercase">Smart Weight Tracker</h2>
             <SmartPaceBanner allowRender />
           </div>
         )}
