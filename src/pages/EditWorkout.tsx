@@ -18,6 +18,7 @@ import { SortableGroupHeader } from "@/components/workout/SortableGroupHeader";
 import { getBlockType, getBlockTypeFromSectionName } from "@/lib/workoutBlockTypes";
 import { BlockTypePicker } from "@/components/workout/BlockTypePicker";
 import { CoachVoicePicker, DEFAULT_COACH_VOICE_ID, speakWithCoachVoice } from "@/components/workout/CoachVoicePicker";
+import { ExerciseCoachCues, type ExerciseSideMode } from "@/components/workout/ExerciseCoachCues";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
@@ -42,6 +43,12 @@ interface WorkoutExercise {
   distance: string;
   band: string;
   is_unilateral?: boolean;
+  reps: number | null;
+  equipment: string;
+  side_mode: ExerciseSideMode;
+  form_cue_start: string;
+  form_cue_mid: string;
+  form_cue_switch: string;
 }
 
 interface ExerciseGroup {
@@ -103,6 +110,7 @@ function ExerciseRow({
   onDuplicate,
   onDelete,
   onPasteForward,
+  coachVoiceId,
 }: {
   item: WorkoutExercise;
   exerciseInfo: any;
@@ -113,6 +121,7 @@ function ExerciseRow({
   onDuplicate?: (id: string) => void;
   onDelete?: (id: string) => void;
   onPasteForward?: (id: string) => void;
+  coachVoiceId?: string | null;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
   const style = {
@@ -149,7 +158,7 @@ function ExerciseRow({
 
   return (
     <>
-    <div ref={setNodeRef} style={style} className="flex flex-wrap items-center gap-2 px-3 py-2 border-b hover:bg-muted/30 transition-colors">
+    <div ref={setNodeRef} style={style} className="flex flex-wrap items-center gap-2 px-3 py-2 hover:bg-muted/30 transition-colors">
       <Checkbox checked={item.selected} onCheckedChange={() => onToggleSelect(item.id)} className="shrink-0" />
       <div className="w-14 h-10 rounded bg-muted overflow-hidden shrink-0">
         {hasDirectVideo ? (
@@ -169,23 +178,13 @@ function ExerciseRow({
       <span className="text-xs font-medium w-24 truncate shrink-0" title={exerciseInfo?.name}>
         {exerciseInfo?.name || "Unknown"}
       </span>
-      {!item.group_id && (
-        <>
-          <Input type="number" value={item.sets} onChange={(e) => onUpdate(item.id, { sets: parseInt(e.target.value) || 1 })} className="h-9 w-14 text-center text-sm shrink-0" min={1} />
-          <span className="text-muted-foreground text-xs shrink-0">×</span>
-        </>
-      )}
-      <Select value={item.target_type} onValueChange={(v: "text" | "time") => onUpdate(item.id, { target_type: v })}>
-        <SelectTrigger className="h-9 w-14 text-xs px-2">
-          <SelectValue>{item.target_type === "text" ? <FileText className="h-4 w-4" /> : <Clock className="h-4 w-4" />}</SelectValue>
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="text"><span className="flex items-center gap-1.5"><FileText className="h-3.5 w-3.5" /> Text</span></SelectItem>
-          <SelectItem value="time"><span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> Time</span></SelectItem>
-        </SelectContent>
-      </Select>
+      <div className="inline-flex overflow-hidden rounded-md border border-border shrink-0">
+        <Button type="button" variant={item.target_type === "text" ? "default" : "ghost"} size="sm" className="h-8 rounded-none px-2 text-[10px]" onClick={() => onUpdate(item.id, { target_type: "text", reps: item.reps || 10 })}>Reps</Button>
+        <Button type="button" variant={item.target_type === "time" ? "default" : "ghost"} size="sm" className="h-8 rounded-none border-l px-2 text-[10px]" onClick={() => onUpdate(item.id, { target_type: "time", time_seconds: item.time_seconds || 30 })}>Timer</Button>
+      </div>
       {item.target_type === "time" ? (
         <>
+          <div className="flex flex-col items-start gap-0.5"><span className="text-[10px] font-semibold uppercase text-muted-foreground leading-none">Sets</span><Input type="number" value={item.sets} min={1} onChange={(e) => onUpdate(item.id, { sets: parseInt(e.target.value) || 1 })} className="h-9 w-14 text-center text-sm" /></div>
           <div className="flex flex-col items-start gap-0.5">
             <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground leading-none">Work</span>
             <Select value={String(item.time_seconds || 30)} onValueChange={(v) => onUpdate(item.id, { time_seconds: parseInt(v) })}>
@@ -204,11 +203,11 @@ function ExerciseRow({
               <SelectContent>{REST_OPTIONS.map((o) => (<SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>))}</SelectContent>
             </Select>
           </div>
-          <Input value={item.target_value} onChange={(e) => onUpdate(item.id, { target_value: e.target.value })} placeholder="reps, tempo, etc" className="h-9 flex-1 text-sm min-w-0" />
         </>
       ) : (
         <>
-          <Input value={item.target_value} onChange={(e) => onUpdate(item.id, { target_value: e.target.value })} placeholder="reps, weight, tempo, etc" className="h-9 flex-1 text-sm min-w-0" />
+          <div className="flex flex-col items-start gap-0.5"><span className="text-[10px] font-semibold uppercase text-muted-foreground leading-none">Sets</span><Input type="number" value={item.sets} min={1} onChange={(e) => onUpdate(item.id, { sets: parseInt(e.target.value) || 1 })} className="h-9 w-14 text-center text-sm" /></div>
+          <div className="flex flex-col items-start gap-0.5"><span className="text-[10px] font-semibold uppercase text-muted-foreground leading-none">Reps</span><Input type="number" value={item.reps || ""} min={1} onChange={(e) => onUpdate(item.id, { reps: parseInt(e.target.value) || null })} className="h-9 w-14 text-center text-sm" /></div>
           <div className="flex flex-col items-start gap-0.5">
             <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground leading-none">Rest</span>
             <Select value={String(item.rest_seconds)} onValueChange={(v) => onUpdate(item.id, { rest_seconds: parseInt(v) })}>
@@ -269,6 +268,20 @@ function ExerciseRow({
           <Plus className="h-3 w-3" /> Detail
         </button>
       </div>
+    )}
+    {item.exercise_type === "normal" && (
+      <ExerciseCoachCues
+        exerciseName={exerciseInfo?.name || "This exercise"}
+        sets={item.sets}
+        reps={item.reps}
+        workSeconds={item.target_type === "time" ? item.time_seconds : null}
+        sideMode={item.side_mode}
+        startCue={item.form_cue_start}
+        midCue={item.form_cue_mid}
+        switchCue={item.form_cue_switch}
+        coachVoiceId={coachVoiceId}
+        onChange={(updates) => onUpdate(item.id, { ...updates, is_unilateral: updates.side_mode ? updates.side_mode !== "none" : item.is_unilateral })}
+      />
     )}
     </>
   );
@@ -417,6 +430,12 @@ export default function EditWorkout() {
             distance: wpe.distance || "",
             band: wpe.recommended_band_level || "",
             is_unilateral: !!wpe.is_unilateral,
+            reps: wpe.reps || null,
+            equipment: wpe.equipment || "",
+            side_mode: (wpe.side_mode || (wpe.is_unilateral ? "sequential" : "none")) as ExerciseSideMode,
+            form_cue_start: wpe.form_cue_start || "",
+            form_cue_mid: wpe.form_cue_mid || "",
+            form_cue_switch: wpe.form_cue_switch || "",
           });
         }
       }
@@ -566,6 +585,12 @@ export default function EditWorkout() {
       rpe: "",
       distance: "",
       band: "",
+      reps: 10,
+      equipment: "",
+      side_mode: "none",
+      form_cue_start: "",
+      form_cue_mid: "",
+      form_cue_switch: "",
     };
     if (activeBlockId) {
       // Insert after the last existing item of this block (or at end if none yet)
@@ -597,7 +622,7 @@ export default function EditWorkout() {
   const addRest = () => {
     setExerciseItems((prev) => [...prev, {
       id: crypto.randomUUID(), exercise_id: "", sets: 0, target_type: "text" as const, target_value: "", time_seconds: 0, rest_seconds: 30, exercise_type: "rest" as const, selected: false, group_id: null,
-      detail_fields: [] as DetailField[], weight_lbs: "", tempo: "", rpe: "", distance: "", band: "",
+      detail_fields: [] as DetailField[], weight_lbs: "", tempo: "", rpe: "", distance: "", band: "", reps: null, equipment: "", side_mode: "none", form_cue_start: "", form_cue_mid: "", form_cue_switch: "",
     }]);
   };
 
@@ -848,7 +873,7 @@ export default function EditWorkout() {
           exercise_id: item.exercise_id,
           order_index: index,
           sets: item.sets,
-          reps: null,
+          reps: item.target_type === "text" ? item.reps : null,
           duration_seconds: item.target_type === "time" ? item.time_seconds : null,
           rest_seconds: item.rest_seconds,
           notes: item.target_value || "",
@@ -860,6 +885,11 @@ export default function EditWorkout() {
           recommended_band_level: item.band || null,
           detail_fields: item.detail_fields.length > 0 ? item.detail_fields : null,
           is_unilateral: !!item.is_unilateral,
+          equipment: item.equipment || null,
+          side_mode: item.side_mode,
+          form_cue_start: item.form_cue_start || null,
+          form_cue_mid: item.form_cue_mid || null,
+          form_cue_switch: item.form_cue_switch || null,
         }));
 
       if (exercisesToInsert.length > 0) {
@@ -1005,7 +1035,7 @@ export default function EditWorkout() {
               />
               {groupItems.map((gi) => (
                 <div key={gi.id} onClick={(event) => event.stopPropagation()}>
-                  <ExerciseRow item={gi} exerciseInfo={getExerciseById(gi.exercise_id)} onUpdate={updateItem} onToggleSelect={toggleSelect} onEditDetailFields={setEditingDetailFieldsId} onEditDetailValue={setEditingDetailValue} onDuplicate={duplicateOne} onDelete={deleteOne} onPasteForward={setPasteForwardSourceId} />
+                  <ExerciseRow item={gi} exerciseInfo={getExerciseById(gi.exercise_id)} onUpdate={updateItem} onToggleSelect={toggleSelect} onEditDetailFields={setEditingDetailFieldsId} onEditDetailValue={setEditingDetailValue} onDuplicate={duplicateOne} onDelete={deleteOne} onPasteForward={setPasteForwardSourceId} coachVoiceId={coachVoiceId} />
                 </div>
               ))}
               <div className="px-3 py-3" onClick={(event) => event.stopPropagation()}>
@@ -1023,7 +1053,7 @@ export default function EditWorkout() {
       }
 
       if (!item.group_id) {
-        rendered.push(<ExerciseRow key={item.id} item={item} exerciseInfo={getExerciseById(item.exercise_id)} onUpdate={updateItem} onToggleSelect={toggleSelect} onEditDetailFields={setEditingDetailFieldsId} onEditDetailValue={setEditingDetailValue} onDuplicate={duplicateOne} onDelete={deleteOne} onPasteForward={setPasteForwardSourceId} />);
+        rendered.push(<ExerciseRow key={item.id} item={item} exerciseInfo={getExerciseById(item.exercise_id)} onUpdate={updateItem} onToggleSelect={toggleSelect} onEditDetailFields={setEditingDetailFieldsId} onEditDetailValue={setEditingDetailValue} onDuplicate={duplicateOne} onDelete={deleteOne} onPasteForward={setPasteForwardSourceId} coachVoiceId={coachVoiceId} />);
       }
     }
 
@@ -1479,11 +1509,11 @@ export default function EditWorkout() {
           setInstructions(description);
           setCategory(cat);
           setDifficulty(diff as any);
-          setExerciseItems(items.map(i => ({ ...i, detail_fields: (i as any).detail_fields || [], weight_lbs: (i as any).weight_lbs || "", tempo: (i as any).tempo || "", rpe: (i as any).rpe || "", distance: (i as any).distance || "", band: (i as any).band || "" })));
+          setExerciseItems(items.map(i => ({ ...i, detail_fields: (i as any).detail_fields || [], weight_lbs: (i as any).weight_lbs || "", tempo: (i as any).tempo || "", rpe: (i as any).rpe || "", distance: (i as any).distance || "", band: (i as any).band || "", is_unilateral: (i as any).is_unilateral ?? false, reps: (i as any).reps ?? 10, equipment: (i as any).equipment || "", side_mode: ((i as any).side_mode || ((i as any).is_unilateral ? "sequential" : "none")) as ExerciseSideMode, form_cue_start: (i as any).form_cue_start || "", form_cue_mid: (i as any).form_cue_mid || "", form_cue_switch: (i as any).form_cue_switch || "" })));
           setGroups(newGroups);
         }}
         onAddExercises={(items) => {
-          setExerciseItems((prev) => [...prev, ...items.map(i => ({ ...i, detail_fields: (i as any).detail_fields || [], weight_lbs: (i as any).weight_lbs || "", tempo: (i as any).tempo || "", rpe: (i as any).rpe || "", distance: (i as any).distance || "", band: (i as any).band || "" }))]);
+          setExerciseItems((prev) => [...prev, ...items.map(i => ({ ...i, detail_fields: (i as any).detail_fields || [], weight_lbs: (i as any).weight_lbs || "", tempo: (i as any).tempo || "", rpe: (i as any).rpe || "", distance: (i as any).distance || "", band: (i as any).band || "", is_unilateral: (i as any).is_unilateral ?? false, reps: (i as any).reps ?? 10, equipment: (i as any).equipment || "", side_mode: ((i as any).side_mode || ((i as any).is_unilateral ? "sequential" : "none")) as ExerciseSideMode, form_cue_start: (i as any).form_cue_start || "", form_cue_mid: (i as any).form_cue_mid || "", form_cue_switch: (i as any).form_cue_switch || "" }))]);
         }}
       />
 
