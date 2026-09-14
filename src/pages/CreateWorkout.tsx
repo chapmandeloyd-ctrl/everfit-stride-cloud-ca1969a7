@@ -1124,6 +1124,7 @@ export default function CreateWorkout() {
                     onDuplicate={duplicateOne}
                     onDelete={deleteOne}
                     onPasteForward={setPasteForwardSourceId}
+                    coachVoiceId={coachVoiceId}
                   />
                 </div>
               ))}

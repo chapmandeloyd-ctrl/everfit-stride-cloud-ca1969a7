@@ -1035,7 +1035,7 @@ export default function EditWorkout() {
               />
               {groupItems.map((gi) => (
                 <div key={gi.id} onClick={(event) => event.stopPropagation()}>
-                  <ExerciseRow item={gi} exerciseInfo={getExerciseById(gi.exercise_id)} onUpdate={updateItem} onToggleSelect={toggleSelect} onEditDetailFields={setEditingDetailFieldsId} onEditDetailValue={setEditingDetailValue} onDuplicate={duplicateOne} onDelete={deleteOne} onPasteForward={setPasteForwardSourceId} />
+                  <ExerciseRow item={gi} exerciseInfo={getExerciseById(gi.exercise_id)} onUpdate={updateItem} onToggleSelect={toggleSelect} onEditDetailFields={setEditingDetailFieldsId} onEditDetailValue={setEditingDetailValue} onDuplicate={duplicateOne} onDelete={deleteOne} onPasteForward={setPasteForwardSourceId} coachVoiceId={coachVoiceId} />
                 </div>
               ))}
               <div className="px-3 py-3" onClick={(event) => event.stopPropagation()}>
@@ -1053,7 +1053,7 @@ export default function EditWorkout() {
       }
 
       if (!item.group_id) {
-        rendered.push(<ExerciseRow key={item.id} item={item} exerciseInfo={getExerciseById(item.exercise_id)} onUpdate={updateItem} onToggleSelect={toggleSelect} onEditDetailFields={setEditingDetailFieldsId} onEditDetailValue={setEditingDetailValue} onDuplicate={duplicateOne} onDelete={deleteOne} onPasteForward={setPasteForwardSourceId} />);
+        rendered.push(<ExerciseRow key={item.id} item={item} exerciseInfo={getExerciseById(item.exercise_id)} onUpdate={updateItem} onToggleSelect={toggleSelect} onEditDetailFields={setEditingDetailFieldsId} onEditDetailValue={setEditingDetailValue} onDuplicate={duplicateOne} onDelete={deleteOne} onPasteForward={setPasteForwardSourceId} coachVoiceId={coachVoiceId} />);
       }
     }
 
