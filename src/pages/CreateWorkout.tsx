@@ -376,27 +376,29 @@ function ExerciseLibraryCard({ exercise, onAdd }: { exercise: any; onAdd: () => 
             alt={exercise.name}
             className="absolute inset-0 w-full h-full object-cover"
             loading="lazy"
+            decoding="async"
             style={{ opacity: isHovered && exercise.video_url ? 0 : 1, transition: "opacity 0.15s" }}
           />
         )}
-        {!thumbnail && !exercise.video_url && (
-          <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+        {!thumbnail && (
+          <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
             <GripVertical className="h-8 w-8 opacity-20" />
           </div>
         )}
-        {/* Always-mounted video for instant hover play */}
-        {exercise.video_url && (
+        {/* Video mounts only on hover so 800 cards don't all download at once */}
+        {isHovered && exercise.video_url && (
           <video
             ref={videoRef}
             src={exercise.video_url}
-            preload="auto"
+            preload="metadata"
             muted
             playsInline
             loop
+            autoPlay
             className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-            style={{ opacity: isHovered ? 1 : 0, transition: "opacity 0.15s" }}
           />
         )}
+
         {/* Hover overlay with plus icon */}
         <div
           className="absolute inset-0 bg-primary/10 flex items-center justify-center z-[2] pointer-events-none"
