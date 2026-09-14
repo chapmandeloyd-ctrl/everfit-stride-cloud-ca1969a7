@@ -200,7 +200,7 @@ const handler = async (req: Request): Promise<Response> => {
   } catch (error: any) {
     console.error("Error in create-client function:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: "Unable to create the client account. Please try again." }),
       {
         status: 400,
         headers: { "Content-Type": "application/json", ...corsHeaders },
