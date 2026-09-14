@@ -158,6 +158,17 @@ export function getBlockType(id: string): WorkoutBlockType {
   return WORKOUT_BLOCK_TYPES.find((b) => b.id === id) || WORKOUT_BLOCK_TYPES[WORKOUT_BLOCK_TYPES.length - 1];
 }
 
+// How a block behaves in the player:
+// - "straight": each exercise runs its own sets (block-level Sets input is hidden)
+// - "superset" / "circuit": the block-level Sets value = rounds, per-exercise sets are ignored
+export type BlockKind = "straight" | "superset" | "circuit";
+
+export function getBlockKind(blockTypeId: string): BlockKind {
+  if (blockTypeId === "superset") return "superset";
+  if (blockTypeId === "circuit" || blockTypeId === "interval" || blockTypeId === "hiit") return "circuit";
+  return "straight";
+}
+
 /** Extract block type from a section name saved in the database */
 export function getBlockTypeFromSectionName(sectionName: string): WorkoutBlockType {
   // Check if section name starts with a known block type label
