@@ -728,6 +728,28 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [steps.length]);
 
+  // Skip the rest of the current block and jump to the first step of the next one
+  const skipBlock = useCallback(() => {
+    if (stepTimerRef.current) clearInterval(stepTimerRef.current);
+    lastCountdownRef.current = -1;
+    setStepIdx((prev) => {
+      const current = steps[prev];
+      if (!current) return prev;
+      let next = prev + 1;
+      while (next < steps.length && steps[next].sectionIdx === current.sectionIdx) next++;
+      skippedEventsRef.current.push({
+        type: "block",
+        sectionIdx: current.sectionIdx,
+        at: new Date().toISOString(),
+      });
+      setStepTimer(next >= steps.length ? 0 : -1);
+      return Math.min(next, steps.length);
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [steps]);
+
+
+
   const startStepCountdown = useCallback((seconds: number) => {
     if (stepTimerRef.current) clearInterval(stepTimerRef.current);
     stepTimerDurationRef.current = seconds;
