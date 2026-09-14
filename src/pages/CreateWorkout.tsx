@@ -16,7 +16,7 @@ import { PasteFieldsSheet, type PasteableField } from "@/components/workout/Past
 import { useToast } from "@/hooks/use-toast";
 import { CreateFromTemplateDialog } from "@/components/CreateFromTemplateDialog";
 import { SortableGroupHeader } from "@/components/workout/SortableGroupHeader";
-import { getBlockType } from "@/lib/workoutBlockTypes";
+import { getBlockType, getBlockKind } from "@/lib/workoutBlockTypes";
 import { BlockTypePicker } from "@/components/workout/BlockTypePicker";
 import { BuildMethodChooser } from "@/components/workout/BuildMethodChooser";
 import { CoachVoicePicker, DEFAULT_COACH_VOICE_ID, speakWithCoachVoice } from "@/components/workout/CoachVoicePicker";
@@ -55,7 +55,7 @@ interface WorkoutExercise {
 
 interface ExerciseGroup {
   id: string;
-  type: "superset" | "circuit";
+  type: "superset" | "circuit" | "straight";
   sets: number;
   block_type?: string;
   custom_name?: string;
@@ -477,9 +477,19 @@ export default function CreateWorkout() {
     }
 
     // Grouped circuits/supersets: exercise duration * rounds + rest_between_rounds * (rounds - 1)
+    // Straight blocks: each exercise runs its own sets, exactly like ungrouped items
     for (const groupId of groupIds) {
       const groupItems = exerciseItems.filter(i => i.group_id === groupId && i.exercise_type === "normal");
       const group = groups.find(g => g.id === groupId);
+
+      if (group?.type === "straight") {
+        for (const item of groupItems) {
+          const sets = item.sets || 1;
+          totalSeconds += (workSecondsFor(item, 40) + (item.rest_seconds || 30) + 3) * sets;
+        }
+        continue;
+      }
+
       const rounds = group?.sets || 1;
       // Find rest item inside the group for between-round rest
       const groupRestItem = exerciseItems.find(i => i.group_id === groupId && i.exercise_type === "rest");
@@ -576,10 +586,12 @@ export default function CreateWorkout() {
       return;
     }
     const ex = exercises?.find((e) => e.id === exerciseId);
+    const activeGroup = groups.find((g) => g.id === activeBlockId);
+    const isStraightBlock = activeGroup?.type === "straight";
     const newItem: WorkoutExercise = {
       id: crypto.randomUUID(),
       exercise_id: exerciseId,
-      sets: activeBlockId ? 1 : 3,
+      sets: !activeBlockId || isStraightBlock ? 3 : 1,
       target_type: "text",
       target_value: "",
       time_seconds: 30,
@@ -618,7 +630,7 @@ export default function CreateWorkout() {
   const createBlock = (
     blockType: { id: string; label: string },
     customName?: string,
-    blockKind: "superset" | "circuit" = "circuit",
+    blockKind: "superset" | "circuit" | "straight" = getBlockKind(blockType.id),
   ) => {
     const newGroupId = crypto.randomUUID();
     setGroups((prev) => [...prev, {
@@ -912,10 +924,10 @@ export default function CreateWorkout() {
         const supersetName = isGenericLabel ? `Block ${++blockNum}` : rawLabel.trim();
         sectionInserts.push({
           workout_plan_id: workout.id,
-          name: group.type === "superset" ? supersetName : "Circuit",
-          section_type: group.type,
+          name: supersetName,
+          section_type: group.type === "straight" ? "straight_set" : group.type,
           order_index: sectionIdx++,
-          rounds: group.sets,
+          rounds: group.type === "straight" ? 1 : group.sets,
           intro_text: group.intro_text?.trim() || null,
           rest_after_seconds: group.rest_after_seconds || null,
         });
@@ -932,7 +944,8 @@ export default function CreateWorkout() {
       const groupSections = new Map<string, string>();
       let groupIdx = 0;
       for (const group of nonEmptyGroups) {
-        const sec = sections.find((s) => s.section_type === group.type && s.order_index === (ungroupedItems.length > 0 ? groupIdx + 1 : groupIdx));
+        const mappedType = group.type === "straight" ? "straight_set" : group.type;
+        const sec = sections.find((s) => s.section_type === mappedType && s.name !== "Main" && s.order_index === (ungroupedItems.length > 0 ? groupIdx + 1 : groupIdx));
         if (sec) groupSections.set(group.id, sec.id);
         groupIdx++;
       }
@@ -1744,7 +1757,7 @@ export default function CreateWorkout() {
       <BlockTypePicker
         open={showBlockPicker}
         onOpenChange={setShowBlockPicker}
-        onSelect={(bt, customName) => createBlock(bt, customName, "circuit")}
+        onSelect={(bt, customName) => createBlock(bt, customName)}
       />
 
       {/* Detail Fields Sheet */}

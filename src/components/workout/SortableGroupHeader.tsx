@@ -9,7 +9,7 @@ import { BlockCoachPanel } from "@/components/workout/BlockCoachPanel";
 
 interface SortableGroupHeaderProps {
   groupId: string;
-  groupType: "superset" | "circuit";
+  groupType: "superset" | "circuit" | "straight";
   blockNumber: number;
   sets: number;
   allSelected: boolean;
@@ -78,16 +78,20 @@ export function SortableGroupHeader({
           </p>
         )}
       </div>
-      <span className="text-xs text-muted-foreground ml-2">
-        {groupType === "superset" ? "Rounds" : "Sets"}
-      </span>
-      <Input
-        type="number"
-        value={sets}
-        onChange={(e) => onUpdateSets(parseInt(e.target.value) || 1)}
-        className="h-7 w-14 text-sm text-center"
-        min={1}
-      />
+      {groupType !== "straight" && (
+        <>
+          <span className="text-xs text-muted-foreground ml-2">
+            {groupType === "superset" ? "Rounds" : "Sets"}
+          </span>
+          <Input
+            type="number"
+            value={sets}
+            onChange={(e) => onUpdateSets(parseInt(e.target.value) || 1)}
+            className="h-7 w-14 text-sm text-center"
+            min={1}
+          />
+        </>
+      )}
       <div className="flex-1" />
       <Button variant="link" size="sm" className="text-primary text-xs p-0 h-auto" onClick={onUngroup}>
         Ungroup
