@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, X, GripVertical, Copy, Trash2, Timer, FileText, Clock, Sparkles, ArrowDown } from "lucide-react";
+import { Search, Plus, X, GripVertical, Copy, Trash2, Timer, FileText, Clock, Sparkles, ArrowDown, ChevronLeft, Layers, Volume2, Loader2, Upload } from "lucide-react";
 import { ExerciseDetailSheet, type DetailField } from "@/components/workout/ExerciseDetailSheet";
 import { DetailValueSheet } from "@/components/workout/DetailValueSheet";
 import { PasteFieldsSheet, type PasteableField } from "@/components/workout/PasteFieldsSheet";
