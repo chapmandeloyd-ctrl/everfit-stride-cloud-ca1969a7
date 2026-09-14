@@ -25,6 +25,7 @@ interface SortableGroupHeaderProps {
   coachVoiceId?: string | null;
   exerciseNames?: string[];
   exerciseCount?: number;
+  onDeleteBlock?: () => void;
 }
 
 export function SortableGroupHeader({
