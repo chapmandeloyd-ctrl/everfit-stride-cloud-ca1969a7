@@ -59,6 +59,9 @@ function isUnilateralByName(name?: string): boolean {
 
 function isUnilateralExercise(ex?: Exercise | null): boolean {
   if (!ex) return false;
+  // Explicit side setting from the builder always wins
+  if (ex.side_mode === "none") return false;
+  if (ex.side_mode === "sequential" || ex.side_mode === "alternating") return true;
   if (ex.is_unilateral) return true;
   return isUnilateralByName(ex.exercise_name);
 }
