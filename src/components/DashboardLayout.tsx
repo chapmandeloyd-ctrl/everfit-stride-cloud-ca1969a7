@@ -148,7 +148,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               </DropdownMenu>
             </div>
           </header>
-          <main className="flex-1 overflow-auto min-w-0">
+          <main className="flex-1 overflow-y-auto overflow-x-hidden min-w-0 max-w-full">
             {children}
           </main>
         </div>
