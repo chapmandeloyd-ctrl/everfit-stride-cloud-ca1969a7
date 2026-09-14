@@ -320,6 +320,10 @@ export default function EditWorkout() {
   const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
   const [coachVoiceId, setCoachVoiceId] = useState<string>(DEFAULT_COACH_VOICE_ID);
   const [outroText, setOutroText] = useState("");
+  const [equipmentTags, setEquipmentTags] = useState<string[]>([]);
+  const [equipmentInput, setEquipmentInput] = useState("");
+  const [testingSample, setTestingSample] = useState(false);
+  const [aiFilling, setAiFilling] = useState(false);
   const [videoUrl, setVideoUrl] = useState("");
 
   const [exerciseItems, setExerciseItems] = useState<WorkoutExercise[]>([]);
