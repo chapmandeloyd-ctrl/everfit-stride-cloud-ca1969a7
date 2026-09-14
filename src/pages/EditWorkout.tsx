@@ -1130,9 +1130,9 @@ export default function EditWorkout() {
       </div>
 
       {/* Main Content */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 flex-col overflow-y-auto md:flex-row md:overflow-hidden">
         {/* Left Panel - Builder */}
-        <div className="flex-1 flex flex-col overflow-y-auto border-r">
+        <div className="flex min-w-0 flex-col border-b md:flex-1 md:overflow-y-auto md:border-b-0 md:border-r">
           <div className="p-4 md:p-6 space-y-8">
             {/* Instructions */}
             <section className="space-y-2">
@@ -1364,7 +1364,7 @@ export default function EditWorkout() {
         </div>
 
         {/* Right Panel - Exercise Library */}
-        <div className="w-[520px] flex flex-col overflow-hidden">
+        <div className="flex w-full shrink-0 flex-col md:w-[520px] md:overflow-hidden">
           <div className="p-3 border-b space-y-2">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
