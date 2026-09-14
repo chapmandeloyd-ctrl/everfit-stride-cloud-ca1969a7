@@ -49,6 +49,7 @@ interface ExerciseGroup {
   sets: number;
   block_type?: string;
   custom_name?: string;
+  intro_text?: string;
 }
 
 const REST_OPTIONS = [
@@ -805,6 +806,7 @@ export default function EditWorkout() {
           section_type: group.type,
           order_index: sectionIdx++,
           rounds: group.sets,
+          intro_text: group.intro_text?.trim() || null,
         });
       }
 
@@ -924,6 +926,8 @@ export default function EditWorkout() {
                 onUngroup={() => ungroupItems(group.id)}
                 blockTypeId={group.block_type}
                 customName={group.custom_name}
+                introText={group.intro_text}
+                onUpdateIntro={(value) => updateGroupIntro(group.id, value)}
               />
               {groupItems.map((gi) => (
                 <ExerciseRow key={gi.id} item={gi} exerciseInfo={getExerciseById(gi.exercise_id)} onUpdate={updateItem} onToggleSelect={toggleSelect} onEditDetailFields={setEditingDetailFieldsId} onEditDetailValue={setEditingDetailValue} onDuplicate={duplicateOne} onDelete={deleteOne} onPasteForward={setPasteForwardSourceId} />
