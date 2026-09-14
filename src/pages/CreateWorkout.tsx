@@ -18,6 +18,7 @@ import { CreateFromTemplateDialog } from "@/components/CreateFromTemplateDialog"
 import { SortableGroupHeader } from "@/components/workout/SortableGroupHeader";
 import { getBlockType } from "@/lib/workoutBlockTypes";
 import { BlockTypePicker } from "@/components/workout/BlockTypePicker";
+import { BuildMethodChooser } from "@/components/workout/BuildMethodChooser";
 import { CoachVoicePicker, DEFAULT_COACH_VOICE_ID } from "@/components/workout/CoachVoicePicker";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -448,6 +449,7 @@ export default function CreateWorkout() {
   const [editingDetailValue, setEditingDetailValue] = useState<{ id: string; field: DetailField } | null>(null);
   const [pasteForwardSourceId, setPasteForwardSourceId] = useState<string | null>(null);
   const [showBlockPicker, setShowBlockPicker] = useState(false);
+  const [methodChooserOpen, setMethodChooserOpen] = useState(true);
   const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
@@ -1499,6 +1501,19 @@ export default function CreateWorkout() {
         }}
         onAddExercises={(items) => {
           setExerciseItems((prev) => [...prev, ...items.map(i => ({ ...i, detail_fields: (i as any).detail_fields || [], weight_lbs: (i as any).weight_lbs || "", tempo: (i as any).tempo || "", rpe: (i as any).rpe || "", distance: (i as any).distance || "", band: (i as any).band || "", is_unilateral: (i as any).is_unilateral ?? false }))]);
+        }}
+      />
+
+      <BuildMethodChooser
+        open={methodChooserOpen}
+        onOpenChange={setMethodChooserOpen}
+        onChooseAI={() => {
+          setMethodChooserOpen(false);
+          setAiBuilderOpen(true);
+        }}
+        onChooseManual={() => {
+          setMethodChooserOpen(false);
+          setShowBlockPicker(true);
         }}
       />
 
