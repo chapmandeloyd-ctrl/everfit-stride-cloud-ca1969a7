@@ -32,6 +32,12 @@ serve(async (req) => {
       });
     }
 
+    if (!isServiceRoleRequest(req)) {
+      const auth = await requireUser(req, corsHeaders);
+      if ("response" in auth) return auth.response;
+      if (!(await canActForClient(auth.user.id, client_id))) return forbidden(corsHeaders);
+    }
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const admin = createClient(supabaseUrl, serviceKey);

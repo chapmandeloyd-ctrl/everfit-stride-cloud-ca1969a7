@@ -62,6 +62,12 @@ serve(async (req) => {
       });
     }
 
+    if (!isServiceRoleRequest(req)) {
+      const auth = await requireUser(req, corsHeaders);
+      if ("response" in auth) return auth.response;
+      if (!(await canActForClient(auth.user.id, client_id))) return forbidden(corsHeaders);
+    }
+
     // Look up client + trainer + fast info
     const { data: settings, error: sErr } = await supabase
       .from("client_feature_settings")
