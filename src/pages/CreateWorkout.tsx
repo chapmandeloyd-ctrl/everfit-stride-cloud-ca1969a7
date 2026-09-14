@@ -18,6 +18,7 @@ import { CreateFromTemplateDialog } from "@/components/CreateFromTemplateDialog"
 import { SortableGroupHeader } from "@/components/workout/SortableGroupHeader";
 import { getBlockType } from "@/lib/workoutBlockTypes";
 import { BlockTypePicker } from "@/components/workout/BlockTypePicker";
+import { BuildMethodChooser } from "@/components/workout/BuildMethodChooser";
 import { CoachVoicePicker, DEFAULT_COACH_VOICE_ID } from "@/components/workout/CoachVoicePicker";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
