@@ -394,6 +394,31 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
   const startedAtRef = useRef(dbStartedAt ?? new Date().toISOString());
   const [setLogs, setSetLogs] = useState<Record<string, SetLog>>(resumeSetLogs || {});
   const [isLocked, setIsLocked] = useState(false);
+  const [endReason, setEndReason] = useState<string>("");
+  const skippedEventsRef = useRef<any[]>([]);
+
+  // Keep the screen awake for the whole session (browsers that support it)
+  useEffect(() => {
+    let sentinel: any = null;
+    let cancelled = false;
+    const request = async () => {
+      try {
+        const nav: any = navigator;
+        if (!nav.wakeLock?.request) return;
+        sentinel = await nav.wakeLock.request("screen");
+        if (cancelled) { sentinel.release?.(); sentinel = null; }
+      } catch {}
+    };
+    const onVisible = () => { if (document.visibilityState === "visible" && !sentinel) void request(); };
+    void request();
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      cancelled = true;
+      document.removeEventListener("visibilitychange", onVisible);
+      try { sentinel?.release?.(); } catch {}
+    };
+  }, []);
+
 
   // Unlock audio on mount + first user interaction (mobile Safari/Chrome requirement)
   useEffect(() => {
