@@ -1470,7 +1470,10 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
                 <Lock className="h-5 w-5" />
               </Button>
             </div>
-            <div className="flex justify-center mt-2">
+            <div className="flex justify-center items-center gap-3 mt-2">
+              <Button variant="ghost" size="sm" className="text-muted-foreground text-xs" onClick={skipBlock}>
+                <SkipForward className="h-3 w-3 mr-1" /> Skip Block
+              </Button>
               <Button variant="ghost" size="sm" className="text-destructive/60 text-xs" onClick={() => setShowDiscardDialog(true)}>
                 <Square className="h-3 w-3 mr-1" /> End Workout
               </Button>
@@ -1500,6 +1503,18 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
                 You're {completedPercent}% through this workout. What would you like to do?
               </AlertDialogDescription>
             </AlertDialogHeader>
+            <div className="flex flex-wrap gap-2 py-1">
+              {END_REASONS.map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => setEndReason((prev) => (prev === r ? "" : r))}
+                  className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${endReason === r ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground hover:bg-muted"}`}
+                >
+                  {r}
+                </button>
+              ))}
+            </div>
             <AlertDialogFooter className="flex-col gap-2 sm:flex-col">
               <AlertDialogAction onClick={handleEndEarly}>
                 Save & End ({completedPercent}% Complete)
@@ -1815,7 +1830,10 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
             </Button>
           </div>
 
-          <div className="flex justify-center mt-2">
+          <div className="flex justify-center items-center gap-3 mt-2">
+            <Button variant="ghost" size="sm" className="text-muted-foreground text-xs" onClick={skipBlock}>
+              <SkipForward className="h-3 w-3 mr-1" /> Skip Block
+            </Button>
             <Button
               variant="ghost"
               size="sm"
@@ -1850,6 +1868,18 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
               You're {completedPercent}% through this workout. What would you like to do?
             </AlertDialogDescription>
           </AlertDialogHeader>
+          <div className="flex flex-wrap gap-2 py-1">
+            {END_REASONS.map((r) => (
+              <button
+                key={r}
+                type="button"
+                onClick={() => setEndReason((prev) => (prev === r ? "" : r))}
+                className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${endReason === r ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground hover:bg-muted"}`}
+              >
+                {r}
+              </button>
+            ))}
+          </div>
           <AlertDialogFooter className="flex-col gap-2 sm:flex-col">
             <AlertDialogAction onClick={handleEndEarly}>
               Save & End ({completedPercent}% Complete)
