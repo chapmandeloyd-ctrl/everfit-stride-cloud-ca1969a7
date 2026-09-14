@@ -50,12 +50,37 @@ const handler = async (req: Request): Promise<Response> => {
     } = await supabaseClient.auth.getUser();
 
     if (authError || !trainer) {
-      throw new Error("Unauthorized");
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
     }
 
-    const { email, fullName, password, loginUrl }: CreateClientRequest = await req.json();
+    // Server-side role check: only trainers may create client accounts
+    const { data: callerProfile } = await supabaseClient
+      .from("profiles")
+      .select("role")
+      .eq("id", trainer.id)
+      .single();
 
-    console.log("Creating client:", { email, fullName, trainerId: trainer.id });
+    if (callerProfile?.role !== "trainer") {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    const parsed = createClientSchema.safeParse(await req.json().catch(() => ({})));
+    if (!parsed.success) {
+      return new Response(
+        JSON.stringify({ error: "Invalid input", details: parsed.error.flatten().fieldErrors }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+    const { email, fullName, password } = parsed.data;
+
+    console.log("Creating client for trainer:", trainer.id);
+
 
     // Create the Supabase admin client
     const supabaseAdmin = createClient(
