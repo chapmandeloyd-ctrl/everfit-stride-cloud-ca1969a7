@@ -20,6 +20,7 @@ import { getBlockType } from "@/lib/workoutBlockTypes";
 import { BlockTypePicker } from "@/components/workout/BlockTypePicker";
 import { BuildMethodChooser } from "@/components/workout/BuildMethodChooser";
 import { CoachVoicePicker, DEFAULT_COACH_VOICE_ID, speakWithCoachVoice } from "@/components/workout/CoachVoicePicker";
+import { ExerciseCoachCues, type ExerciseSideMode } from "@/components/workout/ExerciseCoachCues";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
@@ -44,6 +45,12 @@ interface WorkoutExercise {
   distance: string;
   band: string;
   is_unilateral: boolean;
+  reps: number | null;
+  equipment: string;
+  side_mode: ExerciseSideMode;
+  form_cue_start: string;
+  form_cue_mid: string;
+  form_cue_switch: string;
 }
 
 interface ExerciseGroup {
@@ -104,6 +111,7 @@ function ExerciseRow({
   onDuplicate,
   onDelete,
   onPasteForward,
+  coachVoiceId,
 }: {
   item: WorkoutExercise;
   exerciseInfo: any;
@@ -114,6 +122,7 @@ function ExerciseRow({
   onDuplicate?: (id: string) => void;
   onDelete?: (id: string) => void;
   onPasteForward?: (id: string) => void;
+  coachVoiceId?: string | null;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
 
@@ -153,7 +162,7 @@ function ExerciseRow({
 
   return (
     <>
-    <div ref={setNodeRef} style={style} className="flex flex-wrap items-center gap-2 px-3 py-2 border-b hover:bg-muted/30 transition-colors">
+    <div ref={setNodeRef} style={style} className="flex flex-wrap items-center gap-2 px-3 py-2 hover:bg-muted/30 transition-colors">
       <Checkbox checked={item.selected} onCheckedChange={() => onToggleSelect(item.id)} className="shrink-0" />
 
       {/* Thumbnail - show video if available */}
@@ -180,39 +189,18 @@ function ExerciseRow({
         {exerciseInfo?.name || "Unknown"}
       </span>
 
-      {/* Sets - only for ungrouped exercises (grouped ones use the group header sets) */}
-      {!item.group_id && (
-        <>
-          <Input
-            type="number"
-            value={item.sets}
-            onChange={(e) => onUpdate(item.id, { sets: parseInt(e.target.value) || 1 })}
-            className="h-9 w-14 text-center text-sm shrink-0"
-            min={1}
-          />
-          <span className="text-muted-foreground text-xs shrink-0">×</span>
-        </>
-      )}
-
-      <Select value={item.target_type} onValueChange={(v: "text" | "time") => onUpdate(item.id, { target_type: v })}>
-        <SelectTrigger className="h-9 w-14 text-xs px-2">
-          <SelectValue>
-            {item.target_type === "text" ? <FileText className="h-4 w-4" /> : <Clock className="h-4 w-4" />}
-          </SelectValue>
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="text">
-            <span className="flex items-center gap-1.5"><FileText className="h-3.5 w-3.5" /> Text</span>
-          </SelectItem>
-          <SelectItem value="time">
-            <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> Time</span>
-          </SelectItem>
-        </SelectContent>
-      </Select>
+      <div className="inline-flex overflow-hidden rounded-md border border-border shrink-0">
+        <Button type="button" variant={item.target_type === "text" ? "default" : "ghost"} size="sm" className="h-8 rounded-none px-2 text-[10px]" onClick={() => onUpdate(item.id, { target_type: "text", reps: item.reps || 10 })}>Reps</Button>
+        <Button type="button" variant={item.target_type === "time" ? "default" : "ghost"} size="sm" className="h-8 rounded-none border-l px-2 text-[10px]" onClick={() => onUpdate(item.id, { target_type: "time", time_seconds: item.time_seconds || 30 })}>Timer</Button>
+      </div>
 
       {/* Conditional target fields */}
       {item.target_type === "time" ? (
         <>
+          <div className="flex flex-col items-start gap-0.5">
+            <span className="text-[10px] font-semibold uppercase text-muted-foreground leading-none">Sets</span>
+            <Input type="number" value={item.sets} min={1} onChange={(e) => onUpdate(item.id, { sets: parseInt(e.target.value) || 1 })} className="h-9 w-14 text-center text-sm" />
+          </div>
           <div className="flex flex-col items-start gap-0.5">
             <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground leading-none">Work</span>
             <Select value={String(item.time_seconds || 30)} onValueChange={(v) => onUpdate(item.id, { time_seconds: parseInt(v) })}>
@@ -239,21 +227,11 @@ function ExerciseRow({
               </SelectContent>
             </Select>
           </div>
-          <Input
-            value={item.target_value}
-            onChange={(e) => onUpdate(item.id, { target_value: e.target.value })}
-            placeholder="reps, tempo, etc"
-            className="h-9 flex-1 text-sm min-w-0"
-          />
         </>
       ) : (
         <>
-          <Input
-            value={item.target_value}
-            onChange={(e) => onUpdate(item.id, { target_value: e.target.value })}
-            placeholder="reps, weight, tempo, etc"
-            className="h-9 flex-1 text-sm min-w-0"
-          />
+          <div className="flex flex-col items-start gap-0.5"><span className="text-[10px] font-semibold uppercase text-muted-foreground leading-none">Sets</span><Input type="number" value={item.sets} min={1} onChange={(e) => onUpdate(item.id, { sets: parseInt(e.target.value) || 1 })} className="h-9 w-14 text-center text-sm" /></div>
+          <div className="flex flex-col items-start gap-0.5"><span className="text-[10px] font-semibold uppercase text-muted-foreground leading-none">Reps</span><Input type="number" value={item.reps || ""} min={1} onChange={(e) => onUpdate(item.id, { reps: parseInt(e.target.value) || null })} className="h-9 w-14 text-center text-sm" /></div>
           <div className="flex flex-col items-start gap-0.5">
             <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground leading-none">Rest</span>
             <Select value={String(item.rest_seconds)} onValueChange={(v) => onUpdate(item.id, { rest_seconds: parseInt(v) })}>
@@ -271,16 +249,6 @@ function ExerciseRow({
       )}
 
       <div className="ml-auto flex items-center gap-1 shrink-0">
-        {item.exercise_type === "normal" && (
-          <button
-            type="button"
-            onClick={() => onUpdate(item.id, { is_unilateral: !item.is_unilateral })}
-            title={item.is_unilateral ? "Unilateral on — voice will cue right side, then left" : "Tap to mark single-side (R/L)"}
-            className={`px-2 h-7 rounded-full border text-[11px] font-semibold transition-colors ${item.is_unilateral ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground hover:border-primary hover:text-primary"}`}
-          >
-            R/L
-          </button>
-        )}
         {item.exercise_type === "normal" && (
           <button
             type="button"
@@ -314,7 +282,7 @@ function ExerciseRow({
     </div>
     {/* Detail field chips row - aligned under exercise name */}
     {item.exercise_type === "normal" && (
-      <div className="flex items-center gap-1.5 pl-[84px] pr-3 pb-2 flex-wrap border-b bg-background -mt-px">
+      <div className="flex items-center gap-1.5 pl-[84px] pr-3 pb-2 flex-wrap bg-background -mt-px">
         <button onClick={() => onEditDetailValue?.({ id: item.id, field: "weight" })} className="px-2.5 py-0.5 rounded-full border border-primary/30 bg-primary/5 text-[11px] font-medium text-primary hover:bg-primary/10 transition-colors">
           {item.weight_lbs ? `Rx ${item.weight_lbs} lbs` : "+ Rx Weight"}
         </button>
@@ -340,6 +308,20 @@ function ExerciseRow({
           </button>
         )}
       </div>
+    )}
+    {item.exercise_type === "normal" && (
+      <ExerciseCoachCues
+        exerciseName={exerciseInfo?.name || "This exercise"}
+        sets={item.sets}
+        reps={item.reps}
+        workSeconds={item.target_type === "time" ? item.time_seconds : null}
+        sideMode={item.side_mode}
+        startCue={item.form_cue_start}
+        midCue={item.form_cue_mid}
+        switchCue={item.form_cue_switch}
+        coachVoiceId={coachVoiceId}
+        onChange={(updates) => onUpdate(item.id, { ...updates, is_unilateral: updates.side_mode ? updates.side_mode !== "none" : item.is_unilateral })}
+      />
     )}
   </>
   );
@@ -612,6 +594,12 @@ export default function CreateWorkout() {
       distance: "",
       band: "",
       is_unilateral: !!ex?.is_unilateral,
+      reps: 10,
+      equipment: "",
+      side_mode: ex?.is_unilateral ? "sequential" : "none",
+      form_cue_start: "",
+      form_cue_mid: "",
+      form_cue_switch: ex?.is_unilateral ? "Switch to your left side" : "",
     };
     if (activeBlockId) {
       setExerciseItems((prev) => {
@@ -666,6 +654,12 @@ export default function CreateWorkout() {
       distance: "",
       band: "",
       is_unilateral: false,
+      reps: null,
+      equipment: "",
+      side_mode: "none",
+      form_cue_start: "",
+      form_cue_mid: "",
+      form_cue_switch: "",
     };
     setExerciseItems((prev) => [...prev, newItem]);
   };
@@ -946,7 +940,7 @@ export default function CreateWorkout() {
           exercise_id: item.exercise_id,
           order_index: index,
           sets: item.sets,
-          reps: item.target_type === "text" ? null : null,
+          reps: item.target_type === "text" ? item.reps : null,
           duration_seconds: item.target_type === "time" ? item.time_seconds : null,
           rest_seconds: item.rest_seconds,
           notes: item.target_value || "",
@@ -958,6 +952,11 @@ export default function CreateWorkout() {
           recommended_band_level: item.band || null,
           detail_fields: item.detail_fields.length > 0 ? item.detail_fields : null,
           is_unilateral: item.is_unilateral,
+          equipment: item.equipment || null,
+          side_mode: item.side_mode,
+          form_cue_start: item.form_cue_start || null,
+          form_cue_mid: item.form_cue_mid || null,
+          form_cue_switch: item.form_cue_switch || null,
         }));
 
       if (exercisesToInsert.length > 0) {
