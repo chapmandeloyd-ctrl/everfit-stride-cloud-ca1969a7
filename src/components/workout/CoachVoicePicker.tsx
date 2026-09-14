@@ -28,13 +28,23 @@ export function CoachVoicePicker({ value, onChange, className }: CoachVoicePicke
   const playPreview = async () => {
     setPreviewing(true);
     try {
-      const { data, error } = await supabase.functions.invoke("elevenlabs-tts", {
-        body: { text: "Let's get to work. Three, two, one, go!", voiceId: value || DEFAULT_COACH_VOICE_ID },
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      const response = await fetch(`${supabaseUrl}/functions/v1/elevenlabs-tts`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`,
+        },
+        body: JSON.stringify({
+          text: "Let's get to work. Three, two, one, go!",
+          voiceId: value || DEFAULT_COACH_VOICE_ID,
+        }),
       });
-      if (error) throw error;
-      const base64 = (data as any)?.audioContent;
-      if (!base64) throw new Error("No audio returned");
-      const audio = new Audio(`data:audio/mpeg;base64,${base64}`);
+      if (!response.ok) throw new Error("Voice preview failed");
+      const blob = await response.blob();
+      const audio = new Audio(URL.createObjectURL(blob));
       await audio.play();
     } catch (e: any) {
       toast({ title: "Preview unavailable", description: e.message, variant: "destructive" });
