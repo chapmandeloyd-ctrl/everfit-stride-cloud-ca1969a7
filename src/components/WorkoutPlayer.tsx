@@ -470,6 +470,10 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
   useEffect(() => { stepIdxRef.current = stepIdx; }, [stepIdx]);
   useEffect(() => { isPausedRef.current = isPaused; }, [isPaused]);
 
+  // Blocks whose spoken coach intro has already played, and mid-exercise cues already spoken
+  const spokenIntrosRef = useRef<Set<number>>(new Set());
+  const spokenMidCueRef = useRef<string>("");
+
   // Reset side when step changes (init to 'right' for unilateral, null otherwise)
   useEffect(() => {
     if (phase !== "playing") return;
