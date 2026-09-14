@@ -111,9 +111,11 @@ function ExerciseRow({
   onDelete,
   onPasteForward,
   coachVoiceId,
+  hideSets,
 }: {
   item: WorkoutExercise;
   exerciseInfo: any;
+  hideSets?: boolean;
   onUpdate: (id: string, updates: Partial<WorkoutExercise>) => void;
   onToggleSelect: (id: string) => void;
   onEditDetailFields?: (id: string) => void;
@@ -184,7 +186,7 @@ function ExerciseRow({
       </div>
       {item.target_type === "time" ? (
         <>
-          <div className="flex flex-col items-start gap-0.5"><span className="text-[10px] font-semibold uppercase text-muted-foreground leading-none">Sets</span><Input type="number" value={item.sets} min={1} onChange={(e) => onUpdate(item.id, { sets: parseInt(e.target.value) || 1 })} className="h-9 w-14 text-center text-sm" /></div>
+          {!hideSets && (<div className="flex flex-col items-start gap-0.5"><span className="text-[10px] font-semibold uppercase text-muted-foreground leading-none">Sets</span><Input type="number" value={item.sets} min={1} onChange={(e) => onUpdate(item.id, { sets: parseInt(e.target.value) || 1 })} className="h-9 w-14 text-center text-sm" /></div>)}
           <div className="flex flex-col items-start gap-0.5">
             <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground leading-none">Work</span>
             <Select value={String(item.time_seconds || 30)} onValueChange={(v) => onUpdate(item.id, { time_seconds: parseInt(v) })}>
@@ -206,7 +208,7 @@ function ExerciseRow({
         </>
       ) : (
         <>
-          <div className="flex flex-col items-start gap-0.5"><span className="text-[10px] font-semibold uppercase text-muted-foreground leading-none">Sets</span><Input type="number" value={item.sets} min={1} onChange={(e) => onUpdate(item.id, { sets: parseInt(e.target.value) || 1 })} className="h-9 w-14 text-center text-sm" /></div>
+          {!hideSets && (<div className="flex flex-col items-start gap-0.5"><span className="text-[10px] font-semibold uppercase text-muted-foreground leading-none">Sets</span><Input type="number" value={item.sets} min={1} onChange={(e) => onUpdate(item.id, { sets: parseInt(e.target.value) || 1 })} className="h-9 w-14 text-center text-sm" /></div>)}
           <div className="flex flex-col items-start gap-0.5"><span className="text-[10px] font-semibold uppercase text-muted-foreground leading-none">Reps</span><Input type="number" value={item.reps || ""} min={1} onChange={(e) => onUpdate(item.id, { reps: parseInt(e.target.value) || null })} className="h-9 w-14 text-center text-sm" /></div>
           <div className="flex flex-col items-start gap-0.5">
             <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground leading-none">Rest</span>
@@ -1057,7 +1059,7 @@ export default function EditWorkout() {
               />
               {groupItems.map((gi) => (
                 <div key={gi.id} onClick={(event) => event.stopPropagation()}>
-                  <ExerciseRow item={gi} exerciseInfo={getExerciseById(gi.exercise_id)} onUpdate={updateItem} onToggleSelect={toggleSelect} onEditDetailFields={setEditingDetailFieldsId} onEditDetailValue={setEditingDetailValue} onDuplicate={duplicateOne} onDelete={deleteOne} onPasteForward={setPasteForwardSourceId} coachVoiceId={coachVoiceId} />
+                  <ExerciseRow item={gi} exerciseInfo={getExerciseById(gi.exercise_id)} onUpdate={updateItem} onToggleSelect={toggleSelect} onEditDetailFields={setEditingDetailFieldsId} onEditDetailValue={setEditingDetailValue} onDuplicate={duplicateOne} onDelete={deleteOne} onPasteForward={setPasteForwardSourceId} coachVoiceId={coachVoiceId} hideSets={getBlockKind(group.block_type || "custom") !== "straight"} />
                 </div>
               ))}
               <div className="px-3 py-3" onClick={(event) => event.stopPropagation()}>

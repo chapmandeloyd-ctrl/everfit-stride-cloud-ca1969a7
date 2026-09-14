@@ -76,6 +76,7 @@ interface Section {
   rest_between_rounds_seconds: number | null;
   notes: string;
   intro_text?: string | null;
+  rest_after_seconds?: number | null;
   exercises: Exercise[];
 }
 
@@ -197,6 +198,22 @@ function buildSteps(sections: Section[]): WorkoutStep[] {
             });
           }
         }
+      });
+    }
+    // Coach-planned water break before the next block
+    const waterBreak = section.rest_after_seconds || 0;
+    const hasLaterBlock = sections
+      .slice(sIdx + 1)
+      .some((s) => s.exercises && s.exercises.length > 0);
+    if (waterBreak > 0 && hasLaterBlock) {
+      steps.push({
+        type: "rest",
+        sectionIdx: sIdx,
+        exerciseIdx: Math.max(0, section.exercises.length - 1),
+        round: 1,
+        restSeconds: waterBreak,
+        label: `Water break ${waterBreak}s`,
+        isCircuit: false,
       });
     }
   });
