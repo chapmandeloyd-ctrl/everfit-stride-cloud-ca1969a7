@@ -606,7 +606,7 @@ export default function EditWorkout() {
     }
   };
 
-  const createBlock = (blockType: { id: string; label: string }, customName?: string, blockKind: "superset" | "circuit" = "circuit") => {
+  const createBlock = (blockType: { id: string; label: string }, customName?: string, blockKind: "superset" | "circuit" | "straight" = getBlockKind(blockType.id)) => {
     const newGroupId = crypto.randomUUID();
     setGroups((prev) => [...prev, {
       id: newGroupId,
@@ -850,10 +850,10 @@ export default function EditWorkout() {
         const supersetName = isGenericLabel ? `Block ${++blockNum}` : rawLabel.trim();
         sectionInserts.push({
           workout_plan_id: id,
-          name: group.type === "superset" ? supersetName : "Circuit",
-          section_type: group.type,
+          name: supersetName,
+          section_type: group.type === "straight" ? "straight_set" : group.type,
           order_index: sectionIdx++,
-          rounds: group.sets,
+          rounds: group.type === "straight" ? 1 : group.sets,
           intro_text: group.intro_text?.trim() || null,
           rest_after_seconds: group.rest_after_seconds || null,
         });
