@@ -1469,7 +1469,8 @@ export default function CreateWorkout() {
           })()}
 
           {/* Exercise List */}
-          <ScrollArea className="flex-1">
+          <div className="pb-24">
+
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <SortableContext items={sortableIds} strategy={verticalListSortingStrategy}>
                 {renderExerciseList()}
