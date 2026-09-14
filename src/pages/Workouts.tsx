@@ -240,28 +240,29 @@ export default function Workouts() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6">
+      <div className="p-4 sm:p-6 space-y-6 max-w-full overflow-x-hidden">
         {/* Header */}
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Workout Library</h1>
-            <p className="text-muted-foreground mt-1">Create and manage workout plans for your clients</p>
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Workout Library</h1>
+            <p className="text-sm sm:text-base text-muted-foreground mt-1">Create and manage workout plans for your clients</p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => navigate("/workout-templates")}>
+          <div className="grid grid-cols-2 gap-2 md:flex md:flex-wrap md:justify-end">
+            <Button variant="outline" className="w-full md:w-auto" onClick={() => navigate("/workout-templates")}>
               <BookTemplate className="h-4 w-4 mr-2" />
               Templates
             </Button>
-            <Button variant="outline" onClick={() => setProgramBuilderOpen(true)} className="gap-2">
+            <Button variant="outline" onClick={() => setProgramBuilderOpen(true)} className="w-full md:w-auto gap-2">
               <Sparkles className="h-4 w-4" />
-              AI Program Builder
+              <span className="truncate">AI Program Builder</span>
             </Button>
-            <Button size="lg" className="gap-2" onClick={() => navigate("/workouts/create")}>
+            <Button className="col-span-2 w-full md:w-auto gap-2" onClick={() => navigate("/workouts/create")}>
               <Plus className="h-4 w-4" />
               Create New Workout
             </Button>
           </div>
         </div>
+
 
         {/* Search and Filters */}
         <div className="flex flex-col gap-3 md:flex-row">
