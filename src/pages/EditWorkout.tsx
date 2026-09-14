@@ -878,6 +878,51 @@ export default function EditWorkout() {
     },
   });
 
+  const playTestSample = async () => {
+    setTestingSample(true);
+    try {
+      await speakWithCoachVoice(
+        "Alright, let's get to work. Next up: Warm-Up. Keep it smooth, three, two, one, go!",
+        coachVoiceId,
+      );
+    } catch (e: any) {
+      toast({ title: "Preview unavailable", description: e.message, variant: "destructive" });
+    } finally {
+      setTestingSample(false);
+    }
+  };
+
+  const runAIFill = async () => {
+    if (groups.length === 0) {
+      toast({ title: "Add a block first", description: "AI Fill writes block intros from your exercises." });
+      return;
+    }
+    setAiFilling(true);
+    try {
+      for (const g of groups) {
+        if (g.intro_text?.trim()) continue;
+        const bt = getBlockType(g.block_type || "custom");
+        const label = g.block_type === "custom" && g.custom_name ? g.custom_name : bt.label;
+        const names = exerciseItems
+          .filter((i) => i.group_id === g.id && i.exercise_type === "normal")
+          .map((i) => exercises?.find((e) => e.id === i.exercise_id)?.name)
+          .filter(Boolean) as string[];
+        const { data, error } = await supabase.functions.invoke("ai-coach-script", {
+          body: { blockLabel: label, exercises: names },
+        });
+        if (error) throw error;
+        const text = (data as any)?.text?.trim();
+        if (text) setGroups((prev) => prev.map((x) => (x.id === g.id ? { ...x, intro_text: text } : x)));
+      }
+      toast({ title: "AI Fill complete", description: "Block intros written for you." });
+    } catch (e: any) {
+      toast({ title: "AI Fill failed", description: e.message, variant: "destructive" });
+    } finally {
+      setAiFilling(false);
+    }
+  };
+
+
   const handleSave = () => {
     if (!workoutName.trim()) {
       toast({ title: "Missing name", description: "Enter a workout name", variant: "destructive" });
