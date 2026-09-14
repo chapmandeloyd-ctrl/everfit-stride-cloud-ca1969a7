@@ -28,8 +28,26 @@ serve(async (req) => {
     const { data: { user } } = await supabaseAdmin.auth.getUser(token);
 
     if (!user) {
-      throw new Error('Unauthorized');
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
+
+    // Server-side role check: only trainers may create demo clients
+    const { data: callerProfile } = await supabaseAdmin
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    if (callerProfile?.role !== 'trainer') {
+      return new Response(JSON.stringify({ error: 'Forbidden' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
 
     // Parse optional engine mode from request body
     let engineMode = 'performance'; // default
