@@ -96,6 +96,8 @@ interface WorkoutPlayerProps {
   resumeElapsed?: number;
   activeSessionId?: string | null;
   dbStartedAt?: string | null;
+  coachVoiceId?: string | null;
+  outroText?: string | null;
 }
 
 interface WorkoutStep {
