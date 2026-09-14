@@ -1,5 +1,13 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.45.0";
+import { z } from "npm:zod@3.23.8";
+
+const createClientSchema = z.object({
+  email: z.string().trim().email().max(255),
+  fullName: z.string().trim().min(1).max(120),
+  password: z.string().min(8).max(128),
+  loginUrl: z.string().max(500).optional(),
+});
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
