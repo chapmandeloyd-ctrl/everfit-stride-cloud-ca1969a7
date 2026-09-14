@@ -580,10 +580,12 @@ export default function EditWorkout() {
       setShowBlockPicker(true);
       return;
     }
+    const activeGroup = groups.find((g) => g.id === activeBlockId);
+    const isStraightBlock = activeGroup?.type === "straight";
     const newItem: WorkoutExercise = {
       id: crypto.randomUUID(),
       exercise_id: exerciseId,
-      sets: activeBlockId ? 1 : 3,
+      sets: !activeBlockId || isStraightBlock ? 3 : 1,
       target_type: "text" as const,
       target_value: "",
       time_seconds: 30,
