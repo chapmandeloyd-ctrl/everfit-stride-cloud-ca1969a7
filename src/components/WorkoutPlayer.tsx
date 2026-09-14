@@ -108,9 +108,12 @@ interface WorkoutStep {
 function buildSteps(sections: Section[]): WorkoutStep[] {
   const steps: WorkoutStep[] = [];
   sections.forEach((section, sIdx) => {
+    // Skip empty blocks — they would otherwise generate phantom "rest between rounds" steps
+    if (!section.exercises || section.exercises.length === 0) return;
     const isGrouped = ["superset", "circuit"].includes(section.section_type);
     if (isGrouped) {
-      for (let round = 1; round <= section.rounds; round++) {
+      const totalRounds = Math.max(1, section.rounds || 1);
+      for (let round = 1; round <= totalRounds; round++) {
         section.exercises.forEach((ex, eIdx) => {
           steps.push({
             type: "exercise",
@@ -135,7 +138,7 @@ function buildSteps(sections: Section[]): WorkoutStep[] {
             });
           }
         });
-        if (round < section.rounds) {
+        if (round < totalRounds) {
           // Prefer explicit between-rounds rest, then fall back to last exercise's rest_seconds, then section rest, then 60s
           const lastExRest = section.exercises[section.exercises.length - 1]?.rest_seconds || 0;
           const restSec = section.rest_between_rounds_seconds || lastExRest || section.rest_seconds || 60;
