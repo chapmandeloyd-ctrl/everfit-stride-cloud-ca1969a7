@@ -1076,76 +1076,171 @@ export default function EditWorkout() {
       {/* Main Content */}
       <div className="flex flex-1 overflow-hidden">
         {/* Left Panel - Builder */}
-        <div className="flex-1 flex flex-col overflow-hidden border-r">
-          {/* Instructions */}
-          <div className="px-4 pt-4 pb-2">
-            <p className="text-xs font-bold uppercase tracking-wide mb-1">Instructions</p>
-            <p className="text-xs text-muted-foreground mb-2">(Optional) A short summary of this workout or general cues during workout.</p>
-            <Textarea
-              value={instructions}
-              onChange={(e) => setInstructions(e.target.value)}
-              placeholder="Add rest times and any weight/rep/tempo targets with each exercise so the client can follow along with the mobile app."
-              className="text-sm min-h-[50px] resize-none"
-              rows={2}
-            />
-          </div>
+        <div className="flex-1 flex flex-col overflow-y-auto border-r">
+          <div className="p-4 md:p-6 space-y-8">
+            {/* Instructions */}
+            <section className="space-y-2">
+              <h2 className="text-xs font-black uppercase tracking-[0.22em] text-foreground">Instructions</h2>
+              <p className="text-xs text-muted-foreground">
+                (Optional) A short summary of this workout or general cues during workout.
+              </p>
+              <Textarea
+                value={instructions}
+                onChange={(e) => setInstructions(e.target.value)}
+                placeholder="Add rest times and any weight/rep/tempo targets with each exercise so the client can follow along with the mobile app."
+                rows={3}
+                className="resize-none bg-transparent border-0 px-0 text-sm text-muted-foreground focus-visible:ring-0"
+              />
+            </section>
 
-          {/* Workout Settings */}
-          <div className="flex items-center gap-3 px-4 py-2 border-b text-xs flex-wrap">
-            <div className="flex items-center gap-1.5">
-              <span className="text-muted-foreground">Category:</span>
-              <Input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="e.g., Strength" className="h-7 w-28 text-xs" />
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-muted-foreground">Difficulty:</span>
-              <Select value={difficulty} onValueChange={(v: any) => setDifficulty(v)}>
-                <SelectTrigger className="h-7 w-28 text-xs"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="beginner">Beginner</SelectItem>
-                  <SelectItem value="intermediate">Intermediate</SelectItem>
-                  <SelectItem value="advanced">Advanced</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-muted-foreground">Duration:</span>
-              <span className="font-medium">{calculatedDuration} min</span>
-              <span className="text-muted-foreground">(auto)</span>
-            </div>
-            <CoachVoicePicker value={coachVoiceId} onChange={setCoachVoiceId} />
-            <div className="flex items-center gap-1.5">
-              <span className="text-muted-foreground">Finish message:</span>
-              <Input
+            {/* Coach Outro */}
+            <section className="space-y-2">
+              <h2 className="text-xs font-black uppercase tracking-[0.22em] text-foreground flex items-center gap-2">
+                🎙️ Coach Outro{" "}
+                <span className="text-[10px] font-normal normal-case tracking-normal text-muted-foreground">(optional)</span>
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                A personal closing message the coach reads aloud when the workout ends. Played BEFORE the auto-summary (time, sets, total weight moved).
+              </p>
+              <Textarea
                 value={outroText}
                 onChange={(e) => setOutroText(e.target.value)}
-                placeholder="Great work today!"
-                className="h-7 w-44 text-xs"
+                placeholder="Example: Great job finishing week 3 — tomorrow is a rest day, hydrate and get to bed early."
+                rows={3}
+                maxLength={500}
+                className="resize-none text-sm"
               />
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-muted-foreground">Cover:</span>
-              {(coverImagePreview || existingImageUrl) ? (
-                <div className="flex items-center gap-1">
-                  <img src={coverImagePreview || existingImageUrl!} alt="Cover" className="h-7 w-10 object-cover rounded" />
-                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => { setCoverImage(null); setCoverImagePreview(null); setExistingImageUrl(null); }}>
-                    <X className="h-3 w-3" />
-                  </Button>
+            </section>
+
+            {/* Coach Voice */}
+            <section className="space-y-2">
+              <h2 className="text-xs font-black uppercase tracking-[0.22em] text-foreground flex items-center gap-2">
+                🗣️ Coach Voice{" "}
+                <span className="text-[10px] font-normal normal-case tracking-normal text-muted-foreground">(optional)</span>
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                Pick a voice for this workout. If left unset, athletes hear the voice from their own settings.
+              </p>
+              <CoachVoicePicker value={coachVoiceId} onChange={setCoachVoiceId} />
+            </section>
+
+            {/* Meta */}
+            <section className="space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <p className="text-[11px] font-semibold text-muted-foreground">Category</p>
+                  <Input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="e.g., Strength" className="h-9" />
                 </div>
-              ) : (
-                <label className="cursor-pointer">
-                  <span className="text-primary hover:underline text-xs">Upload</span>
-                  <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) { setCoverImage(file); setCoverImagePreview(URL.createObjectURL(file)); }
-                  }} />
-                </label>
-              )}
-            </div>
+                <div className="space-y-1.5">
+                  <p className="text-[11px] font-semibold text-muted-foreground">Difficulty</p>
+                  <Select value={difficulty} onValueChange={(v: any) => setDifficulty(v)}>
+                    <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="beginner">Beginner</SelectItem>
+                      <SelectItem value="intermediate">Intermediate</SelectItem>
+                      <SelectItem value="advanced">Advanced</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4 flex-wrap text-sm">
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground">Duration:</span>
+                  <span className="font-semibold">{calculatedDuration} min</span>
+                  <span className="text-xs text-muted-foreground">(auto)</span>
+                </div>
+                <div className="flex items-center gap-2 ml-auto">
+                  <span className="text-muted-foreground">Cover:</span>
+                  {(coverImagePreview || existingImageUrl) ? (
+                    <div className="flex items-center gap-1">
+                      <img src={coverImagePreview || existingImageUrl!} alt="Workout cover" className="h-8 w-12 object-cover rounded" />
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={() => { setCoverImage(null); setCoverImagePreview(null); setExistingImageUrl(null); }}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <label className="cursor-pointer text-primary font-semibold hover:underline inline-flex items-center gap-1.5">
+                      <Upload className="h-3.5 w-3.5" />
+                      Upload
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) { setCoverImage(file); setCoverImagePreview(URL.createObjectURL(file)); }
+                        }}
+                      />
+                    </label>
+                  )}
+                </div>
+              </div>
+            </section>
+
+            {/* Equipment */}
+            <section className="space-y-2">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xs font-black uppercase tracking-[0.22em] text-foreground">Equipment</h2>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const v = equipmentInput.trim();
+                    if (!v || equipmentTags.includes(v)) { setEquipmentInput(""); return; }
+                    setEquipmentTags((p) => [...p, v]);
+                    setEquipmentInput("");
+                  }}
+                  className="flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground"
+                >
+                  <Plus className="h-3.5 w-3.5" /> Add
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-2 items-center">
+                {equipmentTags.length === 0 && (
+                  <p className="text-xs text-muted-foreground">No equipment detected. Add exercises or custom equipment.</p>
+                )}
+                {equipmentTags.map((eq) => (
+                  <span key={eq} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted text-xs">
+                    {eq}
+                    <button
+                      onClick={() => setEquipmentTags((p) => p.filter((x) => x !== eq))}
+                      className="text-muted-foreground hover:text-destructive"
+                      aria-label={`Remove ${eq}`}
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                ))}
+                <Input
+                  value={equipmentInput}
+                  onChange={(e) => setEquipmentInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      const v = equipmentInput.trim();
+                      if (!v || equipmentTags.includes(v)) { setEquipmentInput(""); return; }
+                      setEquipmentTags((p) => [...p, v]);
+                      setEquipmentInput("");
+                    }
+                  }}
+                  placeholder="Add equipment…"
+                  className="h-8 w-40 text-xs"
+                />
+              </div>
+            </section>
           </div>
 
           {/* Exercises Header */}
-          <div className="px-4 pt-3 pb-1">
-            <p className="text-xs font-bold uppercase tracking-wide">Exercises</p>
+          <div className="px-4 md:px-6 pt-1 pb-1 flex items-center gap-2">
+            <h2 className="text-xs font-black uppercase tracking-[0.22em] text-foreground">Exercises</h2>
+            <span className="ml-auto flex items-center gap-1.5 text-[11px] text-muted-foreground uppercase tracking-wider font-semibold">
+              <Timer className="h-3.5 w-3.5" /> Total est. {calculatedDuration} min
+            </span>
           </div>
 
           {/* Toolbar */}
