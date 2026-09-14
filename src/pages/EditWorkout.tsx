@@ -1059,7 +1059,7 @@ export default function EditWorkout() {
               />
               {groupItems.map((gi) => (
                 <div key={gi.id} onClick={(event) => event.stopPropagation()}>
-                  <ExerciseRow item={gi} exerciseInfo={getExerciseById(gi.exercise_id)} onUpdate={updateItem} onToggleSelect={toggleSelect} onEditDetailFields={setEditingDetailFieldsId} onEditDetailValue={setEditingDetailValue} onDuplicate={duplicateOne} onDelete={deleteOne} onPasteForward={setPasteForwardSourceId} coachVoiceId={coachVoiceId} />
+                  <ExerciseRow item={gi} exerciseInfo={getExerciseById(gi.exercise_id)} onUpdate={updateItem} onToggleSelect={toggleSelect} onEditDetailFields={setEditingDetailFieldsId} onEditDetailValue={setEditingDetailValue} onDuplicate={duplicateOne} onDelete={deleteOne} onPasteForward={setPasteForwardSourceId} coachVoiceId={coachVoiceId} hideSets={getBlockKind(group.block_type || "custom") !== "straight"} />
                 </div>
               ))}
               <div className="px-3 py-3" onClick={(event) => event.stopPropagation()}>

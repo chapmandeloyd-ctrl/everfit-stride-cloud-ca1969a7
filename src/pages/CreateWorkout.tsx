@@ -1149,6 +1149,7 @@ export default function CreateWorkout() {
                     onDelete={deleteOne}
                     onPasteForward={setPasteForwardSourceId}
                     coachVoiceId={coachVoiceId}
+                    hideSets={getBlockKind(group.block_type || "custom") !== "straight"}
                   />
                 </div>
               ))}
