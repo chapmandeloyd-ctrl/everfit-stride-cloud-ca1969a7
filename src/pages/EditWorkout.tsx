@@ -392,14 +392,17 @@ export default function EditWorkout() {
 
       for (const section of sortedSections) {
         const isGrouped = ["superset", "circuit"].includes(section.section_type);
+        // Named straight_set sections (added as blocks like "Working Sets") reload as straight
+        // blocks so the block header/coach panel survive a save → reopen round trip.
+        const isStraightBlock = section.section_type === "straight_set" && section.name && section.name !== "Main";
         let groupId: string | null = null;
 
-        if (isGrouped) {
+        if (isGrouped || isStraightBlock) {
           groupId = crypto.randomUUID();
           const detectedBt = getBlockTypeFromSectionName(section.name || "");
           newGroups.push({
             id: groupId,
-            type: section.section_type as "superset" | "circuit",
+            type: (isGrouped ? section.section_type : "straight") as "superset" | "circuit" | "straight",
             sets: section.rounds || 3,
             block_type: detectedBt.id,
             custom_name: detectedBt.id === "custom" ? section.name : undefined,
@@ -484,6 +487,15 @@ export default function EditWorkout() {
     for (const groupId of groupIds) {
       const groupItems = exerciseItems.filter(i => i.group_id === groupId && i.exercise_type === "normal");
       const group = groups.find(g => g.id === groupId);
+
+      if (group?.type === "straight") {
+        for (const item of groupItems) {
+          const sets = item.sets || 1;
+          totalSeconds += (workSecondsFor(item, 40) + (item.rest_seconds || 30) + 3) * sets;
+        }
+        continue;
+      }
+
       const rounds = group?.sets || 1;
       const groupRestItem = exerciseItems.find(i => i.group_id === groupId && i.exercise_type === "rest");
       const restBetweenRounds = groupRestItem?.rest_seconds || 60;
