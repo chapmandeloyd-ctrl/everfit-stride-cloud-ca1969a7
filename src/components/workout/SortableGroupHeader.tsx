@@ -63,15 +63,22 @@ export function SortableGroupHeader({
     <div ref={setNodeRef} style={style} className="border-b bg-muted/50">
     <div className="flex items-center gap-3 px-4 py-2">
       <Checkbox checked={allSelected} onCheckedChange={onToggleSelectAll} />
-      <span className="text-lg">{bt.emoji}</span>
-      {groupType === "superset" ? (
-        <>
-          <span className="text-sm font-semibold text-muted-foreground">{blockLabel}</span>
-          <span className="text-sm text-muted-foreground">·</span>
-        </>
-      ) : (
-        <span className="text-sm text-muted-foreground">Circuit of</span>
-      )}
+      <span
+        className={`h-8 w-8 rounded-lg flex items-center justify-center text-base ${bt.color} border ${bt.borderColor}`}
+      >
+        {bt.emoji}
+      </span>
+      <div className="min-w-0">
+        <p className="text-sm font-semibold truncate">{blockLabel}</p>
+        {typeof exerciseCount === "number" && (
+          <p className="text-[11px] text-muted-foreground">
+            {exerciseCount} {exerciseCount === 1 ? "exercise" : "exercises"}
+          </p>
+        )}
+      </div>
+      <span className="text-xs text-muted-foreground ml-2">
+        {groupType === "superset" ? "Rounds" : "Sets"}
+      </span>
       <Input
         type="number"
         value={sets}
@@ -79,9 +86,6 @@ export function SortableGroupHeader({
         className="h-7 w-14 text-sm text-center"
         min={1}
       />
-      <span className="text-sm text-muted-foreground">
-        {groupType === "superset" ? "rounds" : "sets"}
-      </span>
       <div className="flex-1" />
       <Button variant="link" size="sm" className="text-primary text-xs p-0 h-auto" onClick={onUngroup}>
         Ungroup
@@ -91,15 +95,15 @@ export function SortableGroupHeader({
       </div>
     </div>
     {onUpdateIntro && (
-      <div className="flex items-center gap-2 px-4 pb-2">
-        <Volume2 className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-        <Input
-          value={introText || ""}
-          onChange={(e) => onUpdateIntro(e.target.value)}
-          placeholder="Coach intro spoken before this block (optional)"
-          className="h-8 text-xs"
-        />
-      </div>
+      <BlockCoachPanel
+        blockLabel={blockLabel}
+        exerciseNames={exerciseNames}
+        introText={introText}
+        onUpdateIntro={onUpdateIntro}
+        waterBreakSeconds={waterBreakSeconds}
+        onUpdateWaterBreak={onUpdateWaterBreak}
+        coachVoiceId={coachVoiceId}
+      />
     )}
     </div>
   );
