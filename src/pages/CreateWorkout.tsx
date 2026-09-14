@@ -1046,12 +1046,11 @@ export default function CreateWorkout() {
 
   // Build sortable IDs list: includes both exercise IDs and group- prefixed IDs
   const sortableIds = useMemo(() => {
-    const ids: string[] = [];
+    const ids: string[] = groups.map((group) => `group-${group.id}`);
     const renderedGroups = new Set<string>();
     for (const item of exerciseItems) {
       if (item.group_id && !renderedGroups.has(item.group_id)) {
         renderedGroups.add(item.group_id);
-        ids.push(`group-${item.group_id}`);
         const groupItems = exerciseItems.filter((ei) => ei.group_id === item.group_id);
         groupItems.forEach((gi) => ids.push(gi.id));
       }
@@ -1060,7 +1059,7 @@ export default function CreateWorkout() {
       }
     }
     return ids;
-  }, [exerciseItems]);
+  }, [exerciseItems, groups]);
 
   // Build rendered list with group headers
   const renderExerciseList = () => {
@@ -1079,7 +1078,11 @@ export default function CreateWorkout() {
         if (group) {
           const groupIndex = groups.indexOf(group);
           rendered.push(
-            <div key={`group-${item.group_id}`} className="border-2 rounded-lg mx-2 overflow-hidden border-border">
+            <div
+              key={`group-${item.group_id}`}
+              onClick={() => setActiveBlockId(group.id)}
+              className={`border rounded-xl mx-2 overflow-hidden bg-card/30 cursor-pointer transition-colors ${activeBlockId === group.id ? "border-primary ring-2 ring-primary/30" : "border-border hover:border-muted-foreground/40"}`}
+            >
               {/* Sortable Group Header */}
               <SortableGroupHeader
                 groupId={group.id}
@@ -1111,19 +1114,31 @@ export default function CreateWorkout() {
               />
               {/* Group Items */}
               {groupItems.map((gi) => (
-                <ExerciseRow
-                  key={gi.id}
-                  item={gi}
-                  exerciseInfo={getExerciseById(gi.exercise_id)}
-                  onUpdate={updateItem}
-                  onToggleSelect={toggleSelect}
-                  onEditDetailFields={setEditingDetailFieldsId}
-                  onEditDetailValue={setEditingDetailValue}
-                  onDuplicate={duplicateOne}
-                  onDelete={deleteOne}
-                  onPasteForward={setPasteForwardSourceId}
-                />
+                <div key={gi.id} onClick={(event) => event.stopPropagation()}>
+                  <ExerciseRow
+                    item={gi}
+                    exerciseInfo={getExerciseById(gi.exercise_id)}
+                    onUpdate={updateItem}
+                    onToggleSelect={toggleSelect}
+                    onEditDetailFields={setEditingDetailFieldsId}
+                    onEditDetailValue={setEditingDetailValue}
+                    onDuplicate={duplicateOne}
+                    onDelete={deleteOne}
+                    onPasteForward={setPasteForwardSourceId}
+                  />
+                </div>
               ))}
+              <div className="px-3 py-3" onClick={(event) => event.stopPropagation()}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full justify-start border-dashed text-muted-foreground"
+                  onClick={() => setActiveBlockId(group.id)}
+                >
+                  <Search className="h-3.5 w-3.5 mr-2" />
+                  + Add exercise to this block
+                </Button>
+              </div>
             </div>
           );
           if (groupIndex < groups.length - 1) {
@@ -1149,6 +1164,56 @@ export default function CreateWorkout() {
           />
         );
       }
+    }
+
+    for (const group of groups) {
+      if (renderedGroups.has(group.id)) continue;
+      const groupIndex = groups.indexOf(group);
+      const bt = getBlockType(group.block_type || "custom");
+      const label = group.block_type === "custom" && group.custom_name ? group.custom_name : bt.label;
+      rendered.push(
+        <div
+          key={`group-${group.id}`}
+          onClick={() => setActiveBlockId(group.id)}
+          className={`border rounded-xl mx-2 overflow-hidden bg-card/30 cursor-pointer transition-colors ${activeBlockId === group.id ? "border-primary ring-2 ring-primary/30" : "border-border hover:border-muted-foreground/40"}`}
+        >
+          <SortableGroupHeader
+            groupId={group.id}
+            groupType={group.type}
+            blockNumber={groupIndex + 1}
+            sets={group.sets}
+            allSelected={false}
+            onToggleSelectAll={() => undefined}
+            onUpdateSets={(sets) => updateGroupSets(group.id, sets)}
+            onUngroup={() => ungroupItems(group.id)}
+            blockTypeId={group.block_type}
+            customName={group.custom_name}
+            introText={group.intro_text}
+            onUpdateIntro={(value) => updateGroupIntro(group.id, value)}
+            waterBreakSeconds={group.rest_after_seconds ?? 0}
+            onUpdateWaterBreak={(secs) => updateGroupWaterBreak(group.id, secs)}
+            coachVoiceId={coachVoiceId}
+            exerciseCount={0}
+            exerciseNames={[]}
+          />
+          <div className={`px-4 py-8 text-center text-xs ${activeBlockId === group.id ? "text-primary" : "text-muted-foreground"}`}>
+            {activeBlockId === group.id
+              ? "Click an exercise from the library to add it here"
+              : `Click this ${label} block to make it active, then add exercises`}
+          </div>
+          <div className="px-3 pb-3" onClick={(event) => event.stopPropagation()}>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full justify-start border-dashed text-muted-foreground"
+              onClick={() => setActiveBlockId(group.id)}
+            >
+              <Search className="h-3.5 w-3.5 mr-2" />
+              + Add exercise to this block
+            </Button>
+          </div>
+        </div>,
+      );
     }
 
     return rendered;
@@ -1477,7 +1542,7 @@ export default function CreateWorkout() {
               </SortableContext>
             </DndContext>
 
-            {exerciseItems.length === 0 && (
+            {groups.length === 0 && exerciseItems.length === 0 && (
               <div className="flex flex-col items-center justify-center py-20 text-center">
                 <div className="mb-3 text-5xl opacity-30">💪</div>
                 <p className="text-sm text-muted-foreground font-medium">Start by adding a block</p>
