@@ -286,9 +286,10 @@ function ExerciseLibraryCard({ exercise, onAdd }: { exercise: any; onAdd: () => 
   return (
     <div className="cursor-pointer rounded-lg border bg-card hover:border-primary hover:shadow-md transition-all overflow-hidden" onClick={onAdd} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
       <div className="aspect-[4/3] bg-muted relative overflow-hidden">
-        {thumbnail && <img src={thumbnail} alt={exercise.name} className="absolute inset-0 w-full h-full object-cover" loading="lazy" style={{ opacity: isHovered && exercise.video_url ? 0 : 1, transition: "opacity 0.15s" }} />}
-        {!thumbnail && !exercise.video_url && <div className="w-full h-full flex items-center justify-center text-muted-foreground"><GripVertical className="h-8 w-8 opacity-20" /></div>}
-        {exercise.video_url && <video ref={videoRef} src={exercise.video_url} preload="auto" muted playsInline loop className="absolute inset-0 w-full h-full object-cover pointer-events-none" style={{ opacity: isHovered ? 1 : 0, transition: "opacity 0.15s" }} />}
+        {thumbnail && <img src={thumbnail} alt={exercise.name} className="absolute inset-0 w-full h-full object-cover" loading="lazy" decoding="async" style={{ opacity: isHovered && exercise.video_url ? 0 : 1, transition: "opacity 0.15s" }} />}
+        {!thumbnail && <div className="absolute inset-0 flex items-center justify-center text-muted-foreground"><GripVertical className="h-8 w-8 opacity-20" /></div>}
+        {isHovered && exercise.video_url && <video ref={videoRef} src={exercise.video_url} preload="metadata" muted playsInline loop autoPlay className="absolute inset-0 w-full h-full object-cover pointer-events-none" />}
+
         <div className="absolute inset-0 bg-primary/10 flex items-center justify-center z-[2] pointer-events-none" style={{ opacity: isHovered ? 1 : 0, transition: "opacity 0.15s" }}>
           <Plus className="h-6 w-6 text-primary" />
         </div>
