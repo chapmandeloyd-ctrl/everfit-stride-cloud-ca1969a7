@@ -752,7 +752,7 @@ export function KetoProtocolCalculatorPanel({ clientId, trainerId, onDraftStateC
       // timer after the plan is wiped.
       await supabase
         .from("fasting_log")
-        .update({ status: "cancelled", end_time: new Date().toISOString() })
+        .update({ status: "cancelled", end_time: new Date().toISOString() } as never)
         .eq("client_id", clientId)
         .eq("status", "active");
 

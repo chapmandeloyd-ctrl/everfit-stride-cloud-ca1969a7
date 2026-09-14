@@ -277,7 +277,7 @@ function PlanSheet({ plan, onClose }: { plan: CustomManualPlan | null; onClose: 
 
       const { error } = await supabase
         .from("client_feature_settings")
-        .update(updates)
+        .update(updates as never)
         .eq("client_id", clientId);
       if (error) throw error;
       // Tag which custom plan is now driving the timer/eating window so the

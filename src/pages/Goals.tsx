@@ -75,7 +75,7 @@ export default function Goals() {
       const { data: profile } = await supabase.from("profiles").select("full_name").eq("id", goal?.client_id).single();
       const updates: Record<string, unknown> = { status };
       if (status === "completed") updates.completed_at = new Date().toISOString();
-      const { error } = await supabase.from("fitness_goals").update(updates).eq("id", goalId).eq("trainer_id", user?.id);
+      const { error } = await supabase.from("fitness_goals").update(updates).eq("id", goalId).eq("trainer_id", user?.id as never);
       if (error) throw error;
       return { goal, status, clientName: profile?.full_name };
     },

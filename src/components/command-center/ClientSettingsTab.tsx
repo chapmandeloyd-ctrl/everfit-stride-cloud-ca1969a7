@@ -214,7 +214,7 @@ export function ClientSettingsTab({ clientId, trainerId }: ClientSettingsTabProp
     mutationFn: async ({ key, value }: { key: string; value: boolean | string }) => {
       const { error } = await supabase
         .from("client_feature_settings")
-        .update({ [key]: value })
+        .update({ [key]: value } as never)
         .eq("client_id", clientId)
         .eq("trainer_id", trainerId);
       if (error) throw error;

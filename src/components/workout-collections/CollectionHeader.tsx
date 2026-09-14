@@ -45,7 +45,7 @@ export function CollectionHeader({ collection, onTogglePublished }: CollectionHe
 
     const { error } = await supabase
       .from("workout_collections")
-      .update(updateData)
+      .update(updateData as never)
       .eq("id", collection.id);
 
     if (error) {

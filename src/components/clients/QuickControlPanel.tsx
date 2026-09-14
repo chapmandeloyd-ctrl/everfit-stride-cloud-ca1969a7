@@ -65,7 +65,7 @@ export function QuickControlPanel({ clientId, trainerId }: Props) {
 
   const toggleMutation = useMutation({
     mutationFn: async ({ key, value }: { key: string; value: boolean }) => {
-      const { error } = await supabase.from("client_feature_settings").update({ [key]: value }).eq("client_id", clientId);
+      const { error } = await supabase.from("client_feature_settings").update({ [key]: value }).eq("client_id", clientId as never);
       if (error) throw error;
     },
     onSuccess: (_, vars) => {

@@ -149,7 +149,7 @@ export function SynergyPreviewPanel({ clientId, trainerId }: SynergyPreviewPanel
       }
       const { error } = await supabase
         .from("client_feature_settings")
-        .update(updates)
+        .update(updates as never)
         .eq("client_id", clientId);
       if (error) throw error;
     },

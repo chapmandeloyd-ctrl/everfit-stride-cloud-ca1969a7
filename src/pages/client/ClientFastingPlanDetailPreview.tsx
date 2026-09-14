@@ -983,7 +983,7 @@ function SynergyContent({
       }
       const { data, error } = await supabase
         .from("client_feature_settings")
-        .update(updates)
+        .update(updates as never)
         .eq("client_id", clientId)
         .select("client_id, active_fast_start_at")
         .maybeSingle();
@@ -1751,7 +1751,7 @@ export default function ClientFastingPlanDetailPreview() {
       }
       const { error } = await supabase
         .from("client_feature_settings")
-        .update(updates)
+        .update(updates as never)
         .eq("client_id", clientId);
       if (error) throw error;
     },
@@ -1791,7 +1791,7 @@ export default function ClientFastingPlanDetailPreview() {
       }
       const { error: protocolErr } = await supabase
         .from("client_feature_settings")
-        .update(updates)
+        .update(updates as never)
         .eq("client_id", clientId);
       if (protocolErr) throw protocolErr;
 
