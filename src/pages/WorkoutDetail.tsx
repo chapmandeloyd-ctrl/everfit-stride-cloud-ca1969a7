@@ -141,6 +141,7 @@ export default function WorkoutDetail() {
       rest_seconds: section.rest_seconds,
       rest_between_rounds_seconds: section.rest_between_rounds_seconds,
       notes: section.notes || "",
+      intro_text: section.intro_text || null,
       exercises: section.workout_plan_exercises
         ?.sort((a: any, b: any) => a.order_index - b.order_index)
         .map((wpe: any) => ({
