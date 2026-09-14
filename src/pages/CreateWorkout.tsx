@@ -860,6 +860,8 @@ export default function CreateWorkout() {
           duration_minutes: calculatedDuration,
           trainer_id: user?.id,
           image_url: imageUrl,
+          coach_voice_id: coachVoiceId,
+          outro_text: outroText || null,
         })
         .select()
         .single();
