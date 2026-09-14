@@ -575,6 +575,12 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
           msg += `, ${ex.distance}`;
         }
 
+        // Coach's form cue for the start of the exercise
+        if (ex.form_cue_start?.trim()) {
+          msg += `. ${ex.form_cue_start.trim()}`;
+        }
+
+
         elevenLabsSpeakNow(msg).catch(() => {});
       }
     }, delayMs);
