@@ -85,11 +85,20 @@ interface SetLog {
   completed: boolean;
 }
 
+const END_REASONS = [
+  "Out of time",
+  "Too tired",
+  "Pain or discomfort",
+  "Equipment unavailable",
+  "Interrupted",
+  "Other",
+];
+
 interface WorkoutPlayerProps {
   workoutName?: string;
   sections: Section[];
-  onComplete: (data: { setLogs: Record<string, SetLog>; elapsedSeconds: number; startedAt: string }) => void;
-  onEndEarly: (data: { setLogs: Record<string, SetLog>; elapsedSeconds: number; startedAt: string }) => void;
+  onComplete: (data: { setLogs: Record<string, SetLog>; elapsedSeconds: number; startedAt: string; completionPercent?: number; caloriesEstimate?: number; skippedEvents?: any[] }) => void;
+  onEndEarly: (data: { setLogs: Record<string, SetLog>; elapsedSeconds: number; startedAt: string; completionPercent?: number; caloriesEstimate?: number; skippedEvents?: any[]; reason?: string }) => void;
   onDiscard: () => void;
   onExit: () => void;
   onSaveForLater?: (data: { setLogs: Record<string, SetLog>; elapsedSeconds: number; startedAt: string; stepIdx: number; completionPercent: number }) => void;
@@ -394,6 +403,31 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
   const startedAtRef = useRef(dbStartedAt ?? new Date().toISOString());
   const [setLogs, setSetLogs] = useState<Record<string, SetLog>>(resumeSetLogs || {});
   const [isLocked, setIsLocked] = useState(false);
+  const [endReason, setEndReason] = useState<string>("");
+  const skippedEventsRef = useRef<any[]>([]);
+
+  // Keep the screen awake for the whole session (browsers that support it)
+  useEffect(() => {
+    let sentinel: any = null;
+    let cancelled = false;
+    const request = async () => {
+      try {
+        const nav: any = navigator;
+        if (!nav.wakeLock?.request) return;
+        sentinel = await nav.wakeLock.request("screen");
+        if (cancelled) { sentinel.release?.(); sentinel = null; }
+      } catch {}
+    };
+    const onVisible = () => { if (document.visibilityState === "visible" && !sentinel) void request(); };
+    void request();
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      cancelled = true;
+      document.removeEventListener("visibilitychange", onVisible);
+      try { sentinel?.release?.(); } catch {}
+    };
+  }, []);
+
 
   // Unlock audio on mount + first user interaction (mobile Safari/Chrome requirement)
   useEffect(() => {
@@ -703,6 +737,28 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [steps.length]);
 
+  // Skip the rest of the current block and jump to the first step of the next one
+  const skipBlock = useCallback(() => {
+    if (stepTimerRef.current) clearInterval(stepTimerRef.current);
+    lastCountdownRef.current = -1;
+    setStepIdx((prev) => {
+      const current = steps[prev];
+      if (!current) return prev;
+      let next = prev + 1;
+      while (next < steps.length && steps[next].sectionIdx === current.sectionIdx) next++;
+      skippedEventsRef.current.push({
+        type: "block",
+        sectionIdx: current.sectionIdx,
+        at: new Date().toISOString(),
+      });
+      setStepTimer(next >= steps.length ? 0 : -1);
+      return Math.min(next, steps.length);
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [steps]);
+
+
+
   const startStepCountdown = useCallback((seconds: number) => {
     if (stepTimerRef.current) clearInterval(stepTimerRef.current);
     stepTimerDurationRef.current = seconds;
@@ -856,7 +912,14 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
     if (stepTimerRef.current) clearInterval(stepTimerRef.current);
     try { localStorage.removeItem(WORKOUT_TIMER_KEY); } catch {}
     liveActivity.stop();
-    onComplete({ setLogs, elapsedSeconds, startedAt: startedAtRef.current });
+    onComplete({
+      setLogs,
+      elapsedSeconds,
+      startedAt: startedAtRef.current,
+      completionPercent: 100,
+      caloriesEstimate: estimatedCal,
+      skippedEvents: skippedEventsRef.current,
+    });
   };
 
   const handleEndEarly = () => {
@@ -864,8 +927,17 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
     if (stepTimerRef.current) clearInterval(stepTimerRef.current);
     try { localStorage.removeItem(WORKOUT_TIMER_KEY); } catch {}
     liveActivity.stop();
-    onEndEarly({ setLogs, elapsedSeconds, startedAt: startedAtRef.current });
+    onEndEarly({
+      setLogs,
+      elapsedSeconds,
+      startedAt: startedAtRef.current,
+      completionPercent: completedPercent,
+      caloriesEstimate: estimatedCal,
+      skippedEvents: skippedEventsRef.current,
+      reason: endReason || undefined,
+    });
   };
+
 
   const handleDiscard = () => {
     if (elapsedRef.current) clearInterval(elapsedRef.current);
@@ -1398,7 +1470,10 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
                 <Lock className="h-5 w-5" />
               </Button>
             </div>
-            <div className="flex justify-center mt-2">
+            <div className="flex justify-center items-center gap-3 mt-2">
+              <Button variant="ghost" size="sm" className="text-muted-foreground text-xs" onClick={skipBlock}>
+                <SkipForward className="h-3 w-3 mr-1" /> Skip Block
+              </Button>
               <Button variant="ghost" size="sm" className="text-destructive/60 text-xs" onClick={() => setShowDiscardDialog(true)}>
                 <Square className="h-3 w-3 mr-1" /> End Workout
               </Button>
@@ -1428,6 +1503,18 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
                 You're {completedPercent}% through this workout. What would you like to do?
               </AlertDialogDescription>
             </AlertDialogHeader>
+            <div className="flex flex-wrap gap-2 py-1">
+              {END_REASONS.map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => setEndReason((prev) => (prev === r ? "" : r))}
+                  className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${endReason === r ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground hover:bg-muted"}`}
+                >
+                  {r}
+                </button>
+              ))}
+            </div>
             <AlertDialogFooter className="flex-col gap-2 sm:flex-col">
               <AlertDialogAction onClick={handleEndEarly}>
                 Save & End ({completedPercent}% Complete)
@@ -1743,7 +1830,10 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
             </Button>
           </div>
 
-          <div className="flex justify-center mt-2">
+          <div className="flex justify-center items-center gap-3 mt-2">
+            <Button variant="ghost" size="sm" className="text-muted-foreground text-xs" onClick={skipBlock}>
+              <SkipForward className="h-3 w-3 mr-1" /> Skip Block
+            </Button>
             <Button
               variant="ghost"
               size="sm"
@@ -1778,6 +1868,18 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
               You're {completedPercent}% through this workout. What would you like to do?
             </AlertDialogDescription>
           </AlertDialogHeader>
+          <div className="flex flex-wrap gap-2 py-1">
+            {END_REASONS.map((r) => (
+              <button
+                key={r}
+                type="button"
+                onClick={() => setEndReason((prev) => (prev === r ? "" : r))}
+                className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${endReason === r ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground hover:bg-muted"}`}
+              >
+                {r}
+              </button>
+            ))}
+          </div>
           <AlertDialogFooter className="flex-col gap-2 sm:flex-col">
             <AlertDialogAction onClick={handleEndEarly}>
               Save & End ({completedPercent}% Complete)
