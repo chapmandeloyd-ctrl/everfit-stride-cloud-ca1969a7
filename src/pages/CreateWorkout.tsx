@@ -1161,6 +1161,7 @@ export default function CreateWorkout() {
             onDuplicate={duplicateOne}
             onDelete={deleteOne}
             onPasteForward={setPasteForwardSourceId}
+            coachVoiceId={coachVoiceId}
           />
         );
       }
@@ -1711,11 +1712,11 @@ export default function CreateWorkout() {
           setInstructions(description);
           setCategory(cat);
           setDifficulty(diff as any);
-          setExerciseItems(items.map(i => ({ ...i, detail_fields: (i as any).detail_fields || [], weight_lbs: (i as any).weight_lbs || "", tempo: (i as any).tempo || "", rpe: (i as any).rpe || "", distance: (i as any).distance || "", band: (i as any).band || "", is_unilateral: (i as any).is_unilateral ?? false })));
+          setExerciseItems(items.map(i => ({ ...i, detail_fields: (i as any).detail_fields || [], weight_lbs: (i as any).weight_lbs || "", tempo: (i as any).tempo || "", rpe: (i as any).rpe || "", distance: (i as any).distance || "", band: (i as any).band || "", is_unilateral: (i as any).is_unilateral ?? false, reps: (i as any).reps ?? 10, equipment: (i as any).equipment || "", side_mode: ((i as any).side_mode || ((i as any).is_unilateral ? "sequential" : "none")) as ExerciseSideMode, form_cue_start: (i as any).form_cue_start || "", form_cue_mid: (i as any).form_cue_mid || "", form_cue_switch: (i as any).form_cue_switch || "" })));
           setGroups(newGroups);
         }}
         onAddExercises={(items) => {
-          setExerciseItems((prev) => [...prev, ...items.map(i => ({ ...i, detail_fields: (i as any).detail_fields || [], weight_lbs: (i as any).weight_lbs || "", tempo: (i as any).tempo || "", rpe: (i as any).rpe || "", distance: (i as any).distance || "", band: (i as any).band || "", is_unilateral: (i as any).is_unilateral ?? false }))]);
+          setExerciseItems((prev) => [...prev, ...items.map(i => ({ ...i, detail_fields: (i as any).detail_fields || [], weight_lbs: (i as any).weight_lbs || "", tempo: (i as any).tempo || "", rpe: (i as any).rpe || "", distance: (i as any).distance || "", band: (i as any).band || "", is_unilateral: (i as any).is_unilateral ?? false, reps: (i as any).reps ?? 10, equipment: (i as any).equipment || "", side_mode: ((i as any).side_mode || ((i as any).is_unilateral ? "sequential" : "none")) as ExerciseSideMode, form_cue_start: (i as any).form_cue_start || "", form_cue_mid: (i as any).form_cue_mid || "", form_cue_switch: (i as any).form_cue_switch || "" }))]);
         }}
       />
 
