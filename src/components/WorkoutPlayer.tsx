@@ -85,6 +85,15 @@ interface SetLog {
   completed: boolean;
 }
 
+const END_REASONS = [
+  "Out of time",
+  "Too tired",
+  "Pain or discomfort",
+  "Equipment unavailable",
+  "Interrupted",
+  "Other",
+];
+
 interface WorkoutPlayerProps {
   workoutName?: string;
   sections: Section[];
