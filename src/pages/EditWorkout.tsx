@@ -769,6 +769,8 @@ export default function EditWorkout() {
           duration_minutes: calculatedDuration,
           video_url: videoUrl || null,
           image_url: imageUrl,
+          coach_voice_id: coachVoiceId,
+          outro_text: outroText || null,
         })
         .eq("id", id);
       if (workoutError) throw workoutError;
