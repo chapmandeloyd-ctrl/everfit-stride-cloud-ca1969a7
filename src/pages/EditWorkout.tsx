@@ -1021,6 +1021,16 @@ export default function EditWorkout() {
               <span className="font-medium">{calculatedDuration} min</span>
               <span className="text-muted-foreground">(auto)</span>
             </div>
+            <CoachVoicePicker value={coachVoiceId} onChange={setCoachVoiceId} />
+            <div className="flex items-center gap-1.5">
+              <span className="text-muted-foreground">Finish message:</span>
+              <Input
+                value={outroText}
+                onChange={(e) => setOutroText(e.target.value)}
+                placeholder="Great work today!"
+                className="h-7 w-44 text-xs"
+              />
+            </div>
             <div className="flex items-center gap-1.5">
               <span className="text-muted-foreground">Cover:</span>
               {(coverImagePreview || existingImageUrl) ? (
