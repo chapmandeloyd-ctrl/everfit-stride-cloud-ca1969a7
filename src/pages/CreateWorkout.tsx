@@ -434,6 +434,8 @@ export default function CreateWorkout() {
   const [sortBy, setSortBy] = useState("name");
   const [visibleCount, setVisibleCount] = useState(60);
   const [videoFilter, setVideoFilter] = useState<"all" | "named" | "unnamed">("all");
+  const [equipmentFilter, setEquipmentFilter] = useState<string | null>(null);
+  const [muscleFilter, setMuscleFilter] = useState<string | null>(null);
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
   const [aiBuilderOpen, setAiBuilderOpen] = useState(false);
   const [editingDetailFieldsId, setEditingDetailFieldsId] = useState<string | null>(null);
