@@ -1187,6 +1187,14 @@ export default function CreateWorkout() {
           />
         </div>
         <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" className="gap-1.5" onClick={playTestSample} disabled={testingSample}>
+            {testingSample ? <Loader2 className="h-4 w-4 animate-spin" /> : <Volume2 className="h-4 w-4" />}
+            <span className="hidden sm:inline">Test sample</span>
+          </Button>
+          <Button variant="outline" size="sm" className="gap-1.5" onClick={runAIFill} disabled={aiFilling}>
+            {aiFilling ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            <span className="hidden sm:inline">{aiFilling ? "Filling…" : "AI Fill"}</span>
+          </Button>
           <Button
             variant="outline"
             size="sm"
@@ -1194,7 +1202,7 @@ export default function CreateWorkout() {
             className="gap-1.5"
           >
             <Sparkles className="h-4 w-4" />
-            AI Builder
+            <span className="hidden sm:inline">AI Builder</span>
           </Button>
           <Button
             size="sm"
