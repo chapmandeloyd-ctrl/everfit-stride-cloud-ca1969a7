@@ -36,13 +36,12 @@ serve(async (req) => {
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    // Verify trainer role
-    const { data: profile } = await admin
-      .from("profiles")
-      .select("role")
-      .eq("id", userId)
-      .single();
-    if (profile?.role !== "trainer") return json({ error: "Forbidden — trainer only" }, 403);
+    // Verify platform-admin role (not just any trainer account)
+    const { data: isAdmin } = await admin.rpc("has_role", {
+      _user_id: userId,
+      _role: "admin",
+    });
+    if (isAdmin !== true) return json({ error: "Forbidden — platform admin only" }, 403);
 
     const body = await req.json().catch(() => ({}));
     const action = body.action as string;

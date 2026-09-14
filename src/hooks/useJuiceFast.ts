@@ -193,7 +193,7 @@ export function useJuiceFast() {
       const patch: Record<string, unknown> = {};
       if (input.enabled !== undefined) patch.log_reminder_enabled = input.enabled;
       if (input.time !== undefined) patch.log_reminder_time = input.time;
-      const { error } = await supabase.from("juice_fast_sessions").update(patch).eq("id", session.id);
+      const { error } = await supabase.from("juice_fast_sessions").update(patch as never).eq("id", session.id);
       if (error) throw error;
     },
     onSuccess: (_d, vars) => {
@@ -245,7 +245,7 @@ export function useJuiceFast() {
       if (input.windowEnd !== undefined) patch.hydration_window_end = input.windowEnd;
       // Turning it on shouldn't wait out a stale interval from a previous run.
       if (input.enabled === true) patch.hydration_last_sent_at = null;
-      const { error } = await supabase.from("juice_fast_sessions").update(patch).eq("id", session.id);
+      const { error } = await supabase.from("juice_fast_sessions").update(patch as never).eq("id", session.id);
       if (error) throw error;
     },
     onSuccess: (_d, vars) => {

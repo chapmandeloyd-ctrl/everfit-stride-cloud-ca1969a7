@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { requireUser, isServiceRoleRequest, canActForClient, forbidden } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -141,6 +142,17 @@ serve(async (req) => {
         JSON.stringify({ error: "user_ids array is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    }
+
+    // Authorization: internal (service-role) calls are allowed; otherwise the
+    // caller must be signed in and may only target themselves or their clients.
+    if (!isServiceRoleRequest(req)) {
+      const auth = await requireUser(req, corsHeaders);
+      if ("response" in auth) return auth.response;
+      const allowed = await Promise.all(
+        user_ids.map((id: string) => canActForClient(auth.user.id, id))
+      );
+      if (allowed.some((ok) => !ok)) return forbidden(corsHeaders);
     }
 
     // Get push subscriptions for the target users

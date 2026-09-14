@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { requireUser, serviceClient, forbidden } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -23,6 +24,16 @@ serve(async (req) => {
   }
 
   try {
+    // Admin-only: this endpoint can mint push-signing keys.
+    const auth = await requireUser(req, corsHeaders);
+    if ("response" in auth) return auth.response;
+    const admin = serviceClient();
+    const { data: isAdmin } = await admin.rpc("has_role", {
+      _user_id: auth.user.id,
+      _role: "admin",
+    });
+    if (isAdmin !== true) return forbidden(corsHeaders);
+
     // Check if VAPID keys already exist
     const existingPublicKey = Deno.env.get("VAPID_PUBLIC_KEY");
     const existingPrivateKey = Deno.env.get("VAPID_PRIVATE_KEY");

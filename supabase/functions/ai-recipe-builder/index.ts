@@ -1,3 +1,4 @@
+import { requireUser } from "../_shared/auth.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
@@ -62,6 +63,9 @@ serve(async (req) => {
   }
 
   try {
+    const auth = await requireUser(req, corsHeaders);
+    if ("response" in auth) return auth.response;
+
     const { url, text, bulk } = await req.json();
 
     if (!url && !text) {

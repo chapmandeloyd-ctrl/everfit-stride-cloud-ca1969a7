@@ -1,3 +1,4 @@
+import { requireUser } from "../_shared/auth.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
@@ -10,6 +11,9 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    const auth = await requireUser(req, corsHeaders);
+    if ("response" in auth) return auth.response;
+
     const { text, eating_phase, keto_type } = await req.json();
 
     if (!text || typeof text !== "string" || text.trim().length === 0) {

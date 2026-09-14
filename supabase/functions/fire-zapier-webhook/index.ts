@@ -11,6 +11,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { requireUser, isServiceRoleRequest, canActForClient, forbidden } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -59,6 +60,12 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "client_id and event_type required" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    if (!isServiceRoleRequest(req)) {
+      const auth = await requireUser(req, corsHeaders);
+      if ("response" in auth) return auth.response;
+      if (!(await canActForClient(auth.user.id, client_id))) return forbidden(corsHeaders);
     }
 
     // Look up client + trainer + fast info

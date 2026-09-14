@@ -91,7 +91,7 @@ export function AdminGoalsTab({ clientId, trainerId, clientName = "Client" }: Pr
       // ended_at is auto-stamped by the stamp_goal_end DB trigger
       const { error } = await supabase
         .from("fitness_goals")
-        .update(updates)
+        .update(updates as never)
         .eq("id", goalId)
         .eq("trainer_id", trainerId);
       if (error) throw error;
@@ -108,7 +108,7 @@ export function AdminGoalsTab({ clientId, trainerId, clientName = "Client" }: Pr
     mutationFn: async ({ key, value }: { key: string; value: boolean }) => {
       const { error } = await supabase
         .from("client_feature_settings")
-        .update({ [key]: value })
+        .update({ [key]: value } as never)
         .eq("client_id", clientId);
       if (error) throw error;
     },

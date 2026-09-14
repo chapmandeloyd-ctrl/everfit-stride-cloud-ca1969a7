@@ -92,7 +92,7 @@ export default function AllClientWorkouts() {
             name: section.name,
             block_type: section.section_type,
             order_index: section.order_index || 0,
-          })
+          } as never)
           .select()
           .single();
         if (secError) throw secError;

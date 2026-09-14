@@ -328,7 +328,7 @@ export default function ClientKetoTypeDetail() {
       }
       const { error: protocolErr } = await supabase
         .from("client_feature_settings")
-        .update(updates)
+        .update(updates as never)
         .eq("client_id", clientId);
       if (protocolErr) throw protocolErr;
     },
