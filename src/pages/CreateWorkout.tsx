@@ -1503,6 +1503,19 @@ export default function CreateWorkout() {
         }}
       />
 
+      <BuildMethodChooser
+        open={methodChooserOpen}
+        onOpenChange={setMethodChooserOpen}
+        onChooseAI={() => {
+          setMethodChooserOpen(false);
+          setAiBuilderOpen(true);
+        }}
+        onChooseManual={() => {
+          setMethodChooserOpen(false);
+          setShowBlockPicker(true);
+        }}
+      />
+
       <BlockTypePicker
         open={showBlockPicker}
         onOpenChange={setShowBlockPicker}
