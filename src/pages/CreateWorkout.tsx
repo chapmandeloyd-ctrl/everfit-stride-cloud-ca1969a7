@@ -784,6 +784,12 @@ export default function CreateWorkout() {
     setGroups((prev) => prev.filter((g) => g.id !== groupId));
   };
 
+  const deleteGroup = (groupId: string) => {
+    setExerciseItems((prev) => prev.filter((item) => item.group_id !== groupId));
+    setGroups((prev) => prev.filter((g) => g.id !== groupId));
+    setActiveBlockId((cur) => (cur === groupId ? null : cur));
+  };
+
   const updateGroupWaterBreak = (groupId: string, rest_after_seconds: number) => {
     setGroups((prev) => prev.map((g) => (g.id === groupId ? { ...g, rest_after_seconds } : g)));
   };
