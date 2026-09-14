@@ -1,6 +1,6 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical } from "lucide-react";
+import { GripVertical, Volume2 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,8 @@ interface SortableGroupHeaderProps {
   onUngroup: () => void;
   blockTypeId?: string;
   customName?: string;
+  introText?: string;
+  onUpdateIntro?: (value: string) => void;
 }
 
 export function SortableGroupHeader({
@@ -30,6 +32,8 @@ export function SortableGroupHeader({
   onUngroup,
   blockTypeId,
   customName,
+  introText,
+  onUpdateIntro,
 }: SortableGroupHeaderProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: `group-${groupId}`,
@@ -45,7 +49,8 @@ export function SortableGroupHeader({
   };
 
   return (
-    <div ref={setNodeRef} style={style} className="flex items-center gap-3 px-4 py-2 border-b bg-muted/50">
+    <div ref={setNodeRef} style={style} className="border-b bg-muted/50">
+    <div className="flex items-center gap-3 px-4 py-2">
       <Checkbox checked={allSelected} onCheckedChange={onToggleSelectAll} />
       <span className="text-lg">{bt.emoji}</span>
       {groupType === "superset" ? (
@@ -73,6 +78,18 @@ export function SortableGroupHeader({
       <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing p-1">
         <GripVertical className="h-4 w-4 text-muted-foreground" />
       </div>
+    </div>
+    {onUpdateIntro && (
+      <div className="flex items-center gap-2 px-4 pb-2">
+        <Volume2 className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+        <Input
+          value={introText || ""}
+          onChange={(e) => onUpdateIntro(e.target.value)}
+          placeholder="Coach intro spoken before this block (optional)"
+          className="h-8 text-xs"
+        />
+      </div>
+    )}
     </div>
   );
 }

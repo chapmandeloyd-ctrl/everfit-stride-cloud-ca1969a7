@@ -51,6 +51,7 @@ interface ExerciseGroup {
   sets: number;
   block_type?: string;
   custom_name?: string;
+  intro_text?: string;
 }
 
 const REST_OPTIONS = [
@@ -782,6 +783,10 @@ export default function CreateWorkout() {
     setGroups((prev) => prev.filter((g) => g.id !== groupId));
   };
 
+  const updateGroupIntro = (groupId: string, intro_text: string) => {
+    setGroups((prev) => prev.map((g) => (g.id === groupId ? { ...g, intro_text } : g)));
+  };
+
   const updateGroupSets = (groupId: string, sets: number) => {
     setGroups((prev) => prev.map((g) => (g.id === groupId ? { ...g, sets } : g)));
   };
@@ -900,6 +905,7 @@ export default function CreateWorkout() {
           section_type: group.type,
           order_index: sectionIdx++,
           rounds: group.sets,
+          intro_text: group.intro_text?.trim() || null,
         });
       }
 
@@ -1035,6 +1041,8 @@ export default function CreateWorkout() {
                 onUngroup={() => ungroupItems(group.id)}
                 blockTypeId={group.block_type}
                 customName={group.custom_name}
+                introText={group.intro_text}
+                onUpdateIntro={(value) => updateGroupIntro(group.id, value)}
               />
               {/* Group Items */}
               {groupItems.map((gi) => (

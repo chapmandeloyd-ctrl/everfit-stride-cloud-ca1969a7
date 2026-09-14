@@ -41,6 +41,7 @@ interface WorkoutExercise {
   rpe: string;
   distance: string;
   band: string;
+  is_unilateral?: boolean;
 }
 
 interface ExerciseGroup {
@@ -49,6 +50,7 @@ interface ExerciseGroup {
   sets: number;
   block_type?: string;
   custom_name?: string;
+  intro_text?: string;
 }
 
 const REST_OPTIONS = [
@@ -383,6 +385,7 @@ export default function EditWorkout() {
             sets: section.rounds || 3,
             block_type: detectedBt.id,
             custom_name: detectedBt.id === "custom" ? section.name : undefined,
+            intro_text: section.intro_text || "",
           });
         }
 
@@ -407,6 +410,7 @@ export default function EditWorkout() {
             rpe: wpe.rpe ? String(wpe.rpe) : "",
             distance: wpe.distance || "",
             band: wpe.recommended_band_level || "",
+            is_unilateral: !!wpe.is_unilateral,
           });
         }
       }
@@ -698,6 +702,10 @@ export default function EditWorkout() {
     setGroups((prev) => prev.filter((g) => g.id !== groupId));
   };
 
+  const updateGroupIntro = (groupId: string, intro_text: string) => {
+    setGroups((prev) => prev.map((g) => (g.id === groupId ? { ...g, intro_text } : g)));
+  };
+
   const updateGroupSets = (groupId: string, sets: number) => {
     setGroups((prev) => prev.map((g) => (g.id === groupId ? { ...g, sets } : g)));
   };
@@ -805,6 +813,7 @@ export default function EditWorkout() {
           section_type: group.type,
           order_index: sectionIdx++,
           rounds: group.sets,
+          intro_text: group.intro_text?.trim() || null,
         });
       }
 
@@ -839,6 +848,7 @@ export default function EditWorkout() {
           distance: item.distance || null,
           recommended_band_level: item.band || null,
           detail_fields: item.detail_fields.length > 0 ? item.detail_fields : null,
+          is_unilateral: !!item.is_unilateral,
         }));
 
       if (exercisesToInsert.length > 0) {
@@ -924,6 +934,8 @@ export default function EditWorkout() {
                 onUngroup={() => ungroupItems(group.id)}
                 blockTypeId={group.block_type}
                 customName={group.custom_name}
+                introText={group.intro_text}
+                onUpdateIntro={(value) => updateGroupIntro(group.id, value)}
               />
               {groupItems.map((gi) => (
                 <ExerciseRow key={gi.id} item={gi} exerciseInfo={getExerciseById(gi.exercise_id)} onUpdate={updateItem} onToggleSelect={toggleSelect} onEditDetailFields={setEditingDetailFieldsId} onEditDetailValue={setEditingDetailValue} onDuplicate={duplicateOne} onDelete={deleteOne} onPasteForward={setPasteForwardSourceId} />
