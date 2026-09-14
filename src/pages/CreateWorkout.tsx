@@ -448,6 +448,7 @@ export default function CreateWorkout() {
   const [editingDetailValue, setEditingDetailValue] = useState<{ id: string; field: DetailField } | null>(null);
   const [pasteForwardSourceId, setPasteForwardSourceId] = useState<string | null>(null);
   const [showBlockPicker, setShowBlockPicker] = useState(false);
+  const [methodChooserOpen, setMethodChooserOpen] = useState(true);
   const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
