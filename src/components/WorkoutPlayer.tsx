@@ -1,4 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { supabase as supabaseTtsClient } from "@/integrations/supabase/client";
+
+async function ttsAuthToken(fallback: string) {
+  const { data: { session } } = await supabaseTtsClient.auth.getSession();
+  return session?.access_token || fallback;
+}
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { X, Square, Lock, Play, Pause, SkipBack, SkipForward, Heart, MoreVertical, Timer } from "lucide-react";
