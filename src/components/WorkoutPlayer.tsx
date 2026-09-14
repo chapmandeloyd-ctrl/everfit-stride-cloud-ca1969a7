@@ -512,6 +512,18 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
         const isUni = isUnilateralExercise(ex);
         let msg = "";
 
+        // Coach's spoken intro for this block — once, the first time we enter it
+        if (
+          step.exerciseIdx === 0 &&
+          step.round === 1 &&
+          currentSide !== "left" &&
+          section?.intro_text?.trim() &&
+          !spokenIntrosRef.current.has(step.sectionIdx)
+        ) {
+          spokenIntrosRef.current.add(step.sectionIdx);
+          msg += `${section.intro_text.trim()} `;
+        }
+
         // Announce block label + round X of Y on the first exercise of each round
         // (only on the first side if unilateral, to avoid repeating)
         if (isGrouped && step.exerciseIdx === 0 && currentSide !== "left") {
@@ -522,7 +534,11 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
 
         // Lead with the side cue for unilateral exercises
         if (isUni && currentSide) {
-          msg += currentSide === "right" ? "Right side. " : "Left side. ";
+          if (currentSide === "left" && ex.form_cue_switch?.trim()) {
+            msg += `${ex.form_cue_switch.trim()} `;
+          } else {
+            msg += currentSide === "right" ? "Right side. " : "Left side. ";
+          }
         }
 
         msg += ex.exercise_name || "";
