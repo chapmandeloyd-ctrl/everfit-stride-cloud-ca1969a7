@@ -434,6 +434,10 @@ export default function CreateWorkout() {
   const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null);
   const [coachVoiceId, setCoachVoiceId] = useState<string>(DEFAULT_COACH_VOICE_ID);
   const [outroText, setOutroText] = useState("");
+  const [equipmentTags, setEquipmentTags] = useState<string[]>([]);
+  const [equipmentInput, setEquipmentInput] = useState("");
+  const [testingSample, setTestingSample] = useState(false);
+  const [aiFilling, setAiFilling] = useState(false);
 
   const [exerciseItems, setExerciseItems] = useState<WorkoutExercise[]>([]);
   const [groups, setGroups] = useState<ExerciseGroup[]>([]);
