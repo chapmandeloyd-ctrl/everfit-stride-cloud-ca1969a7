@@ -877,8 +877,13 @@ export default function CreateWorkout() {
         });
       }
 
+      // Only save blocks that actually contain exercises
+      const nonEmptyGroups = groups.filter((g) =>
+        exerciseItems.some((i) => i.group_id === g.id && i.exercise_type === "normal")
+      );
+
       let blockNum = 0;
-      for (const group of groups) {
+      for (const group of nonEmptyGroups) {
         const bt = getBlockType(group.block_type || "custom");
         const rawLabel = group.block_type === "custom" && group.custom_name ? group.custom_name : bt.label;
         // If label is generic ("Custom Block"), append a number; otherwise use the descriptive label as-is
