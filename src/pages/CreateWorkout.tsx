@@ -52,6 +52,7 @@ interface ExerciseGroup {
   block_type?: string;
   custom_name?: string;
   intro_text?: string;
+  rest_after_seconds?: number;
 }
 
 const REST_OPTIONS = [
@@ -783,6 +784,10 @@ export default function CreateWorkout() {
     setGroups((prev) => prev.filter((g) => g.id !== groupId));
   };
 
+  const updateGroupWaterBreak = (groupId: string, rest_after_seconds: number) => {
+    setGroups((prev) => prev.map((g) => (g.id === groupId ? { ...g, rest_after_seconds } : g)));
+  };
+
   const updateGroupIntro = (groupId: string, intro_text: string) => {
     setGroups((prev) => prev.map((g) => (g.id === groupId ? { ...g, intro_text } : g)));
   };
@@ -906,6 +911,7 @@ export default function CreateWorkout() {
           order_index: sectionIdx++,
           rounds: group.sets,
           intro_text: group.intro_text?.trim() || null,
+          rest_after_seconds: group.rest_after_seconds || null,
         });
       }
 
@@ -1043,6 +1049,13 @@ export default function CreateWorkout() {
                 customName={group.custom_name}
                 introText={group.intro_text}
                 onUpdateIntro={(value) => updateGroupIntro(group.id, value)}
+                waterBreakSeconds={group.rest_after_seconds ?? 0}
+                onUpdateWaterBreak={(secs) => updateGroupWaterBreak(group.id, secs)}
+                coachVoiceId={coachVoiceId}
+                exerciseCount={groupItems.filter((gi) => gi.exercise_type === "normal").length}
+                exerciseNames={groupItems
+                  .map((gi) => getExerciseById(gi.exercise_id)?.name)
+                  .filter(Boolean) as string[]}
               />
               {/* Group Items */}
               {groupItems.map((gi) => (

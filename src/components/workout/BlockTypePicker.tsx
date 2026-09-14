@@ -77,21 +77,25 @@ export function BlockTypePicker({ open, onOpenChange, onSelect }: BlockTypePicke
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-auto">
+      <DialogContent className="sm:max-w-3xl max-h-[88vh] overflow-auto">
         <DialogHeader>
-          <DialogTitle>Add Workout Block</DialogTitle>
+          <DialogTitle className="text-2xl">Add Workout Block</DialogTitle>
           <DialogDescription>Choose a block type to organize your workout</DialogDescription>
         </DialogHeader>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 pt-2">
           {WORKOUT_BLOCK_TYPES.map((bt) => (
             <button
               key={bt.id}
               onClick={() => handleSelect(bt)}
-              className="flex flex-col items-center text-center p-4 rounded-xl border-2 border-border bg-card transition-all hover:scale-[1.02] hover:shadow-md hover:border-primary"
+              className="flex flex-col items-center text-center p-5 rounded-2xl border border-border bg-card transition-all hover:border-primary hover:bg-accent/40 focus:outline-none focus:ring-2 focus:ring-primary"
             >
-              <span className="text-3xl mb-2">{bt.emoji}</span>
-              <span className="text-sm font-bold text-foreground">{bt.label}</span>
-              <span className="text-[11px] text-muted-foreground mt-1 leading-tight">{bt.description}</span>
+              <span
+                className={`h-12 w-12 rounded-2xl flex items-center justify-center text-2xl mb-3 ${bt.color} border ${bt.borderColor}`}
+              >
+                {bt.emoji}
+              </span>
+              <span className="text-base font-semibold text-foreground">{bt.label}</span>
+              <span className="text-xs text-muted-foreground mt-1.5 leading-snug">{bt.description}</span>
             </button>
           ))}
         </div>

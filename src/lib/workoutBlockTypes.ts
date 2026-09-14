@@ -53,6 +53,16 @@ export const WORKOUT_BLOCK_TYPES: WorkoutBlockType[] = [
     emoji: "🫀",
   },
   {
+    id: "hiit",
+    label: "HIIT",
+    description: "High-intensity intervals on a single machine — looped Work/Rest sets",
+    color: "bg-lime-500/15",
+    borderColor: "border-lime-500/40",
+    textColor: "text-lime-700 dark:text-lime-400",
+    voiceLabel: "H I I T",
+    emoji: "⏲️",
+  },
+  {
     id: "accessory",
     label: "Accessory / Isolation",
     description: "Targeted muscle work to complement main lifts",
