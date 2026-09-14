@@ -1033,20 +1033,36 @@ export default function EditWorkout() {
   return (
     <div className="flex flex-col h-screen bg-background">
       {/* Top Bar */}
-      <div className="flex items-center justify-between px-4 py-2 bg-card border-b shrink-0">
-        <div className="flex items-center gap-3">
-          <span className="text-sm text-muted-foreground whitespace-nowrap">Edit workout:</span>
+      <div className="flex items-center gap-3 px-4 py-2 bg-card border-b shrink-0">
+        <button
+          onClick={() => navigate("/workouts")}
+          className="h-8 px-2 -ml-1 flex items-center gap-1 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-muted/40"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          <span className="hidden sm:inline">Today</span>
+        </button>
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          <Layers className="h-4 w-4 text-muted-foreground shrink-0" />
+          <span className="text-sm text-muted-foreground whitespace-nowrap hidden sm:inline">Edit workout:</span>
           <Input
             value={workoutName}
             onChange={(e) => setWorkoutName(e.target.value)}
             placeholder="Workout name"
-            className="h-8 w-64 font-semibold text-sm"
+            className="h-8 flex-1 min-w-0 max-w-sm border-0 bg-transparent font-semibold text-sm px-1 focus-visible:ring-1 focus-visible:ring-primary"
           />
         </div>
         <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" className="gap-1.5" onClick={playTestSample} disabled={testingSample}>
+            {testingSample ? <Loader2 className="h-4 w-4 animate-spin" /> : <Volume2 className="h-4 w-4" />}
+            <span className="hidden sm:inline">Test sample</span>
+          </Button>
+          <Button variant="outline" size="sm" className="gap-1.5" onClick={runAIFill} disabled={aiFilling}>
+            {aiFilling ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            <span className="hidden sm:inline">{aiFilling ? "Filling…" : "AI Fill"}</span>
+          </Button>
           <Button variant="outline" size="sm" onClick={() => setAiBuilderOpen(true)} className="gap-1.5">
             <Sparkles className="h-4 w-4" />
-            AI Builder
+            <span className="hidden sm:inline">AI Builder</span>
           </Button>
           <Button size="sm" onClick={handleSave} disabled={updateWorkoutMutation.isPending} className="bg-primary text-primary-foreground px-6">
             {updateWorkoutMutation.isPending ? "Saving..." : "SAVE"}
