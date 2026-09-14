@@ -143,6 +143,17 @@ serve(async (req) => {
       );
     }
 
+    // Authorization: internal (service-role) calls are allowed; otherwise the
+    // caller must be signed in and may only target themselves or their clients.
+    if (!isServiceRoleRequest(req)) {
+      const auth = await requireUser(req, corsHeaders);
+      if ("response" in auth) return auth.response;
+      const allowed = await Promise.all(
+        user_ids.map((id: string) => canActForClient(auth.user.id, id))
+      );
+      if (allowed.some((ok) => !ok)) return forbidden(corsHeaders);
+    }
+
     // Get push subscriptions for the target users
     const { data: preferences, error: prefsError } = await supabase
       .from("notification_preferences")
