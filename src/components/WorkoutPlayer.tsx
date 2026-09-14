@@ -306,7 +306,7 @@ async function preCacheCountdownClips() {
           headers: {
             "Content-Type": "application/json",
             apikey: supabaseKey,
-            Authorization: `Bearer ${supabaseKey}`,
+            Authorization: `Bearer ${await ttsAuthToken(supabaseKey)}`,
           },
           body: JSON.stringify({ text, voiceId: selectedVoiceId }),
         });
@@ -370,7 +370,7 @@ async function elevenLabsSpeakNow(text: string): Promise<void> {
       headers: {
         "Content-Type": "application/json",
         apikey: supabaseKey,
-        Authorization: `Bearer ${supabaseKey}`,
+        Authorization: `Bearer ${await ttsAuthToken(supabaseKey)}`,
       },
       body: JSON.stringify({ text, voiceId: selectedVoiceId }),
       signal: controller.signal,
