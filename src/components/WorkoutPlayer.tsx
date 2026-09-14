@@ -112,7 +112,8 @@ function buildSteps(sections: Section[]): WorkoutStep[] {
     if (!section.exercises || section.exercises.length === 0) return;
     const isGrouped = ["superset", "circuit"].includes(section.section_type);
     if (isGrouped) {
-      for (let round = 1; round <= section.rounds; round++) {
+      const totalRounds = Math.max(1, section.rounds || 1);
+      for (let round = 1; round <= totalRounds; round++) {
         section.exercises.forEach((ex, eIdx) => {
           steps.push({
             type: "exercise",

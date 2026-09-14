@@ -908,7 +908,7 @@ export default function CreateWorkout() {
       const mainSection = sections.find((s) => s.name === "Main");
       const groupSections = new Map<string, string>();
       let groupIdx = 0;
-      for (const group of groups) {
+      for (const group of nonEmptyGroups) {
         const sec = sections.find((s) => s.section_type === group.type && s.order_index === (ungroupedItems.length > 0 ? groupIdx + 1 : groupIdx));
         if (sec) groupSections.set(group.id, sec.id);
         groupIdx++;
