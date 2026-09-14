@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const FN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-tts`;
 const ANON = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
@@ -64,9 +65,11 @@ export function useCaptionNarration(text: string, enabled: boolean) {
       try {
         let url = cache.current.get(text);
         if (!url) {
+          const { data: { session } } = await supabase.auth.getSession();
+          const token = session?.access_token || ANON;
           const res = await fetch(FN_URL, {
             method: "POST",
-            headers: { "Content-Type": "application/json", apikey: ANON, Authorization: `Bearer ${ANON}` },
+            headers: { "Content-Type": "application/json", apikey: ANON, Authorization: `Bearer ${token}` },
             body: JSON.stringify({ text }),
           });
           if (!res.ok) {
