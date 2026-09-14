@@ -79,5 +79,17 @@ export function SortableGroupHeader({
         <GripVertical className="h-4 w-4 text-muted-foreground" />
       </div>
     </div>
+    {onUpdateIntro && (
+      <div className="flex items-center gap-2 px-4 pb-2">
+        <Volume2 className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+        <Input
+          value={introText || ""}
+          onChange={(e) => onUpdateIntro(e.target.value)}
+          placeholder="Coach intro spoken before this block (optional)"
+          className="h-8 text-xs"
+        />
+      </div>
+    )}
+    </div>
   );
 }
