@@ -64,9 +64,11 @@ export function useCaptionNarration(text: string, enabled: boolean) {
       try {
         let url = cache.current.get(text);
         if (!url) {
+          const { data: { session } } = await supabase.auth.getSession();
+          const token = session?.access_token || ANON;
           const res = await fetch(FN_URL, {
             method: "POST",
-            headers: { "Content-Type": "application/json", apikey: ANON, Authorization: `Bearer ${ANON}` },
+            headers: { "Content-Type": "application/json", apikey: ANON, Authorization: `Bearer ${token}` },
             body: JSON.stringify({ text }),
           });
           if (!res.ok) {
