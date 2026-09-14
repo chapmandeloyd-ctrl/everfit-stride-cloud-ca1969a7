@@ -1,6 +1,6 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical } from "lucide-react";
+import { GripVertical, Trash2 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,7 @@ interface SortableGroupHeaderProps {
   coachVoiceId?: string | null;
   exerciseNames?: string[];
   exerciseCount?: number;
+  onDeleteBlock?: () => void;
 }
 
 export function SortableGroupHeader({
@@ -45,6 +46,7 @@ export function SortableGroupHeader({
   coachVoiceId,
   exerciseNames = [],
   exerciseCount,
+  onDeleteBlock,
 }: SortableGroupHeaderProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: `group-${groupId}`,
@@ -90,6 +92,18 @@ export function SortableGroupHeader({
       <Button variant="link" size="sm" className="text-primary text-xs p-0 h-auto" onClick={onUngroup}>
         Ungroup
       </Button>
+      {onDeleteBlock && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label="Delete block"
+          className="h-7 w-7 text-destructive"
+          onClick={(e) => { e.stopPropagation(); onDeleteBlock(); }}
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      )}
       <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing p-1">
         <GripVertical className="h-4 w-4 text-muted-foreground" />
       </div>

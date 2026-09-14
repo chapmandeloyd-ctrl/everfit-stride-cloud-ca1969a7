@@ -733,6 +733,12 @@ export default function EditWorkout() {
     setGroups((prev) => prev.filter((g) => g.id !== groupId));
   };
 
+  const deleteGroup = (groupId: string) => {
+    setExerciseItems((prev) => prev.filter((item) => item.group_id !== groupId));
+    setGroups((prev) => prev.filter((g) => g.id !== groupId));
+    setActiveBlockId((cur) => (cur === groupId ? null : cur));
+  };
+
   const updateGroupWaterBreak = (groupId: string, rest_after_seconds: number) => {
     setGroups((prev) => prev.map((g) => (g.id === groupId ? { ...g, rest_after_seconds } : g)));
   };
@@ -1021,6 +1027,7 @@ export default function EditWorkout() {
                 }}
                 onUpdateSets={(sets) => updateGroupSets(group.id, sets)}
                 onUngroup={() => ungroupItems(group.id)}
+                onDeleteBlock={() => deleteGroup(group.id)}
                 blockTypeId={group.block_type}
                 customName={group.custom_name}
                 introText={group.intro_text}
@@ -1077,6 +1084,7 @@ export default function EditWorkout() {
             onToggleSelectAll={() => undefined}
             onUpdateSets={(sets) => updateGroupSets(group.id, sets)}
             onUngroup={() => ungroupItems(group.id)}
+                onDeleteBlock={() => deleteGroup(group.id)}
             blockTypeId={group.block_type}
             customName={group.custom_name}
             introText={group.intro_text}
