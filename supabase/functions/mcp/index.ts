@@ -3,11 +3,11 @@
 // supabase function: mcp
 // Bundled from src/lib/mcp/index.ts by @lovable.dev/mcp-js.
 // src/lib/mcp/index.ts
-import { auth, defineMcp } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { auth, defineMcp } from "npm:@lovable.dev/mcp-js@0.20.1";
 
 // src/lib/mcp/tools/echo.ts
-import { defineTool } from "npm:@lovable.dev/mcp-js@0.20.0";
-import { z } from "npm:zod@^3.25";
+import { defineTool } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z } from "npm:zod@^3.25.76";
 var echo_default = defineTool({
   name: "echo",
   title: "Echo",
@@ -18,7 +18,7 @@ var echo_default = defineTool({
 });
 
 // src/lib/mcp/tools/whoami.ts
-import { defineTool as defineTool2 } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { defineTool as defineTool2 } from "npm:@lovable.dev/mcp-js@0.20.1";
 var whoami_default = defineTool2({
   name: "whoami",
   title: "Who am I",
@@ -38,10 +38,10 @@ var whoami_default = defineTool2({
 });
 
 // src/lib/mcp/tools/list-my-clients.ts
-import { defineTool as defineTool3 } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { defineTool as defineTool3 } from "npm:@lovable.dev/mcp-js@0.20.1";
 
 // src/lib/mcp/_supabase.ts
-import { createClient } from "npm:@supabase/supabase-js@^2.98.0";
+import { createClient } from "npm:@supabase/supabase-js@^2.116.0";
 function supabaseAsUser(ctx) {
   return createClient(
     process.env.SUPABASE_URL,
@@ -97,8 +97,8 @@ var list_my_clients_default = defineTool3({
 });
 
 // src/lib/mcp/tools/get-client-progress.ts
-import { defineTool as defineTool4 } from "npm:@lovable.dev/mcp-js@0.20.0";
-import { z as z2 } from "npm:zod@^3.25";
+import { defineTool as defineTool4 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z2 } from "npm:zod@^3.25.76";
 var get_client_progress_default = defineTool4({
   name: "get_client_progress",
   title: "Get client progress",
@@ -120,8 +120,8 @@ var get_client_progress_default = defineTool4({
 });
 
 // src/lib/mcp/tools/create-client-task.ts
-import { defineTool as defineTool5 } from "npm:@lovable.dev/mcp-js@0.20.0";
-import { z as z3 } from "npm:zod@^3.25";
+import { defineTool as defineTool5 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z3 } from "npm:zod@^3.25.76";
 var create_client_task_default = defineTool5({
   name: "create_client_task",
   title: "Create client task",
@@ -154,8 +154,8 @@ var create_client_task_default = defineTool5({
 });
 
 // src/lib/mcp/tools/list-client-tasks.ts
-import { defineTool as defineTool6 } from "npm:@lovable.dev/mcp-js@0.20.0";
-import { z as z4 } from "npm:zod@^3.25";
+import { defineTool as defineTool6 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z4 } from "npm:zod@^3.25.76";
 var list_client_tasks_default = defineTool6({
   name: "list_client_tasks",
   title: "List client tasks",
@@ -178,8 +178,8 @@ var list_client_tasks_default = defineTool6({
 });
 
 // src/lib/mcp/tools/add-client-note.ts
-import { defineTool as defineTool7 } from "npm:@lovable.dev/mcp-js@0.20.0";
-import { z as z5 } from "npm:zod@^3.25";
+import { defineTool as defineTool7 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z5 } from "npm:zod@^3.25.76";
 var add_client_note_default = defineTool7({
   name: "add_client_note",
   title: "Add client note",
@@ -201,8 +201,8 @@ var add_client_note_default = defineTool7({
 });
 
 // src/lib/mcp/tools/get-client-recent-workouts.ts
-import { defineTool as defineTool8 } from "npm:@lovable.dev/mcp-js@0.20.0";
-import { z as z6 } from "npm:zod@^3.25";
+import { defineTool as defineTool8 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z6 } from "npm:zod@^3.25.76";
 var get_client_recent_workouts_default = defineTool8({
   name: "get_client_recent_workouts",
   title: "Get client's recent workouts",
@@ -223,8 +223,8 @@ var get_client_recent_workouts_default = defineTool8({
 });
 
 // src/lib/mcp/tools/get-client-recent-fasts.ts
-import { defineTool as defineTool9 } from "npm:@lovable.dev/mcp-js@0.20.0";
-import { z as z7 } from "npm:zod@^3.25";
+import { defineTool as defineTool9 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z7 } from "npm:zod@^3.25.76";
 var get_client_recent_fasts_default = defineTool9({
   name: "get_client_recent_fasts",
   title: "Get client's recent fasts",
@@ -243,8 +243,8 @@ var get_client_recent_fasts_default = defineTool9({
 });
 
 // src/lib/mcp/tools/send-coaching-message.ts
-import { defineTool as defineTool10 } from "npm:@lovable.dev/mcp-js@0.20.0";
-import { z as z8 } from "npm:zod@^3.25";
+import { defineTool as defineTool10 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z8 } from "npm:zod@^3.25.76";
 var send_coaching_message_default = defineTool10({
   name: "send_coaching_message",
   title: "Send coaching message to a client",
@@ -278,7 +278,7 @@ var send_coaching_message_default = defineTool10({
 });
 
 // src/lib/mcp/tools/get-my-progress.ts
-import { defineTool as defineTool11 } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { defineTool as defineTool11 } from "npm:@lovable.dev/mcp-js@0.20.1";
 var get_my_progress_default = defineTool11({
   name: "get_my_progress",
   title: "Get my progress",
@@ -295,8 +295,8 @@ var get_my_progress_default = defineTool11({
 });
 
 // src/lib/mcp/tools/get-my-tasks.ts
-import { defineTool as defineTool12 } from "npm:@lovable.dev/mcp-js@0.20.0";
-import { z as z9 } from "npm:zod@^3.25";
+import { defineTool as defineTool12 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z9 } from "npm:zod@^3.25.76";
 var get_my_tasks_default = defineTool12({
   name: "get_my_tasks",
   title: "Get my tasks",
@@ -318,8 +318,8 @@ var get_my_tasks_default = defineTool12({
 });
 
 // src/lib/mcp/tools/complete-task.ts
-import { defineTool as defineTool13 } from "npm:@lovable.dev/mcp-js@0.20.0";
-import { z as z10 } from "npm:zod@^3.25";
+import { defineTool as defineTool13 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z10 } from "npm:zod@^3.25.76";
 var complete_task_default = defineTool13({
   name: "complete_task",
   title: "Complete a task",
@@ -344,8 +344,8 @@ var complete_task_default = defineTool13({
 });
 
 // src/lib/mcp/tools/log-my-water.ts
-import { defineTool as defineTool14 } from "npm:@lovable.dev/mcp-js@0.20.0";
-import { z as z11 } from "npm:zod@^3.25";
+import { defineTool as defineTool14 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z11 } from "npm:zod@^3.25.76";
 var log_my_water_default = defineTool14({
   name: "log_my_water",
   title: "Log water intake",
@@ -371,7 +371,7 @@ var log_my_water_default = defineTool14({
 });
 
 // src/lib/mcp/tools/get-my-habits.ts
-import { defineTool as defineTool15 } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { defineTool as defineTool15 } from "npm:@lovable.dev/mcp-js@0.20.1";
 var get_my_habits_default = defineTool15({
   name: "get_my_habits",
   title: "Get my habits",
@@ -402,8 +402,8 @@ var get_my_habits_default = defineTool15({
 });
 
 // src/lib/mcp/tools/log-habit-completion.ts
-import { defineTool as defineTool16 } from "npm:@lovable.dev/mcp-js@0.20.0";
-import { z as z12 } from "npm:zod@^3.25";
+import { defineTool as defineTool16 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z12 } from "npm:zod@^3.25.76";
 var log_habit_completion_default = defineTool16({
   name: "log_habit_completion",
   title: "Log habit completion",
@@ -435,7 +435,7 @@ var log_habit_completion_default = defineTool16({
 });
 
 // src/lib/mcp/tools/get-my-active-fast.ts
-import { defineTool as defineTool17 } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { defineTool as defineTool17 } from "npm:@lovable.dev/mcp-js@0.20.1";
 var get_my_active_fast_default = defineTool17({
   name: "get_my_active_fast",
   title: "Get my active fast",
@@ -454,8 +454,8 @@ var get_my_active_fast_default = defineTool17({
 });
 
 // src/lib/mcp/tools/get-my-recent-workouts.ts
-import { defineTool as defineTool18 } from "npm:@lovable.dev/mcp-js@0.20.0";
-import { z as z13 } from "npm:zod@^3.25";
+import { defineTool as defineTool18 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z13 } from "npm:zod@^3.25.76";
 var get_my_recent_workouts_default = defineTool18({
   name: "get_my_recent_workouts",
   title: "Get my recent workouts",
@@ -475,8 +475,8 @@ var get_my_recent_workouts_default = defineTool18({
 });
 
 // src/lib/mcp/tools/log-body-weight.ts
-import { defineTool as defineTool19 } from "npm:@lovable.dev/mcp-js@0.20.0";
-import { z as z14 } from "npm:zod@^3.25";
+import { defineTool as defineTool19 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z14 } from "npm:zod@^3.25.76";
 var log_body_weight_default = defineTool19({
   name: "log_body_weight",
   title: "Log body weight",
@@ -517,8 +517,8 @@ var log_body_weight_default = defineTool19({
 });
 
 // src/lib/mcp/tools/log-meal-from-recipe.ts
-import { defineTool as defineTool20 } from "npm:@lovable.dev/mcp-js@0.20.0";
-import { z as z15 } from "npm:zod@^3.25";
+import { defineTool as defineTool20 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z15 } from "npm:zod@^3.25.76";
 var log_meal_from_recipe_default = defineTool20({
   name: "log_meal_from_recipe",
   title: "Log meal from recipe",
@@ -565,8 +565,8 @@ var log_meal_from_recipe_default = defineTool20({
 });
 
 // src/lib/mcp/tools/reset-client-plan.ts
-import { defineTool as defineTool21 } from "npm:@lovable.dev/mcp-js@0.20.0";
-import { z as z16 } from "npm:zod@^3.25";
+import { defineTool as defineTool21 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z16 } from "npm:zod@^3.25.76";
 var reset_client_plan_default = defineTool21({
   name: "reset_client_plan",
   title: "Reset a client's plan (trainer)",
@@ -598,7 +598,7 @@ var reset_client_plan_default = defineTool21({
 });
 
 // src/lib/mcp/tools/get-my-macros-today.ts
-import { defineTool as defineTool22 } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { defineTool as defineTool22 } from "npm:@lovable.dev/mcp-js@0.20.1";
 var get_my_macros_today_default = defineTool22({
   name: "get_my_macros_today",
   title: "Get my macros today",
@@ -656,8 +656,8 @@ var get_my_macros_today_default = defineTool22({
 });
 
 // src/lib/mcp/tools/search-recipes.ts
-import { defineTool as defineTool23 } from "npm:@lovable.dev/mcp-js@0.20.0";
-import { z as z17 } from "npm:zod@^3.25";
+import { defineTool as defineTool23 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z17 } from "npm:zod@^3.25.76";
 var search_recipes_default = defineTool23({
   name: "search_recipes",
   title: "Search recipes",
@@ -693,7 +693,7 @@ ${data.map((r) => `\u2022 ${r.name} \u2014 ${r.calories ?? "?"} kcal, ${r.protei
 });
 
 // src/lib/mcp/tools/get-my-smart-pace.ts
-import { defineTool as defineTool24 } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { defineTool as defineTool24 } from "npm:@lovable.dev/mcp-js@0.20.1";
 var get_my_smart_pace_default = defineTool24({
   name: "get_my_smart_pace",
   title: "Get my Smart Pace",
@@ -724,8 +724,8 @@ var get_my_smart_pace_default = defineTool24({
 });
 
 // src/lib/mcp/tools/get-client-adherence-breakdown.ts
-import { defineTool as defineTool25 } from "npm:@lovable.dev/mcp-js@0.20.0";
-import { z as z18 } from "npm:zod@^3.25";
+import { defineTool as defineTool25 } from "npm:@lovable.dev/mcp-js@0.20.1";
+import { z as z18 } from "npm:zod@^3.25.76";
 var get_client_adherence_breakdown_default = defineTool25({
   name: "get_client_adherence_breakdown",
   title: "Get client adherence breakdown",
@@ -798,5 +798,5 @@ var mcp_default = defineMcp({
 });
 
 // lovable-mcp-supabase-entry.ts
-import { createSupabaseHandler } from "npm:@lovable.dev/mcp-js@0.20.0/stacks/supabase";
+import { createSupabaseHandler } from "npm:@lovable.dev/mcp-js@0.20.1/stacks/supabase";
 Deno.serve(createSupabaseHandler(mcp_default, { functionName: "mcp" }));
