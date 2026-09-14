@@ -1352,7 +1352,60 @@ export default function CreateWorkout() {
                 );
               })}
             </div>
+
+            {/* Equipment filters */}
+            <div className="flex items-start gap-1 flex-wrap">
+              <span className="text-xs text-muted-foreground mr-1 mt-1">EQUIPMENT:</span>
+              <button
+                onClick={() => { setEquipmentFilter(null); setVisibleCount(60); }}
+                className={`text-xs px-2 py-0.5 rounded-full border transition-colors ${
+                  !equipmentFilter ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:border-primary/50"
+                }`}
+              >
+                All
+              </button>
+              {EQUIPMENT_OPTIONS.filter((o) => (equipmentCounts[o.key] || 0) > 0).map((o) => (
+                <button
+                  key={o.key}
+                  onClick={() => { setEquipmentFilter(equipmentFilter === o.key ? null : o.key); setVisibleCount(60); }}
+                  className={`text-xs px-2 py-0.5 rounded-full border transition-colors ${
+                    equipmentFilter === o.key ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:border-primary/50"
+                  }`}
+                >
+                  {o.label} ({equipmentCounts[o.key] || 0})
+                </button>
+              ))}
+            </div>
+
+            {/* Muscle filters */}
+            <div className="flex items-start gap-1 flex-wrap">
+              <span className="text-xs text-muted-foreground mr-1 mt-1">MUSCLE:</span>
+              <button
+                onClick={() => { setMuscleFilter(null); setVisibleCount(60); }}
+                className={`text-xs px-2 py-0.5 rounded-full border transition-colors ${
+                  !muscleFilter ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:border-primary/50"
+                }`}
+              >
+                All
+              </button>
+              {MUSCLE_OPTIONS.filter((o) => (muscleCounts[o.key] || 0) > 0).map((o) => (
+                <button
+                  key={o.key}
+                  onClick={() => { setMuscleFilter(muscleFilter === o.key ? null : o.key); setVisibleCount(60); }}
+                  className={`text-xs px-2 py-0.5 rounded-full border transition-colors ${
+                    muscleFilter === o.key ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:border-primary/50"
+                  }`}
+                >
+                  {o.label} ({muscleCounts[o.key] || 0})
+                </button>
+              ))}
+            </div>
+
+            <p className="text-xs text-muted-foreground">
+              Showing <span className="font-semibold text-foreground">{filteredExercises?.length || 0}</span> of {exercises?.length || 0} exercises
+            </p>
           </div>
+
 
           <ScrollArea className="flex-1">
             <div className="p-3 grid grid-cols-3 gap-2">
