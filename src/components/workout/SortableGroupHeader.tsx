@@ -32,6 +32,8 @@ export function SortableGroupHeader({
   onUngroup,
   blockTypeId,
   customName,
+  introText,
+  onUpdateIntro,
 }: SortableGroupHeaderProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: `group-${groupId}`,
