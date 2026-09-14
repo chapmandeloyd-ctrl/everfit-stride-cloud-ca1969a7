@@ -40,10 +40,35 @@ const handler = async (req: Request): Promise<Response> => {
     } = await supabaseClient.auth.getUser();
 
     if (authError || !trainer) {
-      throw new Error("Unauthorized");
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
     }
 
-    const { clientId }: ResendEmailRequest = await req.json();
+    // Server-side role check: only trainers may resend client welcome emails
+    const { data: callerProfile } = await supabaseClient
+      .from("profiles")
+      .select("role")
+      .eq("id", trainer.id)
+      .single();
+
+    if (callerProfile?.role !== "trainer") {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    const rawBody = await req.json().catch(() => ({}));
+    const clientId = String((rawBody as ResendEmailRequest)?.clientId ?? "");
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(clientId);
+    if (!isUuid) {
+      return new Response(JSON.stringify({ error: "Invalid client id" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
 
     // Always force production URL — never trust client-provided URLs
     // (could be Lovable editor or preview origin).
