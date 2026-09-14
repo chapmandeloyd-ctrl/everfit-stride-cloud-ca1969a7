@@ -361,6 +361,8 @@ export default function EditWorkout() {
       setDifficulty(workout.difficulty);
       setVideoUrl(workout.video_url || "");
       setExistingImageUrl(workout.image_url || null);
+      setCoachVoiceId((workout as any).coach_voice_id || DEFAULT_COACH_VOICE_ID);
+      setOutroText((workout as any).outro_text || "");
 
       // Convert sections → flat exercise items + groups
       const items: WorkoutExercise[] = [];
