@@ -16,7 +16,7 @@ import { PasteFieldsSheet, type PasteableField } from "@/components/workout/Past
 import { useToast } from "@/hooks/use-toast";
 import { CreateFromTemplateDialog } from "@/components/CreateFromTemplateDialog";
 import { SortableGroupHeader } from "@/components/workout/SortableGroupHeader";
-import { getBlockType } from "@/lib/workoutBlockTypes";
+import { getBlockType, getBlockKind } from "@/lib/workoutBlockTypes";
 import { BlockTypePicker } from "@/components/workout/BlockTypePicker";
 import { BuildMethodChooser } from "@/components/workout/BuildMethodChooser";
 import { CoachVoicePicker, DEFAULT_COACH_VOICE_ID, speakWithCoachVoice } from "@/components/workout/CoachVoicePicker";
@@ -55,7 +55,7 @@ interface WorkoutExercise {
 
 interface ExerciseGroup {
   id: string;
-  type: "superset" | "circuit";
+  type: "superset" | "circuit" | "straight";
   sets: number;
   block_type?: string;
   custom_name?: string;
