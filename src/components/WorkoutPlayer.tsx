@@ -138,7 +138,7 @@ function buildSteps(sections: Section[]): WorkoutStep[] {
             });
           }
         });
-        if (round < section.rounds) {
+        if (round < totalRounds) {
           // Prefer explicit between-rounds rest, then fall back to last exercise's rest_seconds, then section rest, then 60s
           const lastExRest = section.exercises[section.exercises.length - 1]?.rest_seconds || 0;
           const restSec = section.rest_between_rounds_seconds || lastExRest || section.rest_seconds || 60;
