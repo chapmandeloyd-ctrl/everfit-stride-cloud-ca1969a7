@@ -10640,11 +10640,17 @@ export type Database = {
       }
       workout_plan_exercises: {
         Row: {
+          cardio_intervals: Json | null
           detail_fields: string[] | null
           distance: string | null
+          dropset_config: Json | null
           duration_seconds: number | null
+          equipment: string | null
           exercise_id: string | null
           exercise_type: string | null
+          form_cue_mid: string | null
+          form_cue_start: string | null
+          form_cue_switch: string | null
           id: string
           is_unilateral: boolean | null
           notes: string | null
@@ -10655,16 +10661,24 @@ export type Database = {
           rpe: number | null
           section_id: string | null
           sets: number | null
+          side_mode: string
           tempo: string | null
           weight_lbs: number | null
+          weight_unit: string
           workout_plan_id: string
         }
         Insert: {
+          cardio_intervals?: Json | null
           detail_fields?: string[] | null
           distance?: string | null
+          dropset_config?: Json | null
           duration_seconds?: number | null
+          equipment?: string | null
           exercise_id?: string | null
           exercise_type?: string | null
+          form_cue_mid?: string | null
+          form_cue_start?: string | null
+          form_cue_switch?: string | null
           id?: string
           is_unilateral?: boolean | null
           notes?: string | null
@@ -10675,16 +10689,24 @@ export type Database = {
           rpe?: number | null
           section_id?: string | null
           sets?: number | null
+          side_mode?: string
           tempo?: string | null
           weight_lbs?: number | null
+          weight_unit?: string
           workout_plan_id: string
         }
         Update: {
+          cardio_intervals?: Json | null
           detail_fields?: string[] | null
           distance?: string | null
+          dropset_config?: Json | null
           duration_seconds?: number | null
+          equipment?: string | null
           exercise_id?: string | null
           exercise_type?: string | null
+          form_cue_mid?: string | null
+          form_cue_start?: string | null
+          form_cue_switch?: string | null
           id?: string
           is_unilateral?: boolean | null
           notes?: string | null
@@ -10695,8 +10717,10 @@ export type Database = {
           rpe?: number | null
           section_id?: string | null
           sets?: number | null
+          side_mode?: string
           tempo?: string | null
           weight_lbs?: number | null
+          weight_unit?: string
           workout_plan_id?: string
         }
         Relationships: [
@@ -10728,6 +10752,7 @@ export type Database = {
           category: string
           client_owner_id: string | null
           cloudflare_video_id: string | null
+          coach_voice_id: string | null
           created_at: string
           description: string | null
           difficulty: Database["public"]["Enums"]["workout_difficulty"]
@@ -10738,6 +10763,8 @@ export type Database = {
           image_url: string | null
           is_template: boolean | null
           name: string
+          outro_text: string | null
+          tags: string[]
           template_category: string | null
           trainer_id: string
           updated_at: string
@@ -10748,6 +10775,7 @@ export type Database = {
           category: string
           client_owner_id?: string | null
           cloudflare_video_id?: string | null
+          coach_voice_id?: string | null
           created_at?: string
           description?: string | null
           difficulty: Database["public"]["Enums"]["workout_difficulty"]
@@ -10758,6 +10786,8 @@ export type Database = {
           image_url?: string | null
           is_template?: boolean | null
           name: string
+          outro_text?: string | null
+          tags?: string[]
           template_category?: string | null
           trainer_id: string
           updated_at?: string
@@ -10768,6 +10798,7 @@ export type Database = {
           category?: string
           client_owner_id?: string | null
           cloudflare_video_id?: string | null
+          coach_voice_id?: string | null
           created_at?: string
           description?: string | null
           difficulty?: Database["public"]["Enums"]["workout_difficulty"]
@@ -10778,6 +10809,8 @@ export type Database = {
           image_url?: string | null
           is_template?: boolean | null
           name?: string
+          outro_text?: string | null
+          tags?: string[]
           template_category?: string | null
           trainer_id?: string
           updated_at?: string
@@ -10805,9 +10838,11 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
+          intro_text: string | null
           name: string
           notes: string | null
           order_index: number
+          rest_after_seconds: number | null
           rest_between_rounds_seconds: number | null
           rest_seconds: number | null
           rounds: number | null
@@ -10818,9 +10853,11 @@ export type Database = {
         Insert: {
           created_at?: string | null
           id?: string
+          intro_text?: string | null
           name?: string
           notes?: string | null
           order_index: number
+          rest_after_seconds?: number | null
           rest_between_rounds_seconds?: number | null
           rest_seconds?: number | null
           rounds?: number | null
@@ -10831,9 +10868,11 @@ export type Database = {
         Update: {
           created_at?: string | null
           id?: string
+          intro_text?: string | null
           name?: string
           notes?: string | null
           order_index?: number
+          rest_after_seconds?: number | null
           rest_between_rounds_seconds?: number | null
           rest_seconds?: number | null
           rounds?: number | null
@@ -10853,6 +10892,7 @@ export type Database = {
       }
       workout_sessions: {
         Row: {
+          calories_estimate: number | null
           client_id: string
           client_workout_id: string | null
           completed_at: string | null
@@ -10860,24 +10900,32 @@ export type Database = {
           created_at: string | null
           difficulty_rating: number | null
           duration_seconds: number | null
+          exercises_completed: number | null
+          exercises_planned: number | null
           external_id: string | null
           external_metadata: Json | null
           external_name: string | null
           external_type: string | null
           id: string
+          incomplete_note: string | null
+          incomplete_reason: string | null
           is_partial: boolean | null
           notes: string | null
+          planned_duration_seconds: number | null
           resume_exercise_index: number | null
           resume_round: number | null
           resume_section_index: number | null
           resume_set: number | null
           resume_set_logs: Json | null
+          rpe: number | null
+          skipped_events: Json
           source: string
           started_at: string
           status: string
           workout_plan_id: string | null
         }
         Insert: {
+          calories_estimate?: number | null
           client_id: string
           client_workout_id?: string | null
           completed_at?: string | null
@@ -10885,24 +10933,32 @@ export type Database = {
           created_at?: string | null
           difficulty_rating?: number | null
           duration_seconds?: number | null
+          exercises_completed?: number | null
+          exercises_planned?: number | null
           external_id?: string | null
           external_metadata?: Json | null
           external_name?: string | null
           external_type?: string | null
           id?: string
+          incomplete_note?: string | null
+          incomplete_reason?: string | null
           is_partial?: boolean | null
           notes?: string | null
+          planned_duration_seconds?: number | null
           resume_exercise_index?: number | null
           resume_round?: number | null
           resume_section_index?: number | null
           resume_set?: number | null
           resume_set_logs?: Json | null
+          rpe?: number | null
+          skipped_events?: Json
           source?: string
           started_at: string
           status?: string
           workout_plan_id?: string | null
         }
         Update: {
+          calories_estimate?: number | null
           client_id?: string
           client_workout_id?: string | null
           completed_at?: string | null
@@ -10910,18 +10966,25 @@ export type Database = {
           created_at?: string | null
           difficulty_rating?: number | null
           duration_seconds?: number | null
+          exercises_completed?: number | null
+          exercises_planned?: number | null
           external_id?: string | null
           external_metadata?: Json | null
           external_name?: string | null
           external_type?: string | null
           id?: string
+          incomplete_note?: string | null
+          incomplete_reason?: string | null
           is_partial?: boolean | null
           notes?: string | null
+          planned_duration_seconds?: number | null
           resume_exercise_index?: number | null
           resume_round?: number | null
           resume_section_index?: number | null
           resume_set?: number | null
           resume_set_logs?: Json | null
+          rpe?: number | null
+          skipped_events?: Json
           source?: string
           started_at?: string
           status?: string
