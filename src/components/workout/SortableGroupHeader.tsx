@@ -1,10 +1,11 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Volume2 } from "lucide-react";
+import { GripVertical } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { getBlockType } from "@/lib/workoutBlockTypes";
+import { BlockCoachPanel } from "@/components/workout/BlockCoachPanel";
 
 interface SortableGroupHeaderProps {
   groupId: string;
@@ -19,6 +20,11 @@ interface SortableGroupHeaderProps {
   customName?: string;
   introText?: string;
   onUpdateIntro?: (value: string) => void;
+  waterBreakSeconds?: number;
+  onUpdateWaterBreak?: (seconds: number) => void;
+  coachVoiceId?: string | null;
+  exerciseNames?: string[];
+  exerciseCount?: number;
 }
 
 export function SortableGroupHeader({
@@ -34,6 +40,11 @@ export function SortableGroupHeader({
   customName,
   introText,
   onUpdateIntro,
+  waterBreakSeconds,
+  onUpdateWaterBreak,
+  coachVoiceId,
+  exerciseNames = [],
+  exerciseCount,
 }: SortableGroupHeaderProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: `group-${groupId}`,
