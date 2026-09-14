@@ -200,6 +200,12 @@ export default function WorkoutDetail() {
 
     // Use existing active session if available, otherwise create new one
     let sessionId = activeSessionId;
+    const extras: Record<string, any> = {
+      completion_percentage: data.completionPercent ?? (isPartial ? 0 : 100),
+      calories_estimate: data.caloriesEstimate ?? null,
+      incomplete_reason: isPartial ? data.reason ?? null : null,
+      skipped_events: data.skippedEvents ?? [],
+    };
     if (sessionId) {
       const { error: updateError } = await supabase
         .from("workout_sessions")
@@ -208,7 +214,8 @@ export default function WorkoutDetail() {
           duration_seconds: data.elapsedSeconds,
           is_partial: isPartial,
           status: isPartial ? "partial" : "completed",
-        })
+          ...extras,
+        } as never)
         .eq("id", sessionId);
       if (updateError) throw updateError;
     } else {
@@ -222,12 +229,15 @@ export default function WorkoutDetail() {
           completed_at: completedAt,
           duration_seconds: data.elapsedSeconds,
           is_partial: isPartial,
-        })
+          status: isPartial ? "partial" : "completed",
+          ...extras,
+        } as never)
         .select()
         .single();
       if (sessionError) throw sessionError;
-      sessionId = session.id;
+      sessionId = (session as any).id;
     }
+
 
     // Save exercise logs
     const logs: any[] = [];
