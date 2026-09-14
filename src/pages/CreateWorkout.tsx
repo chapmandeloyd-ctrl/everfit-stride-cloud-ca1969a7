@@ -18,6 +18,7 @@ import { CreateFromTemplateDialog } from "@/components/CreateFromTemplateDialog"
 import { SortableGroupHeader } from "@/components/workout/SortableGroupHeader";
 import { getBlockType } from "@/lib/workoutBlockTypes";
 import { BlockTypePicker } from "@/components/workout/BlockTypePicker";
+import { CoachVoicePicker, DEFAULT_COACH_VOICE_ID } from "@/components/workout/CoachVoicePicker";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
@@ -428,6 +429,8 @@ export default function CreateWorkout() {
   const [difficulty, setDifficulty] = useState<"beginner" | "intermediate" | "advanced">("beginner");
   const [coverImage, setCoverImage] = useState<File | null>(null);
   const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null);
+  const [coachVoiceId, setCoachVoiceId] = useState<string>(DEFAULT_COACH_VOICE_ID);
+  const [outroText, setOutroText] = useState("");
 
   const [exerciseItems, setExerciseItems] = useState<WorkoutExercise[]>([]);
   const [groups, setGroups] = useState<ExerciseGroup[]>([]);
@@ -857,6 +860,8 @@ export default function CreateWorkout() {
           duration_minutes: calculatedDuration,
           trainer_id: user?.id,
           image_url: imageUrl,
+          coach_voice_id: coachVoiceId,
+          outro_text: outroText || null,
         })
         .select()
         .single();
@@ -1171,6 +1176,16 @@ export default function CreateWorkout() {
               <span className="text-muted-foreground">Duration:</span>
               <span className="font-medium">{calculatedDuration} min</span>
               <span className="text-muted-foreground">(auto)</span>
+            </div>
+            <CoachVoicePicker value={coachVoiceId} onChange={setCoachVoiceId} />
+            <div className="flex items-center gap-1.5">
+              <span className="text-muted-foreground">Finish message:</span>
+              <Input
+                value={outroText}
+                onChange={(e) => setOutroText(e.target.value)}
+                placeholder="Great work today!"
+                className="h-7 w-44 text-xs"
+              />
             </div>
             <div className="flex items-center gap-1.5">
               <span className="text-muted-foreground">Cover:</span>

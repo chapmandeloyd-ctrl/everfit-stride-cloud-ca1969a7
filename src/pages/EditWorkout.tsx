@@ -17,6 +17,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { SortableGroupHeader } from "@/components/workout/SortableGroupHeader";
 import { getBlockType, getBlockTypeFromSectionName } from "@/lib/workoutBlockTypes";
 import { BlockTypePicker } from "@/components/workout/BlockTypePicker";
+import { CoachVoicePicker, DEFAULT_COACH_VOICE_ID } from "@/components/workout/CoachVoicePicker";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
@@ -314,6 +315,8 @@ export default function EditWorkout() {
   const [coverImage, setCoverImage] = useState<File | null>(null);
   const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null);
   const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
+  const [coachVoiceId, setCoachVoiceId] = useState<string>(DEFAULT_COACH_VOICE_ID);
+  const [outroText, setOutroText] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
 
   const [exerciseItems, setExerciseItems] = useState<WorkoutExercise[]>([]);
@@ -358,6 +361,8 @@ export default function EditWorkout() {
       setDifficulty(workout.difficulty);
       setVideoUrl(workout.video_url || "");
       setExistingImageUrl(workout.image_url || null);
+      setCoachVoiceId((workout as any).coach_voice_id || DEFAULT_COACH_VOICE_ID);
+      setOutroText((workout as any).outro_text || "");
 
       // Convert sections → flat exercise items + groups
       const items: WorkoutExercise[] = [];
@@ -764,6 +769,8 @@ export default function EditWorkout() {
           duration_minutes: calculatedDuration,
           video_url: videoUrl || null,
           image_url: imageUrl,
+          coach_voice_id: coachVoiceId,
+          outro_text: outroText || null,
         })
         .eq("id", id);
       if (workoutError) throw workoutError;
@@ -1013,6 +1020,16 @@ export default function EditWorkout() {
               <span className="text-muted-foreground">Duration:</span>
               <span className="font-medium">{calculatedDuration} min</span>
               <span className="text-muted-foreground">(auto)</span>
+            </div>
+            <CoachVoicePicker value={coachVoiceId} onChange={setCoachVoiceId} />
+            <div className="flex items-center gap-1.5">
+              <span className="text-muted-foreground">Finish message:</span>
+              <Input
+                value={outroText}
+                onChange={(e) => setOutroText(e.target.value)}
+                placeholder="Great work today!"
+                className="h-7 w-44 text-xs"
+              />
             </div>
             <div className="flex items-center gap-1.5">
               <span className="text-muted-foreground">Cover:</span>
