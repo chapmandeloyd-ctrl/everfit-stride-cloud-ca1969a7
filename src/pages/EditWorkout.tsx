@@ -866,7 +866,8 @@ export default function EditWorkout() {
       const groupSections = new Map<string, string>();
       let groupIdx = 0;
       for (const group of nonEmptyGroups) {
-        const sec = sections.find((s: any) => s.section_type === group.type && s.order_index === (ungroupedItems.length > 0 ? groupIdx + 1 : groupIdx));
+        const mappedType = group.type === "straight" ? "straight_set" : group.type;
+        const sec = sections.find((s: any) => s.section_type === mappedType && s.name !== "Main" && s.order_index === (ungroupedItems.length > 0 ? groupIdx + 1 : groupIdx));
         if (sec) groupSections.set(group.id, sec.id);
         groupIdx++;
       }
@@ -1528,7 +1529,7 @@ export default function EditWorkout() {
       <BlockTypePicker
         open={showBlockPicker}
         onOpenChange={setShowBlockPicker}
-        onSelect={(bt, customName) => createBlock(bt, customName, "circuit")}
+        onSelect={(bt, customName) => createBlock(bt, customName)}
       />
 
       {/* Detail Fields Sheet */}
