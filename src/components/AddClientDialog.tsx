@@ -139,15 +139,15 @@ export function AddClientDialog({ open, onOpenChange }: AddClientDialogProps) {
 
   const addClientMutation = useMutation({
     mutationFn: async () => {
-      if (!email.trim() || !fullName.trim() || !password.trim()) {
-        throw new Error("All fields are required");
-      }
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        throw new Error("Please enter a valid email address");
-      }
-      if (password.length < 6) {
-        throw new Error("Password must be at least 6 characters");
+      const parsed = z
+        .object({
+          email: z.string().trim().email("Please enter a valid email address").max(255),
+          fullName: z.string().trim().min(1, "Full name is required").max(120),
+          password: z.string().min(8, "Password must be at least 8 characters").max(128),
+        })
+        .safeParse({ email, fullName, password });
+      if (!parsed.success) {
+        throw new Error(parsed.error.issues[0]?.message ?? "Please check the details you entered");
       }
       const loginUrl = "https://apexbeast-if.app/auth";
       const { data, error } = await supabase.functions.invoke("create-client", {
