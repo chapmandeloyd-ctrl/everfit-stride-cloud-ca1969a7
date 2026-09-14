@@ -17,7 +17,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { SortableGroupHeader } from "@/components/workout/SortableGroupHeader";
 import { getBlockType, getBlockTypeFromSectionName } from "@/lib/workoutBlockTypes";
 import { BlockTypePicker } from "@/components/workout/BlockTypePicker";
-import { CoachVoicePicker, DEFAULT_COACH_VOICE_ID } from "@/components/workout/CoachVoicePicker";
+import { CoachVoicePicker, DEFAULT_COACH_VOICE_ID, speakWithCoachVoice } from "@/components/workout/CoachVoicePicker";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
