@@ -620,7 +620,20 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
 
     // Rest periods no longer get a 3-2-1 voice countdown — visual timer is enough.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stepTimer, stepIdx, phase]);
+  }, [stepTimer, stepIdx, phase, currentSide]);
+
+  // Coach's closing message, spoken once when the last step is finished
+  const spokenOutroRef = useRef(false);
+  useEffect(() => {
+    if (phase !== "playing") return;
+    if (stepIdx < steps.length) return;
+    if (spokenOutroRef.current) return;
+    spokenOutroRef.current = true;
+    const closing = outroText?.trim() || "Workout complete. Great work today.";
+    elevenLabsSpeakNow(closing).catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stepIdx, phase]);
+
 
   useEffect(() => {
     if (!videoRef.current) return;
