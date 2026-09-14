@@ -32,6 +32,14 @@ interface ConversationDisplay {
   members: { id: string; full_name: string | null; avatar_url: string | null; email: string }[];
 }
 
+const resolveChatAttachmentUrl = async (value: string | null) => {
+  if (!value || /^https?:\/\//i.test(value)) return value;
+  const { data, error } = await supabase.storage
+    .from("chat-attachments")
+    .createSignedUrl(value, 60 * 60);
+  return error ? null : data.signedUrl;
+};
+
 export default function Messages() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -249,10 +257,24 @@ export default function Messages() {
         });
       }
 
-      const messagesWithSender = (data || []).map((m) => ({
-        ...m,
-        sender: senderMap.get(m.sender_id) || null,
-        replyToMessage: m.reply_to_id ? replyMap.get(m.reply_to_id) : null,
+      const messagesWithSender = await Promise.all((data || []).map(async (m) => {
+        const replyMessage = m.reply_to_id ? replyMap.get(m.reply_to_id) : null;
+        const [imageUrl, fileUrl, replyImageUrl, replyFileUrl] = await Promise.all([
+          resolveChatAttachmentUrl(m.image_url),
+          resolveChatAttachmentUrl(m.file_url),
+          resolveChatAttachmentUrl(replyMessage?.image_url ?? null),
+          resolveChatAttachmentUrl(replyMessage?.file_url ?? null),
+        ]);
+
+        return {
+          ...m,
+          image_url: imageUrl,
+          file_url: fileUrl,
+          sender: senderMap.get(m.sender_id) || null,
+          replyToMessage: replyMessage
+            ? { ...replyMessage, image_url: replyImageUrl, file_url: replyFileUrl }
+            : null,
+        };
       }));
 
       // Update read receipt
@@ -543,7 +565,8 @@ export default function Messages() {
   const handleFileUpload = async (file: File, type: "image" | "file") => {
     if (!user?.id || !selectedConversation) return;
     const ext = file.name.split(".").pop();
-    const path = `${user.id}/${Date.now()}.${ext}`;
+    const safeExtension = ext?.replace(/[^a-zA-Z0-9]/g, "").toLowerCase() || "bin";
+    const path = `${selectedConversation.id}/${user.id}/${Date.now()}.${safeExtension}`;
     const { error: uploadErr } = await supabase.storage
       .from("chat-attachments")
       .upload(path, file);
@@ -551,11 +574,10 @@ export default function Messages() {
       toast({ title: "Upload failed", variant: "destructive" });
       return;
     }
-    const { data: urlData } = supabase.storage.from("chat-attachments").getPublicUrl(path);
     if (type === "image") {
-      sendMutation.mutate({ image_url: urlData.publicUrl });
+      sendMutation.mutate({ image_url: path });
     } else {
-      sendMutation.mutate({ file_url: urlData.publicUrl, file_name: file.name });
+      sendMutation.mutate({ file_url: path, file_name: file.name });
     }
   };
 

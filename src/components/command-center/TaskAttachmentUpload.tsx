@@ -32,6 +32,7 @@ export function TaskAttachmentUpload({ attachment, onAttachmentChange }: TaskAtt
   const [linkUrl, setLinkUrl] = useState(attachment?.type === "link" ? attachment.url : "");
   const [mediaName, setMediaName] = useState(attachment?.mediaName || "");
   const [dragOver, setDragOver] = useState(false);
+  const [localPreviewUrl, setLocalPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSelectType = (type: AttachmentType) => {
@@ -54,24 +55,25 @@ export function TaskAttachmentUpload({ attachment, onAttachmentChange }: TaskAtt
     setUploading(true);
     try {
       const ext = file.name.split(".").pop();
-      const path = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const safeExtension = ext?.replace(/[^a-zA-Z0-9]/g, "").toLowerCase() || "bin";
+      const path = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${safeExtension}`;
       const { error } = await supabase.storage
         .from("task-attachments")
         .upload(path, file, { cacheControl: "3600", upsert: false });
 
       if (error) throw error;
 
-      const { data: urlData } = supabase.storage
-        .from("task-attachments")
-        .getPublicUrl(path);
-
       onAttachmentChange({
         type,
-        url: urlData.publicUrl,
+        url: path,
         fileName: file.name,
         fileSize: file.size,
         mediaName: mediaName || undefined,
       });
+      if (type === "media") {
+        if (localPreviewUrl) URL.revokeObjectURL(localPreviewUrl);
+        setLocalPreviewUrl(URL.createObjectURL(file));
+      }
 
       toast({ title: "Uploaded", description: file.name });
     } catch (err: any) {
@@ -79,7 +81,7 @@ export function TaskAttachmentUpload({ attachment, onAttachmentChange }: TaskAtt
     } finally {
       setUploading(false);
     }
-  }, [user, onAttachmentChange, toast, mediaName]);
+  }, [user, onAttachmentChange, toast, mediaName, localPreviewUrl]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -111,6 +113,8 @@ export function TaskAttachmentUpload({ attachment, onAttachmentChange }: TaskAtt
   };
 
   const handleRemoveFile = () => {
+    if (localPreviewUrl) URL.revokeObjectURL(localPreviewUrl);
+    setLocalPreviewUrl(null);
     onAttachmentChange(null);
   };
 
@@ -212,8 +216,8 @@ export function TaskAttachmentUpload({ attachment, onAttachmentChange }: TaskAtt
         {/* File uploaded — show file row */}
         {attachment && attachment.type === activeType ? (
           <div className="flex items-center gap-3 p-3 rounded-lg border border-border bg-background">
-            {isMedia && attachment.url && (
-              <img src={attachment.url} alt="" className="h-12 w-12 rounded object-cover flex-shrink-0" />
+            {isMedia && (localPreviewUrl || /^https?:\/\//i.test(attachment.url)) && (
+              <img src={localPreviewUrl || attachment.url} alt="" className="h-12 w-12 rounded object-cover flex-shrink-0" />
             )}
             {!isMedia && <FileIcon className="h-8 w-8 text-muted-foreground flex-shrink-0" />}
             <div className="flex-1 min-w-0">

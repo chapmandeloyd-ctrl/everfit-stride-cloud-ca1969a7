@@ -9,6 +9,21 @@ import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ArrowLeft, AlarmClock, Check, ChevronDown, Send, Camera, FileText, Download, ExternalLink } from "lucide-react";
 
+const taskAttachmentPath = (value: string) => {
+  if (!/^https?:\/\//i.test(value)) return value;
+  const marker = "/storage/v1/object/public/task-attachments/";
+  const markerIndex = value.indexOf(marker);
+  return markerIndex >= 0 ? decodeURIComponent(value.slice(markerIndex + marker.length)) : null;
+};
+
+const resolveTaskAttachmentUrl = async (value: string | null) => {
+  if (!value) return value;
+  const path = taskAttachmentPath(value);
+  if (!path) return value;
+  const { data, error } = await supabase.storage.from("task-attachments").createSignedUrl(path, 60 * 60);
+  return error ? null : data.signedUrl;
+};
+
 export default function ClientTaskDetail() {
   const { taskId } = useParams<{ taskId: string }>();
   const navigate = useNavigate();
@@ -36,7 +51,12 @@ export default function ClientTaskDetail() {
         .eq("id", taskId!)
         .single();
       if (error) throw error;
-      return data;
+      const attachments = Array.isArray(data.attachments) ? data.attachments : [];
+      const resolvedAttachments = await Promise.all(attachments.map(async (attachment: any) => ({
+        ...attachment,
+        url: await resolveTaskAttachmentUrl(attachment?.url ?? null),
+      })));
+      return { ...data, attachments: resolvedAttachments };
     },
     enabled: !!taskId,
   });
@@ -50,7 +70,10 @@ export default function ClientTaskDetail() {
         .eq("task_id", taskId!)
         .order("created_at", { ascending: true });
       if (error) throw error;
-      return data as any[];
+      return await Promise.all((data as any[]).map(async (comment) => ({
+        ...comment,
+        attachment_url: await resolveTaskAttachmentUrl(comment.attachment_url),
+      })));
     },
     enabled: !!taskId,
   });
@@ -125,7 +148,8 @@ export default function ClientTaskDetail() {
     if (!file || !user) return;
 
     const ext = file.name.split(".").pop();
-    const path = `${user.id}/${Date.now()}.${ext}`;
+    const safeExtension = ext?.replace(/[^a-zA-Z0-9]/g, "").toLowerCase() || "bin";
+    const path = `${user.id}/${Date.now()}.${safeExtension}`;
     const { error: upErr } = await supabase.storage
       .from("task-attachments")
       .upload(path, file);
@@ -135,12 +159,10 @@ export default function ClientTaskDetail() {
       return;
     }
 
-    const { data: urlData } = supabase.storage.from("task-attachments").getPublicUrl(path);
-
     await supabase.from("task_comments" as any).insert({
       task_id: taskId,
       user_id: user.id,
-      attachment_url: urlData.publicUrl,
+      attachment_url: path,
       attachment_type: "image",
     });
 
