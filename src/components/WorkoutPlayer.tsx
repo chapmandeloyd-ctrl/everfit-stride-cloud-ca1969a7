@@ -108,6 +108,8 @@ interface WorkoutStep {
 function buildSteps(sections: Section[]): WorkoutStep[] {
   const steps: WorkoutStep[] = [];
   sections.forEach((section, sIdx) => {
+    // Skip empty blocks — they would otherwise generate phantom "rest between rounds" steps
+    if (!section.exercises || section.exercises.length === 0) return;
     const isGrouped = ["superset", "circuit"].includes(section.section_type);
     if (isGrouped) {
       for (let round = 1; round <= section.rounds; round++) {
