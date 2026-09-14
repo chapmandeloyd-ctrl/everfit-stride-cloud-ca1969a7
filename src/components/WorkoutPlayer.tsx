@@ -76,6 +76,7 @@ interface Section {
   rest_between_rounds_seconds: number | null;
   notes: string;
   intro_text?: string | null;
+  rest_after_seconds?: number | null;
   exercises: Exercise[];
 }
 
