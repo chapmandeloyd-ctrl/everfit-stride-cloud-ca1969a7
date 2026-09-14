@@ -1105,6 +1105,7 @@ export default function CreateWorkout() {
                 }}
                 onUpdateSets={(sets) => updateGroupSets(group.id, sets)}
                 onUngroup={() => ungroupItems(group.id)}
+                onDeleteBlock={() => deleteGroup(group.id)}
                 blockTypeId={group.block_type}
                 customName={group.custom_name}
                 introText={group.intro_text}
@@ -1193,6 +1194,7 @@ export default function CreateWorkout() {
             onToggleSelectAll={() => undefined}
             onUpdateSets={(sets) => updateGroupSets(group.id, sets)}
             onUngroup={() => ungroupItems(group.id)}
+                onDeleteBlock={() => deleteGroup(group.id)}
             blockTypeId={group.block_type}
             customName={group.custom_name}
             introText={group.intro_text}
