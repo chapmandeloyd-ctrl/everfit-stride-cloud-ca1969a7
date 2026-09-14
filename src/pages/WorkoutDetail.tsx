@@ -31,6 +31,10 @@ interface CompletionData {
   setLogs: Record<string, { reps: string; weight: string; completed: boolean }>;
   elapsedSeconds: number;
   startedAt: string;
+  completionPercent?: number;
+  caloriesEstimate?: number;
+  skippedEvents?: any[];
+  reason?: string;
 }
 
 export default function WorkoutDetail() {
