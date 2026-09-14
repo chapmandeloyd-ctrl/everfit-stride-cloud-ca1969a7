@@ -88,8 +88,8 @@ interface SetLog {
 interface WorkoutPlayerProps {
   workoutName?: string;
   sections: Section[];
-  onComplete: (data: { setLogs: Record<string, SetLog>; elapsedSeconds: number; startedAt: string }) => void;
-  onEndEarly: (data: { setLogs: Record<string, SetLog>; elapsedSeconds: number; startedAt: string }) => void;
+  onComplete: (data: { setLogs: Record<string, SetLog>; elapsedSeconds: number; startedAt: string; completionPercent?: number; caloriesEstimate?: number; skippedEvents?: any[] }) => void;
+  onEndEarly: (data: { setLogs: Record<string, SetLog>; elapsedSeconds: number; startedAt: string; completionPercent?: number; caloriesEstimate?: number; skippedEvents?: any[]; reason?: string }) => void;
   onDiscard: () => void;
   onExit: () => void;
   onSaveForLater?: (data: { setLogs: Record<string, SetLog>; elapsedSeconds: number; startedAt: string; stepIdx: number; completionPercent: number }) => void;
@@ -856,7 +856,14 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
     if (stepTimerRef.current) clearInterval(stepTimerRef.current);
     try { localStorage.removeItem(WORKOUT_TIMER_KEY); } catch {}
     liveActivity.stop();
-    onComplete({ setLogs, elapsedSeconds, startedAt: startedAtRef.current });
+    onComplete({
+      setLogs,
+      elapsedSeconds,
+      startedAt: startedAtRef.current,
+      completionPercent: 100,
+      caloriesEstimate: estimatedCal,
+      skippedEvents: skippedEventsRef.current,
+    });
   };
 
   const handleEndEarly = () => {
@@ -864,8 +871,17 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
     if (stepTimerRef.current) clearInterval(stepTimerRef.current);
     try { localStorage.removeItem(WORKOUT_TIMER_KEY); } catch {}
     liveActivity.stop();
-    onEndEarly({ setLogs, elapsedSeconds, startedAt: startedAtRef.current });
+    onEndEarly({
+      setLogs,
+      elapsedSeconds,
+      startedAt: startedAtRef.current,
+      completionPercent: completedPercent,
+      caloriesEstimate: estimatedCal,
+      skippedEvents: skippedEventsRef.current,
+      reason: endReason || undefined,
+    });
   };
+
 
   const handleDiscard = () => {
     if (elapsedRef.current) clearInterval(elapsedRef.current);
