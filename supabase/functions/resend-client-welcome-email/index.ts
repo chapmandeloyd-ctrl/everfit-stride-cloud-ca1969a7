@@ -99,7 +99,6 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Client not found or unauthorized");
     }
 
-    console.log("Sending welcome email to:", clientProfile.email);
 
     const { error: sendError } = await supabaseClient.functions.invoke("send-transactional-email", {
       body: {
@@ -118,7 +117,6 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error(sendError.message || "Failed to send welcome email");
     }
 
-    console.log("Welcome email queued for:", clientProfile.email);
 
     return new Response(
       JSON.stringify({
