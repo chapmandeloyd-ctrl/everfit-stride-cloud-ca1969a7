@@ -49,7 +49,8 @@ export function SortableGroupHeader({
   };
 
   return (
-    <div ref={setNodeRef} style={style} className="flex items-center gap-3 px-4 py-2 border-b bg-muted/50">
+    <div ref={setNodeRef} style={style} className="border-b bg-muted/50">
+    <div className="flex items-center gap-3 px-4 py-2">
       <Checkbox checked={allSelected} onCheckedChange={onToggleSelectAll} />
       <span className="text-lg">{bt.emoji}</span>
       {groupType === "superset" ? (
