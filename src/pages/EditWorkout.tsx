@@ -1304,7 +1304,7 @@ export default function EditWorkout() {
                 </Button>
               </div>
             )}
-          </ScrollArea>
+          </div>
         </div>
 
         {/* Right Panel - Exercise Library */}
