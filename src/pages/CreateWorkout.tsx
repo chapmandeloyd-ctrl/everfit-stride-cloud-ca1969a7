@@ -477,9 +477,19 @@ export default function CreateWorkout() {
     }
 
     // Grouped circuits/supersets: exercise duration * rounds + rest_between_rounds * (rounds - 1)
+    // Straight blocks: each exercise runs its own sets, exactly like ungrouped items
     for (const groupId of groupIds) {
       const groupItems = exerciseItems.filter(i => i.group_id === groupId && i.exercise_type === "normal");
       const group = groups.find(g => g.id === groupId);
+
+      if (group?.type === "straight") {
+        for (const item of groupItems) {
+          const sets = item.sets || 1;
+          totalSeconds += (workSecondsFor(item, 40) + (item.rest_seconds || 30) + 3) * sets;
+        }
+        continue;
+      }
+
       const rounds = group?.sets || 1;
       // Find rest item inside the group for between-round rest
       const groupRestItem = exerciseItems.find(i => i.group_id === groupId && i.exercise_type === "rest");
