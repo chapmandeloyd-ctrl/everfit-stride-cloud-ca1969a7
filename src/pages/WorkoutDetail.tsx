@@ -542,6 +542,8 @@ export default function WorkoutDetail() {
         resumeElapsed={resumeData?.elapsed}
         activeSessionId={activeSessionId}
         dbStartedAt={activeStartedAt}
+        coachVoiceId={(workout as any).coach_voice_id || null}
+        outroText={(workout as any).outro_text || null}
       />
     );
   }
