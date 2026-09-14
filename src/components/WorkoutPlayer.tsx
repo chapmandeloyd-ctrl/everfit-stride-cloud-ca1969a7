@@ -603,6 +603,14 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
 
     // 3-2-1 countdown applies whenever the current exercise is duration-based.
     if (step.type === "exercise" && step.exercise?.duration_seconds && step.exercise.duration_seconds > 0) {
+      // Coach's mid-exercise form cue, spoken once at the halfway point
+      const midCue = step.exercise.form_cue_mid?.trim();
+      const total = step.exercise.duration_seconds;
+      const midKey = `${stepIdx}-${currentSide ?? "none"}`;
+      if (midCue && total >= 12 && stepTimer > 3 && stepTimer <= Math.floor(total / 2) && spokenMidCueRef.current !== midKey) {
+        spokenMidCueRef.current = midKey;
+        elevenLabsSpeakNow(midCue).catch(() => {});
+      }
       if (stepTimer > 0 && stepTimer <= 3 && lastCountdownRef.current !== stepTimer) {
         lastCountdownRef.current = stepTimer;
         const countdownWord = stepTimer === 3 ? "Three" : stepTimer === 2 ? "Two" : "One";
