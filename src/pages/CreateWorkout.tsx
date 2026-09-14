@@ -783,6 +783,10 @@ export default function CreateWorkout() {
     setGroups((prev) => prev.filter((g) => g.id !== groupId));
   };
 
+  const updateGroupIntro = (groupId: string, intro_text: string) => {
+    setGroups((prev) => prev.map((g) => (g.id === groupId ? { ...g, intro_text } : g)));
+  };
+
   const updateGroupSets = (groupId: string, sets: number) => {
     setGroups((prev) => prev.map((g) => (g.id === groupId ? { ...g, sets } : g)));
   };

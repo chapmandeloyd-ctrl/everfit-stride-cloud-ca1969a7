@@ -41,6 +41,7 @@ interface WorkoutExercise {
   rpe: string;
   distance: string;
   band: string;
+  is_unilateral?: boolean;
 }
 
 interface ExerciseGroup {
@@ -384,6 +385,7 @@ export default function EditWorkout() {
             sets: section.rounds || 3,
             block_type: detectedBt.id,
             custom_name: detectedBt.id === "custom" ? section.name : undefined,
+            intro_text: section.intro_text || "",
           });
         }
 
@@ -408,6 +410,7 @@ export default function EditWorkout() {
             rpe: wpe.rpe ? String(wpe.rpe) : "",
             distance: wpe.distance || "",
             band: wpe.recommended_band_level || "",
+            is_unilateral: !!wpe.is_unilateral,
           });
         }
       }
@@ -699,6 +702,10 @@ export default function EditWorkout() {
     setGroups((prev) => prev.filter((g) => g.id !== groupId));
   };
 
+  const updateGroupIntro = (groupId: string, intro_text: string) => {
+    setGroups((prev) => prev.map((g) => (g.id === groupId ? { ...g, intro_text } : g)));
+  };
+
   const updateGroupSets = (groupId: string, sets: number) => {
     setGroups((prev) => prev.map((g) => (g.id === groupId ? { ...g, sets } : g)));
   };
@@ -841,6 +848,7 @@ export default function EditWorkout() {
           distance: item.distance || null,
           recommended_band_level: item.band || null,
           detail_fields: item.detail_fields.length > 0 ? item.detail_fields : null,
+          is_unilateral: !!item.is_unilateral,
         }));
 
       if (exercisesToInsert.length > 0) {
