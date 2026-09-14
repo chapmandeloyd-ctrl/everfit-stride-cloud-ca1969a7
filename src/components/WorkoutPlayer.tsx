@@ -385,7 +385,7 @@ function WorkoutCompleteScreen({ workoutName, onSave }: { workoutName?: string; 
   );
 }
 
-export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, onDiscard, onExit, onSaveForLater, onProgressSave, resumeFromStep, resumeSetLogs, resumeElapsed, activeSessionId, dbStartedAt }: WorkoutPlayerProps) {
+export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, onDiscard, onExit, onSaveForLater, onProgressSave, resumeFromStep, resumeSetLogs, resumeElapsed, activeSessionId, dbStartedAt, coachVoiceId, outroText }: WorkoutPlayerProps) {
   const { toast } = useToast();
   const liveActivity = useLiveActivity();
   const startedAtRef = useRef(dbStartedAt ?? new Date().toISOString());
@@ -403,7 +403,9 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
 
   const [phase, setPhase] = useState<"voiceselect" | "intro" | "welcomeback" | "playing">(resumeFromStep !== undefined ? "welcomeback" : "voiceselect");
   const [countdownNum, setCountdownNum] = useState(3); // kept for reference but unused now
-  const [chosenVoice, setChosenVoice] = useState<string>(WORKOUT_VOICES[0].id);
+  // Default to the voice the coach picked for this workout (falls back to first option)
+  const [chosenVoice, setChosenVoice] = useState<string>(coachVoiceId || WORKOUT_VOICES[0].id);
+  useEffect(() => { if (coachVoiceId) setWorkoutVoice(coachVoiceId); }, [coachVoiceId]);
   const [previewingVoice, setPreviewingVoice] = useState(false);
 
   const stepsRef = useRef<WorkoutStep[]>(buildSteps(sections));
