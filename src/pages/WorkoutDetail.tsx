@@ -162,6 +162,10 @@ export default function WorkoutDetail() {
           rpe: wpe.rpe,
           distance: wpe.distance,
           band: wpe.recommended_band_level || null,
+          side_mode: wpe.side_mode || null,
+          form_cue_start: wpe.form_cue_start || null,
+          form_cue_mid: wpe.form_cue_mid || null,
+          form_cue_switch: wpe.form_cue_switch || null,
         })) || [],
     })) || [];
 
