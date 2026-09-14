@@ -17,6 +17,8 @@ interface SortableGroupHeaderProps {
   onUngroup: () => void;
   blockTypeId?: string;
   customName?: string;
+  introText?: string;
+  onUpdateIntro?: (value: string) => void;
 }
 
 export function SortableGroupHeader({
