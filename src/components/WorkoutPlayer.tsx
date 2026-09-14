@@ -36,6 +36,10 @@ interface Exercise {
   distance?: string | null;
   band?: string | null;
   is_unilateral?: boolean | null;
+  side_mode?: string | null;
+  form_cue_start?: string | null;
+  form_cue_mid?: string | null;
+  form_cue_switch?: string | null;
 }
 
 // Detect single-side / unilateral exercises by name keywords (fallback when no flag set)
@@ -55,6 +59,9 @@ function isUnilateralByName(name?: string): boolean {
 
 function isUnilateralExercise(ex?: Exercise | null): boolean {
   if (!ex) return false;
+  // Explicit side setting from the builder always wins
+  if (ex.side_mode === "none") return false;
+  if (ex.side_mode === "sequential" || ex.side_mode === "alternating") return true;
   if (ex.is_unilateral) return true;
   return isUnilateralByName(ex.exercise_name);
 }
@@ -68,6 +75,7 @@ interface Section {
   rest_seconds: number | null;
   rest_between_rounds_seconds: number | null;
   notes: string;
+  intro_text?: string | null;
   exercises: Exercise[];
 }
 
@@ -91,6 +99,8 @@ interface WorkoutPlayerProps {
   resumeElapsed?: number;
   activeSessionId?: string | null;
   dbStartedAt?: string | null;
+  coachVoiceId?: string | null;
+  outroText?: string | null;
 }
 
 interface WorkoutStep {
@@ -378,7 +388,7 @@ function WorkoutCompleteScreen({ workoutName, onSave }: { workoutName?: string; 
   );
 }
 
-export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, onDiscard, onExit, onSaveForLater, onProgressSave, resumeFromStep, resumeSetLogs, resumeElapsed, activeSessionId, dbStartedAt }: WorkoutPlayerProps) {
+export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, onDiscard, onExit, onSaveForLater, onProgressSave, resumeFromStep, resumeSetLogs, resumeElapsed, activeSessionId, dbStartedAt, coachVoiceId, outroText }: WorkoutPlayerProps) {
   const { toast } = useToast();
   const liveActivity = useLiveActivity();
   const startedAtRef = useRef(dbStartedAt ?? new Date().toISOString());
@@ -396,7 +406,9 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
 
   const [phase, setPhase] = useState<"voiceselect" | "intro" | "welcomeback" | "playing">(resumeFromStep !== undefined ? "welcomeback" : "voiceselect");
   const [countdownNum, setCountdownNum] = useState(3); // kept for reference but unused now
-  const [chosenVoice, setChosenVoice] = useState<string>(WORKOUT_VOICES[0].id);
+  // Default to the voice the coach picked for this workout (falls back to first option)
+  const [chosenVoice, setChosenVoice] = useState<string>(coachVoiceId || WORKOUT_VOICES[0].id);
+  useEffect(() => { if (coachVoiceId) setWorkoutVoice(coachVoiceId); }, [coachVoiceId]);
   const [previewingVoice, setPreviewingVoice] = useState(false);
 
   const stepsRef = useRef<WorkoutStep[]>(buildSteps(sections));
@@ -461,6 +473,10 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
   useEffect(() => { stepIdxRef.current = stepIdx; }, [stepIdx]);
   useEffect(() => { isPausedRef.current = isPaused; }, [isPaused]);
 
+  // Blocks whose spoken coach intro has already played, and mid-exercise cues already spoken
+  const spokenIntrosRef = useRef<Set<number>>(new Set());
+  const spokenMidCueRef = useRef<string>("");
+
   // Reset side when step changes (init to 'right' for unilateral, null otherwise)
   useEffect(() => {
     if (phase !== "playing") return;
@@ -503,6 +519,18 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
         const isUni = isUnilateralExercise(ex);
         let msg = "";
 
+        // Coach's spoken intro for this block — once, the first time we enter it
+        if (
+          step.exerciseIdx === 0 &&
+          step.round === 1 &&
+          currentSide !== "left" &&
+          section?.intro_text?.trim() &&
+          !spokenIntrosRef.current.has(step.sectionIdx)
+        ) {
+          spokenIntrosRef.current.add(step.sectionIdx);
+          msg += `${section.intro_text.trim()} `;
+        }
+
         // Announce block label + round X of Y on the first exercise of each round
         // (only on the first side if unilateral, to avoid repeating)
         if (isGrouped && step.exerciseIdx === 0 && currentSide !== "left") {
@@ -513,7 +541,11 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
 
         // Lead with the side cue for unilateral exercises
         if (isUni && currentSide) {
-          msg += currentSide === "right" ? "Right side. " : "Left side. ";
+          if (currentSide === "left" && ex.form_cue_switch?.trim()) {
+            msg += `${ex.form_cue_switch.trim()} `;
+          } else {
+            msg += currentSide === "right" ? "Right side. " : "Left side. ";
+          }
         }
 
         msg += ex.exercise_name || "";
@@ -550,6 +582,12 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
           msg += `, ${ex.distance}`;
         }
 
+        // Coach's form cue for the start of the exercise
+        if (ex.form_cue_start?.trim()) {
+          msg += `. ${ex.form_cue_start.trim()}`;
+        }
+
+
         elevenLabsSpeakNow(msg).catch(() => {});
       }
     }, delayMs);
@@ -568,6 +606,14 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
 
     // 3-2-1 countdown applies whenever the current exercise is duration-based.
     if (step.type === "exercise" && step.exercise?.duration_seconds && step.exercise.duration_seconds > 0) {
+      // Coach's mid-exercise form cue, spoken once at the halfway point
+      const midCue = step.exercise.form_cue_mid?.trim();
+      const total = step.exercise.duration_seconds;
+      const midKey = `${stepIdx}-${currentSide ?? "none"}`;
+      if (midCue && total >= 12 && stepTimer > 3 && stepTimer <= Math.floor(total / 2) && spokenMidCueRef.current !== midKey) {
+        spokenMidCueRef.current = midKey;
+        elevenLabsSpeakNow(midCue).catch(() => {});
+      }
       if (stepTimer > 0 && stepTimer <= 3 && lastCountdownRef.current !== stepTimer) {
         lastCountdownRef.current = stepTimer;
         const countdownWord = stepTimer === 3 ? "Three" : stepTimer === 2 ? "Two" : "One";
@@ -577,7 +623,20 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
 
     // Rest periods no longer get a 3-2-1 voice countdown — visual timer is enough.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stepTimer, stepIdx, phase]);
+  }, [stepTimer, stepIdx, phase, currentSide]);
+
+  // Coach's closing message, spoken once when the last step is finished
+  const spokenOutroRef = useRef(false);
+  useEffect(() => {
+    if (phase !== "playing") return;
+    if (stepIdx < steps.length) return;
+    if (spokenOutroRef.current) return;
+    spokenOutroRef.current = true;
+    const closing = outroText?.trim() || "Workout complete. Great work today.";
+    elevenLabsSpeakNow(closing).catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stepIdx, phase]);
+
 
   useEffect(() => {
     if (!videoRef.current) return;

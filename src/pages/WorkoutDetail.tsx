@@ -141,6 +141,7 @@ export default function WorkoutDetail() {
       rest_seconds: section.rest_seconds,
       rest_between_rounds_seconds: section.rest_between_rounds_seconds,
       notes: section.notes || "",
+      intro_text: section.intro_text || null,
       exercises: section.workout_plan_exercises
         ?.sort((a: any, b: any) => a.order_index - b.order_index)
         .map((wpe: any) => ({
@@ -161,6 +162,10 @@ export default function WorkoutDetail() {
           rpe: wpe.rpe,
           distance: wpe.distance,
           band: wpe.recommended_band_level || null,
+          side_mode: wpe.side_mode || null,
+          form_cue_start: wpe.form_cue_start || null,
+          form_cue_mid: wpe.form_cue_mid || null,
+          form_cue_switch: wpe.form_cue_switch || null,
         })) || [],
     })) || [];
 
@@ -537,6 +542,8 @@ export default function WorkoutDetail() {
         resumeElapsed={resumeData?.elapsed}
         activeSessionId={activeSessionId}
         dbStartedAt={activeStartedAt}
+        coachVoiceId={(workout as any).coach_voice_id || null}
+        outroText={(workout as any).outro_text || null}
       />
     );
   }
