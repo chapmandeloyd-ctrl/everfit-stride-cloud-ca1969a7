@@ -46,6 +46,7 @@ export function SortableGroupHeader({
   coachVoiceId,
   exerciseNames = [],
   exerciseCount,
+  onDeleteBlock,
 }: SortableGroupHeaderProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: `group-${groupId}`,
