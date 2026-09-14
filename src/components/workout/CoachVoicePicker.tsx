@@ -26,12 +26,14 @@ export const DEFAULT_COACH_VOICE_ID = COACH_VOICES[0].id;
 export async function speakWithCoachVoice(text: string, voiceId?: string | null) {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token || supabaseKey;
   const response = await fetch(`${supabaseUrl}/functions/v1/elevenlabs-tts`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       apikey: supabaseKey,
-      Authorization: `Bearer ${supabaseKey}`,
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({ text, voiceId: voiceId || DEFAULT_COACH_VOICE_ID }),
   });
