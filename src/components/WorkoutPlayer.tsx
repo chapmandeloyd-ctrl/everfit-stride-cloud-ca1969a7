@@ -36,6 +36,10 @@ interface Exercise {
   distance?: string | null;
   band?: string | null;
   is_unilateral?: boolean | null;
+  side_mode?: string | null;
+  form_cue_start?: string | null;
+  form_cue_mid?: string | null;
+  form_cue_switch?: string | null;
 }
 
 // Detect single-side / unilateral exercises by name keywords (fallback when no flag set)
