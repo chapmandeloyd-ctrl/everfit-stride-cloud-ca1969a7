@@ -390,11 +390,12 @@ function ExerciseLibraryCard({ exercise, onAdd }: { exercise: any; onAdd: () => 
           <video
             ref={videoRef}
             src={exercise.video_url}
-            preload="metadata"
+            preload="auto"
             muted
             playsInline
             loop
             autoPlay
+            onLoadedData={(e) => e.currentTarget.play().catch(() => {})}
             className="absolute inset-0 w-full h-full object-cover pointer-events-none"
           />
         )}
