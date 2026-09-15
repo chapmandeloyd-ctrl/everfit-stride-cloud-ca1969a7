@@ -636,7 +636,7 @@ export default function WorkoutDetail() {
         <section className="bg-card border border-border rounded-2xl p-5 space-y-3">
           <div className="flex items-center gap-3 text-sm">
             <Clock className="h-5 w-5 text-muted-foreground" />
-            <span className="font-semibold">est. {calculatedMinutes}m</span>
+            <span className="font-semibold">est. {displayedMinutes}m</span>
           </div>
           <div className="flex items-center gap-3 text-sm">
             <Dumbbell className="h-5 w-5 text-muted-foreground" />
