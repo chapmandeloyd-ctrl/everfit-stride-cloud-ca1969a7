@@ -25,6 +25,13 @@ import { WorkoutIntro } from "@/components/WorkoutIntro";
 import { CoachWaveform } from "@/components/workout/CoachWaveform";
 import { COACH_VOICES } from "@/components/workout/CoachVoicePicker";
 import { useLiveActivity } from "@/hooks/useLiveActivity";
+import {
+  buildExerciseAnnouncement,
+  buildRestAnnouncement,
+  buildOutroAnnouncement,
+  shouldSpeakMidCue,
+  countdownWordFor,
+} from "@/lib/workoutCueTiming";
 
 interface Exercise {
   id: string;
