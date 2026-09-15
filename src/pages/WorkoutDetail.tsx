@@ -686,8 +686,8 @@ export default function WorkoutDetail() {
             </div>
 
             {section.intro_text && section.intro_text.trim() && (
-              <div className="mb-4 rounded-xl border border-primary/40 bg-primary/5 p-3">
-                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-1">
+              <div className="mb-4 rounded-2xl border border-cue/50 bg-cue/5 p-4">
+                <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-cue mb-1.5">
                   <Volume2 className="h-3.5 w-3.5" /> Coach reads aloud
                 </div>
                 <p className="text-sm text-foreground/90 leading-snug whitespace-pre-wrap">{section.intro_text}</p>
