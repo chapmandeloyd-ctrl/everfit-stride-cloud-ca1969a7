@@ -5,7 +5,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { QuickPrompts } from "@/components/workout/QuickPrompts";
 import { Sparkles, Loader2, Plus, Check, Wand2, Lightbulb, ChevronDown, ChevronUp, Brain } from "lucide-react";
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -108,6 +113,9 @@ export function AIWorkoutBuilderDialog({
   const [prompt, setPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [activeTab, setActiveTab] = useState("full");
+  const [duration, setDuration] = useState(45);
+  const [difficulty, setDifficulty] = useState<"beginner" | "intermediate" | "advanced">("intermediate");
+
 
   // Full workout result
   const [workoutResult, setWorkoutResult] = useState<AIWorkoutResult | null>(null);
@@ -150,7 +158,11 @@ export function AIWorkoutBuilderDialog({
       const { data, error } = await supabase.functions.invoke("ai-workout-builder", {
         body: {
           mode: activeTab === "full" ? "full_workout" : "suggest_exercise",
-          prompt: prompt.trim(),
+          prompt:
+            activeTab === "full"
+              ? `${prompt.trim()}\n\nTarget duration: ${duration} minutes. Difficulty: ${difficulty}.`
+              : prompt.trim(),
+
           exercise_names: exerciseNames,
         },
       });
@@ -365,20 +377,47 @@ export function AIWorkoutBuilderDialog({
               className="resize-none"
             />
 
-            {/* Quick prompt chips */}
+            {/* Quick Prompts — ported from the APEX builder handoff */}
             {activeTab === "full" && !workoutResult && (
-              <div className="flex flex-wrap gap-1.5">
-                {PROMPT_EXAMPLES.map((example) => (
-                  <button
-                    key={example}
-                    onClick={() => setPrompt(example)}
-                    className="text-[11px] px-2.5 py-1 rounded-full border border-border text-muted-foreground hover:border-primary hover:text-primary transition-colors"
-                  >
-                    {example}
-                  </button>
-                ))}
-              </div>
+              <>
+                <QuickPrompts
+                  onPick={(p, dur, diff) => {
+                    setPrompt(p);
+                    if (dur) setDuration(dur);
+                    if (diff) setDifficulty(diff);
+                  }}
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                      Duration (min)
+                    </Label>
+                    <Input
+                      type="number"
+                      value={duration}
+                      onChange={(e) => setDuration(Number(e.target.value) || 45)}
+                      className="h-10"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                      Difficulty
+                    </Label>
+                    <Select value={difficulty} onValueChange={(v) => setDifficulty(v as typeof difficulty)}>
+                      <SelectTrigger className="h-10">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="beginner">Beginner</SelectItem>
+                        <SelectItem value="intermediate">Intermediate</SelectItem>
+                        <SelectItem value="advanced">Advanced</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </>
             )}
+
 
             <Button
               onClick={handleGenerate}
