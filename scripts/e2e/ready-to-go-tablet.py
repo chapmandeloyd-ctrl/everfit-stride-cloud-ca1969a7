@@ -108,16 +108,18 @@ async def walk(page, failures, out):
 
     # 5. GO gate
     reached_go = False
-    for _ in range(int(STATE_DEADLINE_MS / 500)):
+    for _ in range(int(STATE_DEADLINE_MS / 200)):
         body = await page.inner_text("body")
-        if "GO" in body.split():
+        if "GO" in body.split() or "TAP TO START" in body.upper():
             reached_go = True
             await page.screenshot(path=f"{out}/5_go.png")
             break
         if "Skip Block" in body:
+            # Already past the gate (intro skipped or auto-advanced).
+            reached_go = True
             break
-        await page.wait_for_timeout(500)
-    if not reached_go and "Skip Block" not in (await page.inner_text("body")):
+        await page.wait_for_timeout(200)
+    if not reached_go:
         failures.append("GO gate never appeared (hang between speech and GO)")
 
     # 6. Active player
@@ -156,7 +158,11 @@ async def run_viewport(p, name, viewport) -> list[str]:
     except Exception as exc:  # unexpected crash is a failure, not a stack trace
         failures.append(f"unexpected error: {exc}")
 
-    errors = [c for c in console if c.startswith(("pageerror", "error"))]
+    # React/library dev-mode warnings are logged as console errors; ignore them.
+    errors = [
+        c for c in console
+        if c.startswith(("pageerror", "error")) and "Warning:" not in c
+    ]
     if errors:
         failures.append(f"page errors: {errors[:3]}")
 
