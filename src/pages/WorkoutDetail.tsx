@@ -571,18 +571,18 @@ export default function WorkoutDetail() {
 
   return (
     <Layout>
-      <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-5">
+      <div className="max-w-2xl mx-auto p-4 sm:p-6 space-y-5">
         <button
           onClick={() => navigate(-1)}
           className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-muted-foreground"
         >
-          <ArrowLeft className="h-3.5 w-3.5" /> Back
+          <ArrowLeft className="h-3.5 w-3.5" /> Back to workouts
         </button>
 
         {/* Hero header */}
         <header className="bg-card border border-border rounded-2xl overflow-hidden">
           {workout.image_url && (
-            <div className="relative w-full aspect-square sm:aspect-[16/9] bg-background overflow-hidden grid place-items-center">
+            <div className="relative w-full aspect-[16/9] bg-background overflow-hidden grid place-items-center">
               <img src={workout.image_url} alt={workout.name} className="w-full h-full object-contain bg-background" />
             </div>
           )}
