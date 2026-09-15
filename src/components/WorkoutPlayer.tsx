@@ -1310,13 +1310,14 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
         {/* Main cinematic area */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Large media display */}
-          <div className="relative flex-1 bg-foreground/5 overflow-hidden">
+          <div className="relative flex-1 overflow-hidden bg-black flex items-center justify-center">
             {currentExercise?.exercise_video ? (
               <video
                 ref={videoRef}
                 key={currentExercise.id + stepIdx}
                 src={currentExercise.exercise_video}
-                className="w-full h-full object-contain bg-foreground"
+                poster={currentExercise.exercise_image || undefined}
+                className="max-h-full max-w-full object-contain"
                 autoPlay
                 loop
                 muted
@@ -1326,7 +1327,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
               <img
                 src={currentExercise.exercise_image}
                 alt={currentExercise.exercise_name}
-                className="w-full h-full object-contain bg-foreground"
+                className="max-h-full max-w-full object-contain"
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
