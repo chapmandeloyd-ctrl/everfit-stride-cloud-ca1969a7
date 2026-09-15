@@ -294,12 +294,12 @@ export default function Workouts() {
                 onClick={() => navigate(`/workouts/${workout.id}`)}
               >
                 {/* Cover Image */}
-                <div className="relative w-full aspect-[16/9] bg-background grid place-items-center overflow-hidden">
+                <div className="relative w-full aspect-video bg-background overflow-hidden">
                   {workout.image_url ? (
                     <img
                       src={workout.image_url}
                       alt={workout.name}
-                      className="w-full h-full object-contain"
+                      className="absolute inset-0 h-full w-full object-contain"
                       loading="lazy"
                     />
                   ) : (
