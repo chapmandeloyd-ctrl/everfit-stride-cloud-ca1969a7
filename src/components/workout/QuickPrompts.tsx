@@ -1,4 +1,5 @@
 import { useState } from "react";
+// Adult-focused quick prompts — no youth/sport-specific framing
 import { Sparkles } from "lucide-react";
 
 /* ---------------- Quick Prompts (AI Builder presets) ---------------- */
