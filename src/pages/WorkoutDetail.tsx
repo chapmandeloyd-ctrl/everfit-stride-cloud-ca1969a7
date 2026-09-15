@@ -129,6 +129,11 @@ export default function WorkoutDetail() {
       return data;
     },
     enabled: !!id,
+    // Never leave the page spinning: retry transient failures, then surface a retry button.
+    retry: 2,
+    retryDelay: (attempt) => Math.min(1500 * (attempt + 1), 4000),
+    staleTime: 30_000,
+    refetchOnWindowFocus: false,
   });
 
   // Transform data for WorkoutPlayer
