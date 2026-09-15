@@ -1050,7 +1050,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
         <div className="text-center">
           <p className="text-xs font-bold uppercase tracking-[0.28em] text-cue">Ready</p>
           <h1 className="mt-2 font-display text-3xl font-black uppercase leading-tight">{workoutName}</h1>
-          <p className="mt-2 text-sm text-muted-foreground">{steps.filter((step) => step.type === "exercise").length} exercises · About {displayMinutes || Math.ceil(totalEstimatedSeconds / 60)} minutes</p>
+          <p className="mt-2 text-sm text-muted-foreground">{sections.reduce((total, section) => total + section.exercises.length, 0)} exercises · About {displayMinutes || Math.ceil(totalEstimatedSeconds / 60)} minutes</p>
         </div>
         <section className="mt-6 rounded-2xl border border-border bg-card p-4">
           <div className="flex items-center justify-between gap-3">
@@ -1105,7 +1105,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
   // ─── INTRO / LINEUP REVEAL ───
   if (phase === "intro") {
     const totalCalcMinutes = displayMinutes || Math.ceil(totalEstimatedSeconds / 60);
-    const totalExCount = steps.filter(s => s.type === "exercise").length;
+    const totalExCount = sections.reduce((total, section) => total + section.exercises.length, 0);
     return (
       <WorkoutIntro
         workoutName={workoutName || "Workout"}
@@ -1486,7 +1486,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
               </Button>
               <Button
                 size="lg"
-                className="flex-1 h-12 rounded-xl bg-cue text-base font-black text-black hover:bg-cue/90"
+                className="flex-1 h-12 rounded-xl bg-cue text-base font-black text-primary-foreground hover:bg-cue/90"
                 onClick={currentExercise?.duration_seconds ? advanceOrSwitchSide : markStepDone}
               >
                 {currentExercise?.duration_seconds
