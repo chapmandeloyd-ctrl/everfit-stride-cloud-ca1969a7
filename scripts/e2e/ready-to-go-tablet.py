@@ -72,6 +72,9 @@ async def main() -> int:
         await page.goto(f"{BASE}/workouts/{WORKOUT_ID}", wait_until="domcontentloaded")
         if not await expect_state(page, failures, "detail", "text=START WORKOUT", "1_detail"):
             await browser.close()
+            print(f"screenshots: {OUT}")
+            for f in failures:
+                print("FAIL:", f)
             return 1
         if "couldn't load this workout" in (await page.inner_text("body")).lower():
             failures.append("detail: error state shown instead of workout")
