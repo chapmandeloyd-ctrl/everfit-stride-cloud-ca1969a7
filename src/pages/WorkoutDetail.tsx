@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Play, Clock, Dumbbell, Bookmark } from "lucide-react";
+import { ArrowLeft, Play, Clock, Dumbbell, Bookmark, CalendarPlus, Pencil, Trash2, Volume2, MessageSquare, Timer } from "lucide-react";
 import { useSavedWorkouts } from "@/hooks/useSavedWorkouts";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
