@@ -107,7 +107,7 @@ export default function WorkoutDetail() {
     enabled: !!id && !!effectiveClientId && isClient,
   });
 
-  const { data: workout, isLoading } = useQuery({
+  const { data: workout, isLoading, isError, refetch, isFetching } = useQuery({
     queryKey: ["workout-detail", id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -129,6 +129,11 @@ export default function WorkoutDetail() {
       return data;
     },
     enabled: !!id,
+    // Never leave the page spinning: retry transient failures, then surface a retry button.
+    retry: 2,
+    retryDelay: (attempt) => Math.min(1500 * (attempt + 1), 4000),
+    staleTime: 30_000,
+    refetchOnWindowFocus: false,
   });
 
   // Transform data for WorkoutPlayer
@@ -511,14 +516,23 @@ export default function WorkoutDetail() {
     );
   }
 
-  if (!workout) {
+  if (isError || !workout) {
     return (
       <DashboardLayout>
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">Workout not found</p>
-          <Button onClick={() => navigate(-1)} className="mt-4">
-            Go Back
-          </Button>
+        <div className="text-center py-12 space-y-4">
+          <p className="text-muted-foreground">
+            {isError ? "We couldn't load this workout. Check your connection and try again." : "Workout not found"}
+          </p>
+          <div className="flex items-center justify-center gap-3">
+            {isError && (
+              <Button onClick={() => refetch()} disabled={isFetching}>
+                {isFetching ? "Retrying..." : "Try Again"}
+              </Button>
+            )}
+            <Button variant="outline" onClick={() => navigate(-1)}>
+              Go Back
+            </Button>
+          </div>
         </div>
       </DashboardLayout>
     );

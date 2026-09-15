@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - name: Unit tests (cue timing + intro state transitions)
+        run: bun x vitest run
+      - name: Build
+        run: bun run build
+
+  player-screenshots:
+    # Screenshot regression for READY / coach selection / waveform / GO.
+    # Needs a signed-in session, so it only runs when the session secrets exist.
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'pull_request' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: bun install --frozen-lockfile
+      - run: pip install playwright && python -m playwright install --with-deps chromium
+      - name: Start preview server
+        run: |
+          bun run build
+          bun x vite preview --port 8080 &
+          for i in $(seq 1 60); do curl -sf -o /dev/null http://localhost:8080/ && break; sleep 1; done
+      - name: READY / coach / waveform / GO screenshot checks
+        if: ${{ env.LOVABLE_BROWSER_SUPABASE_SESSION_JSON != '' }}
+        env:
+          APP_BASE_URL: http://localhost:8080
+          WORKOUT_ID: ${{ vars.E2E_WORKOUT_ID }}
+          LOVABLE_BROWSER_SUPABASE_SESSION_JSON: ${{ secrets.E2E_SUPABASE_SESSION_JSON }}
+          LOVABLE_BROWSER_SUPABASE_STORAGE_KEY: ${{ secrets.E2E_SUPABASE_STORAGE_KEY }}
+          LOVABLE_BROWSER_SUPABASE_COOKIES_JSON: ${{ secrets.E2E_SUPABASE_COOKIES_JSON }}
+        # Exits non-zero (failing the build) when a state no longer matches.
+        run: python3 scripts/e2e/workout-player-screens.py "$WORKOUT_ID"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: player-screenshots
+          path: /tmp/browser/player-regression
+          if-no-files-found: ignore

@@ -1,6 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { CoachWaveform } from "@/components/workout/CoachWaveform";
+import {
+  buildWelcomeLine,
+  buildFirstUpLine,
+  canSkipIntro,
+  shouldShowWaveform,
+  type IntroPhase,
+} from "@/lib/workoutCueTiming";
 
 interface Exercise {
   id: string;
@@ -39,7 +46,7 @@ export function WorkoutIntro({
   onIntroComplete,
   coachName = "Coach",
 }: WorkoutIntroProps) {
-  const [phase, setPhase] = useState<"speaking" | "countdown" | "go">("speaking");
+  const [phase, setPhase] = useState<IntroPhase>("speaking");
   const [countdown, setCountdown] = useState(3);
   const mountedRef = useRef(true);
   const hasStartedRef = useRef(false);
@@ -57,22 +64,11 @@ export function WorkoutIntro({
     if (hasStartedRef.current) return;
     hasStartedRef.current = true;
 
-    const exerciseWord = totalExercises === 1 ? "exercise" : "exercises";
-    const minuteWord = totalMinutes === 1 ? "minute" : "minutes";
-    const welcomeText = `Welcome to ${workoutName}. Today's session has ${totalExercises} ${exerciseWord} and will take about ${totalMinutes} ${minuteWord}. Let's get started.`;
-    await speakFn(welcomeText);
+    await speakFn(buildWelcomeLine(workoutName, totalExercises, totalMinutes));
     if (!mountedRef.current) return;
     const firstEx = allExercises[0];
-    const firstSection = sections[0];
     if (firstEx) {
-      const blockName = firstSection?.name?.trim() || "";
-      const totalRounds = firstSection?.rounds || 1;
-      const targetInfo = firstEx.duration_seconds && firstEx.duration_seconds > 0
-        ? `, ${firstEx.duration_seconds} seconds`
-        : firstEx.reps ? `, ${firstEx.reps} reps` : "";
-      const blockAnnounce = blockName ? `${blockName}. ` : "";
-      const roundAnnounce = `Round 1 of ${totalRounds}. `;
-      await speakFn(`${blockAnnounce}${roundAnnounce}First up, ${firstEx.exercise_name}${targetInfo}. Get ready.`);
+      await speakFn(buildFirstUpLine(firstEx, sections[0]));
     }
     if (!mountedRef.current) return;
     setPhase("countdown");
@@ -84,7 +80,7 @@ export function WorkoutIntro({
     }
     setPhase("go");
     await speakFn("Go!");
-  }, [workoutName, totalMinutes, totalExercises, allExercises, speakFn, onIntroComplete]);
+  }, [workoutName, totalMinutes, totalExercises, allExercises, sections, speakFn]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -99,7 +95,7 @@ export function WorkoutIntro({
       {phase === "speaking" && (
         <div className="animate-fade-in space-y-7">
           <div className="mx-auto h-2 w-2 rounded-full bg-cue animate-pulse" />
-          <CoachWaveform />
+          {shouldShowWaveform(phase, true) && <CoachWaveform />}
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.25em] text-cue">Coach Speaking</p>
             <h1 className="mt-3 text-3xl font-black uppercase">{workoutName}</h1>
@@ -119,7 +115,7 @@ export function WorkoutIntro({
           <span className="text-xs font-bold uppercase tracking-[0.22em] text-muted-foreground">Tap to start</span>
         </Button>
       )}
-      {phase !== "go" && (
+      {canSkipIntro(phase) && (
         <Button variant="ghost" onClick={onIntroComplete} className="absolute bottom-8 text-xs uppercase tracking-[0.2em] text-muted-foreground">
           Skip Intro
         </Button>
