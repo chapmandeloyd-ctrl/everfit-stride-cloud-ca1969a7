@@ -201,3 +201,54 @@ export function shouldShowWaveform(phase: IntroPhase, coachSpeaking: boolean): b
 export function canSkipIntro(phase: IntroPhase): boolean {
   return phase !== "go";
 }
+
+/* ------------------------------------------------------------------ */
+/* Cue-timing alignment (spoken overlay + waveform vs active exercise) */
+/* ------------------------------------------------------------------ */
+
+export interface ScheduledCue {
+  /** Seconds after the exercise starts at which the coach begins speaking. */
+  atSecond: number;
+  kind: "start" | "mid" | "countdown";
+  text: string;
+}
+
+/**
+ * Timestamps every spoken cue for one exercise, relative to the moment the
+ * exercise becomes active. The player and the regression tests both read this
+ * so the waveform overlay can never drift from the spoken audio.
+ */
+export function buildCueSchedule(exercise: CueExercise): ScheduledCue[] {
+  const work = estimatedWorkSeconds(exercise);
+  const cues: ScheduledCue[] = [];
+
+  const start = clean(exercise.form_cue_start);
+  if (start) cues.push({ atSecond: 0, kind: "start", text: start });
+
+  const mid = clean(exercise.form_cue_mid);
+  if (mid && work >= MID_CUE_MIN_SECONDS) {
+    cues.push({ atSecond: work - midCueHalfway(exercise), kind: "mid", text: mid });
+  }
+
+  if (exercise.duration_seconds && exercise.duration_seconds > 0) {
+    for (let remaining = COUNTDOWN_WINDOW_SECONDS; remaining >= 1; remaining--) {
+      const word = countdownWordFor(exercise, remaining);
+      if (word) cues.push({ atSecond: work - remaining, kind: "countdown", text: word });
+    }
+  }
+
+  return cues.sort((a, b) => a.atSecond - b.atSecond);
+}
+
+/** The cue that should be playing at a given second of the active exercise. */
+export function cueAtSecond(exercise: CueExercise, second: number, spokenLineSeconds = 3): ScheduledCue | null {
+  const active = buildCueSchedule(exercise).filter(
+    (c) => second >= c.atSecond && second < c.atSecond + spokenLineSeconds
+  );
+  return active.length ? active[active.length - 1] : null;
+}
+
+/** Waveform overlay is visible exactly while a scheduled cue is being spoken. */
+export function waveformVisibleAtSecond(exercise: CueExercise, second: number, spokenLineSeconds = 3): boolean {
+  return cueAtSecond(exercise, second, spokenLineSeconds) !== null;
+}
