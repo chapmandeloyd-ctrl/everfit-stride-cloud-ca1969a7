@@ -1097,7 +1097,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
         <div className="text-center">
           <p className="text-xs font-bold uppercase tracking-[0.28em] text-cue">Ready</p>
           <h1 className="mt-2 font-display text-3xl font-black uppercase leading-tight">{workoutName}</h1>
-          <p className="mt-2 text-sm text-muted-foreground">{steps.filter((step) => step.type === "exercise").length} exercises · About {Math.ceil(totalEstimatedSeconds / 60)} minutes</p>
+          <p className="mt-2 text-sm text-muted-foreground">{steps.filter((step) => step.type === "exercise").length} exercises · About {displayMinutes || Math.ceil(totalEstimatedSeconds / 60)} minutes</p>
         </div>
         <section className="mt-6 rounded-2xl border border-border bg-card p-4">
           <div className="flex items-center justify-between gap-3">
