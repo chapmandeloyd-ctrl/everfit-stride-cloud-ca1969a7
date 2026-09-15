@@ -92,22 +92,6 @@ export const QUICK_PROMPT_GROUPS: { group: string; items: QuickPreset[] }[] = [
     ],
   },
   {
-    group: "Softball",
-    items: [
-      { label: "Rotational Power", prompt: "35-min rotational power session for softball: med ball rotational throws/slams, cable chops, landmine rotations, hip turn drills. Intermediate.", duration: 35, difficulty: "intermediate" },
-      { label: "Hitting Power", prompt: "40-min hitting power workout for softball: bat-speed focused — med ball scoop tosses, rotational shot-put throws, cable rotations, hip/core anti-rotation, light lower-body power. Intermediate.", duration: 40, difficulty: "intermediate" },
-      { label: "Throwing Arm Care", prompt: "25-min throwing arm care + shoulder prehab for softball: scap activation, band external rotations, Y/T/Ws, rotator cuff, light pulls. Beginner.", duration: 25, difficulty: "beginner" },
-      { label: "Sprint & First-Step", prompt: "30-min softball sprint and first-step speed: 10/20-yd accelerations, lateral starts, base-running starts, short plyos. Intermediate.", duration: 30, difficulty: "intermediate" },
-      { label: "Pitcher Lower Body", prompt: "45-min lower-body strength + power for softball pitchers: single-leg strength, hip hinge, glute work, hip mobility, light plyos. Intermediate.", duration: 45, difficulty: "intermediate" },
-      { label: "Catcher Strength", prompt: "40-min catcher-focused strength: deep squat mobility, posterior chain, knee/ankle prehab, single-leg stability, anti-rotation core. Intermediate.", duration: 40, difficulty: "intermediate" },
-      { label: "In-Season Softball", prompt: "30-min in-season softball maintenance lift: low-fatigue full-body, dumbbells only, preserve power without soreness. Intermediate.", duration: 30, difficulty: "intermediate" },
-      { label: "Off-Season Full Body", prompt: "55-min off-season softball full-body strength: squat, hinge, push, pull, rotational core, finisher. Intermediate.", duration: 55, difficulty: "intermediate" },
-    ],
-  },
-  {
-
-
-
     group: "Circuit & Tabata",
     items: [
       { label: "Classic Tabata 4m", prompt: "Strict Tabata protocol: ONE circuit block only with 8 rounds of 20 seconds work / 10 seconds rest (4 minutes total). Bodyweight, no equipment. Pick ONE high-intensity exercise (e.g. squat jumps). Coaching-timer style only — no warm-up, no cooldown, no strength sets. Intermediate.", duration: 4, difficulty: "intermediate" },
