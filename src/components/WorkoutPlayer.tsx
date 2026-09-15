@@ -652,8 +652,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
     if (stepIdx < steps.length) return;
     if (spokenOutroRef.current) return;
     spokenOutroRef.current = true;
-    const closing = outroText?.trim() || "Workout complete. Great work today.";
-    elevenLabsSpeakNow(closing).catch(() => {});
+    elevenLabsSpeakNow(buildOutroAnnouncement(outroText)).catch(() => {});
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stepIdx, phase]);
 
