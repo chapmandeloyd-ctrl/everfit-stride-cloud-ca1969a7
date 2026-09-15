@@ -686,8 +686,8 @@ export default function WorkoutDetail() {
             </div>
 
             {section.intro_text && section.intro_text.trim() && (
-              <div className="mb-4 rounded-xl border border-primary/40 bg-primary/5 p-3">
-                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-1">
+              <div className="mb-4 rounded-2xl border border-cue/50 bg-cue/5 p-4">
+                <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-cue mb-1.5">
                   <Volume2 className="h-3.5 w-3.5" /> Coach reads aloud
                 </div>
                 <p className="text-sm text-foreground/90 leading-snug whitespace-pre-wrap">{section.intro_text}</p>
@@ -700,44 +700,51 @@ export default function WorkoutDetail() {
                   (c: any) => !!c && String(c).trim().length > 0
                 );
                 return (
-                  <div key={exercise.id} className="py-3 first:pt-0 last:pb-0 space-y-2">
+                  <div key={exercise.id} className="py-4 first:pt-0 last:pb-0 space-y-2">
                     <div className="flex items-center gap-4">
                       {exercise.exercise_image ? (
-                        <img
-                          src={exercise.exercise_image}
-                          alt={exercise.exercise_name}
-                          className="h-16 w-16 rounded-xl object-contain bg-secondary shrink-0"
-                          loading="lazy"
-                        />
+                        <div className="h-[72px] w-[72px] rounded-2xl bg-white shrink-0 overflow-hidden grid place-items-center">
+                          <img
+                            src={exercise.exercise_image}
+                            alt={exercise.exercise_name}
+                            className="h-full w-full object-contain"
+                            loading="lazy"
+                          />
+                        </div>
                       ) : (
-                        <div className="h-16 w-16 rounded-xl bg-secondary grid place-items-center shrink-0">
+                        <div className="h-[72px] w-[72px] rounded-2xl bg-secondary grid place-items-center shrink-0">
                           <Dumbbell className="h-6 w-6 text-muted-foreground" />
                         </div>
                       )}
                       <div className="min-w-0 flex-1">
-                        <div className="text-base font-bold truncate">{exercise.exercise_name ?? "—"}</div>
-                        <div className="text-xs text-muted-foreground mt-0.5">
-                          {exercise.sets && `${exercise.sets} sets`}
-                          {exercise.reps && ` · ${exercise.reps} reps`}
-                          {exercise.duration_seconds && ` · ${exercise.duration_seconds >= 60 ? `${Math.round(exercise.duration_seconds / 60)}min` : `${exercise.duration_seconds}s`} work`}
-                          {exercise.rest_seconds ? ` · ${exercise.rest_seconds >= 60 ? `${Math.round(exercise.rest_seconds / 60)}min` : `${exercise.rest_seconds}s`} rest` : ""}
-                          {exercise.weight_lbs ? ` · ${exercise.weight_lbs} lbs` : ""}
-                          {exercise.tempo ? ` · Tempo ${exercise.tempo}` : ""}
+                        <div className="text-lg font-bold truncate">{exercise.exercise_name ?? "—"}</div>
+                        <div className="text-sm text-muted-foreground mt-0.5">
+                          {[
+                            exercise.sets && exercise.sets > 1 ? `${exercise.sets} sets` : null,
+                            exercise.reps ? `${exercise.reps} reps` : null,
+                            exercise.duration_seconds
+                              ? `${exercise.duration_seconds >= 60 ? `${Math.round(exercise.duration_seconds / 60)}min` : `${exercise.duration_seconds}s`} work`
+                              : null,
+                            exercise.rest_seconds != null
+                              ? `${exercise.rest_seconds >= 60 ? `${Math.round(exercise.rest_seconds / 60)}min` : `${exercise.rest_seconds}s`} rest`
+                              : null,
+                            exercise.weight_lbs ? `${exercise.weight_lbs} lbs` : null,
+                            exercise.tempo ? `Tempo ${exercise.tempo}` : null,
+                          ]
+                            .filter(Boolean)
+                            .join(" · ")}
                         </div>
                       </div>
                     </div>
                     {cues.length > 0 && (
-                      <div className="ml-20 space-y-1">
+                      <div className="ml-[88px] space-y-1.5">
                         {cues.map((c: string, i: number) => (
-                          <div key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
-                            <MessageSquare className="h-3.5 w-3.5 mt-0.5 shrink-0 text-primary" />
+                          <div key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                            <MessageSquare className="h-4 w-4 mt-0.5 shrink-0 text-cue" />
                             <span className="leading-snug">{c}</span>
                           </div>
                         ))}
                       </div>
-                    )}
-                    {exercise.notes && (
-                      <p className="ml-20 text-xs text-muted-foreground">{exercise.notes}</p>
                     )}
                   </div>
                 );
