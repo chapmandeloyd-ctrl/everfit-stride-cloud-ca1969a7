@@ -110,7 +110,11 @@ export default function WorkoutDetail() {
   const { data: workout, isLoading, isError, refetch, isFetching } = useQuery({
     queryKey: ["workout-detail", id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Hard per-attempt timeout so a stalled response can never hang the page.
+      const timeout = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("Workout request timed out")), 12_000)
+      );
+      const request = supabase
         .from("workout_plans")
         .select(`
           *,
@@ -125,16 +129,28 @@ export default function WorkoutDetail() {
         .eq("id", id)
         .single();
 
+      const { data, error } = (await Promise.race([request, timeout])) as Awaited<typeof request>;
+
       if (error) throw error;
       return data;
     },
     enabled: !!id,
     // Never leave the page spinning: retry transient failures, then surface a retry button.
-    retry: 2,
-    retryDelay: (attempt) => Math.min(1500 * (attempt + 1), 4000),
+    retry: 4,
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 5000),
     staleTime: 30_000,
     refetchOnWindowFocus: false,
+    refetchOnReconnect: true,
   });
+
+  // Recover automatically when the network comes back while an error is shown.
+  useEffect(() => {
+    const onOnline = () => {
+      if (isError) refetch();
+    };
+    window.addEventListener("online", onOnline);
+    return () => window.removeEventListener("online", onOnline);
+  }, [isError, refetch]);
 
   // Transform data for WorkoutPlayer
   const transformedSections = workout?.workout_sections
