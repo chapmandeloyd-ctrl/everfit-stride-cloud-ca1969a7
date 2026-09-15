@@ -620,19 +620,23 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
     const step = steps[stepIdx];
     if (!step) return;
 
-    // 3-2-1 countdown applies whenever the current exercise is duration-based.
-    if (step.type === "exercise" && step.exercise?.duration_seconds && step.exercise.duration_seconds > 0) {
-      // Coach's mid-exercise form cue, spoken once at the halfway point
-      const midCue = step.exercise.form_cue_mid?.trim();
-      const total = step.exercise.duration_seconds;
+    // Mid cue + 3-2-1 countdown, both driven by the shared cue-timing layer.
+    if (step.type === "exercise" && step.exercise) {
       const midKey = `${stepIdx}-${currentSide ?? "none"}`;
-      if (midCue && total >= 12 && stepTimer > 3 && stepTimer <= Math.floor(total / 2) && spokenMidCueRef.current !== midKey) {
+      if (
+        shouldSpeakMidCue({
+          exercise: step.exercise,
+          remainingSeconds: stepTimer,
+          elapsedSeconds: stepTimer,
+          alreadySpoken: spokenMidCueRef.current === midKey,
+        })
+      ) {
         spokenMidCueRef.current = midKey;
-        elevenLabsSpeakNow(midCue).catch(() => {});
+        elevenLabsSpeakNow(step.exercise.form_cue_mid!.trim()).catch(() => {});
       }
-      if (stepTimer > 0 && stepTimer <= 3 && lastCountdownRef.current !== stepTimer) {
+      const countdownWord = countdownWordFor(step.exercise, stepTimer);
+      if (countdownWord && lastCountdownRef.current !== stepTimer) {
         lastCountdownRef.current = stepTimer;
-        const countdownWord = stepTimer === 3 ? "Three" : stepTimer === 2 ? "Two" : "One";
         playClip(countdownWord).catch(() => {});
       }
     }
