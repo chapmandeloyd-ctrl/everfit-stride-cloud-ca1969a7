@@ -365,20 +365,47 @@ export function AIWorkoutBuilderDialog({
               className="resize-none"
             />
 
-            {/* Quick prompt chips */}
+            {/* Quick Prompts — ported from the APEX builder handoff */}
             {activeTab === "full" && !workoutResult && (
-              <div className="flex flex-wrap gap-1.5">
-                {PROMPT_EXAMPLES.map((example) => (
-                  <button
-                    key={example}
-                    onClick={() => setPrompt(example)}
-                    className="text-[11px] px-2.5 py-1 rounded-full border border-border text-muted-foreground hover:border-primary hover:text-primary transition-colors"
-                  >
-                    {example}
-                  </button>
-                ))}
-              </div>
+              <>
+                <QuickPrompts
+                  onPick={(p, dur, diff) => {
+                    setPrompt(p);
+                    if (dur) setDuration(dur);
+                    if (diff) setDifficulty(diff);
+                  }}
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                      Duration (min)
+                    </Label>
+                    <Input
+                      type="number"
+                      value={duration}
+                      onChange={(e) => setDuration(Number(e.target.value) || 45)}
+                      className="h-10"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                      Difficulty
+                    </Label>
+                    <Select value={difficulty} onValueChange={(v) => setDifficulty(v as typeof difficulty)}>
+                      <SelectTrigger className="h-10">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="beginner">Beginner</SelectItem>
+                        <SelectItem value="intermediate">Intermediate</SelectItem>
+                        <SelectItem value="advanced">Advanced</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </>
             )}
+
 
             <Button
               onClick={handleGenerate}
