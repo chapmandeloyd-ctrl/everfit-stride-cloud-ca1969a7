@@ -459,7 +459,9 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
 
   useEffect(() => {
     coachSpeakingListeners.add(setCoachSpeakingState);
-    return () => coachSpeakingListeners.delete(setCoachSpeakingState);
+    return () => {
+      coachSpeakingListeners.delete(setCoachSpeakingState);
+    };
   }, []);
 
 
