@@ -582,8 +582,8 @@ export default function WorkoutDetail() {
         {/* Hero header */}
         <header className="bg-card border border-border rounded-2xl overflow-hidden">
           {workout.image_url && (
-            <div className="relative w-full aspect-[16/9] bg-background overflow-hidden grid place-items-center">
-              <img src={workout.image_url} alt={workout.name} className="w-full h-full object-contain bg-background" />
+            <div className="relative w-full aspect-video bg-background overflow-hidden">
+              <img src={workout.image_url} alt={workout.name} className="absolute inset-0 h-full w-full object-contain bg-background" />
             </div>
           )}
           <div className="p-5 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
