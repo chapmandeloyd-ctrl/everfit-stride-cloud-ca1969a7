@@ -285,98 +285,111 @@ export default function Workouts() {
         </div>
 
         {/* Workout Templates Grid */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
           {workoutPlans && workoutPlans.length > 0 ? (
             workoutPlans.map((workout) => (
               <Card 
                 key={workout.id} 
-                className="hover:shadow-lg transition-shadow cursor-pointer overflow-hidden"
+                className="hover:shadow-lg transition-shadow cursor-pointer overflow-hidden flex flex-col"
                 onClick={() => navigate(`/workouts/${workout.id}`)}
               >
                 {/* Cover Image */}
-                <div className="relative">
+                <div className="relative w-full aspect-[16/9] bg-background grid place-items-center overflow-hidden">
                   {workout.image_url ? (
                     <img
                       src={workout.image_url}
                       alt={workout.name}
-                      className="w-full h-40 object-cover"
+                      className="w-full h-full object-contain"
+                      loading="lazy"
                     />
                   ) : (
-                    <div className="w-full h-40 bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                    <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
                       <Dumbbell className="h-10 w-10 text-primary/40" />
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-3">
-                    <h3 className="text-white font-bold text-base drop-shadow-lg line-clamp-1">{workout.name}</h3>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <Badge className="bg-white/20 text-white border-0 text-[10px] backdrop-blur-sm">
-                        {workout.category || "General"}
-                      </Badge>
-                      <Badge className={`text-[10px] border-0 ${difficultyColors[workout.difficulty as keyof typeof difficultyColors] || "bg-muted text-muted-foreground"}`}>
-                        {workout.difficulty}
-                      </Badge>
-                    </div>
-                  </div>
                 </div>
 
-                <CardContent className="p-3 space-y-3">
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-1.5">
+                <CardContent className="p-3 space-y-2 flex-1 flex flex-col">
+                  <h3 className="font-bold text-sm leading-tight line-clamp-2">{workout.name}</h3>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <Badge variant="secondary" className="rounded-full text-[10px] capitalize">
+                      {workout.category || "General"}
+                    </Badge>
+                    <Badge className={`rounded-full text-[10px] border-0 capitalize ${difficultyColors[workout.difficulty as keyof typeof difficultyColors] || "bg-muted text-muted-foreground"}`}>
+                      {workout.difficulty}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1">
                       <Clock className="h-3.5 w-3.5" />
                       <span>{getDisplayedDuration(workout.name, workout.duration_minutes)} min</span>
                     </div>
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1">
                       <Users className="h-3.5 w-3.5" />
-                      <span>{workout.workout_plan_exercises?.[0]?.count || 0} exercises</span>
+                      <span>{workout.workout_plan_exercises?.[0]?.count || 0}</span>
                     </div>
                   </div>
-                  
-                  <div className="flex gap-2 flex-wrap">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="flex-1 min-w-[80px]"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/workouts/edit/${workout.id}`);
-                      }}
-                    >
-                      <Edit className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setWorkoutToTemplate({ id: workout.id, name: workout.name });
-                        setTemplateDialogOpen(true);
-                      }}
-                      title="Save as Template"
-                    >
-                      <BookTemplate className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        duplicateMutation.mutate(workout.id);
-                      }}
-                      disabled={duplicateMutation.isPending}
-                    >
-                      <Copy className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
+
+                  <div className="mt-auto pt-1 space-y-2">
+                    <Button
                       size="sm"
+                      className="w-full rounded-full text-xs font-bold uppercase tracking-wider"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleDelete(workout.id);
+                        navigate(`/workouts/${workout.id}`);
                       }}
                     >
-                      <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                      Preview
                     </Button>
+                    <div className="flex gap-1.5">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1 px-0"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/workouts/edit/${workout.id}`);
+                        }}
+                      >
+                        <Edit className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1 px-0"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setWorkoutToTemplate({ id: workout.id, name: workout.name });
+                          setTemplateDialogOpen(true);
+                        }}
+                        title="Save as Template"
+                      >
+                        <BookTemplate className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1 px-0"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          duplicateMutation.mutate(workout.id);
+                        }}
+                        disabled={duplicateMutation.isPending}
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        className="flex-1 px-0"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(workout.id);
+                        }}
+                      >
+                        <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
