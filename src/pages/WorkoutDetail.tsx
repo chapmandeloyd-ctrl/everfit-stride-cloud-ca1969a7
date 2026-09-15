@@ -107,7 +107,7 @@ export default function WorkoutDetail() {
     enabled: !!id && !!effectiveClientId && isClient,
   });
 
-  const { data: workout, isLoading } = useQuery({
+  const { data: workout, isLoading, isError, refetch, isFetching } = useQuery({
     queryKey: ["workout-detail", id],
     queryFn: async () => {
       const { data, error } = await supabase
