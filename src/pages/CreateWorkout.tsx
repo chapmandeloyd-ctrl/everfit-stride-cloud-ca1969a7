@@ -172,6 +172,8 @@ function ExerciseRow({
         {hasDirectVideo ? (
           <video
             src={exerciseInfo.video_url}
+            poster={thumbnail || undefined}
+            preload="metadata"
             className="w-full h-full object-cover"
             muted
             loop
@@ -179,6 +181,7 @@ function ExerciseRow({
             onMouseEnter={(e) => (e.target as HTMLVideoElement).play()}
             onMouseLeave={(e) => { const v = e.target as HTMLVideoElement; v.pause(); v.currentTime = 0; }}
           />
+
         ) : thumbnail ? (
           <img src={thumbnail} alt="" className="w-full h-full object-cover" />
         ) : (
