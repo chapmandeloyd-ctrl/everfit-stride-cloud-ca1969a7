@@ -579,88 +579,31 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
     const timer = setTimeout(() => {
       if (step.type === "rest") {
         const nextEx = steps[stepIdx + 1]?.exercise;
-        const restSecs = step.restSeconds || 0;
-        const restPart = restSecs > 0 ? `Rest. ${restSecs} seconds.` : "Rest.";
-        const msg = nextEx
-          ? `${restPart} Up next: ${nextEx.exercise_name}`
-          : `${restPart} You're almost done!`;
-        elevenLabsSpeakNow(msg).catch(() => {});
+        elevenLabsSpeakNow(
+          buildRestAnnouncement(step.restSeconds || 0, nextEx?.exercise_name)
+        ).catch(() => {});
       } else if (step.type === "exercise" && step.exercise) {
         const ex = step.exercise;
         const section = sections[step.sectionIdx];
-        const isGrouped = ["superset", "circuit"].includes(section?.section_type);
-        const isUni = isUnilateralExercise(ex);
-        let msg = "";
-
-        // Coach's spoken intro for this block — once, the first time we enter it
+        const includeSectionIntro =
+          !!section?.intro_text?.trim() && !spokenIntrosRef.current.has(step.sectionIdx);
         if (
+          includeSectionIntro &&
           step.exerciseIdx === 0 &&
           step.round === 1 &&
-          currentSide !== "left" &&
-          section?.intro_text?.trim() &&
-          !spokenIntrosRef.current.has(step.sectionIdx)
+          currentSide !== "left"
         ) {
           spokenIntrosRef.current.add(step.sectionIdx);
-          msg += `${section.intro_text.trim()} `;
         }
-
-        // Announce block label + round X of Y on the first exercise of each round
-        // (only on the first side if unilateral, to avoid repeating)
-        if (isGrouped && step.exerciseIdx === 0 && currentSide !== "left") {
-          const blockName = section?.name?.trim() || "";
-          if (blockName) msg += `${blockName}. `;
-          msg += `Round ${step.round} of ${section?.rounds || 1}. `;
-        }
-
-        // Lead with the side cue for unilateral exercises
-        if (isUni && currentSide) {
-          if (currentSide === "left" && ex.form_cue_switch?.trim()) {
-            msg += `${ex.form_cue_switch.trim()} `;
-          } else {
-            msg += currentSide === "right" ? "Right side. " : "Left side. ";
-          }
-        }
-
-        msg += ex.exercise_name || "";
-
-        // Per-exercise: announce duration if set, otherwise reps
-        if (ex.duration_seconds && ex.duration_seconds > 0) {
-          msg += `, ${ex.duration_seconds} seconds`;
-        } else if (ex.reps) {
-          msg += `, ${ex.reps} reps`;
-        }
-
-        // Announce weight if set
-        if (ex.weight_lbs) {
-          msg += `, at ${ex.weight_lbs} pounds`;
-        }
-
-        // Announce band/equipment if set (first side only)
-        if (ex.band && currentSide !== "left") {
-          msg += `, using ${ex.band}`;
-        }
-
-        // Announce tempo if set (only on first side announcement to keep concise)
-        if (ex.tempo && currentSide !== "left") {
-          msg += `, tempo ${ex.tempo}`;
-        }
-
-        // Announce RPE if set (first side only)
-        if (ex.rpe && currentSide !== "left") {
-          msg += `, RPE ${ex.rpe}`;
-        }
-
-        // Announce distance if set
-        if (ex.distance) {
-          msg += `, ${ex.distance}`;
-        }
-
-        // Coach's form cue for the start of the exercise
-        if (ex.form_cue_start?.trim()) {
-          msg += `. ${ex.form_cue_start.trim()}`;
-        }
-
-
+        const msg = buildExerciseAnnouncement({
+          exercise: ex,
+          section,
+          exerciseIdx: step.exerciseIdx,
+          round: step.round,
+          side: currentSide,
+          isUnilateral: isUnilateralExercise(ex),
+          includeSectionIntro,
+        });
         elevenLabsSpeakNow(msg).catch(() => {});
       }
     }, delayMs);
