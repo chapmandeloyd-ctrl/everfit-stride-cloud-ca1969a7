@@ -13,6 +13,9 @@ import {
   shouldShowWaveform,
   canSkipIntro,
   INTRO_PHASE_ORDER,
+  buildCueSchedule,
+  cueAtSecond,
+  waveformVisibleAtSecond,
 } from "./workoutCueTiming";
 
 const timed = {
@@ -159,5 +162,38 @@ describe("intro state transitions", () => {
       "Dynamic Movement Prep. Round 1 of 3. First up, Air Squat, 40 seconds. Get ready."
     );
     expect(buildFirstUpLine(repBased, null)).toBe("Round 1 of 1. First up, Push Up, 12 reps. Get ready.");
+  });
+});
+
+describe("cue-timing alignment", () => {
+  it("schedules start, mid and countdown cues at the right seconds", () => {
+    const schedule = buildCueSchedule(timed);
+    expect(schedule.map((c) => [c.kind, c.atSecond])).toEqual([
+      ["start", 0],
+      ["mid", 20],
+      ["countdown", 37],
+      ["countdown", 38],
+      ["countdown", 39],
+    ]);
+  });
+
+  it("gives rep-based exercises a mid cue but never a countdown", () => {
+    const kinds = buildCueSchedule(repBased).map((c) => c.kind);
+    expect(kinds).not.toContain("countdown");
+    expect(kinds).toContain("mid");
+  });
+
+  it("matches the spoken overlay to the active exercise second", () => {
+    expect(cueAtSecond(timed, 0)?.kind).toBe("start");
+    expect(cueAtSecond(timed, 10)).toBeNull();
+    expect(cueAtSecond(timed, 20)?.kind).toBe("mid");
+    expect(cueAtSecond(timed, 39)?.kind).toBe("countdown");
+  });
+
+  it("shows the waveform only while a cue is being spoken", () => {
+    expect(waveformVisibleAtSecond(timed, 0)).toBe(true);
+    expect(waveformVisibleAtSecond(timed, 2)).toBe(true);
+    expect(waveformVisibleAtSecond(timed, 10)).toBe(false);
+    expect(waveformVisibleAtSecond(timed, 21)).toBe(true);
   });
 });

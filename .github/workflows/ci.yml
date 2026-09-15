@@ -40,19 +40,28 @@ jobs:
           bun run build
           bun x vite preview --port 8080 &
           for i in $(seq 1 60); do curl -sf -o /dev/null http://localhost:8080/ && break; sleep 1; done
-      - name: READY / coach / waveform / GO screenshot checks
-        if: ${{ env.LOVABLE_BROWSER_SUPABASE_SESSION_JSON != '' }}
+      - name: READY / coach selection / coach-speaking / GO screenshot checks
         env:
           APP_BASE_URL: http://localhost:8080
           WORKOUT_ID: ${{ vars.E2E_WORKOUT_ID }}
           LOVABLE_BROWSER_SUPABASE_SESSION_JSON: ${{ secrets.E2E_SUPABASE_SESSION_JSON }}
           LOVABLE_BROWSER_SUPABASE_STORAGE_KEY: ${{ secrets.E2E_SUPABASE_STORAGE_KEY }}
           LOVABLE_BROWSER_SUPABASE_COOKIES_JSON: ${{ secrets.E2E_SUPABASE_COOKIES_JSON }}
-        # Exits non-zero (failing the build) when a state no longer matches.
-        run: python3 scripts/e2e/workout-player-screens.py "$WORKOUT_ID"
+        # Both scripts exit non-zero (failing the build) when a state — including
+        # coach selection and the coach-speaking waveform overlay — no longer
+        # matches the handoff reference, or when a state hangs.
+        run: |
+          if [ -z "$LOVABLE_BROWSER_SUPABASE_SESSION_JSON" ]; then
+            echo "::error::E2E_SUPABASE_SESSION_JSON is not configured; signed-in screenshot regression cannot run."
+            exit 1
+          fi
+          python3 scripts/e2e/workout-player-screens.py "$WORKOUT_ID"
+          python3 scripts/e2e/ready-to-go-tablet.py "$WORKOUT_ID"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: player-screenshots
-          path: /tmp/browser/player-regression
+          path: |
+            /tmp/browser/player-regression
+            /tmp/browser/ready-to-go-tablet
           if-no-files-found: ignore
