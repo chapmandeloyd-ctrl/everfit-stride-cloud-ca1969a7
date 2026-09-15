@@ -7,7 +7,7 @@ async function ttsAuthToken(fallback: string) {
 }
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { X, Square, Lock, Play, Pause, SkipBack, SkipForward, Heart, MoreVertical, Timer } from "lucide-react";
+import { X, Square, Lock, Play, Pause, SkipBack, SkipForward, MoreVertical, Timer, Volume2, VolumeX, ChevronDown, Dumbbell } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,6 +22,8 @@ import { useToast } from "@/hooks/use-toast";
 import { ExerciseSwapDialog } from "@/components/ExerciseSwapDialog";
 import { cn } from "@/lib/utils";
 import { WorkoutIntro } from "@/components/WorkoutIntro";
+import { CoachWaveform } from "@/components/workout/CoachWaveform";
+import { COACH_VOICES } from "@/components/workout/CoachVoicePicker";
 import { useLiveActivity } from "@/hooks/useLiveActivity";
 
 interface Exercise {
@@ -233,6 +235,10 @@ function buildSteps(sections: Section[]): WorkoutStep[] {
 let persistentAudio: HTMLAudioElement | null = null;
 let activeAudio: HTMLAudioElement | null = null;
 let speechAbortController: AbortController | null = null;
+const coachSpeakingListeners = new Set<(speaking: boolean) => void>();
+function setCoachSpeaking(speaking: boolean) {
+  coachSpeakingListeners.forEach((listener) => listener(speaking));
+}
 
 // Web Audio routing — lets us amplify TTS output above 1.0 (HTMLAudioElement
 // caps at volume=1, which is too quiet on iOS where media volume is separate
@@ -289,6 +295,7 @@ function cancelSpeech() {
     speechAbortController.abort();
     speechAbortController = null;
   }
+  setCoachSpeaking(false);
 }
 
 // Pre-cached audio clips for countdown (filled at intro time)
@@ -345,20 +352,13 @@ async function playClip(text: string): Promise<void> {
 // Current selected voice ID — set before workout starts
 let selectedVoiceId: string = "cgSgspJ2msm6clMCkdW9"; // default Jessica
 
-export const WORKOUT_VOICES = [
-  { id: "cgSgspJ2msm6clMCkdW9", name: "Jessica", desc: "Warm & Energetic", icon: "🔥" },
-  { id: "EXAVITQu4vr4xnSDxMaL", name: "Sarah", desc: "Calm & Encouraging", icon: "🧘" },
-  { id: "onwK4e9ZLuTAKqWW03F9", name: "Daniel", desc: "Strong & Commanding", icon: "💪" },
-  { id: "TX3LPaxmHKxFdv7VOQHJ", name: "Liam", desc: "Friendly & Motivating", icon: "⚡" },
-  { id: "pFZP5JQG7iQjIQuC4Bku", name: "Lily", desc: "Gentle & Supportive", icon: "🌸" },
-] as const;
-
 export function setWorkoutVoice(voiceId: string) {
   selectedVoiceId = voiceId;
 }
 
 async function elevenLabsSpeakNow(text: string): Promise<void> {
   cancelSpeech();
+  setCoachSpeaking(true);
   const controller = new AbortController();
   speechAbortController = controller;
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -377,9 +377,13 @@ async function elevenLabsSpeakNow(text: string): Promise<void> {
     });
   } catch {
     if (!controller.signal.aborted) console.warn("ElevenLabs TTS failed, no fallback");
+    setCoachSpeaking(false);
     return;
   }
-  if (!response.ok || controller.signal.aborted) return;
+  if (!response.ok || controller.signal.aborted) {
+    setCoachSpeaking(false);
+    return;
+  }
   const blob = await response.blob();
   if (controller.signal.aborted) return;
   const url = URL.createObjectURL(blob);
@@ -393,10 +397,11 @@ async function elevenLabsSpeakNow(text: string): Promise<void> {
   if (voiceAudioCtx?.state === "suspended") voiceAudioCtx.resume().catch(() => {});
   speechAbortController = null;
   return new Promise((resolve) => {
-    audio.onended = () => { URL.revokeObjectURL(url); if (activeAudio === audio) activeAudio = null; resolve(); };
-    audio.onerror = () => { URL.revokeObjectURL(url); resolve(); };
+    audio.onended = () => { URL.revokeObjectURL(url); if (activeAudio === audio) activeAudio = null; setCoachSpeaking(false); resolve(); };
+    audio.onerror = () => { URL.revokeObjectURL(url); setCoachSpeaking(false); resolve(); };
     audio.play().catch(() => {
       URL.revokeObjectURL(url);
+      setCoachSpeaking(false);
       resolve();
     });
   });
@@ -425,6 +430,8 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
   const liveActivity = useLiveActivity();
   const startedAtRef = useRef(dbStartedAt ?? new Date().toISOString());
   const [setLogs, setSetLogs] = useState<Record<string, SetLog>>(resumeSetLogs || {});
+  const [coachSpeaking, setCoachSpeakingState] = useState(false);
+  const [audioMuted, setAudioMuted] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
   const [endReason, setEndReason] = useState<string>("");
   const skippedEventsRef = useRef<any[]>([]);
@@ -451,6 +458,13 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
     };
   }, []);
 
+  useEffect(() => {
+    coachSpeakingListeners.add(setCoachSpeakingState);
+    return () => {
+      coachSpeakingListeners.delete(setCoachSpeakingState);
+    };
+  }, []);
+
 
   // Unlock audio on mount + first user interaction (mobile Safari/Chrome requirement)
   useEffect(() => {
@@ -464,7 +478,8 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
   const [phase, setPhase] = useState<"voiceselect" | "intro" | "welcomeback" | "playing">(resumeFromStep !== undefined ? "welcomeback" : "voiceselect");
   const [countdownNum, setCountdownNum] = useState(3); // kept for reference but unused now
   // Default to the voice the coach picked for this workout (falls back to first option)
-  const [chosenVoice, setChosenVoice] = useState<string>(coachVoiceId || WORKOUT_VOICES[0].id);
+  const [chosenVoice, setChosenVoice] = useState<string>(coachVoiceId || COACH_VOICES[1]?.id || COACH_VOICES[0].id);
+  const [showAllVoices, setShowAllVoices] = useState(false);
   useEffect(() => { if (coachVoiceId) setWorkoutVoice(coachVoiceId); }, [coachVoiceId]);
   const [previewingVoice, setPreviewingVoice] = useState(false);
 
@@ -1068,45 +1083,67 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
     setPhase("intro");
   };
 
-  // ─── VOICE SELECT SCREEN ───
+  const chosenCoach = COACH_VOICES.find((voice) => voice.id === chosenVoice) || COACH_VOICES[0];
+
+  // ─── READY SCREEN ───
   if (phase === "voiceselect") {
     return (
-      <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-foreground px-6">
-        <Button variant="ghost" size="icon" className="absolute top-6 left-4 text-background/60 hover:text-background" onClick={onExit}>
+      <div className="fixed inset-0 z-[200] overflow-y-auto bg-background px-4 pb-8 pt-[max(env(safe-area-inset-top),20px)]">
+        <div className="mx-auto w-full max-w-xl">
+        <Button variant="ghost" size="icon" className="mb-4 text-muted-foreground" onClick={onExit} aria-label="Close workout">
           <X className="h-6 w-6" />
         </Button>
-        <h2 className="text-2xl font-bold text-background mb-2">Choose Your Coach</h2>
-        <p className="text-background/60 text-sm mb-6">Pick a voice to guide your workout</p>
-        <div className="flex flex-col gap-3 w-full max-w-sm">
-          {WORKOUT_VOICES.map((v) => (
-            <button
-              key={v.id}
-              onClick={() => { setChosenVoice(v.id); previewVoice(v.id); }}
-              className={cn(
-                "flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-left",
-                chosenVoice === v.id
-                  ? "border-primary bg-primary/20 text-background"
-                  : "border-background/20 text-background/80 hover:border-background/40"
-              )}
-            >
-              <span className="text-2xl">{v.icon}</span>
-              <div className="flex-1">
-                <div className="font-semibold">{v.name}</div>
-                <div className="text-xs opacity-60">{v.desc}</div>
-              </div>
-              {chosenVoice === v.id && previewingVoice && (
-                <span className="text-xs text-primary animate-pulse">Playing...</span>
-              )}
-            </button>
-          ))}
+        <div className="text-center">
+          <p className="text-xs font-bold uppercase tracking-[0.28em] text-cue">Ready</p>
+          <h1 className="mt-2 font-display text-3xl font-black uppercase leading-tight">{workoutName}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{steps.filter((step) => step.type === "exercise").length} exercises · About {Math.ceil(totalEstimatedSeconds / 60)} minutes</p>
         </div>
-        <Button
-          size="lg"
-          className="w-full max-w-sm mt-6"
-          onClick={startWithVoice}
-        >
-          Start Workout
+        <section className="mt-6 rounded-2xl border border-border bg-card p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-cue">Your Coach Today</p>
+              <p className="mt-1 text-xl font-bold">{chosenCoach.name}</p>
+              <p className="text-xs text-muted-foreground">{chosenCoach.tagline}</p>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => previewVoice(chosenCoach.id)} disabled={previewingVoice}>
+              <Volume2 className="size-4" /> {previewingVoice ? "Playing" : "Hear Voice"}
+            </Button>
+          </div>
+          <Button variant="ghost" className="mt-3 w-full justify-between border-t border-border pt-3 text-xs uppercase tracking-wider" onClick={() => setShowAllVoices((value) => !value)}>
+            Choose from {COACH_VOICES.length} voices <ChevronDown className={cn("size-4 transition-transform", showAllVoices && "rotate-180")} />
+          </Button>
+          {showAllVoices && (
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              {COACH_VOICES.map((voice) => (
+                <Button key={voice.id} variant={chosenVoice === voice.id ? "default" : "outline"} className="h-auto min-h-14 flex-col items-start gap-0 px-3 py-2 text-left" onClick={() => setChosenVoice(voice.id)}>
+                  <span className="font-bold">{voice.name}</span>
+                  <span className="whitespace-normal text-[10px] opacity-70">{voice.tagline}</span>
+                </Button>
+              ))}
+            </div>
+          )}
+        </section>
+        <section className="mt-4 overflow-hidden rounded-2xl border border-border bg-card">
+          <div className="border-b border-border px-4 py-3 text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">Exercise Lineup</div>
+          <div className="divide-y divide-border">
+            {sections.flatMap((section) => section.exercises).map((exercise, index) => (
+              <div key={`${exercise.id}-${index}`} className="flex items-center gap-3 px-4 py-3">
+                <span className="w-5 text-center text-xs font-bold text-muted-foreground">{index + 1}</span>
+                <div className="grid size-14 shrink-0 place-items-center overflow-hidden rounded-xl bg-foreground">
+                  {exercise.exercise_image ? <img src={exercise.exercise_image} alt={exercise.exercise_name} className="size-full object-contain" /> : <Dumbbell className="size-5 text-background" />}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-bold">{exercise.exercise_name}</p>
+                  <p className="text-xs text-muted-foreground">{exercise.duration_seconds ? `${exercise.duration_seconds}s work` : exercise.reps ? `${exercise.reps} reps` : "Coach guided"}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+        <Button size="lg" className="mt-5 h-14 w-full rounded-xl text-base font-black uppercase tracking-wider" onClick={startWithVoice}>
+          <Play className="size-5 fill-current" /> Start Workout
         </Button>
+        </div>
       </div>
     );
   }
@@ -1123,6 +1160,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
         totalExercises={totalExCount}
         speakFn={elevenLabsSpeakNow}
         onIntroComplete={() => setPhase("playing")}
+        coachName={chosenCoach.name}
       />
     );
   }
@@ -1150,7 +1188,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
         </div>
         <div className="flex flex-col gap-3 w-full max-w-sm">
           <p className="text-xs text-background/50 font-medium text-center mb-2">Choose Your Coach</p>
-          {WORKOUT_VOICES.map((v) => (
+          {COACH_VOICES.map((v) => (
             <button
               key={v.id}
               onClick={() => { setChosenVoice(v.id); previewVoice(v.id); }}
@@ -1161,10 +1199,9 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
                   : "border-background/20 text-background/80 hover:border-background/40"
               )}
             >
-              <span className="text-2xl">{v.icon}</span>
               <div className="flex-1">
                 <div className="font-semibold text-sm">{v.name}</div>
-                <div className="text-xs opacity-60">{v.desc}</div>
+                  <div className="text-xs opacity-60">{v.tagline}</div>
               </div>
             </button>
           ))}
@@ -1188,7 +1225,9 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
   const isRest = currentStep.type === "rest";
   const currentSection = sections[currentStep.sectionIdx];
   const isGrouped = currentSection && ["superset", "circuit"].includes(currentSection.section_type);
-  const isCircuitMode = currentStep.isCircuit;
+  // The handoff uses one cinematic player for every exercise type. Keep the
+  // existing step/session engine, but never fall back to the legacy card view.
+  const isCircuitMode = currentStep.type === "exercise";
   // Per-exercise rule: any exercise with a duration runs a countdown,
   // otherwise it runs a stopwatch. Block type no longer affects timer choice.
   const isTimedExercise = !!(currentExercise?.duration_seconds && currentExercise.duration_seconds > 0);
@@ -1253,7 +1292,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
           </div>
           {isTimedExercise && (
             <div className="text-center border-x border-border/30">
-              <p className="text-xs font-semibold text-muted-foreground tracking-wider uppercase">Remaining</p>
+              <p className="text-xs font-semibold text-muted-foreground tracking-wider uppercase">Est. Left</p>
               <p className="text-sm font-bold tabular-nums">{formatTime(remainingSeconds)}</p>
             </div>
           )}
@@ -1276,7 +1315,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
                 ref={videoRef}
                 key={currentExercise.id + stepIdx}
                 src={currentExercise.exercise_video}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain bg-foreground"
                 autoPlay
                 loop
                 muted
@@ -1286,13 +1325,23 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
               <img
                 src={currentExercise.exercise_image}
                 alt={currentExercise.exercise_name}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain bg-foreground"
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
                 <span className="text-8xl font-black text-foreground/10">
                   {currentExercise?.exercise_name?.charAt(0) || "?"}
                 </span>
+              </div>
+            )}
+
+            {coachSpeaking && (
+              <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-background/90 px-6 text-center backdrop-blur-sm animate-fade-in">
+                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.25em] text-cue">
+                  <span className="size-2 rounded-full bg-cue animate-pulse" /> Coach Speaking
+                </div>
+                <CoachWaveform />
+                <p className="max-w-xs text-xs text-muted-foreground">Listen to your coach. The timer begins after the cue.</p>
               </div>
             )}
 
@@ -1305,7 +1354,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
                     <circle
                       cx="40" cy="40" r="34"
                       fill="none"
-                      stroke="hsl(var(--primary))"
+                      stroke="hsl(var(--cue))"
                       strokeWidth="5"
                       strokeLinecap="round"
                       strokeDasharray={`${2 * Math.PI * 34}`}
@@ -1314,7 +1363,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
                     />
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-xl font-black text-white tabular-nums leading-none">{stepTimer}</span>
+                    <span className="text-xl font-black text-cue tabular-nums leading-none">{stepTimer}</span>
                     <span className="text-[9px] text-white/60 font-medium">sec</span>
                   </div>
                 </div>
@@ -1324,11 +1373,11 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
             {/* Stopwatch bubble — for rep-based exercises (counts UP until user advances) */}
             {!isTimedExercise && !isRest && stepTimer >= 0 && (
               <div className="absolute top-3 right-3">
-                <div className="relative w-20 h-20 rounded-full bg-black/55 border border-white/15 flex flex-col items-center justify-center">
-                  <span className="text-xl font-black text-white tabular-nums leading-none">
+                <div className="relative w-20 h-20 rounded-full bg-background/70 border border-border flex flex-col items-center justify-center">
+                  <span className="text-xl font-black text-foreground tabular-nums leading-none">
                     {Math.floor(stepTimer / 60)}:{String(stepTimer % 60).padStart(2, "0")}
                   </span>
-                  <span className="text-[9px] text-white/60 font-medium mt-0.5">elapsed</span>
+                  <span className="text-[9px] text-muted-foreground font-medium mt-0.5">elapsed</span>
                 </div>
               </div>
             )}
@@ -1372,7 +1421,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
           {nextExerciseName && (
             <div className="flex items-center gap-3 px-4 py-3 border-t border-border/40 bg-muted/20">
               {nextExerciseImage ? (
-                <img src={nextExerciseImage} alt={nextExerciseName} className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
+                <img src={nextExerciseImage} alt={nextExerciseName} className="w-12 h-12 rounded-lg object-contain bg-foreground flex-shrink-0" />
               ) : (
                 <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
                   <span className="text-lg font-bold text-muted-foreground/40">{nextExerciseName.charAt(0)}</span>
@@ -1482,7 +1531,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
               </Button>
               <Button
                 size="lg"
-                className="flex-1 h-12 font-bold text-base rounded-xl"
+                className="flex-1 h-12 rounded-xl bg-cue text-base font-black text-black hover:bg-cue/90"
                 onClick={currentExercise?.duration_seconds ? advanceOrSwitchSide : markStepDone}
               >
                 {currentExercise?.duration_seconds
@@ -1494,6 +1543,20 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
               </Button>
             </div>
             <div className="flex justify-center items-center gap-3 mt-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground text-xs"
+                onClick={() => {
+                  const muted = !audioMuted;
+                  setAudioMuted(muted);
+                  if (persistentAudio) persistentAudio.volume = muted ? 0 : 1;
+                  if (activeAudio) activeAudio.volume = muted ? 0 : 1;
+                }}
+              >
+                {audioMuted ? <VolumeX className="mr-1 h-3 w-3" /> : <Volume2 className="mr-1 h-3 w-3" />}
+                {audioMuted ? "Unmute" : "Sound"}
+              </Button>
               <Button variant="ghost" size="sm" className="text-muted-foreground text-xs" onClick={skipBlock}>
                 <SkipForward className="h-3 w-3 mr-1" /> Skip Block
               </Button>
@@ -1656,14 +1719,14 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
                         ref={videoRef}
                         key={currentExercise.id + stepIdx}
                         src={currentExercise.exercise_video}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-contain bg-foreground"
                         autoPlay
                         loop
                         muted
                         playsInline
                       />
                     ) : currentExercise.exercise_image ? (
-                      <img src={currentExercise.exercise_image} alt={currentExercise.exercise_name} className="w-full h-full object-cover" />
+                      <img src={currentExercise.exercise_image} alt={currentExercise.exercise_name} className="w-full h-full object-contain bg-foreground" />
                     ) : (
                       <span className="text-2xl font-black text-muted-foreground/30">
                         {currentExercise.exercise_name?.charAt(0) || "?"}
@@ -1811,7 +1874,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
             {nextExerciseName && (
               <div className="mx-4 mt-2 mb-3 px-3 py-2.5 bg-muted/40 rounded-xl flex items-center gap-3 border border-border/50">
                 {nextExerciseImage ? (
-                  <img src={nextExerciseImage} alt={nextExerciseName} className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
+                  <img src={nextExerciseImage} alt={nextExerciseName} className="w-10 h-10 rounded-lg object-contain bg-foreground flex-shrink-0" />
                 ) : (
                   <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
                     <span className="text-base font-bold text-muted-foreground/40">{nextExerciseName.charAt(0)}</span>

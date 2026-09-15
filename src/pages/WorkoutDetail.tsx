@@ -5,9 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { ClientLayout } from "@/components/ClientLayout";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Play, Clock, Dumbbell, Bookmark, CalendarPlus, Pencil, Trash2, Volume2, MessageSquare, Timer } from "lucide-react";
 import { useSavedWorkouts } from "@/hooks/useSavedWorkouts";
 import { toast } from "sonner";
@@ -571,7 +569,7 @@ export default function WorkoutDetail() {
 
   return (
     <Layout>
-      <div className="max-w-2xl mx-auto p-4 sm:p-6 space-y-5">
+        <div className="mx-auto max-w-[680px] space-y-5 px-4 py-5 sm:px-6">
         <button
           onClick={() => navigate(-1)}
           className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-muted-foreground"
@@ -580,7 +578,7 @@ export default function WorkoutDetail() {
         </button>
 
         {/* Hero header */}
-        <header className="bg-card border border-border rounded-2xl overflow-hidden">
+          <header className="overflow-hidden rounded-2xl border border-border bg-card">
           {workout.image_url && (
             <div className="relative w-full aspect-video bg-background overflow-hidden">
               <img src={workout.image_url} alt={workout.name} className="absolute inset-0 h-full w-full object-contain bg-background" />
@@ -636,12 +634,12 @@ export default function WorkoutDetail() {
         </header>
 
         {/* Summary card */}
-        <section className="bg-card border border-border rounded-2xl p-5 space-y-3">
-          <div className="flex items-center gap-3 text-sm">
+          <section className="grid grid-cols-2 divide-x divide-border rounded-2xl border border-border bg-card p-5">
+            <div className="flex items-center gap-3 text-sm pr-5">
             <Clock className="h-5 w-5 text-muted-foreground" />
             <span className="font-semibold">est. {displayedMinutes}m</span>
           </div>
-          <div className="flex items-center gap-3 text-sm">
+            <div className="flex items-center gap-3 pl-5 text-sm">
             <Dumbbell className="h-5 w-5 text-muted-foreground" />
             <span className="font-semibold">{totalExercises} Exercise{totalExercises === 1 ? "" : "s"}</span>
           </div>
@@ -672,21 +670,21 @@ export default function WorkoutDetail() {
 
         {/* Blocks */}
         {transformedSections.map((section: any, sIdx: number) => (
-          <section key={section.id} className="bg-card border border-border rounded-2xl p-5">
-            <div className="flex items-center justify-between mb-4 gap-3">
+          <section key={section.id} className="rounded-2xl border border-border bg-card p-5">
+            <div className="mb-4 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
               <h2 className="text-2xl font-bold italic uppercase tracking-tighter min-w-0 break-words">{section.name}</h2>
               <div className="flex items-center gap-2 shrink-0">
                 {section.section_type && (
                   <Badge variant="secondary" className="rounded-full px-3 py-1 text-xs capitalize">{section.section_type}</Badge>
                 )}
-                {section.rounds > 0 && (
+                {section.rounds > 1 && (
                   <Badge variant="outline" className="rounded-full px-3 py-1 text-xs">{section.rounds} Rounds</Badge>
                 )}
               </div>
             </div>
 
             {section.intro_text && section.intro_text.trim() && (
-              <div className="mb-4 rounded-2xl border border-cue/50 bg-cue/5 p-4">
+              <div className="mb-4 rounded-xl border border-cue/40 bg-cue/5 p-3">
                 <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-cue mb-1.5">
                   <Volume2 className="h-3.5 w-3.5" /> Coach reads aloud
                 </div>
@@ -700,10 +698,10 @@ export default function WorkoutDetail() {
                   (c: any) => !!c && String(c).trim().length > 0
                 );
                 return (
-                  <div key={exercise.id} className="py-4 first:pt-0 last:pb-0 space-y-2">
+                  <div key={exercise.id} className="space-y-2 py-3 first:pt-0 last:pb-0">
                     <div className="flex items-center gap-4">
                       {exercise.exercise_image ? (
-                        <div className="h-[72px] w-[72px] rounded-2xl bg-white shrink-0 overflow-hidden grid place-items-center">
+                        <div className="grid size-16 shrink-0 place-items-center overflow-hidden rounded-xl bg-foreground">
                           <img
                             src={exercise.exercise_image}
                             alt={exercise.exercise_name}
@@ -712,13 +710,13 @@ export default function WorkoutDetail() {
                           />
                         </div>
                       ) : (
-                        <div className="h-[72px] w-[72px] rounded-2xl bg-secondary grid place-items-center shrink-0">
+                        <div className="grid size-16 shrink-0 place-items-center rounded-xl bg-secondary">
                           <Dumbbell className="h-6 w-6 text-muted-foreground" />
                         </div>
                       )}
                       <div className="min-w-0 flex-1">
-                        <div className="text-lg font-bold truncate">{exercise.exercise_name ?? "—"}</div>
-                        <div className="text-sm text-muted-foreground mt-0.5">
+                        <div className="truncate text-base font-bold">{exercise.exercise_name ?? "—"}</div>
+                        <div className="mt-0.5 text-xs text-muted-foreground">
                           {[
                             exercise.sets && exercise.sets > 1 ? `${exercise.sets} sets` : null,
                             exercise.reps ? `${exercise.reps} reps` : null,
@@ -737,10 +735,10 @@ export default function WorkoutDetail() {
                       </div>
                     </div>
                     {cues.length > 0 && (
-                      <div className="ml-[88px] space-y-1.5">
+                      <div className="ml-20 space-y-1">
                         {cues.map((c: string, i: number) => (
-                          <div key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                            <MessageSquare className="h-4 w-4 mt-0.5 shrink-0 text-cue" />
+                          <div key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
+                            <MessageSquare className="mt-0.5 size-3.5 shrink-0 text-cue" />
                             <span className="leading-snug">{c}</span>
                           </div>
                         ))}
@@ -766,15 +764,6 @@ export default function WorkoutDetail() {
           </div>
         )}
 
-        {/* Video Preview */}
-        {workout.video_url && (
-          <section className="bg-card border border-border rounded-2xl p-5">
-            <h2 className="text-xl font-bold italic uppercase tracking-tighter mb-3">Workout Demo</h2>
-            <div className="aspect-video rounded-xl overflow-hidden bg-background">
-              <video src={workout.video_url} controls className="w-full h-full object-contain" />
-            </div>
-          </section>
-        )}
       </div>
 
       {isClient && effectiveClientId && id && (
