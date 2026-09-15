@@ -1,4 +1,5 @@
 import { useState } from "react";
+// Adult-focused quick prompts — no youth/sport-specific framing
 import { Sparkles } from "lucide-react";
 
 /* ---------------- Quick Prompts (AI Builder presets) ---------------- */
@@ -14,59 +15,63 @@ export const QUICK_PROMPT_GROUPS: { group: string; items: QuickPreset[] }[] = [
   {
     group: "Strength",
     items: [
-      { label: "Full-Body 45m", prompt: "45-min intermediate full-body strength session, lower-body biased, full gym", duration: 45, difficulty: "intermediate" },
-      { label: "Lower Power 60m", prompt: "60-min advanced lower-body strength day: squat pattern, hinge pattern, single-leg, core", duration: 60, difficulty: "advanced" },
-      { label: "Upper Push/Pull", prompt: "50-min upper-body push/pull session for a guard, intermediate, gym equipment", duration: 50, difficulty: "intermediate" },
-      { label: "Posterior Chain", prompt: "40-min posterior chain focus — RDLs, hip thrusts, hamstring accessories, intermediate", duration: 40, difficulty: "intermediate" },
-      { label: "Beginner Intro", prompt: "45-min beginner full-body intro to strength, dumbbells only", duration: 45, difficulty: "beginner" },
+      { label: "Full-Body 45m", prompt: "45-min intermediate full-body strength session for an adult, lower-body biased, full gym", duration: 45, difficulty: "intermediate" },
+      { label: "Lower Power 60m", prompt: "60-min advanced lower-body strength day for an adult: squat pattern, hinge pattern, single-leg, core", duration: 60, difficulty: "advanced" },
+      { label: "Upper Push/Pull", prompt: "50-min upper-body push/pull session for an adult, intermediate, gym equipment", duration: 50, difficulty: "intermediate" },
+      { label: "Posterior Chain", prompt: "40-min posterior chain focus for an adult — RDLs, hip thrusts, hamstring accessories, intermediate", duration: 40, difficulty: "intermediate" },
+      { label: "Beginner Intro", prompt: "45-min beginner full-body intro to strength for an adult, dumbbells only", duration: 45, difficulty: "beginner" },
+    ],
+  },
+  {
+    group: "Fat Loss",
+    items: [
+      { label: "Metabolic Circuit", prompt: "30-min fat-loss metabolic circuit for an adult: full-body compound moves, short rest, conditioning finish, intermediate", duration: 30, difficulty: "intermediate" },
+      { label: "HIIT Burn 25m", prompt: "25-min HIIT fat-loss workout for an adult: alternating high-intensity intervals with bodyweight and dumbbells, intermediate", duration: 25, difficulty: "intermediate" },
+      { label: "Strength + Cardio", prompt: "45-min fat-loss session for an adult: strength supersets paired with cardio bursts, intermediate", duration: 45, difficulty: "intermediate" },
+      { label: "Beginner Fat Loss", prompt: "30-min beginner fat-loss circuit for an adult: low-impact moves, longer rest, bodyweight only", duration: 30, difficulty: "beginner" },
+    ],
+  },
+  {
+    group: "Muscle Building",
+    items: [
+      { label: "Hypertrophy Upper", prompt: "50-min upper-body hypertrophy session for an adult: chest, back, shoulders, arms, 8-12 rep ranges, intermediate", duration: 50, difficulty: "intermediate" },
+      { label: "Hypertrophy Lower", prompt: "50-min lower-body hypertrophy session for an adult: quads, hamstrings, glutes, calves, 8-12 rep ranges, intermediate", duration: 50, difficulty: "intermediate" },
+      { label: "Push Day", prompt: "45-min push hypertrophy day for an adult: chest, shoulders, triceps, progressive sets, intermediate", duration: 45, difficulty: "intermediate" },
+      { label: "Pull Day", prompt: "45-min pull hypertrophy day for an adult: back, rear delts, biceps, progressive sets, intermediate", duration: 45, difficulty: "intermediate" },
+      { label: "Arms Finisher", prompt: "25-min arm-building finisher for an adult: biceps and triceps supersets, high volume, intermediate", duration: 25, difficulty: "intermediate" },
     ],
   },
   {
     group: "Power & Plyos",
     items: [
-      { label: "Lower Power", prompt: "30-min lower-body power day with plyos, bounds, and box jumps, intermediate", duration: 30, difficulty: "intermediate" },
-      { label: "Vertical Jump", prompt: "35-min jump training session focused on vertical and lateral power, advanced", duration: 35, difficulty: "advanced" },
-      { label: "Med Ball Explosive", prompt: "25-min explosive med ball circuit + sprints, intermediate", duration: 25, difficulty: "intermediate" },
+      { label: "Lower Power", prompt: "30-min lower-body power day for an adult with plyos, bounds, and box jumps, intermediate", duration: 30, difficulty: "intermediate" },
+      { label: "Explosive Full Body", prompt: "35-min explosive full-body session for an adult: jumps, throws, and Olympic-style variations, advanced", duration: 35, difficulty: "advanced" },
+      { label: "Med Ball Explosive", prompt: "25-min explosive med ball circuit for an adult + short sprints, intermediate", duration: 25, difficulty: "intermediate" },
     ],
   },
   {
-    group: "ACL / Prehab",
+    group: "Prehab & Joints",
     items: [
-      { label: "ACL Prevention", prompt: "30-min ACL prevention: landing mechanics, lateral stability, single-leg control, glute med activation", duration: 30, difficulty: "intermediate" },
-      { label: "Knee & Ankle", prompt: "25-min knee and ankle prehab circuit, bodyweight + bands, beginner", duration: 25, difficulty: "beginner" },
-      { label: "Single-Leg Stability", prompt: "35-min single-leg stability and balance day, intermediate, minimal equipment", duration: 35, difficulty: "intermediate" },
-    ],
-  },
-  {
-    group: "BB Conditioning",
-    items: [
-      { label: "Court Conditioning", prompt: "30-min basketball conditioning: lateral shuffles, defensive slides, suicides, short intervals", duration: 30, difficulty: "intermediate" },
-      { label: "No-Equip Circuit", prompt: "25-min court-style conditioning circuit, no equipment, intermediate", duration: 25, difficulty: "intermediate" },
-      { label: "Game Prep", prompt: "40-min game-prep workout: dynamic warmup, activation, light power, conditioning finisher", duration: 40, difficulty: "intermediate" },
-    ],
-  },
-  {
-    group: "In-Season",
-    items: [
-      { label: "Maintenance Lift", prompt: "30-min in-season maintenance lift, dumbbells only, low fatigue, intermediate", duration: 30, difficulty: "intermediate" },
-      { label: "Pre-Practice", prompt: "25-min pre-practice activation: glutes, core, hips, ankles", duration: 25, difficulty: "beginner" },
-      { label: "Post-Game Recovery", prompt: "20-min post-game recovery mobility and light core", duration: 20, difficulty: "beginner" },
+      { label: "Knee & Ankle", prompt: "25-min knee and ankle prehab circuit for an adult, bodyweight + bands, beginner", duration: 25, difficulty: "beginner" },
+      { label: "Shoulder Health", prompt: "25-min shoulder health and rotator cuff session for an adult: band work, scap control, beginner", duration: 25, difficulty: "beginner" },
+      { label: "Lower-Back Friendly", prompt: "30-min lower-back friendly core and stability session for an adult, beginner", duration: 30, difficulty: "beginner" },
+      { label: "Single-Leg Stability", prompt: "35-min single-leg stability and balance day for an adult, intermediate, minimal equipment", duration: 35, difficulty: "intermediate" },
     ],
   },
   {
     group: "At-Home",
     items: [
-      { label: "Bodyweight Only", prompt: "30-min bodyweight strength session, no equipment, beginner", duration: 30, difficulty: "beginner" },
-      { label: "One Pair DBs", prompt: "40-min dumbbell-only full-body workout, intermediate, one pair of DBs", duration: 40, difficulty: "intermediate" },
-      { label: "Bands Only", prompt: "25-min resistance band lower-body session, beginner", duration: 25, difficulty: "beginner" },
+      { label: "Bodyweight Only", prompt: "30-min bodyweight strength session for an adult, no equipment, beginner", duration: 30, difficulty: "beginner" },
+      { label: "One Pair DBs", prompt: "40-min dumbbell-only full-body workout for an adult, intermediate, one pair of DBs", duration: 40, difficulty: "intermediate" },
+      { label: "Bands Only", prompt: "25-min resistance band lower-body session for an adult, beginner", duration: 25, difficulty: "beginner" },
     ],
   },
   {
     group: "Mobility",
     items: [
-      { label: "Full Mobility Flow", prompt: "20-min full-body mobility flow for basketball players", duration: 20, difficulty: "beginner" },
-      { label: "Hip & Ankle", prompt: "15-min hip and ankle mobility routine", duration: 15, difficulty: "beginner" },
-      { label: "Foam Roll + Stretch", prompt: "25-min foam roll and stretch cooldown day", duration: 25, difficulty: "beginner" },
+      { label: "Full Mobility Flow", prompt: "20-min full-body mobility flow for adults", duration: 20, difficulty: "beginner" },
+      { label: "Desk Worker Reset", prompt: "15-min mobility reset for desk workers: hips, thoracic spine, neck, shoulders, beginner", duration: 15, difficulty: "beginner" },
+      { label: "Foam Roll + Stretch", prompt: "25-min foam roll and stretch recovery session for an adult", duration: 25, difficulty: "beginner" },
     ],
   },
   {
@@ -88,22 +93,6 @@ export const QUICK_PROMPT_GROUPS: { group: string; items: QuickPreset[] }[] = [
     ],
   },
   {
-    group: "Softball",
-    items: [
-      { label: "Rotational Power", prompt: "35-min rotational power session for softball: med ball rotational throws/slams, cable chops, landmine rotations, hip turn drills. Intermediate.", duration: 35, difficulty: "intermediate" },
-      { label: "Hitting Power", prompt: "40-min hitting power workout for softball: bat-speed focused — med ball scoop tosses, rotational shot-put throws, cable rotations, hip/core anti-rotation, light lower-body power. Intermediate.", duration: 40, difficulty: "intermediate" },
-      { label: "Throwing Arm Care", prompt: "25-min throwing arm care + shoulder prehab for softball: scap activation, band external rotations, Y/T/Ws, rotator cuff, light pulls. Beginner.", duration: 25, difficulty: "beginner" },
-      { label: "Sprint & First-Step", prompt: "30-min softball sprint and first-step speed: 10/20-yd accelerations, lateral starts, base-running starts, short plyos. Intermediate.", duration: 30, difficulty: "intermediate" },
-      { label: "Pitcher Lower Body", prompt: "45-min lower-body strength + power for softball pitchers: single-leg strength, hip hinge, glute work, hip mobility, light plyos. Intermediate.", duration: 45, difficulty: "intermediate" },
-      { label: "Catcher Strength", prompt: "40-min catcher-focused strength: deep squat mobility, posterior chain, knee/ankle prehab, single-leg stability, anti-rotation core. Intermediate.", duration: 40, difficulty: "intermediate" },
-      { label: "In-Season Softball", prompt: "30-min in-season softball maintenance lift: low-fatigue full-body, dumbbells only, preserve power without soreness. Intermediate.", duration: 30, difficulty: "intermediate" },
-      { label: "Off-Season Full Body", prompt: "55-min off-season softball full-body strength: squat, hinge, push, pull, rotational core, finisher. Intermediate.", duration: 55, difficulty: "intermediate" },
-    ],
-  },
-  {
-
-
-
     group: "Circuit & Tabata",
     items: [
       { label: "Classic Tabata 4m", prompt: "Strict Tabata protocol: ONE circuit block only with 8 rounds of 20 seconds work / 10 seconds rest (4 minutes total). Bodyweight, no equipment. Pick ONE high-intensity exercise (e.g. squat jumps). Coaching-timer style only — no warm-up, no cooldown, no strength sets. Intermediate.", duration: 4, difficulty: "intermediate" },
@@ -113,7 +102,7 @@ export const QUICK_PROMPT_GROUPS: { group: string; items: QuickPreset[] }[] = [
       { label: "AMRAP Circuit 20m", prompt: "20-min AMRAP circuit: ONE circuit block, 5 bodyweight exercises (e.g. air squats x15, push-ups x10, lunges x10, sit-ups x15, burpees x5). Continuous rounds with minimal rest, 20 min total cap. Coaching-timer style, no strength sets, no warm-up included. Intermediate.", duration: 20, difficulty: "intermediate" },
       { label: "EMOM Circuit 12m", prompt: "12-min EMOM circuit: ONE circuit block, 3 exercises rotating every minute on the minute (squats, push-ups, sit-ups). Work to the rep target, rest the remainder of the minute. Strict timer-based, no warm-up or cooldown blocks. Intermediate.", duration: 12, difficulty: "intermediate" },
       { label: "40/20 HIIT 24m", prompt: "HIIT circuit: 3 circuit blocks of 6 rounds × 40s work / 20s rest. 6 bodyweight exercises rotating (jumping jacks, high knees, squat jumps, push-ups, mountain climbers, burpees). Timer-driven only. Advanced.", duration: 24, difficulty: "advanced" },
-      { label: "Court Conditioning Circuit", prompt: "25-min basketball conditioning circuit: ONE circuit block, 5 rounds, 5 court-based exercises (defensive slides 30s, suicides 30s, lateral bounds 30s, jump rope 30s, line touches 30s) with 60s rest between rounds. Pure coaching-timer format, no strength accessory work. Intermediate.", duration: 25, difficulty: "intermediate" },
+      { label: "Full-Body Conditioning Circuit", prompt: "25-min full-body conditioning circuit for an adult: ONE circuit block, 5 rounds, 5 exercises (jump rope 30s, mountain climbers 30s, squat jumps 30s, high knees 30s, burpees 30s) with 60s rest between rounds. Pure coaching-timer format, no strength accessory work. Intermediate.", duration: 25, difficulty: "intermediate" },
       { label: "Beginner Bodyweight Circuit", prompt: "20-min beginner bodyweight circuit: ONE circuit block, 4 rounds of 30s work / 30s rest, 5 exercises (squats, knee push-ups, glute bridges, plank, marching in place). Timer-based only, no warm-up or cooldown blocks. Beginner.", duration: 20, difficulty: "beginner" },
     ],
   },
