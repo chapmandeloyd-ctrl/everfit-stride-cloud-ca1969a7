@@ -119,6 +119,7 @@ interface WorkoutPlayerProps {
   dbStartedAt?: string | null;
   coachVoiceId?: string | null;
   outroText?: string | null;
+  displayMinutes?: number | null;
 }
 
 interface WorkoutStep {
