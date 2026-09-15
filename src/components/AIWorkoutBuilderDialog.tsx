@@ -113,6 +113,9 @@ export function AIWorkoutBuilderDialog({
   const [prompt, setPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [activeTab, setActiveTab] = useState("full");
+  const [duration, setDuration] = useState(45);
+  const [difficulty, setDifficulty] = useState<"beginner" | "intermediate" | "advanced">("intermediate");
+
 
   // Full workout result
   const [workoutResult, setWorkoutResult] = useState<AIWorkoutResult | null>(null);
