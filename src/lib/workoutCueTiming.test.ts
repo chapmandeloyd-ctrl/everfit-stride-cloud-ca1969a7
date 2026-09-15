@@ -177,10 +177,10 @@ describe("cue-timing alignment", () => {
     ]);
   });
 
-  it("gives rep-based exercises a start and mid cue but no countdown", () => {
+  it("gives rep-based exercises a mid cue but never a countdown", () => {
     const kinds = buildCueSchedule(repBased).map((c) => c.kind);
     expect(kinds).not.toContain("countdown");
-    expect(kinds).toContain("start");
+    expect(kinds).toContain("mid");
   });
 
   it("matches the spoken overlay to the active exercise second", () => {
