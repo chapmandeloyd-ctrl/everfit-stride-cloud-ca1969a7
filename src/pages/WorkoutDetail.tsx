@@ -195,6 +195,9 @@ export default function WorkoutDetail() {
     return acc;
   }, 0);
   const calculatedMinutes = Math.ceil(calculatedTotalSeconds / 60);
+  // Prefer a duration stated in the workout name (matches the library card)
+  const namedMinutes = workout?.name?.match(/\b(\d+)\s*[- ]?\s*min(?:ute)?s?\b/i);
+  const displayedMinutes = namedMinutes ? Number(namedMinutes[1]) : calculatedMinutes;
 
   const saveSession = async (data: CompletionData, isPartial: boolean) => {
     const completedAt = new Date().toISOString();
