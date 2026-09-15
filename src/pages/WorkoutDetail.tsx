@@ -568,114 +568,202 @@ export default function WorkoutDetail() {
 
   return (
     <Layout>
-      <div className="max-w-4xl mx-auto p-6">
-        <WorkoutDetailHeader
-          workout={workout}
-          id={id!}
-          isClient={isClient}
-          inProgressSession={inProgressSession}
-          onResume={() => { unlockAudioForMobile(); handleResume(); }}
-          onStartFresh={async () => { unlockAudioForMobile(); await createActiveSession(); setIsPlaying(true); }}
-          onBack={() => navigate(-1)}
-          onOpenActions={isClient ? () => setActionsOpen(true) : undefined}
-        />
+      <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-5">
+        <button
+          onClick={() => navigate(-1)}
+          className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-muted-foreground"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" /> Back
+        </button>
 
-
-
-        {/* Workout Info */}
-        <Card className="mb-6">
-          <CardContent className="p-6">
-            {workout.description && (
-              <p className="text-muted-foreground mb-4">{workout.description}</p>
-            )}
-            
-            <div className="grid grid-cols-3 gap-4 text-center">
-              <div>
-              <Clock className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                <div className="text-2xl font-bold">{calculatedMinutes}</div>
-                <div className="text-sm text-muted-foreground">Minutes</div>
+        {/* Hero header */}
+        <header className="bg-card border border-border rounded-2xl overflow-hidden">
+          {workout.image_url && (
+            <div className="relative w-full aspect-square sm:aspect-[16/9] bg-background overflow-hidden grid place-items-center">
+              <img src={workout.image_url} alt={workout.name} className="w-full h-full object-contain bg-background" />
+            </div>
+          )}
+          <div className="p-5 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-3xl font-bold italic uppercase tracking-tighter break-words">{workout.name}</h1>
+              <div className="flex flex-wrap items-center gap-2 mt-3">
+                {workout.difficulty && (
+                  <Badge variant="secondary" className="rounded-full px-3 py-1 text-xs capitalize">{workout.difficulty}</Badge>
+                )}
+                {workout.category && (
+                  <Badge variant="secondary" className="rounded-full px-3 py-1 text-xs capitalize">{workout.category}</Badge>
+                )}
               </div>
-              <div>
-                <Dumbbell className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                <div className="text-2xl font-bold">{transformedSections.length}</div>
-                <div className="text-sm text-muted-foreground">Sections</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold mx-auto mb-2">💪</div>
-                <div className="text-2xl font-bold">{totalExercises}</div>
-                <div className="text-sm text-muted-foreground">Exercises</div>
+              {workout.description && <p className="text-sm text-muted-foreground mt-3">{workout.description}</p>}
+            </div>
+            <div className="w-full sm:w-auto shrink-0 flex flex-col gap-2">
+              {inProgressSession && isClient ? (
+                <>
+                  <button
+                    onClick={() => { unlockAudioForMobile(); handleResume(); }}
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground font-bold uppercase tracking-wider text-sm px-6 py-3 rounded-full hover:scale-[1.02] active:scale-[0.98] transition-transform"
+                  >
+                    <Play className="h-4 w-4 fill-current" /> Resume ({inProgressSession.completion_percentage || 0}%)
+                  </button>
+                  <button
+                    onClick={async () => { unlockAudioForMobile(); await createActiveSession(); setIsPlaying(true); }}
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-secondary border border-border font-bold uppercase tracking-wider text-xs px-6 py-2.5 rounded-full"
+                  >
+                    Start Fresh
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={async () => { unlockAudioForMobile(); await createActiveSession(); setIsPlaying(true); }}
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground font-bold uppercase tracking-wider text-sm px-6 py-3 rounded-full hover:scale-[1.02] active:scale-[0.98] transition-transform"
+                >
+                  <Play className="h-4 w-4 fill-current" /> Start Workout
+                </button>
+              )}
+              {isClient && (
+                <button
+                  onClick={() => setScheduleOpen(true)}
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-secondary border border-border font-bold uppercase tracking-wider text-xs px-6 py-2.5 rounded-full"
+                >
+                  <CalendarPlus className="h-4 w-4" /> Schedule
+                </button>
+              )}
+            </div>
+          </div>
+        </header>
+
+        {/* Summary card */}
+        <section className="bg-card border border-border rounded-2xl p-5 space-y-3">
+          <div className="flex items-center gap-3 text-sm">
+            <Clock className="h-5 w-5 text-muted-foreground" />
+            <span className="font-semibold">est. {calculatedMinutes}m</span>
+          </div>
+          <div className="flex items-center gap-3 text-sm">
+            <Dumbbell className="h-5 w-5 text-muted-foreground" />
+            <span className="font-semibold">{totalExercises} Exercise{totalExercises === 1 ? "" : "s"}</span>
+          </div>
+        </section>
+
+        {isClient && (
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={handleEditWorkout}
+              className="flex items-center gap-1.5 bg-secondary border border-border text-xs font-bold uppercase tracking-wider px-3 py-2 rounded-full"
+            >
+              <Pencil className="h-3.5 w-3.5" /> Edit
+            </button>
+            <button
+              onClick={() => setScheduleOpen(true)}
+              className="flex items-center gap-1.5 bg-secondary border border-border text-xs font-bold uppercase tracking-wider px-3 py-2 rounded-full"
+            >
+              <CalendarPlus className="h-3.5 w-3.5" /> Assign
+            </button>
+            <button
+              onClick={() => setConfirmDeleteOpen(true)}
+              className="flex items-center gap-1.5 bg-secondary border border-border text-xs font-bold uppercase tracking-wider px-3 py-2 rounded-full text-destructive"
+            >
+              <Trash2 className="h-3.5 w-3.5" /> Delete
+            </button>
+          </div>
+        )}
+
+        {/* Blocks */}
+        {transformedSections.map((section: any, sIdx: number) => (
+          <section key={section.id} className="bg-card border border-border rounded-2xl p-5">
+            <div className="flex items-center justify-between mb-4 gap-3">
+              <h2 className="text-2xl font-bold italic uppercase tracking-tighter min-w-0 break-words">{section.name}</h2>
+              <div className="flex items-center gap-2 shrink-0">
+                {section.section_type && (
+                  <Badge variant="secondary" className="rounded-full px-3 py-1 text-xs capitalize">{section.section_type}</Badge>
+                )}
+                {section.rounds > 0 && (
+                  <Badge variant="outline" className="rounded-full px-3 py-1 text-xs">{section.rounds} Rounds</Badge>
+                )}
               </div>
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Workout Preview */}
-        <div className="space-y-6">
-          {transformedSections.map((section: any) => (
-            <Card key={section.id}>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-xl">{section.name}</CardTitle>
-                  <div className="flex gap-2">
-                    {section.rounds > 1 && (
-                      <Badge variant="outline">{section.rounds} Rounds</Badge>
-                    )}
-                  </div>
+            {section.intro_text && section.intro_text.trim() && (
+              <div className="mb-4 rounded-xl border border-primary/40 bg-primary/5 p-3">
+                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-1">
+                  <Volume2 className="h-3.5 w-3.5" /> Coach reads aloud
                 </div>
-                {section.notes && (
-                  <p className="text-sm text-muted-foreground mt-2">{section.notes}</p>
-                )}
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {section.exercises.map((exercise: any, exIdx: number) => (
-                  <div key={exercise.id}>
-                    {exIdx > 0 && <Separator />}
-                    <div className="flex gap-4 pt-4">
-                      {exercise.exercise_image && (
+                <p className="text-sm text-foreground/90 leading-snug whitespace-pre-wrap">{section.intro_text}</p>
+              </div>
+            )}
+
+            <div className="divide-y divide-border">
+              {section.exercises.map((exercise: any) => {
+                const cues = [exercise.form_cue_start, exercise.form_cue_mid].filter(
+                  (c: any) => !!c && String(c).trim().length > 0
+                );
+                return (
+                  <div key={exercise.id} className="py-3 first:pt-0 last:pb-0 space-y-2">
+                    <div className="flex items-center gap-4">
+                      {exercise.exercise_image ? (
                         <img
                           src={exercise.exercise_image}
                           alt={exercise.exercise_name}
-                          className="w-20 h-20 rounded object-cover"
+                          className="h-16 w-16 rounded-xl object-contain bg-secondary shrink-0"
+                          loading="lazy"
                         />
-                      )}
-                      <div className="flex-1">
-                        <h4 className="font-semibold">{exercise.exercise_name}</h4>
-                        <div className="text-sm text-muted-foreground mt-1">
-                          {exercise.sets && `${exercise.sets} sets`}
-                          {exercise.reps && ` × ${exercise.reps} reps`}
-                          {exercise.duration_seconds && ` • ${exercise.duration_seconds >= 3600 ? `${Math.round(exercise.duration_seconds / 3600)}hr` : exercise.duration_seconds >= 60 ? `${Math.round(exercise.duration_seconds / 60)}min` : `${exercise.duration_seconds}s`}`}
-                          {exercise.rest_seconds && ` • ${exercise.rest_seconds >= 60 ? `${Math.round(exercise.rest_seconds / 60)}min rest` : `${exercise.rest_seconds}s rest`}`}
-                          {exercise.weight_lbs ? ` • ${exercise.weight_lbs} lbs` : ""}
-                          {exercise.tempo && ` • Tempo: ${exercise.tempo}`}
+                      ) : (
+                        <div className="h-16 w-16 rounded-xl bg-secondary grid place-items-center shrink-0">
+                          <Dumbbell className="h-6 w-6 text-muted-foreground" />
                         </div>
-                        {exercise.notes && (
-                          <p className="text-sm text-muted-foreground mt-1">{exercise.notes}</p>
-                        )}
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <div className="text-base font-bold truncate">{exercise.exercise_name ?? "—"}</div>
+                        <div className="text-xs text-muted-foreground mt-0.5">
+                          {exercise.sets && `${exercise.sets} sets`}
+                          {exercise.reps && ` · ${exercise.reps} reps`}
+                          {exercise.duration_seconds && ` · ${exercise.duration_seconds >= 60 ? `${Math.round(exercise.duration_seconds / 60)}min` : `${exercise.duration_seconds}s`} work`}
+                          {exercise.rest_seconds ? ` · ${exercise.rest_seconds >= 60 ? `${Math.round(exercise.rest_seconds / 60)}min` : `${exercise.rest_seconds}s`} rest` : ""}
+                          {exercise.weight_lbs ? ` · ${exercise.weight_lbs} lbs` : ""}
+                          {exercise.tempo ? ` · Tempo ${exercise.tempo}` : ""}
+                        </div>
                       </div>
                     </div>
+                    {cues.length > 0 && (
+                      <div className="ml-20 space-y-1">
+                        {cues.map((c: string, i: number) => (
+                          <div key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
+                            <MessageSquare className="h-3.5 w-3.5 mt-0.5 shrink-0 text-primary" />
+                            <span className="leading-snug">{c}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {exercise.notes && (
+                      <p className="ml-20 text-xs text-muted-foreground">{exercise.notes}</p>
+                    )}
                   </div>
-                ))}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                );
+              })}
+            </div>
+
+            {section.rest_after_seconds > 0 && sIdx < transformedSections.length - 1 && (
+              <div className="mt-4 flex items-center justify-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground border-t border-border pt-3">
+                <Timer className="h-3.5 w-3.5" />
+                {section.rest_after_seconds >= 60 ? `${Math.round(section.rest_after_seconds / 60)} min` : `${section.rest_after_seconds}s`} rest before next block
+              </div>
+            )}
+          </section>
+        ))}
+
+        {transformedSections.length === 0 && (
+          <div className="bg-card border border-border rounded-2xl p-8 text-center text-sm text-muted-foreground">
+            No exercises in this workout.
+          </div>
+        )}
 
         {/* Video Preview */}
         {workout.video_url && (
-          <Card className="mt-6">
-            <CardHeader>
-              <CardTitle>Workout Demo</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="aspect-video rounded-lg overflow-hidden">
-                <video
-                  src={workout.video_url}
-                  controls
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            </CardContent>
-          </Card>
+          <section className="bg-card border border-border rounded-2xl p-5">
+            <h2 className="text-xl font-bold italic uppercase tracking-tighter mb-3">Workout Demo</h2>
+            <div className="aspect-video rounded-xl overflow-hidden bg-background">
+              <video src={workout.video_url} controls className="w-full h-full object-contain" />
+            </div>
+          </section>
         )}
       </div>
 
