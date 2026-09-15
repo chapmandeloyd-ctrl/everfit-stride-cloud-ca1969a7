@@ -516,14 +516,23 @@ export default function WorkoutDetail() {
     );
   }
 
-  if (!workout) {
+  if (isError || !workout) {
     return (
       <DashboardLayout>
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">Workout not found</p>
-          <Button onClick={() => navigate(-1)} className="mt-4">
-            Go Back
-          </Button>
+        <div className="text-center py-12 space-y-4">
+          <p className="text-muted-foreground">
+            {isError ? "We couldn't load this workout. Check your connection and try again." : "Workout not found"}
+          </p>
+          <div className="flex items-center justify-center gap-3">
+            {isError && (
+              <Button onClick={() => refetch()} disabled={isFetching}>
+                {isFetching ? "Retrying..." : "Try Again"}
+              </Button>
+            )}
+            <Button variant="outline" onClick={() => navigate(-1)}>
+              Go Back
+            </Button>
+          </div>
         </div>
       </DashboardLayout>
     );
