@@ -1151,7 +1151,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
 
   // ─── INTRO / LINEUP REVEAL ───
   if (phase === "intro") {
-    const totalCalcMinutes = Math.ceil(totalEstimatedSeconds / 60);
+    const totalCalcMinutes = displayMinutes || Math.ceil(totalEstimatedSeconds / 60);
     const totalExCount = steps.filter(s => s.type === "exercise").length;
     return (
       <WorkoutIntro
