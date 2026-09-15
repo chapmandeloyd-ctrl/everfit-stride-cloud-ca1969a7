@@ -7,7 +7,7 @@ async function ttsAuthToken(fallback: string) {
 }
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { X, Square, Lock, Play, Pause, SkipBack, SkipForward, MoreVertical, Timer, Volume2, ChevronDown, Dumbbell } from "lucide-react";
+import { X, Square, Lock, Play, Pause, SkipBack, SkipForward, MoreVertical, Timer, Volume2, VolumeX, ChevronDown, Dumbbell } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -431,6 +431,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
   const startedAtRef = useRef(dbStartedAt ?? new Date().toISOString());
   const [setLogs, setSetLogs] = useState<Record<string, SetLog>>(resumeSetLogs || {});
   const [coachSpeaking, setCoachSpeakingState] = useState(false);
+  const [audioMuted, setAudioMuted] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
   const [endReason, setEndReason] = useState<string>("");
   const skippedEventsRef = useRef<any[]>([]);
@@ -1224,7 +1225,9 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
   const isRest = currentStep.type === "rest";
   const currentSection = sections[currentStep.sectionIdx];
   const isGrouped = currentSection && ["superset", "circuit"].includes(currentSection.section_type);
-  const isCircuitMode = currentStep.isCircuit;
+  // The handoff uses one cinematic player for every exercise type. Keep the
+  // existing step/session engine, but never fall back to the legacy card view.
+  const isCircuitMode = currentStep.type === "exercise";
   // Per-exercise rule: any exercise with a duration runs a countdown,
   // otherwise it runs a stopwatch. Block type no longer affects timer choice.
   const isTimedExercise = !!(currentExercise?.duration_seconds && currentExercise.duration_seconds > 0);
@@ -1289,7 +1292,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
           </div>
           {isTimedExercise && (
             <div className="text-center border-x border-border/30">
-              <p className="text-xs font-semibold text-muted-foreground tracking-wider uppercase">Remaining</p>
+              <p className="text-xs font-semibold text-muted-foreground tracking-wider uppercase">Est. Left</p>
               <p className="text-sm font-bold tabular-nums">{formatTime(remainingSeconds)}</p>
             </div>
           )}
@@ -1351,7 +1354,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
                     <circle
                       cx="40" cy="40" r="34"
                       fill="none"
-                      stroke="hsl(var(--primary))"
+                      stroke="hsl(var(--cue))"
                       strokeWidth="5"
                       strokeLinecap="round"
                       strokeDasharray={`${2 * Math.PI * 34}`}
@@ -1360,8 +1363,8 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
                     />
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-xl font-black text-primary-foreground tabular-nums leading-none">{stepTimer}</span>
-                    <span className="text-[9px] text-primary-foreground/60 font-medium">sec</span>
+                    <span className="text-xl font-black text-cue tabular-nums leading-none">{stepTimer}</span>
+                    <span className="text-[9px] text-white/60 font-medium">sec</span>
                   </div>
                 </div>
               </div>
@@ -1528,7 +1531,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
               </Button>
               <Button
                 size="lg"
-                className="flex-1 h-12 font-bold text-base rounded-xl"
+                className="flex-1 h-12 rounded-xl bg-cue text-base font-black text-black hover:bg-cue/90"
                 onClick={currentExercise?.duration_seconds ? advanceOrSwitchSide : markStepDone}
               >
                 {currentExercise?.duration_seconds
@@ -1540,6 +1543,20 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
               </Button>
             </div>
             <div className="flex justify-center items-center gap-3 mt-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground text-xs"
+                onClick={() => {
+                  const muted = !audioMuted;
+                  setAudioMuted(muted);
+                  if (persistentAudio) persistentAudio.volume = muted ? 0 : 1;
+                  if (activeAudio) activeAudio.volume = muted ? 0 : 1;
+                }}
+              >
+                {audioMuted ? <VolumeX className="mr-1 h-3 w-3" /> : <Volume2 className="mr-1 h-3 w-3" />}
+                {audioMuted ? "Unmute" : "Sound"}
+              </Button>
               <Button variant="ghost" size="sm" className="text-muted-foreground text-xs" onClick={skipBlock}>
                 <SkipForward className="h-3 w-3 mr-1" /> Skip Block
               </Button>
