@@ -158,7 +158,11 @@ export function AIWorkoutBuilderDialog({
       const { data, error } = await supabase.functions.invoke("ai-workout-builder", {
         body: {
           mode: activeTab === "full" ? "full_workout" : "suggest_exercise",
-          prompt: prompt.trim(),
+          prompt:
+            activeTab === "full"
+              ? `${prompt.trim()}\n\nTarget duration: ${duration} minutes. Difficulty: ${difficulty}.`
+              : prompt.trim(),
+
           exercise_names: exerciseNames,
         },
       });
