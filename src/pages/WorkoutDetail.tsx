@@ -623,7 +623,7 @@ export default function WorkoutDetail() {
                   <Play className="h-4 w-4 fill-current" /> Start Workout
                 </button>
               )}
-              {isClient && (
+              {isClient && effectiveClientId && (
                 <button
                   onClick={() => setScheduleOpen(true)}
                   className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-secondary border border-border font-bold uppercase tracking-wider text-xs px-6 py-2.5 rounded-full"
