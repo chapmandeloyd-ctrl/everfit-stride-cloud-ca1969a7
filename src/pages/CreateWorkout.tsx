@@ -212,7 +212,7 @@ function ExerciseRow({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {(item.group_id ? CIRCUIT_TIME_OPTIONS : TIME_OPTIONS).map((o) => (
+                {(hideSets ? CIRCUIT_TIME_OPTIONS : TIME_OPTIONS).map((o) => (
                   <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
                 ))}
               </SelectContent>

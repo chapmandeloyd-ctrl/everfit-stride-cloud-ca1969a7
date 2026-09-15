@@ -192,7 +192,7 @@ function ExerciseRow({
             <Select value={String(item.time_seconds || 30)} onValueChange={(v) => onUpdate(item.id, { time_seconds: parseInt(v) })}>
               <SelectTrigger className="h-9 w-24 text-sm"><SelectValue /></SelectTrigger>
               <SelectContent>
-                {(item.group_id ? CIRCUIT_TIME_OPTIONS : TIME_OPTIONS).map((o) => (
+                {(hideSets ? CIRCUIT_TIME_OPTIONS : TIME_OPTIONS).map((o) => (
                   <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
                 ))}
               </SelectContent>
