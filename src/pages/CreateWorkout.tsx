@@ -174,7 +174,7 @@ function ExerciseRow({
             src={exerciseInfo.video_url}
             poster={thumbnail || undefined}
             preload="metadata"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-contain bg-muted"
             muted
             loop
             playsInline
@@ -183,7 +183,7 @@ function ExerciseRow({
           />
 
         ) : thumbnail ? (
-          <img src={thumbnail} alt="" className="w-full h-full object-cover" />
+          <img src={thumbnail} alt="" className="w-full h-full object-contain bg-muted" />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-muted-foreground/30 text-xs">IMG</div>
         )}
@@ -368,7 +368,7 @@ function ExerciseLibraryCard({ exercise, onAdd }: { exercise: any; onAdd: () => 
           <img
             src={thumbnail}
             alt={exercise.name}
-            className="absolute inset-0 w-full h-full object-cover"
+            className="absolute inset-0 w-full h-full object-contain bg-muted"
             loading="lazy"
             decoding="async"
             style={{ opacity: isHovered && exercise.video_url ? 0 : 1, transition: "opacity 0.15s" }}
@@ -390,7 +390,7 @@ function ExerciseLibraryCard({ exercise, onAdd }: { exercise: any; onAdd: () => 
             loop
             autoPlay
             onLoadedData={(e) => e.currentTarget.play().catch(() => {})}
-            className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+            className="absolute inset-0 w-full h-full object-contain bg-muted pointer-events-none"
           />
         )}
 

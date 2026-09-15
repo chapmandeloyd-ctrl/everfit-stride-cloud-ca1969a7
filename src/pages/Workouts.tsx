@@ -78,6 +78,11 @@ const difficultyColors = {
   Advanced: "bg-destructive/10 text-destructive",
 };
 
+const getDisplayedDuration = (name: string, savedDuration: number | null) => {
+  const namedDuration = name.match(/\b(\d+)\s*[- ]?\s*min(?:ute)?s?\b/i);
+  return namedDuration ? Number(namedDuration[1]) : savedDuration;
+};
+
 export default function Workouts() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -319,7 +324,7 @@ export default function Workouts() {
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1.5">
                       <Clock className="h-3.5 w-3.5" />
-                      <span>{workout.duration_minutes} min</span>
+                      <span>{getDisplayedDuration(workout.name, workout.duration_minutes)} min</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <Users className="h-3.5 w-3.5" />

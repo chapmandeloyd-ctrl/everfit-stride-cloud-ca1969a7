@@ -161,7 +161,7 @@ export function ExerciseLibrarySheet({ open, onClose, onAdd, title }: ExerciseLi
                 >
                   <div className="h-14 w-14 rounded-lg overflow-hidden bg-muted shrink-0 flex items-center justify-center">
                     {thumb ? (
-                      <img src={thumb} alt={ex.name} className="w-full h-full object-cover" />
+                      <img src={thumb} alt={ex.name} className="w-full h-full object-contain bg-muted" />
                     ) : (
                       <Dumbbell className="h-6 w-6 text-muted-foreground/40" />
                     )}
