@@ -560,6 +560,7 @@ export default function WorkoutDetail() {
         dbStartedAt={activeStartedAt}
         coachVoiceId={(workout as any).coach_voice_id || null}
         outroText={(workout as any).outro_text || null}
+        displayMinutes={displayedMinutes}
       />
     );
   }

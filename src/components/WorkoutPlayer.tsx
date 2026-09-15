@@ -119,6 +119,7 @@ interface WorkoutPlayerProps {
   dbStartedAt?: string | null;
   coachVoiceId?: string | null;
   outroText?: string | null;
+  displayMinutes?: number | null;
 }
 
 interface WorkoutStep {
@@ -425,7 +426,7 @@ function WorkoutCompleteScreen({ workoutName, onSave }: { workoutName?: string; 
   );
 }
 
-export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, onDiscard, onExit, onSaveForLater, onProgressSave, resumeFromStep, resumeSetLogs, resumeElapsed, activeSessionId, dbStartedAt, coachVoiceId, outroText }: WorkoutPlayerProps) {
+export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, onDiscard, onExit, onSaveForLater, onProgressSave, resumeFromStep, resumeSetLogs, resumeElapsed, activeSessionId, dbStartedAt, coachVoiceId, outroText, displayMinutes }: WorkoutPlayerProps) {
   const { toast } = useToast();
   const liveActivity = useLiveActivity();
   const startedAtRef = useRef(dbStartedAt ?? new Date().toISOString());
@@ -1096,7 +1097,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
         <div className="text-center">
           <p className="text-xs font-bold uppercase tracking-[0.28em] text-cue">Ready</p>
           <h1 className="mt-2 font-display text-3xl font-black uppercase leading-tight">{workoutName}</h1>
-          <p className="mt-2 text-sm text-muted-foreground">{steps.filter((step) => step.type === "exercise").length} exercises · About {Math.ceil(totalEstimatedSeconds / 60)} minutes</p>
+          <p className="mt-2 text-sm text-muted-foreground">{steps.filter((step) => step.type === "exercise").length} exercises · About {displayMinutes || Math.ceil(totalEstimatedSeconds / 60)} minutes</p>
         </div>
         <section className="mt-6 rounded-2xl border border-border bg-card p-4">
           <div className="flex items-center justify-between gap-3">
@@ -1150,7 +1151,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
 
   // ─── INTRO / LINEUP REVEAL ───
   if (phase === "intro") {
-    const totalCalcMinutes = Math.ceil(totalEstimatedSeconds / 60);
+    const totalCalcMinutes = displayMinutes || Math.ceil(totalEstimatedSeconds / 60);
     const totalExCount = steps.filter(s => s.type === "exercise").length;
     return (
       <WorkoutIntro
