@@ -235,6 +235,10 @@ function buildSteps(sections: Section[]): WorkoutStep[] {
 let persistentAudio: HTMLAudioElement | null = null;
 let activeAudio: HTMLAudioElement | null = null;
 let speechAbortController: AbortController | null = null;
+const coachSpeakingListeners = new Set<(speaking: boolean) => void>();
+function setCoachSpeaking(speaking: boolean) {
+  coachSpeakingListeners.forEach((listener) => listener(speaking));
+}
 
 // Web Audio routing — lets us amplify TTS output above 1.0 (HTMLAudioElement
 // caps at volume=1, which is too quiet on iOS where media volume is separate
@@ -291,6 +295,7 @@ function cancelSpeech() {
     speechAbortController.abort();
     speechAbortController = null;
   }
+  setCoachSpeaking(false);
 }
 
 // Pre-cached audio clips for countdown (filled at intro time)
@@ -353,6 +358,7 @@ export function setWorkoutVoice(voiceId: string) {
 
 async function elevenLabsSpeakNow(text: string): Promise<void> {
   cancelSpeech();
+  setCoachSpeaking(true);
   const controller = new AbortController();
   speechAbortController = controller;
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -371,9 +377,13 @@ async function elevenLabsSpeakNow(text: string): Promise<void> {
     });
   } catch {
     if (!controller.signal.aborted) console.warn("ElevenLabs TTS failed, no fallback");
+    setCoachSpeaking(false);
     return;
   }
-  if (!response.ok || controller.signal.aborted) return;
+  if (!response.ok || controller.signal.aborted) {
+    setCoachSpeaking(false);
+    return;
+  }
   const blob = await response.blob();
   if (controller.signal.aborted) return;
   const url = URL.createObjectURL(blob);
@@ -387,10 +397,11 @@ async function elevenLabsSpeakNow(text: string): Promise<void> {
   if (voiceAudioCtx?.state === "suspended") voiceAudioCtx.resume().catch(() => {});
   speechAbortController = null;
   return new Promise((resolve) => {
-    audio.onended = () => { URL.revokeObjectURL(url); if (activeAudio === audio) activeAudio = null; resolve(); };
-    audio.onerror = () => { URL.revokeObjectURL(url); resolve(); };
+    audio.onended = () => { URL.revokeObjectURL(url); if (activeAudio === audio) activeAudio = null; setCoachSpeaking(false); resolve(); };
+    audio.onerror = () => { URL.revokeObjectURL(url); setCoachSpeaking(false); resolve(); };
     audio.play().catch(() => {
       URL.revokeObjectURL(url);
+      setCoachSpeaking(false);
       resolve();
     });
   });
@@ -419,6 +430,7 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
   const liveActivity = useLiveActivity();
   const startedAtRef = useRef(dbStartedAt ?? new Date().toISOString());
   const [setLogs, setSetLogs] = useState<Record<string, SetLog>>(resumeSetLogs || {});
+  const [coachSpeaking, setCoachSpeakingState] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
   const [endReason, setEndReason] = useState<string>("");
   const skippedEventsRef = useRef<any[]>([]);
@@ -443,6 +455,11 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
       document.removeEventListener("visibilitychange", onVisible);
       try { sentinel?.release?.(); } catch {}
     };
+  }, []);
+
+  useEffect(() => {
+    coachSpeakingListeners.add(setCoachSpeakingState);
+    return () => coachSpeakingListeners.delete(setCoachSpeakingState);
   }, []);
 
 
@@ -1310,6 +1327,16 @@ export function WorkoutPlayer({ workoutName, sections, onComplete, onEndEarly, o
                 <span className="text-8xl font-black text-foreground/10">
                   {currentExercise?.exercise_name?.charAt(0) || "?"}
                 </span>
+              </div>
+            )}
+
+            {coachSpeaking && (
+              <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-background/90 px-6 text-center backdrop-blur-sm animate-fade-in">
+                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.25em] text-cue">
+                  <span className="size-2 rounded-full bg-cue animate-pulse" /> Coach Speaking
+                </div>
+                <CoachWaveform />
+                <p className="max-w-xs text-xs text-muted-foreground">Listen to your coach. The timer begins after the cue.</p>
               </div>
             )}
 
