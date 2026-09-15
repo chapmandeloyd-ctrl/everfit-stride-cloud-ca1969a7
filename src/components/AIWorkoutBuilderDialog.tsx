@@ -29,8 +29,11 @@ interface WorkoutExercise {
 
 interface ExerciseGroup {
   id: string;
-  type: "superset" | "circuit";
+  type: "superset" | "circuit" | "straight";
   sets: number;
+  block_type?: string;
+  custom_name?: string;
+  intro_text?: string;
 }
 
 interface AIWorkoutBuilderDialogProps {
@@ -55,6 +58,9 @@ interface AISuggestion {
   rest_seconds: number;
   reason?: string;
   notes?: string;
+  form_cue_start?: string;
+  form_cue_mid?: string;
+  form_cue_switch?: string;
 }
 
 interface AISection {
@@ -62,6 +68,7 @@ interface AISection {
   section_name: string;
   section_type: "straight_set" | "superset" | "circuit";
   rounds: number;
+  intro_text?: string;
   exercises: AISuggestion[];
 }
 
@@ -99,7 +106,13 @@ const sanitizeWorkoutResult = (r: AIWorkoutResult): AIWorkoutResult => ({
     // Force section_name to match the predefined block_label so it maps to a real block type
     // and never shows as "Custom Block".
     section_name: sanitizeName(sec.block_label || sec.section_name),
-    exercises: sec.exercises.map(ex => ({ ...ex, exercise_name: sanitizeName(ex.exercise_name) })),
+    intro_text: sec.intro_text ? sanitizeName(sec.intro_text) : undefined,
+    exercises: sec.exercises.map(ex => ({
+      ...ex,
+      exercise_name: sanitizeName(ex.exercise_name),
+      form_cue_start: ex.form_cue_start ? sanitizeName(ex.form_cue_start) : undefined,
+      form_cue_mid: ex.form_cue_mid ? sanitizeName(ex.form_cue_mid) : undefined,
+    })),
   })),
 });
 
@@ -238,16 +251,17 @@ export function AIWorkoutBuilderDialog({
     const newGroups: ExerciseGroup[] = [];
 
     for (const section of workoutResult.sections) {
-      let groupId: string | null = null;
-
-      if (section.section_type !== "straight_set" && section.exercises.length >= 2) {
-        groupId = crypto.randomUUID();
-        newGroups.push({
-          id: groupId,
-          type: section.section_type as "superset" | "circuit",
-          sets: section.rounds || 3,
-        });
-      }
+      // Every section becomes a block so its "Coach Reads Aloud" intro is kept.
+      const groupId = crypto.randomUUID();
+      const blockName = (section.block_label || section.section_name || "").trim();
+      newGroups.push({
+        id: groupId,
+        type: section.section_type === "straight_set" ? "straight" : (section.section_type as "superset" | "circuit"),
+        sets: section.section_type === "straight_set" ? 1 : (section.rounds || 3),
+        block_type: "custom",
+        custom_name: blockName || "Main",
+        intro_text: section.intro_text?.trim() || undefined,
+      });
 
       for (const ex of section.exercises) {
         const found = findExerciseByName(ex.exercise_name);
@@ -273,7 +287,10 @@ export function AIWorkoutBuilderDialog({
           exercise_type: "normal",
           selected: false,
           group_id: groupId,
-        });
+          form_cue_start: ex.form_cue_start || "",
+          form_cue_mid: ex.form_cue_mid || "",
+          form_cue_switch: ex.form_cue_switch || "",
+        } as WorkoutExercise);
       }
     }
 

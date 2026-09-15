@@ -96,7 +96,11 @@ RULES:
 - Keep daily notes short and actionable (under 80 chars)
 
 BLOCK NAMING — use ONLY these exact section_name / block_label values:
-"Warm-Up", "Working Sets", "Power / Explosive", "Conditioning", "Accessory / Isolation", "Cool Down / Mobility", "Finisher", "Skill / Drill", "Circuit", "Superset", "Interval"`;
+"Warm-Up", "Working Sets", "Power / Explosive", "Conditioning", "Accessory / Isolation", "Cool Down / Mobility", "Finisher", "Skill / Drill", "Circuit", "Superset", "Interval"
+
+COACH VOICE — REQUIRED FOR EVERY BLOCK AND EVERY EXERCISE:
+- Every section MUST include intro_text: a "Coach Reads Aloud" script of 1-2 short sentences spoken directly to the athlete (e.g. "Let's prime the nervous system and warm up the muscles. Focus on crisp coordination and landing mechanics.").
+- Every exercise MUST include exactly two cues: form_cue_start and form_cue_mid. Each is ONE short sentence, second person, plain spoken coaching, under 90 characters, no numbering, no quotes, no emoji. They must be specific to that movement and different from each other.`;
 
       tools = [{
         type: "function",
@@ -132,6 +136,7 @@ BLOCK NAMING — use ONLY these exact section_name / block_label values:
                             ],
                           },
                           section_name: { type: "string" },
+                          intro_text: { type: "string", description: "COACH READS ALOUD script for this block: 1-2 short sentences, second person, spoken out loud to the athlete before the block starts." },
                           section_type: { type: "string", enum: ["straight_set", "superset", "circuit"] },
                           rounds: { type: "number" },
                           exercises: {
@@ -144,13 +149,15 @@ BLOCK NAMING — use ONLY these exact section_name / block_label values:
                                 reps_or_time: { type: "string" },
                                 rest_seconds: { type: "number" },
                                 notes: { type: "string" },
+                                form_cue_start: { type: "string", description: "First coaching cue, one short sentence, second person, setup//execution focus." },
+                                form_cue_mid: { type: "string", description: "Second coaching cue, one short sentence, second person, quality/tempo/breathing focus. Must differ from form_cue_start." },
                               },
-                              required: ["exercise_name", "sets", "reps_or_time", "rest_seconds"],
+                              required: ["exercise_name", "sets", "reps_or_time", "rest_seconds", "form_cue_start", "form_cue_mid"],
                               additionalProperties: false,
                             },
                           },
                         },
-                        required: ["block_label", "section_name", "section_type", "rounds", "exercises"],
+                        required: ["block_label", "section_name", "section_type", "rounds", "intro_text", "exercises"],
                         additionalProperties: false,
                       },
                     },
@@ -321,7 +328,11 @@ You MUST use ONLY these exact block_label values for every section. Do NOT inven
   • "Superset"           — two exercises back-to-back
   • "Interval"           — timed work/rest periods
 
-Pick the most appropriate block_label for each section based on its purpose. The section_name field should match block_label EXACTLY (no extra words, no numbering).`;
+Pick the most appropriate block_label for each section based on its purpose. The section_name field should match block_label EXACTLY (no extra words, no numbering).
+
+COACH VOICE — REQUIRED FOR EVERY BLOCK AND EVERY EXERCISE:
+- Every section MUST include intro_text: a "Coach Reads Aloud" script of 1-2 short sentences spoken directly to the athlete (e.g. "Let's prime the nervous system and warm up the muscles. Focus on crisp coordination and landing mechanics.").
+- Every exercise MUST include exactly two cues: form_cue_start and form_cue_mid. Each is ONE short sentence, second person, plain spoken coaching, under 90 characters, no numbering, no quotes, no emoji. They must be specific to that movement and different from each other.`;
 
       tools = [{
         type: "function",
@@ -358,6 +369,7 @@ Pick the most appropriate block_label for each section based on its purpose. The
                       description: "MUST be one of the trainer's predefined block types — exact match required.",
                     },
                     section_name: { type: "string", description: "Should equal block_label exactly. Do NOT invent custom names." },
+                    intro_text: { type: "string", description: "COACH READS ALOUD script for this block: 1-2 short sentences, second person, spoken out loud to the athlete before the block starts." },
                     section_type: { type: "string", enum: ["straight_set", "superset", "circuit"] },
                     rounds: { type: "number", description: "Number of rounds for supersets/circuits, 1 for straight sets" },
                     exercises: {
@@ -369,14 +381,16 @@ Pick the most appropriate block_label for each section based on its purpose. The
                           sets: { type: "number" },
                           reps_or_time: { type: "string", description: "e.g. '12' or '30 sec'" },
                           rest_seconds: { type: "number" },
-                          notes: { type: "string", description: "Optional form cues or notes" },
+                          notes: { type: "string", description: "Optional extra note" },
+                          form_cue_start: { type: "string", description: "First coaching cue, one short sentence, second person, setup/execution focus." },
+                          form_cue_mid: { type: "string", description: "Second coaching cue, one short sentence, second person, quality/tempo/breathing focus. Must differ from form_cue_start." },
                         },
-                        required: ["exercise_name", "sets", "reps_or_time", "rest_seconds"],
+                        required: ["exercise_name", "sets", "reps_or_time", "rest_seconds", "form_cue_start", "form_cue_mid"],
                         additionalProperties: false,
                       },
                     },
                   },
-                  required: ["block_label", "section_name", "section_type", "rounds", "exercises"],
+                  required: ["block_label", "section_name", "section_type", "rounds", "intro_text", "exercises"],
                   additionalProperties: false,
                 },
               },
