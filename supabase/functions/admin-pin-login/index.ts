@@ -41,8 +41,7 @@ serve(async (req: Request) => {
       console.error("ADMIN_PIN secret is not configured");
       return json({ error: "Admin PIN is not configured" }, 500);
     }
-    const probe = body?.probe === "TEMP_LOOKUP_CHECK";
-    if (!probe && (!pin || pin !== adminPin)) {
+    if (!pin || pin !== adminPin) {
       return json({ error: "Invalid PIN" }, 401);
     }
 
