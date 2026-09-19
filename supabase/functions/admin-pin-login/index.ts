@@ -46,32 +46,6 @@ serve(async (req: Request) => {
       return json({ error: "Invalid PIN" }, 401);
     }
 
-    if (probe) {
-      const url = Deno.env.get("SUPABASE_URL") ?? "";
-      const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-      const out: Record<string, unknown> = {
-        hasUrl: !!url,
-        urlHost: url ? new URL(url).host : null,
-        keyLen: key.length,
-      };
-      for (const [label, path] of [
-        ["health", "/auth/v1/health"],
-        ["rest", "/rest/v1/profiles?select=email&limit=1"],
-      ] as const) {
-        const t0 = Date.now();
-        try {
-          const r = await withTimeout(
-            fetch(`${url}${path}`, { headers: { apikey: key, Authorization: `Bearer ${key}` } }),
-            8000,
-            label
-          );
-          out[label] = { status: r.status, ms: Date.now() - t0, body: (await r.text()).slice(0, 200) };
-        } catch (e) {
-          out[label] = { error: String(e), ms: Date.now() - t0 };
-        }
-      }
-      return json(out, 200);
-    }
 
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
