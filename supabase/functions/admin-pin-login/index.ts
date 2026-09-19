@@ -14,6 +14,9 @@ const json = (body: unknown, status: number) =>
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+// Cached across warm invocations so a slow REST gateway can't block login twice.
+let cachedTrainerEmail: string | null = null;
+
 /** Reject after `ms` so a hung auth call can't stall the whole request. */
 function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
   return Promise.race([
