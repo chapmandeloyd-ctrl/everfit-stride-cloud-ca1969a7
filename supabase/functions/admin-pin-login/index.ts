@@ -41,37 +41,10 @@ serve(async (req: Request) => {
       console.error("ADMIN_PIN secret is not configured");
       return json({ error: "Admin PIN is not configured" }, 500);
     }
-    const probe = body?.probe === "TEMP_LOOKUP_CHECK";
-    if (!probe && (!pin || pin !== adminPin)) {
+    if (!pin || pin !== adminPin) {
       return json({ error: "Invalid PIN" }, 401);
     }
 
-    if (probe) {
-      const url = Deno.env.get("SUPABASE_URL") ?? "";
-      const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-      const out: Record<string, unknown> = {
-        hasUrl: !!url,
-        urlHost: url ? new URL(url).host : null,
-        keyLen: key.length,
-      };
-      for (const [label, path] of [
-        ["health", "/auth/v1/health"],
-        ["rest", "/rest/v1/profiles?select=email&limit=1"],
-      ] as const) {
-        const t0 = Date.now();
-        try {
-          const r = await withTimeout(
-            fetch(`${url}${path}`, { headers: { apikey: key, Authorization: `Bearer ${key}` } }),
-            8000,
-            label
-          );
-          out[label] = { status: r.status, ms: Date.now() - t0, body: (await r.text()).slice(0, 200) };
-        } catch (e) {
-          out[label] = { error: String(e), ms: Date.now() - t0 };
-        }
-      }
-      return json(out, 200);
-    }
 
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -144,8 +117,6 @@ serve(async (req: Request) => {
 
 
     if (!email) return json({ error: "No trainer account found" }, 404);
-
-    if (probe) return json({ ok: true, found: true }, 200);
 
     // 2. Mint a magic link. Auth occasionally hangs; bound each attempt and
     //    retry quickly so we always answer well inside the client timeout.
