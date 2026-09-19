@@ -51,11 +51,40 @@ serve(async (req: Request) => {
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    // 1. Resolve the trainer account. A brief REST gateway interruption used
-    // to fail a valid PIN immediately, so retry this stage just like auth.
+    // 1. Resolve the trainer account. The REST gateway has been stalling, so
+    //    the auth admin API (which stays responsive) is now the primary path.
     let email: string | null = cachedTrainerEmail;
     let trainerLookupError: unknown = null;
+
     for (let attempt = 0; !email && attempt < 3; attempt += 1) {
+      const t0 = Date.now();
+      try {
+        const { data, error } = await withTimeout(
+          supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 200 }),
+          5000,
+          "auth user list"
+        );
+        console.log(`auth user list attempt ${attempt + 1} took ${Date.now() - t0}ms`);
+        if (error) throw error;
+        const users = data?.users ?? [];
+        const trainer = users.find(
+          (u: any) => u.user_metadata?.role === "trainer" || u.app_metadata?.role === "trainer"
+        );
+        email = trainer?.email ?? null;
+        if (email) {
+          trainerLookupError = null;
+          break;
+        }
+        throw new Error("No trainer found in auth users");
+      } catch (e) {
+        trainerLookupError = e;
+        console.error(`auth user list attempt ${attempt + 1} failed after ${Date.now() - t0}ms:`, e);
+        if (attempt < 2) await wait(300);
+      }
+    }
+
+    // Fallback: profiles table, in case auth metadata is missing the role.
+    if (!email) {
       const t0 = Date.now();
       try {
         const { data, error } = await withTimeout(
@@ -66,37 +95,15 @@ serve(async (req: Request) => {
             .order("created_at", { ascending: true })
             .limit(1)
             .maybeSingle(),
-          9000,
+          5000,
           "trainer lookup"
         );
-        console.log(`trainer lookup attempt ${attempt + 1} took ${Date.now() - t0}ms`);
+        console.log(`profiles fallback took ${Date.now() - t0}ms`);
         if (error) throw error;
         email = data?.email ?? null;
-        trainerLookupError = null;
-        break;
-      } catch (e) {
-        trainerLookupError = e;
-        console.error(`trainer lookup attempt ${attempt + 1} failed after ${Date.now() - t0}ms:`, e);
-        if (attempt < 2) await wait(400);
-      }
-    }
-
-    // Fallback: the REST gateway can stall while the auth admin API stays fine.
-    if (!email) {
-      try {
-        const { data, error } = await withTimeout(
-          supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 200 }),
-          9000,
-          "auth user list"
-        );
-        if (error) throw error;
-        const trainer = data?.users?.find(
-          (u: any) => u.user_metadata?.role === "trainer" || u.app_metadata?.role === "trainer"
-        );
-        email = trainer?.email ?? data?.users?.[0]?.email ?? null;
         if (email) trainerLookupError = null;
       } catch (e) {
-        console.error("auth fallback lookup failed:", e);
+        console.error("profiles fallback failed:", e);
       }
     }
 
