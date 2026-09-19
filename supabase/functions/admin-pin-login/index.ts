@@ -53,9 +53,9 @@ serve(async (req: Request) => {
 
     // 1. Resolve the trainer account. A brief REST gateway interruption used
     // to fail a valid PIN immediately, so retry this stage just like auth.
-    let email: string | null = null;
+    let email: string | null = cachedTrainerEmail;
     let trainerLookupError: unknown = null;
-    for (let attempt = 0; attempt < 2; attempt += 1) {
+    for (let attempt = 0; !email && attempt < 3; attempt += 1) {
       const t0 = Date.now();
       try {
         const { data, error } = await withTimeout(
@@ -66,7 +66,7 @@ serve(async (req: Request) => {
             .order("created_at", { ascending: true })
             .limit(1)
             .maybeSingle(),
-          6000,
+          9000,
           "trainer lookup"
         );
         console.log(`trainer lookup attempt ${attempt + 1} took ${Date.now() - t0}ms`);
@@ -77,14 +77,36 @@ serve(async (req: Request) => {
       } catch (e) {
         trainerLookupError = e;
         console.error(`trainer lookup attempt ${attempt + 1} failed after ${Date.now() - t0}ms:`, e);
-        if (attempt === 0) await wait(350);
+        if (attempt < 2) await wait(400);
       }
     }
 
-    if (trainerLookupError) {
+    // Fallback: the REST gateway can stall while the auth admin API stays fine.
+    if (!email) {
+      try {
+        const { data, error } = await withTimeout(
+          supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 200 }),
+          9000,
+          "auth user list"
+        );
+        if (error) throw error;
+        const trainer = data?.users?.find(
+          (u: any) => u.user_metadata?.role === "trainer" || u.app_metadata?.role === "trainer"
+        );
+        email = trainer?.email ?? data?.users?.[0]?.email ?? null;
+        if (email) trainerLookupError = null;
+      } catch (e) {
+        console.error("auth fallback lookup failed:", e);
+      }
+    }
+
+    if (!email && trainerLookupError) {
       console.error("Trainer lookup failed after retries:", trainerLookupError);
       return json({ error: "Login service is busy. Tap Enter again." }, 503);
     }
+
+    cachedTrainerEmail = email;
+
 
     if (!email) return json({ error: "No trainer account found" }, 404);
 
