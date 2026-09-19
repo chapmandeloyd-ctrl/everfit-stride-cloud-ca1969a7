@@ -118,6 +118,8 @@ serve(async (req: Request) => {
 
     if (!email) return json({ error: "No trainer account found" }, 404);
 
+    if (probe) return json({ ok: true, found: true }, 200);
+
     // 2. Mint a magic link. Auth occasionally hangs; bound each attempt and
     //    retry quickly so we always answer well inside the client timeout.
     let actionLink: string | null = null;
