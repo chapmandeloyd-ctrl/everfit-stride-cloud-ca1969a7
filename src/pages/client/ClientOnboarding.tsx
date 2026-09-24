@@ -171,7 +171,7 @@ export default function ClientOnboarding() {
     }
     if (isPreview) {
       toast.success("Preview complete — no data was saved");
-      navigate("/trainer");
+      navigate("/dashboard");
       return;
     }
     if (!clientId) {
