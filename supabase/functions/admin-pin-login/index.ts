@@ -120,16 +120,20 @@ serve(async (req: Request) => {
 
     if (!email) return json({ error: "No trainer account found" }, 404);
 
-    // 2. Mint a magic link. Auth occasionally hangs; bound each attempt and
-    //    retry quickly so we always answer well inside the client timeout.
+    // 2. Mint a magic link. When auth is slow the call still finishes — aborting
+    //    and retrying only restarts the wait — so give one attempt plenty of
+    //    time, and only retry if it errors quickly.
     let actionLink: string | null = null;
     let lastError: unknown = null;
+    const started = Date.now();
     for (let attempt = 0; attempt < 2; attempt += 1) {
       const t0 = Date.now();
+      const remaining = 45000 - (t0 - started);
+      if (remaining < 3000) break;
       try {
         const { data, error } = await withTimeout(
           supabaseAdmin.auth.admin.generateLink({ type: "magiclink", email }),
-          12000,
+          remaining,
           "generateLink"
         );
         console.log(`generateLink attempt ${attempt + 1} took ${Date.now() - t0}ms`);
@@ -140,7 +144,7 @@ serve(async (req: Request) => {
       } catch (e) {
         lastError = e;
         console.error(`generateLink attempt ${attempt + 1} failed after ${Date.now() - t0}ms:`, e);
-        if (attempt === 0) await wait(350);
+        await wait(500);
       }
     }
 
