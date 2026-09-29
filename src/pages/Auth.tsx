@@ -89,7 +89,7 @@ export default function Auth() {
       const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
       const callOnce = async () => {
         const controller = new AbortController();
-        const timer = window.setTimeout(() => controller.abort(), 30000);
+        const timer = window.setTimeout(() => controller.abort(), 55000);
         try {
           const res = await fetch(endpoint, {
             method: "POST",
@@ -114,8 +114,9 @@ export default function Auth() {
       } catch {
         result = { status: 0, payload: {} };
       }
-      // 401 = genuinely wrong PIN. Anything else is transient — retry once.
-      if (result.status !== 200 && result.status !== 401) {
+      // Only retry when the request never reached the server (network drop).
+      // A 503 already waited a long time server-side; retrying just doubles it.
+      if (result.status === 0) {
         await new Promise((r) => window.setTimeout(r, 800));
         try {
           result = await callOnce();
