@@ -52,9 +52,11 @@ serve(async (req: Request) => {
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    // 1. Resolve the trainer account. The REST gateway has been stalling, so
-    //    the auth admin API (which stays responsive) is now the primary path.
-    let email: string | null = cachedTrainerEmail;
+    // 1. Resolve the trainer account. Use the known trainer email directly so
+    //    login never depends on the slow "list all users" call. The lookups
+    //    below only run if that is ever cleared.
+    let email: string | null =
+      cachedTrainerEmail ?? ((Deno.env.get("ADMIN_EMAIL") ?? "").trim() || "ksomfast@yahoo.com");
     let trainerLookupError: unknown = null;
 
     for (let attempt = 0; !email && attempt < 3; attempt += 1) {
@@ -127,7 +129,7 @@ serve(async (req: Request) => {
       try {
         const { data, error } = await withTimeout(
           supabaseAdmin.auth.admin.generateLink({ type: "magiclink", email }),
-          6000,
+          12000,
           "generateLink"
         );
         console.log(`generateLink attempt ${attempt + 1} took ${Date.now() - t0}ms`);
