@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Eye, EyeOff, Shield } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
@@ -21,9 +21,7 @@ export default function Auth() {
     navigate(nextPath || fallback, { replace: true });
   };
   const [isLoading, setIsLoading] = useState(false);
-  const [tab, setTab] = useState<"signin" | "admin">("signin");
   const [signInData, setSignInData] = useState({ email: "", password: "" });
-  const [adminPin, setAdminPin] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
@@ -74,80 +72,6 @@ export default function Auth() {
     }
   };
 
-  const handleAdminPin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!adminPin.trim()) {
-      toast.error("Please enter your PIN");
-      return;
-    }
-    setIsLoading(true);
-    try {
-      const pin = adminPin.trim();
-      // Raw fetch so we can read the status code and the JSON error body even
-      // on non-2xx responses (functions.invoke swallows the body).
-      const endpoint = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-pin-login`;
-      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-      const callOnce = async () => {
-        const controller = new AbortController();
-        const timer = window.setTimeout(() => controller.abort(), 55000);
-        try {
-          const res = await fetch(endpoint, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              apikey: anonKey,
-              Authorization: `Bearer ${anonKey}`,
-            },
-            body: JSON.stringify({ pin }),
-            signal: controller.signal,
-          });
-          const payload = await res.json().catch(() => ({}));
-          return { status: res.status, payload } as { status: number; payload: any };
-        } finally {
-          window.clearTimeout(timer);
-        }
-      };
-
-      let result: { status: number; payload: any };
-      try {
-        result = await callOnce();
-      } catch {
-        result = { status: 0, payload: {} };
-      }
-      // Only retry when the request never reached the server (network drop).
-      // A 503 already waited a long time server-side; retrying just doubles it.
-      if (result.status === 0) {
-        await new Promise((r) => window.setTimeout(r, 800));
-        try {
-          result = await callOnce();
-        } catch {
-          result = { status: 0, payload: {} };
-        }
-      }
-
-      const data = result.payload;
-      if (result.status === 401) throw new Error("Invalid PIN");
-      if (!data?.token_hash) {
-        throw new Error(data?.error || "Login service is busy. Tap Enter again.");
-      }
-
-      const { error: verifyError } = await supabase.auth.verifyOtp({
-        token_hash: data.token_hash,
-        type: "magiclink",
-      });
-
-      if (verifyError) throw verifyError;
-
-      toast.success("Welcome back!");
-      setAdminPin("");
-      goPostAuth("/");
-    } catch (error: any) {
-      toast.error(error.message || "Invalid PIN");
-      if (error?.message === "Invalid PIN") setAdminPin("");
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleForgotPassword = async () => {
     if (!signInData.email) {
@@ -200,42 +124,14 @@ export default function Auth() {
             <p className="text-muted-foreground text-sm mt-0.5">Sign in to your account</p>
           </div>
 
-          {/* Tab Toggle */}
-          <div className="flex bg-muted rounded-xl p-1 gap-1">
-            <button
-              type="button"
-              onClick={() => setTab("signin")}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
-                tab === "signin"
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Sign In
-            </button>
-            <button
-              type="button"
-              onClick={() => setTab("admin")}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-1.5 ${
-                tab === "admin"
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <Shield className="h-3.5 w-3.5" />
-              Admin PIN
-            </button>
-          </div>
-
           {/* Sign In Form */}
-          {tab === "signin" && (
             <form onSubmit={handleSignIn} className="space-y-4">
               <div className="space-y-1.5">
                 <Label htmlFor="signin-email">Email</Label>
                 <Input
                   id="signin-email"
                   type="email"
-                  placeholder="trainer@example.com"
+                  placeholder="you@example.com"
                   value={signInData.email}
                   onChange={(e) => setSignInData({ ...signInData, email: e.target.value })}
                   required
@@ -280,29 +176,6 @@ export default function Auth() {
                 Forgot Password?
               </button>
             </form>
-          )}
-
-          {/* Admin PIN Form */}
-          {tab === "admin" && (
-            <form onSubmit={handleAdminPin} className="space-y-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="admin-pin">PIN Code</Label>
-                <Input
-                  id="admin-pin"
-                  type="password"
-                  placeholder="Enter your PIN"
-                  value={adminPin}
-                  onChange={(e) => setAdminPin(e.target.value)}
-                  autoFocus
-                  required
-                  className="rounded-xl h-11 text-center text-lg tracking-widest"
-                />
-              </div>
-              <Button type="submit" className="w-full h-11 rounded-xl text-base font-semibold" disabled={isLoading}>
-                {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Verifying...</> : "Enter"}
-              </Button>
-            </form>
-          )}
         </div>
       </div>
     </div>
