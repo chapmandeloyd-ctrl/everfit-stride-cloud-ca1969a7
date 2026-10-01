@@ -173,6 +173,7 @@ const Scheduling = lazy(() => import("./pages/Scheduling"));
 const TrainerSettings = lazy(() => import("./pages/TrainerSettings"));
 const TrainerExploreManager = lazy(() => import("./pages/TrainerExploreManager"));
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import ChangeTempPassword from "./pages/ChangeTempPassword";
 import { ImpersonationProvider } from "./hooks/useImpersonation";
 import { AuthProvider } from "./hooks/useAuth";
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
@@ -213,6 +214,7 @@ const App = () => (
         <Suspense fallback={<RouteLoading />}>
         <Routes>
           <Route path="/auth" element={<Auth />} />
+          <Route path="/change-password" element={<ChangeTempPassword />} />
           <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
