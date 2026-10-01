@@ -147,6 +147,7 @@ export default function Clients() {
 
   const activeClients = filteredClients?.filter(c => c.status === "active") || [];
   const pausedClients = filteredClients?.filter(c => c.status === "paused") || [];
+  const pendingClients = filteredClients?.filter(c => c.status === "pending") || [];
   const allClients = filteredClients || [];
 
   const statusColors = {
@@ -402,6 +403,7 @@ export default function Clients() {
             <TabsTrigger value="all">All Clients ({allClients.length})</TabsTrigger>
             <TabsTrigger value="active">Active ({activeClients.length})</TabsTrigger>
             <TabsTrigger value="paused">Paused ({pausedClients.length})</TabsTrigger>
+            <TabsTrigger value="pending">New ({pendingClients.length})</TabsTrigger>
           </TabsList>
 
           <TabsContent value="all" className="space-y-4">
