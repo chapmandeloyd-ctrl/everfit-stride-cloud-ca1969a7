@@ -202,7 +202,7 @@ export default function Clients() {
           </div>
 
           {/* Health Scorecard */}
-          {score && client.status === "active" && (
+          {score && client.status !== "paused" && (
             <div className="px-5 pb-2">
               <ClientHealthScorecard score={score} />
             </div>
@@ -289,7 +289,7 @@ export default function Clients() {
           </div>
 
           {/* Quick Control Panel */}
-          {client.status === "active" && (
+          {client.status !== "paused" && (
             <div className="px-5 pb-4" onClick={(e) => e.stopPropagation()}>
               <QuickControlPanel clientId={client.client_id} trainerId={user?.id || ""} />
             </div>
