@@ -28,7 +28,7 @@ export default function ChangeTempPassword() {
     const { error } = await supabase.auth.updateUser({
       password: pw,
       data: { must_change_password: false },
-      // @ts-expect-error supported by auth server when "require current password" is on
+      // supported by auth server when "require current password" is on
       current_password: current,
     });
     if (error) {
