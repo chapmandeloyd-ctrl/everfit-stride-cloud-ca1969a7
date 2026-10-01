@@ -127,6 +127,15 @@ const handler = async (req: Request): Promise<Response> => {
            }
          );
        }
+       if ((createError as any).code === "weak_password" || createError.name === "AuthWeakPasswordError") {
+         return new Response(
+           JSON.stringify({
+             success: false,
+             error: "That password is too common or has appeared in a data leak. Please choose a stronger, unique password (mix words, numbers and symbols).",
+           }),
+           { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+         );
+       }
        throw createError;
      }
 
