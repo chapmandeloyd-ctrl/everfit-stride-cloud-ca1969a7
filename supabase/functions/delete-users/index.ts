@@ -104,7 +104,7 @@ serve(async (req) => {
       }
 
       // Tables keyed by user_id instead of client_id
-      for (const table of ["user_roles", "profiles", "notification_preferences", "onboarding_progress"]) {
+      for (const table of ["user_roles", "onboarding_progress"]) {
         try {
           await supabaseAdmin.from(table).delete().eq("user_id", userId);
         } catch (e) {
