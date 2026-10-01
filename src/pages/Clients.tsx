@@ -8,7 +8,17 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, MessageSquare, TrendingUp, Plus, Settings, CheckSquare, Mail, Heart, CheckSquare2, Square, Zap } from "lucide-react";
+import { Search, MessageSquare, TrendingUp, Plus, Settings, CheckSquare, Mail, Heart, CheckSquare2, Square, Zap, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { AddClientDialog } from "@/components/AddClientDialog";
