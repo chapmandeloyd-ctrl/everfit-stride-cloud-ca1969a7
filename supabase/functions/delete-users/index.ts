@@ -57,7 +57,8 @@ serve(async (req) => {
 
       if (!relation) throw new Error("Client not found or unauthorized");
 
-      // Delete related data first
+      // Delete related data first (per-table try/catch so one missing
+      // table/column never blocks the rest of the wipe)
       const tables = [
         "client_feature_settings", "client_macro_targets", "client_tasks",
         "client_workouts", "client_meal_plan_assignments", "client_recipe_book_assignments",
@@ -65,11 +66,50 @@ serve(async (req) => {
         "client_goal_countdowns", "fitness_goals", "nutrition_logs",
         "progress_entries", "health_connections", "health_data",
         "health_notifications", "client_badges", "client_notes",
-        "client_meal_selections", "client_habits"
+        "client_meal_selections", "client_habits",
+        "activity_events", "fasting_log", "daily_checkins",
+        "daily_journal_entries", "metric_entries", "client_metrics",
+        "client_progress_tiles", "coach_override_log", "engine_scores",
+        "engine_score_history", "smart_pace_goals", "smart_pace_daily_log",
+        "smart_pace_prescriptions", "juice_fast_sessions", "juice_fast_daily_logs",
+        "sleep_sessions", "cardio_sessions", "notification_preferences",
+        "push_subscriptions", "push_subscription_removals", "leaderboard_opt_ins",
+        "early_session_ends", "client_consistency_streaks", "client_adaptive_profile",
+        "client_meal_behavior", "client_meal_adaptive_scores", "client_keto_assignments",
+        "client_reminders", "client_health_reminders", "client_weekly_schedule",
+        "client_schedule_overrides", "client_rest_day_cards", "client_sport_profiles",
+        "client_sport_day_cards", "client_beverages", "beverage_logs",
+        "client_ical_feeds", "client_insight_history", "coach_custom_insights",
+        "coach_plan_overrides", "copilot_events", "copilot_messages",
+        "checkin_auto_drafts", "recurring_checkin_schedules", "homework_checkins",
+        "dashboard_card_layouts", "onboarding_progress", "saved_workouts",
+        "plan_completions", "quick_fasting_plans", "grocery_lists",
+        "goal_journal_entries", "goal_motivations", "client_weekly_summaries",
+        "recommendation_events", "macro_corrections", "adaptive_macro_adjustments",
+        "ai_plan_proposals", "shot_chart_entries", "game_stat_entries",
+        "batting_sessions", "shooting_sessions", "throwing_sessions", "handle_sessions",
+        "sport_event_completions", "sport_schedule_events", "drill_assignments",
+        "drill_session_results", "athlete_performance_tiers", "guardian_links",
+        "lab_workout_sessions", "in_app_notifications", "notification_log",
+        "habit_loop_preferences", "habit_loop_notifications", "water_goal_settings",
+        "user_metabolic_profile", "fasting_synergy_selection", "client_studio_program_access"
       ];
 
       for (const table of tables) {
-        await supabaseAdmin.from(table).delete().eq("client_id", userId);
+        try {
+          await supabaseAdmin.from(table).delete().eq("client_id", userId);
+        } catch (e) {
+          console.error(`Delete failed for ${table}:`, e);
+        }
+      }
+
+      // Tables keyed by user_id instead of client_id
+      for (const table of ["user_roles", "profiles", "notification_preferences", "onboarding_progress"]) {
+        try {
+          await supabaseAdmin.from(table).delete().eq("user_id", userId);
+        } catch (e) {
+          console.error(`Delete failed for ${table} (user_id):`, e);
+        }
       }
 
       // Delete habit completions
