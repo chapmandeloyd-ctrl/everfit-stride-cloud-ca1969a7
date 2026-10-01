@@ -144,9 +144,8 @@ export function AddClientDialog({ open, onOpenChange }: AddClientDialogProps) {
         .object({
           email: z.string().trim().email("Please enter a valid email address").max(255),
           fullName: z.string().trim().min(1, "Full name is required").max(120),
-          password: z.string().min(8, "Password must be at least 8 characters").max(128),
         })
-        .safeParse({ email, fullName, password });
+        .safeParse({ email, fullName });
       if (!parsed.success) {
         throw new Error(parsed.error.issues[0]?.message ?? "Please check the details you entered");
       }
@@ -155,7 +154,6 @@ export function AddClientDialog({ open, onOpenChange }: AddClientDialogProps) {
         body: {
           email: email.trim(),
           fullName: fullName.trim(),
-          password: password.trim(),
           loginUrl,
         },
       });
@@ -165,9 +163,9 @@ export function AddClientDialog({ open, onOpenChange }: AddClientDialogProps) {
       }
       return data;
     },
-    onSuccess: async () => {
+    onSuccess: async (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
-      const creds = { email: email.trim(), password: password.trim(), name: fullName.trim() };
+      const creds = { email: email.trim(), password: String(data?.tempPassword ?? ""), name: fullName.trim() };
       setCreatedCredentials(creds);
       setStep("success");
 
@@ -236,14 +234,10 @@ export function AddClientDialog({ open, onOpenChange }: AddClientDialogProps) {
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim() || !fullName.trim() || !password.trim()) return;
+    if (!email.trim() || !fullName.trim()) return;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       toast({ title: "Invalid email", description: "Please enter a valid email address", variant: "destructive" });
-      return;
-    }
-    if (password.length < 6) {
-      toast({ title: "Password too short", description: "Password must be at least 6 characters", variant: "destructive" });
       return;
     }
     setStep("preview");
@@ -257,7 +251,7 @@ export function AddClientDialog({ open, onOpenChange }: AddClientDialogProps) {
 
   const getShareText = () => {
     if (!createdCredentials) return "";
-    return `Hey ${createdCredentials.name}! Your APEXBEAST-IF account is ready 💪\n\nLogin here: ${productionUrl}/auth\nEmail: ${createdCredentials.email}\nPassword: ${createdCredentials.password}`;
+    return `Hey ${createdCredentials.name}! Your APEXBEAST-IF account is ready 💪\n\nLogin here: ${productionUrl}/auth\nEmail: ${createdCredentials.email}\nTemporary password: ${createdCredentials.password}\n(You'll set your own password the first time you sign in.)`;
   };
 
   const handleCopy = async () => {
@@ -309,7 +303,7 @@ export function AddClientDialog({ open, onOpenChange }: AddClientDialogProps) {
                 <div className="select-all break-all">{createdCredentials.email}</div>
               </div>
               <div>
-                <div className="text-muted-foreground text-xs mb-1">Password</div>
+                <div className="text-muted-foreground text-xs mb-1">Temporary password (must be changed at first sign-in)</div>
                 <div className="select-all">{createdCredentials.password}</div>
               </div>
             </div>
@@ -378,10 +372,8 @@ export function AddClientDialog({ open, onOpenChange }: AddClientDialogProps) {
                 <Label htmlFor="email">Email *</Label>
                 <Input id="email" type="email" placeholder="client@example.com" value={email} onChange={(e) => setEmail(e.target.value)} maxLength={255} required />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password *</Label>
-                <Input id="password" type="password" placeholder="Minimum 6 characters" value={password} onChange={(e) => setPassword(e.target.value)} minLength={6} required />
-                <p className="text-xs text-muted-foreground">Client will use this password to log in</p>
+              <div className="rounded-md border border-border bg-muted/30 p-3 text-xs text-muted-foreground">
+                The app creates a secure temporary password for you. The client must change it the first time they sign in.
               </div>
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={handleClose}>Cancel</Button>

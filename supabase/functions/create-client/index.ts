@@ -5,7 +5,7 @@ import { z } from "npm:zod@3.23.8";
 const createClientSchema = z.object({
   email: z.string().trim().email().max(255),
   fullName: z.string().trim().min(1).max(120),
-  password: z.string().min(8).max(128),
+  password: z.string().max(128).optional(),
   loginUrl: z.string().max(500).optional(),
 });
 
@@ -77,7 +77,11 @@ const handler = async (req: Request): Promise<Response> => {
         { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
-    const { email, fullName, password } = parsed.data;
+    const { email, fullName } = parsed.data;
+    // App-generated temporary password (client must change it at first sign-in)
+    const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+    const bytes = crypto.getRandomValues(new Uint8Array(12));
+    const password = "Ab-" + Array.from(bytes, (b) => alphabet[b % alphabet.length]).join("") + "!7";
 
     console.log("Creating client for trainer:", trainer.id);
 
@@ -102,6 +106,7 @@ const handler = async (req: Request): Promise<Response> => {
       user_metadata: {
         full_name: fullName.trim(),
         role: "client",
+        must_change_password: true,
       },
     });
 
@@ -195,6 +200,7 @@ const handler = async (req: Request): Promise<Response> => {
       JSON.stringify({
         success: true,
         userId: authData.user.id,
+        tempPassword: password,
         emailSent,
         emailErrorMessage,
       }),

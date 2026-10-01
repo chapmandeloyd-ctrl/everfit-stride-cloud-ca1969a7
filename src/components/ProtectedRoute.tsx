@@ -49,6 +49,11 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
     return <Navigate to={`/auth?next=${encodeURIComponent(next)}`} replace />;
   }
 
+  // Temporary password: block the app until the client sets their own
+  if (user.user_metadata?.must_change_password === true) {
+    return <Navigate to="/change-password" replace />;
+  }
+
   // Allow trainers to access client routes while impersonating a client
   const isTrainerImpersonatingClient = userRole === "trainer" && isImpersonating;
 
