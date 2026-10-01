@@ -191,7 +191,7 @@ export default function Clients() {
                   variant="secondary"
                   className={`${statusColors[client.status as keyof typeof statusColors]} text-xs px-2 py-0 shrink-0`}
                 >
-                  {client.status}
+                  {client.status === "pending" ? "New client · Inactive" : client.status}
                 </Badge>
               </div>
               <p className="text-sm text-muted-foreground break-all mt-0.5">
