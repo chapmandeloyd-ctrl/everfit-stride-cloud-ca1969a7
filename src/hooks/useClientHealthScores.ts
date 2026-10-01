@@ -27,7 +27,7 @@ export function useClientHealthScores(trainerId: string | undefined) {
         .from("trainer_clients")
         .select("client_id")
         .eq("trainer_id", trainerId!)
-        .eq("status", "active");
+        .in("status", ["active", "pending"]);
 
       if (!clients?.length) return {};
 
