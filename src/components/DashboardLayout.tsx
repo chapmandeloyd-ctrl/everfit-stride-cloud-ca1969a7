@@ -56,7 +56,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         .from("trainer_clients")
         .select("*, client:profiles!trainer_clients_client_id_fkey(id, full_name, email)")
         .eq("trainer_id", user?.id)
-        .eq("status", "active")
+        .in("status", ["active", "pending"])
         .order("assigned_at", { ascending: false });
       if (error) throw error;
       return data;
