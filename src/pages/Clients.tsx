@@ -147,6 +147,7 @@ export default function Clients() {
 
   const activeClients = filteredClients?.filter(c => c.status === "active") || [];
   const pausedClients = filteredClients?.filter(c => c.status === "paused") || [];
+  const pendingClients = filteredClients?.filter(c => c.status === "pending") || [];
   const allClients = filteredClients || [];
 
   const statusColors = {
@@ -191,7 +192,7 @@ export default function Clients() {
                   variant="secondary"
                   className={`${statusColors[client.status as keyof typeof statusColors]} text-xs px-2 py-0 shrink-0`}
                 >
-                  {client.status}
+                  {client.status === "pending" ? "New client · Inactive" : client.status}
                 </Badge>
               </div>
               <p className="text-sm text-muted-foreground break-all mt-0.5">
@@ -402,6 +403,7 @@ export default function Clients() {
             <TabsTrigger value="all">All Clients ({allClients.length})</TabsTrigger>
             <TabsTrigger value="active">Active ({activeClients.length})</TabsTrigger>
             <TabsTrigger value="paused">Paused ({pausedClients.length})</TabsTrigger>
+            <TabsTrigger value="pending">New ({pendingClients.length})</TabsTrigger>
           </TabsList>
 
           <TabsContent value="all" className="space-y-4">
@@ -419,6 +421,10 @@ export default function Clients() {
 
           <TabsContent value="paused" className="space-y-4">
             {renderClientList(pausedClients)}
+          </TabsContent>
+
+          <TabsContent value="pending" className="space-y-4">
+            {renderClientList(pendingClients)}
           </TabsContent>
         </Tabs>
       </div>

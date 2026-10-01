@@ -33,7 +33,7 @@ export function ClientListItem({ client }: { client: any }) {
         variant="secondary"
         className={`${statusColors[client.status as keyof typeof statusColors]} text-[10px] px-1.5 py-0 shrink-0`}
       >
-        {client.status}
+        {client.status === "pending" ? "New · Inactive" : client.status}
       </Badge>
       <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
     </button>

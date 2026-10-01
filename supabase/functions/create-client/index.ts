@@ -156,7 +156,7 @@ const handler = async (req: Request): Promise<Response> => {
       .insert({
         trainer_id: trainer.id,
         client_id: authData.user.id,
-        status: "active",
+        status: "pending",
       });
 
     if (relationError) {

@@ -16,6 +16,19 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
 
   const needsRole = !loading && !!user && !!allowedRoles && !userRole;
 
+  // New clients start "pending" (inactive). Once they're in with their own
+  // password, flip them to active (once per browser session).
+  useEffect(() => {
+    if (!user || userRole !== "client" || isImpersonating) return;
+    if (user.user_metadata?.must_change_password === true) return;
+    const key = `client-activated-${user.id}`;
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, "1");
+    void import("@/integrations/supabase/client").then(({ supabase }) =>
+      supabase.functions.invoke("activate-client").catch(() => sessionStorage.removeItem(key))
+    );
+  }, [user, userRole, isImpersonating]);
+
   // Never spin forever waiting on a role: retry the profile once, then give up
   // and send the user back to sign-in instead of an endless loader.
   useEffect(() => {
