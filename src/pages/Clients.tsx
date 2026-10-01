@@ -8,7 +8,17 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, MessageSquare, TrendingUp, Plus, Settings, CheckSquare, Mail, Heart, CheckSquare2, Square, Zap } from "lucide-react";
+import { Search, MessageSquare, TrendingUp, Plus, Settings, CheckSquare, Mail, Heart, CheckSquare2, Square, Zap, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { AddClientDialog } from "@/components/AddClientDialog";
@@ -61,6 +71,27 @@ export default function Clients() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkOpen, setBulkOpen] = useState(false);
   const [selectMode, setSelectMode] = useState(false);
+
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+
+  const deleteClientMutation = useMutation({
+    mutationFn: async (clientId: string) => {
+      const { data, error } = await supabase.functions.invoke("delete-users", {
+        body: { action: "delete", userId: clientId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: () => {
+      toast({ title: "Client deleted", description: "The client and all their data were permanently removed." });
+      setDeleteTarget(null);
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Delete failed", description: error.message || "Could not delete the client", variant: "destructive" });
+    },
+  });
 
   const toggleSelect = (clientId: string) => {
     setSelectedIds(prev => {
@@ -217,6 +248,15 @@ export default function Clients() {
                 onClick={() => navigate(`/clients/${client.client_id}/health`)}
               >
                 <Heart className="h-4 w-4" />
+              </Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-9 w-9 text-muted-foreground hover:bg-destructive hover:text-destructive-foreground"
+                title="Delete Client"
+                onClick={() => setDeleteTarget({ id: client.client_id, name: client.client?.full_name || "this client" })}
+              >
+                <Trash2 className="h-4 w-4" />
               </Button>
             </div>
 
@@ -382,6 +422,30 @@ export default function Clients() {
           </TabsContent>
         </Tabs>
       </div>
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {deleteTarget?.name}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently removes this client and all of their data — workouts, fasting logs, messages, goals, metrics, and their sign-in account. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteClientMutation.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleteClientMutation.isPending}
+              onClick={(e) => {
+                e.preventDefault();
+                if (deleteTarget) deleteClientMutation.mutate(deleteTarget.id);
+              }}
+            >
+              {deleteClientMutation.isPending ? "Deleting..." : "Delete permanently"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AddClientDialog open={addClientDialogOpen} onOpenChange={setAddClientDialogOpen} />
 
