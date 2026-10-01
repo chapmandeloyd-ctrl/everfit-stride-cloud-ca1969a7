@@ -420,6 +420,10 @@ export default function Clients() {
           <TabsContent value="paused" className="space-y-4">
             {renderClientList(pausedClients)}
           </TabsContent>
+
+          <TabsContent value="pending" className="space-y-4">
+            {renderClientList(pendingClients)}
+          </TabsContent>
         </Tabs>
       </div>
 
