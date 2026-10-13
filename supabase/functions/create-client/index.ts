@@ -166,6 +166,15 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Trainer-client relationship created");
 
+    // Every client needs a settings row, otherwise fasting timers can't start.
+    const { error: settingsError } = await supabaseAdmin
+      .from("client_feature_settings")
+      .upsert(
+        { client_id: authData.user.id, trainer_id: trainer.id },
+        { onConflict: "client_id,trainer_id", ignoreDuplicates: true }
+      );
+    if (settingsError) console.error("Error creating client settings:", settingsError);
+
     // Force production URL — never trust browser-provided URLs (could be Lovable editor)
     const PROD_LOGIN_URL = "https://apexbeast-if.app/auth";
     let emailSent = false;
