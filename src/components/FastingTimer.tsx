@@ -2,6 +2,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { getMilestoneBanner, getNextMilestone } from "@/lib/fastingMilestones";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 
 // Fasting stages with hour thresholds, icons, arc colors, and benefits
@@ -251,13 +252,14 @@ export function FastingTimer({ fastStartAt, targetHours, now, demoProgress, comp
       </div>
 
       {/* Stage pill — BELOW ring (tap to view benefits) */}
-      <button
+      <Button
         type="button"
+        variant="ghost"
         onClick={() => setStageSheetOpen(true)}
         aria-label={`View benefits of ${currentStage.label} stage`}
         className={cn(
-          "mt-3 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5",
-          "bg-black/40 backdrop-blur-sm transition-transform active:scale-95 hover:brightness-110"
+          "mt-8 h-auto max-w-full inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5",
+          "bg-background/40 backdrop-blur-sm transition-transform active:scale-95 hover:bg-background/40 hover:brightness-110"
         )}
         style={{
           borderColor: `${currentStage.color}66`,
@@ -274,10 +276,10 @@ export function FastingTimer({ fastStartAt, targetHours, now, demoProgress, comp
         >
           {currentStage.label}
         </span>
-        <span className="text-[9px] font-semibold uppercase tracking-wider text-white/50">
+        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
           Tap ⓘ
         </span>
-      </button>
+      </Button>
 
       <Sheet open={stageSheetOpen} onOpenChange={setStageSheetOpen}>
         <SheetContent
