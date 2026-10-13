@@ -171,7 +171,7 @@ const handler = async (req: Request): Promise<Response> => {
       .from("client_feature_settings")
       .upsert(
         { client_id: authData.user.id, trainer_id: trainer.id },
-        { onConflict: "client_id", ignoreDuplicates: true }
+        { onConflict: "client_id,trainer_id", ignoreDuplicates: true }
       );
     if (settingsError) console.error("Error creating client settings:", settingsError);
 
