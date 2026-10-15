@@ -18,6 +18,8 @@ import { useActiveFastElapsed } from "@/hooks/useActiveFastElapsed";
 import { SmartPaceTourSheet } from "@/components/smart-pace/SmartPaceTourSheet";
 import { useSmartPace } from "@/hooks/useSmartPace";
 import { Sparkles } from "lucide-react";
+import { DailyScoreRing } from "@/components/dashboard/DailyScoreRing";
+
 
 /**
  * Minimal client dashboard — Fasting + Smart Pace + Health tracking tiles.
@@ -139,8 +141,12 @@ export default function ClientDashboardMinimal() {
           <FastingProtocolCard clientId={clientId} navigate={navigate} todaySchedule={todaySchedule} />
         </JuiceFastDashboardSlot>
 
+        {/* Daily performance ring — score, level and streak, taps to the full breakdown */}
+        <DailyScoreRing />
+
         {/* Juice fast entry point — hidden while a juice fast is running. */}
         {!eatingWindowOpen && !isFasting && (
+
           <div className="space-y-2.5 px-5">
             <AlternateFastOptions />
           </div>
