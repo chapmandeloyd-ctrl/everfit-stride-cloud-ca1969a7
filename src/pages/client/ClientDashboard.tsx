@@ -2840,8 +2840,8 @@ export default function ClientDashboard() {
         {/* Today's Coaching */}
         <CoachingCard />
 
-        {/* Daily Score Ring — hidden temporarily, looking for new placement */}
-        {/* <DailyScoreRing /> */}
+        <DailyScoreRing />
+
 
         {/* Workout Tracker — only shows when there are completed sessions */}
         {(() => {
