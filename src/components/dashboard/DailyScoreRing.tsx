@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useDailyScore } from "@/hooks/useDailyScore";
+import { useDailyScore, type DailyScoreResult } from "@/hooks/useDailyScore";
 import { useConsistencyStreak } from "@/hooks/useConsistencyStreak";
 import { useApexbeastLevelProgression } from "@/hooks/useApexbeastLevelProgression";
 import { cn } from "@/lib/utils";
-import { Flame, Zap, ChevronRight, Trophy, Star } from "lucide-react";
+import { Flame, Zap, ChevronRight, Trophy, Star, PlayCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const RING_SIZE = 44;
@@ -12,16 +12,65 @@ const STROKE_WIDTH = 4;
 const RADIUS = (RING_SIZE - STROKE_WIDTH) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
+// Demo-only sample day. Never written anywhere.
+const DEMO_STEPS = [
+  { title: "Started the day", fasting: 0, timing: 0, macros: 0 },
+  { title: "16h fast completed", fasting: 100, timing: 0, macros: 0 },
+  { title: "Logged lunch in window", fasting: 100, timing: 60, macros: 45 },
+  { title: "Logged dinner", fasting: 100, timing: 85, macros: 75 },
+  { title: "Hit macro targets", fasting: 100, timing: 95, macros: 92 },
+];
+
+function buildDemoScore(s: (typeof DEMO_STEPS)[number]): DailyScoreResult {
+  const categories = [
+    { key: "fasting" as const, label: "Fasting", score: s.fasting, weight: 0.4, weighted: s.fasting * 0.4 },
+    { key: "meal_timing" as const, label: "Meal Timing", score: s.timing, weight: 0.3, weighted: s.timing * 0.3 },
+    { key: "macro_quality" as const, label: "Macro Quality", score: s.macros, weight: 0.3, weighted: s.macros * 0.3 },
+  ];
+  const total = Math.round(categories.reduce((a, c) => a + c.weighted, 0));
+  const label = total >= 90 ? "Perfect Day" : total >= 70 ? "Strong Day" : total >= 50 ? "Off Track" : "Reset Needed";
+  const colors = total >= 90 ? { color: "text-emerald-400", ringColor: "#34d399" }
+    : total >= 70 ? { color: "text-sky-400", ringColor: "#38bdf8" }
+    : total >= 50 ? { color: "text-amber-400", ringColor: "#fbbf24" }
+    : { color: "text-red-400", ringColor: "#f87171" };
+  const lowest = [...categories].sort((a, b) => a.score - b.score)[0];
+  return { total, label, ...colors, categories, lowestCategory: lowest, coachMessage: "" };
+}
+
 export function DailyScoreRing() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { data: score, isLoading: scoreLoading } = useDailyScore();
+  const { data: realScore, isLoading: scoreLoading } = useDailyScore();
   const { data: streak, isLoading: streakLoading, recordScore } = useConsistencyStreak();
   const { data: levelData, isLoading: levelLoading, addProgress } = useApexbeastLevelProgression();
   const hasRecordedRef = useRef(false);
   const [showStreakAnim, setShowStreakAnim] = useState(false);
+  const [demoIndex, setDemoIndex] = useState<number | null>(null);
+  const timerRef = useRef<number | null>(null);
+
+  const stopDemo = () => {
+    if (timerRef.current) window.clearInterval(timerRef.current);
+    timerRef.current = null;
+    setDemoIndex(null);
+  };
+  const startDemo = () => {
+    if (timerRef.current) window.clearInterval(timerRef.current);
+    setDemoIndex(0);
+    timerRef.current = window.setInterval(() => {
+      setDemoIndex((i) => {
+        if (i === null || i >= DEMO_STEPS.length - 1) {
+          if (timerRef.current) window.clearInterval(timerRef.current);
+          timerRef.current = null;
+          return i;
+        }
+        return i + 1;
+      });
+    }, 1500);
+  };
+  useEffect(() => () => { if (timerRef.current) window.clearInterval(timerRef.current); }, []);
 
   useEffect(() => {
+    const score = realScore;
     if (!score || !streak || hasRecordedRef.current) return;
     const today = new Date().toISOString().split("T")[0];
     if (streak.lastScoredDate !== today && score.total > 0) {
@@ -58,9 +107,9 @@ export function DailyScoreRing() {
       );
       addProgress.mutate({ scoreLabel: score.label, streak: streak.currentStreak });
     }
-  }, [score, streak]);
+  }, [realScore, streak]);
 
-  if (scoreLoading || streakLoading || levelLoading || !score) {
+  if (scoreLoading || streakLoading || levelLoading || !realScore) {
     return (
       <div className="mx-2 rounded-2xl bg-card p-4 animate-pulse">
         <div className="flex items-center gap-3">
@@ -71,8 +120,11 @@ export function DailyScoreRing() {
     );
   }
 
+  const demoStep = demoIndex !== null ? DEMO_STEPS[demoIndex] : null;
+  const score = demoStep ? buildDemoScore(demoStep) : realScore;
+
   // Zero-activity state — show a clean "get started" card instead of "Reset Needed"
-  if (score.total === 0) {
+  if (!demoStep && score.total === 0) {
     return (
       <div className="mx-2 space-y-2">
         <h2 className="text-lg font-bold text-foreground px-1">Daily Performance</h2>
@@ -81,6 +133,13 @@ export function DailyScoreRing() {
           <p className="text-[11px] text-muted-foreground leading-relaxed">
             {score.coachMessage}
           </p>
+          <button
+            type="button"
+            onClick={startDemo}
+            className="mt-1 inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-3 py-1.5 text-[11px] font-semibold text-primary"
+          >
+            <PlayCircle className="h-3.5 w-3.5" /> Preview demo
+          </button>
         </div>
       </div>
     );
@@ -94,6 +153,59 @@ export function DailyScoreRing() {
   const streakTier = streak?.tierInfo;
   const isPerfectDay = score.total >= 90;
   const weeklyLabel = streak?.weeklyLabel;
+
+  if (demoStep) {
+    return (
+      <div className="mx-2 space-y-2">
+        <div className="flex items-center justify-between px-1">
+          <h2 className="text-lg font-bold text-foreground">Daily Performance</h2>
+          <span className="rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">Demo</span>
+        </div>
+        <div className="w-full rounded-xl bg-black border border-white/10 p-3 space-y-3">
+          <div className="flex items-center gap-3">
+            <div className="relative flex-shrink-0">
+              <svg width={RING_SIZE} height={RING_SIZE} className="-rotate-90">
+                <circle cx={RING_SIZE / 2} cy={RING_SIZE / 2} r={RADIUS} fill="none" stroke="hsl(var(--muted) / 0.25)" strokeWidth={STROKE_WIDTH} />
+                <circle cx={RING_SIZE / 2} cy={RING_SIZE / 2} r={RADIUS} fill="none" stroke={score.ringColor} strokeWidth={STROKE_WIDTH}
+                  strokeLinecap="round" strokeDasharray={CIRCUMFERENCE} strokeDashoffset={dashOffset}
+                  className="transition-all duration-700 ease-out" />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className={cn("text-[11px] font-bold tabular-nums", score.color)}>{score.total}</span>
+              </div>
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className={cn("text-sm font-bold", score.color)}>{score.label}</span>
+                {isPerfectDay && <Star className="h-3.5 w-3.5 text-amber-400 fill-amber-400" />}
+              </div>
+              <p className="text-[11px] text-muted-foreground">Step {demoIndex! + 1}/{DEMO_STEPS.length}: {demoStep.title}</p>
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            {score.categories.map((cat) => (
+              <div key={cat.key} className="flex items-center gap-2">
+                <span className="w-24 text-[10px] uppercase tracking-wider text-muted-foreground">{cat.label}</span>
+                <div className="h-1.5 flex-1 rounded-full bg-muted/30 overflow-hidden">
+                  <div className={cn("h-full rounded-full transition-all duration-700",
+                    cat.score >= 80 ? "bg-emerald-500" : cat.score >= 50 ? "bg-amber-500" : "bg-red-500")}
+                    style={{ width: `${cat.score}%` }} />
+                </div>
+                <span className="w-8 text-right text-[10px] font-bold tabular-nums text-foreground">{cat.score}%</span>
+              </div>
+            ))}
+          </div>
+          <div className="flex items-center justify-between pt-1">
+            <span className="text-[10px] text-muted-foreground">Sample data — your account isn't changed</span>
+            <div className="flex gap-2">
+              <button type="button" onClick={startDemo} className="text-[11px] font-semibold text-primary">Replay</button>
+              <button type="button" onClick={stopDemo} className="text-[11px] font-semibold text-muted-foreground">Exit</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-2 space-y-2">
