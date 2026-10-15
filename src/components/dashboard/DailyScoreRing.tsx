@@ -107,7 +107,7 @@ export function DailyScoreRing() {
       );
       addProgress.mutate({ scoreLabel: score.label, streak: streak.currentStreak });
     }
-  }, [score, streak]);
+  }, [realScore, streak]);
 
   if (scoreLoading || streakLoading || levelLoading || !realScore) {
     return (
