@@ -19,6 +19,7 @@ import { SmartPaceTourSheet } from "@/components/smart-pace/SmartPaceTourSheet";
 import { useSmartPace } from "@/hooks/useSmartPace";
 import { Sparkles } from "lucide-react";
 import { DailyScoreRing } from "@/components/dashboard/DailyScoreRing";
+import { WaterTrackerCard } from "@/components/client/WaterTrackerCard";
 
 
 /**
@@ -143,6 +144,11 @@ export default function ClientDashboardMinimal() {
 
         {/* Daily performance ring — score, level and streak, taps to the full breakdown */}
         <DailyScoreRing />
+
+        {/* Daily water tracker — goal, one-tap logging, celebration at 100% */}
+        <div className="px-5">
+          <WaterTrackerCard />
+        </div>
 
         {/* Juice fast entry point — hidden while a juice fast is running. */}
         {!eatingWindowOpen && !isFasting && (
